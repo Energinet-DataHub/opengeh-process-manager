@@ -2,10 +2,9 @@
 
 ## Intro
 
-The EDI subsystem is responsible for handling incoming and outgoing message too and from DataHub.
-EDI subsystem receives incoming requests from an actor and performs B2B validations on the request.
-The request is then forwarded to relevant subsystem.
-When a actor wishes to peek a message from DataHub. EDI is responsible for generating the message, and ensuring that the correct actor receives the message
+The process manager is responsible of orchestrating most process' in datahub. But it is not responsible of starting them.
+This should be done via the other subsystems [EDI](https://github.com/Energinet-DataHub/opengeh-edi), [frontend](https://github.com/Energinet-DataHub/greenforce-frontend), [wholesale](https://github.com/Energinet-DataHub/opengeh-wholesale) and the like.
+With this in mind, one should do all synchronous validations in the corresponding subsystem and not the process manager, since the process manager is doing everything asynchronous.
 
 ## C4 Diagram of the process manager
 

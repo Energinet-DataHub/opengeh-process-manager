@@ -4,7 +4,7 @@
 
 The process manager is responsible of orchestrating most process' in datahub. But it is not responsible of starting them.
 This should be done via the other subsystems [EDI](https://github.com/Energinet-DataHub/opengeh-edi), [frontend](https://github.com/Energinet-DataHub/greenforce-frontend), [wholesale](https://github.com/Energinet-DataHub/opengeh-wholesale) and the like.
-With this in mind, one should do all synchronous validations in the corresponding subsystem and not the process manager, since the process manager is doing everything asynchronous.
+With this in mind, one should do all synchronous validations in the corresponding subsystem and not in the process manager, since the process manager is doing everything asynchronously.
 
 ## C4 Diagram of the process manager
 

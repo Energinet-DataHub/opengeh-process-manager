@@ -30,7 +30,7 @@ jobs:
   #
   # Detect changes to start relevant workflows
   #
-  #changes:
+  # changes:
   #  uses: ./.github/workflows/detect-changes.yml
 
   #

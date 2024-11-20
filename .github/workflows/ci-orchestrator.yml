@@ -30,8 +30,13 @@ jobs:
   #
   # Detect changes to start relevant workflows
   #
-  # changes:
-  #  uses: ./.github/workflows/detect-changes.yml
+  changes:
+   uses: ./.github/workflows/detect-changes.yml
+
+  ci_dotnet:
+    needs: changes
+    if: ${{ needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.db_migrations == 'true' }}
+    uses: ./.github/workflows/ci-dotnet.yml
 
   #
   # Branch policy status check

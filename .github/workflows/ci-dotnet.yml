@@ -1,0 +1,73 @@
+# Copyright 2020 Energinet DataHub A/S
+#
+# Licensed under the Apache License, Version 2.0 (the "License2");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: CI dotnet
+
+on:
+  workflow_call: {}
+
+jobs:
+  # Build all projects within solution
+  dotnet_ci_build:
+    uses: Energinet-DataHub/.github/.github/workflows/dotnet-build-prerelease.yml@v14
+    with:
+      solution_file_path: source/Edi.Repository.sln
+
+  # Tests that require the integration test environment
+  # DO NOT add ProcessManager.Client tests, they must be executed as part of the "publish" workflow"
+  integration_tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        tests_filter_expression:
+          - name: ProcessManager Tests
+            paths: \source\ProcessManager.Tests\bin\Release\net8.0\Energinet.DataHub.ProcessManager.Tests.dll
+            filter: empty # Means skip
+            use_azure_functions_tools: true
+            contentroot_variable_name: empty # Means skip
+
+          - name: ProcessManager Orchestrations Tests
+            paths: \source\ProcessManager.Orchestrations.Tests\bin\Release\net8.0\Energinet.DataHub.ProcessManager.Orchestrations.Tests.dll
+            filter: empty # Means skip
+            use_azure_functions_tools: true
+            contentroot_variable_name: empty # Means skip
+
+          - name: ProcessManager Core Tests
+            paths: \source\ProcessManager.Core.Tests\bin\Release\net8.0\Energinet.DataHub.ProcessManager.Core.Tests.dll
+            filter: empty # Means skip
+            use_azure_functions_tools: true
+            contentroot_variable_name: empty # Means skip
+
+          - name: ProcessManager Subsystem Tests
+            paths: \source\ProcessManager.SubsystemTests\bin\Release\net8.0\Energinet.DataHub.ProcessManager.SubsystemTests.dll
+            filter: empty # Means skip
+            use_azure_functions_tools: true
+            contentroot_variable_name: empty # Means skip
+
+    uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test.yml@v14
+    with:
+      download_attempt_limit: 20
+      azure_integrationtest_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
+      azure_integrationtest_subscription_id: ${{ vars.integration_test_azure_subscription_id }}
+      azure_integrationtest_spn_id: ${{ vars.integration_test_azure_spn_id_oidc }}
+      azure_keyvault_url: ${{ vars.integration_test_azure_keyvault_url }}
+      environment: AzureAuth
+      run_integration_tests: true
+      # Matrix parameters
+      job_name: ${{ matrix.tests_filter_expression.name }}
+      tests_dll_file_path: ${{ matrix.tests_filter_expression.paths }}
+      tests_filter_expression: ${{ matrix.tests_filter_expression.filter }}
+      use_azure_functions_tools: ${{ matrix.tests_filter_expression.use_azure_functions_tools }}
+      aspnetcore_test_contentroot_variable_name: ${{ matrix.tests_filter_expression.contentroot_variable_name }}
+      aspnetcore_test_contentroot_variable_value: ${{ matrix.tests_filter_expression.contentroot_variable_value }}

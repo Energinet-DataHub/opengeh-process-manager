@@ -22,7 +22,7 @@ jobs:
   dotnet_ci_build:
     uses: Energinet-DataHub/.github/.github/workflows/dotnet-build-prerelease.yml@v14
     with:
-      solution_file_path: source/Edi.Repository.sln
+      solution_file_path: source/ProcessManager.sln
 
   # Tests that require the integration test environment
   # DO NOT add ProcessManager.Client tests, they must be executed as part of the "publish" workflow"

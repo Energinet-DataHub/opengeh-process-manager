@@ -71,7 +71,7 @@ jobs:
       - name: Build and test solution
         uses: Energinet-DataHub/.github/.github/actions/dotnet-solution-build-and-test@v13
         with:
-          solution_file_path: ./source/ProcessManager.Client.Filtered.slnf
+          solution_file_path: ./source/ProcessManager.sln
           azure_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
           azure_subscription_id: ${{ vars.integration_test_azure_subscription_id }}
           azure_spn_id: ${{ vars.integration_test_azure_spn_id_oidc }}

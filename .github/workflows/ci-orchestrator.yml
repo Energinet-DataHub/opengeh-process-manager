@@ -53,7 +53,8 @@ jobs:
     needs:
       [
         ci_base,
-        # ci_dotnet,
+        ci_dotnet,
+        ci_processmanager_client,
       ]
     if: |
       always()

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Prepare dotnet outputs
+name: Prepare dotnet tests outputs
 
 #
 # This action is called from:
@@ -36,28 +36,8 @@ runs:
       shell: bash
       run: |
         dotnet publish \
-          'source/ProcessManager/ProcessManager.csproj' \
+          'source/ProcessManager.SubsystemTests\ProcessManager.SubsystemTests.csproj' \
           --no-build \
           --no-restore \
           --configuration Release \
-          --output '${{ inputs.output_path }}\functions\ProcessManager.Api'
-
-    - name: Publish ProcessManager Orchestrations
-      shell: bash
-      run: |
-        dotnet publish \
-          'source/ProcessManager.Orchestrations/ProcessManager.Orchestrations.csproj' \
-          --no-build \
-          --no-restore \
-          --configuration Release \
-          --output '${{ inputs.output_path }}\functions\ProcessManager.Orchestrations'
-
-    - name: Publish ProcessManager Migration
-      shell: bash
-      run: |
-        dotnet publish \
-          'source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj' \
-          --no-build \
-          --no-restore \
-          --configuration Release \
-          --output '${{ inputs.output_path }}\migration\ProcessManager.DatabaseMigration'
+          --output '${{ inputs.output_path }}\tests\SubsystemTests'

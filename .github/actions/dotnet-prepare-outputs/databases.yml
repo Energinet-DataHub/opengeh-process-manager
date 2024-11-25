@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Prepare dotnet tests outputs
+name: Prepare dotnet database migration outputs
 
 #
-# This action is called from the 'dotnet-build-prerelease.yml' file.
+# This action is called from:
+#  - the 'dotnet-solution-ci.yml' file IF the workflow parameter PREPARE_OUTPUTS is set to 'true'.
+#  - the 'dotnet-build-prerelease.yml' file.
 #
-# Prepared outputs will be zipped and uploaded as the 'dotnet-tests' artifact.
+# Prepared outputs will be zipped and uploaded as the 'dotnet' artifact.
+#
+# All 'migrations' must be output into the '\migrations\' subfolder, to match
+# how they are later retrieved in the '<domain>-stage-deployment.yml' file.
 #
 
 inputs:
@@ -27,22 +32,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Publish subsystem tests
+    - name: Publish ProcessManager Migration
       shell: bash
       run: |
         dotnet publish \
-          '.\source\ProcessManager.SubsystemTests\ProcessManager.SubsystemTests.csproj' \
+          'source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj' \
           --no-build \
           --no-restore \
           --configuration Release \
-          --output '.\source\ProcessManager.SubsystemTests\bin\Release\net8.0'
-
-    - name: Copy all bin folders
-      shell: bash
-      run: |
-        # Create base directory
-        mkdir -p '${{ inputs.output_path }}/source' ';'
-        # Copy everything from source to the new directory
-        cp -a source/. '${{ inputs.output_path }}/source'
-        # Remove obj-directories from artifact
-        find ${{ inputs.output_path }}/ -type d -name 'obj' -exec rm -rf {} +
+          --output '${{ inputs.output_path }}\migrations\DatabaseMigration'

@@ -71,4 +71,4 @@ runs:
           --no-build \
           --no-restore \
           --configuration Release \
-          --output '${{ inputs.output_path }}\tests\ProcessManager.SubsystemTests'
+          --output '${{ inputs.output_path }}\123\ProcessManager.SubsystemTests'

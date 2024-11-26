@@ -27,16 +27,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Publish subsystem tests
-      shell: bash
-      run: |
-        dotnet publish \
-          '.\source\ProcessManager.SubsystemTests\ProcessManager.SubsystemTests.csproj' \
-          --no-build \
-          --no-restore \
-          --configuration Release \
-          --output '.\source\ProcessManager.SubsystemTests\bin\Release\net8.0'
-
     - name: Copy all bin folders
       shell: bash
       run: |

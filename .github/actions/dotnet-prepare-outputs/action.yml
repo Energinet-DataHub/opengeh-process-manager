@@ -63,12 +63,12 @@ runs:
           --configuration Release \
           --output '${{ inputs.output_path }}\migrations\ProcessManager.DatabaseMigration'
 
-    - name: Publish ProcessManager SubsystemTests
-      shell: bash
-      run: |
-        dotnet publish \
-          'source/ProcessManager.SubsystemTests\ProcessManager.SubsystemTests.csproj' \
-          --no-build \
-          --no-restore \
-          --configuration Release \
-          --output '${{ inputs.output_path }}\123\ProcessManager.SubsystemTests'
+    # - name: Publish ProcessManager SubsystemTests
+    #   shell: bash
+    #   run: |
+    #     dotnet publish \
+    #       'source/ProcessManager.SubsystemTests\ProcessManager.SubsystemTests.csproj' \
+    #       --no-build \
+    #       --no-restore \
+    #       --configuration Release \
+    #       --output '${{ inputs.output_path }}\tests\ProcessManager.SubsystemTests'

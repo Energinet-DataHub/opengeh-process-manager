@@ -30,8 +30,19 @@ jobs:
   #
   # Detect changes to start relevant workflows
   #
-  # changes:
-  #  uses: ./.github/workflows/detect-changes.yml
+  changes:
+    uses: ./.github/workflows/detect-changes.yml
+
+  ci_dotnet:
+    needs: changes
+    if: ${{ needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.db_migrations == 'true' }}
+    uses: ./.github/workflows/ci-dotnet.yml
+
+  ci_processmanager_client:
+    needs: changes
+    if: ${{ needs.changes.outputs.processmanager_client == 'true' }}
+    uses: ./.github/workflows/processmanager-client-bundle-publish.yml
+    secrets: inherit
 
   #
   # Branch policy status check
@@ -42,6 +53,8 @@ jobs:
     needs:
       [
         ci_base,
+        ci_dotnet,
+        ci_processmanager_client,
       ]
     if: |
       always()

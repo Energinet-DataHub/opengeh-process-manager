@@ -23,5 +23,5 @@ internal interface IOrchestrationRegisterQueries
 {
     Task<OrchestrationDescription> GetAsync(OrchestrationDescriptionId id);
 
-    Task<OrchestrationDescription?> GetOrDefaultAsync(string name, int version, bool? isEnabled);
+    Task<OrchestrationDescription?> GetOrDefaultAsync(OrchestrationDescriptionUniqueName uniqueName, bool? isEnabled);
 }

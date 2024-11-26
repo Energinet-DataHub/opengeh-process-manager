@@ -39,34 +39,53 @@ internal class OrchestrationInstanceManager(
 
     /// <inheritdoc />
     public async Task<OrchestrationInstanceId> StartNewOrchestrationInstanceAsync<TParameter>(
-        string name,
-        int version,
+        OperatingIdentity identity,
+        OrchestrationDescriptionUniqueName uniqueName,
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence)
             where TParameter : class
     {
-        var orchestrationDescription = await GuardMatchingOrchestrationDescriptionAsync(name, version, inputParameter, skipStepsBySequence).ConfigureAwait(false);
+        var orchestrationDescription = await GuardMatchingOrchestrationDescriptionAsync(
+            uniqueName,
+            inputParameter,
+            skipStepsBySequence).ConfigureAwait(false);
 
-        var orchestrationInstance = await CreateOrchestrationInstanceAsync(inputParameter, orchestrationDescription, skipStepsBySequence).ConfigureAwait(false);
-        await RequestStartOfOrchestrationInstanceAsync(orchestrationDescription, orchestrationInstance).ConfigureAwait(false);
+        var orchestrationInstance = await CreateOrchestrationInstanceAsync(
+            identity,
+            orchestrationDescription,
+            inputParameter,
+            skipStepsBySequence).ConfigureAwait(false);
+
+        await RequestStartOfOrchestrationInstanceAsync(
+            orchestrationDescription,
+            orchestrationInstance).ConfigureAwait(false);
 
         return orchestrationInstance.Id;
     }
 
     /// <inheritdoc />
     public async Task<OrchestrationInstanceId> ScheduleNewOrchestrationInstanceAsync<TParameter>(
-        string name,
-        int version,
+        UserIdentity userIdentity,
+        OrchestrationDescriptionUniqueName uniqueName,
         TParameter inputParameter,
         Instant runAt,
         IReadOnlyCollection<int> skipStepsBySequence)
             where TParameter : class
     {
-        var orchestrationDescription = await GuardMatchingOrchestrationDescriptionAsync(name, version, inputParameter, skipStepsBySequence).ConfigureAwait(false);
+        var orchestrationDescription = await GuardMatchingOrchestrationDescriptionAsync(
+            uniqueName,
+            inputParameter,
+            skipStepsBySequence).ConfigureAwait(false);
+
         if (orchestrationDescription.CanBeScheduled == false)
             throw new InvalidOperationException("Orchestration description cannot be scheduled.");
 
-        var orchestrationInstance = await CreateOrchestrationInstanceAsync(inputParameter, orchestrationDescription, skipStepsBySequence, runAt).ConfigureAwait(false);
+        var orchestrationInstance = await CreateOrchestrationInstanceAsync(
+            userIdentity,
+            orchestrationDescription,
+            inputParameter,
+            skipStepsBySequence,
+            runAt).ConfigureAwait(false);
 
         return orchestrationInstance.Id;
     }
@@ -86,14 +105,14 @@ internal class OrchestrationInstanceManager(
     }
 
     /// <inheritdoc />
-    public async Task CancelScheduledOrchestrationInstanceAsync(OrchestrationInstanceId id)
+    public async Task CancelScheduledOrchestrationInstanceAsync(UserIdentity userIdentity, OrchestrationInstanceId id)
     {
         var orchestrationInstance = await _repository.GetAsync(id).ConfigureAwait(false);
         if (!orchestrationInstance.Lifecycle.IsPendingForScheduledStart())
             throw new InvalidOperationException("Orchestration instance cannot be canceled.");
 
         // Transition lifecycle
-        orchestrationInstance.Lifecycle.TransitionToTerminated(_clock, OrchestrationInstanceTerminationStates.UserCanceled);
+        orchestrationInstance.Lifecycle.TransitionToUserCanceled(_clock, userIdentity);
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
@@ -101,15 +120,14 @@ internal class OrchestrationInstanceManager(
     /// Validate orchestration description is known and that paramter value is valid according to its parameter definition.
     /// </summary>
     private async Task<OrchestrationDescription> GuardMatchingOrchestrationDescriptionAsync<TParameter>(
-        string name,
-        int version,
+        OrchestrationDescriptionUniqueName uniqueName,
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence)
             where TParameter : class
     {
-        var orchestrationDescription = await _orchestrationRegister.GetOrDefaultAsync(name, version, isEnabled: true).ConfigureAwait(false);
+        var orchestrationDescription = await _orchestrationRegister.GetOrDefaultAsync(uniqueName, isEnabled: true).ConfigureAwait(false);
         if (orchestrationDescription == null)
-            throw new InvalidOperationException($"No enabled orchestration description matches Name='{name}' and Version='{version}'.");
+            throw new InvalidOperationException($"No enabled orchestration description matches UniqueName='{uniqueName}'.");
 
         var isValidParameterValue = await orchestrationDescription.ParameterDefinition.IsValidParameterValueAsync(inputParameter).ConfigureAwait(false);
         if (isValidParameterValue == false)
@@ -129,13 +147,15 @@ internal class OrchestrationInstanceManager(
     }
 
     private async Task<OrchestrationInstance> CreateOrchestrationInstanceAsync<TParameter>(
-        TParameter inputParameter,
+        OperatingIdentity identity,
         OrchestrationDescription orchestrationDescription,
+        TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence,
         Instant? runAt = default)
             where TParameter : class
     {
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
+            identity,
             orchestrationDescription,
             skipStepsBySequence,
             _clock,

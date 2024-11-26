@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using NodaTime;
 
@@ -23,8 +24,8 @@ public interface IStartOrchestrationInstanceCommands
     /// Start a new instance of an orchestration.
     /// </summary>
     Task<OrchestrationInstanceId> StartNewOrchestrationInstanceAsync<TParameter>(
-        string name,
-        int version,
+        OperatingIdentity identity,
+        OrchestrationDescriptionUniqueName uniqueName,
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence)
             where TParameter : class;
@@ -33,8 +34,8 @@ public interface IStartOrchestrationInstanceCommands
     /// Schedule a new instance of an orchestration.
     /// </summary>
     Task<OrchestrationInstanceId> ScheduleNewOrchestrationInstanceAsync<TParameter>(
-        string name,
-        int version,
+        UserIdentity identity,
+        OrchestrationDescriptionUniqueName uniqueName,
         TParameter inputParameter,
         Instant runAt,
         IReadOnlyCollection<int> skipStepsBySequence)

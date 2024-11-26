@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Models;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
@@ -28,8 +29,8 @@ public class RequestCalculatedEnergyTimeSeriesHandler(
     public async Task StartRequestCalculatedEnergyTimeSeriesAsync(RequestCalculatedEnergyTimeSeriesInputV1 input)
     {
         await _commands.StartNewOrchestrationInstanceAsync(
-                "BRS_026",
-                1,
+                identity: new ActorIdentity(new ActorId(Guid.NewGuid())), // TODO: Any call to commands must include identity information; see 'ScheduleOrchestrationInstanceDto' and 'CancelOrchestrationInstanceDto'
+                uniqueName: new Brs_026_V1(),
                 input,
                 [])
             .ConfigureAwait(false);

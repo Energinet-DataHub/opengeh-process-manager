@@ -16,5 +16,5 @@ namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
 
 public static class TelemetryConstants
 {
-    public const string SubsystemName = "edi-processmanager";
+    public const string SubsystemName = "processmanager";
 }

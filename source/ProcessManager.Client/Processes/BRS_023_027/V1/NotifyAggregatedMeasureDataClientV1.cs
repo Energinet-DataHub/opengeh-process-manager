@@ -23,6 +23,8 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.M
 
 namespace Energinet.DataHub.ProcessManager.Client.Processes.BRS_023_027.V1;
 
+//// TODO: All operations in this specific client should be moved to the general client
+
 /// <inheritdoc/>
 internal class NotifyAggregatedMeasureDataClientV1 : INotifyAggregatedMeasureDataClientV1
 {
@@ -37,7 +39,7 @@ internal class NotifyAggregatedMeasureDataClientV1 : INotifyAggregatedMeasureDat
 
     /// <inheritdoc/>
     public async Task<Guid> ScheduleNewCalculationAsync(
-        ScheduleOrchestrationInstanceCommand<NotifyAggregatedMeasureDataInputV1> command,
+        ScheduleCalculationCommandV1 command,
         CancellationToken cancellationToken)
     {
         // TODO:

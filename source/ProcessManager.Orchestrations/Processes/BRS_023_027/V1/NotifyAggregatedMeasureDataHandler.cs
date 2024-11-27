@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Api.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
@@ -42,7 +43,9 @@ internal class NotifyAggregatedMeasureDataHandler(
                 identity: new UserIdentity(
                     new UserId(command.OperatingIdentity.UserId),
                     new ActorId(command.OperatingIdentity.ActorId)),
-                uniqueName: new Brs_023_027_V1(),
+                uniqueName: new OrchestrationDescriptionUniqueName(
+                    command.OrchestrationDescriptionUniqueName.Name,
+                    command.OrchestrationDescriptionUniqueName.Version),
                 inputParameter: command.InputParameter,
                 runAt: command.RunAt.ToInstant(),
                 skipStepsBySequence: skipStepsBySequence)

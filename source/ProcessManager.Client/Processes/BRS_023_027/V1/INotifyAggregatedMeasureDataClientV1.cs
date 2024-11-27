@@ -18,6 +18,8 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.M
 
 namespace Energinet.DataHub.ProcessManager.Client.Processes.BRS_023_027.V1;
 
+//// TODO: All operations on this specific client interface should be moved to the general client interface
+
 /// <summary>
 /// Client for using the BRS-023/BRS_027 Process Manager API.
 /// </summary>
@@ -27,7 +29,7 @@ public interface INotifyAggregatedMeasureDataClientV1
     /// Schedule a BRS-023 or BRS-027 calculation and return its id.
     /// </summary>
     public Task<Guid> ScheduleNewCalculationAsync(
-        ScheduleOrchestrationInstanceCommand<NotifyAggregatedMeasureDataInputV1> command,
+        ScheduleCalculationCommandV1 command,
         CancellationToken cancellationToken);
 
     /// <summary>

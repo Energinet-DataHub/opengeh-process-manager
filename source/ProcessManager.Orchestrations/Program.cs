@@ -64,8 +64,12 @@ await host.RunAsync().ConfigureAwait(false);
 
 OrchestrationDescription CreateBrs_023_027_V1Description()
 {
+    var orchestrationDescriptionUniqueName = new Brs_023_027_V1();
+
     var description = new OrchestrationDescription(
-        uniqueName: new Brs_023_027_V1(),
+        uniqueName: new OrchestrationDescriptionUniqueName(
+            orchestrationDescriptionUniqueName.Name,
+            orchestrationDescriptionUniqueName.Version),
         canBeScheduled: true,
         functionName: nameof(NotifyAggregatedMeasureDataOrchestrationV1));
 
@@ -82,8 +86,12 @@ OrchestrationDescription CreateBrs_023_027_V1Description()
 
 OrchestrationDescription CreateBrs_026_V1Description()
 {
+    var orchestrationDescriptionUniqueName = new Brs_026_V1();
+
     var description = new OrchestrationDescription(
-        uniqueName: new Brs_026_V1(),
+        uniqueName: new OrchestrationDescriptionUniqueName(
+            orchestrationDescriptionUniqueName.Name,
+            orchestrationDescriptionUniqueName.Version),
         canBeScheduled: false,
         functionName: nameof(RequestCalculatedEnergyTimeSeriesOrchestrationV1));
 

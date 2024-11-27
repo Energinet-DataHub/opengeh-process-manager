@@ -20,6 +20,10 @@ using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribut
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
+// TODO:
+// This could be refactored into a general "Schedule" trigger whichs then forwards the command to a specific handler.
+// In the handler developers can validate and do other stuff.
+
 internal class NotifyAggregatedMeasureDataTriggerV1(
     NotifyAggregatedMeasureDataHandler handler)
 {

@@ -23,6 +23,8 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.M
 
 namespace Energinet.DataHub.ProcessManager.Client.Processes.BRS_023_027.V1;
 
+//// TODO: All operations in this specific client should be moved to the general client
+
 /// <inheritdoc/>
 internal class NotifyAggregatedMeasureDataClientV1 : INotifyAggregatedMeasureDataClientV1
 {

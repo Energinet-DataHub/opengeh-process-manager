@@ -37,7 +37,7 @@ internal class NotifyAggregatedMeasureDataClientV1 : INotifyAggregatedMeasureDat
 
     /// <inheritdoc/>
     public async Task<Guid> ScheduleNewCalculationAsync(
-        ScheduleOrchestrationInstanceCommand<NotifyAggregatedMeasureDataInputV1> command,
+        ScheduleCalculationCommandV1 command,
         CancellationToken cancellationToken)
     {
         // TODO:

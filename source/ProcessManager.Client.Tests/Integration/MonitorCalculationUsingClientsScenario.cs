@@ -92,7 +92,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
         // Step 1: Schedule new calculation orchestration instance
         var orchestrationInstanceId = await calculationClient
             .ScheduleNewCalculationAsync(
-                new ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.ScheduleOrchestrationInstanceCommand<NotifyAggregatedMeasureDataInputV1>(
+                new ClientTypes.Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model.ScheduleCalculationCommandV1(
                     operatingIdentity: new ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance.UserIdentityDto(
                         UserId: Guid.NewGuid(),
                         ActorId: Guid.NewGuid()),
@@ -134,7 +134,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
         // Step 1: Schedule new calculation orchestration instance
         var orchestrationInstanceId = await calculationClient
             .ScheduleNewCalculationAsync(
-                new ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.ScheduleOrchestrationInstanceCommand<NotifyAggregatedMeasureDataInputV1>(
+                new ClientTypes.Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model.ScheduleCalculationCommandV1(
                     operatingIdentity: new ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance.UserIdentityDto(
                         UserId: Guid.NewGuid(),
                         ActorId: Guid.NewGuid()),

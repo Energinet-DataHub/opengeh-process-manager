@@ -12,29 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationDescription;
+
+namespace Energinet.DataHub.ProcessManager.Api.Model;
 
 /// <summary>
-/// Uniquely identifies a specific implementation of the orchestration.
+/// Interface for commands the require <see cref="OrchestrationDescriptionUniqueName"/>.
+/// Allows us the implement general handling of implementing commands.
 /// </summary>
-public record OrchestrationDescriptionUniqueName
+public interface IOrchestrationDescriptionCommand
 {
-    public OrchestrationDescriptionUniqueName(string name, int version)
-    {
-        // Explicit guard for empty string
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-        Name = name;
-        Version = version;
-    }
-
     /// <summary>
-    /// A common name to identity the orchestration.
+    /// Uniquely identifies the orchestration description from which the
+    /// orchestration instance should be created.
     /// </summary>
-    public string Name { get; }
-
-    /// <summary>
-    /// A version identifying a specific implementation of the orchestration.
-    /// </summary>
-    public int Version { get; }
+    OrchestrationDescriptionUniqueNameDto OrchestrationDescriptionUniqueName { get; }
 }

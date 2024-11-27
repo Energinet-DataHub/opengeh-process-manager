@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Api.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +36,7 @@ internal class NotifyAggregatedMeasureDataTriggerV1(
             Route = "processmanager/orchestrationinstance/brs_023_027/1")]
         HttpRequest httpRequest,
         [FromBody]
-        ScheduleOrchestrationInstanceCommand<NotifyAggregatedMeasureDataInputV1> command,
+        ScheduleCalculationCommandV1 command,
         FunctionContext executionContext)
     {
         var orchestrationInstanceId = await _handler.ScheduleNewCalculationAsync(command).ConfigureAwait(false);

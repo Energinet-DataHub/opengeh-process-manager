@@ -46,19 +46,16 @@
     <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="Model\OrchestrationInstance\" />
-    <Folder Include="Processes\BRS_023_027\V1\Model\" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\ProcessManager\Api\Model\CancelScheduledOrchestrationInstanceCommand.cs" Link="Model\CancelScheduledOrchestrationInstanceCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\IInputParameterDto.cs" Link="Model\IInputParameterDto.cs" />
+    <Compile Include="..\Shared\ProcessManager\Api\Model\IOrchestrationDescriptionCommand.cs" Link="Model\IOrchestrationDescriptionCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\MessageCommand.cs" Link="Model\MessageCommand.cs" />
+    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationDescription\OrchestrationDescriptionUniqueNameDto.cs" Link="Model\OrchestrationDescription\OrchestrationDescriptionUniqueNameDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstanceCommand.cs" Link="Model\OrchestrationInstanceCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstanceTypedDto.cs" Link="Model\OrchestrationInstanceTypedDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\ActorIdentityDto.cs" Link="Model\OrchestrationInstance\ActorIdentityDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\OperatingIdentityDto.cs" Link="Model\OrchestrationInstance\OperatingIdentityDto.cs" />
+    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\IOperatingIdentityDto.cs" Link="Model\OrchestrationInstance\IOperatingIdentityDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\OrchestrationInstanceDto.cs" Link="Model\OrchestrationInstance\OrchestrationInstanceDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\OrchestrationInstanceLifecycleStateDto.cs" Link="Model\OrchestrationInstance\OrchestrationInstanceLifecycleStateDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\OrchestrationInstanceLifecycleStates.cs" Link="Model\OrchestrationInstance\OrchestrationInstanceLifecycleStates.cs" />
@@ -69,8 +66,11 @@
     <Compile Include="..\Shared\ProcessManager\Api\Model\ScheduleOrchestrationInstanceCommand.cs" Link="Model\ScheduleOrchestrationInstanceCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\StartOrchestrationInstanceCommand.cs" Link="Model\StartOrchestrationInstanceCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\UserCommand.cs" Link="Model\UserCommand.cs" />
+    <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\V1\Model\Brs_023_027_V1.cs" Link="Processes\BRS_023_027\V1\Model\Brs_023_027_V1.cs" />
     <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\V1\Model\CalculationTypes.cs" Link="Processes\BRS_023_027\V1\Model\CalculationTypes.cs" />
     <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\V1\Model\NotifyAggregatedMeasureDataInputV1.cs" Link="Processes\BRS_023_027\V1\Model\NotifyAggregatedMeasureDataInputV1.cs" />
+    <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\V1\Model\ScheduleCalculationCommandV1.cs" Link="Processes\BRS_023_027\V1\Model\ScheduleCalculationCommandV1.cs" />
+    <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_026\V1\Model\Brs_026_V1.cs" Link="Processes\BRS_026_028\V1\Model\Brs_026_V1.cs" />
     <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_026\V1\Model\RequestCalculatedEnergyTimeSeriesInputV1.cs">
       <Link>Processes\BRS_026_028\V1\Model\RequestCalculatedEnergyTimeSeriesInputV1.cs</Link>
     </Compile>
@@ -100,6 +100,9 @@
       <CompileOutputs>True</CompileOutputs>
       <Generator>MSBuild:Compile</Generator>
     </Protobuf>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Model\OrchestrationDescription\" />
   </ItemGroup>
 
 </Project>

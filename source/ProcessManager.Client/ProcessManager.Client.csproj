@@ -52,7 +52,7 @@
     <Compile Include="..\Shared\ProcessManager\Api\Model\IOrchestrationDescriptionCommand.cs" Link="Model\IOrchestrationDescriptionCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\MessageCommand.cs" Link="Model\MessageCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationDescription\OrchestrationDescriptionUniqueNameDto.cs" Link="Model\OrchestrationDescription\OrchestrationDescriptionUniqueNameDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstanceCommand.cs" Link="Model\OrchestrationInstanceCommand.cs" />
+    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstanceRequest.cs" Link="Model\OrchestrationInstanceRequest.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstanceTypedDto.cs" Link="Model\OrchestrationInstanceTypedDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\ActorIdentityDto.cs" Link="Model\OrchestrationInstance\ActorIdentityDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\IOperatingIdentityDto.cs" Link="Model\OrchestrationInstance\IOperatingIdentityDto.cs" />
@@ -65,7 +65,7 @@
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\UserIdentityDto.cs" Link="Model\OrchestrationInstance\UserIdentityDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\ScheduleOrchestrationInstanceCommand.cs" Link="Model\ScheduleOrchestrationInstanceCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\StartOrchestrationInstanceCommand.cs" Link="Model\StartOrchestrationInstanceCommand.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\UserCommand.cs" Link="Model\UserCommand.cs" />
+    <Compile Include="..\Shared\ProcessManager\Api\Model\UserRequest.cs" Link="Model\UserRequest.cs" />
     <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\V1\Model\Brs_023_027_V1.cs" Link="Processes\BRS_023_027\V1\Model\Brs_023_027_V1.cs" />
     <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\V1\Model\CalculationTypes.cs" Link="Processes\BRS_023_027\V1\Model\CalculationTypes.cs" />
     <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\V1\Model\NotifyAggregatedMeasureDataInputV1.cs" Link="Processes\BRS_023_027\V1\Model\NotifyAggregatedMeasureDataInputV1.cs" />

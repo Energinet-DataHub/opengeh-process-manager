@@ -17,17 +17,17 @@ using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 namespace Energinet.DataHub.ProcessManager.Api.Model;
 
 /// <summary>
-/// A command executed by a user.
+/// A request executed by a user.
 /// Must be JSON serializable.
 /// </summary>
-public abstract record UserCommand
-        : OrchestrationInstanceCommand
+public abstract record UserRequest
+        : OrchestrationInstanceRequest
 {
     /// <summary>
-    /// Construct command.
+    /// Construct request.
     /// </summary>
-    /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    protected UserCommand(UserIdentityDto operatingIdentity)
+    /// <param name="operatingIdentity">Identity of the user executing the request.</param>
+    protected UserRequest(UserIdentityDto operatingIdentity)
         : base(operatingIdentity)
     {
     }

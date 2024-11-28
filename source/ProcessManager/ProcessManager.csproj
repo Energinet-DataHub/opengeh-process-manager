@@ -35,7 +35,7 @@
     <Compile Include="..\Shared\ProcessManager\Api\Model\IInputParameterDto.cs" Link="Api\Model\IInputParameterDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\IOrchestrationDescriptionCommand.cs" Link="Api\Model\IOrchestrationDescriptionCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationDescription\OrchestrationDescriptionUniqueNameDto.cs" Link="Api\Model\OrchestrationDescription\OrchestrationDescriptionUniqueNameDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstanceCommand.cs" Link="Api\Model\OrchestrationInstanceCommand.cs" />
+    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstanceRequest.cs" Link="Api\Model\OrchestrationInstanceRequest.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstanceTypedDto.cs" Link="Api\Model\OrchestrationInstanceTypedDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\ActorIdentityDto.cs" Link="Api\Model\OrchestrationInstance\ActorIdentityDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\IOperatingIdentityDto.cs" Link="Api\Model\OrchestrationInstance\IOperatingIdentityDto.cs" />
@@ -48,7 +48,7 @@
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\UserIdentityDto.cs" Link="Api\Model\OrchestrationInstance\UserIdentityDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\ScheduleOrchestrationInstanceCommand.cs" Link="Api\Model\ScheduleOrchestrationInstanceCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\StartOrchestrationInstanceCommand.cs" Link="Api\Model\StartOrchestrationInstanceCommand.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\UserCommand.cs" Link="Api\Model\UserCommand.cs" />
+    <Compile Include="..\Shared\ProcessManager\Api\Model\UserRequest.cs" Link="Api\Model\UserRequest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Api\Model\OrchestrationDescription\" />

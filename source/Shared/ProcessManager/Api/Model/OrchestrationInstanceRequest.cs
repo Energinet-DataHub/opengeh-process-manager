@@ -17,9 +17,9 @@ using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 namespace Energinet.DataHub.ProcessManager.Api.Model;
 
 /// <summary>
-/// A orchestration instance command executed by an identity.
+/// A orchestration instance request executed by an identity.
 /// Must be JSON serializable.
 /// </summary>
-/// <param name="OperatingIdentity">The identity executing the command.</param>
-public abstract record OrchestrationInstanceCommand(
+/// <param name="OperatingIdentity">The identity executing the request.</param>
+public abstract record OrchestrationInstanceRequest(
     IOperatingIdentityDto OperatingIdentity);

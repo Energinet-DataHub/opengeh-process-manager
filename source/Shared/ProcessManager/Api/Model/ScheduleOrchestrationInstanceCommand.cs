@@ -23,7 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Api.Model;
 /// </summary>
 /// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
 public abstract record ScheduleOrchestrationInstanceCommand<TInputParameterDto>
-    : UserCommand,
+    : UserRequest,
     IOrchestrationDescriptionCommand
     where TInputParameterDto : IInputParameterDto
 {

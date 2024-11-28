@@ -26,23 +26,9 @@ namespace Energinet.DataHub.ProcessManager.Client.Processes.BRS_023_027.V1;
 public interface INotifyAggregatedMeasureDataClientV1
 {
     /// <summary>
-    /// Schedule a BRS-023 or BRS-027 calculation and return its id.
-    /// </summary>
-    public Task<Guid> ScheduleNewCalculationAsync(
-        ScheduleCalculationCommandV1 command,
-        CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Get information for BRS-023 or BRS-027 calculation.
-    /// </summary>
-    public Task<OrchestrationInstanceTypedDto<NotifyAggregatedMeasureDataInputV1>> GetCalculationAsync(
-        Guid id,
-        CancellationToken cancellationToken);
-
-    /// <summary>
     /// Get all BRS-023 or BRS-027 calculations filtered by given parameters.
     /// </summary>
-    public Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<NotifyAggregatedMeasureDataInputV1>>> SearchCalculationsAsync(
+    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<NotifyAggregatedMeasureDataInputV1>>> SearchCalculationsAsync(
         OrchestrationInstanceLifecycleStates? lifecycleState,
         OrchestrationInstanceTerminationStates? terminationState,
         DateTimeOffset? startedAtOrLater,

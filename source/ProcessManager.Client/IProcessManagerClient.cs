@@ -23,29 +23,39 @@ namespace Energinet.DataHub.ProcessManager.Client;
 public interface IProcessManagerClient
 {
     /// <summary>
+    /// Schedule an orchestration instance and return its id.
+    /// </summary>
+    Task<Guid> ScheduleNewOrchestrationInstanceAsync<TInputParameterDto>(
+        ScheduleOrchestrationInstanceCommand<TInputParameterDto> command,
+        CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto;
+
+    /// <summary>
     /// Cancel a scheduled orchestration instance.
     /// </summary>
-    public Task CancelScheduledOrchestrationInstanceAsync(
+    Task CancelScheduledOrchestrationInstanceAsync(
         CancelScheduledOrchestrationInstanceCommand command,
         CancellationToken cancellationToken);
 
     /// <summary>
     /// Get orchestration instance.
     /// </summary>
-    public Task<OrchestrationInstanceDto> GetOrchestrationInstanceAsync(
+    Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceAsync<TInputParameterDto>(
         Guid id,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto;
 
     /// <summary>
     /// Get all orchestration instances filtered by their related orchestration definition name and version,
     /// and their lifecycle / termination states.
     /// </summary>
-    public Task<IReadOnlyCollection<OrchestrationInstanceDto>> SearchOrchestrationInstancesAsync(
+    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesAsync<TInputParameterDto>(
         string name,
         int? version,
         OrchestrationInstanceLifecycleStates? lifecycleState,
         OrchestrationInstanceTerminationStates? terminationState,
         DateTimeOffset? startedAtOrLater,
         DateTimeOffset? terminatedAtOrEarlier,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto;
 }

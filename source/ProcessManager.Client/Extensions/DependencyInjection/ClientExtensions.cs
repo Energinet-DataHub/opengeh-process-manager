@@ -18,7 +18,6 @@ using Energinet.DataHub.ProcessManager.Client.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Client.Processes.BRS_026_028.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 

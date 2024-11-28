@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 
 /// <summary>
-/// Command for scheduling a BRS-023/027 calculation.
+/// Command for scheduling a BRS-023 or BRS-027 calculation.
 /// Must be JSON serializable.
 /// </summary>
 public record ScheduleCalculationCommandV1
@@ -36,7 +36,7 @@ public record ScheduleCalculationCommandV1
         NotifyAggregatedMeasureDataInputV1 inputParameter)
             : base(
                 operatingIdentity,
-                new Brs_023_027_V1(),
+                orchestrationDescriptionUniqueName: new Brs_023_027_V1(),
                 runAt,
                 inputParameter)
     {

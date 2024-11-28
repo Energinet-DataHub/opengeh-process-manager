@@ -72,6 +72,9 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
         scheduleRequestDto.OperatingIdentity = new ExpandoObject();
         scheduleRequestDto.OperatingIdentity.UserId = Guid.NewGuid();
         scheduleRequestDto.OperatingIdentity.ActorId = Guid.NewGuid();
+        scheduleRequestDto.OrchestrationDescriptionUniqueName = new ExpandoObject();
+        scheduleRequestDto.OrchestrationDescriptionUniqueName.Name = "BRS_023_027";
+        scheduleRequestDto.OrchestrationDescriptionUniqueName.Version = 1;
         scheduleRequestDto.RunAt = "2024-11-01T06:19:10.0209567+01:00";
         scheduleRequestDto.InputParameter = new ExpandoObject();
         scheduleRequestDto.InputParameter.CalculationType = 0;

@@ -25,11 +25,40 @@ namespace Energinet.DataHub.ProcessManager.Client;
 /// <inheritdoc/>
 internal class ProcessManagerClient : IProcessManagerClient
 {
-    private readonly HttpClient _httpClient;
+    private readonly HttpClient _generalApiHttpClient;
+    private readonly HttpClient _orchestrationsApiHttpClient;
 
     public ProcessManagerClient(IHttpClientFactory httpClientFactory)
     {
-        _httpClient = httpClientFactory.CreateClient(HttpClientNames.GeneralApi);
+        _generalApiHttpClient = httpClientFactory.CreateClient(HttpClientNames.GeneralApi);
+        _orchestrationsApiHttpClient = httpClientFactory.CreateClient(HttpClientNames.OrchestrationsApi);
+    }
+
+    /// <inheritdoc/>
+    public async Task<Guid> ScheduleNewOrchestrationInstanceAsync<TInputParameterDto>(
+        ScheduleOrchestrationInstanceCommand<TInputParameterDto> command,
+        CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/processmanager/orchestrationinstance/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
+        var json = JsonSerializer.Serialize(command);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+
+        using var actualResponse = await _orchestrationsApiHttpClient
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        actualResponse.EnsureSuccessStatusCode();
+
+        var calculationId = await actualResponse.Content
+            .ReadFromJsonAsync<Guid>(cancellationToken)
+            .ConfigureAwait(false);
+
+        return calculationId;
     }
 
     /// <inheritdoc/>
@@ -46,35 +75,36 @@ internal class ProcessManagerClient : IProcessManagerClient
             Encoding.UTF8,
             "application/json");
 
-        using var actualResponse = await _httpClient
+        using var actualResponse = await _generalApiHttpClient
             .SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
         actualResponse.EnsureSuccessStatusCode();
     }
 
     /// <inheritdoc/>
-    public async Task<OrchestrationInstanceDto> GetOrchestrationInstanceAsync(
+    public async Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceAsync<TInputParameterDto>(
         Guid id,
         CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Get,
             $"/api/processmanager/orchestrationinstance/{id}");
 
-        using var actualResponse = await _httpClient
+        using var actualResponse = await _generalApiHttpClient
             .SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
         actualResponse.EnsureSuccessStatusCode();
 
         var orchestrationInstance = await actualResponse.Content
-            .ReadFromJsonAsync<OrchestrationInstanceDto>(cancellationToken)
+            .ReadFromJsonAsync<OrchestrationInstanceTypedDto<TInputParameterDto>>(cancellationToken)
             .ConfigureAwait(false);
 
         return orchestrationInstance!;
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyCollection<OrchestrationInstanceDto>> SearchOrchestrationInstancesAsync(
+    public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesAsync<TInputParameterDto>(
         string name,
         int? version,
         OrchestrationInstanceLifecycleStates? lifecycleState,
@@ -82,19 +112,20 @@ internal class ProcessManagerClient : IProcessManagerClient
         DateTimeOffset? startedAtOrLater,
         DateTimeOffset? terminatedAtOrEarlier,
         CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto
     {
         var url = BuildSearchRequestUrl(name, version, lifecycleState, terminationState, startedAtOrLater, terminatedAtOrEarlier);
         using var request = new HttpRequestMessage(
             HttpMethod.Get,
             url);
 
-        using var actualResponse = await _httpClient
+        using var actualResponse = await _generalApiHttpClient
             .SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
         actualResponse.EnsureSuccessStatusCode();
 
         var orchestrationInstances = await actualResponse.Content
-            .ReadFromJsonAsync<IReadOnlyCollection<OrchestrationInstanceDto>>(cancellationToken)
+            .ReadFromJsonAsync<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>>(cancellationToken)
             .ConfigureAwait(false);
 
         return orchestrationInstances!;

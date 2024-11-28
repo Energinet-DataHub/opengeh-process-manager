@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Api.Model;
@@ -21,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Api.Model;
 /// Must be JSON serializable.
 /// </summary>
 /// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
-public record MessageCommand<TInputParameterDto>
+public abstract record MessageCommand<TInputParameterDto>
     : StartOrchestrationInstanceCommand<TInputParameterDto>
     where TInputParameterDto : IInputParameterDto
 {
@@ -29,13 +30,16 @@ public record MessageCommand<TInputParameterDto>
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity executing the command.</param>
+    /// <param name="orchestrationDescriptionUniqueName">Uniquely identifies the orchestration description from which the
+    /// orchestration instance should be created.</param>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
     /// <param name="messageId">Id of the message that casued this command to be executed.</param>
     public MessageCommand(
         IOperatingIdentityDto operatingIdentity,
+        OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
         TInputParameterDto inputParameter,
         string messageId)
-            : base(operatingIdentity, inputParameter)
+            : base(operatingIdentity, orchestrationDescriptionUniqueName, inputParameter)
     {
         MessageId = messageId;
     }

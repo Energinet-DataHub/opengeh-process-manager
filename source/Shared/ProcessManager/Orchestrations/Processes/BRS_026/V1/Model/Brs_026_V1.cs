@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationDescription;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Models;
 
 public record Brs_026_V1()
-    : OrchestrationDescriptionUniqueName("BRS_026", 1);
+    : OrchestrationDescriptionUniqueNameDto("BRS_026", 1);

@@ -82,14 +82,19 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceAsync<TInputParameterDto>(
-        Guid id,
+    public async Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceByIdAsync<TInputParameterDto>(
+        GetOrchestrationInstanceByIdQuery query,
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto
     {
         using var request = new HttpRequestMessage(
-            HttpMethod.Get,
-            $"/api/processmanager/orchestrationinstance/{id}");
+            HttpMethod.Post,
+            "/api/processmanager/orchestrationinstance/id");
+        var json = JsonSerializer.Serialize(query);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
 
         using var actualResponse = await _generalApiHttpClient
             .SendAsync(request, cancellationToken)

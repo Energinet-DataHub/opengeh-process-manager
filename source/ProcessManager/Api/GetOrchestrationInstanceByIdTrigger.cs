@@ -15,35 +15,40 @@
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Api.Mappers;
+using Energinet.DataHub.ProcessManager.Api.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace Energinet.DataHub.ProcessManager.Api;
 
-internal class GetOrchestrationInstanceTrigger(
-    ILogger<GetOrchestrationInstanceTrigger> logger,
+internal class GetOrchestrationInstanceByIdTrigger(
+    ILogger<GetOrchestrationInstanceByIdTrigger> logger,
     IOrchestrationInstanceQueries queries)
 {
     private readonly ILogger _logger = logger;
     private readonly IOrchestrationInstanceQueries _queries = queries;
 
     /// <summary>
-    /// Get orchestration instance.
+    /// Get orchestration instance by id.
     /// </summary>
-    [Function(nameof(GetOrchestrationInstanceTrigger))]
+    [Function(nameof(GetOrchestrationInstanceByIdTrigger))]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
-            "get",
-            Route = "processmanager/orchestrationinstance/{id:guid}")]
+            "post",
+            Route = "processmanager/orchestrationinstance/id")]
         HttpRequest httpRequest,
-        Guid id,
+        [FromBody]
+        GetOrchestrationInstanceByIdQuery query,
         FunctionContext executionContext)
     {
+        // The query also carries information about the user executing the query,
+        // so if necessary we can validate their data access.
         var orchestrationInstance = await _queries
-            .GetAsync(new OrchestrationInstanceId(id))
+            .GetAsync(new OrchestrationInstanceId(query.Id))
             .ConfigureAwait(false);
 
         var dto = orchestrationInstance.MapToDto();

@@ -22,6 +22,7 @@ using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 using FluentAssertions;
 using Xunit.Abstractions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration;
 
@@ -108,9 +109,19 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
+                dynamic queryRequestDto = new ExpandoObject();
+                queryRequestDto.OperatingIdentity = new ExpandoObject();
+                queryRequestDto.OperatingIdentity.UserId = Guid.NewGuid();
+                queryRequestDto.OperatingIdentity.ActorId = Guid.NewGuid();
+                queryRequestDto.Id = calculationId;
+
                 using var queryRequest = new HttpRequestMessage(
-                    HttpMethod.Get,
-                    $"/api/processmanager/orchestrationinstance/{calculationId}");
+                    HttpMethod.Post,
+                    "/api/processmanager/orchestrationinstance/id");
+                queryRequest.Content = new StringContent(
+                    JsonSerializer.Serialize(queryRequestDto),
+                    Encoding.UTF8,
+                    "application/json");
 
                 using var queryResponse = await ProcessManagerAppFixture.AppHostManager
                     .HttpClient

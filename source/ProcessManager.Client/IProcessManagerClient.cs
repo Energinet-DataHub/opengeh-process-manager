@@ -38,10 +38,10 @@ public interface IProcessManagerClient
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Get orchestration instance.
+    /// Get orchestration instance by id.
     /// </summary>
-    Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceAsync<TInputParameterDto>(
-        Guid id,
+    Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceByIdAsync<TInputParameterDto>(
+        GetOrchestrationInstanceByIdQuery query,
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto;
 

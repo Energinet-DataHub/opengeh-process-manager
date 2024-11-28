@@ -32,7 +32,7 @@ public class RequestCalculatedEnergyTimeSeriesHandler(
         var orchestrationDescriptionUniqueName = new Brs_026_V1();
 
         await _commands.StartNewOrchestrationInstanceAsync(
-                identity: new ActorIdentity(new ActorId(Guid.NewGuid())), // TODO: Any call to commands must include identity information; see 'ScheduleOrchestrationInstanceDto' and 'CancelOrchestrationInstanceDto'
+                identity: new ActorIdentity(new ActorId(Guid.NewGuid())), // TODO: Any call to commands must include identity information; see 'ScheduleOrchestrationInstanceCommand' and 'CancelScheduledOrchestrationInstanceCommand'
                 uniqueName: new OrchestrationDescriptionUniqueName(
                     orchestrationDescriptionUniqueName.Name,
                     orchestrationDescriptionUniqueName.Version),

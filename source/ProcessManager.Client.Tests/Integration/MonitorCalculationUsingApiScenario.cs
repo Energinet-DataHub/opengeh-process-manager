@@ -12,17 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// IMPORTANT:
+// Since we use shared types (linked files) and the test project needs a reference
+// to multiple projects where files are linked, we need to specify which assembly
+// we want to use the type from.
+// See also https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0433?f1url=%3FappId%3Droslyn%26k%3Dk(CS0433)
+extern alias ClientTypes;
+
 using System.Dynamic;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
-using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 using FluentAssertions;
 using Xunit.Abstractions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration;
 
@@ -117,7 +123,7 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
 
                 using var queryRequest = new HttpRequestMessage(
                     HttpMethod.Post,
-                    "/api/processmanager/orchestrationinstance/id");
+                    "/api/processmanager/orchestrationinstance/query/id");
                 queryRequest.Content = new StringContent(
                     JsonSerializer.Serialize(queryRequestDto),
                     Encoding.UTF8,

@@ -19,12 +19,14 @@
 // See also https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0433?f1url=%3FappId%3Droslyn%26k%3Dk(CS0433)
 extern alias ClientTypes;
 
+using ClientTypes.Energinet.DataHub.ProcessManager.Api.Model;
+using ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
+using ClientTypes.Energinet.DataHub.ProcessManager.Client;
 using ClientTypes.Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using ClientTypes.Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using ClientTypes.Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
-using Energinet.DataHub.ProcessManager.Api.Model;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -88,16 +90,16 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task CalculationBrs023_WhenScheduledToRunInThePastUsingClient_CanMonitorLifecycle()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<ClientTypes.Energinet.DataHub.ProcessManager.Client.IProcessManagerClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        var userIdentity = new ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance.UserIdentityDto(
+        var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
         // Step 1: Schedule new calculation orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
-                new ClientTypes.Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model.ScheduleCalculationCommandV1(
+                new ScheduleCalculationCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
                     inputParameter: new NotifyAggregatedMeasureDataInputV1(
@@ -118,14 +120,14 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             {
                 var orchestrationInstance = await processManagerClient
                     .GetOrchestrationInstanceByIdAsync<NotifyAggregatedMeasureDataInputV1>(
-                        new ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.GetOrchestrationInstanceByIdQuery(
+                        new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
                             orchestrationInstanceId),
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance.OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationStates.Succeeded;
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
             },
             timeLimit: TimeSpan.FromSeconds(60),
             delay: TimeSpan.FromSeconds(3));
@@ -136,16 +138,16 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task CalculationBrs023ScheduledToRunInTheFuture_WhenCanceledUsingClient_CanMonitorLifecycle()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<ClientTypes.Energinet.DataHub.ProcessManager.Client.IProcessManagerClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        var userIdentity = new ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance.UserIdentityDto(
+        var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
         // Step 1: Schedule new calculation orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
-                new ClientTypes.Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model.ScheduleCalculationCommandV1(
+                new ScheduleCalculationCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2050-11-01T06:19:10.0209567+01:00"),
                     inputParameter: new NotifyAggregatedMeasureDataInputV1(
@@ -159,7 +161,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
         // Step 2: Cancel the calculation orchestration instance
         await processManagerClient
             .CancelScheduledOrchestrationInstanceAsync(
-                new ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.CancelScheduledOrchestrationInstanceCommand(
+                new CancelScheduledOrchestrationInstanceCommand(
                     userIdentity,
                     orchestrationInstanceId),
                 CancellationToken.None);
@@ -170,19 +172,35 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             {
                 var orchestrationInstance = await processManagerClient
                     .GetOrchestrationInstanceByIdAsync<NotifyAggregatedMeasureDataInputV1>(
-                        new ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.GetOrchestrationInstanceByIdQuery(
+                        new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
                             orchestrationInstanceId),
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance.OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == ClientTypes.Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationStates.UserCanceled;
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.UserCanceled;
             },
             timeLimit: TimeSpan.FromSeconds(60),
             delay: TimeSpan.FromSeconds(3));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+
+        // Step 4: Search using name and termination state
+        var orchestrationInstances = await processManagerClient
+            .SearchOrchestrationInstancesByNameAsync<NotifyAggregatedMeasureDataInputV1>(
+                new SearchOrchestrationInstancesByNameQuery(
+                    userIdentity,
+                    name: new Brs_023_027_V1().Name,
+                    version: null,
+                    lifecycleState: null,
+                    terminationState: OrchestrationInstanceTerminationStates.UserCanceled,
+                    startedAtOrLater: null,
+                    terminatedAtOrEarlier: null),
+                CancellationToken.None);
+
+        orchestrationInstances.Should().Contain(x => x.Id == orchestrationInstanceId);
+        orchestrationInstances.Count.Should().Be(1);
     }
 
     private IConfiguration CreateInMemoryConfigurations(Dictionary<string, string?> configurations)

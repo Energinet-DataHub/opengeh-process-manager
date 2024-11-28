@@ -39,14 +39,19 @@ internal class GetOrchestrationInstanceByIdTrigger(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "processmanager/orchestrationinstance/id")]
+            Route = "processmanager/orchestrationinstance/query/id")]
         HttpRequest httpRequest,
         [FromBody]
         GetOrchestrationInstanceByIdQuery query,
         FunctionContext executionContext)
     {
+        // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        //
+        // NOTICE:
         // The query also carries information about the user executing the query,
         // so if necessary we can validate their data access.
+        //
+        // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         var orchestrationInstance = await _queries
             .GetAsync(new OrchestrationInstanceId(query.Id))
             .ConfigureAwait(false);

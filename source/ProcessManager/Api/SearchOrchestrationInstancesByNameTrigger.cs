@@ -12,58 +12,70 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Globalization;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Api.Mappers;
+using Energinet.DataHub.ProcessManager.Api.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NodaTime;
+using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace Energinet.DataHub.ProcessManager.Api;
 
-internal class SearchOrchestrationInstancesTrigger(
-    ILogger<SearchOrchestrationInstancesTrigger> logger,
+internal class SearchOrchestrationInstancesByNameTrigger(
+    ILogger<SearchOrchestrationInstancesByNameTrigger> logger,
     IOrchestrationInstanceQueries queries)
 {
     private readonly ILogger _logger = logger;
     private readonly IOrchestrationInstanceQueries _queries = queries;
 
-    [Function(nameof(SearchOrchestrationInstancesTrigger))]
+    [Function(nameof(SearchOrchestrationInstancesByNameTrigger))]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
-            "get",
-            Route = "processmanager/orchestrationinstances/{name}/{version:int?}")]
+            "post",
+            Route = "processmanager/orchestrationinstance/query/name")]
         HttpRequest httpRequest,
-        string name,
-        int? version,
+        [FromBody]
+        SearchOrchestrationInstancesByNameQuery query,
         FunctionContext executionContext)
     {
+        // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        //
+        // NOTICE:
+        // The query also carries information about the user executing the query,
+        // so if necessary we can validate their data access.
+        //
+        // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         var lifecycleState =
-            Enum.TryParse<OrchestrationInstanceLifecycleStates>(httpRequest.Query["lifecycleState"], ignoreCase: true, out var lifecycleStateResult)
+            Enum.TryParse<OrchestrationInstanceLifecycleStates>(query.LifecycleState.ToString(), ignoreCase: true, out var lifecycleStateResult)
             ? lifecycleStateResult
             : (OrchestrationInstanceLifecycleStates?)null;
         var terminationState =
-            Enum.TryParse<OrchestrationInstanceTerminationStates>(httpRequest.Query["terminationState"], ignoreCase: true, out var terminationStateResult)
+            Enum.TryParse<OrchestrationInstanceTerminationStates>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
             ? terminationStateResult
             : (OrchestrationInstanceTerminationStates?)null;
 
         // DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
         // See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
-        var startedAtOrLater =
-            DateTimeOffset.TryParse(httpRequest.Query["startedAtOrLater"], CultureInfo.InvariantCulture, out var startedAtOrLaterResult)
-            ? Instant.FromDateTimeOffset(startedAtOrLaterResult)
+        var startedAtOrLater = query.StartedAtOrLater.HasValue
+            ? Instant.FromDateTimeOffset(query.StartedAtOrLater.Value)
             : (Instant?)null;
-        var terminatedAtOrEarlier =
-            DateTimeOffset.TryParse(httpRequest.Query["terminatedAtOrEarlier"], CultureInfo.InvariantCulture, out var terminatedAtOrEarlierResult)
-            ? Instant.FromDateTimeOffset(terminatedAtOrEarlierResult)
+        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.HasValue
+            ? Instant.FromDateTimeOffset(query.TerminatedAtOrEarlier.Value)
             : (Instant?)null;
 
         var orchestrationInstances = await _queries
-            .SearchAsync(name, version, lifecycleState, terminationState, startedAtOrLater, terminatedAtOrEarlier)
+            .SearchAsync(
+                query.Name,
+                query.Version,
+                lifecycleState,
+                terminationState,
+                startedAtOrLater,
+                terminatedAtOrEarlier)
             .ConfigureAwait(false);
 
         var dto = orchestrationInstances.MapToDto();

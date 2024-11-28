@@ -32,7 +32,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\ProcessManager\Api\Model\CancelScheduledOrchestrationInstanceCommand.cs" Link="Api\Model\CancelScheduledOrchestrationInstanceCommand.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\CustomOrchestrationInstancesQuery.cs" Link="Api\Model\CustomOrchestrationInstancesQuery.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\GetOrchestrationInstanceByIdQuery.cs" Link="Api\Model\GetOrchestrationInstanceByIdQuery.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\IInputParameterDto.cs" Link="Api\Model\IInputParameterDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\IOrchestrationDescriptionCommand.cs" Link="Api\Model\IOrchestrationDescriptionCommand.cs" />
@@ -49,6 +48,7 @@
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\StepInstanceLifecycleStates.cs" Link="Api\Model\OrchestrationInstance\StepInstanceLifecycleStates.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\UserIdentityDto.cs" Link="Api\Model\OrchestrationInstance\UserIdentityDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\ScheduleOrchestrationInstanceCommand.cs" Link="Api\Model\ScheduleOrchestrationInstanceCommand.cs" />
+    <Compile Include="..\Shared\ProcessManager\Api\Model\SearchOrchestrationInstancesByNameQuery.cs" Link="Api\Model\SearchOrchestrationInstancesByNameQuery.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\StartOrchestrationInstanceCommand.cs" Link="Api\Model\StartOrchestrationInstanceCommand.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\UserRequest.cs" Link="Api\Model\UserRequest.cs" />
   </ItemGroup>

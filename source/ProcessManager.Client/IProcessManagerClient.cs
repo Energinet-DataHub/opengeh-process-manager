@@ -13,12 +13,11 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Api.Model;
-using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Client;
 
 /// <summary>
-/// Client for using the generic Process Manager API.
+/// Client for using the Process Manager / Orchestrations API.
 /// </summary>
 public interface IProcessManagerClient
 {
@@ -49,13 +48,8 @@ public interface IProcessManagerClient
     /// Get all orchestration instances filtered by their related orchestration definition name and version,
     /// and their lifecycle / termination states.
     /// </summary>
-    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesAsync<TInputParameterDto>(
-        string name,
-        int? version,
-        OrchestrationInstanceLifecycleStates? lifecycleState,
-        OrchestrationInstanceTerminationStates? terminationState,
-        DateTimeOffset? startedAtOrLater,
-        DateTimeOffset? terminatedAtOrEarlier,
+    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
+        SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto;
 }

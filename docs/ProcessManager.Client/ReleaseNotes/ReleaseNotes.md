@@ -4,6 +4,10 @@
 
 - Move the last method from the specific client `INotifyAggregatedMeasureDataClientV1` to the general client `IProcessManagerClient`
 
+## Version 0.12.1
+
+- Update version on reusable workflows.
+
 ## Version 0.12.0
 
 - Move methods from the specific client `INotifyAggregatedMeasureDataClientV1` to the general client `IProcessManagerClient`

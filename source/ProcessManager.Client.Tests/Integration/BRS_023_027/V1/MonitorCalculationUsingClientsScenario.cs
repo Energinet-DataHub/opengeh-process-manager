@@ -97,16 +97,17 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             ActorId: Guid.NewGuid());
 
         // Step 1: Start new calculation orchestration instance
+        var inputParameter = new NotifyAggregatedMeasureDataInputV1(
+            CalculationTypes.WholesaleFixing,
+            GridAreaCodes: new[] { "543" },
+            PeriodStartDate: DateTimeOffset.Parse("2024-10-08T15:19:10.0151351+01:00"),
+            PeriodEndDate: DateTimeOffset.Parse("2024-10-11T16:19:10.0193962+01:00"),
+            IsInternalCalculation: false);
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartCalculationCommandV1(
                     userIdentity,
-                    inputParameter: new NotifyAggregatedMeasureDataInputV1(
-                        CalculationTypes.BalanceFixing,
-                        GridAreaCodes: new[] { "543" },
-                        PeriodStartDate: DateTimeOffset.Parse("2024-10-29T15:19:10.0151351+01:00"),
-                        PeriodEndDate: DateTimeOffset.Parse("2024-10-29T16:19:10.0193962+01:00"),
-                        IsInternalCalculation: true)),
+                    inputParameter),
                 CancellationToken.None);
 
         // Step 2: Query until terminated with succeeded
@@ -129,8 +130,8 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
 
-        // Step 3: Search using name and termination state
-        var orchestrationInstances = await processManagerClient
+        // Step 3: General search using name and termination state
+        var orchestrationInstancesGeneralSearch = await processManagerClient
             .SearchOrchestrationInstancesByNameAsync<NotifyAggregatedMeasureDataInputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
                     userIdentity,
@@ -142,7 +143,24 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
                     terminatedAtOrEarlier: null),
                 CancellationToken.None);
 
-        orchestrationInstances.Should().Contain(x => x.Id == orchestrationInstanceId);
+        orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
+
+        // Step 4: Custom search
+        var customQuery = new CalculationQuery(userIdentity)
+        {
+            CalculationTypes = new[] { inputParameter.CalculationType },
+            GridAreaCodes = inputParameter.GridAreaCodes,
+            PeriodStartDate = inputParameter.PeriodStartDate,
+            PeriodEndDate = inputParameter.PeriodEndDate,
+            IsInternalCalculation = inputParameter.IsInternalCalculation,
+        };
+        var orchestrationInstancesCustomSearch = await processManagerClient
+            .SearchOrchestrationInstancesByNameAsync<NotifyAggregatedMeasureDataInputV1>(
+                customQuery,
+                CancellationToken.None);
+
+        orchestrationInstancesCustomSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
+        orchestrationInstancesCustomSearch.Count.Should().Be(1);
     }
 
     [Fact]

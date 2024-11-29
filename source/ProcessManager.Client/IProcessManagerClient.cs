@@ -61,4 +61,12 @@ public interface IProcessManagerClient
         SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto;
+
+    /// <summary>
+    /// Get all orchestration instances filtered by a custom query which at least filters by name.
+    /// </summary>
+    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
+        SearchOrchestrationInstancesByCustomQuery query,
+        CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto;
 }

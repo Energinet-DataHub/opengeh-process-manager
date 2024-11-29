@@ -14,7 +14,6 @@
 
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Client.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Client.Processes.BRS_026_028.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Azure;
@@ -53,7 +52,6 @@ public static class ClientExtensions
         });
 
         services.AddScoped<IProcessManagerClient, ProcessManagerClient>();
-        services.AddScoped<INotifyAggregatedMeasureDataClientV1, NotifyAggregatedMeasureDataClientV1>();
 
         return services;
     }

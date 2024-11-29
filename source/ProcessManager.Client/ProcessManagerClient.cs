@@ -167,4 +167,31 @@ internal class ProcessManagerClient : IProcessManagerClient
 
         return orchestrationInstances!;
     }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
+        SearchOrchestrationInstancesByCustomQuery query,
+        CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/query/custom/{query.Name}");
+        var json = JsonSerializer.Serialize(query);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+
+        using var actualResponse = await _orchestrationsApiHttpClient
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        actualResponse.EnsureSuccessStatusCode();
+
+        var orchestrationInstances = await actualResponse.Content
+            .ReadFromJsonAsync<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>>(cancellationToken)
+            .ConfigureAwait(false);
+
+        return orchestrationInstances!;
+    }
 }

@@ -20,7 +20,7 @@ using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
-internal class NotifyAggregatedMeasureDataHandler(
+internal class NotifyAggregatedMeasureDataStartHandlerV1(
     IStartOrchestrationInstanceCommands manager)
 {
     private readonly IStartOrchestrationInstanceCommands _manager = manager;

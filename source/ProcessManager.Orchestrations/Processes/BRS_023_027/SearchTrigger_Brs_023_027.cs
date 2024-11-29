@@ -12,34 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Api.Mappers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027;
 
-internal class StartTrigger_Brs_023_027_V1(
-    NotifyAggregatedMeasureDataStartHandlerV1 handler)
+internal class SearchTrigger_Brs_023_027(
+    NotifyAggregatedMeasureDataSearchHandler handler)
 {
-    private readonly NotifyAggregatedMeasureDataStartHandlerV1 _handler = handler;
+    private readonly NotifyAggregatedMeasureDataSearchHandler _handler = handler;
 
     /// <summary>
-    /// Start a BRS-023 or BRS-027 calculation and return its id.
+    /// Search for instances of BRS-023 or BRS-027 calculations.
     /// </summary>
-    [Function(nameof(StartTrigger_Brs_023_027_V1))]
+    [Function(nameof(SearchTrigger_Brs_023_027))]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "orchestrationinstance/command/start/custom/brs_023_027/1")]
+            Route = "orchestrationinstance/query/custom/brs_023_027")]
         HttpRequest httpRequest,
         [FromBody]
-        StartCalculationCommandV1 command,
+        CalculationQuery query,
         FunctionContext executionContext)
     {
-        var orchestrationInstanceId = await _handler.StartNewCalculationAsync(command).ConfigureAwait(false);
-        return new OkObjectResult(orchestrationInstanceId.Value);
+        var orchestrationInstances = await _handler.SearchAsync(query).ConfigureAwait(false);
+
+        var dto = orchestrationInstances.MapToDto();
+        return new OkObjectResult(dto);
     }
 }

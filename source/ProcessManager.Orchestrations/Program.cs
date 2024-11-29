@@ -41,7 +41,7 @@ var host = new HostBuilder()
         // => Orchestration Descriptions
         services.AddProcessManagerForOrchestrations(() =>
         {
-            // TODO: For demo purposes; remove when done.
+            // TODO:
             // We could implement an interface for "description building" which could then be implemented besides the orchestration.
             // During DI we could then search for all these interface implementations and register them automatically.
             // This would ensure we didn't have to update Program.cs when we change orchestrations.
@@ -51,7 +51,8 @@ var host = new HostBuilder()
             return [brs_023_027_v1, brs_026_v1];
         });
         // => Handlers
-        services.AddScoped<NotifyAggregatedMeasureDataHandler>();
+        services.AddScoped<NotifyAggregatedMeasureDataSearchHandler>();
+        services.AddScoped<NotifyAggregatedMeasureDataStartHandlerV1>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

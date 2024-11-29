@@ -35,6 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Api\Model\OrchestrationDescription\" />
+    <Folder Include="Api\Mappers\" />
     <Folder Include="Processes\BRS_021\" />
     <Folder Include="Processes\BRS_023_027\V1\Model\" />
     <Folder Include="Processes\BRS_026\V1\Activities\" />
@@ -42,6 +43,7 @@
     <Folder Include="Processes\BRS_026\V1\Models\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Shared\ProcessManager\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\GetOrchestrationInstanceByIdQuery.cs" Link="Api\Model\GetOrchestrationInstanceByIdQuery.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\IInputParameterDto.cs" Link="Api\Model\IInputParameterDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\IOrchestrationDescriptionCommand.cs" Link="Api\Model\IOrchestrationDescriptionCommand.cs" />
@@ -58,8 +60,10 @@
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\StepInstanceLifecycleStates.cs" Link="Api\Model\OrchestrationInstance\StepInstanceLifecycleStates.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\UserIdentityDto.cs" Link="Api\Model\OrchestrationInstance\UserIdentityDto.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\ScheduleOrchestrationInstanceCommand.cs" Link="Api\Model\ScheduleOrchestrationInstanceCommand.cs" />
+    <Compile Include="..\Shared\ProcessManager\Api\Model\SearchOrchestrationInstancesByCustomQuery.cs" Link="Api\Model\SearchOrchestrationInstancesByCustomQuery.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\SearchOrchestrationInstancesByNameQuery.cs" Link="Api\Model\SearchOrchestrationInstancesByNameQuery.cs" />
     <Compile Include="..\Shared\ProcessManager\Api\Model\StartOrchestrationInstanceCommand.cs" Link="Api\Model\StartOrchestrationInstanceCommand.cs" />
+    <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\CalculationQuery.cs" Link="Processes\BRS_023_027\CalculationQuery.cs" />
     <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\V1\Model\Brs_023_027_V1.cs" Link="Processes\BRS_023_027\V1\Model\Brs_023_027_V1.cs" />
     <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\V1\Model\CalculationTypes.cs" Link="Processes\BRS_023_027\V1\Model\CalculationTypes.cs" />
     <Compile Include="..\Shared\ProcessManager\Orchestrations\Processes\BRS_023_027\V1\Model\NotifyAggregatedMeasureDataInputV1.cs" Link="Processes\BRS_023_027\V1\Model\NotifyAggregatedMeasureDataInputV1.cs" />

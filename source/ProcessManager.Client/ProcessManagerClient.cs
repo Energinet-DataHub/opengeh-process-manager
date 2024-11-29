@@ -40,7 +40,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/api/processmanager/orchestrationinstance/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
+            $"/api/orchestrationinstance/command/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
         var json = JsonSerializer.Serialize(command);
         request.Content = new StringContent(
             json,
@@ -66,7 +66,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            "/api/processmanager/orchestrationinstance/cancel");
+            "/api/orchestrationinstance/command/cancel");
         var json = JsonSerializer.Serialize(command);
         request.Content = new StringContent(
             json,
@@ -87,7 +87,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            "/api/processmanager/orchestrationinstance/query/id");
+            "/api/orchestrationinstance/query/id");
         var json = JsonSerializer.Serialize(query);
         request.Content = new StringContent(
             json,
@@ -114,7 +114,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            "/api/processmanager/orchestrationinstance/query/name");
+            "/api/orchestrationinstance/query/name");
         var json = JsonSerializer.Serialize(query);
         request.Content = new StringContent(
             json,

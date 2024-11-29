@@ -80,7 +80,7 @@ internal class NotifyAggregatedMeasureDataClientV1 : INotifyAggregatedMeasureDat
         DateTimeOffset? startedAtOrLater,
         DateTimeOffset? terminatedAtOrEarlier)
     {
-        var urlBuilder = new StringBuilder($"/api/processmanager/orchestrationinstances/{name}");
+        var urlBuilder = new StringBuilder($"/api/orchestrationinstance/query/{name}");
 
         if (version.HasValue)
             urlBuilder.Append($"/{version}");

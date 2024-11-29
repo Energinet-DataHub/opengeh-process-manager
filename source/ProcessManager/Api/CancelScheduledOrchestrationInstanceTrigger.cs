@@ -38,7 +38,7 @@ internal class CancelScheduledOrchestrationInstanceTrigger(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "processmanager/orchestrationinstance/cancel")]
+            Route = "orchestrationinstance/command/cancel")]
         HttpRequest httpRequest,
         [FromBody]
         CancelScheduledOrchestrationInstanceCommand command,

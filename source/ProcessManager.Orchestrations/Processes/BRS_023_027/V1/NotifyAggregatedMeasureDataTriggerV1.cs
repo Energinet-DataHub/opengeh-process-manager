@@ -37,7 +37,7 @@ internal class NotifyAggregatedMeasureDataTriggerV1(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "processmanager/orchestrationinstance/brs_023_027/1")]
+            Route = "orchestrationinstance/command/brs_023_027/1")]
         HttpRequest httpRequest,
         [FromBody]
         ScheduleCalculationCommandV1 command,

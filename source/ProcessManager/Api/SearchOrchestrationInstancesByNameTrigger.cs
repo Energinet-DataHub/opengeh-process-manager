@@ -37,7 +37,7 @@ internal class SearchOrchestrationInstancesByNameTrigger(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "processmanager/orchestrationinstance/query/name")]
+            Route = "orchestrationinstance/query/name")]
         HttpRequest httpRequest,
         [FromBody]
         SearchOrchestrationInstancesByNameQuery query,

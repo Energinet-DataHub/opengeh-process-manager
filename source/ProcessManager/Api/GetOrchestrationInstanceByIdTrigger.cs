@@ -39,7 +39,7 @@ internal class GetOrchestrationInstanceByIdTrigger(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "processmanager/orchestrationinstance/query/id")]
+            Route = "orchestrationinstance/query/id")]
         HttpRequest httpRequest,
         [FromBody]
         GetOrchestrationInstanceByIdQuery query,

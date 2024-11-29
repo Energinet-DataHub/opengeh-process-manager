@@ -2,7 +2,7 @@
 
 ## Version 0.12.1
 
-- Update version on reusable workflows. 
+- Update version on reusable workflows.
 
 ## Version 0.12.0
 

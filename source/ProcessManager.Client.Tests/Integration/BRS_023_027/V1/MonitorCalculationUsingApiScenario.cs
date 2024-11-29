@@ -30,7 +30,7 @@ using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration;
+namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_023_027.V1;
 
 /// <summary>
 /// Test case where we verify the Process Manager clients can be used to start a
@@ -72,7 +72,7 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CalculationBrs023_WhenScheduledUsingClient_CanMonitorLifecycle()
+    public async Task Calculation_WhenScheduledToRunInThePast_CanMonitorLifecycle()
     {
         // TODO: Move to API test project
         dynamic scheduleRequestDto = new ExpandoObject();

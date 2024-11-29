@@ -33,7 +33,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration;
+namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_023_027.V1;
 
 /// <summary>
 /// Test case where we verify the Process Manager clients can be used to start a
@@ -54,7 +54,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
         OrchestrationsAppFixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
-        services.AddScoped<IConfiguration>(_ => CreateInMemoryConfigurations(new Dictionary<string, string?>()
+        services.AddScoped(_ => CreateInMemoryConfigurations(new Dictionary<string, string?>()
         {
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = ProcessManagerAppFixture.AppHostManager.HttpClient.BaseAddress!.ToString(),
@@ -88,7 +88,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CalculationBrs023_WhenScheduledToRunInThePastUsingClient_CanMonitorLifecycle()
+    public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -136,7 +136,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CalculationBrs023ScheduledToRunInTheFuture_WhenCanceledUsingClient_CanMonitorLifecycle()
+    public async Task CalculationScheduledToRunInTheFuture_WhenCanceled_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

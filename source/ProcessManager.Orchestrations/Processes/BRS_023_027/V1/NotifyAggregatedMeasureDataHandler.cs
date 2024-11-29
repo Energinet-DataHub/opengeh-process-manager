@@ -15,7 +15,6 @@
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Api.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using NodaTime.Extensions;
 
@@ -26,8 +25,33 @@ internal class NotifyAggregatedMeasureDataHandler(
 {
     private readonly IStartOrchestrationInstanceCommands _manager = manager;
 
-    public async Task<OrchestrationInstanceId> ScheduleNewCalculationAsync(
-        ScheduleOrchestrationInstanceCommand<NotifyAggregatedMeasureDataInputV1> command)
+    public async Task<OrchestrationInstanceId> StartNewCalculationAsync(StartCalculationCommandV1 command)
+    {
+        // TODO:
+        // Server-side validation => Validate "period" is midnight values when given "timezone" etc.
+        // See class Calculation and method IsValid in Wholesale.
+
+        // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
+        IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
+            ? [NotifyAggregatedMeasureDataOrchestrationV1.EnqueueMessagesStepSequence]
+            : [];
+
+        var orchestrationInstanceId = await _manager
+            .StartNewOrchestrationInstanceAsync(
+                identity: new UserIdentity(
+                    new UserId(command.OperatingIdentity.UserId),
+                    new ActorId(command.OperatingIdentity.ActorId)),
+                uniqueName: new OrchestrationDescriptionUniqueName(
+                    command.OrchestrationDescriptionUniqueName.Name,
+                    command.OrchestrationDescriptionUniqueName.Version),
+                inputParameter: command.InputParameter,
+                skipStepsBySequence: skipStepsBySequence)
+            .ConfigureAwait(false);
+
+        return orchestrationInstanceId;
+    }
+
+    public async Task<OrchestrationInstanceId> ScheduleNewCalculationAsync(ScheduleCalculationCommandV1 command)
     {
         // TODO:
         // Server-side validation => Validate "period" is midnight values when given "timezone" etc.

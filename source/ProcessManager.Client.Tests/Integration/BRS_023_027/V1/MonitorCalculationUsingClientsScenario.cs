@@ -96,6 +96,64 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
+        // Step 1: Start new calculation orchestration instance
+        var orchestrationInstanceId = await processManagerClient
+            .StartNewOrchestrationInstanceAsync(
+                new StartCalculationCommandV1(
+                    userIdentity,
+                    inputParameter: new NotifyAggregatedMeasureDataInputV1(
+                        CalculationTypes.BalanceFixing,
+                        GridAreaCodes: new[] { "543" },
+                        PeriodStartDate: DateTimeOffset.Parse("2024-10-29T15:19:10.0151351+01:00"),
+                        PeriodEndDate: DateTimeOffset.Parse("2024-10-29T16:19:10.0193962+01:00"),
+                        IsInternalCalculation: true)),
+                CancellationToken.None);
+
+        // Step 2: Query until terminated with succeeded
+        var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                var orchestrationInstance = await processManagerClient
+                    .GetOrchestrationInstanceByIdAsync<NotifyAggregatedMeasureDataInputV1>(
+                        new GetOrchestrationInstanceByIdQuery(
+                            userIdentity,
+                            orchestrationInstanceId),
+                        CancellationToken.None);
+
+                return
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
+            },
+            timeLimit: TimeSpan.FromSeconds(60),
+            delay: TimeSpan.FromSeconds(3));
+
+        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+
+        // Step 3: Search using name and termination state
+        var orchestrationInstances = await processManagerClient
+            .SearchOrchestrationInstancesByNameAsync<NotifyAggregatedMeasureDataInputV1>(
+                new SearchOrchestrationInstancesByNameQuery(
+                    userIdentity,
+                    name: new Brs_023_027_V1().Name,
+                    version: null,
+                    lifecycleState: OrchestrationInstanceLifecycleStates.Terminated,
+                    terminationState: OrchestrationInstanceTerminationStates.Succeeded,
+                    startedAtOrLater: null,
+                    terminatedAtOrEarlier: null),
+                CancellationToken.None);
+
+        orchestrationInstances.Should().Contain(x => x.Id == orchestrationInstanceId);
+    }
+
+    [Fact]
+    public async Task Calculation_WhenScheduledToRunInThePast_CanMonitorLifecycle()
+    {
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
         // Step 1: Schedule new calculation orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
@@ -149,7 +207,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleCalculationCommandV1(
                     userIdentity,
-                    runAt: DateTimeOffset.Parse("2050-11-01T06:19:10.0209567+01:00"),
+                    runAt: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
                     inputParameter: new NotifyAggregatedMeasureDataInputV1(
                         CalculationTypes.BalanceFixing,
                         GridAreaCodes: new[] { "543" },
@@ -166,7 +224,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
                     orchestrationInstanceId),
                 CancellationToken.None);
 
-        // Step 3: Query until terminated with canceled
+        // Step 3: Query until terminated with user canceled
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
@@ -185,22 +243,6 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             delay: TimeSpan.FromSeconds(3));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
-
-        // Step 4: Search using name and termination state
-        var orchestrationInstances = await processManagerClient
-            .SearchOrchestrationInstancesByNameAsync<NotifyAggregatedMeasureDataInputV1>(
-                new SearchOrchestrationInstancesByNameQuery(
-                    userIdentity,
-                    name: new Brs_023_027_V1().Name,
-                    version: null,
-                    lifecycleState: null,
-                    terminationState: OrchestrationInstanceTerminationStates.UserCanceled,
-                    startedAtOrLater: null,
-                    terminatedAtOrEarlier: null),
-                CancellationToken.None);
-
-        orchestrationInstances.Should().Contain(x => x.Id == orchestrationInstanceId);
-        orchestrationInstances.Count.Should().Be(1);
     }
 
     private IConfiguration CreateInMemoryConfigurations(Dictionary<string, string?> configurations)

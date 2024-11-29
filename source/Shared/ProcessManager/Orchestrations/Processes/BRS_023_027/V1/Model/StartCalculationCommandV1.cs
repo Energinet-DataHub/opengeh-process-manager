@@ -12,32 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Api.Model;
 using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Api.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 
 /// <summary>
-/// Command for canceling a scheduled orchestration instance.
+/// Command for starting a BRS-023 or BRS-027 calculation.
 /// Must be JSON serializable.
 /// </summary>
-public sealed record CancelScheduledOrchestrationInstanceCommand
-    : OrchestrationInstanceRequest<UserIdentityDto>
+public record StartCalculationCommandV1
+    : StartOrchestrationInstanceCommand<UserIdentityDto, NotifyAggregatedMeasureDataInputV1>
 {
     /// <summary>
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    /// <param name="id">Id of the scheduled orchestration instance to cancel.</param>
-    public CancelScheduledOrchestrationInstanceCommand(
+    /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
+    public StartCalculationCommandV1(
         UserIdentityDto operatingIdentity,
-        Guid id)
-            : base(operatingIdentity)
+        NotifyAggregatedMeasureDataInputV1 inputParameter)
+            : base(
+                operatingIdentity,
+                orchestrationDescriptionUniqueName: new Brs_023_027_V1(),
+                inputParameter)
     {
-        Id = id;
     }
-
-    /// <summary>
-    /// Id of the scheduled orchestration instance to cancel.
-    /// </summary>
-    public Guid Id { get; }
 }

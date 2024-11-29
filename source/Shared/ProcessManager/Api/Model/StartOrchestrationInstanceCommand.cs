@@ -23,7 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Api.Model;
 /// </summary>
 /// <typeparam name="TOperatingIdentity">The operating identity type. Must be a JSON serializable type.</typeparam>
 /// <typeparam name="TInputParameterDto">The input parameter type. Must be a JSON serializable type.</typeparam>
-public record StartOrchestrationInstanceCommand<TOperatingIdentity, TInputParameterDto>
+public abstract record StartOrchestrationInstanceCommand<TOperatingIdentity, TInputParameterDto>
     : OrchestrationInstanceRequest<TOperatingIdentity>,
     IOrchestrationDescriptionCommand
     where TOperatingIdentity : IOperatingIdentityDto

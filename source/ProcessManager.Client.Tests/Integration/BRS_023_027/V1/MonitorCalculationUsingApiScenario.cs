@@ -72,7 +72,7 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Calculation_WhenScheduledToRunInThePast_CanMonitorLifecycle()
+    public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
         // TODO: Move to API test project
         dynamic scheduleRequestDto = new ExpandoObject();
@@ -82,7 +82,6 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
         scheduleRequestDto.OrchestrationDescriptionUniqueName = new ExpandoObject();
         scheduleRequestDto.OrchestrationDescriptionUniqueName.Name = "BRS_023_027";
         scheduleRequestDto.OrchestrationDescriptionUniqueName.Version = 1;
-        scheduleRequestDto.RunAt = "2024-11-01T06:19:10.0209567+01:00";
         scheduleRequestDto.InputParameter = new ExpandoObject();
         scheduleRequestDto.InputParameter.CalculationType = 0;
         scheduleRequestDto.InputParameter.GridAreaCodes = new[] { "543" };
@@ -98,7 +97,7 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
             Encoding.UTF8,
             "application/json");
 
-        // Step 1: Schedule new calculation orchestration instance
+        // Step 1: Start new calculation orchestration instance
         using var scheduleResponse = await OrchestrationsAppFixture.AppHostManager
             .HttpClient
             .SendAsync(scheduleRequest);
@@ -107,20 +106,16 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
         var calculationId = await scheduleResponse.Content
             .ReadFromJsonAsync<Guid>();
 
-        // Step 2: Trigger the scheduler to queue the calculation orchestration instance
-        await ProcessManagerAppFixture.AppHostManager
-            .TriggerFunctionAsync("StartScheduledOrchestrationInstances");
+        // Step 2: Query until terminated with succeeded
+        dynamic queryRequestDto = new ExpandoObject();
+        queryRequestDto.OperatingIdentity = new ExpandoObject();
+        queryRequestDto.OperatingIdentity.UserId = Guid.NewGuid();
+        queryRequestDto.OperatingIdentity.ActorId = Guid.NewGuid();
+        queryRequestDto.Id = calculationId;
 
-        // Step 3: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                dynamic queryRequestDto = new ExpandoObject();
-                queryRequestDto.OperatingIdentity = new ExpandoObject();
-                queryRequestDto.OperatingIdentity.UserId = Guid.NewGuid();
-                queryRequestDto.OperatingIdentity.ActorId = Guid.NewGuid();
-                queryRequestDto.Id = calculationId;
-
                 using var queryRequest = new HttpRequestMessage(
                     HttpMethod.Post,
                     "/api/orchestrationinstance/query/id");

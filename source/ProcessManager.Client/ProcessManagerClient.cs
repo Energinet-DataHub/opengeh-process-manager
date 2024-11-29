@@ -16,11 +16,19 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Api.Model;
+using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Client;
 
-/// <inheritdoc/>
+/// <summary>
+/// Implementation of a Process Manager client that is intended to be used from the BFF
+/// to start, schedule, cancel and query orchestration instances.
+/// Endpoints which contains 'custom' in their path are expected to have been implemented
+/// in the application where the Durable Function Orchestration recides.
+/// This convention allows us to implement a general client that can route request to
+/// either the general API or the "orchestrations" API.
+/// </summary>
 internal class ProcessManagerClient : IProcessManagerClient
 {
     private readonly HttpClient _generalApiHttpClient;
@@ -40,7 +48,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/api/orchestrationinstance/command/start/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
+            $"/api/orchestrationinstance/command/schedule/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
         var json = JsonSerializer.Serialize(command);
         request.Content = new StringContent(
             json,
@@ -77,6 +85,33 @@ internal class ProcessManagerClient : IProcessManagerClient
             .SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
         actualResponse.EnsureSuccessStatusCode();
+    }
+
+    /// <inheritdoc/>
+    public async Task<Guid> StartNewOrchestrationInstanceAsync<TInputParameterDto>(
+        StartOrchestrationInstanceCommand<UserIdentityDto, TInputParameterDto> command,
+        CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/command/start/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
+        var json = JsonSerializer.Serialize(command);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+
+        using var actualResponse = await _orchestrationsApiHttpClient
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        actualResponse.EnsureSuccessStatusCode();
+
+        var calculationId = await actualResponse.Content
+            .ReadFromJsonAsync<Guid>(cancellationToken)
+            .ConfigureAwait(false);
+
+        return calculationId;
     }
 
     /// <inheritdoc/>

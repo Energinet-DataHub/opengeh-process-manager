@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Api.Model;
 /// Query for orchestration instances by name and other primary information.
 /// Must be JSON serializable.
 /// </summary>
-public record SearchOrchestrationInstancesByNameQuery
+public sealed record SearchOrchestrationInstancesByNameQuery
     : OrchestrationInstanceRequest<UserIdentityDto>
 {
     /// <summary>

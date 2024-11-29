@@ -21,10 +21,10 @@ using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribut
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
 // TODO:
-// This could be refactored into a general "Schedule" trigger whichs then forwards the command to a specific handler.
+// This could be refactored into a general "Schedule" trigger which then forwards the command to a specific handler.
 // In the handler developers can validate and do other stuff.
 
-internal class NotifyAggregatedMeasureDataTriggerV1(
+internal class StartNotifyAggregatedMeasureDataTriggerV1(
     NotifyAggregatedMeasureDataHandler handler)
 {
     private readonly NotifyAggregatedMeasureDataHandler _handler = handler;
@@ -32,12 +32,12 @@ internal class NotifyAggregatedMeasureDataTriggerV1(
     /// <summary>
     /// Schedule a BRS-023 or BRS-027 calculation and return its id.
     /// </summary>
-    [Function(nameof(NotifyAggregatedMeasureDataTriggerV1))]
+    [Function(nameof(StartNotifyAggregatedMeasureDataTriggerV1))]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "orchestrationinstance/command/brs_023_027/1")]
+            Route = "orchestrationinstance/command/start/custom/brs_023_027/1")]
         HttpRequest httpRequest,
         [FromBody]
         ScheduleCalculationCommandV1 command,

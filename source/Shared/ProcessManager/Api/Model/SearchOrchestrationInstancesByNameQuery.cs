@@ -21,7 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Api.Model;
 /// Must be JSON serializable.
 /// </summary>
 public record SearchOrchestrationInstancesByNameQuery
-    : UserRequest
+    : OrchestrationInstanceRequest<UserIdentityDto>
 {
     /// <summary>
     /// Construct query.

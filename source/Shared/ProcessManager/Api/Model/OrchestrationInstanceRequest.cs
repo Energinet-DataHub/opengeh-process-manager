@@ -20,6 +20,8 @@ namespace Energinet.DataHub.ProcessManager.Api.Model;
 /// A orchestration instance request executed by an identity.
 /// Must be JSON serializable.
 /// </summary>
+/// <typeparam name="TOperatingIdentity">The operating identity type. Must be a JSON serializable type.</typeparam>
 /// <param name="OperatingIdentity">The identity executing the request.</param>
-public abstract record OrchestrationInstanceRequest(
-    IOperatingIdentityDto OperatingIdentity);
+public abstract record OrchestrationInstanceRequest<TOperatingIdentity>(
+    TOperatingIdentity OperatingIdentity)
+        where TOperatingIdentity : IOperatingIdentityDto;

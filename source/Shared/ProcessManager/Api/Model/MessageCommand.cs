@@ -23,7 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Api.Model;
 /// </summary>
 /// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
 public abstract record MessageCommand<TInputParameterDto>
-    : StartOrchestrationInstanceCommand<TInputParameterDto>
+    : StartOrchestrationInstanceCommand<ActorIdentityDto, TInputParameterDto>
     where TInputParameterDto : IInputParameterDto
 {
     /// <summary>
@@ -35,7 +35,7 @@ public abstract record MessageCommand<TInputParameterDto>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
     /// <param name="messageId">Id of the message that casued this command to be executed.</param>
     public MessageCommand(
-        IOperatingIdentityDto operatingIdentity,
+        ActorIdentityDto operatingIdentity,
         OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
         TInputParameterDto inputParameter,
         string messageId)

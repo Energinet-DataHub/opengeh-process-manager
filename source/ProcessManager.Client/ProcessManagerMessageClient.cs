@@ -16,42 +16,31 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Api.Model;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Client.Processes.BRS_026_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Contracts;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Models;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 
-namespace Energinet.DataHub.ProcessManager.Client.Processes.BRS_026_028.V1;
+namespace Energinet.DataHub.ProcessManager.Client;
 
-public class RequestCalculatedDataClientV1(
+public class ProcessManagerMessageClient(
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
-        : IRequestCalculatedDataClientV1
+        : IProcessManagerMessageClient
 {
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(nameof(ProcessManagerServiceBusClientsOptions.TopicName));
 
-    public async Task RequestCalculatedEnergyTimeSeriesAsync(MessageCommand<RequestCalculatedEnergyTimeSeriesInputV1> command, CancellationToken cancellationToken)
+    public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
+        MessageCommand<TInputParameterDto> command,
+        CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto
     {
         var serviceBusMessage = CreateServiceBusMessage(
-            "BRS_026",
-            1,
+            command.OrchestrationDescriptionUniqueName.Name,
+            command.OrchestrationDescriptionUniqueName.Version,
             command);
 
-        await SendServiceBusMessage(
+        return SendServiceBusMessage(
                 serviceBusMessage,
-                cancellationToken)
-            .ConfigureAwait(false);
-    }
-
-    public async Task RequestCalculatedWholesaleServicesAsync(MessageCommand<RequestCalculatedWholesaleServicesInputV1> command, CancellationToken cancellationToken)
-    {
-        var serviceBusMessage = CreateServiceBusMessage(
-            "BRS_028",
-            1,
-            command);
-
-        await SendServiceBusMessage(serviceBusMessage, cancellationToken)
-            .ConfigureAwait(false);
+                cancellationToken);
     }
 
     private ServiceBusMessage CreateServiceBusMessage<TInputParameterDto>(

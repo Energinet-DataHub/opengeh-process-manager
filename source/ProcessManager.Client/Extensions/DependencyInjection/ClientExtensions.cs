@@ -14,7 +14,6 @@
 
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Client.Processes.BRS_026_028.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,10 +56,10 @@ public static class ClientExtensions
     }
 
     /// <summary>
-    /// Register Process Manager RequestCalculatedData client for use in applications.
+    /// Register Process Manager message client for use in applications.
     /// <remarks>The application must register the <see cref="ServiceBusClient"/> and contain configuration for <see cref="ProcessManagerServiceBusClientsOptions"/></remarks>
     /// </summary>
-    public static IServiceCollection AddProcessManagerRequestCalculatedDataClient(this IServiceCollection services)
+    public static IServiceCollection AddProcessManagerMessageClient(this IServiceCollection services)
     {
         services
             .AddOptions<ProcessManagerServiceBusClientsOptions>()
@@ -83,7 +82,7 @@ public static class ClientExtensions
                     .WithName(nameof(ProcessManagerServiceBusClientsOptions.TopicName));
             });
 
-        services.AddScoped<IRequestCalculatedDataClientV1, RequestCalculatedDataClientV1>();
+        services.AddScoped<IProcessManagerMessageClient, ProcessManagerMessageClient>();
 
         return services;
     }

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Api.Model;
+using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationDescription;
 
-namespace Energinet.DataHub.ProcessManager.Client.Processes.BRS_026_028.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Model;
 
-public record RequestCalculatedWholesaleServicesInputV1()
-    : IInputParameterDto;
+public record Brs_028_V1()
+    : OrchestrationDescriptionUniqueNameDto("BRS_028", 1);

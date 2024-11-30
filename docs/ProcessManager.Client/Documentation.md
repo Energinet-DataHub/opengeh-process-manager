@@ -1,1 +1,4 @@
-# ProcessManager.Client Documentation
+# Documentation
+
+Documentation of the NuGet package bundle `ProcessManager.Client`.
+

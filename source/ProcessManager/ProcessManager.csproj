@@ -28,34 +28,13 @@
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
     <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\ProcessManager\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\CancelScheduledOrchestrationInstanceCommand.cs" Link="Api\Model\CancelScheduledOrchestrationInstanceCommand.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\GetOrchestrationInstanceByIdQuery.cs" Link="Api\Model\GetOrchestrationInstanceByIdQuery.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\IInputParameterDto.cs" Link="Api\Model\IInputParameterDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\IOrchestrationDescriptionCommand.cs" Link="Api\Model\IOrchestrationDescriptionCommand.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationDescription\OrchestrationDescriptionUniqueNameDto.cs" Link="Api\Model\OrchestrationDescription\OrchestrationDescriptionUniqueNameDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstanceRequest.cs" Link="Api\Model\OrchestrationInstanceRequest.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstanceTypedDto.cs" Link="Api\Model\OrchestrationInstanceTypedDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\ActorIdentityDto.cs" Link="Api\Model\OrchestrationInstance\ActorIdentityDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\IOperatingIdentityDto.cs" Link="Api\Model\OrchestrationInstance\IOperatingIdentityDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\OrchestrationInstanceDto.cs" Link="Api\Model\OrchestrationInstance\OrchestrationInstanceDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\OrchestrationInstanceLifecycleStateDto.cs" Link="Api\Model\OrchestrationInstance\OrchestrationInstanceLifecycleStateDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\OrchestrationInstanceLifecycleStates.cs" Link="Api\Model\OrchestrationInstance\OrchestrationInstanceLifecycleStates.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\StepInstanceDto.cs" Link="Api\Model\OrchestrationInstance\StepInstanceDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\StepInstanceLifecycleStateDto.cs" Link="Api\Model\OrchestrationInstance\StepInstanceLifecycleStateDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\StepInstanceLifecycleStates.cs" Link="Api\Model\OrchestrationInstance\StepInstanceLifecycleStates.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\OrchestrationInstance\UserIdentityDto.cs" Link="Api\Model\OrchestrationInstance\UserIdentityDto.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\ScheduleOrchestrationInstanceCommand.cs" Link="Api\Model\ScheduleOrchestrationInstanceCommand.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\SearchOrchestrationInstancesByCustomQuery.cs" Link="Api\Model\SearchOrchestrationInstancesByCustomQuery.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\SearchOrchestrationInstancesByNameQuery.cs" Link="Api\Model\SearchOrchestrationInstancesByNameQuery.cs" />
-    <Compile Include="..\Shared\ProcessManager\Api\Model\StartOrchestrationInstanceCommand.cs" Link="Api\Model\StartOrchestrationInstanceCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Api\Mappers\" />
-    <Folder Include="Api\Model\OrchestrationDescription\" />
-    <Folder Include="Api\Model\OrchestrationInstance\" />
   </ItemGroup>
 </Project>

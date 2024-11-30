@@ -65,8 +65,8 @@ public interface IProcessManagerClient
     /// <summary>
     /// Get all orchestration instances filtered by a custom query which at least filters by name.
     /// </summary>
-    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
-        SearchOrchestrationInstancesByCustomQuery query,
-        CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto;
+    /// <typeparam name="TItem">The result type of each item returned in the list. Must be a JSON serializable type.</typeparam>
+    Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByNameAsync<TItem>(
+        SearchOrchestrationInstancesByCustomQuery<TItem> query,
+        CancellationToken cancellationToken);
 }

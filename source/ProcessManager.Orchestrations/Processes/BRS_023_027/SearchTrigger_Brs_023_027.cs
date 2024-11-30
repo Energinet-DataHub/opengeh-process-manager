@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Api.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Microsoft.AspNetCore.Http;
@@ -41,9 +40,8 @@ internal class SearchTrigger_Brs_023_027(
         CalculationQuery query,
         FunctionContext executionContext)
     {
-        var orchestrationInstances = await _handler.SearchAsync(query).ConfigureAwait(false);
+        var queryReultItems = await _handler.SearchAsync(query).ConfigureAwait(false);
 
-        var dto = orchestrationInstances.MapToDto();
-        return new OkObjectResult(dto);
+        return new OkObjectResult(queryReultItems);
     }
 }

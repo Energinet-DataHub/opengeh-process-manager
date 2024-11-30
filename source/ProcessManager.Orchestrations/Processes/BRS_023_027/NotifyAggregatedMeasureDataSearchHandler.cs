@@ -24,7 +24,7 @@ internal class NotifyAggregatedMeasureDataSearchHandler(
 {
     private readonly IOrchestrationInstanceQueries _queries = queries;
 
-    public async Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(CalculationQuery query)
+    public async Task<IReadOnlyCollection<CalculationQueryResult>> SearchAsync(CalculationQuery query)
     {
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         //
@@ -68,6 +68,8 @@ internal class NotifyAggregatedMeasureDataSearchHandler(
         //// query.PeriodEndDate
         //// query.IsInternalCalculation
 
-        return calculations;
+        return calculations
+            .Select(item => new CalculationQueryResult(item.Id.Value))
+            .ToList();
     }
 }

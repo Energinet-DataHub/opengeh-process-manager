@@ -169,10 +169,9 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
-        SearchOrchestrationInstancesByCustomQuery query,
+    public async Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByNameAsync<TItem>(
+        SearchOrchestrationInstancesByCustomQuery<TItem> query,
         CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
@@ -189,7 +188,7 @@ internal class ProcessManagerClient : IProcessManagerClient
         actualResponse.EnsureSuccessStatusCode();
 
         var orchestrationInstances = await actualResponse.Content
-            .ReadFromJsonAsync<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>>(cancellationToken)
+            .ReadFromJsonAsync<IReadOnlyCollection<TItem>>(cancellationToken)
             .ConfigureAwait(false);
 
         return orchestrationInstances!;

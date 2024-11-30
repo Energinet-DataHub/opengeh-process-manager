@@ -20,7 +20,8 @@ namespace Energinet.DataHub.ProcessManager.Api.Model;
 /// Base class for implementing custom queries for orchestration instances.
 /// Must be JSON serializable.
 /// </summary>
-public abstract record SearchOrchestrationInstancesByCustomQuery
+/// <typeparam name="TItem">The result type of each item returned in the result list. Must be a JSON serializable type.</typeparam>
+public abstract record SearchOrchestrationInstancesByCustomQuery<TItem>
     : OrchestrationInstanceRequest<UserIdentityDto>
 {
     /// <summary>

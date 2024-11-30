@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 /// Must be JSON serializable.
 /// </summary>
 public record CalculationQuery
-    : SearchOrchestrationInstancesByCustomQuery
+    : SearchOrchestrationInstancesByCustomQuery<CalculationQueryResult>
 {
     /// <summary>
     /// Construct query.

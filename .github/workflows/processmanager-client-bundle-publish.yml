@@ -97,7 +97,7 @@ jobs:
             source/ProcessManager.Abstractions/**/*.*
             .github/workflows/processmanager-client-bundle-publish.yml
 
-      - name: Assert versions of NuGet packages and push them to NuGet.org
+      - name: Assert version of ProcessManager.Client NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
         with:
           push_packages: ${{ env.PUSH_PACKAGES }}
@@ -105,7 +105,7 @@ jobs:
           nuget_token: ${{ secrets.nuget_token }}
           nupkg_recurse_path: source/ProcessManager.Client
 
-      - name: Assert versions of NuGet packages and push them to NuGet.org
+      - name: Assert version of ProcessManager.Abstractions NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
         with:
           push_packages: ${{ env.PUSH_PACKAGES }}

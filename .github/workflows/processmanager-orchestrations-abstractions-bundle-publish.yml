@@ -91,7 +91,7 @@ jobs:
             source/ProcessManager.Abstractions/**/*.*
             .github/workflows/processmanager-orchestrations-abstractions-bundle-publish.yml
 
-      - name: Assert versions of NuGet packages and push them to NuGet.org
+      - name: Assert version of ProcessManager.Orchestrations.Abstractions NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
         with:
           push_packages: ${{ env.PUSH_PACKAGES }}

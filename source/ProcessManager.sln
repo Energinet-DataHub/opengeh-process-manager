@@ -68,7 +68,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_ConfigurationFiles", "_Con
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessManager.Abstractions", "ProcessManager.Abstractions\ProcessManager.Abstractions.csproj", "{61815BFA-702C-4F94-9671-EDEA5BCC66A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Orchestrations.Abstractions", "ProcessManager.Orchestrations.Abstractions\ProcessManager.Orchestrations.Abstractions.csproj", "{26380933-E2C6-4277-832B-34EE85E07EA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessManager.Orchestrations.Abstractions", "ProcessManager.Orchestrations.Abstractions\ProcessManager.Orchestrations.Abstractions.csproj", "{26380933-E2C6-4277-832B-34EE85E07EA4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{2D4F7BBC-3438-4F38-8636-D01550D56DFF}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\ProcessManager.Orchestrations.Abstractions\Documentation.md = ..\docs\ProcessManager.Orchestrations.Abstractions\Documentation.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ReleaseNotes", "ReleaseNotes", "{64B19A52-D790-4F91-9206-90D0F5F50393}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\ProcessManager.Orchestrations.Abstractions\ReleaseNotes\ReleaseNotes.md = ..\docs\ProcessManager.Orchestrations.Abstractions\ReleaseNotes\ReleaseNotes.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -148,6 +158,8 @@ Global
 		{4CC648EE-E738-4C07-80D7-3728C5E91A23} = {641A26DF-B668-45F4-B4C3-B4852EA3F069}
 		{61815BFA-702C-4F94-9671-EDEA5BCC66A8} = {484AA3D7-D3E9-42FC-8439-5F2B2DB386BB}
 		{26380933-E2C6-4277-832B-34EE85E07EA4} = {1F24E013-AAEF-460B-A8AF-AD1F8A4A9A59}
+		{2D4F7BBC-3438-4F38-8636-D01550D56DFF} = {1F24E013-AAEF-460B-A8AF-AD1F8A4A9A59}
+		{64B19A52-D790-4F91-9206-90D0F5F50393} = {2D4F7BBC-3438-4F38-8636-D01550D56DFF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A09D89DF-3110-4624-B419-236E001E0ABF}

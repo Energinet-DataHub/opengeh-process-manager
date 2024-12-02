@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Api.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
 public record RequestCalculatedEnergyTimeSeriesInputV1(
     string BusinessReason)

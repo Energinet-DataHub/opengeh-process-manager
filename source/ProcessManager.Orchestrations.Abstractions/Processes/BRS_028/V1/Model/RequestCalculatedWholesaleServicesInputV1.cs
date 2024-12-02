@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Api.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
 
 public record RequestCalculatedWholesaleServicesInputV1()
     : IInputParameterDto;

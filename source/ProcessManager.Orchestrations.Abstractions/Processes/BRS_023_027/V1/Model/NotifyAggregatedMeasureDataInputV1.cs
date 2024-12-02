@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Api.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 
 /// <summary>
 /// An immutable input to start the orchestration instance for "BRS_023_027" V1.

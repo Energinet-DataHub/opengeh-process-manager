@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Api.Model;
 using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
 /// <summary>
 /// Command for starting a BRS-026.

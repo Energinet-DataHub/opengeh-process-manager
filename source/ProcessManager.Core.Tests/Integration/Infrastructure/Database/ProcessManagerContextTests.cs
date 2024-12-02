@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
@@ -79,6 +80,32 @@ public class ProcessManagerContextTests
     }
 
     [Fact]
+    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_WhenFilteringJsonColumn_ReturnsExpectedItem()
+    {
+        // Arrange
+        var expectedTestInt = 52;
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription, testInt: expectedTestInt);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
+        var actualOrchestrationInstanceIds = await readDbContext.Database
+            .SqlQuery<Guid>($"SELECT [o].[Id] FROM [pm].[OrchestrationInstance] AS [o] WHERE CAST(JSON_VALUE([o].[SerializedParameterValue],'$.TestInt') AS int) = {expectedTestInt}")
+            .ToListAsync();
+
+        // Assert
+        actualOrchestrationInstanceIds.Should().Contain(existingOrchestrationInstance.Id.Value);
+        actualOrchestrationInstanceIds.Count.Should().Be(1);
+    }
+
+    [Fact]
     public async Task Given_UserCanceledOrchestrationInstanceAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
     {
         // Arrange
@@ -125,7 +152,7 @@ public class ProcessManagerContextTests
         return orchestrationDescription;
     }
 
-    private static OrchestrationInstance CreateOrchestrationInstance(OrchestrationDescription orchestrationDescription, OperatingIdentity? identity = default, Instant? runAt = default)
+    private static OrchestrationInstance CreateOrchestrationInstance(OrchestrationDescription orchestrationDescription, OperatingIdentity? identity = default, Instant? runAt = default, int? testInt = default)
     {
         var operatingIdentity = identity
             ?? new UserIdentity(
@@ -142,7 +169,7 @@ public class ProcessManagerContextTests
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {
             TestString = "Test string",
-            TestInt = 42,
+            TestInt = testInt ?? 42,
         });
 
         return orchestrationInstance;

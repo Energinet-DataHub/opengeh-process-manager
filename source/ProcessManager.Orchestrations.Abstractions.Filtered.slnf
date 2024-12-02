@@ -1,0 +1,9 @@
+{
+  "solution": {
+    "path": "ProcessManager.sln",
+    "projects": [
+      "ProcessManager.Abstractions\\ProcessManager.Abstractions.csproj",
+      "ProcessManager.Orchestrations.Abstractions\\ProcessManager.Orchestrations.Abstractions.csproj"
+    ]
+  }
+}

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
-namespace Energinet.DataHub.ProcessManager.Api.Model;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
 /// Interface for commands the require <see cref="OrchestrationDescriptionUniqueName"/>.

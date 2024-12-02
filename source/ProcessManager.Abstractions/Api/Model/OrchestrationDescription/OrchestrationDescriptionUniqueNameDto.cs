@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Api.Model.OrchestrationDescription;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
 /// <summary>
 /// Uniquely identifies a specific implementation of the orchestration.

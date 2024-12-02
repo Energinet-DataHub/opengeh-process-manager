@@ -15,8 +15,8 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Api.Model;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
 /// Marker interface for JSON serializable input parameters to an orchestration instance.

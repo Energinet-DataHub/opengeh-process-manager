@@ -17,7 +17,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Energinet.DataHub.Core.TestCommon;
-using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 using FluentAssertions;
 using Xunit.Abstractions;

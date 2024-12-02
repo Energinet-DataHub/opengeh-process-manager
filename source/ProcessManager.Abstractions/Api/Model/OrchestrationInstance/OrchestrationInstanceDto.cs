@@ -14,7 +14,7 @@
 
 using System.Dynamic;
 
-namespace Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
 /// <summary>
 /// Represents the instance of an orchestration.

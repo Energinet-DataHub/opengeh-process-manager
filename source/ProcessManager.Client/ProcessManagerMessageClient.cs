@@ -14,9 +14,9 @@
 
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
-using Energinet.DataHub.ProcessManager.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Contracts;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 

@@ -14,7 +14,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
 /// <summary>
 /// An identity performing an Process Manager operation.

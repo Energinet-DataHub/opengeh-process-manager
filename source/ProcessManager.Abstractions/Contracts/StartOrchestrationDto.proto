@@ -15,7 +15,7 @@
 
 syntax = "proto3";
 
-option csharp_namespace = "Energinet.DataHub.ProcessManager.Orchestrations.Contracts";
+option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
 
 message StartOrchestrationDto {
   string orchestration_name = 1; // The name of the orchestration to start.

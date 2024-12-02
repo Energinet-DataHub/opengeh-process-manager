@@ -15,8 +15,8 @@
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Energinet.DataHub.ProcessManager.Api.Model;
-using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Client;

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Api.Model;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
 /// Query for orchestration instances by name and other primary information.

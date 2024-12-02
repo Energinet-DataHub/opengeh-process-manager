@@ -63,6 +63,7 @@ jobs:
             processmanager_client:
               - 'docs/ProcessManager.Client/**'
               - 'source/ProcessManager.Client*/**'
+              - 'source/ProcessManager.Abstractions*/**'
               - '.github/workflows/processmanager-client-bundle-publish.yml'
             render_c4model_views:
               - 'docs/diagrams/c4-model/views.dsl'

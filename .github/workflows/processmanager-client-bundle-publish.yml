@@ -82,12 +82,18 @@ jobs:
         with:
           project_path: ./source/ProcessManager.Client/ProcessManager.Client.csproj
 
+      - name: Pack ProcessManager.Abstractions project
+        uses: Energinet-DataHub/.github/.github/actions/nuget-project-pack@v14
+        with:
+          project_path: ./source/ProcessManager.Abstractions/ProcessManager.Abstractions.csproj
+
       - name: Package content or build has changed
         id: changed-content
         uses: tj-actions/changed-files@v41
         with:
           files: |
             source/ProcessManager.Client/**/*.*
+            source/ProcessManager.Abstractions/**/*.*
             .github/workflows/processmanager-client-bundle-publish.yml
 
       - name: Assert versions of NuGet packages and push them to NuGet.org

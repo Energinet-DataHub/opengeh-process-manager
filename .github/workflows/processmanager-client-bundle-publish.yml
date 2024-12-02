@@ -16,15 +16,16 @@ name: Publish ProcessManager.Client bundle
 
 on:
   # Build, test, pack and publish release packages
-  # Only executed if (*.)ProcessManager.Client packages content or build scripts has changed; not if solution file, documentation or tests has changed
+  # Only executed if ProcessManager.Client or ProcessManager.Abstractions packages content or build scripts has changed; not if solution file, documentation or tests has changed
   push:
     branches:
       - main
     paths:
       - source/ProcessManager.Client/**
+      - source/ProcessManager.Abstractions/**
       - .github/workflows/processmanager-client-bundle-publish.yml
   # Build, test, pack
-  # Executed if ProcessManager.Client folder or build scripts has changed; including if documentation or tests has changed
+  # Executed if ProcessManager.Client or ProcessManager.Abstractions folder or build scripts has changed; including if documentation or tests has changed
   workflow_call: {}
   # Build, test, pack and publish prerelease packages
   # Executed if manually triggered

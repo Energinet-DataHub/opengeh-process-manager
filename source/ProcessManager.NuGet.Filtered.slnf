@@ -4,7 +4,8 @@
     "projects": [
       "ProcessManager.Abstractions\\ProcessManager.Abstractions.csproj",
       "ProcessManager.Client.Tests\\ProcessManager.Client.Tests.csproj",
-      "ProcessManager.Client\\ProcessManager.Client.csproj"
+      "ProcessManager.Client\\ProcessManager.Client.csproj",
+      "ProcessManager.Orchestrations.Abstractions\\ProcessManager.Orchestrations.Abstractions.csproj"
     ]
   }
 }

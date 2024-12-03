@@ -19,7 +19,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <summary>
 /// An immutable input to start the orchestration instance for "BRS_023_027" V1.
 /// </summary>
-public record NotifyAggregatedMeasureDataInputV1(
+public record CalculationInputV1(
     CalculationTypes CalculationType,
     IReadOnlyCollection<string> GridAreaCodes,
     DateTimeOffset PeriodStartDate,

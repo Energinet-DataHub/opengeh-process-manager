@@ -90,7 +90,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             ActorId: Guid.NewGuid());
 
         // Step 1: Start new calculation orchestration instance
-        var inputParameter = new NotifyAggregatedMeasureDataInputV1(
+        var inputParameter = new CalculationInputV1(
             CalculationTypes.WholesaleFixing,
             GridAreaCodes: new[] { "543" },
             PeriodStartDate: DateTimeOffset.Parse("2024-10-08T15:19:10.0151351+01:00"),
@@ -108,7 +108,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             async () =>
             {
                 var orchestrationInstance = await processManagerClient
-                    .GetOrchestrationInstanceByIdAsync<NotifyAggregatedMeasureDataInputV1>(
+                    .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
                             orchestrationInstanceId),
@@ -125,7 +125,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
 
         // Step 3: General search using name and termination state
         var orchestrationInstancesGeneralSearch = await processManagerClient
-            .SearchOrchestrationInstancesByNameAsync<NotifyAggregatedMeasureDataInputV1>(
+            .SearchOrchestrationInstancesByNameAsync<CalculationInputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
                     userIdentity,
                     name: new Brs_023_027_V1().Name,
@@ -173,7 +173,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
                 new ScheduleCalculationCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
-                    inputParameter: new NotifyAggregatedMeasureDataInputV1(
+                    inputParameter: new CalculationInputV1(
                         CalculationTypes.BalanceFixing,
                         GridAreaCodes: new[] { "543" },
                         PeriodStartDate: DateTimeOffset.Parse("2024-10-29T15:19:10.0151351+01:00"),
@@ -190,7 +190,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             async () =>
             {
                 var orchestrationInstance = await processManagerClient
-                    .GetOrchestrationInstanceByIdAsync<NotifyAggregatedMeasureDataInputV1>(
+                    .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
                             orchestrationInstanceId),
@@ -221,7 +221,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
                 new ScheduleCalculationCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
-                    inputParameter: new NotifyAggregatedMeasureDataInputV1(
+                    inputParameter: new CalculationInputV1(
                         CalculationTypes.BalanceFixing,
                         GridAreaCodes: new[] { "543" },
                         PeriodStartDate: DateTimeOffset.Parse("2024-10-29T15:19:10.0151351+01:00"),
@@ -242,7 +242,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             async () =>
             {
                 var orchestrationInstance = await processManagerClient
-                    .GetOrchestrationInstanceByIdAsync<NotifyAggregatedMeasureDataInputV1>(
+                    .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
                             orchestrationInstanceId),

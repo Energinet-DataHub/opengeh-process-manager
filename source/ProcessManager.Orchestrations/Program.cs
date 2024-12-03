@@ -72,9 +72,9 @@ OrchestrationDescription CreateBrs_023_027_V1Description()
             orchestrationDescriptionUniqueName.Name,
             orchestrationDescriptionUniqueName.Version),
         canBeScheduled: true,
-        functionName: nameof(NotifyAggregatedMeasureDataOrchestrationV1));
+        functionName: nameof(Orchestration_Brs_023_027_V1));
 
-    description.ParameterDefinition.SetFromType<NotifyAggregatedMeasureDataInputV1>();
+    description.ParameterDefinition.SetFromType<CalculationInputV1>();
 
     description.AppendStepDescription("Beregning");
     description.AppendStepDescription(

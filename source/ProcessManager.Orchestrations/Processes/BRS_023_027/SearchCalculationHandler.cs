@@ -72,7 +72,7 @@ internal class SearchCalculationHandler(
         //// query.IsInternalCalculation
 
         return calculations
-            .Select(item => new CalculationQueryResult(item.MapToTypedDto<NotifyAggregatedMeasureDataInputV1>()))
+            .Select(item => new CalculationQueryResult(item.MapToTypedDto<CalculationInputV1>()))
             .ToList();
     }
 }

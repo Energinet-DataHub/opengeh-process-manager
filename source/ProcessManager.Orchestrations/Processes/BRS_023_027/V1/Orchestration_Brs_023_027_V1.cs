@@ -21,12 +21,12 @@ using Microsoft.DurableTask;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
 // TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
-internal class NotifyAggregatedMeasureDataOrchestrationV1
+internal class Orchestration_Brs_023_027_V1
 {
     internal const int CalculationStepSequence = 1;
     internal const int EnqueueMessagesStepSequence = 2;
 
-    [Function(nameof(NotifyAggregatedMeasureDataOrchestrationV1))]
+    [Function(nameof(Orchestration_Brs_023_027_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
@@ -35,7 +35,7 @@ internal class NotifyAggregatedMeasureDataOrchestrationV1
         // Currently we inject parameters when an orchestration is started.
         // But 'context.InstanceId' contains the 'OrchestrationInstance.Id' so it is possible to load all
         // information about an 'OrchestrationInstance' in activities and use any information (e.g. UserIdentity).
-        var input = context.GetOrchestrationParameterValue<NotifyAggregatedMeasureDataInputV1>();
+        var input = context.GetOrchestrationParameterValue<CalculationInputV1>();
         if (input == null)
             return "Error: No input specified.";
 

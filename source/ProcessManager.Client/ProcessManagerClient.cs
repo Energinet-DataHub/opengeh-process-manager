@@ -172,6 +172,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     public async Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByNameAsync<TItem>(
         SearchOrchestrationInstancesByCustomQuery<TItem> query,
         CancellationToken cancellationToken)
+            where TItem : class
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,

@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Must be JSON serializable.
 /// </summary>
 public record StartCalculationCommandV1
-    : StartOrchestrationInstanceCommand<UserIdentityDto, NotifyAggregatedMeasureDataInputV1>
+    : StartOrchestrationInstanceCommand<UserIdentityDto, CalculationInputV1>
 {
     /// <summary>
     /// Construct command.
@@ -31,7 +31,7 @@ public record StartCalculationCommandV1
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
     public StartCalculationCommandV1(
         UserIdentityDto operatingIdentity,
-        NotifyAggregatedMeasureDataInputV1 inputParameter)
+        CalculationInputV1 inputParameter)
             : base(
                 operatingIdentity,
                 orchestrationDescriptionUniqueName: new Brs_023_027_V1(),

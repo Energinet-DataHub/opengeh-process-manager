@@ -68,5 +68,6 @@ public interface IProcessManagerClient
     /// <typeparam name="TItem">The result type of each item returned in the list. Must be a JSON serializable type.</typeparam>
     Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByNameAsync<TItem>(
         SearchOrchestrationInstancesByCustomQuery<TItem> query,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+            where TItem : class;
 }

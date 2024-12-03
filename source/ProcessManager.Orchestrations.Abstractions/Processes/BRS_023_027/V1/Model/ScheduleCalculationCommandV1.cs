@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Must be JSON serializable.
 /// </summary>
 public record ScheduleCalculationCommandV1
-    : ScheduleOrchestrationInstanceCommand<NotifyAggregatedMeasureDataInputV1>
+    : ScheduleOrchestrationInstanceCommand<CalculationInputV1>
 {
     /// <summary>
     /// Construct command.
@@ -33,7 +33,7 @@ public record ScheduleCalculationCommandV1
     public ScheduleCalculationCommandV1(
         UserIdentityDto operatingIdentity,
         DateTimeOffset runAt,
-        NotifyAggregatedMeasureDataInputV1 inputParameter)
+        CalculationInputV1 inputParameter)
             : base(
                 operatingIdentity,
                 orchestrationDescriptionUniqueName: new Brs_023_027_V1(),

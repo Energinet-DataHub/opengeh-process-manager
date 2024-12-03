@@ -33,7 +33,7 @@ internal class StartCalculationHandlerV1(
 
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
-            ? [NotifyAggregatedMeasureDataOrchestrationV1.EnqueueMessagesStepSequence]
+            ? [Orchestration_Brs_023_027_V1.EnqueueMessagesStepSequence]
             : [];
 
         var orchestrationInstanceId = await _manager
@@ -59,7 +59,7 @@ internal class StartCalculationHandlerV1(
 
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
-            ? [NotifyAggregatedMeasureDataOrchestrationV1.EnqueueMessagesStepSequence]
+            ? [Orchestration_Brs_023_027_V1.EnqueueMessagesStepSequence]
             : [];
 
         var orchestrationInstanceId = await _manager

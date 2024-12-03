@@ -24,7 +24,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
 public abstract record MessageCommand<TInputParameterDto>
     : StartOrchestrationInstanceCommand<ActorIdentityDto, TInputParameterDto>
-    where TInputParameterDto : IInputParameterDto
+        where TInputParameterDto : IInputParameterDto
 {
     /// <summary>
     /// Construct command.

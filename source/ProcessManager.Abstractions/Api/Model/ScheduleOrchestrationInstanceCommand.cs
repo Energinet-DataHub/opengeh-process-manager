@@ -23,8 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// </summary>
 /// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
 public abstract record ScheduleOrchestrationInstanceCommand<TInputParameterDto>
-    : OrchestrationInstanceRequest<UserIdentityDto>,
-    IOrchestrationDescriptionCommand<TInputParameterDto>
+    : StartOrchestrationInstanceCommand<UserIdentityDto, TInputParameterDto>
         where TInputParameterDto : IInputParameterDto
 {
     /// <summary>
@@ -40,18 +39,10 @@ public abstract record ScheduleOrchestrationInstanceCommand<TInputParameterDto>
         OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
         TInputParameterDto inputParameter,
         DateTimeOffset runAt)
-            : base(operatingIdentity)
+            : base(operatingIdentity, orchestrationDescriptionUniqueName, inputParameter)
     {
-        OrchestrationDescriptionUniqueName = orchestrationDescriptionUniqueName;
-        InputParameter = inputParameter;
         RunAt = runAt;
     }
-
-    /// <inheritdoc/>
-    public OrchestrationDescriptionUniqueNameDto OrchestrationDescriptionUniqueName { get; }
-
-    /// <inheritdoc/>
-    public TInputParameterDto InputParameter { get; }
 
     /// <summary>
     /// The time when the orchestration instance should be executed by the Scheduler.

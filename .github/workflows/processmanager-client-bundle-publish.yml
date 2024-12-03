@@ -16,7 +16,8 @@ name: Publish ProcessManager.Client bundle
 
 on:
   # Build, test, pack and publish release packages
-  # Only executed if ProcessManager.Client or ProcessManager.Abstractions packages content or build scripts has changed; not if solution file, documentation or tests has changed
+  # Only executed if ProcessManager.Client or ProcessManager.Abstractions packages content or build scripts has changed; not if solution file,
+  # documentation or tests has changed
   push:
     branches:
       - main

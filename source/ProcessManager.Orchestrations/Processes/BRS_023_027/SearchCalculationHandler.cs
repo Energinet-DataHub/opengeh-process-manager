@@ -22,7 +22,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
-internal class NotifyAggregatedMeasureDataSearchHandler(
+internal class SearchCalculationHandler(
     IOrchestrationInstanceQueries queries)
 {
     private readonly IOrchestrationInstanceQueries _queries = queries;

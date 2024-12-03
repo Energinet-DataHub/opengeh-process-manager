@@ -51,8 +51,8 @@ var host = new HostBuilder()
             return [brs_023_027_v1, brs_026_v1];
         });
         // => Handlers
-        services.AddScoped<NotifyAggregatedMeasureDataSearchHandler>();
-        services.AddScoped<NotifyAggregatedMeasureDataStartHandlerV1>();
+        services.AddScoped<SearchCalculationHandler>();
+        services.AddScoped<StartCalculationHandlerV1>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

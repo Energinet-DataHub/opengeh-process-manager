@@ -22,9 +22,9 @@ using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribut
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027;
 
 internal class SearchTrigger_Brs_023_027(
-    NotifyAggregatedMeasureDataSearchHandler handler)
+    SearchCalculationHandler handler)
 {
-    private readonly NotifyAggregatedMeasureDataSearchHandler _handler = handler;
+    private readonly SearchCalculationHandler _handler = handler;
 
     /// <summary>
     /// Search for instances of BRS-023 or BRS-027 calculations.

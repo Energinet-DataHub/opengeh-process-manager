@@ -21,9 +21,9 @@ using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribut
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
 internal class ScheduleTrigger_Brs_023_027_V1(
-    NotifyAggregatedMeasureDataStartHandlerV1 handler)
+    StartCalculationHandlerV1 handler)
 {
-    private readonly NotifyAggregatedMeasureDataStartHandlerV1 _handler = handler;
+    private readonly StartCalculationHandlerV1 _handler = handler;
 
     /// <summary>
     /// Schedule a BRS-023 or BRS-027 calculation and return its id.

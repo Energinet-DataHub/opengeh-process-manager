@@ -23,6 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// <typeparam name="TItem">The result type of each item returned in the result list. Must be a JSON serializable type.</typeparam>
 public abstract record SearchOrchestrationInstancesByCustomQuery<TItem>
     : OrchestrationInstanceRequest<UserIdentityDto>
+        where TItem : class
 {
     /// <summary>
     /// Construct query.

@@ -61,6 +61,7 @@ jobs:
               - '.github/workflows/**'
               - 'source/**'
               - 'source/!(DatabaseMigration/**)**'
+              - 'source/!(ProcessManager.Client/**)**'
             db_migrations:
               - 'source/DatabaseMigration/**'
             processmanager_client:

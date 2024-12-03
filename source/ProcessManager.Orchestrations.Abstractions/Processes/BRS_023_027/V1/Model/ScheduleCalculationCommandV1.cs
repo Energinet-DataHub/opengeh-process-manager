@@ -28,17 +28,17 @@ public record ScheduleCalculationCommandV1
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    /// <param name="runAt">The time when the orchestration instance should be executed by the Scheduler.</param>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
+    /// <param name="runAt">The time when the orchestration instance should be executed by the Scheduler.</param>
     public ScheduleCalculationCommandV1(
         UserIdentityDto operatingIdentity,
-        DateTimeOffset runAt,
-        CalculationInputV1 inputParameter)
+        CalculationInputV1 inputParameter,
+        DateTimeOffset runAt)
             : base(
                 operatingIdentity,
                 orchestrationDescriptionUniqueName: new Brs_023_027_V1(),
-                runAt,
-                inputParameter)
+                inputParameter,
+                runAt)
     {
     }
 }

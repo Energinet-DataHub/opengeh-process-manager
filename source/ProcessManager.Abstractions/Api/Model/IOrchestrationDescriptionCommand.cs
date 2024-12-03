@@ -20,11 +20,18 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// Interface for commands the require <see cref="OrchestrationDescriptionUniqueName"/>.
 /// Allows us the implement general handling of implementing commands.
 /// </summary>
-public interface IOrchestrationDescriptionCommand
+/// <typeparam name="TInputParameterDto">The input parameter type. Must be a JSON serializable type.</typeparam>
+public interface IOrchestrationDescriptionCommand<TInputParameterDto>
+    where TInputParameterDto : IInputParameterDto
 {
     /// <summary>
     /// Uniquely identifies the orchestration description from which the
     /// orchestration instance should be created.
     /// </summary>
     OrchestrationDescriptionUniqueNameDto OrchestrationDescriptionUniqueName { get; }
+
+    /// <summary>
+    /// Contains the Durable Functions orchestration input parameter value.
+    /// </summary>
+    TInputParameterDto InputParameter { get; }
 }

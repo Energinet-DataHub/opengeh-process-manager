@@ -12,17 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Globalization;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Energinet.DataHub.ProcessManager.Api.Model;
-using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Client;
 
-/// <inheritdoc/>
+/// <summary>
+/// Implementation of a Process Manager client that is intended to be used from the BFF
+/// to start, schedule, cancel and query orchestration instances.
+/// Endpoints which contains 'custom' in their path are expected to have been implemented
+/// in the application where the Durable Function Orchestration recides.
+/// This convention allows us to implement a general client that can route request to
+/// either the general API or the "orchestrations" API.
+/// </summary>
 internal class ProcessManagerClient : IProcessManagerClient
 {
     private readonly HttpClient _generalApiHttpClient;
@@ -42,7 +48,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/api/processmanager/orchestrationinstance/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
+            $"/api/orchestrationinstance/command/schedule/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
         var json = JsonSerializer.Serialize(command);
         request.Content = new StringContent(
             json,
@@ -68,7 +74,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            "/api/processmanager/orchestrationinstance/cancel");
+            "/api/orchestrationinstance/command/cancel");
         var json = JsonSerializer.Serialize(command);
         request.Content = new StringContent(
             json,
@@ -82,14 +88,46 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceAsync<TInputParameterDto>(
-        Guid id,
+    public async Task<Guid> StartNewOrchestrationInstanceAsync<TInputParameterDto>(
+        StartOrchestrationInstanceCommand<UserIdentityDto, TInputParameterDto> command,
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto
     {
         using var request = new HttpRequestMessage(
-            HttpMethod.Get,
-            $"/api/processmanager/orchestrationinstance/{id}");
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/command/start/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
+        var json = JsonSerializer.Serialize(command);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+
+        using var actualResponse = await _orchestrationsApiHttpClient
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        actualResponse.EnsureSuccessStatusCode();
+
+        var calculationId = await actualResponse.Content
+            .ReadFromJsonAsync<Guid>(cancellationToken)
+            .ConfigureAwait(false);
+
+        return calculationId;
+    }
+
+    /// <inheritdoc/>
+    public async Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceByIdAsync<TInputParameterDto>(
+        GetOrchestrationInstanceByIdQuery query,
+        CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/id");
+        var json = JsonSerializer.Serialize(query);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
 
         using var actualResponse = await _generalApiHttpClient
             .SendAsync(request, cancellationToken)
@@ -104,20 +142,19 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesAsync<TInputParameterDto>(
-        string name,
-        int? version,
-        OrchestrationInstanceLifecycleStates? lifecycleState,
-        OrchestrationInstanceTerminationStates? terminationState,
-        DateTimeOffset? startedAtOrLater,
-        DateTimeOffset? terminatedAtOrEarlier,
+    public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
+        SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto
     {
-        var url = BuildSearchRequestUrl(name, version, lifecycleState, terminationState, startedAtOrLater, terminatedAtOrEarlier);
         using var request = new HttpRequestMessage(
-            HttpMethod.Get,
-            url);
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/name");
+        var json = JsonSerializer.Serialize(query);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
 
         using var actualResponse = await _generalApiHttpClient
             .SendAsync(request, cancellationToken)
@@ -131,34 +168,30 @@ internal class ProcessManagerClient : IProcessManagerClient
         return orchestrationInstances!;
     }
 
-    // TODO: Perhaps share with other clients
-    private static string BuildSearchRequestUrl(
-        string name,
-        int? version,
-        OrchestrationInstanceLifecycleStates? lifecycleState,
-        OrchestrationInstanceTerminationStates? terminationState,
-        DateTimeOffset? startedAtOrLater,
-        DateTimeOffset? terminatedAtOrEarlier)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByNameAsync<TItem>(
+        SearchOrchestrationInstancesByCustomQuery<TItem> query,
+        CancellationToken cancellationToken)
+            where TItem : class
     {
-        var urlBuilder = new StringBuilder($"/api/processmanager/orchestrationinstances/{name}");
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/query/custom/{query.Name}");
+        var json = JsonSerializer.Serialize(query);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
 
-        if (version.HasValue)
-            urlBuilder.Append($"/{version}");
+        using var actualResponse = await _orchestrationsApiHttpClient
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        actualResponse.EnsureSuccessStatusCode();
 
-        urlBuilder.Append("?");
+        var orchestrationInstances = await actualResponse.Content
+            .ReadFromJsonAsync<IReadOnlyCollection<TItem>>(cancellationToken)
+            .ConfigureAwait(false);
 
-        if (lifecycleState.HasValue)
-            urlBuilder.Append($"lifecycleState={Uri.EscapeDataString(lifecycleState.ToString() ?? string.Empty)}&");
-
-        if (terminationState.HasValue)
-            urlBuilder.Append($"terminationState={Uri.EscapeDataString(terminationState.ToString() ?? string.Empty)}&");
-
-        if (startedAtOrLater.HasValue)
-            urlBuilder.Append($"startedAtOrLater={Uri.EscapeDataString(startedAtOrLater?.ToString("o", CultureInfo.InvariantCulture) ?? string.Empty)}&");
-
-        if (terminatedAtOrEarlier.HasValue)
-            urlBuilder.Append($"terminatedAtOrEarlier={Uri.EscapeDataString(terminatedAtOrEarlier?.ToString("o", CultureInfo.InvariantCulture) ?? string.Empty)}&");
-
-        return urlBuilder.ToString();
+        return orchestrationInstances!;
     }
 }

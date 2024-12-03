@@ -1,0 +1,80 @@
+﻿// Copyright 2020 Energinet DataHub A/S
+//
+// Licensed under the Apache License, Version 2.0 (the "License2");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+using NodaTime.Extensions;
+
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
+
+internal class StartCalculationHandlerV1(
+    IStartOrchestrationInstanceCommands manager)
+{
+    private readonly IStartOrchestrationInstanceCommands _manager = manager;
+
+    public async Task<OrchestrationInstanceId> StartNewCalculationAsync(StartCalculationCommandV1 command)
+    {
+        // TODO:
+        // Server-side validation => Validate "period" is midnight values when given "timezone" etc.
+        // See class Calculation and method IsValid in Wholesale.
+
+        // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
+        IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
+            ? [Orchestration_Brs_023_027_V1.EnqueueMessagesStepSequence]
+            : [];
+
+        var orchestrationInstanceId = await _manager
+            .StartNewOrchestrationInstanceAsync(
+                identity: new UserIdentity(
+                    new UserId(command.OperatingIdentity.UserId),
+                    new ActorId(command.OperatingIdentity.ActorId)),
+                uniqueName: new OrchestrationDescriptionUniqueName(
+                    command.OrchestrationDescriptionUniqueName.Name,
+                    command.OrchestrationDescriptionUniqueName.Version),
+                inputParameter: command.InputParameter,
+                skipStepsBySequence: skipStepsBySequence)
+            .ConfigureAwait(false);
+
+        return orchestrationInstanceId;
+    }
+
+    public async Task<OrchestrationInstanceId> ScheduleNewCalculationAsync(ScheduleCalculationCommandV1 command)
+    {
+        // TODO:
+        // Server-side validation => Validate "period" is midnight values when given "timezone" etc.
+        // See class Calculation and method IsValid in Wholesale.
+
+        // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
+        IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
+            ? [Orchestration_Brs_023_027_V1.EnqueueMessagesStepSequence]
+            : [];
+
+        var orchestrationInstanceId = await _manager
+            .ScheduleNewOrchestrationInstanceAsync(
+                identity: new UserIdentity(
+                    new UserId(command.OperatingIdentity.UserId),
+                    new ActorId(command.OperatingIdentity.ActorId)),
+                uniqueName: new OrchestrationDescriptionUniqueName(
+                    command.OrchestrationDescriptionUniqueName.Name,
+                    command.OrchestrationDescriptionUniqueName.Version),
+                inputParameter: command.InputParameter,
+                runAt: command.RunAt.ToInstant(),
+                skipStepsBySequence: skipStepsBySequence)
+            .ConfigureAwait(false);
+
+        return orchestrationInstanceId;
+    }
+}

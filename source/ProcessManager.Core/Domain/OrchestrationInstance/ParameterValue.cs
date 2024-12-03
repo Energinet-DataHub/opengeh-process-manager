@@ -47,4 +47,11 @@ public class ParameterValue
     {
         return JsonSerializer.Deserialize<ExpandoObject>(SerializedParameterValue) ?? new ExpandoObject();
     }
+
+    public TParameter AsType<TParameter>()
+        where TParameter : class
+    {
+        return JsonSerializer.Deserialize<TParameter>(SerializedParameterValue)
+            ?? throw new InvalidOperationException($"Could not deserialize as type '{typeof(TParameter)}'.");
+    }
 }

@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using DomainModel = Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Api.Mappers;
@@ -21,10 +20,22 @@ namespace Energinet.DataHub.ProcessManager.Api.Mappers;
 #pragma warning disable SA1118 // Parameter should not span multiple lines
 internal static class OrchestrationInstanceMapperExtensions
 {
-    public static OrchestrationInstanceDto MapToDto(
+    public static ApiModel.OrchestrationInstanceTypedDto<TInputParameterDto> MapToTypedDto<TInputParameterDto>(
+        this DomainModel.OrchestrationInstance entity)
+            where TInputParameterDto : class, ApiModel.IInputParameterDto
+    {
+        return new ApiModel.OrchestrationInstanceTypedDto<TInputParameterDto>(
+            Id: entity.Id.Value,
+            Lifecycle: entity.Lifecycle.MapToDto(),
+            ParameterValue: entity.ParameterValue.AsType<TInputParameterDto>(),
+            Steps: entity.Steps.Select(step => step.MapToDto()).ToList(),
+            CustomState: entity.CustomState.Value);
+    }
+
+    public static ApiModel.OrchestrationInstance.OrchestrationInstanceDto MapToDto(
         this DomainModel.OrchestrationInstance entity)
     {
-        return new ApiModel.OrchestrationInstanceDto(
+        return new ApiModel.OrchestrationInstance.OrchestrationInstanceDto(
             Id: entity.Id.Value,
             Lifecycle: entity.Lifecycle.MapToDto(),
             ParameterValue: entity.ParameterValue.AsExpandoObject(),
@@ -32,20 +43,20 @@ internal static class OrchestrationInstanceMapperExtensions
             CustomState: entity.CustomState.Value);
     }
 
-    public static OrchestrationInstanceLifecycleStateDto MapToDto(
+    public static ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleStateDto MapToDto(
         this DomainModel.OrchestrationInstanceLifecycleState entity)
     {
-        return new ApiModel.OrchestrationInstanceLifecycleStateDto(
+        return new ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleStateDto(
             CreatedBy: entity.CreatedBy.Value.MapToDto(),
             State: Enum
-                .TryParse<OrchestrationInstanceLifecycleStates>(
+                .TryParse<ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleStates>(
                     entity.State.ToString(),
                     ignoreCase: true,
                     out var lifecycleStateResult)
                 ? lifecycleStateResult
                 : throw new InvalidOperationException($"Invalid State '{entity.State}'; cannot be mapped."),
             TerminationState: Enum
-                .TryParse<OrchestrationInstanceTerminationStates>(
+                .TryParse<ApiModel.OrchestrationInstance.OrchestrationInstanceTerminationStates>(
                     entity.TerminationState.ToString(),
                     ignoreCase: true,
                     out var terminationStateResult)
@@ -59,17 +70,17 @@ internal static class OrchestrationInstanceMapperExtensions
             TerminatedAt: entity.TerminatedAt?.ToDateTimeOffset());
     }
 
-    public static IOperatingIdentityDto MapToDto(
+    public static ApiModel.OrchestrationInstance.IOperatingIdentityDto MapToDto(
         this DomainModel.OperatingIdentity entity)
     {
         switch (entity)
         {
             case DomainModel.ActorIdentity actor:
-                return new ApiModel.ActorIdentityDto(
+                return new ApiModel.OrchestrationInstance.ActorIdentityDto(
                     ActorId: actor.ActorId.Value);
 
             case DomainModel.UserIdentity user:
-                return new ApiModel.UserIdentityDto(
+                return new ApiModel.OrchestrationInstance.UserIdentityDto(
                     UserId: user.UserId.Value,
                     ActorId: user.ActorId.Value);
 
@@ -78,10 +89,10 @@ internal static class OrchestrationInstanceMapperExtensions
         }
     }
 
-    public static StepInstanceDto MapToDto(
+    public static ApiModel.OrchestrationInstance.StepInstanceDto MapToDto(
         this DomainModel.StepInstance entity)
     {
-        return new ApiModel.StepInstanceDto(
+        return new ApiModel.OrchestrationInstance.StepInstanceDto(
             Id: entity.Id.Value,
             Lifecycle: entity.Lifecycle.MapToDto(),
             Description: entity.Description,
@@ -89,19 +100,19 @@ internal static class OrchestrationInstanceMapperExtensions
             CustomState: entity.CustomState.Value);
     }
 
-    public static StepInstanceLifecycleStateDto MapToDto(
+    public static ApiModel.OrchestrationInstance.StepInstanceLifecycleStateDto MapToDto(
         this DomainModel.StepInstanceLifecycleState entity)
     {
-        return new ApiModel.StepInstanceLifecycleStateDto(
+        return new ApiModel.OrchestrationInstance.StepInstanceLifecycleStateDto(
             State: Enum
-                .TryParse<StepInstanceLifecycleStates>(
+                .TryParse<ApiModel.OrchestrationInstance.StepInstanceLifecycleStates>(
                     entity.State.ToString(),
                     ignoreCase: true,
                     out var lifecycleStateResult)
                 ? lifecycleStateResult
                 : throw new InvalidOperationException($"Invalid State '{entity.State}'; cannot be mapped."),
             TerminationState: Enum
-                .TryParse<OrchestrationStepTerminationStates>(
+                .TryParse<ApiModel.OrchestrationInstance.OrchestrationStepTerminationStates>(
                     entity.TerminationState.ToString(),
                     ignoreCase: true,
                     out var terminationStateResult)
@@ -111,7 +122,7 @@ internal static class OrchestrationInstanceMapperExtensions
             TerminatedAt: entity.TerminatedAt?.ToDateTimeOffset());
     }
 
-    public static IReadOnlyCollection<OrchestrationInstanceDto> MapToDto(
+    public static IReadOnlyCollection<ApiModel.OrchestrationInstance.OrchestrationInstanceDto> MapToDto(
         this IReadOnlyCollection<DomainModel.OrchestrationInstance> entities)
     {
         return entities

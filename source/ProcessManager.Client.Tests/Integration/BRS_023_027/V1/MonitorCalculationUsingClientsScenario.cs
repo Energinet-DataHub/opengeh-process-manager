@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -137,22 +138,23 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
 
-        // TODO: Enable when custom filtering has been implemented correct
-        ////// Step 4: Custom search
-        ////var customQuery = new CalculationQuery(userIdentity)
-        ////{
-        ////    CalculationTypes = new[] { inputParameter.CalculationType },
-        ////    GridAreaCodes = inputParameter.GridAreaCodes,
-        ////    PeriodStartDate = inputParameter.PeriodStartDate,
-        ////    PeriodEndDate = inputParameter.PeriodEndDate,
-        ////    IsInternalCalculation = inputParameter.IsInternalCalculation,
-        ////};
-        ////var orchestrationInstancesCustomSearch = await processManagerClient
-        ////    .SearchOrchestrationInstancesByNameAsync(
-        ////        customQuery,
-        ////        CancellationToken.None);
+        // Step 4: Custom search
+        var customQuery = new CalculationQuery(userIdentity)
+        {
+            CalculationTypes = new[] { inputParameter.CalculationType },
+            GridAreaCodes = inputParameter.GridAreaCodes,
+            PeriodStartDate = inputParameter.PeriodStartDate,
+            PeriodEndDate = inputParameter.PeriodEndDate,
+            IsInternalCalculation = inputParameter.IsInternalCalculation,
+        };
+        var orchestrationInstancesCustomSearch = await processManagerClient
+            .SearchOrchestrationInstancesByNameAsync(
+                customQuery,
+                CancellationToken.None);
 
-        ////orchestrationInstancesCustomSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
+        orchestrationInstancesCustomSearch.Should().Contain(x => x.OrchestrationInstance.Id == orchestrationInstanceId);
+
+        // TODO: Enable when custom filtering has been implemented correct
         ////orchestrationInstancesCustomSearch.Count.Should().Be(1);
     }
 

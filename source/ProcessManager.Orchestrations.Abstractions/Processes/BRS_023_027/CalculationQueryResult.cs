@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 
 /// <summary>
 /// Query result from searching for BRS-023 or BRS-027 calculations.
 /// Must be JSON serializable.
 /// </summary>
-public record CalculationQueryResult(Guid Id);
+public record CalculationQueryResult(OrchestrationInstanceTypedDto<NotifyAggregatedMeasureDataInputV1> OrchestrationInstance);

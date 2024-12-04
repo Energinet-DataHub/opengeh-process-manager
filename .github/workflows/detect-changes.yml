@@ -59,10 +59,10 @@ jobs:
         id: filter
         run: | 
           $hostNames = "${{ inputs.hostnames }}" | ConvertFrom-Json
-          $solutionPath = ${{github.workspace}}/${{inputs.solution_file}}
-          $workspacePath = ${{github.workspace}}
-          $fromSha = ${{steps.set_shas.outputs.base}}
-          $toSha = ${{steps.set_shas.outputs.head}}
+          $solutionPath = "${{github.workspace}}/${{inputs.solution_file}}"
+          $workspacePath = "${{github.workspace}}"
+          $fromSha = "${{steps.set_shas.outputs.base}}"
+          $toSha = "${{steps.set_shas.outputs.head}}"
 
           dotnet tool install dotnet-affected --global
           dotnet affected --solution-path $solutionPath -p $workspacePath --from $baseSha --to $toSha --format traversal json

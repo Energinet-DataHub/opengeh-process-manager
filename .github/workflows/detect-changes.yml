@@ -65,7 +65,7 @@ jobs:
           $toSha = "${{steps.set_shas.outputs.head}}"
 
           dotnet tool install dotnet-affected --global
-          dotnet affected --solution-path $solutionPath -p $workspacePath --from $baseSha --to $toSha --format traversal json
+          dotnet affected --solution-path $solutionPath -p $workspacePath --from $fromSha --to $toSha --format traversal json
 
           if (Test-Path affected.proj) { 
             $affectedJson = Get-Content affected.json

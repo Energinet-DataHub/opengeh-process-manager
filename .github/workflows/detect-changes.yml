@@ -33,7 +33,7 @@ on:
       affected_changes:
         value: ${{ jobs.changes.outputs.affected_changes }}
       job_context:
-        value: ${{ jobs.changes.outputs.job_context }}
+        value: ${{ jobs.changes.outputs.job_context_output }}
 
 jobs:
   changes:
@@ -41,11 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       affected_changes: ${{ steps.filter.outputs.affected_changes }}
-      job_context: "{
-        'astra': '${{ steps.filter.outputs.astra }}',
-        'orion': '${{ steps.filter.outputs.orion }}',
-        'dbmigrations': '${{ steps.filter.outputs.dbmigrations }}'
-        }"
+      job_context_output: ${{ steps.filter.outputs.job_context_output }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -55,43 +51,41 @@ jobs:
         id: set_shas
 
       - name: Run dotnet-affected
-        shell: pwsh
+        uses: ./.github/actions/dotnet-affected
         id: filter
-        run: | 
-          $hostNames = "${{ inputs.hostnames }}" | ConvertFrom-Json
-          $solutionPath = "${{github.workspace}}/${{inputs.solution_file}}"
-          $workspacePath = "${{github.workspace}}"
-          $fromSha = "${{steps.set_shas.outputs.base}}"
-          $toSha = "${{steps.set_shas.outputs.head}}"
+        with:
+          solution_file: ${{ inputs.solution_file }}
+          workspace_path: ${{ github.workspace }}
+          from_sha: ${{ steps.set_shas.outputs.base }}
+          to_sha: ${{ steps.set_shas.outputs.head }}
+          host_names: ${{ inputs.hostnames }}
+          
+      # - name: Run dotnet-affected
+      #   shell: pwsh
+      #   id: filter
+      #   run: | 
+      #     $hostNames = "${{ inputs.hostnames }}"
+      #     $solutionPath = "${{github.workspace}}/${{inputs.solution_file}}"
+      #     $workspacePath = "${{github.workspace}}"
+      #     $fromSha = "${{steps.set_shas.outputs.base}}"
+      #     $toSha = "${{steps.set_shas.outputs.head}}"
+      #     $affectedProjectsFile = 'affected.json'
 
-          dotnet tool install dotnet-affected --global
-          dotnet affected --solution-path $solutionPath -p $workspacePath --from $fromSha --to $toSha --format traversal json
+      #     . ./Find-AffectedProjectsFile.ps1
 
-          if (Test-Path affected.proj) { 
-            $affectedJson = Get-Content affected.json
-            $affectedJson | Write-Host
-            $affectedProjects = $affectedJson | ConvertFrom-Json
-            "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
+      #     # Install and run dotnet-affected
+      #     Write-AffectedProjectsFile -SolutionFile $solutionPath -WorkspacePath $workspacePath -FromSha $fromSha -ToSha $toSha
 
-            foreach ($hostName in $hostNames) {
-                foreach ($project in $hostname.PSObject.Properties) {
-                    #Write-Host $project.Name
-                    foreach ($csprojFile in $project.Value) {
-                        #Write-Host $csprojFile
+      #     if (Test-Path $AffectedProjectsFile) {
+      #       $affectedJson = Get-Content $AffectedProjectsFile
+      #       $affectedJson | Write-Host
+      #       $affectedProjects = $affectedJson | ConvertFrom-Json
+      #       "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
+            
+      #       $job_context_output = Find-AffectedHosts -AffectedProjectsfile $affectedProjectsFile -HostNames ($hostNames | ConvertFrom-Json)
+      #       "job_context_output=$job_context_output" >> $env:GITHUB_OUTPUT
+      #     }
 
-                        foreach ($affectedProjectFilePath in $affectedProjects.Filepath) {
-                            if ($affectedProjectFilePath.Contains($csprojFile)) {
 
-                                # No less than 4 foreach loops, I know...
-                                Write-Host "$($project.Name) is affected by a change in $affectedProjectFilePath"
 
-                                "$($project.Name)=true" >> $env:GITHUB_OUTPUT
-                            }
-                        }            
-                    }
-                }
-            }
-          } else {
-            Write-Host "No projects affected"
-            exit 0
-          }
+          

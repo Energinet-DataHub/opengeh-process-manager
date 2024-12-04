@@ -1,0 +1,61 @@
+# Copyright 2020 Energinet DataHub A/S
+#
+# Licensed under the Apache License, Version 2.0 (the "License2");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Find affected .NET projects
+description: "Find affected .NET projects in a solution."
+
+inputs:
+  solution_file:
+    description: "The path to the solution file."
+    required: true
+  workspace_path:
+    description: "The path to the workspace."
+    required: true
+  from_sha:
+    description: "The commit SHA to compare from."
+    required: true
+  to_sha:
+    description: "The commit SHA to compare to."
+    required: true
+  host_names:
+    description: "Host names mapped to project names"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Find affected projects
+      shell: pwsh
+      id: affected
+      run: |
+        . ./Find-AffectedProjectsFile.ps1
+
+        $hostNamesJson = "${{ inputs.hostnames }}"
+        $solutionPath = "${{github.workspace}}/${{inputs.solution_file}}"
+        $workspacePath = "${{github.workspace}}"
+        $fromSha = "${{steps.set_shas.outputs.base}}"
+        $toSha = "${{steps.set_shas.outputs.head}}"
+        $affectedProjectsFile = 'affected.json'
+
+        # Install and run dotnet-affected, outputs a json file with affected projects
+        Write-AffectedProjectsFile -SolutionFile $solutionPath -WorkspacePath $workspacePath -FromSha $fromSha -ToSha $toSha
+
+        if (Test-Path $AffectedProjectsFile) {
+          $affectedJson = Get-Content $AffectedProjectsFile
+          $affectedJson | Write-Host
+          "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
+          
+          $job_context_output = Find-AffectedHosts -AffectedProjectsfile $affectedJson -HostNames $hostNamesJson
+          "job_context_output=$job_context_output" >> $env:GITHUB_OUTPUT
+        }

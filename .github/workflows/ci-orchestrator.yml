@@ -38,9 +38,9 @@ jobs:
     if: ${{ needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.db_migrations == 'true' }}
     uses: ./.github/workflows/ci-dotnet.yml
 
-  ci_processmanager_client:
+  ci_processmanager_nuget:
     needs: changes
-    if: ${{ needs.changes.outputs.processmanager_client == 'true' }}
+    if: ${{ needs.changes.outputs.processmanager_nuget == 'true' }}
     uses: ./.github/workflows/processmanager-client-bundle-publish.yml
     secrets: inherit
 
@@ -54,7 +54,7 @@ jobs:
       [
         ci_base,
         ci_dotnet,
-        ci_processmanager_client,
+        ci_processmanager_nuget,
       ]
     if: |
       always()

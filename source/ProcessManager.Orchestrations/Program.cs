@@ -19,11 +19,11 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -41,7 +41,7 @@ var host = new HostBuilder()
         // => Orchestration Descriptions
         services.AddProcessManagerForOrchestrations(() =>
         {
-            // TODO: For demo purposes; remove when done.
+            // TODO:
             // We could implement an interface for "description building" which could then be implemented besides the orchestration.
             // During DI we could then search for all these interface implementations and register them automatically.
             // This would ensure we didn't have to update Program.cs when we change orchestrations.
@@ -51,7 +51,8 @@ var host = new HostBuilder()
             return [brs_023_027_v1, brs_026_v1];
         });
         // => Handlers
-        services.AddScoped<NotifyAggregatedMeasureDataHandler>();
+        services.AddScoped<SearchCalculationHandler>();
+        services.AddScoped<StartCalculationHandlerV1>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {
@@ -71,9 +72,9 @@ OrchestrationDescription CreateBrs_023_027_V1Description()
             orchestrationDescriptionUniqueName.Name,
             orchestrationDescriptionUniqueName.Version),
         canBeScheduled: true,
-        functionName: nameof(NotifyAggregatedMeasureDataOrchestrationV1));
+        functionName: nameof(Orchestration_Brs_023_027_V1));
 
-    description.ParameterDefinition.SetFromType<NotifyAggregatedMeasureDataInputV1>();
+    description.ParameterDefinition.SetFromType<CalculationInputV1>();
 
     description.AppendStepDescription("Beregning");
     description.AppendStepDescription(

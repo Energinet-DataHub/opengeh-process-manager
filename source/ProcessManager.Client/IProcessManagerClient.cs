@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Api.Model;
-using Energinet.DataHub.ProcessManager.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Client;
 
 /// <summary>
-/// Client for using the generic Process Manager API.
+/// Client for using the Process Manager / Orchestrations API.
 /// </summary>
 public interface IProcessManagerClient
 {
@@ -38,10 +38,18 @@ public interface IProcessManagerClient
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Get orchestration instance.
+    /// Start an orchestration instance and return its id.
     /// </summary>
-    Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceAsync<TInputParameterDto>(
-        Guid id,
+    Task<Guid> StartNewOrchestrationInstanceAsync<TInputParameterDto>(
+        StartOrchestrationInstanceCommand<UserIdentityDto, TInputParameterDto> command,
+        CancellationToken cancellationToken)
+            where TInputParameterDto : IInputParameterDto;
+
+    /// <summary>
+    /// Get orchestration instance by id.
+    /// </summary>
+    Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceByIdAsync<TInputParameterDto>(
+        GetOrchestrationInstanceByIdQuery query,
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto;
 
@@ -49,13 +57,17 @@ public interface IProcessManagerClient
     /// Get all orchestration instances filtered by their related orchestration definition name and version,
     /// and their lifecycle / termination states.
     /// </summary>
-    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesAsync<TInputParameterDto>(
-        string name,
-        int? version,
-        OrchestrationInstanceLifecycleStates? lifecycleState,
-        OrchestrationInstanceTerminationStates? terminationState,
-        DateTimeOffset? startedAtOrLater,
-        DateTimeOffset? terminatedAtOrEarlier,
+    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
+        SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto;
+
+    /// <summary>
+    /// Get all orchestration instances filtered by a custom query which at least filters by name.
+    /// </summary>
+    /// <typeparam name="TItem">The result type of each item returned in the list. Must be a JSON serializable type.</typeparam>
+    Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByNameAsync<TItem>(
+        SearchOrchestrationInstancesByCustomQuery<TItem> query,
+        CancellationToken cancellationToken)
+            where TItem : class;
 }

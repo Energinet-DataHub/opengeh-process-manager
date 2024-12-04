@@ -66,6 +66,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_ConfigurationFiles", "_Con
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessManager.Abstractions", "ProcessManager.Abstractions\ProcessManager.Abstractions.csproj", "{61815BFA-702C-4F94-9671-EDEA5BCC66A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessManager.Orchestrations.Abstractions", "ProcessManager.Orchestrations.Abstractions\ProcessManager.Orchestrations.Abstractions.csproj", "{26380933-E2C6-4277-832B-34EE85E07EA4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{2D4F7BBC-3438-4F38-8636-D01550D56DFF}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\ProcessManager.Orchestrations.Abstractions\Documentation.md = ..\docs\ProcessManager.Orchestrations.Abstractions\Documentation.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ReleaseNotes", "ReleaseNotes", "{64B19A52-D790-4F91-9206-90D0F5F50393}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\ProcessManager.Orchestrations.Abstractions\ReleaseNotes\ReleaseNotes.md = ..\docs\ProcessManager.Orchestrations.Abstractions\ReleaseNotes\ReleaseNotes.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -112,6 +126,14 @@ Global
 		{03B262E8-1BCF-488D-983F-41EAF5997A26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03B262E8-1BCF-488D-983F-41EAF5997A26}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03B262E8-1BCF-488D-983F-41EAF5997A26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61815BFA-702C-4F94-9671-EDEA5BCC66A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61815BFA-702C-4F94-9671-EDEA5BCC66A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61815BFA-702C-4F94-9671-EDEA5BCC66A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61815BFA-702C-4F94-9671-EDEA5BCC66A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26380933-E2C6-4277-832B-34EE85E07EA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26380933-E2C6-4277-832B-34EE85E07EA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26380933-E2C6-4277-832B-34EE85E07EA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26380933-E2C6-4277-832B-34EE85E07EA4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -134,5 +156,12 @@ Global
 		{AB482B45-E5FF-46E9-8004-45E32F64D618} = {484AA3D7-D3E9-42FC-8439-5F2B2DB386BB}
 		{FD6A9034-194F-42C0-8340-9CC7F4046C8D} = {AB482B45-E5FF-46E9-8004-45E32F64D618}
 		{4CC648EE-E738-4C07-80D7-3728C5E91A23} = {641A26DF-B668-45F4-B4C3-B4852EA3F069}
+		{61815BFA-702C-4F94-9671-EDEA5BCC66A8} = {484AA3D7-D3E9-42FC-8439-5F2B2DB386BB}
+		{26380933-E2C6-4277-832B-34EE85E07EA4} = {1F24E013-AAEF-460B-A8AF-AD1F8A4A9A59}
+		{2D4F7BBC-3438-4F38-8636-D01550D56DFF} = {1F24E013-AAEF-460B-A8AF-AD1F8A4A9A59}
+		{64B19A52-D790-4F91-9206-90D0F5F50393} = {2D4F7BBC-3438-4F38-8636-D01550D56DFF}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A09D89DF-3110-4624-B419-236E001E0ABF}
 	EndGlobalSection
 EndGlobal

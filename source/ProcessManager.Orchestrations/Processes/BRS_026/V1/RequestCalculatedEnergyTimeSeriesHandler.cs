@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Models;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 
@@ -32,7 +32,7 @@ public class RequestCalculatedEnergyTimeSeriesHandler(
         var orchestrationDescriptionUniqueName = new Brs_026_V1();
 
         await _commands.StartNewOrchestrationInstanceAsync(
-                identity: new ActorIdentity(new ActorId(Guid.NewGuid())), // TODO: Any call to commands must include identity information; see 'ScheduleOrchestrationInstanceDto' and 'CancelOrchestrationInstanceDto'
+                identity: new ActorIdentity(new ActorId(Guid.NewGuid())), // TODO: Any call to commands must include identity information; see 'ScheduleOrchestrationInstanceCommand' and 'CancelScheduledOrchestrationInstanceCommand'
                 uniqueName: new OrchestrationDescriptionUniqueName(
                     orchestrationDescriptionUniqueName.Name,
                     orchestrationDescriptionUniqueName.Version),

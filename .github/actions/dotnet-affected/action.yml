@@ -41,11 +41,11 @@ runs:
       run: |
         . ./Find-AffectedProjectsFile.ps1
 
-        $hostNamesJson = "${{ inputs.hostnames }}"
+        $hostNamesJson = "${{ inputs.host_names }}"
         $solutionPath = "${{github.workspace}}/${{inputs.solution_file}}"
         $workspacePath = "${{github.workspace}}"
-        $fromSha = "${{steps.set_shas.outputs.base}}"
-        $toSha = "${{steps.set_shas.outputs.head}}"
+        $fromSha = "${{ inputs.from_sha }}"
+        $toSha = "${{ inputs.to_sha}}"
         $affectedProjectsFile = 'affected.json'
 
         # Install and run dotnet-affected, outputs a json file with affected projects

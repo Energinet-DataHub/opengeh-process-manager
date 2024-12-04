@@ -97,11 +97,50 @@ public class ProcessManagerContextTests
         // Act
         await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
         var actualOrchestrationInstanceIds = await readDbContext.Database
-            .SqlQuery<Guid>($"SELECT [o].[Id] FROM [pm].[OrchestrationInstance] AS [o] WHERE CAST(JSON_VALUE([o].[SerializedParameterValue],'$.TestInt') AS int) = {expectedTestInt}")
+            .SqlQuery<TestOrchestrationParameter>($"""
+                SELECT
+                    CAST(JSON_VALUE([o].[SerializedParameterValue],'$.TestString') AS nvarchar) AS TestString,
+                    CAST(JSON_VALUE([o].[SerializedParameterValue],'$.TestInt') AS int) AS TestInt
+                FROM
+                    [pm].[OrchestrationInstance] AS [o]
+                WHERE
+                    CAST(JSON_VALUE([o].[SerializedParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+                """)
             .ToListAsync();
 
         // Assert
-        actualOrchestrationInstanceIds.Should().Contain(existingOrchestrationInstance.Id.Value);
+        actualOrchestrationInstanceIds.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_WhenFilteringJsonColumnUsingLINQ_ReturnsExpectedItem()
+    {
+        // Arrange
+        var expectedTestInt = 53;
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription, testInt: expectedTestInt);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
+        var actualOrchestrationInstanceIds = await readDbContext.Database
+            .SqlQuery<TestOrchestrationParameter>($"""
+                SELECT
+                    CAST(JSON_VALUE([o].[SerializedParameterValue],'$.TestString') AS nvarchar) AS TestString,
+                    CAST(JSON_VALUE([o].[SerializedParameterValue],'$.TestInt') AS int) AS TestInt
+                FROM
+                    [pm].[OrchestrationInstance] AS [o]
+                """)
+            .Where(x => x.TestInt == expectedTestInt)
+            .ToListAsync();
+
+        // Assert
         actualOrchestrationInstanceIds.Count.Should().Be(1);
     }
 

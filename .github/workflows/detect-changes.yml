@@ -22,53 +22,76 @@ name: Detect changes
 
 on:
   workflow_call:
+    inputs:
+      solution_file:
+        required: true
+        type: string
+      hostnames:
+        required: true
+        type: string
     outputs:
-      dotnet:
-        value: ${{ jobs.changes.outputs.dotnet }}
-      db_migrations:
-        value: ${{ jobs.changes.outputs.db_migrations }}
-      processmanager_nuget:
-        value: ${{ jobs.changes.outputs.processmanager_nuget }}
-      render_c4model_views:
-        value: ${{ jobs.changes.outputs.render_c4model_views }}
+      affected_changes:
+        value: ${{ jobs.changes.outputs.affected_changes }}
+      job_context:
+        value: ${{ jobs.changes.outputs.job_context }}
 
 jobs:
   changes:
-    name: Determine relevant jobs
+    name: Detect changes
     runs-on: ubuntu-latest
-    # Set job outputs to values from filter step
     outputs:
-      dotnet: ${{ steps.filter.outputs.dotnet }}
-      db_migrations: ${{ steps.filter.outputs.db_migrations }}
-      processmanager_nuget: ${{ steps.filter.outputs.processmanager_nuget }}
-      render_c4model_views: ${{ steps.filter.outputs.render_c4model_views }}
+      affected_changes: ${{ steps.filter.outputs.affected_changes }}
+      job_context: "{
+        'astra': '${{ steps.filter.outputs.astra }}',
+        'orion': '${{ steps.filter.outputs.orion }}',
+        'dbmigrations': '${{ steps.filter.outputs.dbmigrations }}'
+        }"
     steps:
-      # For pull requests it's not necessary to checkout the code because GitHub REST API is used to determine changes
-      - name: Checkout repository
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: actions/checkout@v4
-
-      - name: Detect file changes
-        uses: dorny/paths-filter@v3
-        id: filter
+      - uses: actions/checkout@v4
         with:
-          filters: |
-            dotnet:
-              - '.github/actions/dotnet-*/**'
-              - '.github/workflows/**'
-              - 'source/**'
-              - 'source/!(DatabaseMigration/**)**'
-              - 'source/!(ProcessManager.Client/**)**'
-            db_migrations:
-              - 'source/DatabaseMigration/**'
-            processmanager_nuget:
-              - 'docs/ProcessManager.Client/**'
-              - 'docs/ProcessManager.Orchestrations.Abstractions/**'
-              - 'source/ProcessManager.Client*/**'
-              - 'source/ProcessManager.Abstractions*/**'
-              - 'source/ProcessManager.Orchestrations.Abstractions*/**'
-              - '.github/workflows/processmanager-client-bundle-publish.yml'
-            render_c4model_views:
-              - 'docs/diagrams/c4-model/views.dsl'
-              - 'docs/diagrams/c4-model/views.json'
-              - 'docs/diagrams/c4-model/model.dsl'
+          fetch-depth: 0 # Fetch all history so that we can determine the base commit 
+
+      - uses: nrwl/nx-set-shas@v4
+        id: set_shas
+
+      - name: Run dotnet-affected
+        shell: pwsh
+        id: filter
+        run: | 
+          $hostNames = "${{ inputs.hostnames }}" | ConvertFrom-Json
+          $solutionPath = ${{github.workspace}}/${{inputs.solution_file}}
+          $workspacePath = ${{github.workspace}}
+          $fromSha = ${{steps.set_shas.outputs.base}}
+          $toSha = ${{steps.set_shas.outputs.head}}
+
+          dotnet tool install dotnet-affected --global
+          dotnet affected --solution-path $solutionPath -p $workspacePath --from $baseSha --to $toSha --format traversal json
+
+          if (Test-Path affected.proj) { 
+            $affectedJson = Get-Content affected.json
+            $affectedJson | Write-Host
+            $affectedProjects = $affectedJson | ConvertFrom-Json
+            "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
+
+            foreach ($hostName in $hostNames) {
+                foreach ($project in $hostname.PSObject.Properties) {
+                    #Write-Host $project.Name
+                    foreach ($csprojFile in $project.Value) {
+                        #Write-Host $csprojFile
+
+                        foreach ($affectedProjectFilePath in $affectedProjects.Filepath) {
+                            if ($affectedProjectFilePath.Contains($csprojFile)) {
+
+                                # No less than 4 foreach loops, I know...
+                                Write-Host "$($project.Name) is affected by a change in $affectedProjectFilePath"
+
+                                "$($project.Name)=true" >> $env:GITHUB_OUTPUT
+                            }
+                        }            
+                    }
+                }
+            }
+          } else {
+            Write-Host "No projects affected"
+            exit 0
+          }

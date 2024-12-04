@@ -32,6 +32,14 @@ jobs:
   #
   changes:
     uses: ./.github/workflows/detect-changes.yml
+    with:
+      solution_file: 'source/ProcessManager.sln'
+      hostnames: "
+            {
+              'astra': 'ProcessManager.csproj',
+              'orion': 'ProcessManager.Orchestrations.csproj',
+              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
+            }"
 
   # ci_dotnet:
   #   needs: changes

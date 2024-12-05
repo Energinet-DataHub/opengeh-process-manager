@@ -17,6 +17,7 @@ using System.Text;
 using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Client.Extensions;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Client;
@@ -45,9 +46,17 @@ internal class ProcessManagerClient : IProcessManagerClient
         ScheduleOrchestrationInstanceCommand command,
         CancellationToken cancellationToken)
     {
+        var commandHasInput = command
+            .GetType()
+            .IsSubclassOfRawGeneric(typeof(ScheduleOrchestrationInstanceCommand<>));
+
+        var commandUrlPath = commandHasInput
+            ? $"/api/orchestrationinstance/command/schedule/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}"
+            : $"/api/orchestrationinstance/command/schedule";
+
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/api/orchestrationinstance/command/schedule/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
+            commandUrlPath);
         // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
         var json = JsonSerializer.Serialize(command, command.GetType());
         request.Content = new StringContent(
@@ -55,9 +64,9 @@ internal class ProcessManagerClient : IProcessManagerClient
             Encoding.UTF8,
             "application/json");
 
-        using var actualResponse = await _orchestrationsApiHttpClient
-            .SendAsync(request, cancellationToken)
-            .ConfigureAwait(false);
+        using var actualResponse = commandHasInput
+            ? await _orchestrationsApiHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false)
+            : await _generalApiHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         actualResponse.EnsureSuccessStatusCode();
 
         var calculationId = await actualResponse.Content
@@ -92,9 +101,17 @@ internal class ProcessManagerClient : IProcessManagerClient
         StartOrchestrationInstanceCommand<UserIdentityDto> command,
         CancellationToken cancellationToken)
     {
+        var commandHasInput = command
+            .GetType()
+            .IsSubclassOfRawGeneric(typeof(StartOrchestrationInstanceCommand<,>));
+
+        var commandUrlPath = commandHasInput
+            ? $"/api/orchestrationinstance/command/start/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}"
+            : $"/api/orchestrationinstance/command/start";
+
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/api/orchestrationinstance/command/start/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
+            commandUrlPath);
         // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
         var json = JsonSerializer.Serialize(command, command.GetType());
         request.Content = new StringContent(
@@ -102,9 +119,9 @@ internal class ProcessManagerClient : IProcessManagerClient
             Encoding.UTF8,
             "application/json");
 
-        using var actualResponse = await _orchestrationsApiHttpClient
-            .SendAsync(request, cancellationToken)
-            .ConfigureAwait(false);
+        using var actualResponse = commandHasInput
+            ? await _orchestrationsApiHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false)
+            : await _generalApiHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         actualResponse.EnsureSuccessStatusCode();
 
         var calculationId = await actualResponse.Content
@@ -112,6 +129,32 @@ internal class ProcessManagerClient : IProcessManagerClient
             .ConfigureAwait(false);
 
         return calculationId;
+    }
+
+    /// <inheritdoc/>
+    public async Task<OrchestrationInstanceTypedDto> GetOrchestrationInstanceByIdAsync(
+        GetOrchestrationInstanceByIdQuery query,
+        CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/id");
+        var json = JsonSerializer.Serialize(query);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+
+        using var actualResponse = await _generalApiHttpClient
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        actualResponse.EnsureSuccessStatusCode();
+
+        var orchestrationInstance = await actualResponse.Content
+            .ReadFromJsonAsync<OrchestrationInstanceTypedDto>(cancellationToken)
+            .ConfigureAwait(false);
+
+        return orchestrationInstance!;
     }
 
     /// <inheritdoc/>

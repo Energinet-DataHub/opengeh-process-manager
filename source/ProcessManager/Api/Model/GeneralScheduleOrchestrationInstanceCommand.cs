@@ -13,26 +13,23 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Api.Model;
 
 /// <summary>
-/// Command for starting a BRS-021 electrical heating calculation.
+/// Command for deserializing general no-input schedule commands.
 /// Must be JSON serializable.
 /// </summary>
-public sealed record StartElectricalHeatingCalculationCommandV1
-    : StartOrchestrationInstanceCommand<UserIdentityDto>
+internal sealed record GeneralScheduleOrchestrationInstanceCommand
+    : ScheduleOrchestrationInstanceCommand
 {
-    /// <summary>
-    /// Construct command.
-    /// </summary>
-    /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    public StartElectricalHeatingCalculationCommandV1(
-        UserIdentityDto operatingIdentity)
-            : base(
-                operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_021_ElectricalHeatingCalculation_V1())
+    public GeneralScheduleOrchestrationInstanceCommand(
+        UserIdentityDto operatingIdentity,
+        OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
+        DateTimeOffset runAt)
+            : base(operatingIdentity, orchestrationDescriptionUniqueName, runAt)
     {
     }
 }

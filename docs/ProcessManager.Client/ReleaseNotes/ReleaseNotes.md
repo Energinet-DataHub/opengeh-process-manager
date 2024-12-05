@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.13.1
+
+- Update dependencies.
+
 ## Version 0.13.0
 
 - Move the last method from the specific client `INotifyAggregatedMeasureDataClientV1` to the general client `IProcessManagerClient`

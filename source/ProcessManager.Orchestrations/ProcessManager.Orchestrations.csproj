@@ -31,7 +31,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Api\Mappers\" />
-    <Folder Include="Processes\BRS_021\" />
     <Folder Include="Processes\BRS_026\V1\Activities\" />
   </ItemGroup>
   <ItemGroup>

@@ -41,15 +41,15 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<Guid> ScheduleNewOrchestrationInstanceAsync<TInputParameterDto>(
-        ScheduleOrchestrationInstanceCommand<TInputParameterDto> command,
+    public async Task<Guid> ScheduleNewOrchestrationInstanceAsync(
+        ScheduleOrchestrationInstanceCommand command,
         CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
             $"/api/orchestrationinstance/command/schedule/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
-        var json = JsonSerializer.Serialize(command);
+        // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
+        var json = JsonSerializer.Serialize(command, command.GetType());
         request.Content = new StringContent(
             json,
             Encoding.UTF8,
@@ -88,15 +88,15 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<Guid> StartNewOrchestrationInstanceAsync<TInputParameterDto>(
-        StartOrchestrationInstanceCommand<UserIdentityDto, TInputParameterDto> command,
+    public async Task<Guid> StartNewOrchestrationInstanceAsync(
+        StartOrchestrationInstanceCommand<UserIdentityDto> command,
         CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
             $"/api/orchestrationinstance/command/start/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
-        var json = JsonSerializer.Serialize(command);
+        // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
+        var json = JsonSerializer.Serialize(command, command.GetType());
         request.Content = new StringContent(
             json,
             Encoding.UTF8,

@@ -25,10 +25,9 @@ public interface IProcessManagerClient
     /// <summary>
     /// Schedule an orchestration instance and return its id.
     /// </summary>
-    Task<Guid> ScheduleNewOrchestrationInstanceAsync<TInputParameterDto>(
-        ScheduleOrchestrationInstanceCommand<TInputParameterDto> command,
-        CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto;
+    Task<Guid> ScheduleNewOrchestrationInstanceAsync(
+        ScheduleOrchestrationInstanceCommand command,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Cancel a scheduled orchestration instance.
@@ -38,12 +37,11 @@ public interface IProcessManagerClient
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Start an orchestration instance and return its id.
+    /// Start an orchestration instance, and return its id.
     /// </summary>
-    Task<Guid> StartNewOrchestrationInstanceAsync<TInputParameterDto>(
-        StartOrchestrationInstanceCommand<UserIdentityDto, TInputParameterDto> command,
-        CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto;
+    Task<Guid> StartNewOrchestrationInstanceAsync(
+        StartOrchestrationInstanceCommand<UserIdentityDto> command,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Get orchestration instance by id.

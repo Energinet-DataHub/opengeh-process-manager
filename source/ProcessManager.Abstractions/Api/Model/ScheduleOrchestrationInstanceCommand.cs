@@ -18,12 +18,13 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Command for scheduling an orchestration instance.
+/// Command for scheduling an orchestration instance with an input parameter.
 /// Must be JSON serializable.
 /// </summary>
 /// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
 public abstract record ScheduleOrchestrationInstanceCommand<TInputParameterDto>
-    : StartOrchestrationInstanceCommand<UserIdentityDto, TInputParameterDto>
+    : ScheduleOrchestrationInstanceCommand,
+    IOrchestrationDescriptionCommand<TInputParameterDto>
         where TInputParameterDto : IInputParameterDto
 {
     /// <summary>
@@ -39,10 +40,42 @@ public abstract record ScheduleOrchestrationInstanceCommand<TInputParameterDto>
         OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
         TInputParameterDto inputParameter,
         DateTimeOffset runAt)
-            : base(operatingIdentity, orchestrationDescriptionUniqueName, inputParameter)
+            : base(operatingIdentity, orchestrationDescriptionUniqueName, runAt)
     {
+        InputParameter = inputParameter;
+    }
+
+    /// <inheritdoc/>
+    public TInputParameterDto InputParameter { get; }
+}
+
+/// <summary>
+/// Command for scheduling an orchestration instance.
+/// Must be JSON serializable.
+/// </summary>
+public abstract record ScheduleOrchestrationInstanceCommand
+    : OrchestrationInstanceRequest<UserIdentityDto>,
+    IOrchestrationDescriptionCommand
+{
+    /// <summary>
+    /// Construct command.
+    /// </summary>
+    /// <param name="operatingIdentity">Identity of the user executing the command.</param>
+    /// <param name="orchestrationDescriptionUniqueName">Uniquely identifies the orchestration description from which the
+    /// orchestration instance should be created.</param>
+    /// <param name="runAt">The time when the orchestration instance should be executed by the Scheduler.</param>
+    public ScheduleOrchestrationInstanceCommand(
+        UserIdentityDto operatingIdentity,
+        OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
+        DateTimeOffset runAt)
+            : base(operatingIdentity)
+    {
+        OrchestrationDescriptionUniqueName = orchestrationDescriptionUniqueName;
         RunAt = runAt;
     }
+
+    /// <inheritdoc/>
+    public OrchestrationDescriptionUniqueNameDto OrchestrationDescriptionUniqueName { get; }
 
     /// <summary>
     /// The time when the orchestration instance should be executed by the Scheduler.

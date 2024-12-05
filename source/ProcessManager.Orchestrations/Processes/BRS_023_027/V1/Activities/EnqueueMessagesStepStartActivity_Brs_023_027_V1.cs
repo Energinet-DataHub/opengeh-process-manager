@@ -19,18 +19,14 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 
-/// <summary>
-/// The last activity in the orchestration.
-/// It is responsible for updating the status to 'Terminated'.
-/// </summary>
-internal class Brs023OrchestrationTerminateActivityV1(
+internal class EnqueueMessagesStepStartActivity_Brs_023_027_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(Brs023OrchestrationTerminateActivityV1))]
+    [Function(nameof(EnqueueMessagesStepStartActivity_Brs_023_027_V1))]
     public async Task Run(
         [ActivityTrigger] Guid orchestrationInstanceId)
     {
@@ -38,10 +34,14 @@ internal class Brs023OrchestrationTerminateActivityV1(
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        orchestrationInstance.Lifecycle.TransitionToSucceeded(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_023_027_V1.EnqueueMessagesStepSequence);
+        if (!step.IsSkipped())
+        {
+            step.Lifecycle.TransitionToRunning(Clock);
+            await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+            // TODO: For demo purposes; remove when done
+            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        }
     }
 }

@@ -18,38 +18,6 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Command for scheduling an orchestration instance with an input parameter.
-/// Must be JSON serializable.
-/// </summary>
-/// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
-public abstract record ScheduleOrchestrationInstanceCommand<TInputParameterDto>
-    : ScheduleOrchestrationInstanceCommand,
-    IOrchestrationDescriptionCommand<TInputParameterDto>
-        where TInputParameterDto : IInputParameterDto
-{
-    /// <summary>
-    /// Construct command.
-    /// </summary>
-    /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    /// <param name="orchestrationDescriptionUniqueName">Uniquely identifies the orchestration description from which the
-    /// orchestration instance should be created.</param>
-    /// <param name="runAt">The time when the orchestration instance should be executed by the Scheduler.</param>
-    /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
-    public ScheduleOrchestrationInstanceCommand(
-        UserIdentityDto operatingIdentity,
-        OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
-        TInputParameterDto inputParameter,
-        DateTimeOffset runAt)
-            : base(operatingIdentity, orchestrationDescriptionUniqueName, runAt)
-    {
-        InputParameter = inputParameter;
-    }
-
-    /// <inheritdoc/>
-    public TInputParameterDto InputParameter { get; }
-}
-
-/// <summary>
 /// Command for scheduling an orchestration instance.
 /// Must be JSON serializable.
 /// </summary>
@@ -81,4 +49,36 @@ public abstract record ScheduleOrchestrationInstanceCommand
     /// The time when the orchestration instance should be executed by the Scheduler.
     /// </summary>
     public DateTimeOffset RunAt { get; }
+}
+
+/// <summary>
+/// Command for scheduling an orchestration instance with an input parameter.
+/// Must be JSON serializable.
+/// </summary>
+/// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
+public abstract record ScheduleOrchestrationInstanceCommand<TInputParameterDto>
+    : ScheduleOrchestrationInstanceCommand,
+    IOrchestrationDescriptionCommand<TInputParameterDto>
+        where TInputParameterDto : IInputParameterDto
+{
+    /// <summary>
+    /// Construct command.
+    /// </summary>
+    /// <param name="operatingIdentity">Identity of the user executing the command.</param>
+    /// <param name="orchestrationDescriptionUniqueName">Uniquely identifies the orchestration description from which the
+    /// orchestration instance should be created.</param>
+    /// <param name="runAt">The time when the orchestration instance should be executed by the Scheduler.</param>
+    /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
+    public ScheduleOrchestrationInstanceCommand(
+        UserIdentityDto operatingIdentity,
+        OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
+        TInputParameterDto inputParameter,
+        DateTimeOffset runAt)
+            : base(operatingIdentity, orchestrationDescriptionUniqueName, runAt)
+    {
+        InputParameter = inputParameter;
+    }
+
+    /// <inheritdoc/>
+    public TInputParameterDto InputParameter { get; }
 }

@@ -18,6 +18,34 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
+/// Command for starting an orchestration instance.
+/// Must be JSON serializable.
+/// </summary>
+/// <typeparam name="TOperatingIdentity">The operating identity type. Must be a JSON serializable type.</typeparam>
+public abstract record StartOrchestrationInstanceCommand<TOperatingIdentity>
+    : OrchestrationInstanceRequest<TOperatingIdentity>,
+    IOrchestrationDescriptionCommand
+        where TOperatingIdentity : IOperatingIdentityDto
+{
+    /// <summary>
+    /// Construct command.
+    /// </summary>
+    /// <param name="operatingIdentity">Identity executing the command.</param>
+    /// <param name="orchestrationDescriptionUniqueName">Uniquely identifies the orchestration description from which the
+    /// orchestration instance should be created.</param>
+    public StartOrchestrationInstanceCommand(
+        TOperatingIdentity operatingIdentity,
+        OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName)
+            : base(operatingIdentity)
+    {
+        OrchestrationDescriptionUniqueName = orchestrationDescriptionUniqueName;
+    }
+
+    /// <inheritdoc/>
+    public OrchestrationDescriptionUniqueNameDto OrchestrationDescriptionUniqueName { get; }
+}
+
+/// <summary>
 /// Command for starting an orchestration instance with an input parameter.
 /// Must be JSON serializable.
 /// </summary>
@@ -47,32 +75,4 @@ public abstract record StartOrchestrationInstanceCommand<TOperatingIdentity, TIn
 
     /// <inheritdoc/>
     public TInputParameterDto InputParameter { get; }
-}
-
-/// <summary>
-/// Command for starting an orchestration instance.
-/// Must be JSON serializable.
-/// </summary>
-/// <typeparam name="TOperatingIdentity">The operating identity type. Must be a JSON serializable type.</typeparam>
-public abstract record StartOrchestrationInstanceCommand<TOperatingIdentity>
-    : OrchestrationInstanceRequest<TOperatingIdentity>,
-    IOrchestrationDescriptionCommand
-        where TOperatingIdentity : IOperatingIdentityDto
-{
-    /// <summary>
-    /// Construct command.
-    /// </summary>
-    /// <param name="operatingIdentity">Identity executing the command.</param>
-    /// <param name="orchestrationDescriptionUniqueName">Uniquely identifies the orchestration description from which the
-    /// orchestration instance should be created.</param>
-    public StartOrchestrationInstanceCommand(
-        TOperatingIdentity operatingIdentity,
-        OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName)
-            : base(operatingIdentity)
-    {
-        OrchestrationDescriptionUniqueName = orchestrationDescriptionUniqueName;
-    }
-
-    /// <inheritdoc/>
-    public OrchestrationDescriptionUniqueNameDto OrchestrationDescriptionUniqueName { get; }
 }

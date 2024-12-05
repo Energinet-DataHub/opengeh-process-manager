@@ -17,27 +17,6 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescr
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Interface for commands the require <see cref="OrchestrationDescriptionUniqueName"/>
-/// and an input parameter.
-/// Allows us the implement general handling of implementing commands.
-/// </summary>
-/// <typeparam name="TInputParameterDto">The input parameter type. Must be a JSON serializable type.</typeparam>
-public interface IOrchestrationDescriptionCommand<out TInputParameterDto>
-    where TInputParameterDto : IInputParameterDto
-{
-    /// <summary>
-    /// Uniquely identifies the orchestration description from which the
-    /// orchestration instance should be created.
-    /// </summary>
-    OrchestrationDescriptionUniqueNameDto OrchestrationDescriptionUniqueName { get; }
-
-    /// <summary>
-    /// Contains the Durable Functions orchestration input parameter value.
-    /// </summary>
-    TInputParameterDto InputParameter { get; }
-}
-
-/// <summary>
 /// Interface for commands the require <see cref="OrchestrationDescriptionUniqueName"/>.
 /// Allows us the implement general handling of implementing commands.
 /// </summary>
@@ -48,4 +27,20 @@ public interface IOrchestrationDescriptionCommand
     /// orchestration instance should be created.
     /// </summary>
     OrchestrationDescriptionUniqueNameDto OrchestrationDescriptionUniqueName { get; }
+}
+
+/// <summary>
+/// Interface for commands the require <see cref="IOrchestrationDescriptionCommand.OrchestrationDescriptionUniqueName"/>
+/// and an input parameter.
+/// Allows us the implement general handling of implementing commands.
+/// </summary>
+/// <typeparam name="TInputParameterDto">The input parameter type. Must be a JSON serializable type.</typeparam>
+public interface IOrchestrationDescriptionCommand<out TInputParameterDto>
+    : IOrchestrationDescriptionCommand
+        where TInputParameterDto : IInputParameterDto
+{
+    /// <summary>
+    /// Contains the Durable Functions orchestration input parameter value.
+    /// </summary>
+    TInputParameterDto InputParameter { get; }
 }

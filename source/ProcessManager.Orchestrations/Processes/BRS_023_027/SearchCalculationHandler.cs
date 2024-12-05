@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Dynamic;
 using System.Linq;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Api.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
@@ -53,6 +55,38 @@ internal class SearchCalculationHandler(
         var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.HasValue
             ? Instant.FromDateTimeOffset(query.TerminatedAtOrEarlier.Value)
             : (Instant?)null;
+
+        var calculationType = 0;
+        var queryByCalculationType = _queries
+            .SqlQuery<string>($"""
+                SELECT
+                    [o].[SerializedParameterValue]
+                FROM
+                    [pm].[OrchestrationInstance] AS [o]
+                WHERE
+                    CAST(JSON_VALUE([o].[SerializedParameterValue],'$.CalculationType') AS int) = {calculationType}
+                """)
+            .ToList();
+
+        await Task.Delay(100).ConfigureAwait(false);
+
+        var gridArea = "543";
+        var queryByGridArea = _queries
+            .SqlQuery<string>($"""
+                SELECT
+                    [o].[SerializedParameterValue]
+                FROM
+                    [pm].[OrchestrationInstance] AS [o]
+                WHERE EXISTS
+                (
+                  SELECT *
+                  FROM OPENJSON([o].[SerializedParameterValue],'$.GridAreaCodes')
+                  WHERE VALUE = {gridArea}
+                )
+                """)
+            .ToList();
+
+        await Task.Delay(100).ConfigureAwait(false);
 
         var calculations = await _queries
             .SearchAsync(

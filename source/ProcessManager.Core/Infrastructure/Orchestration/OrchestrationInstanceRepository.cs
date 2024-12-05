@@ -89,4 +89,10 @@ internal class OrchestrationInstanceRepository(
 
         return await query.ToListAsync().ConfigureAwait(false);
     }
+
+    /// <inheritdoc />
+    public IQueryable<TResult> SqlQuery<TResult>(FormattableString sql)
+    {
+        return _context.Database.SqlQuery<TResult>(sql);
+    }
 }

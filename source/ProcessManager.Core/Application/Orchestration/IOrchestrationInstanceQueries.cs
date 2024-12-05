@@ -35,4 +35,13 @@ public interface IOrchestrationInstanceQueries
         OrchestrationInstanceTerminationStates? terminationState,
         Instant? startedAtOrLater,
         Instant? terminatedAtOrEarlier);
+
+    /// <summary>
+    /// Powerfull query method that allows us to query and filter on JSON input parameter
+    /// and convert into a custom result type.
+    /// </summary>
+    /// <typeparam name="TResult">Each row is converted into this type, provided the parameter names matches the column names.</typeparam>
+    /// <param name="sql">The interpolated string representing a SQL query with parameters.</param>
+    /// <returns>An System.Linq.IQueryable`1 representing the interpolated string SQL query.</returns>
+    IQueryable<TResult> SqlQuery<TResult>(FormattableString sql);
 }

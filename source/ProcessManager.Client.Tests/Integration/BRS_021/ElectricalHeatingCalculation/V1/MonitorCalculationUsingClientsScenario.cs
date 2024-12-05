@@ -114,20 +114,20 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
 
-        ////// Step 3: General search using name and termination state
-        ////var orchestrationInstancesGeneralSearch = await processManagerClient
-        ////    .SearchOrchestrationInstancesByNameAsync(
-        ////        new SearchOrchestrationInstancesByNameQuery(
-        ////            userIdentity,
-        ////            name: new Brs_021_ElectricalHeatingCalculation_V1().Name,
-        ////            version: null,
-        ////            lifecycleState: OrchestrationInstanceLifecycleStates.Terminated,
-        ////            terminationState: OrchestrationInstanceTerminationStates.Succeeded,
-        ////            startedAtOrLater: null,
-        ////            terminatedAtOrEarlier: null),
-        ////        CancellationToken.None);
+        // Step 3: General search using name and termination state
+        var orchestrationInstancesGeneralSearch = await processManagerClient
+            .SearchOrchestrationInstancesByNameAsync(
+                new SearchOrchestrationInstancesByNameQuery(
+                    userIdentity,
+                    name: new Brs_021_ElectricalHeatingCalculation_V1().Name,
+                    version: null,
+                    lifecycleState: OrchestrationInstanceLifecycleStates.Terminated,
+                    terminationState: OrchestrationInstanceTerminationStates.Succeeded,
+                    startedAtOrLater: null,
+                    terminatedAtOrEarlier: null),
+                CancellationToken.None);
 
-        ////orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
+        orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
     }
 
     private IConfiguration CreateInMemoryConfigurations(Dictionary<string, string?> configurations)

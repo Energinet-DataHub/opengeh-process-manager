@@ -61,6 +61,16 @@ public interface IProcessManagerClient
     /// <summary>
     /// Get all orchestration instances filtered by their related orchestration definition name and version,
     /// and their lifecycle / termination states.
+    /// Returns orchestration instances.
+    /// </summary>
+    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchOrchestrationInstancesByNameAsync(
+        SearchOrchestrationInstancesByNameQuery query,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Get all orchestration instances filtered by their related orchestration definition name and version,
+    /// and their lifecycle / termination states.
+    /// Returns orchestration instances including their original input parameter value.
     /// </summary>
     Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
         SearchOrchestrationInstancesByNameQuery query,

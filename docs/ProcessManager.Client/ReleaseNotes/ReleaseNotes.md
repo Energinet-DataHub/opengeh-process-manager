@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.13.2
+
+- Downgrade Microsoft Annotations
+
 ## Version 0.13.1
 
 - Update dependencies.

@@ -96,7 +96,7 @@ public static class ClientExtensions
         httpClient.BaseAddress = new Uri(baseAddress);
 
         var httpContextAccessor = sp.GetService<IHttpContextAccessor>();
-        var authorizationHeaderValue = (string?)httpContextAccessor?.HttpContext.Request.Headers["Authorization"];
+        var authorizationHeaderValue = (string?)httpContextAccessor?.HttpContext?.Request.Headers.Authorization;
         if (!string.IsNullOrWhiteSpace(authorizationHeaderValue))
             httpClient.DefaultRequestHeaders.Add("Authorization", authorizationHeaderValue);
     }

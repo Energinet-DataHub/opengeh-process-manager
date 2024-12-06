@@ -21,7 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Command for starting a BRS-023 or BRS-027 calculation.
 /// Must be JSON serializable.
 /// </summary>
-public record StartCalculationCommandV1
+public sealed record StartCalculationCommandV1
     : StartOrchestrationInstanceCommand<UserIdentityDto, CalculationInputV1>
 {
     /// <summary>

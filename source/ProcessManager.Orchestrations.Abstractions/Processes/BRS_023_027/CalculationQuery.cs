@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Query for searching for BRS-023 or BRS-027 calculations.
 /// Must be JSON serializable.
 /// </summary>
-public record CalculationQuery
+public sealed record CalculationQuery
     : SearchOrchestrationInstancesByCustomQuery<CalculationQueryResult>
 {
     /// <summary>

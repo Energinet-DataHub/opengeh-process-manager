@@ -27,6 +27,8 @@ public class ParameterValue
         SerializedParameterValue = string.Empty;
     }
 
+    public bool IsEmpty => SerializedParameterValue == string.Empty;
+
     /// <summary>
     /// The JSON representation of the orchestration input parameter value.
     /// </summary>
@@ -45,7 +47,11 @@ public class ParameterValue
 
     public ExpandoObject AsExpandoObject()
     {
-        return JsonSerializer.Deserialize<ExpandoObject>(SerializedParameterValue) ?? new ExpandoObject();
+        if (IsEmpty)
+            return new ExpandoObject();
+
+        return JsonSerializer.Deserialize<ExpandoObject>(SerializedParameterValue)
+            ?? new ExpandoObject();
     }
 
     public TParameter AsType<TParameter>()

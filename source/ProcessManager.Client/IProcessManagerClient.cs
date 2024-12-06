@@ -10,7 +10,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License
+// limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Client;
 
 /// <summary>
-/// Client for using the Process Manager / Orchestrations API.
+/// Client for using the Process Manager / Orchestrations API
 /// </summary>
 public interface IProcessManagerClient
 {

@@ -64,9 +64,8 @@ jobs:
     needs: build_matrix
     strategy:
       matrix: 
-        name: ${{fromJson(needs.build_matrix.outputs.matrix.name)}}
-        filepath: ${{fromJson(needs.build_matrix.outputs.matrix.filepath)}} 
+        project: ${{fromJson(needs.build_matrix.outputs.matrix)}} 
     steps:
       - name: Build and run tests
         run: |
-          echo "Build and run tests in ${{ needs.build_matrix.outputs.matrix.filepath }}"
+          echo "Build and run tests in ${{ needs.build_matrix.outputs.matrix.name }}"

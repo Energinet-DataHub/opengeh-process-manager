@@ -8,7 +8,9 @@ Hostnames that are affected
 
 function Find-AffectedHosts {
     param (
+        [Parameter(Mandatory)]
         $AffectedProjects,
+        [Parameter(Mandatory)]
         $Hostnames
     )
 
@@ -41,9 +43,13 @@ Install and run dotnet-affected
 #>
 function Write-AffectedProjectsFile {
     param (
+        [Parameter(Mandatory)]
         $SolutionPath,
+        [Parameter(Mandatory)]
         $WorkspacePath,
+        [Parameter(Mandatory)]
         $FromSha,
+        [Parameter(Mandatory)]
         $ToSha
     )
 

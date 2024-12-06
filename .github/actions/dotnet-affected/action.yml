@@ -40,7 +40,7 @@ runs:
   steps:
     - name: Find affected projects
       shell: pwsh
-      #id: filter
+      id: filter
       run: |
         . ${{ github.action_path }}/Find-AffectedProjects.ps1
 

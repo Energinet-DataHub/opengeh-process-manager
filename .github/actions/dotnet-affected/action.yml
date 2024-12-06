@@ -31,6 +31,9 @@ inputs:
   host_names:
     description: "Host names mapped to project names"
     required: true
+outputs:
+  affected_changes: ${{ steps.filter.outputs.affected_changes }}
+  job_context_output: ${{ steps.filter.outputs.job_context_output }}
 
 runs:
   using: composite

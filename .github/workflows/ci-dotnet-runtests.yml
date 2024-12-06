@@ -46,7 +46,7 @@ jobs:
               } 
             }
           }
-          $matrixJson = $matrix | ConvertTo-Json
+          $matrixJson = $matrix | ConvertTo-Json -Compress
 
           Write-Host "Matrix JSON: $matrixJson"
           "matrix=$matrixJson" >> $env:GITHUB_OUTPUT

@@ -47,6 +47,8 @@ jobs:
             }
           }
           $matrixJson = $matrix | ConvertTo-Json
+
+          Write-Host "Matrix JSON: $matrixJson"
           "matrix=$matrixJson" >> $env:GITHUB_OUTPUT
 
   print_matrix:

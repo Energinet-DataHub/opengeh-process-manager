@@ -59,6 +59,11 @@ jobs:
           from_sha: ${{ steps.set_shas.outputs.base }}
           to_sha: ${{ steps.set_shas.outputs.head }}
           host_names: ${{ inputs.hostnames }}
+      
+      - name: Print affected changes
+        run: |
+          echo Affected changes: ${{ steps.filter.outputs.affected_changes }}
+          echo Job context: ${{ steps.filter.outputs.job_context_output }}
           
       # - name: Run dotnet-affected
       #   shell: pwsh

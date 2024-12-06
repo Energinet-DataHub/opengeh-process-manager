@@ -33,6 +33,8 @@ on:
         required: false
         type: string
     outputs:
+      nuget_packages:
+        value: ${{ jobs.changes.outputs.nuget_packages }}
       affected_changes:
         value: ${{ jobs.changes.outputs.affected_changes }}
       job_context:
@@ -43,6 +45,7 @@ jobs:
     name: Detect changes
     runs-on: ubuntu-latest
     outputs:
+      nuget_packages: ${{ steps.filter_nuget.outputs.nuget_packages }}
       affected_changes: ${{ steps.filter.outputs.affected_changes }}
       job_context: ${{ steps.filter.outputs.job_context }}
     steps:
@@ -63,6 +66,19 @@ jobs:
           to_sha: ${{ steps.set_shas.outputs.head }}
           host_names: ${{ inputs.hostnames }}
           print_debug_output: ${{ inputs.print_debug_output }}
+
+      - name: Detect Nuget changes
+        uses: dorny/paths-filter@v3
+        id: filter_nuget
+        with:
+          filters: |
+            nuget_packages:
+              - 'docs/ProcessManager.Client/**'
+              - 'docs/ProcessManager.Orchestrations.Abstractions/**'
+              - 'source/ProcessManager.Client*/**'
+              - 'source/ProcessManager.Abstractions*/**'
+              - 'source/ProcessManager.Orchestrations.Abstractions*/**'
+              - '.github/workflows/processmanager-client-bundle-publish.yml'      
 
 
           

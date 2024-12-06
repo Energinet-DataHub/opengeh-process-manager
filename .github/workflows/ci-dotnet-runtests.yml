@@ -61,7 +61,7 @@ jobs:
           echo "Matrix: ${{needs.build_matrix.outputs.matrix}}"
 
   run_tests_in_project:
-    name: Test ${{needs.build_matrix.outputs.matrix.project.name}}
+    name: Run tests in ${{ matrix.project }}
     runs-on: ubuntu-latest
     needs: build_matrix
     strategy:

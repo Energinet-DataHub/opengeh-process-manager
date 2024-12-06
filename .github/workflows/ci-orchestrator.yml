@@ -69,6 +69,12 @@ jobs:
       release_name: process_manager_dbmigrations
       project_file: source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj
 
+  ci_run_tests:
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet-runtests.yml
+    with:
+      affected_changes: ${{ needs.changes.outputs.affected_changes }}
+
   #
   # Branch policy status check
   #

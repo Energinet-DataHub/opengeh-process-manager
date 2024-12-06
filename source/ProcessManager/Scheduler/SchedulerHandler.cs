@@ -46,7 +46,7 @@ public class SchedulerHandler(
             }
             catch (Exception ex)
             {
-                // Log error if orchestration instance did not start successfully.
+                // Log error if orchestration instance did not start successfully
                 // Does not throw exception since we want to continue processing the next scheduled orchestration instance.
                 _logger.LogError(
                     ex,

@@ -34,7 +34,7 @@ internal class EnqueueMessagesStepStartActivity_Brs_021_ElectricalHeatingCalcula
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ElectricalHeatingCalculation_V1.EnqueueMessagesStepSequence);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ElectricalHeatingCalculation_V1.EnqueueMessagesStep.Sequence);
         if (!step.IsSkipped())
         {
             step.Lifecycle.TransitionToRunning(Clock);

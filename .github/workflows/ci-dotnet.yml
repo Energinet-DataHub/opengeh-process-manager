@@ -15,53 +15,55 @@
 name: CI dotnet
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      release_name:
+        description: The name of the artifact
+        required: true
+        type: string
+      project_file:
+        description: The context of the job
+        type: string
+        required: true
 
 jobs:
-  # Build all projects within solution
-  dotnet_ci_build:
-    uses: Energinet-DataHub/.github/.github/workflows/dotnet-build-prerelease.yml@v14
-    with:
-      solution_file_path: source/ProcessManager.sln
+  build_artifact:
+    name: Build artifact ${{ inputs.release_name }}
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_FOLDER_PATH: ${{ github.workspace }}/output
+      RELEASE_VERSION: ${{ inputs.release_name }}_${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ env.RELEASE_VERSION }}-${{ inputs.release_name }} # Cache per PR
 
-  # Tests that require the integration test environment
-  # DO NOT add ProcessManager.Client tests, they must be executed as part of the "publish" workflow"
-  integration_tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        tests_filter_expression:
-          - name: ProcessManager Tests
-            paths: \source\ProcessManager.Tests\bin\Release\net8.0\Energinet.DataHub.ProcessManager.Tests.dll
-            filter: empty # Means skip
-            use_azure_functions_tools: true
-            contentroot_variable_name: empty # Means skip
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-          - name: ProcessManager Orchestrations Tests
-            paths: \source\ProcessManager.Orchestrations.Tests\bin\Release\net8.0\Energinet.DataHub.ProcessManager.Orchestrations.Tests.dll
-            filter: empty # Means skip
-            use_azure_functions_tools: true
-            contentroot_variable_name: empty # Means skip
+      - name: Build ${{ inputs.release_name }}
+        run: |
+          dotnet publish \
+            '${{ github.workspace }}/${{ inputs.project_file }}' \
+            --configuration Release \
+            --output '${{ env.RELEASE_FOLDER_PATH }}'
 
-          - name: ProcessManager Core Tests
-            paths: \source\ProcessManager.Core.Tests\bin\Release\net8.0\Energinet.DataHub.ProcessManager.Core.Tests.dll
-            filter: empty # Means skip
-            use_azure_functions_tools: true
-            contentroot_variable_name: empty # Means skip
+      - name: Zip files for prerelease
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: thedoctor0/zip-release@0.6.2
+        with:
+          type: zip
+          filename: ${{ env.RELEASE_VERSION }}.zip
+          directory: ${{ env.RELEASE_FOLDER_PATH }}
 
-    uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test.yml@v14
-    with:
-      download_attempt_limit: 20
-      azure_integrationtest_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
-      azure_integrationtest_subscription_id: ${{ vars.integration_test_azure_subscription_id }}
-      azure_integrationtest_spn_id: ${{ vars.integration_test_azure_spn_id_oidc }}
-      azure_keyvault_url: ${{ vars.integration_test_azure_keyvault_url }}
-      environment: AzureAuth
-      run_integration_tests: true
-      # Matrix parameters
-      job_name: ${{ matrix.tests_filter_expression.name }}
-      tests_dll_file_path: ${{ matrix.tests_filter_expression.paths }}
-      tests_filter_expression: ${{ matrix.tests_filter_expression.filter }}
-      use_azure_functions_tools: ${{ matrix.tests_filter_expression.use_azure_functions_tools }}
-      aspnetcore_test_contentroot_variable_name: ${{ matrix.tests_filter_expression.contentroot_variable_name }}
-      aspnetcore_test_contentroot_variable_value: ${{ matrix.tests_filter_expression.contentroot_variable_value }}
+      - name: Create pre-release
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: Energinet-Datahub/.github/.github/actions/github-create-release@v14
+        with:
+          repo_token: ${{ github.token }}
+          automatic_release_tag: ${{ env.RELEASE_VERSION }}
+          prerelease: true
+          title: ${{ env.RELEASE_VERSION }}
+          files: |
+            ${{ env.RELEASE_FOLDER_PATH }}/${{ env.RELEASE_VERSION }}.zip

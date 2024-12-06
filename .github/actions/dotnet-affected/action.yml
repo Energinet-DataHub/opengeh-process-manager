@@ -35,7 +35,7 @@ outputs:
   affected_changes:
     description: "The affected projects, if any"
     value: ${{ steps.filter.outputs.affected_changes }}
-  job_context_output:
+  job_context:
     description: "The job context output, if any"
     value: ${{ steps.filter.outputs.job_context_output }}
 

@@ -36,23 +36,37 @@ jobs:
     uses: ./.github/workflows/detect-changes.yml
     with:
       solution_file: 'source/ProcessManager.sln'
+      # Hostnames = famous mountains
       hostnames: "
             {
-              'astra': 'ProcessManager.csproj',
-              'orion': 'ProcessManager.Orchestrations.csproj',
+              'everest': 'ProcessManager.csproj',
+              'montblanc': 'ProcessManager.Orchestrations.csproj',
               'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
             }"
 
-  # ci_dotnet:
-  #   needs: changes
-  #   if: ${{ needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.db_migrations == 'true' }}
-  #   uses: ./.github/workflows/ci-dotnet.yml
+  ci_dotnet_everest:
+    if: ${{ fromJson(needs.changes.outputs.job_context).everest == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      release_name: process_manager_everest
+      project_file: source/ProcessManager/ProcessManager.csproj
 
-  # ci_processmanager_nuget:
-  #   needs: changes
-  #   if: ${{ needs.changes.outputs.processmanager_nuget == 'true' }}
-  #   uses: ./.github/workflows/processmanager-client-bundle-publish.yml
-  #   secrets: inherit
+  ci_dotnet_montblanc:
+    if: ${{ fromJson(needs.changes.outputs.job_context).montblanc == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      release_name: process_manager_montblanc
+      project_file: source/ProcessManager/ProcessManager.csproj
+
+  ci_dotnet_dbmigrations:
+    if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      release_name: process_manager_dbmigrations
+      project_file: source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj
 
   #
   # Branch policy status check
@@ -62,8 +76,10 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       [
-        ci_base
-        # TODO: Add more jobs here
+        ci_base,
+        ci_dotnet_everest,
+        ci_dotnet_montblanc,
+        ci_dotnet_dbmigrations
       ]
     if: |
       always()

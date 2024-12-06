@@ -1,5 +1,10 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.14.0
+
+- Support start/schedule orchestration instance with no input parameter.
+- Support get orchestration instance when started with no input.
+
 ## Version 0.13.1
 
 - Update dependencies.

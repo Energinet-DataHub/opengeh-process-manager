@@ -43,33 +43,33 @@ internal class Orchestration_Brs_023_027_V1
 
         // Initialize
         await context.CallActivityAsync(
-            nameof(Brs023OrchestrationInitializeActivityV1),
+            nameof(OrchestrationInitializeActivity_Brs_023_027_V1),
             context.InstanceId,
             defaultRetryOptions);
 
         // Step: Calculation
         await context.CallActivityAsync(
-            nameof(Brs023CalculationStepStartActivityV1),
+            nameof(CalculationStepStartActivity_Brs_023_027_V1),
             context.InstanceId,
             defaultRetryOptions);
         await context.CallActivityAsync(
-            nameof(Brs023CalculationStepTerminateActivityV1),
+            nameof(CalculationStepTerminateActivity_Brs_023_027_V1),
             context.InstanceId,
             defaultRetryOptions);
 
         // Step: Enqueue messages
         await context.CallActivityAsync(
-            nameof(Brs023EnqueueMessagesStepStartActivityV1),
+            nameof(EnqueueMessagesStepStartActivity_Brs_023_027_V1),
             context.InstanceId,
             defaultRetryOptions);
         await context.CallActivityAsync(
-            nameof(Brs023EnqueueMessagesStepTerminateActivityV1),
+            nameof(EnqueueMessagesStepTerminateActivity_Brs_023_027_V1),
             context.InstanceId,
             defaultRetryOptions);
 
         // Terminate
         await context.CallActivityAsync(
-            nameof(Brs023OrchestrationTerminateActivityV1),
+            nameof(OrchestrationTerminateActivity_Brs_023_027_V1),
             context.InstanceId,
             defaultRetryOptions);
 

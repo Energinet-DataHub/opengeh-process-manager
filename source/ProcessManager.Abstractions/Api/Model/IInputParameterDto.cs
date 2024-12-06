@@ -15,6 +15,6 @@
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Marker interface for JSON serializable input parameters to an orchestration instance.
+/// Allows for generic type constraints of JSON serializable input parameters to an orchestration instance.
 /// </summary>
 public interface IInputParameterDto;

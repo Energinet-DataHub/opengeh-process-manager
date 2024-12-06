@@ -23,6 +23,14 @@ public interface IStartOrchestrationInstanceCommands
     /// <summary>
     /// Start a new instance of an orchestration.
     /// </summary>
+    Task<OrchestrationInstanceId> StartNewOrchestrationInstanceAsync(
+        OperatingIdentity identity,
+        OrchestrationDescriptionUniqueName uniqueName);
+
+    /// <summary>
+    /// Start a new instance of an orchestration with input parameter and the
+    /// possibility to skip steps.
+    /// </summary>
     Task<OrchestrationInstanceId> StartNewOrchestrationInstanceAsync<TParameter>(
         OperatingIdentity identity,
         OrchestrationDescriptionUniqueName uniqueName,
@@ -32,6 +40,15 @@ public interface IStartOrchestrationInstanceCommands
 
     /// <summary>
     /// Schedule a new instance of an orchestration.
+    /// </summary>
+    Task<OrchestrationInstanceId> ScheduleNewOrchestrationInstanceAsync(
+        UserIdentity identity,
+        OrchestrationDescriptionUniqueName uniqueName,
+        Instant runAt);
+
+    /// <summary>
+    /// Schedule a new instance of an orchestration with input parameter and the
+    /// possibility to skip steps.
     /// </summary>
     Task<OrchestrationInstanceId> ScheduleNewOrchestrationInstanceAsync<TParameter>(
         UserIdentity identity,

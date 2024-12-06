@@ -48,5 +48,7 @@ function Write-AffectedProjectsFile {
     )
 
     dotnet tool install dotnet-affected --global
+    Write-Host "dotnet affected --solution-path $solutionPath -p $workspacePath --from $fromSha --to $toSha --format traversal json"
+
     dotnet affected --solution-path $solutionPath -p $workspacePath --from $fromSha --to $toSha --format traversal json
 }

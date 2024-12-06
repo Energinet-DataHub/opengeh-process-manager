@@ -77,11 +77,6 @@ jobs:
       RELEASE_VERSION: dotnet_${{ github.event.pull_request.number }}
       outputpath: ${{ github.workspace }}/source/Tests/bin/Release/net8.0
     steps:
-      # - name: Build and run tests
-      #   run: |
-      #     echo "Build and run tests in ${{ matrix.project.name }}"
-      #     echo "Filepath: ${{ matrix.project.filepath }}"
-
       - name: Checkout repository
         uses: actions/checkout@v4
 

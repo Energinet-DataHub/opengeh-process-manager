@@ -24,33 +24,28 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_026_028.
 [Collection(nameof(ProcessManagerClientCollection))]
 public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
 {
-    private readonly ScenarioProcessManagerAppFixture _processManagerAppFixture;
-    private readonly ScenarioOrchestrationsAppFixture _orchestrationsAppFixture;
+    private readonly ProcessManagerClientFixture _fixture;
 
     public RequestCalculatedEnergyTimeSeriesTests(
-        ScenarioProcessManagerAppFixture processManagerAppFixture,
-        ScenarioOrchestrationsAppFixture orchestrationsAppFixture,
+        ProcessManagerClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
-        _processManagerAppFixture = processManagerAppFixture;
-        _orchestrationsAppFixture = orchestrationsAppFixture;
-
-        _processManagerAppFixture.SetTestOutputHelper(testOutputHelper);
-        _orchestrationsAppFixture.SetTestOutputHelper(testOutputHelper);
+        _fixture = fixture;
+        _fixture.SetTestOutputHelper(testOutputHelper);
     }
 
     public Task InitializeAsync()
     {
-        _processManagerAppFixture.AppHostManager.ClearHostLog();
-        _orchestrationsAppFixture.AppHostManager.ClearHostLog();
+        _fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
+        _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
 
         return Task.CompletedTask;
     }
 
     public Task DisposeAsync()
     {
-        _processManagerAppFixture.SetTestOutputHelper(null!);
-        _orchestrationsAppFixture.SetTestOutputHelper(null!);
+        _fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
+        _fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
 
         return Task.CompletedTask;
     }

@@ -76,11 +76,11 @@ runs:
           }
         }
 
-    - name: Debug output
+    - name: Print debug output
       shell: bash
       if: ${{ inputs.print_debug_output == 'true' }}
       run: |
         echo "Debug output:"
-        echo "Affected projects: ${{ steps.filter.outputs.affected_changes }}"
+        echo Affected projects: '${{ steps.filter.outputs.affected_changes }}'
         echo ''
-        echo "Job context: ${{ steps.filter.outputs.job_context }}"
+        echo Job context: '${{ steps.filter.outputs.job_context }}'

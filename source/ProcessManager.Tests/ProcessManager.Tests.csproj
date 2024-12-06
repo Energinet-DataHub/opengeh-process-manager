@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="..\Shared\ProcessManager\Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
+    <Compile Include="..\Shared\ProcessManager\Tests\Fixtures\ProcessManagerAppFixtureBase.cs" Link="Fixtures\ProcessManagerAppFixtureBase.cs" />
   </ItemGroup>
 
   <ItemGroup>

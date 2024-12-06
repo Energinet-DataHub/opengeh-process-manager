@@ -88,6 +88,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Orchestrations", "E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Orchestrations.Abstrations", "Example.Orchestrations.Abstrations\Example.Orchestrations.Abstrations.csproj", "{13757251-5452-4F24-BF15-46997937AECD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Orchestrations.Tests", "Example.Orchestrations.Tests\Example.Orchestrations.Tests.csproj", "{E394B655-B32A-416C-A3C9-BE6E475C60A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -150,6 +152,10 @@ Global
 		{13757251-5452-4F24-BF15-46997937AECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13757251-5452-4F24-BF15-46997937AECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13757251-5452-4F24-BF15-46997937AECD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E394B655-B32A-416C-A3C9-BE6E475C60A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E394B655-B32A-416C-A3C9-BE6E475C60A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E394B655-B32A-416C-A3C9-BE6E475C60A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E394B655-B32A-416C-A3C9-BE6E475C60A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -179,6 +185,7 @@ Global
 		{1F5C05E6-047F-42A6-8D1F-A272D8EE8E2E} = {518B5469-388B-48C2-83CE-CF89B16F9C9C}
 		{521163D1-3712-4DE6-A7BF-9425C9126350} = {518B5469-388B-48C2-83CE-CF89B16F9C9C}
 		{13757251-5452-4F24-BF15-46997937AECD} = {518B5469-388B-48C2-83CE-CF89B16F9C9C}
+		{E394B655-B32A-416C-A3C9-BE6E475C60A8} = {1F5C05E6-047F-42A6-8D1F-A272D8EE8E2E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A09D89DF-3110-4624-B419-236E001E0ABF}

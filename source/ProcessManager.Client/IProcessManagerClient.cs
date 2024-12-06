@@ -25,10 +25,9 @@ public interface IProcessManagerClient
     /// <summary>
     /// Schedule an orchestration instance and return its id.
     /// </summary>
-    Task<Guid> ScheduleNewOrchestrationInstanceAsync<TInputParameterDto>(
-        ScheduleOrchestrationInstanceCommand<TInputParameterDto> command,
-        CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto;
+    Task<Guid> ScheduleNewOrchestrationInstanceAsync(
+        ScheduleOrchestrationInstanceCommand command,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Cancel a scheduled orchestration instance.
@@ -38,15 +37,21 @@ public interface IProcessManagerClient
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Start an orchestration instance and return its id.
+    /// Start an orchestration instance, and return its id.
     /// </summary>
-    Task<Guid> StartNewOrchestrationInstanceAsync<TInputParameterDto>(
-        StartOrchestrationInstanceCommand<UserIdentityDto, TInputParameterDto> command,
-        CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto;
+    Task<Guid> StartNewOrchestrationInstanceAsync(
+        StartOrchestrationInstanceCommand<UserIdentityDto> command,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Get orchestration instance by id.
+    /// </summary>
+    Task<OrchestrationInstanceTypedDto> GetOrchestrationInstanceByIdAsync(
+        GetOrchestrationInstanceByIdQuery query,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Get orchestration instance by id, and cast orignal input parameter to <see cref="IInputParameterDto"/>.
     /// </summary>
     Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceByIdAsync<TInputParameterDto>(
         GetOrchestrationInstanceByIdQuery query,
@@ -56,6 +61,16 @@ public interface IProcessManagerClient
     /// <summary>
     /// Get all orchestration instances filtered by their related orchestration definition name and version,
     /// and their lifecycle / termination states.
+    /// Returns orchestration instances.
+    /// </summary>
+    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchOrchestrationInstancesByNameAsync(
+        SearchOrchestrationInstancesByNameQuery query,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Get all orchestration instances filtered by their related orchestration definition name and version,
+    /// and their lifecycle / termination states.
+    /// Returns orchestration instances including their original input parameter value.
     /// </summary>
     Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
         SearchOrchestrationInstancesByNameQuery query,

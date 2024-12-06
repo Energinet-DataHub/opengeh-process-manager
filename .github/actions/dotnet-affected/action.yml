@@ -39,7 +39,7 @@ runs:
       shell: pwsh
       id: affected
       run: |
-        . ${{ github.action_path }}/Find-AffectedProjectsFile.ps1
+        . ${{ github.action_path }}/Find-AffectedProjects.ps1
 
         $hostNamesJson = "${{ inputs.host_names }}"
         $solutionPath = "${{github.workspace}}/${{inputs.solution_file}}"

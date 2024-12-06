@@ -44,13 +44,13 @@ jobs:
               'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
             }"
 
-  # ci_dotnet_everest:
-  #   if: ${{ fromJson(needs.changes.outputs.job_context).everest == 'true' }}
-  #   needs: changes
-  #   uses: ./.github/workflows/ci-dotnet.yml
-  #   with:
-  #     release_name: process_manager_everest
-  #     project_file: source/ProcessManager/ProcessManager.csproj
+  ci_dotnet_everest:
+    if: ${{ fromJson(needs.changes.outputs.job_context_output).everest == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      release_name: process_manager_everest
+      project_file: source/ProcessManager/ProcessManager.csproj
 
   # ci_dotnet_montblanc:
   #   if: ${{ fromJson(needs.changes.outputs.job_context).montblanc == 'true' }}

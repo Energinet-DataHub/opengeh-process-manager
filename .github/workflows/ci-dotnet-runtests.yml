@@ -95,7 +95,7 @@ jobs:
           dotnet publish \
             '${{ matrix.project.filepath }}' \
             --configuration Release \
-            --output '${{ env.outputpath }}'
+            --output '${{ env.outputpath }}' \
             -p:ErrorOnDuplicatePublishOutputFiles=false  # To avoid the error "Found multiple publish output files with the same relative path"
 
           ls source/Tests/bin/Release/net8.0

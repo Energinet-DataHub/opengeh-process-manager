@@ -12,7 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Client.Tests.Extensions;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using FluentAssertions;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_026_028.V1;
@@ -32,7 +42,23 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
     {
         _fixture = fixture;
         _fixture.SetTestOutputHelper(testOutputHelper);
+
+        var services = new ServiceCollection();
+        services.AddInMemoryConfiguration(new Dictionary<string, string?>
+        {
+            [$"{ProcessManagerServiceBusClientsOptions.SectionName}:{nameof(ProcessManagerServiceBusClientsOptions.TopicName)}"]
+                = _fixture.ProcessManagerTopic.Name,
+        });
+        services.AddAzureClients(
+            b =>
+            {
+                b.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
+            });
+        services.AddProcessManagerMessageClient();
+        ServiceProvider = services.BuildServiceProvider();
     }
+
+    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
@@ -42,28 +68,35 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
         _fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         _fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        return Task.CompletedTask;
+        await ServiceProvider.DisposeAsync();
     }
 
     [Fact]
-    public async Task RequestCalculatedEnergyTimeSeries_WhenStartedUsingClient_CanMonitorLifecycle()
+    public async Task RequestCalculatedEnergyTimeSeries_WhenStarted_OrchestrationCompletesWithSuccess()
     {
-        // TODO: Implement test after implementation of shared Service Bus topic in app fixtures
         // Arrange
-        // var requestCalculatedDataClient = new RequestCalculatedDataClientV1();
-        // var input = new RequestCalculatedDataInputV1<RequestCalculatedEnergyTimeSeriesInputV1>(
-        //     Guid.NewGuid().ToString(),
-        //     new RequestCalculatedEnergyTimeSeriesInputV1("B1337"));
-        //
-        // // Act
-        // await requestCalculatedDataClient.RequestCalculatedEnergyTimeSeriesAsync(input, CancellationToken.None);
+        var messageId = "test-message-id";
+        var businessReason = "test-business-reason";
+        var startRequestCommand = new StartRequestCalculatedEnergyTimeSeriesCommandV1(
+            new ActorIdentityDto(Guid.NewGuid()),
+            new RequestCalculatedEnergyTimeSeriesInputV1(businessReason),
+            messageId);
+
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+
+        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-30);
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, default);
 
         // Assert
-        await Task.CompletedTask;
+        var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(orchestrationCreatedAfter);
+        orchestration.Input.ToString().Should().Contain(businessReason);
+
+        var completedOrchestration = await _fixture.DurableClient.WaitForInstanceCompletedAsync(orchestration.InstanceId);
+        completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
     }
 }

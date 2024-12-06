@@ -34,8 +34,20 @@ jobs:
         shell: pwsh
         run: |
           $affectedProjects = '${{ inputs.affected_changes  }}' | ConvertFrom-Json
-          $matrix = $affectedProjects | Where-Object {$_.Name -like '*Tests*'} | Select-Object -ExpandProperty Filepath  | ConvertTo-Json -Compress
-          "matrix=$matrix" >> $env:GITHUB_OUTPUT
+          # $matrix = $affectedProjects | Where-Object {$_.Name -like '*Tests*'} | Select-Object -ExpandProperty Filepath  | ConvertTo-Json -Compress
+
+          #I couldn't find a better way to lowercase keys in a hashtable
+          $matrix = @()
+          foreach ($project in $affectedProjects) {
+            if ($project.Name -like '*Tests*') {
+              $matrix += [PSCustomObject]@{
+                name     = $project.Name
+                filepath = $project.FilePath
+              } 
+            }
+          }
+
+          "matrix=($matrix | ConvertTo-Json)" >> $env:GITHUB_OUTPUT
 
   print_matrix:
     name: Print matrix
@@ -47,13 +59,14 @@ jobs:
           echo "Matrix: ${{needs.build_matrix.outputs.matrix}}"
 
   run_tests_in_project:
-    name: Run test
+    name: Test ${{needs.build_matrix.outputs.matrix.name}}
     runs-on: ubuntu-latest
     needs: build_matrix
     strategy:
       matrix: 
-        project: ${{fromJson(needs.build_matrix.outputs.matrix)}} 
+        name: ${{fromJson(needs.build_matrix.outputs.matrix.name)}}
+        filepath: ${{fromJson(needs.build_matrix.outputs.matrix.filepath)}} 
     steps:
       - name: Build and run tests
         run: |
-          echo "Build and run tests in ${{ matrix.project }}"
+          echo "Build and run tests in ${{ needs.build_matrix.outputs.matrix.filepath }}"

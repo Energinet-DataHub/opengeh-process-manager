@@ -49,7 +49,7 @@ runs:
         $affectedProjectsFile = 'affected.json'
 
         # Install and run dotnet-affected, outputs a json file with affected projects
-        Write-AffectedProjectsFile -SolutionFile $solutionPath -WorkspacePath $workspacePath -FromSha $fromSha -ToSha $toSha
+        Write-AffectedProjectsFile -SolutionPath $solutionPath -WorkspacePath $workspacePath -FromSha $fromSha -ToSha $toSha
 
         if (Test-Path $AffectedProjectsFile) {
           $affectedJson = Get-Content $AffectedProjectsFile

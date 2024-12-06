@@ -87,7 +87,8 @@ jobs:
         changes,
         ci_dotnet_everest,
         ci_dotnet_montblanc,
-        ci_dotnet_dbmigrations
+        ci_dotnet_dbmigrations,
+        ci_run_tests
       ]
     if: |
       always()

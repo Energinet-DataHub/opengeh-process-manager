@@ -14,25 +14,21 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Azure.Messaging.ServiceBus.Administration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
-using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+namespace Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
-/// Support testing Process Manager Orchestrations app and specifying configuration.
-/// This allows us to use multiple apps and coordinate their configuration.
+/// Support testing Process Manager Orchestrations app and specifying configuration using inheritance.
+/// This allows us to use multiple fixtures and coordinate their configuration.
 /// </summary>
-public class OrchestrationsAppManager : IAsyncDisposable
+public class ExampleOrchestrationsAppManager : IAsyncDisposable
 {
     /// <summary>
     /// Durable Functions Task Hub Name
@@ -44,19 +40,19 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private readonly bool _manageDatabase;
     private readonly bool _manageAzurite;
 
-    public OrchestrationsAppManager()
+    public ExampleOrchestrationsAppManager()
         : this(
             new ProcessManagerDatabaseManager("OrchestrationsTest"),
             new IntegrationTestConfiguration(),
             new AzuriteManager(useOAuth: true),
-            taskHubName: "OrchestrationsTest01",
+            taskHubName: "ExampleOrchestrationsTest01",
             appPort: 8010,
             manageDatabase: true,
             manageAzurite: true)
     {
     }
 
-    public OrchestrationsAppManager(
+    public ExampleOrchestrationsAppManager(
         ProcessManagerDatabaseManager databaseManager,
         IntegrationTestConfiguration configuration,
         AzuriteManager azuriteManager,
@@ -77,10 +73,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         IntegrationTestConfiguration = configuration;
         AzuriteManager = azuriteManager;
-        ServiceBusResourceProvider = new ServiceBusResourceProvider(
-            TestLogger,
-            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
-            IntegrationTestConfiguration.Credential);
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -94,13 +86,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     private AzuriteManager AzuriteManager { get; }
 
-    private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
-
     /// <summary>
-    /// Start the orchestration app
+    /// Start the example orchestration app
     /// </summary>
-    /// <param name="brs026Subscription">The BRS-026 Service Bus subscription. A new subscription will be created if not provided.</param>
-    public async Task StartAsync(SubscriptionProperties? brs026Subscription = null)
+    public async Task StartAsync()
     {
         if (_manageAzurite)
         {
@@ -114,19 +103,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        // Process Manager topic
-        if (brs026Subscription is null)
-        {
-            var topicResource = await ServiceBusResourceProvider.BuildTopic("pm-topic")
-                .AddSubscription("brs-026-subscription")
-                .CreateAsync();
-            brs026Subscription = topicResource.Subscriptions.Single();
-        }
-
         // Prepare host settings
-        var appHostSettings = CreateAppHostSettings(
-            "ProcessManager.Orchestrations",
-            brs026Subscription);
+        var appHostSettings = CreateAppHostSettings("ProcessManager.Orchestrations");
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -142,8 +120,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         if (_manageDatabase)
             await DatabaseManager.DeleteDatabaseAsync();
-
-        await ServiceBusResourceProvider.DisposeAsync();
     }
 
     /// <summary>
@@ -228,9 +204,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 #endif
     }
 
-    private FunctionAppHostSettings CreateAppHostSettings(
-        string csprojName,
-        SubscriptionProperties brs026Subscription)
+    private FunctionAppHostSettings CreateAppHostSettings(string csprojName)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -270,16 +244,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
-        // => Service Bus
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
-            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.TopicName)}",
-            brs026Subscription.TopicName);
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}",
-            brs026Subscription.SubscriptionName);
 
         return appHostSettings;
     }

@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <AssemblyName>Energinet.DataHub.Example.Orchestrations</AssemblyName>
+        <RootNamespace>Energinet.DataHub.Example.Orchestrations</RootNamespace>
+        <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="13.2.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />
+        <ProjectReference Include="..\Example.Orchestrations.Abstrations\Example.Orchestrations.Abstrations.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Api\Mappers\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\Shared\ProcessManager\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
+    </ItemGroup>
+</Project>

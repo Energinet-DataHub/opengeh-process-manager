@@ -23,7 +23,7 @@ internal class SchedulerTrigger(IProcessManagerClient processManagerClient)
 {
     [Function(nameof(StartScheduledOrchestrationInstances))]
     public async Task StartScheduledOrchestrationInstances(
-        [TimerTrigger("0 0 12,17 * * *")] TimerInfo timerInfo) // Runs every hour
+        [TimerTrigger("0 0 12,17 * * *")] TimerInfo timerInfo) // Runs at 12:00 and 17:00 every day
     {
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),

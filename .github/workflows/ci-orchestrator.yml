@@ -53,21 +53,21 @@ jobs:
       release_name: process_manager_everest
       project_file: source/ProcessManager/ProcessManager.csproj
 
-  # ci_dotnet_montblanc:
-  #   if: ${{ fromJson(needs.changes.outputs.job_context).montblanc == 'true' }}
-  #   needs: changes
-  #   uses: ./.github/workflows/ci-dotnet.yml
-  #   with:
-  #     release_name: process_manager_montblanc
-  #     project_file: source/ProcessManager/ProcessManager.csproj
+  ci_dotnet_montblanc:
+    if: ${{ fromJson(needs.changes.outputs.job_context).montblanc == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      release_name: process_manager_montblanc
+      project_file: source/ProcessManager/ProcessManager.csproj
 
-  # ci_dotnet_dbmigrations:
-  #   if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
-  #   needs: changes
-  #   uses: ./.github/workflows/ci-dotnet.yml
-  #   with:
-  #     release_name: process_manager_dbmigrations
-  #     project_file: source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj
+  ci_dotnet_dbmigrations:
+    if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      release_name: process_manager_dbmigrations
+      project_file: source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj
 
   #
   # Branch policy status check
@@ -79,9 +79,9 @@ jobs:
       [
         ci_base,
         changes,
-        # ci_dotnet_everest,
-        # ci_dotnet_montblanc,
-        # ci_dotnet_dbmigrations
+        ci_dotnet_everest,
+        ci_dotnet_montblanc,
+        ci_dotnet_dbmigrations
       ]
     if: |
       always()

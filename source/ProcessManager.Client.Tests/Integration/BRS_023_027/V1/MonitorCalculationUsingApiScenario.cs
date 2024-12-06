@@ -32,33 +32,27 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_023_027.
 public class MonitorCalculationUsingApiScenario : IAsyncLifetime
 {
     public MonitorCalculationUsingApiScenario(
-        ScenarioProcessManagerAppFixture processManagerAppFixture,
-        ScenarioOrchestrationsAppFixture orchestrationsAppFixture,
+        ProcessManagerClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
-        ProcessManagerAppFixture = processManagerAppFixture;
-        ProcessManagerAppFixture.SetTestOutputHelper(testOutputHelper);
-
-        OrchestrationsAppFixture = orchestrationsAppFixture;
-        OrchestrationsAppFixture.SetTestOutputHelper(testOutputHelper);
+        Fixture = fixture;
+        Fixture.SetTestOutputHelper(testOutputHelper);
     }
 
-    private ScenarioProcessManagerAppFixture ProcessManagerAppFixture { get; }
-
-    private ScenarioOrchestrationsAppFixture OrchestrationsAppFixture { get; }
+    private ProcessManagerClientFixture Fixture { get; }
 
     public Task InitializeAsync()
     {
-        ProcessManagerAppFixture.AppHostManager.ClearHostLog();
-        OrchestrationsAppFixture.AppHostManager.ClearHostLog();
+        Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
+        Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
 
         return Task.CompletedTask;
     }
 
     public Task DisposeAsync()
     {
-        ProcessManagerAppFixture.SetTestOutputHelper(null!);
-        OrchestrationsAppFixture.SetTestOutputHelper(null!);
+        Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
+        Fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
 
         return Task.CompletedTask;
     }
@@ -90,7 +84,7 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
             "application/json");
 
         // Step 1: Start new calculation orchestration instance
-        using var scheduleResponse = await OrchestrationsAppFixture.AppHostManager
+        using var scheduleResponse = await Fixture.OrchestrationsAppManager.AppHostManager
             .HttpClient
             .SendAsync(scheduleRequest);
         scheduleResponse.EnsureSuccessStatusCode();
@@ -116,7 +110,7 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
                     Encoding.UTF8,
                     "application/json");
 
-                using var queryResponse = await ProcessManagerAppFixture.AppHostManager
+                using var queryResponse = await Fixture.ProcessManagerAppManager.AppHostManager
                     .HttpClient
                     .SendAsync(queryRequest);
                 queryResponse.EnsureSuccessStatusCode();

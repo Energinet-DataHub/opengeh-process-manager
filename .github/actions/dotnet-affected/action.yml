@@ -64,7 +64,6 @@ runs:
 
         if (Test-Path $AffectedProjectsFile) {
           $affectedJson = Get-Content $AffectedProjectsFile
-          $affectedJson | Write-Host
           "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
           
           $job_context_output = Find-AffectedHosts -AffectedProjects $affectedJson -HostNames $hostNamesJson

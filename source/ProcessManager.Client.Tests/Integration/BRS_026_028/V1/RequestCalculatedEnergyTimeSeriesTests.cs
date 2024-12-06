@@ -93,10 +93,14 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, default);
 
         // Assert
-        var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(orchestrationCreatedAfter);
+        var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
+            orchestrationCreatedAfter,
+            waitTimeLimit: TimeSpan.FromSeconds(60));
         orchestration.Input.ToString().Should().Contain(businessReason);
 
-        var completedOrchestration = await _fixture.DurableClient.WaitForInstanceCompletedAsync(orchestration.InstanceId);
+        var completedOrchestration = await _fixture.DurableClient.WaitForInstanceCompletedAsync(
+            orchestration.InstanceId,
+            waitTimeLimit: TimeSpan.FromSeconds(60));
         completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
     }
 }

@@ -149,7 +149,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// <summary>
     /// Use this method to attach <paramref name="testOutputHelper"/> to the host logging pipeline.
     /// While attached, any entries written to host log pipeline will also be logged to xUnit test output.
-    /// It is important that it is only attached while a test i active. Hence, it should be attached in
+    /// It is important that it is only attached while a test is active. Hence, it should be attached in
     /// the test class constructor; and detached in the test class Dispose method (using 'null').
     /// </summary>
     /// <param name="testOutputHelper">If a xUnit test is active, this should be the instance of xUnit's <see cref="ITestOutputHelper"/>;

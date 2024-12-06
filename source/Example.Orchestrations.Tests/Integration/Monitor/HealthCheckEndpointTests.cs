@@ -36,7 +36,7 @@ public class HealthCheckEndpointTests : IAsyncLifetime
 
     public Task InitializeAsync()
     {
-        Fixture.AppHostManager.ClearHostLog();
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.ClearHostLog();
 
         return Task.CompletedTask;
     }
@@ -58,7 +58,7 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     public async Task FunctionApp_WhenCallingHealthCheck_ReturnOKAndExpectedContent(string healthCheckEndpoint)
     {
         // Act
-        using var actualResponse = await Fixture.AppHostManager.HttpClient.GetAsync($"api/monitor/{healthCheckEndpoint}");
+        using var actualResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/{healthCheckEndpoint}");
 
         // Assert
         using var assertionScope = new AssertionScope();

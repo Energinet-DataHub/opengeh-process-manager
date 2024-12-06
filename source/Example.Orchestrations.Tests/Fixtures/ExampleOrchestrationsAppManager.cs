@@ -28,62 +28,80 @@ namespace Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
 /// Support testing Process Manager Orchestrations app and specifying configuration using inheritance.
 /// This allows us to use multiple fixtures and coordinate their configuration.
 /// </summary>
-public abstract class ExampleOrchestrationsAppFixtureBase : IAsyncLifetime
+public class ExampleOrchestrationsAppManager : IAsyncDisposable
 {
-    private readonly bool _disposeDatabase;
-
-    public ExampleOrchestrationsAppFixtureBase(
-        ProcessManagerDatabaseManager databaseManager,
-        string taskHubName,
-        int port,
-        bool disposeDatabase = true)
-    {
-        DatabaseManager = databaseManager
-            ?? throw new ArgumentNullException(nameof(databaseManager));
-        TaskHubName = string.IsNullOrWhiteSpace(taskHubName)
-            ? throw new ArgumentException("Cannot be null or whitespace.", nameof(taskHubName))
-            : taskHubName;
-        Port = port;
-        _disposeDatabase = disposeDatabase;
-        TestLogger = new TestDiagnosticsLogger();
-        IntegrationTestConfiguration = new IntegrationTestConfiguration();
-
-        AzuriteManager = new AzuriteManager(useOAuth: true);
-
-        HostConfigurationBuilder = new FunctionAppHostConfigurationBuilder();
-    }
-
-    public ITestDiagnosticsLogger TestLogger { get; }
-
-    public ProcessManagerDatabaseManager DatabaseManager { get; }
-
-    [NotNull]
-    public FunctionAppHostManager? AppHostManager { get; private set; }
-
     /// <summary>
     /// Durable Functions Task Hub Name
     /// See naming constraints: https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-task-hubs?tabs=csharp#task-hub-names
     /// </summary>
-    private string TaskHubName { get; }
+    private readonly string _taskHubName;
 
-    private int Port { get; }
+    private readonly int _appPort;
+    private readonly bool _manageDatabase;
+    private readonly bool _manageAzurite;
+
+    public ExampleOrchestrationsAppManager()
+        : this(
+            new ProcessManagerDatabaseManager("OrchestrationsTest"),
+            new IntegrationTestConfiguration(),
+            new AzuriteManager(useOAuth: true),
+            taskHubName: "ExampleOrchestrationsTest01",
+            appPort: 8010,
+            manageDatabase: true,
+            manageAzurite: true)
+    {
+    }
+
+    public ExampleOrchestrationsAppManager(
+        ProcessManagerDatabaseManager databaseManager,
+        IntegrationTestConfiguration configuration,
+        AzuriteManager azuriteManager,
+        string taskHubName,
+        int appPort,
+        bool manageDatabase,
+        bool manageAzurite)
+    {
+        _taskHubName = string.IsNullOrWhiteSpace(taskHubName)
+            ? throw new ArgumentException("Cannot be null or whitespace.", nameof(taskHubName))
+            : taskHubName;
+        _appPort = appPort;
+        _manageDatabase = manageDatabase;
+        _manageAzurite = manageAzurite;
+
+        DatabaseManager = databaseManager;
+        TestLogger = new TestDiagnosticsLogger();
+
+        IntegrationTestConfiguration = configuration;
+        AzuriteManager = azuriteManager;
+    }
+
+    public ProcessManagerDatabaseManager DatabaseManager { get; }
+
+    public ITestDiagnosticsLogger TestLogger { get; }
+
+    [NotNull]
+    public FunctionAppHostManager? AppHostManager { get; private set; }
 
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
     private AzuriteManager AzuriteManager { get; }
 
-    private FunctionAppHostConfigurationBuilder HostConfigurationBuilder { get; }
-
-    public async Task InitializeAsync()
+    /// <summary>
+    /// Start the example orchestration app
+    /// </summary>
+    public async Task StartAsync()
     {
-        // Clean up old Azurite storage
-        CleanupAzuriteStorage();
+        if (_manageAzurite)
+        {
+            // Clean up old Azurite storage
+            CleanupAzuriteStorage();
 
-        // Storage emulator
-        AzuriteManager.StartAzurite();
+            // Storage emulator
+            AzuriteManager.StartAzurite();
+        }
 
-        // Database
-        await DatabaseManager.CreateDatabaseAsync();
+        if (_manageDatabase)
+            await DatabaseManager.CreateDatabaseAsync();
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings("ProcessManager.Orchestrations");
@@ -93,26 +111,63 @@ public abstract class ExampleOrchestrationsAppFixtureBase : IAsyncLifetime
         StartHost(AppHostManager);
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         AppHostManager.Dispose();
-        AzuriteManager.Dispose();
 
-        if (_disposeDatabase)
+        if (_manageAzurite)
+            AzuriteManager.Dispose();
+
+        if (_manageDatabase)
             await DatabaseManager.DeleteDatabaseAsync();
     }
 
     /// <summary>
     /// Use this method to attach <paramref name="testOutputHelper"/> to the host logging pipeline.
     /// While attached, any entries written to host log pipeline will also be logged to xUnit test output.
-    /// It is important that it is only attached while a test i active. Hence, it should be attached in
+    /// It is important that it is only attached while a test is active. Hence, it should be attached in
     /// the test class constructor; and detached in the test class Dispose method (using 'null').
     /// </summary>
     /// <param name="testOutputHelper">If a xUnit test is active, this should be the instance of xUnit's <see cref="ITestOutputHelper"/>;
     /// otherwise it should be 'null'.</param>
-    public void SetTestOutputHelper(ITestOutputHelper testOutputHelper)
+    public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)
     {
         TestLogger.TestOutputHelper = testOutputHelper;
+    }
+
+    /// <summary>
+    /// Cleanup Azurite storage to avoid situations where Durable Functions
+    /// would otherwise continue working on old orchestrations that e.g. failed in
+    /// previous runs.
+    /// </summary>
+    public void CleanupAzuriteStorage()
+    {
+        if (Directory.Exists("__blobstorage__"))
+            Directory.Delete("__blobstorage__", true);
+
+        if (Directory.Exists("__queuestorage__"))
+            Directory.Delete("__queuestorage__", true);
+
+        if (Directory.Exists("__tablestorage__"))
+            Directory.Delete("__tablestorage__", true);
+
+        if (File.Exists("__azurite_db_blob__.json"))
+            File.Delete("__azurite_db_blob__.json");
+
+        if (File.Exists("__azurite_db_blob_extent__.json"))
+            File.Delete("__azurite_db_blob_extent__.json");
+
+        if (File.Exists("__azurite_db_queue__.json"))
+            File.Delete("__azurite_db_queue__.json");
+
+        if (File.Exists("__azurite_db_queue_extent__.json"))
+            File.Delete("__azurite_db_queue_extent__.json");
+
+        if (File.Exists("__azurite_db_table__.json"))
+            File.Delete("__azurite_db_table__.json");
+
+        if (File.Exists("__azurite_db_table_extent__.json"))
+            File.Delete("__azurite_db_table_extent__.json");
     }
 
     private static void StartHost(FunctionAppHostManager hostManager)
@@ -153,9 +208,11 @@ public abstract class ExampleOrchestrationsAppFixtureBase : IAsyncLifetime
     {
         var buildConfiguration = GetBuildConfiguration();
 
-        var appHostSettings = HostConfigurationBuilder.CreateFunctionAppHostSettings();
+        var appHostSettings = new FunctionAppHostConfigurationBuilder()
+            .CreateFunctionAppHostSettings();
+
         appHostSettings.FunctionApplicationPath = $"..\\..\\..\\..\\{csprojName}\\bin\\{buildConfiguration}\\net8.0";
-        appHostSettings.Port = Port;
+        appHostSettings.Port = _appPort;
 
         // It seems the host + worker is not ready if we use the default startup log message, so we override it here
         appHostSettings.HostStartedEvent = "Host lock lease acquired";
@@ -169,6 +226,11 @@ public abstract class ExampleOrchestrationsAppFixtureBase : IAsyncLifetime
         appHostSettings.ProcessEnvironmentVariables.Add(
             "APPLICATIONINSIGHTS_CONNECTION_STRING",
             IntegrationTestConfiguration.ApplicationInsightsConnectionString);
+        // Make Orchestrator poll for updates every second (default is every 30 seconds) by overriding maxQueuePollingInterval
+        // (ref: https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-bindings?tabs=python-v2%2Cisolated-process%2C2x-durable-functions&pivots=programming-language-csharp#hostjson-settings)
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "AzureFunctionsJobHost__extensions__durableTask__storageProvider__maxQueuePollingInterval",
+            "00:00:01");
 
         // ProcessManager
         // => Task Hub
@@ -177,47 +239,12 @@ public abstract class ExampleOrchestrationsAppFixtureBase : IAsyncLifetime
             AzuriteManager.FullConnectionString);
         appHostSettings.ProcessEnvironmentVariables.Add(
             nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName),
-            TaskHubName);
+            _taskHubName);
         // => Database
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
 
         return appHostSettings;
-    }
-
-    /// <summary>
-    /// Cleanup Azurite storage to avoid situations where Durable Functions
-    /// would otherwise continue working on old orchestrations that e.g. failed in
-    /// previous runs.
-    /// </summary>
-    private void CleanupAzuriteStorage()
-    {
-        if (Directory.Exists("__blobstorage__"))
-            Directory.Delete("__blobstorage__", true);
-
-        if (Directory.Exists("__queuestorage__"))
-            Directory.Delete("__queuestorage__", true);
-
-        if (Directory.Exists("__tablestorage__"))
-            Directory.Delete("__tablestorage__", true);
-
-        if (File.Exists("__azurite_db_blob__.json"))
-            File.Delete("__azurite_db_blob__.json");
-
-        if (File.Exists("__azurite_db_blob_extent__.json"))
-            File.Delete("__azurite_db_blob_extent__.json");
-
-        if (File.Exists("__azurite_db_queue__.json"))
-            File.Delete("__azurite_db_queue__.json");
-
-        if (File.Exists("__azurite_db_queue_extent__.json"))
-            File.Delete("__azurite_db_queue_extent__.json");
-
-        if (File.Exists("__azurite_db_table__.json"))
-            File.Delete("__azurite_db_table__.json");
-
-        if (File.Exists("__azurite_db_table_extent__.json"))
-            File.Delete("__azurite_db_table_extent__.json");
     }
 }

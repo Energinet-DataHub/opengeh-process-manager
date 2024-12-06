@@ -28,14 +28,14 @@ public record StartCommand_Brs_Example_Example_V1
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    /// <param name="exampleParameterContains the Durable Functions orchestration input parameter value.</param>
+    /// <param name="inputParameter"> contains the Durable Functions orchestration input parameter value.</param>
     public StartCommand_Brs_Example_Example_V1(
         UserIdentityDto operatingIdentity,
-        Input_Brs_Example_Example_V1 exampleParameter)
+        Input_Brs_Example_Example_V1 inputParameter)
             : base(
                 operatingIdentity,
                 orchestrationDescriptionUniqueName: new Brs_Example_Example_V1(),
-                exampleParameter)
+                inputParameter)
     {
     }
 }

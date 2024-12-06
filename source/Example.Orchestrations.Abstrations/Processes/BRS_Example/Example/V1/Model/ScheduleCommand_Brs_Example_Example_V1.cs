@@ -28,16 +28,16 @@ public record ScheduleCommand_Brs_Example_Example_V1
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    /// <param name="exampleParameterContains the Durable Functions orchestration input parameter value.</param>
+    /// <param name="inputParameter"> Contains the Durable Functions orchestration input parameter value.</param>
     /// <param name="runAt">The time when the orchestration instance should be executed by the Scheduler.</param>
     public ScheduleCommand_Brs_Example_Example_V1(
         UserIdentityDto operatingIdentity,
-        Input_Brs_Example_Example_V1 exampleParameter,
+        Input_Brs_Example_Example_V1 inputParameter,
         DateTimeOffset runAt)
             : base(
                 operatingIdentity,
                 orchestrationDescriptionUniqueName: new Brs_Example_Example_V1(),
-                exampleParameter,
+                inputParameter,
                 runAt)
     {
     }

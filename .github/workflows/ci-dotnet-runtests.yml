@@ -46,8 +46,8 @@ jobs:
               } 
             }
           }
-
-          "matrix=($matrix | ConvertTo-Json)" >> $env:GITHUB_OUTPUT
+          $matrixJson = $matrix | ConvertTo-Json
+          "matrix=$matrixJson" >> $env:GITHUB_OUTPUT
 
   print_matrix:
     name: Print matrix

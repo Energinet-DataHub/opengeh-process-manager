@@ -44,6 +44,15 @@ jobs:
               'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
             }"
 
+  print_context:
+    runs-on: ubuntu-latest
+    needs: changes
+    steps:
+      - name: Print context
+        run: |
+          echo "--> ${{ needs.changes.outputs.job_context_output }}"
+          echo "--> ${{ needs.changes.outputs.affected_changes }}"
+
   ci_dotnet_everest:
     if: ${{ fromJson(needs.changes.outputs.job_context_output).everest == 'true' }}
     needs: changes

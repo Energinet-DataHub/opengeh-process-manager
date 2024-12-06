@@ -59,37 +59,6 @@ jobs:
           from_sha: ${{ steps.set_shas.outputs.base }}
           to_sha: ${{ steps.set_shas.outputs.head }}
           host_names: ${{ inputs.hostnames }}
-      
-      - name: Print affected changes
-        run: |
-          echo Affected changes: ${{ steps.filter.outputs.affected_changes }}
-          echo Job context: ${{ steps.filter.outputs.job_context_output }}
-          
-      # - name: Run dotnet-affected
-      #   shell: pwsh
-      #   id: filter
-      #   run: | 
-      #     $hostNames = "${{ inputs.hostnames }}"
-      #     $solutionPath = "${{github.workspace}}/${{inputs.solution_file}}"
-      #     $workspacePath = "${{github.workspace}}"
-      #     $fromSha = "${{steps.set_shas.outputs.base}}"
-      #     $toSha = "${{steps.set_shas.outputs.head}}"
-      #     $affectedProjectsFile = 'affected.json'
-
-      #     . ./Find-AffectedProjectsFile.ps1
-
-      #     # Install and run dotnet-affected
-      #     Write-AffectedProjectsFile -SolutionFile $solutionPath -WorkspacePath $workspacePath -FromSha $fromSha -ToSha $toSha
-
-      #     if (Test-Path $AffectedProjectsFile) {
-      #       $affectedJson = Get-Content $AffectedProjectsFile
-      #       $affectedJson | Write-Host
-      #       $affectedProjects = $affectedJson | ConvertFrom-Json
-      #       "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
-            
-      #       $job_context_output = Find-AffectedHosts -AffectedProjectsfile $affectedProjectsFile -HostNames ($hostNames | ConvertFrom-Json)
-      #       "job_context_output=$job_context_output" >> $env:GITHUB_OUTPUT
-      #     }
 
 
 

@@ -16,5 +16,5 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescr
 
 namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1.Model;
 
-public record Brs_Example_V1()
-    : OrchestrationDescriptionUniqueNameDto("BRS_Example", 1);
+public record Brs_Example_Example_V1()
+    : OrchestrationDescriptionUniqueNameDto("BRS_Example_Example", 1);

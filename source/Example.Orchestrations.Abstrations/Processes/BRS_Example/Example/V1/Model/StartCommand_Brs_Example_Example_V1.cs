@@ -21,21 +21,21 @@ namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Ex
 /// Command for starting the example.
 /// Must be JSON serializable.
 /// </summary>
-public record StartExampleCommandV1
-    : StartOrchestrationInstanceCommand<UserIdentityDto, ExampleInputV1>
+public record StartCommand_Brs_Example_Example_V1
+    : StartOrchestrationInstanceCommand<UserIdentityDto, Input_Brs_Example_Example_V1>
 {
     /// <summary>
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
-    public StartExampleCommandV1(
+    /// <param name="exampleParameterContains the Durable Functions orchestration input parameter value.</param>
+    public StartCommand_Brs_Example_Example_V1(
         UserIdentityDto operatingIdentity,
-        ExampleInputV1 inputParameter)
+        Input_Brs_Example_Example_V1 exampleParameter)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_Example_V1(),
-                inputParameter)
+                orchestrationDescriptionUniqueName: new Brs_Example_Example_V1(),
+                exampleParameter)
     {
     }
 }

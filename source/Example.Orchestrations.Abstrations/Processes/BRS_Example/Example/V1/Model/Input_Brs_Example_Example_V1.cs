@@ -19,6 +19,6 @@ namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Ex
 /// <summary>
 /// An immutable input to start the orchestration instance for "Example" V1.
 /// </summary>
-public record ExampleInputV1(
+public record Input_Brs_Example_Example_V1(
     ExampleTypes ExampleType)
         : IInputParameterDto;

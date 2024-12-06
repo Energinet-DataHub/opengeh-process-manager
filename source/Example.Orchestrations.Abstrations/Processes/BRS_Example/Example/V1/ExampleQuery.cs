@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1;
 
 /// <summary>
-/// Query for searching for BRS-023 or BRS-027 calculations.
+/// Query for searching for BRS-Example.
 /// Must be JSON serializable.
 /// </summary>
 public record ExampleQuery
@@ -33,7 +33,7 @@ public record ExampleQuery
         UserIdentityDto operatingIdentity)
             : base(
                 operatingIdentity,
-                new Brs_Example_V1().Name)
+                new Brs_Example_Example_V1().Name)
     {
     }
 

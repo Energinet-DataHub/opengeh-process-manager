@@ -21,7 +21,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_Example.Example.V1;
 
-internal class SearchExampleHandler(
+internal class SearchHandler_Brs_Example(
     IOrchestrationInstanceQueries queries)
 {
     private readonly IOrchestrationInstanceQueries _queries = queries;
@@ -71,7 +71,7 @@ internal class SearchExampleHandler(
         //// query.IsInternalCalculation
 
         return calculations
-            .Select(item => new ExampleQueryResult(item.MapToTypedDto<ExampleInputV1>()))
+            .Select(item => new ExampleQueryResult(item.MapToTypedDto<Input_Brs_Example_Example_V1>()))
             .ToList();
     }
 }

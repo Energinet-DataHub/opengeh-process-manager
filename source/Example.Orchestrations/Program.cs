@@ -46,7 +46,7 @@ var host = new HostBuilder()
         });
 
         // => Handlers
-        services.AddScoped<SearchExampleHandler>();
+        services.AddScoped<SearchHandler_Brs_Example>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {
@@ -59,16 +59,16 @@ await host.RunAsync().ConfigureAwait(false);
 
 OrchestrationDescription CreateBrs_Example_V1Description()
 {
-    var orchestrationDescriptionUniqueName = new Brs_Example_V1();
+    var orchestrationDescriptionUniqueName = new Brs_Example_Example_V1();
 
     var description = new OrchestrationDescription(
         uniqueName: new OrchestrationDescriptionUniqueName(
             orchestrationDescriptionUniqueName.Name,
             orchestrationDescriptionUniqueName.Version),
         canBeScheduled: true,
-        functionName: nameof(Orchestration_Brs_Example_V1));
+        functionName: nameof(Orchestration_Brs_Example_Example_V1));
 
-    description.ParameterDefinition.SetFromType<ExampleInputV1>();
+    description.ParameterDefinition.SetFromType<Input_Brs_Example_Example_V1>();
 
     description.AppendStepDescription("Beregning");
     description.AppendStepDescription(

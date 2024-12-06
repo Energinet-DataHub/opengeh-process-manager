@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1;
 
 /// <summary>
-/// Query result from searching for BRS-023 or BRS-027 calculations.
+/// Query result from searching BRS-Example.
 /// Must be JSON serializable.
 /// </summary>
-public record ExampleQueryResult(OrchestrationInstanceTypedDto<ExampleInputV1> OrchestrationInstance);
+public record ExampleQueryResult(OrchestrationInstanceTypedDto<Input_Brs_Example_Example_V1> OrchestrationInstance);

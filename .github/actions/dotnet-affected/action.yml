@@ -37,7 +37,7 @@ runs:
   steps:
     - name: Find affected projects
       shell: pwsh
-      id: affected
+      #id: filter
       run: |
         . ${{ github.action_path }}/Find-AffectedProjects.ps1
 
@@ -58,4 +58,9 @@ runs:
           
           $job_context_output = Find-AffectedHosts -AffectedProjectsfile $affectedJson -HostNames $hostNamesJson
           "job_context_output=$job_context_output" >> $env:GITHUB_OUTPUT
+        } else {
+          # See https://github.com/leonardochaia/dotnet-affected?tab=readme-ov-file#dont-buildtestdeploy-when-no-projects-have-changed for details
+          if $LASTEXITCODE -eq 166 {
+            exit 0
+          }
         }

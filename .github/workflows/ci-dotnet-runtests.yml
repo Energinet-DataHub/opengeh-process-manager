@@ -65,15 +65,53 @@ jobs:
         run: |
           echo "Matrix: ${{needs.build_matrix.outputs.matrix}}"
 
-  run_tests_in_project:
+  build_tests_in_project:
     name: Run tests in ${{ matrix.project.name }}
     runs-on: ubuntu-latest
     needs: build_matrix
     strategy:
+      fail-fast: false
       matrix: 
         project: ${{fromJson(needs.build_matrix.outputs.matrix)}} 
+    env:
+      RELEASE_VERSION: dotnet_${{ github.event.pull_request.number }}
+      outputpath: ${{ github.workspace }}/source/Tests/bin/Release/net8.0
     steps:
-      - name: Build and run tests
+      # - name: Build and run tests
+      #   run: |
+      #     echo "Build and run tests in ${{ matrix.project.name }}"
+      #     echo "Filepath: ${{ matrix.project.filepath }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ env.RELEASE_VERSION }}-${{ matrix.project.name}} # Cache per PR
+
+      - name: Build ${{ matrix.project.name }}
         run: |
-          echo "Build and run tests in ${{ matrix.project.name }}"
-          echo "Filepath: ${{ matrix.project.filepath }}"
+          dotnet publish \
+            '${{ matrix.project.filepath }}' \
+            --configuration Release \
+            --output '${{ env.outputpath }}'
+
+          ls source/Tests/bin/Release/net8.0
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pm-tests-${{ matrix.project.name }}
+          path: ${{ env.outputpath }}/*
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: build_tests_in_project
+    name: Merge test artifacts
+    steps:
+      - name: Merge artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: pm-tests-outputs
+          delete-merged: true
+          retention-days: 7

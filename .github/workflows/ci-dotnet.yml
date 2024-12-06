@@ -28,7 +28,7 @@ on:
 
 jobs:
   build_artifact:
-    name: Build artifact ${{ inputs.release_name }}
+    name: Build ${{ inputs.release_name }}
     runs-on: ubuntu-latest
     env:
       RELEASE_FOLDER_PATH: ${{ github.workspace }}/output

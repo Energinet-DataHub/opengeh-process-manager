@@ -35,6 +35,7 @@ jobs:
   changes:
     uses: ./.github/workflows/detect-changes.yml
     with:
+      print_debug_output: 'true'  # TODO: Remove before merge
       solution_file: 'source/ProcessManager.sln'
       # Hostnames = famous mountains
       hostnames: "
@@ -44,17 +45,8 @@ jobs:
               'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
             }"
 
-  print_context:
-    runs-on: ubuntu-latest
-    needs: changes
-    steps:
-      - name: Print context
-        run: |
-          echo "--> ${{ needs.changes.outputs.job_context_output }}"
-          echo "--> ${{ needs.changes.outputs.affected_changes }}"
-
   ci_dotnet_everest:
-    if: ${{ fromJson(needs.changes.outputs.job_context_output).everest == 'true' }}
+    if: ${{ fromJson(needs.changes.outputs.job_context).everest == 'true' }}
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
     with:

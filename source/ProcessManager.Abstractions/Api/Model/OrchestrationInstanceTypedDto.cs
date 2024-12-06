@@ -17,20 +17,79 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
+/// Contains information about an orchestration instance.
+/// Must be JSON serializable.
+/// </summary>
+public record OrchestrationInstanceTypedDto
+{
+    /// <summary>
+    /// Construct DTO.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="lifecycle">The high-level lifecycle states that all orchestration instances can go through.</param>
+    /// <param name="steps">Workflow steps the orchestration instance is going through.</param>
+    /// <param name="customState">Any custom state of the orchestration instance.</param>
+    public OrchestrationInstanceTypedDto(
+        Guid id,
+        OrchestrationInstanceLifecycleStateDto lifecycle,
+        IReadOnlyCollection<StepInstanceDto> steps,
+        string customState)
+    {
+        Id = id;
+        Lifecycle = lifecycle;
+        Steps = steps;
+        CustomState = customState;
+    }
+
+    public Guid Id { get; }
+
+    /// <summary>
+    /// The high-level lifecycle states that all orchestration instances can go through.
+    /// </summary>
+    public OrchestrationInstanceLifecycleStateDto Lifecycle { get; }
+
+    /// <summary>
+    /// Workflow steps the orchestration instance is going through.
+    /// </summary>
+    public IReadOnlyCollection<StepInstanceDto> Steps { get; }
+
+    /// <summary>
+    /// Any custom state of the orchestration instance.
+    /// </summary>
+    public string CustomState { get; }
+}
+
+/// <summary>
 /// Contains information about an orchestration instance including
 /// specific input parameter values.
 /// Must be JSON serializable.
 /// </summary>
 /// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
-/// <param name="Id"></param>
-/// <param name="Lifecycle">The high-level lifecycle states that all orchestration instances can go through.</param>
-/// <param name="ParameterValue">Contains the Durable Functions orchestration input parameter value.</param>
-/// <param name="Steps">Workflow steps the orchestration instance is going through.</param>
-/// <param name="CustomState">Any custom state of the orchestration instance.</param>
-public record OrchestrationInstanceTypedDto<TInputParameterDto>(
-    Guid Id,
-    OrchestrationInstanceLifecycleStateDto Lifecycle,
-    TInputParameterDto ParameterValue,
-    IReadOnlyCollection<StepInstanceDto> Steps,
-    string CustomState)
-        where TInputParameterDto : IInputParameterDto;
+public record OrchestrationInstanceTypedDto<TInputParameterDto>
+    : OrchestrationInstanceTypedDto
+    where TInputParameterDto : IInputParameterDto
+{
+    /// <summary>
+    /// Construct DTO.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="lifecycle">The high-level lifecycle states that all orchestration instances can go through.</param>
+    /// <param name="steps">Workflow steps the orchestration instance is going through.</param>
+    /// <param name="customState">Any custom state of the orchestration instance.</param>
+    /// <param name="parameterValue">Contains the Durable Functions orchestration input parameter value.</param>
+    public OrchestrationInstanceTypedDto(
+        Guid id,
+        OrchestrationInstanceLifecycleStateDto lifecycle,
+        IReadOnlyCollection<StepInstanceDto> steps,
+        string customState,
+        TInputParameterDto parameterValue)
+            : base(id, lifecycle, steps, customState)
+    {
+        ParameterValue = parameterValue;
+    }
+
+    /// <summary>
+    /// Contains the Durable Functions orchestration input parameter value.
+    /// </summary>
+    public TInputParameterDto ParameterValue { get; }
+}

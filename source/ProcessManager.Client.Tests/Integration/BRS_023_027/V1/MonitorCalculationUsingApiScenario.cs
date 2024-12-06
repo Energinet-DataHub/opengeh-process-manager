@@ -26,7 +26,7 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_023_027.
 
 /// <summary>
 /// Test case where we verify the Process Manager clients can be used to start a
-/// calculation orchestration and monitor its status during its lifetime.
+/// calculation orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(ProcessManagerClientCollection))]
 public class MonitorCalculationUsingApiScenario : IAsyncLifetime

@@ -21,7 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Command for scheduling a BRS-023 or BRS-027 calculation.
 /// Must be JSON serializable.
 /// </summary>
-public record ScheduleCalculationCommandV1
+public sealed record ScheduleCalculationCommandV1
     : ScheduleOrchestrationInstanceCommand<CalculationInputV1>
 {
     /// <summary>

@@ -42,7 +42,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
 
     public ExampleOrchestrationsAppManager()
         : this(
-            new ProcessManagerDatabaseManager("OrchestrationsTest"),
+            new ProcessManagerDatabaseManager("ExampleOrchestrationsTest"),
             new IntegrationTestConfiguration(),
             new AzuriteManager(useOAuth: true),
             taskHubName: "ExampleOrchestrationsTest01",

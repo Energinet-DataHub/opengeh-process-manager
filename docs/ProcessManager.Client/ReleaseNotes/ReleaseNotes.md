@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.14.1
+
+- Rename service bus client options
+
 ## Version 0.14.0
 
 - Support start/schedule orchestration instance with no input parameter.

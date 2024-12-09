@@ -57,13 +57,13 @@ public static class ClientExtensions
 
     /// <summary>
     /// Register Process Manager message client for use in applications.
-    /// <remarks>The application must register the <see cref="ServiceBusClient"/> and contain configuration for <see cref="ProcessManagerServiceBusClientsOptions"/></remarks>
+    /// <remarks>The application must register the <see cref="ServiceBusClient"/> and contain configuration for <see cref="ProcessManagerServiceBusClientOptions"/></remarks>
     /// </summary>
     public static IServiceCollection AddProcessManagerMessageClient(this IServiceCollection services)
     {
         services
-            .AddOptions<ProcessManagerServiceBusClientsOptions>()
-            .BindConfiguration(ProcessManagerServiceBusClientsOptions.SectionName)
+            .AddOptions<ProcessManagerServiceBusClientOptions>()
+            .BindConfiguration(ProcessManagerServiceBusClientOptions.SectionName)
             .ValidateDataAnnotations();
 
         services.AddAzureClients(
@@ -72,14 +72,14 @@ public static class ClientExtensions
                 builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
                     (_, _, provider) =>
                     {
-                        var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientsOptions>>().Value;
+                        var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
                         var serviceBusSender = provider
                             .GetRequiredService<ServiceBusClient>()
                             .CreateSender(serviceBusOptions.TopicName);
 
                         return serviceBusSender;
                     })
-                    .WithName(nameof(ProcessManagerServiceBusClientsOptions.TopicName));
+                    .WithName(nameof(ProcessManagerServiceBusClientOptions.TopicName));
             });
 
         services.AddScoped<IProcessManagerMessageClient, ProcessManagerMessageClient>();

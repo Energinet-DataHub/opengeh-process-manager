@@ -126,6 +126,6 @@ jobs:
       use_azure_functions_tools: true
       aspnetcore_test_contentroot_variable_name: empty
       aspnetcore_test_contentroot_variable_value: empty
-      # Matrix parameters
+      # Matrix parameters.
       job_name: ${{ matrix.project.name }}
       tests_dll_file_path: \source\${{ matrix.project.name}}\bin\Release\${{matrix.project.dotnet_version}}\${{ matrix.project.assembly_name }}

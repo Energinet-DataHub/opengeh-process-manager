@@ -13,14 +13,14 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.MeteredDataForwarding.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.MeteredDataForwarding.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 
-internal class Orchestration_Brs_021_MeteredDataForwarding_V1
+internal class Orchestration_Brs_021_ForwardMeteredData_V1
 {
     internal static StepIdentifierDto[] Steps =>
     [
@@ -35,7 +35,7 @@ internal class Orchestration_Brs_021_MeteredDataForwarding_V1
 
     internal static StepIdentifierDto EnqueueMessagesStep => new(3, "Sætter beskeder i kø");
 
-    [Function(nameof(Orchestration_Brs_021_MeteredDataForwarding_V1))]
+    [Function(nameof(Orchestration_Brs_021_ForwardMeteredData_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {

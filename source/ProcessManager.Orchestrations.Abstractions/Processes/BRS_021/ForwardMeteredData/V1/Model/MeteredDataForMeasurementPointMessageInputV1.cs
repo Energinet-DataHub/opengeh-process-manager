@@ -14,12 +14,13 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.MeteredDataForwarding.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 /// <summary>
-/// An immutable input to start the orchestration instance for "BRS_021_MeteredDataForwarding" V1.
+/// An immutable input to start the orchestration instance for "BRS_021_ForwardMeteredData" V1.
 /// </summary>
 public record MeteredDataForMeasurementPointMessageInputV1(
+    Guid AuthenticatedActorId,
     string TransactionId,
     string? MeteringPointId,
     string? MeteringPointType,

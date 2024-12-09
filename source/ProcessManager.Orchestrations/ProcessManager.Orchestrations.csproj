@@ -33,7 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Api\Mappers\" />
-    <Folder Include="Processes\BRS_021\MeteredDataForwarding\" />
+    <Folder Include="Processes\BRS_021\ForwardMeteredData\" />
     <Folder Include="Processes\BRS_026\V1\Activities\" />
   </ItemGroup>
   <ItemGroup>

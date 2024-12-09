@@ -15,13 +15,13 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.MeteredDataForwarding.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 /// <summary>
-/// Command for starting a BRS-021-MeteredDataForwarding.
+/// Command for starting a BRS-021-ForwardMeteredData.
 /// Must be JSON serializable.
 /// </summary>
-public record StartMeteredDataForwardingCommandV1
+public record StartForwardMeteredDataCommandV1
     : StartOrchestrationInstanceCommand<ActorIdentityDto, MeteredDataForMeasurementPointMessageInputV1>
 {
     /// <summary>
@@ -29,12 +29,12 @@ public record StartMeteredDataForwardingCommandV1
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
-    public StartMeteredDataForwardingCommandV1(
+    public StartForwardMeteredDataCommandV1(
         ActorIdentityDto operatingIdentity,
         MeteredDataForMeasurementPointMessageInputV1 inputParameter)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_021_MeteredDataForwarding_V1(),
+                orchestrationDescriptionUniqueName: new Brs_021_ForwardedMeteredData_V1(),
                 inputParameter)
     {
     }

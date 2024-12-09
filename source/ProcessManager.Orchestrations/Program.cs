@@ -80,8 +80,10 @@ OrchestrationDescription CreateDescription_Brs_021_ElectricalHeatingCalculation_
         canBeScheduled: false,
         functionName: nameof(Orchestration_Brs_021_ElectricalHeatingCalculation_V1));
 
-    description.AppendStepDescription("Beregning");
-    description.AppendStepDescription("Besked dannelse");
+    foreach (var step in Orchestration_Brs_021_ElectricalHeatingCalculation_V1.Steps)
+    {
+        description.AppendStepDescription(step.Name);
+    }
 
     return description;
 }

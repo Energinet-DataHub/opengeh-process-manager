@@ -34,7 +34,7 @@ internal class CalculationStepTerminateActivity_Brs_021_ElectricalHeatingCalcula
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ElectricalHeatingCalculation_V1.CalculationStepSequence);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ElectricalHeatingCalculation_V1.CalculationStep.Sequence);
         step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 

@@ -84,7 +84,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ env.RELEASE_VERSION }}-${{ matrix.project.name}} # Cache per PR
+          key: ${{ runner.os }}-nuget-${{ github.event.pull_request.number }}-${{ matrix.project.name}} # Cache per PR
 
       - name: Build ${{ matrix.project.name }}
         run: |

@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Client;
 
 /// <summary>
-/// Client for using the Process Manager / Orchestrations API
+/// Client for using the Process Manager / Orchestrations API.
 /// </summary>
 public interface IProcessManagerClient
 {

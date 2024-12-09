@@ -34,7 +34,7 @@ internal class ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueMessagesStep);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ForwardMeteredData_V1.ValidatingStep);
         step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 

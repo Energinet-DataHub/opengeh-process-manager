@@ -31,7 +31,7 @@ public class StartForwardMeteredDataHandler(IStartOrchestrationInstanceCommands 
         var orchestrationDescriptionUniqueName = new Brs_021_ForwardedMeteredData_V1();
 
         await _commands.StartNewOrchestrationInstanceAsync(
-                identity: new ActorIdentity(new ActorId(input.AuthenticatedActorId)), // TODO: Any call to commands must include identity information; see 'ScheduleOrchestrationInstanceCommand' and 'CancelScheduledOrchestrationInstanceCommand'
+                identity: new ActorIdentity(new ActorId(input.AuthenticatedActorId)),
                 uniqueName: new OrchestrationDescriptionUniqueName(
                     orchestrationDescriptionUniqueName.Name,
                     orchestrationDescriptionUniqueName.Version),

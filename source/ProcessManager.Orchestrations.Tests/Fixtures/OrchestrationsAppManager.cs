@@ -230,7 +230,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        SubscriptionProperties brs026Subscription)
+        SubscriptionProperties subscriptionProperties)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -276,10 +276,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.TopicName)}",
-            brs026Subscription.TopicName);
+            subscriptionProperties.TopicName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}",
-            brs026Subscription.SubscriptionName);
+            subscriptionProperties.SubscriptionName);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}",
+            subscriptionProperties.SubscriptionName);
 
         return appHostSettings;
     }

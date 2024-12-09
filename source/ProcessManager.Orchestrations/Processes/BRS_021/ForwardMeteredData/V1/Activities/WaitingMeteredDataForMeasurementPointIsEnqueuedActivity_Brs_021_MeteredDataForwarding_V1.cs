@@ -34,7 +34,7 @@ internal class WaitingMeteredDataForMeasurementPointIsEnqueuedActivity_Brs_021_F
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ForwardMeteredData_V1.ValidatingStep);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueMessagesStep);
         step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 

@@ -19,9 +19,11 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.MeteredDataForwarding.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,6 +49,7 @@ var host = new HostBuilder()
             // This would ensure we didn't have to update Program.cs when we change orchestrations.
             var brs_023_027_v1 = CreateBrs_023_027_V1Description();
             var brs_026_v1 = CreateBrs_026_V1Description();
+            var brs_021_v1 = CreateBrs_021_V1Description();
 
             return [brs_023_027_v1, brs_026_v1];
         });
@@ -101,6 +104,30 @@ OrchestrationDescription CreateBrs_026_V1Description()
     description.AppendStepDescription("Asynkron validering");
     description.AppendStepDescription("Hent anmodningsdata");
     description.AppendStepDescription("Udsend beskeder");
+
+    return description;
+}
+
+OrchestrationDescription CreateBrs_021_V1Description()
+{
+    var orchestrationDescriptionUniqueName = new Brs_021_V1();
+
+    var description = new OrchestrationDescription(
+        uniqueName: new OrchestrationDescriptionUniqueName(
+            orchestrationDescriptionUniqueName.Name,
+            orchestrationDescriptionUniqueName.Version),
+        canBeScheduled: false,
+        functionName: nameof(Orchestration_Brs_021_V1));
+
+    description.ParameterDefinition.SetFromType<MeteredDataForMeasurementPointMessageInputV1>();
+
+    description.AppendStepDescription("Starter");
+    description.AppendStepDescription("Asynkron validering");
+    description.AppendStepDescription("Gemmer");
+    description.AppendStepDescription("Finder modtagere");
+    description.AppendStepDescription("Sætter beskeder i kø");
+    description.AppendStepDescription("Beskeder sat i kø");
+    description.AppendStepDescription("Færdig");
 
     return description;
 }

@@ -55,7 +55,8 @@ internal class Orchestration_Brs_021_MeteredDataForwarding_V1
         /*
          * Activities:
          */
+        // TODO: Implementing activities coming in next PR.
 
-        return $"Success (BusinessReason={input.BusinessReason})";
+        return "Success";
     }
 }

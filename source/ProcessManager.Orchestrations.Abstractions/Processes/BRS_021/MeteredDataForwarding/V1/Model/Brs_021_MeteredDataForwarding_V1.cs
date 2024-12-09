@@ -12,17 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.MeteredDataForwarding.V1.Model;
 
-public record MeteredDataForMeasurementPointMessageSeries(
-    string TransactionId,
-    string? Resolution,
-    string StartDateTime,
-    string? EndDateTime,
-    string? ProductNumber,
-    string? ProductUnitType,
-    string? MeteringPointType,
-    string? MeteringPointLocationId,
-    IReadOnlyCollection<string>? DelegatedGridAreaCodes,
-    string GridAccessProviderNumber,
-    IReadOnlyCollection<EnergyObservation> EnergyObservations);
+public record Brs_021_MeteredDataForwarding_V1()
+    : OrchestrationDescriptionUniqueNameDto("BRS_021", 1);

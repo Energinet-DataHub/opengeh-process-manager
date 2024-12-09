@@ -34,7 +34,7 @@ public record StartMeteredDataForwardingCommandV1
         MeteredDataForMeasurementPointMessageInputV1 inputParameter)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_021_V1(),
+                orchestrationDescriptionUniqueName: new Brs_021_MeteredDataForwarding_V1(),
                 inputParameter)
     {
     }

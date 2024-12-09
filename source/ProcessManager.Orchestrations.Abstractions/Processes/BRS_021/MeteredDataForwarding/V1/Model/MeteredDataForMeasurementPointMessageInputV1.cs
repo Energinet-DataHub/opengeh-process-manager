@@ -17,13 +17,19 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.MeteredDataForwarding.V1.Model;
 
 /// <summary>
-/// An immutable input to start the orchestration instance for "BRS_021" V1.
+/// An immutable input to start the orchestration instance for "BRS_021_MeteredDataForwarding" V1.
 /// </summary>
 public record MeteredDataForMeasurementPointMessageInputV1(
-    string MessageId,
-    string MessageType,
-    string CreatedAt,
-    string BusinessReason,
-    string? BusinessType,
-    IReadOnlyCollection<MeteredDataForMeasurementPointMessageSeries> Series)
+    string TransactionId,
+    string? MeteringPointId,
+    string? MeteringPointType,
+    string? ProductNumber,
+    string? MeasureUnit,
+    string RegistrationDateTime,
+    string? Resolution,
+    string StartDateTime,
+    string? EndDateTime,
+    string GridAccessProviderNumber,
+    IReadOnlyCollection<string>? DelegatedGridAreaCodes,
+    IReadOnlyCollection<EnergyObservation> EnergyObservations)
     : IInputParameterDto;

@@ -14,14 +14,34 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.MeteredDataForwarding.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.MeteredDataForwarding.V1;
 
-internal class Orchestration_Brs_021_V1
+internal class Orchestration_Brs_021_MeteredDataForwarding_V1
 {
-    [Function(nameof(Orchestration_Brs_021_V1))]
+    internal static StepIdentifierDto[] Steps =>
+    [
+        StartingStep, ValidatingStep, StoringStep, FindReceiverStep, EnqueuingStep, EnqueuedStep, CompletedStep
+    ];
+
+    internal static StepIdentifierDto StartingStep => new(1, "Starter");
+
+    internal static StepIdentifierDto ValidatingStep => new(2, "Asynkron validering");
+
+    internal static StepIdentifierDto StoringStep => new(3, "Gemmer");
+
+    internal static StepIdentifierDto FindReceiverStep => new(3, "Finder modtagere");
+
+    internal static StepIdentifierDto EnqueuingStep => new(3, "Sætter beskeder i kø");
+
+    internal static StepIdentifierDto EnqueuedStep => new(3, "Beskeder sat i kø");
+
+    internal static StepIdentifierDto CompletedStep => new(3, "Færdig");
+
+    [Function(nameof(Orchestration_Brs_021_MeteredDataForwarding_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {

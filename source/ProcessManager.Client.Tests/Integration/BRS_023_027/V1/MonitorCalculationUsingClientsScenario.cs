@@ -30,52 +30,46 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_023_027.
 
 /// <summary>
 /// Test case where we verify the Process Manager clients can be used to start a
-/// calculation orchestration and monitor its status during its lifetime.
+/// calculation orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(ProcessManagerClientCollection))]
 public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
 {
     public MonitorCalculationUsingClientsScenario(
-        ScenarioProcessManagerAppFixture processManagerAppFixture,
-        ScenarioOrchestrationsAppFixture orchestrationsAppFixture,
+        ProcessManagerClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
-        ProcessManagerAppFixture = processManagerAppFixture;
-        ProcessManagerAppFixture.SetTestOutputHelper(testOutputHelper);
-
-        OrchestrationsAppFixture = orchestrationsAppFixture;
-        OrchestrationsAppFixture.SetTestOutputHelper(testOutputHelper);
+        Fixture = fixture;
+        Fixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
         services.AddScoped(_ => CreateInMemoryConfigurations(new Dictionary<string, string?>()
         {
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                = ProcessManagerAppFixture.AppHostManager.HttpClient.BaseAddress!.ToString(),
+                = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                = OrchestrationsAppFixture.AppHostManager.HttpClient.BaseAddress!.ToString(),
+                = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         }));
         services.AddProcessManagerHttpClients();
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    private ScenarioProcessManagerAppFixture ProcessManagerAppFixture { get; }
-
-    private ScenarioOrchestrationsAppFixture OrchestrationsAppFixture { get; }
+    private ProcessManagerClientFixture Fixture { get; }
 
     private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
-        ProcessManagerAppFixture.AppHostManager.ClearHostLog();
-        OrchestrationsAppFixture.AppHostManager.ClearHostLog();
+        Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
+        Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
 
         return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
-        ProcessManagerAppFixture.SetTestOutputHelper(null!);
-        OrchestrationsAppFixture.SetTestOutputHelper(null!);
+        Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
+        Fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
 
         await ServiceProvider.DisposeAsync();
     }
@@ -182,7 +176,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
                 CancellationToken.None);
 
         // Step 2: Trigger the scheduler to queue the calculation orchestration instance
-        await ProcessManagerAppFixture.AppHostManager
+        await Fixture.ProcessManagerAppManager.AppHostManager
             .TriggerFunctionAsync("StartScheduledOrchestrationInstances");
 
         // Step 3: Query until terminated with succeeded

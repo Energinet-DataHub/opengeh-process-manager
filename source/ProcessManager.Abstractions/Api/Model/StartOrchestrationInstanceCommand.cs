@@ -22,9 +22,37 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// Must be JSON serializable.
 /// </summary>
 /// <typeparam name="TOperatingIdentity">The operating identity type. Must be a JSON serializable type.</typeparam>
+public abstract record StartOrchestrationInstanceCommand<TOperatingIdentity>
+    : OrchestrationInstanceRequest<TOperatingIdentity>,
+    IOrchestrationDescriptionCommand
+        where TOperatingIdentity : IOperatingIdentityDto
+{
+    /// <summary>
+    /// Construct command.
+    /// </summary>
+    /// <param name="operatingIdentity">Identity executing the command.</param>
+    /// <param name="orchestrationDescriptionUniqueName">Uniquely identifies the orchestration description from which the
+    /// orchestration instance should be created.</param>
+    public StartOrchestrationInstanceCommand(
+        TOperatingIdentity operatingIdentity,
+        OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName)
+            : base(operatingIdentity)
+    {
+        OrchestrationDescriptionUniqueName = orchestrationDescriptionUniqueName;
+    }
+
+    /// <inheritdoc/>
+    public OrchestrationDescriptionUniqueNameDto OrchestrationDescriptionUniqueName { get; }
+}
+
+/// <summary>
+/// Command for starting an orchestration instance with an input parameter.
+/// Must be JSON serializable.
+/// </summary>
+/// <typeparam name="TOperatingIdentity">The operating identity type. Must be a JSON serializable type.</typeparam>
 /// <typeparam name="TInputParameterDto">The input parameter type. Must be a JSON serializable type.</typeparam>
 public abstract record StartOrchestrationInstanceCommand<TOperatingIdentity, TInputParameterDto>
-    : OrchestrationInstanceRequest<TOperatingIdentity>,
+    : StartOrchestrationInstanceCommand<TOperatingIdentity>,
     IOrchestrationDescriptionCommand<TInputParameterDto>
         where TOperatingIdentity : IOperatingIdentityDto
         where TInputParameterDto : IInputParameterDto
@@ -40,14 +68,10 @@ public abstract record StartOrchestrationInstanceCommand<TOperatingIdentity, TIn
         TOperatingIdentity operatingIdentity,
         OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
         TInputParameterDto inputParameter)
-            : base(operatingIdentity)
+            : base(operatingIdentity, orchestrationDescriptionUniqueName)
     {
-        OrchestrationDescriptionUniqueName = orchestrationDescriptionUniqueName;
         InputParameter = inputParameter;
     }
-
-    /// <inheritdoc/>
-    public OrchestrationDescriptionUniqueNameDto OrchestrationDescriptionUniqueName { get; }
 
     /// <inheritdoc/>
     public TInputParameterDto InputParameter { get; }

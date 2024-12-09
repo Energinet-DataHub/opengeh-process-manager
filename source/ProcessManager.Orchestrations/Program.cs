@@ -19,11 +19,13 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.MeteredDataForwarding.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.MeteredDataForwarding.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,11 +49,15 @@ var host = new HostBuilder()
             // We could implement an interface for "description building" which could then be implemented besides the orchestration.
             // During DI we could then search for all these interface implementations and register them automatically.
             // This would ensure we didn't have to update Program.cs when we change orchestrations.
+            var brs_021_ElectricalHeatingCalculation_v1 = CreateDescription_Brs_021_ElectricalHeatingCalculation_V1();
             var brs_023_027_v1 = CreateBrs_023_027_V1Description();
             var brs_026_v1 = CreateBrs_026_V1Description();
             var brs_021_v1 = CreateBrs_021_V1Description();
 
-            return [brs_023_027_v1, brs_026_v1];
+            return [
+                brs_021_ElectricalHeatingCalculation_v1,
+                brs_023_027_v1,
+                brs_026_v1];
         });
         // => Handlers
         services.AddScoped<SearchCalculationHandler>();
@@ -65,6 +71,25 @@ var host = new HostBuilder()
 
 await host.SynchronizeWithOrchestrationRegisterAsync("ProcessManager.Orchestrations").ConfigureAwait(false);
 await host.RunAsync().ConfigureAwait(false);
+
+OrchestrationDescription CreateDescription_Brs_021_ElectricalHeatingCalculation_V1()
+{
+    var orchestrationDescriptionUniqueName = new Brs_021_ElectricalHeatingCalculation_V1();
+
+    var description = new OrchestrationDescription(
+        uniqueName: new OrchestrationDescriptionUniqueName(
+            orchestrationDescriptionUniqueName.Name,
+            orchestrationDescriptionUniqueName.Version),
+        canBeScheduled: false,
+        functionName: nameof(Orchestration_Brs_021_ElectricalHeatingCalculation_V1));
+
+    foreach (var step in Orchestration_Brs_021_ElectricalHeatingCalculation_V1.Steps)
+    {
+        description.AppendStepDescription(step.Name);
+    }
+
+    return description;
+}
 
 OrchestrationDescription CreateBrs_023_027_V1Description()
 {
@@ -117,17 +142,14 @@ OrchestrationDescription CreateBrs_021_V1Description()
             orchestrationDescriptionUniqueName.Name,
             orchestrationDescriptionUniqueName.Version),
         canBeScheduled: false,
-        functionName: nameof(Orchestration_Brs_021_V1));
+        functionName: nameof(Orchestration_Brs_021_MeteredDataForwarding_V1));
 
     description.ParameterDefinition.SetFromType<MeteredDataForMeasurementPointMessageInputV1>();
 
-    description.AppendStepDescription("Starter");
-    description.AppendStepDescription("Asynkron validering");
-    description.AppendStepDescription("Gemmer");
-    description.AppendStepDescription("Finder modtagere");
-    description.AppendStepDescription("Sætter beskeder i kø");
-    description.AppendStepDescription("Beskeder sat i kø");
-    description.AppendStepDescription("Færdig");
+    foreach (var step in Orchestration_Brs_021_ElectricalHeatingCalculation_V1.Steps)
+    {
+        description.AppendStepDescription(step.Name);
+    }
 
     return description;
 }

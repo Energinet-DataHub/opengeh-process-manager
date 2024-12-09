@@ -17,20 +17,16 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities;
 
-/// <summary>
-/// The first activity in the orchestration.
-/// It is responsible for updating the status to 'Running'.
-/// </summary>
-internal class Brs023OrchestrationInitializeActivityV1(
+internal class EnqueueMessagesStepStartActivity_Brs_021_ElectricalHeatingCalculation_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(Brs023OrchestrationInitializeActivityV1))]
+    [Function(nameof(EnqueueMessagesStepStartActivity_Brs_021_ElectricalHeatingCalculation_V1))]
     public async Task Run(
         [ActivityTrigger] Guid orchestrationInstanceId)
     {
@@ -38,10 +34,14 @@ internal class Brs023OrchestrationInitializeActivityV1(
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ElectricalHeatingCalculation_V1.EnqueueMessagesStep.Sequence);
+        if (!step.IsSkipped())
+        {
+            step.Lifecycle.TransitionToRunning(Clock);
+            await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+            // TODO: For demo purposes; remove when done
+            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        }
     }
 }

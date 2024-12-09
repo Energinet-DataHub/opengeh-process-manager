@@ -25,11 +25,11 @@ internal static class OrchestrationInstanceMapperExtensions
             where TInputParameterDto : class, ApiModel.IInputParameterDto
     {
         return new ApiModel.OrchestrationInstanceTypedDto<TInputParameterDto>(
-            Id: entity.Id.Value,
-            Lifecycle: entity.Lifecycle.MapToDto(),
-            ParameterValue: entity.ParameterValue.AsType<TInputParameterDto>(),
-            Steps: entity.Steps.Select(step => step.MapToDto()).ToList(),
-            CustomState: entity.CustomState.Value);
+            entity.Id.Value,
+            entity.Lifecycle.MapToDto(),
+            entity.Steps.Select(step => step.MapToDto()).ToList(),
+            entity.CustomState.Value,
+            entity.ParameterValue.AsType<TInputParameterDto>());
     }
 
     public static ApiModel.OrchestrationInstance.OrchestrationInstanceDto MapToDto(

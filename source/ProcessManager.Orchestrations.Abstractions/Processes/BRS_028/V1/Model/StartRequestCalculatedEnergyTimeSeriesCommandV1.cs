@@ -21,7 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Command for starting a BRS-028.
 /// Must be JSON serializable.
 /// </summary>
-public record RequestCalculatedWholesaleServicesCommandV1
+public sealed record RequestCalculatedWholesaleServicesCommandV1
     : MessageCommand<RequestCalculatedWholesaleServicesInputV1>
 {
     /// <summary>

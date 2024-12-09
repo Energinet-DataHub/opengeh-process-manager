@@ -15,26 +15,26 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1.Model;
+namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
 
 /// <summary>
 /// Command for starting the example.
 /// Must be JSON serializable.
 /// </summary>
-public record StartCommand_Brs_Example_Example_V1
-    : StartOrchestrationInstanceCommand<UserIdentityDto, Input_Brs_Example_Example_V1>
+public record StartCommand_Brs_Xyz_Example_V1
+    : StartOrchestrationInstanceCommand<UserIdentityDto, Input_Brs_Xyz_Example_V1>
 {
     /// <summary>
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
     /// <param name="inputParameter"> contains the Durable Functions orchestration input parameter value.</param>
-    public StartCommand_Brs_Example_Example_V1(
+    public StartCommand_Brs_Xyz_Example_V1(
         UserIdentityDto operatingIdentity,
-        Input_Brs_Example_Example_V1 inputParameter)
+        Input_Brs_Xyz_Example_V1 inputParameter)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_Example_Example_V1(),
+                orchestrationDescriptionUniqueName: new Brs_Xyz_Example_V1(),
                 inputParameter)
     {
     }

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1.Model;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1;
+namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1;
 
 /// <summary>
 /// Query for searching for BRS-Example.
@@ -33,7 +33,7 @@ public record ExampleQuery
         UserIdentityDto operatingIdentity)
             : base(
                 operatingIdentity,
-                new Brs_Example_Example_V1().Name)
+                new Brs_Xyz_Example_V1().Name)
     {
     }
 

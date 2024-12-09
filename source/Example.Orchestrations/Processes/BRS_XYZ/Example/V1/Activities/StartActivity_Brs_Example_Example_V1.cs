@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
@@ -34,7 +35,7 @@ internal class StartActivity_Brs_Example_Example_V1(
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_Example_Example_V1.CalculationStepSequence);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_Xyz_Example_V1.CalculationStepSequence);
         step.Lifecycle.TransitionToRunning(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 

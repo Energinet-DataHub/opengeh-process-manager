@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1;
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1.Model;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Api.Mappers;
 using NodaTime;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_Example.Example.V1;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 
-internal class SearchHandler_Brs_Example(
+internal class SearchHandler_Brs_Xyz_Example(
     IOrchestrationInstanceQueries queries)
 {
     private readonly IOrchestrationInstanceQueries _queries = queries;
@@ -71,7 +71,7 @@ internal class SearchHandler_Brs_Example(
         //// query.IsInternalCalculation
 
         return calculations
-            .Select(item => new ExampleQueryResult(item.MapToTypedDto<Input_Brs_Example_Example_V1>()))
+            .Select(item => new ExampleQueryResult(item.MapToTypedDto<Input_Brs_Xyz_Example_V1>()))
             .ToList();
     }
 }

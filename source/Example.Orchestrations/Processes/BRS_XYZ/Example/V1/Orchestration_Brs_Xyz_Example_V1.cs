@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1.Model;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
 using Energinet.DataHub.Example.Orchestrations.Processes.BRS_Example.Example.V1.Activities;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_Example.Example.V1;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 
-internal class Orchestration_Brs_Example_Example_V1
+internal class Orchestration_Brs_Xyz_Example_V1
 {
     internal const int CalculationStepSequence = 1;
     internal const int EnqueueMessagesStepSequence = 2;
 
-    [Function(nameof(Orchestration_Brs_Example_Example_V1))]
+    [Function(nameof(Orchestration_Brs_Xyz_Example_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
@@ -34,7 +34,7 @@ internal class Orchestration_Brs_Example_Example_V1
         // Currently we inject parameters when an orchestration is started.
         // But 'context.InstanceId' contains the 'OrchestrationInstance.Id' so it is possible to load all
         // information about an 'OrchestrationInstance' in activities and use any information (e.g. UserIdentity).
-        var input = context.GetOrchestrationParameterValue<Input_Brs_Example_Example_V1>();
+        var input = context.GetOrchestrationParameterValue<Input_Brs_Xyz_Example_V1>();
         if (input == null)
         {
             return "Error: No input specified.";

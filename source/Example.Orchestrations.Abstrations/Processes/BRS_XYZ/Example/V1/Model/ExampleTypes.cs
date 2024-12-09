@@ -12,13 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1.Model;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-
-namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1;
+namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
 
 /// <summary>
-/// Query result from searching BRS-Example.
-/// Must be JSON serializable.
+/// Defines the wholesale calculation types
 /// </summary>
-public record ExampleQueryResult(OrchestrationInstanceTypedDto<Input_Brs_Example_Example_V1> OrchestrationInstance);
+public enum ExampleTypes
+{
+    /// <summary>
+    /// Balance fixing
+    /// </summary>
+    ExampleType1 = 0,
+
+    /// <summary>
+    /// Aggregation.
+    /// </summary>
+    ExampleType2 = 1,
+}

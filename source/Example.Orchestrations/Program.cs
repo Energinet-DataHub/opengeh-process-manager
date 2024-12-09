@@ -15,8 +15,9 @@
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_Example.Example.V1.Model;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
 using Energinet.DataHub.Example.Orchestrations.Processes.BRS_Example.Example.V1;
+using Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
@@ -46,7 +47,7 @@ var host = new HostBuilder()
         });
 
         // => Handlers
-        services.AddScoped<SearchHandler_Brs_Example>();
+        services.AddScoped<SearchHandler_Brs_Xyz_Example>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {
@@ -59,16 +60,16 @@ await host.RunAsync().ConfigureAwait(false);
 
 OrchestrationDescription CreateBrs_Example_V1Description()
 {
-    var orchestrationDescriptionUniqueName = new Brs_Example_Example_V1();
+    var orchestrationDescriptionUniqueName = new Brs_Xyz_Example_V1();
 
     var description = new OrchestrationDescription(
         uniqueName: new OrchestrationDescriptionUniqueName(
             orchestrationDescriptionUniqueName.Name,
             orchestrationDescriptionUniqueName.Version),
         canBeScheduled: true,
-        functionName: nameof(Orchestration_Brs_Example_Example_V1));
+        functionName: nameof(Orchestration_Brs_Xyz_Example_V1));
 
-    description.ParameterDefinition.SetFromType<Input_Brs_Example_Example_V1>();
+    description.ParameterDefinition.SetFromType<Input_Brs_Xyz_Example_V1>();
 
     description.AppendStepDescription("Beregning");
     description.AppendStepDescription(

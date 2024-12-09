@@ -48,6 +48,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Integration\BRS_Example\" />
+      <Folder Include="Integration\BRS_XYZ\" />
     </ItemGroup>
 </Project>

@@ -39,4 +39,10 @@ public class ProcessManagerTopicOptions
     /// </summary>
     //[Required] // TODO: Removed required for now since tests cannot be run (yet)
     public string Brs026SubscriptionName { get; } = string.Empty;
+
+    /// <summary>
+    /// Name of the subscription for BRS021 ForwardMeteredData to the ProcessManager Service Bus topic
+    /// </summary>
+    //[Required] // TODO: Removed required for now since tests cannot be run (yet)
+    public string Brs021ForwardMeteredDataSubscriptionName { get; } = string.Empty;
 }

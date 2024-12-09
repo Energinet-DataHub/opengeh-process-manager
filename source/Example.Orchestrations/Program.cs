@@ -41,9 +41,9 @@ var host = new HostBuilder()
             // We could implement an interface for "description building" which could then be implemented besides the orchestration.
             // During DI we could then search for all these interface implementations and register them automatically.
             // This would ensure we didn't have to update Program.cs when we change orchestrations.
-            var brs_023_027_v1 = CreateBrs_Example_V1Description();
+            var brs_Xyz_v1 = CreateBrs_Example_V1Description();
 
-            return [brs_023_027_v1];
+            return [brs_Xyz_v1];
         });
 
         // => Handlers
@@ -55,7 +55,7 @@ var host = new HostBuilder()
     })
     .Build();
 
-await host.SynchronizeWithOrchestrationRegisterAsync("ProcessManager.Orchestrations").ConfigureAwait(false);
+await host.SynchronizeWithOrchestrationRegisterAsync("Example.Orchestrations").ConfigureAwait(false);
 await host.RunAsync().ConfigureAwait(false);
 
 OrchestrationDescription CreateBrs_Example_V1Description()
@@ -71,11 +71,11 @@ OrchestrationDescription CreateBrs_Example_V1Description()
 
     description.ParameterDefinition.SetFromType<Input_Brs_Xyz_Example_V1>();
 
-    description.AppendStepDescription("Beregning");
+    description.AppendStepDescription("Example step");
     description.AppendStepDescription(
-        "Besked dannelse",
+        "Example step 2, can be skipped",
         canBeSkipped: true,
-        skipReason: "Do not perform this step for an internal calculation.");
+        skipReason: "Do not perform this step if skipped");
 
     return description;
 }

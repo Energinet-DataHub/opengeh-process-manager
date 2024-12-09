@@ -46,8 +46,4 @@
     <ItemGroup>
         <Using Include="Xunit" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Integration\BRS_XYZ\" />
-    </ItemGroup>
 </Project>

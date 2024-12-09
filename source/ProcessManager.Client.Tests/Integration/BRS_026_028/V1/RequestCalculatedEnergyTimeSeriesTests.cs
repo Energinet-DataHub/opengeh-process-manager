@@ -80,12 +80,11 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
     public async Task RequestCalculatedEnergyTimeSeries_WhenStarted_OrchestrationCompletesWithSuccess()
     {
         // Arrange
-        var messageId = "test-message-id";
         var businessReason = "test-business-reason";
         var startRequestCommand = new StartRequestCalculatedEnergyTimeSeriesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedEnergyTimeSeriesInputV1(businessReason),
-            messageId);
+            "test-message-id");
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 

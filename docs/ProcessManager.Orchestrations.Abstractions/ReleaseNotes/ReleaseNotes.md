@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.1.1
+
+- No functional change
+
 ## Version 0.1.0
 
 - Support start/schedule orchestration instance with no input parameter.

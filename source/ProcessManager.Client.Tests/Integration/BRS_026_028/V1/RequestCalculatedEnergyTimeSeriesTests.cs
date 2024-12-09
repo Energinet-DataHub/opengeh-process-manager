@@ -46,7 +46,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
-            [$"{ProcessManagerServiceBusClientsOptions.SectionName}:{nameof(ProcessManagerServiceBusClientsOptions.TopicName)}"]
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = _fixture.ProcessManagerTopic.Name,
         });
         services.AddAzureClients(

@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.2.0
+- Implemented `Brs_021_MeteredDataForwarding_V1`
+- Implemented `StartMeteredDataForwardingCommandV1`
+
 ## Version 0.1.0
 
 - Support start/schedule orchestration instance with no input parameter.

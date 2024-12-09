@@ -19,21 +19,23 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1;
 
-internal class SchedulerTrigger(IProcessManagerClient processManagerClient)
-{
-    [Function(nameof(StartScheduledOrchestrationInstances))]
-    public async Task StartScheduledOrchestrationInstances(
-        [TimerTrigger("0 0 12,17 * * *")] TimerInfo timerInfo) // Runs at 12:00 and 17:00 every day
-    {
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
+// TODO BJM: Implementation is awaiting usage of DataHub 3 system actor identity
 
-        // Start new calculation orchestration instance
-        await processManagerClient
-            .StartNewOrchestrationInstanceAsync(
-                new StartElectricalHeatingCalculationCommandV1(
-                    userIdentity),
-                CancellationToken.None).ConfigureAwait(false);
-    }
-}
+// internal class SchedulerTrigger(IProcessManagerClient processManagerClient)
+// {
+//     [Function(nameof(StartScheduledOrchestrationInstances))]
+//     public async Task StartScheduledOrchestrationInstances(
+//         [TimerTrigger("0 0 12,17 * * *")] TimerInfo timerInfo) // Runs at 12:00 and 17:00 every day
+//     {
+//         var userIdentity = new UserIdentityDto(
+//             UserId: Guid.NewGuid(),
+//             ActorId: Guid.NewGuid());
+//
+//         // Start new calculation orchestration instance
+//         await processManagerClient
+//             .StartNewOrchestrationInstanceAsync(
+//                 new StartElectricalHeatingCalculationCommandV1(
+//                     userIdentity),
+//                 CancellationToken.None).ConfigureAwait(false);
+//     }
+// }

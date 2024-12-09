@@ -48,7 +48,7 @@ jobs:
             filter: empty # Means skip
             use_azure_functions_tools: true
             contentroot_variable_name: empty # Means skip
-            
+
           - name: Example Orchestrations Tests
             paths: \source\Example.Orchestrations.Tests\bin\Release\net8.0\Energinet.Datahub.Example.Orchestrations.Tests.dll
             filter: empty # Means skip

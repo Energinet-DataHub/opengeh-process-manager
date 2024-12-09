@@ -95,6 +95,7 @@ jobs:
         ci_dotnet_everest,
         ci_dotnet_montblanc,
         ci_dotnet_dbmigrations,
+        ci_processmanager_nuget,
         ci_run_tests
       ]
     if: |

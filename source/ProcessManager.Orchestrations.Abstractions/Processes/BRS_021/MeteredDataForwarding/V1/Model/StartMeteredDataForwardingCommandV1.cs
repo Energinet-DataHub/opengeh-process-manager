@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.MeteredDataForwarding.V1.Model;
 
 /// <summary>
-/// Command for starting a BRS-021.
+/// Command for starting a BRS-021-MeteredDataForwarding.
 /// Must be JSON serializable.
 /// </summary>
 public record StartMeteredDataForwardingCommandV1

@@ -52,10 +52,11 @@ var host = new HostBuilder()
             var brs_021_ElectricalHeatingCalculation_v1 = CreateDescription_Brs_021_ElectricalHeatingCalculation_V1();
             var brs_023_027_v1 = CreateBrs_023_027_V1Description();
             var brs_026_v1 = CreateBrs_026_V1Description();
-            var brs_021_v1 = CreateBrs_021_V1Description();
+            var brs_021_MeteredDataForwarding_v1 = CreateBrs_021_MeteredDataForwarding_V1Description();
 
             return [
                 brs_021_ElectricalHeatingCalculation_v1,
+                brs_021_MeteredDataForwarding_v1,
                 brs_023_027_v1,
                 brs_026_v1];
         });
@@ -133,7 +134,7 @@ OrchestrationDescription CreateBrs_026_V1Description()
     return description;
 }
 
-OrchestrationDescription CreateBrs_021_V1Description()
+OrchestrationDescription CreateBrs_021_MeteredDataForwarding_V1Description()
 {
     var orchestrationDescriptionUniqueName = new Brs_021_MeteredDataForwarding_V1();
 

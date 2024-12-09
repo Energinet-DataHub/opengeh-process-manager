@@ -24,22 +24,16 @@ internal class Orchestration_Brs_021_MeteredDataForwarding_V1
 {
     internal static StepIdentifierDto[] Steps =>
     [
-        StartingStep, ValidatingStep, StoringStep, FindReceiverStep, EnqueuingStep, EnqueuedStep, CompletedStep
+        ValidatingStep, StoringMeteredDataStep, FindReceiverStep, EnqueueMessagesStep
     ];
-
-    internal static StepIdentifierDto StartingStep => new(1, "Starter");
 
     internal static StepIdentifierDto ValidatingStep => new(2, "Asynkron validering");
 
-    internal static StepIdentifierDto StoringStep => new(3, "Gemmer");
+    internal static StepIdentifierDto StoringMeteredDataStep => new(3, "Gemmer");
 
     internal static StepIdentifierDto FindReceiverStep => new(3, "Finder modtagere");
 
-    internal static StepIdentifierDto EnqueuingStep => new(3, "Sætter beskeder i kø");
-
-    internal static StepIdentifierDto EnqueuedStep => new(3, "Beskeder sat i kø");
-
-    internal static StepIdentifierDto CompletedStep => new(3, "Færdig");
+    internal static StepIdentifierDto EnqueueMessagesStep => new(3, "Sætter beskeder i kø");
 
     [Function(nameof(Orchestration_Brs_021_MeteredDataForwarding_V1))]
     public async Task<string> Run(

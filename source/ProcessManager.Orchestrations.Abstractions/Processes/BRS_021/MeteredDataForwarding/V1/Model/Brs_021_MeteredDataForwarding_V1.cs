@@ -17,4 +17,4 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescr
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.MeteredDataForwarding.V1.Model;
 
 public record Brs_021_MeteredDataForwarding_V1()
-    : OrchestrationDescriptionUniqueNameDto("BRS_021", 1);
+    : OrchestrationDescriptionUniqueNameDto("BRS_021_MeteredDataForwarding", 1);

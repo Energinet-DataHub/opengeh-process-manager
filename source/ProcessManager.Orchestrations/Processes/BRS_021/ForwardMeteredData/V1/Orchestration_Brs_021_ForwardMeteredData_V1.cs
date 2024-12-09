@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
@@ -22,18 +21,10 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 internal class Orchestration_Brs_021_ForwardMeteredData_V1
 {
-    internal static StepIdentifierDto[] Steps =>
-    [
-        ValidatingStep, StoringMeteredDataStep, FindReceiverStep, EnqueueMessagesStep
-    ];
-
-    internal static StepIdentifierDto ValidatingStep => new(2, "Asynkron validering");
-
-    internal static StepIdentifierDto StoringMeteredDataStep => new(3, "Gemmer");
-
-    internal static StepIdentifierDto FindReceiverStep => new(3, "Finder modtagere");
-
-    internal static StepIdentifierDto EnqueueMessagesStep => new(3, "Sætter beskeder i kø");
+    internal const int ValidatingStep = 1;
+    internal const int StoringMeteredDataStep = 2;
+    internal const int FindReceiverStep = 3;
+    internal const int EnqueueMessagesStep = 4;
 
     [Function(nameof(Orchestration_Brs_021_ForwardMeteredData_V1))]
     public async Task<string> Run(

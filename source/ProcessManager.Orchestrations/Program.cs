@@ -146,11 +146,10 @@ OrchestrationDescription CreateBrs_021_ForwardMeteredData_V1Description()
         functionName: nameof(Orchestration_Brs_021_ForwardMeteredData_V1));
 
     description.ParameterDefinition.SetFromType<MeteredDataForMeasurementPointMessageInputV1>();
-
-    foreach (var step in Orchestration_Brs_021_ElectricalHeatingCalculation_V1.Steps)
-    {
-        description.AppendStepDescription(step.Name);
-    }
+    description.AppendStepDescription("Asynkron validering");
+    description.AppendStepDescription("Gemmer");
+    description.AppendStepDescription("Finder modtagere");
+    description.AppendStepDescription("Udsend beskeder");
 
     return description;
 }

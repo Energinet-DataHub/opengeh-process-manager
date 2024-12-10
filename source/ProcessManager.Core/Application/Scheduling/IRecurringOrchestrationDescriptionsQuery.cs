@@ -14,14 +14,12 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
+namespace Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
 
-/// <summary>
-/// Readonly access to the orchestration register.
-/// </summary>
-internal interface IOrchestrationRegisterQueries
+public interface IRecurringOrchestrationDescriptionsQuery
 {
-    Task<OrchestrationDescription> GetAsync(OrchestrationDescriptionId id);
-
-    Task<OrchestrationDescription?> GetOrDefaultAsync(OrchestrationDescriptionUniqueName uniqueName, bool? isEnabled);
+    /// <summary>
+    /// Get all enabled orchestration descriptions that are recurring.
+    /// </summary>
+    Task<IReadOnlyCollection<OrchestrationDescription>> GetAllRecurringAsync();
 }

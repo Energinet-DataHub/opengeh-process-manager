@@ -12,16 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
 using Microsoft.Extensions.Logging;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Scheduler;
 
 internal class RecurringPlannerHandler(
-    ILogger<SchedulerHandler> logger)
+    ILogger<SchedulerHandler> logger,
+    IClock clock,
+    IRecurringOrchestrationDescriptionsQuery query)
 {
     private readonly ILogger _logger = logger;
+    private readonly IClock _clock = clock;
+    private readonly IRecurringOrchestrationDescriptionsQuery _query = query;
 
-    public Task PerformRecurringPlanningAsync()
+    public async Task PerformRecurringPlanningAsync()
     {
         // - We should use NodaTime to determine "current" time, and ensure we use timezone "Europe/Copenhagen".
         // - We should use a configured "actor id" for scheduling new orchestration instances.
@@ -33,6 +39,21 @@ internal class RecurringPlannerHandler(
         // 2.b. Determine already scheduled instances within the next 24 hours (from the next hour)
         // 2.c. Compare the two lists, and schedule a new orchestration instance for any not appearing in "occurences"
 
-        return Task.CompletedTask;
+        var now = _clock.GetCurrentInstant();
+
+        var orchestrationDescriptions = await _query
+            .GetAllRecurringAsync()
+            .ConfigureAwait(false);
+
+        foreach (var orchestrationDescription in orchestrationDescriptions)
+        {
+            try
+            {
+            }
+            catch (Exception)
+            {
+                // TODO: Log error
+            }
+        }
     }
 }

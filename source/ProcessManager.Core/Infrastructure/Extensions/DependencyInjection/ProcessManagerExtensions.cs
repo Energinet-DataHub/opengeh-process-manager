@@ -72,6 +72,7 @@ public static class ProcessManagerExtensions
         // => Scheduling
         services.TryAddScoped<IScheduledOrchestrationInstancesByInstantQuery, OrchestrationInstanceRepository>();
         services.TryAddScoped<IStartScheduledOrchestrationInstanceCommand, OrchestrationInstanceManager>();
+        services.TryAddScoped<IRecurringOrchestrationDescriptionsQuery, OrchestrationRegister>();
         // => Cancellation (manager)
         services.TryAddScoped<ICancelScheduledOrchestrationInstanceCommand, OrchestrationInstanceManager>();
         // => Start instance (manager)

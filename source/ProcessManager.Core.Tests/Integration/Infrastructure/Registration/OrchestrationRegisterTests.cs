@@ -48,16 +48,23 @@ public class OrchestrationRegisterTests : IAsyncLifetime
     public async Task GivenOrchestrationDescriptionsInDatabase_WhenGetAllRecurring_ThenExpectedOrchestrationDescriptionIsRetrieved()
     {
         // Arrange
-        var name = Guid.NewGuid().ToString();
-        var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
-        var existingOrchestrationDescriptionV2 = CreateOrchestrationDescription(
-            new OrchestrationDescriptionUniqueName(name, 2),
+        var enabledName = Guid.NewGuid().ToString();
+        var enabledOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(enabledName, 1));
+        var enabledOrchestrationDescriptionV2 = CreateOrchestrationDescription(
+            new OrchestrationDescriptionUniqueName(enabledName, 2),
             recurringCronExpression: "0 0 * * *");
+
+        var disabledName = Guid.NewGuid().ToString();
+        var disabledOrchestrationDescriptionV1 = CreateOrchestrationDescription(
+            new OrchestrationDescriptionUniqueName(disabledName, 1),
+            recurringCronExpression: "0 0 * * *",
+            isEnabled: false);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
-            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescriptionV1);
-            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescriptionV2);
+            writeDbContext.OrchestrationDescriptions.Add(enabledOrchestrationDescriptionV1);
+            writeDbContext.OrchestrationDescriptions.Add(enabledOrchestrationDescriptionV2);
+            writeDbContext.OrchestrationDescriptions.Add(disabledOrchestrationDescriptionV1);
             await writeDbContext.SaveChangesAsync();
         }
 
@@ -66,12 +73,13 @@ public class OrchestrationRegisterTests : IAsyncLifetime
 
         // Assert
         actual.Should()
-            .BeEquivalentTo(new[] { existingOrchestrationDescriptionV2 });
+            .BeEquivalentTo(new[] { enabledOrchestrationDescriptionV2 });
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(
         OrchestrationDescriptionUniqueName uniqueName,
-        string? recurringCronExpression = default)
+        string? recurringCronExpression = default,
+        bool isEnabled = true)
     {
         var orchestrationDescription = new OrchestrationDescription(
             uniqueName,
@@ -80,6 +88,8 @@ public class OrchestrationRegisterTests : IAsyncLifetime
 
         if (recurringCronExpression != null)
             orchestrationDescription.RecurringCronExpression = recurringCronExpression;
+
+        orchestrationDescription.IsEnabled = isEnabled;
 
         return orchestrationDescription;
     }

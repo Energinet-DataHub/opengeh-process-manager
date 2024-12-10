@@ -117,7 +117,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: ${{fromJson(needs.build_matrix.outputs.matrix_tests)}}      
+        project: ${{fromJson(needs.build_matrix.outputs.matrix_builds)}}      
     uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test-monorepo.yml@kerbou/2524-build-brs-pipeline
     with:
       azure_integrationtest_tenant_id: ${{ vars.integration_test_azure_tenant_id }}

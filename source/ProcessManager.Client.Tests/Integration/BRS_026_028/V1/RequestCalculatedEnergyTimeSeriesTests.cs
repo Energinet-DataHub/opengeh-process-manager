@@ -88,7 +88,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-30);
+        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, default);
 
         // Assert

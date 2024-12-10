@@ -30,7 +30,8 @@ var host = new HostBuilder()
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
 
-        // Scheduler
+        // Handlers
+        services.AddScoped<RecurringPlannerHandler>();
         services.AddScoped<SchedulerHandler>();
 
         // ProcessManager

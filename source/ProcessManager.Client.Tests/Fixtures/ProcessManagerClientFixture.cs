@@ -79,12 +79,17 @@ public class ProcessManagerClientFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        ProcessManagerTopic = await ServiceBusResourceProvider.BuildTopic("pm-topic")
-            .AddSubscription("brs-026-subscription")
-            .CreateAsync();
-        var brs026Subscription = ProcessManagerTopic.Subscriptions.Single();
+        var brs023SubscriptionName = "brs-026-subscription";
+        var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
 
-        await OrchestrationsAppManager.StartAsync(brs026Subscription);
+        ProcessManagerTopic = await ServiceBusResourceProvider.BuildTopic("pm-topic")
+            .AddSubscription(brs023SubscriptionName)
+            .AddSubscription(brs021ForwardMeteredDataSubscriptionName)
+            .CreateAsync();
+        var brs026Subscription = ProcessManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs023SubscriptionName));
+        var brs021ForwardMeteredDataSubscription = ProcessManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
+
+        await OrchestrationsAppManager.StartAsync(brs026Subscription, brs021ForwardMeteredDataSubscription);
         await ProcessManagerAppManager.StartAsync();
     }
 

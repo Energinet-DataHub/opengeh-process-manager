@@ -100,7 +100,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// Start the orchestration app
     /// </summary>
     /// <param name="brs026Subscription">The BRS-026 Service Bus subscription. A new subscription will be created if not provided.</param>
-    public async Task StartAsync(SubscriptionProperties? brs026Subscription = null)
+    /// <param name="brs021ForwardMeteredDataSubscription">The BRS-021-forwardMeteredData Service Bus subscription. A new subscription will be created if not provided.</param>
+    public async Task StartAsync(
+        SubscriptionProperties? brs026Subscription = null,
+        SubscriptionProperties? brs021ForwardMeteredDataSubscription = null)
     {
         if (_manageAzurite)
         {
@@ -115,18 +118,32 @@ public class OrchestrationsAppManager : IAsyncDisposable
             await DatabaseManager.CreateDatabaseAsync();
 
         // Process Manager topic
-        if (brs026Subscription is null)
+        if (brs026Subscription is null || brs021ForwardMeteredDataSubscription is null)
         {
-            var topicResource = await ServiceBusResourceProvider.BuildTopic("pm-topic")
-                .AddSubscription("brs-026-subscription")
-                .CreateAsync();
-            brs026Subscription = topicResource.Subscriptions.Single();
+            var topicResourceBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
+            var brs023SubscriptionName = "brs-026-subscription";
+            var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
+
+            if (brs026Subscription is null)
+            {
+               topicResourceBuilder.AddSubscription(brs023SubscriptionName);
+            }
+
+            if (brs021ForwardMeteredDataSubscription is null)
+            {
+                topicResourceBuilder.AddSubscription(brs021ForwardMeteredDataSubscriptionName);
+            }
+
+            var topicResource = await topicResourceBuilder.CreateAsync();
+            brs026Subscription ??= topicResource.Subscriptions.Single(x => x.SubscriptionName.Equals(brs023SubscriptionName));
+            brs021ForwardMeteredDataSubscription ??= topicResource.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
         }
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
-            brs026Subscription);
+            brs026Subscription,
+            brs021ForwardMeteredDataSubscription);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -230,7 +247,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        SubscriptionProperties subscriptionProperties)
+        SubscriptionProperties brs026Subscription,
+        SubscriptionProperties brs021ForwardMeteredDataSubscription)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -276,13 +294,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.TopicName)}",
-            subscriptionProperties.TopicName);
+            brs026Subscription.TopicName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}",
-            subscriptionProperties.SubscriptionName);
+            brs026Subscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}",
-            subscriptionProperties.SubscriptionName);
+            brs021ForwardMeteredDataSubscription.SubscriptionName);
 
         return appHostSettings;
     }

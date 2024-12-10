@@ -20,10 +20,12 @@ using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Depende
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,15 +52,18 @@ var host = new HostBuilder()
             var brs_021_ElectricalHeatingCalculation_v1 = CreateDescription_Brs_021_ElectricalHeatingCalculation_V1();
             var brs_023_027_v1 = CreateBrs_023_027_V1Description();
             var brs_026_v1 = CreateBrs_026_V1Description();
+            var brs_021_ForwardMeteredData_v1 = CreateBrs_021_ForwardMeteredData_V1Description();
 
             return [
                 brs_021_ElectricalHeatingCalculation_v1,
+                brs_021_ForwardMeteredData_v1,
                 brs_023_027_v1,
                 brs_026_v1];
         });
         // => Handlers
         services.AddScoped<SearchCalculationHandler>();
         services.AddScoped<StartCalculationHandlerV1>();
+        services.AddScoped<RequestCalculatedEnergyTimeSeriesHandler>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {
@@ -125,6 +130,26 @@ OrchestrationDescription CreateBrs_026_V1Description()
 
     description.AppendStepDescription("Asynkron validering");
     description.AppendStepDescription("Hent anmodningsdata");
+    description.AppendStepDescription("Udsend beskeder");
+
+    return description;
+}
+
+OrchestrationDescription CreateBrs_021_ForwardMeteredData_V1Description()
+{
+    var orchestrationDescriptionUniqueName = new Brs_021_ForwardedMeteredData_V1();
+
+    var description = new OrchestrationDescription(
+        uniqueName: new OrchestrationDescriptionUniqueName(
+            orchestrationDescriptionUniqueName.Name,
+            orchestrationDescriptionUniqueName.Version),
+        canBeScheduled: false,
+        functionName: nameof(Orchestration_Brs_021_ForwardMeteredData_V1));
+
+    description.ParameterDefinition.SetFromType<MeteredDataForMeasurementPointMessageInputV1>();
+    description.AppendStepDescription("Asynkron validering");
+    description.AppendStepDescription("Gemmer");
+    description.AppendStepDescription("Finder modtagere");
     description.AppendStepDescription("Udsend beskeder");
 
     return description;

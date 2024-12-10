@@ -26,7 +26,7 @@ public class ProcessManagerMessageClient(
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
         : IProcessManagerMessageClient
 {
-    private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(nameof(ProcessManagerServiceBusClientsOptions.TopicName));
+    private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(nameof(ProcessManagerServiceBusClientOptions.TopicName));
 
     public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
         MessageCommand<TInputParameterDto> command,

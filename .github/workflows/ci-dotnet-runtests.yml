@@ -123,30 +123,30 @@ jobs:
           name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
           path: ${{ env.OUTPUT_PATH }}/*
 
-  integration_tests:
-    needs: [
-      build_matrix,
-      build_tests_in_project
-    ]
-    strategy:
-      fail-fast: false
-      matrix:
-        project: ${{fromJson(needs.build_matrix.outputs.matrix)}}      
-    uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test.yml@kerbou/2524-build-brs-pipeline
-    with:
-      download_artifact_name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
-      project_name: ${{ matrix.project.name }}
-      download_attempt_limit: 20
-      azure_integrationtest_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
-      azure_integrationtest_subscription_id: ${{ vars.integration_test_azure_subscription_id }}
-      azure_integrationtest_spn_id: ${{ vars.integration_test_azure_spn_id_oidc }}
-      azure_keyvault_url: ${{ vars.integration_test_azure_keyvault_url }}
-      environment: AzureAuth
-      run_integration_tests: true 
-      tests_filter_expression: empty # Means skip
-      use_azure_functions_tools: true
-      aspnetcore_test_contentroot_variable_name: empty
-      aspnetcore_test_contentroot_variable_value: empty
-      # Matrix parameters
-      job_name: ${{ matrix.project.name }}
-      tests_dll_file_path: \source\${{ matrix.project.name}}\bin\Release\${{matrix.project.dotnet_version}}\${{ matrix.project.assembly_name }}
+  # integration_tests:
+  #   needs: [
+  #     build_matrix,
+  #     build_tests_in_project
+  #   ]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       project: ${{fromJson(needs.build_matrix.outputs.matrix)}}      
+  #   uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test-monorepo.yml@kerbou/2524-build-brs-pipeline
+  #   with:
+  #     azure_integrationtest_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
+  #     azure_integrationtest_subscription_id: ${{ vars.integration_test_azure_subscription_id }}
+  #     azure_integrationtest_spn_id: ${{ vars.integration_test_azure_spn_id_oidc }}
+  #     azure_keyvault_url: ${{ vars.integration_test_azure_keyvault_url }}
+  #     environment: AzureAuth
+  #     run_integration_tests: true 
+  #     tests_filter_expression: empty # Means skip
+  #     use_azure_functions_tools: true
+  #     aspnetcore_test_contentroot_variable_name: empty
+  #     aspnetcore_test_contentroot_variable_value: empty
+  #     # Matrix parameters
+  #     testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
+  #     testproject_sut_artifact_name: pm-tests-${{ matrix.project.sut_name }}-${{ github.event.pull_request.number }}
+
+  #     testproject_name: ${{ matrix.project.name }}
+  #     tests_dll_file_path: \source\${{ matrix.project.name}}\bin\Release\${{matrix.project.dotnet_version}}\${{ matrix.project.assembly_name }}

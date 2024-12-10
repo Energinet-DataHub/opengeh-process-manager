@@ -79,7 +79,7 @@ jobs:
             }
           }
 
-          # Always add Orchestrations, as test projects rely on them during test execution
+          # Always add Orchestrations and Process Manager, as test projects rely on them during test execution
           # It's very, very ugly.
           $orchestrationsExist = ($matrixBuilds | Where-Object { $_.name -eq 'ProcessManager.Orchestrations' })
           if (!$orchestrationsExist) {

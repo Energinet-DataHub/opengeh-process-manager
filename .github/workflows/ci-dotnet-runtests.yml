@@ -78,6 +78,18 @@ jobs:
               }
             }
           }
+
+          # Always add Orchestrations, as test projects rely on them during test execution
+          # It's very, very ugly.
+          if (($matrixBuilds | Where-Object { $_.name -ne 'ProcessManager.Orchestrations' })) {
+           $matrixBuilds += [PSCustomObject]@{
+              name           = "ProcessManager.Orchestrations"
+              filepath       = "${{ github.workspace }}/source/ProcessManager.Orchestrations/ProcessManager.Orchestrations.csproj"
+              assembly_name  = "Energinet.DataHub.ProcessManager.Orchestrations.dll"
+              dotnet_version = "net8.0"
+            } 
+          }
+
           $matrixBuildsJson = $matrixBuilds | ConvertTo-Json -Compress
           $matrixTestsJson = $matrixTests | ConvertTo-Json -Compress
 

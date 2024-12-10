@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.ComponentModel;
+using NCrontab;
+
 namespace Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 
 /// <summary>
@@ -22,6 +25,8 @@ namespace Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescripti
 public class OrchestrationDescription
 {
     private readonly List<StepDescription> _steps;
+
+    private string _recurringCronExpression;
 
     public OrchestrationDescription(
         OrchestrationDescriptionUniqueName uniqueName,
@@ -38,6 +43,8 @@ public class OrchestrationDescription
 
         _steps = [];
         Steps = _steps.AsReadOnly();
+
+        _recurringCronExpression = string.Empty;
     }
 
     /// <summary>
@@ -58,11 +65,38 @@ public class OrchestrationDescription
     public OrchestrationDescriptionUniqueName UniqueName { get; }
 
     /// <summary>
-    /// Specifies if the orchestration supports scheduling.
+    /// Specifies if the orchestration supports scheduling (recurring orchestrations
+    /// are also scheduled).
     /// If <see langword="false"/> then the orchestration can only
     /// be started directly (on-demand) and doesn't support scheduling.
     /// </summary>
     public bool CanBeScheduled { get; }
+
+    /// <summary>
+    /// A five-part cron format that expresses how this orchestration should
+    /// be scheduled for execution recurringly.
+    /// See https://github.com/atifaziz/NCrontab/wiki/Crontab-Expression
+    /// </summary>
+    public string RecurringCronExpression
+    {
+        get
+        {
+            return _recurringCronExpression;
+        }
+
+        set
+        {
+            if (value != _recurringCronExpression)
+            {
+                if (CrontabSchedule.TryParse(value) == null)
+                    throw new ArgumentOutOfRangeException($"Invalid cron value '{value}'. See https://github.com/atifaziz/NCrontab/wiki/Crontab-Expression for expected format.");
+
+                _recurringCronExpression = value;
+            }
+        }
+    }
+
+    public bool IsRecurring => RecurringCronExpression != string.Empty;
 
     /// <summary>
     /// The name of the Durable Functions orchestration implementation.

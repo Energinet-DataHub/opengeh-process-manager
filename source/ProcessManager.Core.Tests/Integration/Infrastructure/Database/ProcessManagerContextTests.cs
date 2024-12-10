@@ -55,6 +55,29 @@ public class ProcessManagerContextTests
     }
 
     [Fact]
+    public async Task Given_RecurringOrchestrationDescriptionAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription(recurringCronExpression: "0 0 * * *");
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
+        var orchestrationDescription = await readDbContext.OrchestrationDescriptions.FindAsync(existingOrchestrationDescription.Id);
+
+        // Assert
+        orchestrationDescription.Should()
+            .NotBeNull()
+            .And
+            .BeEquivalentTo(existingOrchestrationDescription);
+    }
+
+    [Fact]
     public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
     {
         // Arrange
@@ -136,12 +159,15 @@ public class ProcessManagerContextTests
             .BeEquivalentTo(existingOrchestrationInstance);
     }
 
-    private static OrchestrationDescription CreateOrchestrationDescription()
+    private static OrchestrationDescription CreateOrchestrationDescription(string? recurringCronExpression = default)
     {
         var orchestrationDescription = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
             canBeScheduled: true,
             functionName: "TestOrchestrationFunction");
+
+        if (recurringCronExpression != null)
+            orchestrationDescription.RecurringCronExpression = recurringCronExpression;
 
         orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
 

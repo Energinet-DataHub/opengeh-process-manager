@@ -83,8 +83,10 @@ OrchestrationDescription CreateDescription_Brs_021_ElectricalHeatingCalculation_
         uniqueName: new OrchestrationDescriptionUniqueName(
             orchestrationDescriptionUniqueName.Name,
             orchestrationDescriptionUniqueName.Version),
-        canBeScheduled: false,
+        canBeScheduled: true,
         functionName: nameof(Orchestration_Brs_021_ElectricalHeatingCalculation_V1));
+
+    description.RecurringCronExpression = "0 12,17 * * *"; // Runs at 12:00 and 17:00 every day
 
     foreach (var step in Orchestration_Brs_021_ElectricalHeatingCalculation_V1.Steps)
     {

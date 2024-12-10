@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_021.ForwardMeteredData.V1;
@@ -95,7 +96,8 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
         // Assert
         var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
             orchestrationCreatedAfter);
-        // orchestration.Input.ToString().Should().Contain(businessReason);
+        var inputToken = JToken.FromObject(input);
+        orchestration.Input.ToString().Should().BeEquivalentTo(inputToken.ToString(Newtonsoft.Json.Formatting.None));
 
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestration.InstanceId);

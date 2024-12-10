@@ -61,6 +61,15 @@ internal class OrchestrationRegister(
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyCollection<OrchestrationDescription>> GetAllRecurringAsync()
+    {
+        var query = _context.OrchestrationDescriptions
+            .Where(x => x.RecurringCronExpression != string.Empty);
+
+        return await query.ToListAsync().ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
     public async Task RegisterAsync(OrchestrationDescription orchestrationDescription, string hostName)
     {
         ArgumentNullException.ThrowIfNull(orchestrationDescription);

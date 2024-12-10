@@ -24,4 +24,6 @@ internal interface IOrchestrationRegisterQueries
     Task<OrchestrationDescription> GetAsync(OrchestrationDescriptionId id);
 
     Task<OrchestrationDescription?> GetOrDefaultAsync(OrchestrationDescriptionUniqueName uniqueName, bool? isEnabled);
+
+    Task<IReadOnlyCollection<OrchestrationDescription>> GetAllRecurringAsync();
 }

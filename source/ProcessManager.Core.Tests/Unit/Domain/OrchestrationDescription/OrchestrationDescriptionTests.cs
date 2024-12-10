@@ -23,7 +23,7 @@ public class OrchestrationDescriptionTests
     public void GivenInstance_WhenSettingValidRecurringCronExpression_ThenIsRecurringIsTrue()
     {
         // Arrange
-        var sut = new OrchestrationDescription(
+        var sut = new ProcessManagement.Core.Domain.OrchestrationDescription.OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
                 name: "name",
                 version: 1),
@@ -41,7 +41,7 @@ public class OrchestrationDescriptionTests
     public void GivenInstance_WhenSettingInvalidRecurringCronExpression_ThenThrowsException()
     {
         // Arrange
-        var sut = new OrchestrationDescription(
+        var sut = new ProcessManagement.Core.Domain.OrchestrationDescription.OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
                 name: "name",
                 version: 1),

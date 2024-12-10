@@ -53,11 +53,11 @@ jobs:
 
               // We need to add the function app project to the matrix as well because it may be needed by TestCommon when running integrationtests
               $sut = $project.Name -replace ".Tests", ""
-              $sutFilePath = 
+              $sutFilePath = $project.FilePath -replace ".Tests", "" 
               $matrix += [PSCustomObject]@{
                 name           = $sut
-                filepath       = $project.FilePath
-                assembly_name  = "Energinet.DataHub.$($project.Name).dll"
+                filepath       = $sutFilePath
+                assembly_name  = "Energinet.DataHub.$($sut).dll"
                 dotnet_version = "net8.0"
               }               
             }

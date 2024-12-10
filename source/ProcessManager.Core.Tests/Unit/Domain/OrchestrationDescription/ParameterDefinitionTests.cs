@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using FluentAssertions;
 
-namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain;
+namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain.OrchestrationDescription;
 
 public class ParameterDefinitionTests
 {

@@ -34,9 +34,10 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ForwardMeteredData_V1.FindReceiverStep);
-        step.Lifecycle.TransitionToRunning(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        await TransitionStepToRunningAsync(
+                Orchestration_Brs_021_ForwardMeteredData_V1.FindReceiverStep,
+                orchestrationInstance)
+            .ConfigureAwait(false);
 
         // TODO: For demo purposes; remove when done
         await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);

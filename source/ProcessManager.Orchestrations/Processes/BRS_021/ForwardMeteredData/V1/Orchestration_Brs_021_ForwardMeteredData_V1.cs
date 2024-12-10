@@ -48,14 +48,9 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
 
         // Step: Validating
         await context.CallActivityAsync(
-            nameof(FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1),
+            nameof(PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1),
             context.InstanceId,
             defaultRetryOptions);
-        await context.CallActivityAsync(
-            nameof(MeteringPointExistsActivity_Brs_021_ForwardMeteredData_V1),
-            context.InstanceId,
-            defaultRetryOptions);
-        // TODO: Implementing all validation activities here.
         await context.CallActivityAsync(
             nameof(ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
             context.InstanceId,

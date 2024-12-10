@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
@@ -24,4 +25,18 @@ internal abstract class ProgressActivityBase(
     protected IClock Clock { get; } = clock;
 
     protected IOrchestrationInstanceProgressRepository ProgressRepository { get; } = progressRepository;
+
+    protected async Task TransitionStepToRunningAsync(int sequence, OrchestrationInstance orchestrationInstance)
+    {
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == sequence);
+        step.Lifecycle.TransitionToRunning(Clock);
+        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    protected async Task CompleteStepAsync(int sequence, OrchestrationInstance orchestrationInstance)
+    {
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == sequence);
+        step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
+        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
 }

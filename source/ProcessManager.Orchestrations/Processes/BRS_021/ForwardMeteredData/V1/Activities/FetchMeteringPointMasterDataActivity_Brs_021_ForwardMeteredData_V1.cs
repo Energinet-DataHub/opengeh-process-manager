@@ -19,14 +19,14 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1(
+internal class PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ActivityTrigger] Guid orchestrationInstanceId)
     {
@@ -34,9 +34,10 @@ internal class FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ForwardMeteredData_V1.ValidatingStep);
-        step.Lifecycle.TransitionToRunning(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        await TransitionStepToRunningAsync(
+                Orchestration_Brs_021_ForwardMeteredData_V1.ValidatingStep,
+                orchestrationInstance)
+            .ConfigureAwait(false);
 
         // TODO: For demo purposes; remove when done
         await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);

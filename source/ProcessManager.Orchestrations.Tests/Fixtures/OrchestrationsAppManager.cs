@@ -121,12 +121,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
         if (brs026Subscription is null || brs021ForwardMeteredDataSubscription is null)
         {
             var topicResourceBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
-            var brs023SubscriptionName = "brs-026-subscription";
+            var brs026SubscriptionName = "brs-026-subscription";
             var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
 
             if (brs026Subscription is null)
             {
-               topicResourceBuilder.AddSubscription(brs023SubscriptionName);
+               topicResourceBuilder.AddSubscription(brs026SubscriptionName);
             }
 
             if (brs021ForwardMeteredDataSubscription is null)
@@ -135,7 +135,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             }
 
             var topicResource = await topicResourceBuilder.CreateAsync();
-            brs026Subscription ??= topicResource.Subscriptions.Single(x => x.SubscriptionName.Equals(brs023SubscriptionName));
+            brs026Subscription ??= topicResource.Subscriptions.Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
             brs021ForwardMeteredDataSubscription ??= topicResource.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
         }
 

@@ -34,9 +34,10 @@ internal class ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ForwardMeteredData_V1.ValidatingStep);
-        step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        await CompleteStepAsync(
+                Orchestration_Brs_021_ForwardMeteredData_V1.ValidatingStep,
+                orchestrationInstance)
+            .ConfigureAwait(false);
 
         // TODO: For demo purposes; remove when done
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);

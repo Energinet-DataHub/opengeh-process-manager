@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Client.Tests.Extensions;
 
-/// <summary>
-/// Options for configuration of Process Manager Service Bus clients using the Process Manager.
-/// </summary>
-public class ProcessManagerServiceBusClientsOptions
+public static class ServiceCollectionExtensions
 {
-    public const string SectionName = "ProcessManagerServiceBusClients";
+    public static IServiceCollection AddInMemoryConfiguration(
+        this IServiceCollection services,
+        Dictionary<string, string?> configurations)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configurations)
+            .Build();
 
-    /// <summary>
-    /// Name of the topic which the Process Manager receives service bus messages on
-    /// </summary>
-    [Required]
-    public string TopicName { get; set; } = string.Empty;
+        services.AddScoped<IConfiguration>(_ => configuration);
+
+        return services;
+    }
 }

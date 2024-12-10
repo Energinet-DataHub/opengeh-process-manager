@@ -91,6 +91,16 @@ jobs:
             } 
           }
 
+          $processManagerExist = ($matrixBuilds | Where-Object { $_.name -eq 'ProcessManager' })
+          if (!$processManagerExist) {
+           $matrixBuilds += [PSCustomObject]@{
+              name           = "ProcessManager"
+              filepath       = "${{ github.workspace }}/source/ProcessManager/ProcessManager.csproj"
+              assembly_name  = "Energinet.DataHub.ProcessManager.dll"
+              dotnet_version = "net8.0"
+            } 
+          }          
+
           $matrixBuildsJson = $matrixBuilds | ConvertTo-Json -Compress
           $matrixTestsJson = $matrixTests | ConvertTo-Json -Compress
 

@@ -77,8 +77,10 @@ jobs:
     needs: build_matrix
     steps:
       - name: Print
+        shell: pwsh
         run: |
-          echo "Matrix: ${{needs.build_matrix.outputs.matrix}} | ConvertFrom-Json | ConvertTo-Json"
+          Write-Host "Matrix: "
+          Write-Host "(${{needs.build_matrix.outputs.matrix}} | ConvertFrom-Json | ConvertTo-Json)"
 
   build_tests_in_project:
     name: Build ${{ matrix.project.name }}

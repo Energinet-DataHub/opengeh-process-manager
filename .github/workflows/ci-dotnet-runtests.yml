@@ -63,6 +63,8 @@ jobs:
                   assembly_name  = "Energinet.DataHub.$($sut).dll"
                   dotnet_version = "net8.0"
                 }               
+              } else {
+                Write-Host "No twin project found in path $sutFilePath"
               }
             }
           }

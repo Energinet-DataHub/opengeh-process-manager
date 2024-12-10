@@ -16,7 +16,6 @@ using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_Example.Example.V1;
 using Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
@@ -37,13 +36,9 @@ var host = new HostBuilder()
         // => Orchestration Descriptions
         services.AddProcessManagerForOrchestrations(() =>
         {
-            // TODO:
-            // We could implement an interface for "description building" which could then be implemented besides the orchestration.
-            // During DI we could then search for all these interface implementations and register them automatically.
-            // This would ensure we didn't have to update Program.cs when we change orchestrations.
-            var brs_Xyz_v1 = CreateBrs_Example_V1Description();
+            var brs_Xyz_Example_V1 = CreateBrs_Xyz_Example_V1Description();
 
-            return [brs_Xyz_v1];
+            return [brs_Xyz_Example_V1];
         });
 
         // => Handlers
@@ -58,7 +53,7 @@ var host = new HostBuilder()
 await host.SynchronizeWithOrchestrationRegisterAsync("Example.Orchestrations").ConfigureAwait(false);
 await host.RunAsync().ConfigureAwait(false);
 
-OrchestrationDescription CreateBrs_Example_V1Description()
+OrchestrationDescription CreateBrs_Xyz_Example_V1Description()
 {
     var orchestrationDescriptionUniqueName = new Brs_Xyz_Example_V1();
 

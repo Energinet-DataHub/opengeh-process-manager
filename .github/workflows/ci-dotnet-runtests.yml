@@ -176,13 +176,13 @@ jobs:
       use_azure_functions_tools: true
       aspnetcore_test_contentroot_variable_name: empty
       aspnetcore_test_contentroot_variable_value: empty
+      testproject_orchestrations_name: ProcessManager.Orchestrations
+      testproject_orchestrations_artifact_name: pm-tests-ProcessManager.Orchestrations-${{ github.event.pull_request.number }}
+      testproject_processmanager_name: ProcessManager
+      testproject_processmanager_artifact_name: pm-tests-ProcessManager-${{ github.event.pull_request.number }}      
       # Matrix parameters
       testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
       testproject_name: ${{ matrix.project.name }}
       testproject_sut_artifact_name: pm-tests-${{ matrix.project.name_sut }}-${{ github.event.pull_request.number }}
       testproject_sut_name: ${{ matrix.project.name_sut }}
-      testproject_orchestrations_name: ProcessManager.Orchestrations
-      testproject_orchestrations_artifact_name: pm-tests-ProcessManager.Orchestrations-${{ github.event.pull_request.number }}
-      testproject_processmanager_name: ProcessManager
-      testproject_processmanager_artifact_name: pm-tests-ProcessManager-${{ github.event.pull_request.number }}
       tests_dll_file_path: \source\${{ matrix.project.name}}\bin\Release\${{matrix.project.dotnet_version}}\${{ matrix.project.assembly_name }}

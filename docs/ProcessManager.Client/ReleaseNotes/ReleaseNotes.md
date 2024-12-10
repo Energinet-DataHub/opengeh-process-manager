@@ -2,7 +2,7 @@
 
 ## Version 0.14.1
 
-- No functional change.
+- Rename service bus client options
 
 ## Version 0.14.0
 

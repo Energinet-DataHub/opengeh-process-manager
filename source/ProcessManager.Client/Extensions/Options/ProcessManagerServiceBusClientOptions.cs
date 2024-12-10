@@ -15,28 +15,18 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Configuration;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 
 /// <summary>
-/// Contains options required for the orchestrations app to connect to the
-/// ProcessManager Service Bus topic.
+/// Options for configuration of Process Manager Service Bus clients using the Process Manager.
 /// </summary>
-public class ProcessManagerTopicOptions
+public class ProcessManagerServiceBusClientOptions
 {
-    /// <summary>
-    /// Name of the section in the <see cref="IConfiguration"/> / appsettings.json file
-    /// </summary>
-    public const string SectionName = "ProcessManagerTopic";
+    public const string SectionName = "ProcessManagerServiceBusClient";
 
     /// <summary>
-    /// Name of the ProcessManager Service Bus topic
+    /// Name of the topic which the Process Manager receives service bus messages on
     /// </summary>
     [Required]
-    public string TopicName { get; } = string.Empty;
-
-    /// <summary>
-    /// Name of the subscription for BRS026 to the ProcessManager Service Bus topic
-    /// </summary>
-    [Required]
-    public string Brs026SubscriptionName { get; } = string.Empty;
+    public string TopicName { get; set; } = string.Empty;
 }

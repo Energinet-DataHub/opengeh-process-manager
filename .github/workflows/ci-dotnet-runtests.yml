@@ -51,15 +51,19 @@ jobs:
                 dotnet_version = "net8.0"
               } 
 
-              # We need to add the function app project to the matrix as well because it may be needed by TestCommon when running integrationtests
+              # We need to add the test project's 'twin' project to the matrix as well because it may be needed by TestCommon when running integrationtests
               $sut = $project.Name -replace ".Tests", ""
               $sutFilePath = $project.FilePath -replace ".Tests", "" 
-              $matrix += [PSCustomObject]@{
-                name           = $sut
-                filepath       = $sutFilePath
-                assembly_name  = "Energinet.DataHub.$($sut).dll"
-                dotnet_version = "net8.0"
-              }               
+
+              # Some projects such as 'SubsystemTests' do not have a 'twin' project we need to build
+              if (Test-Path $sutFilePath) {
+                $matrix += [PSCustomObject]@{
+                  name           = $sut
+                  filepath       = $sutFilePath
+                  assembly_name  = "Energinet.DataHub.$($sut).dll"
+                  dotnet_version = "net8.0"
+                }               
+              }
             }
           }
           $matrixJson = $matrix | ConvertTo-Json -Compress

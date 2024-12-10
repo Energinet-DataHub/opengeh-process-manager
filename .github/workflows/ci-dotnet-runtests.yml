@@ -130,7 +130,7 @@ jobs:
       use_azure_functions_tools: true
       aspnetcore_test_contentroot_variable_name: empty
       aspnetcore_test_contentroot_variable_value: empty
-      solution_file_path: source/ProcessManager.sln
+      solution_file_path: 'source/ProcessManager.sln'
     
       # Matrix parameters
       testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}

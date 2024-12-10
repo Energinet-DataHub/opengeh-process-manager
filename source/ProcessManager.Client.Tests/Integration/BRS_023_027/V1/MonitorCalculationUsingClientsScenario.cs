@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Client.Tests.Extensions;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
@@ -43,13 +44,13 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
         Fixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
-        services.AddScoped(_ => CreateInMemoryConfigurations(new Dictionary<string, string?>()
+        services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
                 = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-        }));
+        });
         services.AddProcessManagerHttpClients();
         ServiceProvider = services.BuildServiceProvider();
     }
@@ -250,12 +251,5 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             delay: TimeSpan.FromSeconds(3));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
-    }
-
-    private IConfiguration CreateInMemoryConfigurations(Dictionary<string, string?> configurations)
-    {
-        return new ConfigurationBuilder()
-            .AddInMemoryCollection(configurations)
-            .Build();
     }
 }

@@ -13,31 +13,37 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 
 public class ProcessManagerClientFixture : IAsyncLifetime
 {
+    private const string TaskHubName = "ClientsTest01";
+
     public ProcessManagerClientFixture()
     {
-        var taskHubName = "ClientsTest01";
-
         DatabaseManager = new ProcessManagerDatabaseManager("ProcessManagerClientTests");
-        IntegrationTestConfiguration = new IntegrationTestConfiguration();
         AzuriteManager = new AzuriteManager(useOAuth: true);
+        DurableTaskManager = new DurableTaskManager(
+            "AzuriteConnectionString",
+            AzuriteManager.FullConnectionString);
+
+        IntegrationTestConfiguration = new IntegrationTestConfiguration();
 
         OrchestrationsAppManager = new OrchestrationsAppManager(
             DatabaseManager,
             IntegrationTestConfiguration,
             AzuriteManager,
-            taskHubName: taskHubName,
+            taskHubName: TaskHubName,
             appPort: 8101,
             manageDatabase: false,
             manageAzurite: false);
@@ -46,7 +52,7 @@ public class ProcessManagerClientFixture : IAsyncLifetime
             DatabaseManager,
             IntegrationTestConfiguration,
             AzuriteManager,
-            taskHubName: taskHubName,
+            taskHubName: TaskHubName,
             appPort: 8102,
             manageDatabase: false,
             manageAzurite: false);
@@ -57,18 +63,23 @@ public class ProcessManagerClientFixture : IAsyncLifetime
             IntegrationTestConfiguration.Credential);
     }
 
+    public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
+
     public OrchestrationsAppManager OrchestrationsAppManager { get; }
 
     public ProcessManagerAppManager ProcessManagerAppManager { get; }
+
+    [NotNull]
+    public IDurableClient? DurableClient { get; private set; }
 
     [NotNull]
     public TopicResource? ProcessManagerTopic { get; private set; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
-    private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
-
     private AzuriteManager AzuriteManager { get; }
+
+    private DurableTaskManager DurableTaskManager { get; }
 
     private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
@@ -78,6 +89,8 @@ public class ProcessManagerClientFixture : IAsyncLifetime
         AzuriteManager.StartAzurite();
 
         await DatabaseManager.CreateDatabaseAsync();
+
+        DurableClient = DurableTaskManager.CreateClient(TaskHubName);
 
         var brs023SubscriptionName = "brs-026-subscription";
         var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
@@ -97,6 +110,7 @@ public class ProcessManagerClientFixture : IAsyncLifetime
     {
         await OrchestrationsAppManager.DisposeAsync();
         await ProcessManagerAppManager.DisposeAsync();
+        await DurableTaskManager.DisposeAsync();
         await DatabaseManager.DeleteDatabaseAsync();
         AzuriteManager.Dispose();
         await ServiceBusResourceProvider.DisposeAsync();

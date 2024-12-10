@@ -50,11 +50,20 @@ jobs:
                 assembly_name  = "Energinet.DataHub.$($project.Name).dll"
                 dotnet_version = "net8.0"
               } 
+
+              // We need to add the function app project to the matrix as well because it may be needed by TestCommon when running integrationtests
+              $sut = $project.Name -replace ".Tests", ""
+              $sutFilePath = 
+              $matrix += [PSCustomObject]@{
+                name           = $sut
+                filepath       = $project.FilePath
+                assembly_name  = "Energinet.DataHub.$($project.Name).dll"
+                dotnet_version = "net8.0"
+              }               
             }
           }
           $matrixJson = $matrix | ConvertTo-Json -Compress
 
-          Write-Host "Matrix JSON: $matrixJson"
           "matrix=$matrixJson" >> $env:GITHUB_OUTPUT
 
   print_matrix:
@@ -65,7 +74,7 @@ jobs:
     steps:
       - name: Print
         run: |
-          echo "Matrix: ${{needs.build_matrix.outputs.matrix}}"
+          echo "Matrix: ${{needs.build_matrix.outputs.matrix}} | ConvertFrom-Json | ConvertTo-Json"
 
   build_tests_in_project:
     name: Build ${{ matrix.project.name }}

@@ -2,7 +2,7 @@
 
 ## Version 0.2.1
 
-- No functional change
+- Updated `Brs_021_ForwardMeteredData_V1` unique name to `Brs_021_ForwardMeteredData`
 
 ## Version 0.2.0
 

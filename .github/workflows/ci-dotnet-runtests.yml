@@ -122,7 +122,6 @@ jobs:
           retention-days: 2
           name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
           path: ${{ env.OUTPUT_PATH }}/*
-          compression-level: 9
 
   # integration_tests:
   #   needs: [

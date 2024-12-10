@@ -31,7 +31,8 @@ jobs:
     name: Build matrix
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix_builds: ${{ steps.set-matrix.outputs.matrix_builds }}
+      matrix_tests: ${{ steps.set-matrix.outputs.matrix_tests }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,26 +42,32 @@ jobs:
         shell: pwsh
         run: |
           $affectedProjects = '${{ inputs.affected_changes  }}' | ConvertFrom-Json
-          # $matrix = $affectedProjects | Where-Object {$_.Name -like '*Tests*'} | Select-Object -ExpandProperty Filepath  | ConvertTo-Json -Compress
+          # $matrixBuilds = $affectedProjects | Where-Object {$_.Name -like '*Tests*'} | Select-Object -ExpandProperty Filepath  | ConvertTo-Json -Compress
 
           # I couldn't find a better way to lowercase keys in a hashtable
-          $matrix = @()
+          $matrixBuilds = @()
+          $matrixTests = @()
+
           foreach ($project in $affectedProjects) {
             if ($project.Name -like '*Tests*') {
-              $matrix += [PSCustomObject]@{
+              $matrixObj = [PSCustomObject]@{
                 name           = $project.Name
+                name_sut       = $project.Name -replace ".Tests", ""
                 filepath       = $project.FilePath
                 assembly_name  = "Energinet.DataHub.$($project.Name).dll"
                 dotnet_version = "net8.0"
-              } 
+              }
+              $matrixBuilds += $matrixObj
+              $matrixTests += $matrixObj
 
-              # We need to add the test project's 'twin' project to the matrix as well because it may be needed by TestCommon when running integrationtests
+              # We need to add the test project's 'twin' project to the matrix_build output as well because it may be needed by TestCommon when running integrationtests
+              # which is why we create an artifact with the System Under Test (SUT) that can be downloaded and and copied to the correct relative path expected by TestCommon during test execution
               $sut = $project.Name -replace ".Tests", ""
               $sutFilePath = $project.FilePath -replace ".Tests", "" 
 
               # Some projects such as 'SubsystemTests' do not have a 'twin' project we need to build
               if (Test-Path $sutFilePath) {
-                $matrix += [PSCustomObject]@{
+                $matrixBuilds += [PSCustomObject]@{
                   name           = $sut
                   filepath       = $sutFilePath
                   assembly_name  = "Energinet.DataHub.$($sut).dll"
@@ -71,9 +78,11 @@ jobs:
               }
             }
           }
-          $matrixJson = $matrix | ConvertTo-Json -Compress
+          $matrixBuildsJson = $matrixBuilds | ConvertTo-Json -Compress
+          $matrixTestsJson = $matrixTests | ConvertTo-Json -Compress
 
-          "matrix=$matrixJson" >> $env:GITHUB_OUTPUT
+          "matrix_builds=$matrixBuildsJson" >> $env:GITHUB_OUTPUT
+          "matrix_tests=$matrixTestsJson" >> $env:GITHUB_OUTPUT
 
   print_matrix:
     if: ${{ inputs.print_debug_output == 'true' }}
@@ -85,8 +94,8 @@ jobs:
         shell: pwsh
         run: |
           Write-Host 'Print matrix'
-          $matrix = '${{needs.build_matrix.outputs.matrix}}' | ConvertFrom-Json | ConvertTo-Json
-          Write-Host $matrix
+          $matrixBuilds = '${{needs.build_matrix.outputs.matrix_builds}}' | ConvertFrom-Json | ConvertTo-Json
+          Write-Host $matrixBuilds
 
   build_tests_in_project:
     name: Build ${{ matrix.project.name }}
@@ -95,7 +104,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: 
-        project: ${{fromJson(needs.build_matrix.outputs.matrix)}} 
+        project: ${{fromJson(needs.build_matrix.outputs.matrix_builds)}} 
     env:
       OUTPUT_PATH: ${{ github.workspace }}/source/${{ matrix.project.name}}/bin/Release/${{matrix.project.dotnet_version}}
     steps:
@@ -123,30 +132,28 @@ jobs:
           name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
           path: ${{ env.OUTPUT_PATH }}/*
 
-  # integration_tests:
-  #   needs: [
-  #     build_matrix,
-  #     build_tests_in_project
-  #   ]
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       project: ${{fromJson(needs.build_matrix.outputs.matrix)}}      
-  #   uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test-monorepo.yml@kerbou/2524-build-brs-pipeline
-  #   with:
-  #     azure_integrationtest_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
-  #     azure_integrationtest_subscription_id: ${{ vars.integration_test_azure_subscription_id }}
-  #     azure_integrationtest_spn_id: ${{ vars.integration_test_azure_spn_id_oidc }}
-  #     azure_keyvault_url: ${{ vars.integration_test_azure_keyvault_url }}
-  #     environment: AzureAuth
-  #     run_integration_tests: true 
-  #     tests_filter_expression: empty # Means skip
-  #     use_azure_functions_tools: true
-  #     aspnetcore_test_contentroot_variable_name: empty
-  #     aspnetcore_test_contentroot_variable_value: empty
-  #     # Matrix parameters
-  #     testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
-  #     testproject_sut_artifact_name: pm-tests-${{ matrix.project.sut_name }}-${{ github.event.pull_request.number }}
-
-  #     testproject_name: ${{ matrix.project.name }}
-  #     tests_dll_file_path: \source\${{ matrix.project.name}}\bin\Release\${{matrix.project.dotnet_version}}\${{ matrix.project.assembly_name }}
+  integration_tests:
+    needs: [
+      build_matrix,
+      build_tests_in_project
+    ]
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{fromJson(needs.build_matrix.outputs.matrix_tests)}}      
+    uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test-monorepo.yml@kerbou/2524-build-brs-pipeline
+    with:
+      azure_integrationtest_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
+      azure_integrationtest_subscription_id: ${{ vars.integration_test_azure_subscription_id }}
+      azure_integrationtest_spn_id: ${{ vars.integration_test_azure_spn_id_oidc }}
+      azure_keyvault_url: ${{ vars.integration_test_azure_keyvault_url }}
+      environment: AzureAuth
+      run_integration_tests: true 
+      tests_filter_expression: empty # Means skip
+      use_azure_functions_tools: true
+      aspnetcore_test_contentroot_variable_name: empty
+      aspnetcore_test_contentroot_variable_value: empty
+      # Matrix parameters
+      testproject_sut_artifact_name: ${{ matrix.project.name_sut }}
+      testproject_name: ${{ matrix.project.name }}
+      tests_dll_file_path: \source\${{ matrix.project.name}}\bin\Release\${{matrix.project.dotnet_version}}\${{ matrix.project.assembly_name }}

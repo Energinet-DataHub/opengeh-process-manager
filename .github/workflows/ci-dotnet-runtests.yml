@@ -88,26 +88,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ github.event.pull_request.number }}-${{ matrix.project.name}} # Cache per PR
+      # - uses: actions/cache@v4
+      #   with:
+      #     path: ~/.nuget/packages
+      #     key: ${{ runner.os }}-nuget-${{ github.event.pull_request.number }}-${{ matrix.project.name}} # Cache per PR
 
-      - name: Build ${{ matrix.project.name }}
-        run: |
-          dotnet publish \
-            '${{ matrix.project.filepath }}' \
-            --configuration Release \
-            --output '${{ env.OUTPUT_PATH }}' \
-            -p:ErrorOnDuplicatePublishOutputFiles=false  # To avoid the error "Found multiple publish output files with the same relative path"
+      # - name: Build ${{ matrix.project.name }}
+      #   run: |
+      #     dotnet publish \
+      #       '${{ matrix.project.filepath }}' \
+      #       --configuration Release \
+      #       --output '${{ env.OUTPUT_PATH }}' \
+      #       -p:ErrorOnDuplicatePublishOutputFiles=false  # To avoid the error "Found multiple publish output files with the same relative path"
 
-          # ls ${{ env.OUTPUT_PATH}}
+      #     # ls ${{ env.OUTPUT_PATH}}
 
-      - uses: actions/upload-artifact@v4
-        with:
-          retention-days: 2
-          name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
-          path: ${{ env.OUTPUT_PATH }}/*
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     retention-days: 2
+      #     name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
+      #     path: ${{ env.OUTPUT_PATH }}/*
 
   integration_tests:
     needs: [

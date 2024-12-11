@@ -36,9 +36,9 @@ jobs:
       solution_file: source/ProcessManager.sln
       hostnames: "
             {
-              'processmanager_v1': 'ProcessManager.csproj',
-              'orchestrations_v1': 'ProcessManager.Orchestrations.csproj',
-              'dbmigrations_v1': 'ProcessManager.DatabaseMigration.csproj'
+              'processmanager': 'ProcessManager.csproj',
+              'orchestrations': 'ProcessManager.Orchestrations.csproj',
+              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
             }"
 
   ci_processmanager_nuget:
@@ -48,20 +48,22 @@ jobs:
     secrets: inherit
 
   ci_dotnet_everest:
-    if: ${{ fromJson(needs.changes.outputs.job_context).everest == 'true' }}
+    if: ${{ fromJson(needs.changes.outputs.job_context).processmanager == 'true' }}
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
     with:
       release_name: process_manager_everest
       project_file: source/ProcessManager/ProcessManager.csproj
+      version: '1'
 
   ci_dotnet_montblanc:
-    if: ${{ fromJson(needs.changes.outputs.job_context).montblanc == 'true' }}
+    if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true' }}
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
     with:
       release_name: process_manager_montblanc
       project_file: source/ProcessManager/ProcessManager.csproj
+      version: '1'
 
   ci_dotnet_dbmigrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
@@ -70,7 +72,8 @@ jobs:
     with:
       release_name: process_manager_dbmigrations
       project_file: source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj
-
+      version: '1'
+      
   ci_run_tests:
     needs: changes
     uses: ./.github/workflows/ci-dotnet-runtests.yml

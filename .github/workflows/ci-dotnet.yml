@@ -25,6 +25,10 @@ on:
         description: The context of the job
         type: string
         required: true
+      version:
+        description: The version of the artifact
+        required: true
+        type: string
       nuget_cache_key_prefix:
         description: Cache key prefix
         required: false
@@ -37,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RELEASE_FOLDER_PATH: ${{ github.workspace }}/output
-      RELEASE_VERSION: ${{ inputs.release_name }}_${{ github.event.pull_request.number }}
+      RELEASE_VERSION: ${{ inputs.release_name }}_v${{ inputs.version }}_${{ github.event.pull_request.number }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

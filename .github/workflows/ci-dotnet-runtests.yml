@@ -25,6 +25,10 @@ on:
         description: Enable debug logging
         required: false
         type: string
+      nuget_cache_key_prefix:
+        description: Cache key prefix
+        required: true
+        type: string
 
 jobs:
   build_matrix:
@@ -33,7 +37,6 @@ jobs:
     outputs:
       matrix_builds: ${{ steps.set-matrix.outputs.matrix_builds }}
       matrix_tests: ${{ steps.set-matrix.outputs.matrix_tests }}
-      cache_key_prefix: nuget-pr${{ github.event.pull_request.number }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -131,7 +134,7 @@ jobs:
       aspnetcore_test_contentroot_variable_name: empty
       aspnetcore_test_contentroot_variable_value: empty
       solution_file_path: 'source\ProcessManager.sln'
-      nuget_cache_key_prefix: ${{ needs.build_matrix.outputs.cache_key_prefix }}
+      nuget_cache_key_prefix: ${{ inputs.nuget_cache_key_prefix }}
     
       # Matrix parameters
       testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}

@@ -25,6 +25,11 @@ on:
         description: The context of the job
         type: string
         required: true
+      nuget_cache_key_prefix:
+        description: Cache key prefix
+        required: false
+        type: string
+        default: nuget-pr${{ github.event.pull_request.number }}
 
 jobs:
   build_artifact:
@@ -34,13 +39,13 @@ jobs:
       RELEASE_FOLDER_PATH: ${{ github.workspace }}/output
       RELEASE_VERSION: ${{ inputs.release_name }}_${{ github.event.pull_request.number }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ env.RELEASE_VERSION }}-${{ inputs.release_name }} # Cache per PR
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
+          key: ${{ inputs.nuget_cache_key_prefix }}-${{ hashFiles('**/*.csproj') }} # Cache per PR        
 
       - name: Build ${{ inputs.release_name }}
         run: |

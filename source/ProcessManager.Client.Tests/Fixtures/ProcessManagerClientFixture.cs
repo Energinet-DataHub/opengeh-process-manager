@@ -92,12 +92,17 @@ public class ProcessManagerClientFixture : IAsyncLifetime
 
         DurableClient = DurableTaskManager.CreateClient(TaskHubName);
 
-        ProcessManagerTopic = await ServiceBusResourceProvider.BuildTopic("pm-topic")
-            .AddSubscription("brs-026-subscription")
-            .CreateAsync();
-        var brs026Subscription = ProcessManagerTopic.Subscriptions.Single();
+        var brs026SubscriptionName = "brs-026-subscription";
+        var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
 
-        await OrchestrationsAppManager.StartAsync(brs026Subscription);
+        ProcessManagerTopic = await ServiceBusResourceProvider.BuildTopic("pm-topic")
+            .AddSubscription(brs026SubscriptionName)
+            .AddSubscription(brs021ForwardMeteredDataSubscriptionName)
+            .CreateAsync();
+        var brs026Subscription = ProcessManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
+        var brs021ForwardMeteredDataSubscription = ProcessManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
+
+        await OrchestrationsAppManager.StartAsync(brs026Subscription, brs021ForwardMeteredDataSubscription);
         await ProcessManagerAppManager.StartAsync();
     }
 

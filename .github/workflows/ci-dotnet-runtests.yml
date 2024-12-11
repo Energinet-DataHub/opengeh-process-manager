@@ -33,6 +33,7 @@ jobs:
     outputs:
       matrix_builds: ${{ steps.set-matrix.outputs.matrix_builds }}
       matrix_tests: ${{ steps.set-matrix.outputs.matrix_tests }}
+      cache_key_prefix: nuget-pr${{ github.event.pull_request.number }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -91,7 +92,7 @@ jobs:
   #     - uses: actions/cache@v4
   #       with:
   #         path: ~/.nuget/packages
-  #         key: ${{ runner.os }}-nuget-${{ github.event.pull_request.number }}-${{ matrix.project.name}} # Cache per PR
+  #         key: ${{ needs.build_matrix.outputs.cache_key_prefix }}-${{ hashFiles('**/*.csproj') }}
 
   #     - name: Build ${{ matrix.project.name }}
   #       run: |
@@ -130,6 +131,7 @@ jobs:
       aspnetcore_test_contentroot_variable_name: empty
       aspnetcore_test_contentroot_variable_value: empty
       solution_file_path: 'source\ProcessManager.sln'
+      nuget_cache_key_prefix: ${{ needs.build_matrix.outputs.cache_key_prefix }}
     
       # Matrix parameters
       testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}

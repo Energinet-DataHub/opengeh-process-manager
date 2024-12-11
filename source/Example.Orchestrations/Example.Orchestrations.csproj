@@ -6,6 +6,8 @@
         <OutputType>Exe</OutputType>
     </PropertyGroup>
     <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
         <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="13.2.0" />
     </ItemGroup>
     <ItemGroup>
@@ -19,5 +21,18 @@
 
     <ItemGroup>
         <Compile Include="..\Shared\ProcessManager\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="host.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="local.settings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      </EmbeddedResource>
     </ItemGroup>
 </Project>

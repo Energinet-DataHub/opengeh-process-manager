@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Runtime.CompilerServices;
+using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.Logging;
 using NCrontab;
@@ -23,11 +26,16 @@ namespace Energinet.DataHub.ProcessManager.Scheduler;
 public class RecurringPlannerHandler(
     ILogger<RecurringPlannerHandler> logger,
     IClock clock,
-    IRecurringOrchestrationQueries query)
+    IRecurringOrchestrationQueries query,
+    IStartOrchestrationInstanceCommands manager)
 {
+    internal static readonly ActorIdentity DatahubAdministratorActorId =
+        new ActorIdentity(new ActorId(Guid.Parse("00000000-0000-0000-0000-000000000001")));
+
     private readonly ILogger _logger = logger;
     private readonly IClock _clock = clock;
     private readonly IRecurringOrchestrationQueries _query = query;
+    private readonly IStartOrchestrationInstanceCommands _manager = manager;
 
     public async Task PerformRecurringPlanningAsync()
     {
@@ -71,7 +79,14 @@ public class RecurringPlannerHandler(
 
                 foreach (var occurrence in missingOccurrences)
                 {
-                    // TODO: Schedule orchestration instance
+                    var runAt = Instant.FromDateTimeUtc(occurrence);
+
+                    var orchestrationInstance = await _manager
+                        .ScheduleNewOrchestrationInstanceAsync(
+                            DatahubAdministratorActorId,
+                            orchestrationDescription.UniqueName,
+                            runAt)
+                        .ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

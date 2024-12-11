@@ -42,7 +42,7 @@ public interface IStartOrchestrationInstanceCommands
     /// Schedule a new instance of an orchestration.
     /// </summary>
     Task<OrchestrationInstanceId> ScheduleNewOrchestrationInstanceAsync(
-        UserIdentity identity,
+        OperatingIdentity identity,
         OrchestrationDescriptionUniqueName uniqueName,
         Instant runAt);
 

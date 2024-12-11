@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
@@ -30,19 +31,25 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
 {
     private readonly RecurringPlannerHandlerFixture _fixture;
     private readonly Mock<IClock> _clockMock;
+    private readonly Mock<IStartOrchestrationInstanceCommands> _managerMock;
     private readonly ProcessManagerContext _dbContext;
     private readonly RecurringPlannerHandler _sut;
 
     public RecurringPlannerHandlerTests(RecurringPlannerHandlerFixture fixture)
     {
         _fixture = fixture;
+
         _clockMock = new Mock<IClock>();
+        _managerMock = new Mock<IStartOrchestrationInstanceCommands>();
+
         _dbContext = _fixture.DatabaseManager.CreateDbContext();
         var queries = new RecurringOrchestrationQueries(_dbContext);
+
         _sut = new RecurringPlannerHandler(
             Mock.Of<ILogger<RecurringPlannerHandler>>(),
             _clockMock.Object,
-            queries);
+            queries,
+            _managerMock.Object);
     }
 
     [Fact]
@@ -67,13 +74,16 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
         await _sut.PerformRecurringPlanningAsync();
 
         // Assert
-        await using (var readDbContext = _fixture.DatabaseManager.CreateDbContext())
-        {
-            var actual = await readDbContext.OrchestrationInstances.ToListAsync();
-
-            actual.Should().Satisfy(x => x.Lifecycle.ScheduledToRunAt == Instant.FromUtc(2024, 12, 1, 12, 0));
-            actual.Should().Satisfy(x => x.Lifecycle.ScheduledToRunAt == Instant.FromUtc(2024, 12, 1, 17, 0));
-        }
+        _managerMock.Verify(manager => manager
+            .ScheduleNewOrchestrationInstanceAsync(
+                RecurringPlannerHandler.DatahubAdministratorActorId,
+                uniqueName,
+                Instant.FromUtc(2024, 12, 1, 12, 0)));
+        _managerMock.Verify(manager => manager
+            .ScheduleNewOrchestrationInstanceAsync(
+                RecurringPlannerHandler.DatahubAdministratorActorId,
+                uniqueName,
+                Instant.FromUtc(2024, 12, 1, 17, 0)));
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(

@@ -21,6 +21,9 @@ internal class SchedulerTrigger(
 {
     private readonly SchedulerHandler _handler = handler;
 
+    /// <summary>
+    /// DO NOT rename this function because we use the name to disable it in preproduction/production.
+    /// </summary>
     [Function(nameof(StartScheduledOrchestrationInstances))]
     public Task StartScheduledOrchestrationInstances(
         [TimerTrigger("*/10 * * * * *")] TimerInfo timerInfo) // Runs every 10 seconds

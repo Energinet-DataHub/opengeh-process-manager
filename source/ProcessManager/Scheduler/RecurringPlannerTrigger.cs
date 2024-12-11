@@ -21,6 +21,9 @@ internal class RecurringPlannerTrigger(
 {
     private readonly RecurringPlannerHandler _handler = handler;
 
+    /// <summary>
+    /// DO NOT rename this function because we use the name to disable it in preproduction/production.
+    /// </summary>
     [Function(nameof(PerformRecurringPlanning))]
     public Task PerformRecurringPlanning(
         [TimerTrigger("0 0 * * * *")] TimerInfo timerInfo) // Runs every hour

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: Find affected .NET projects
-description: "Find affected .NET projects in a solution."
+description: Find affected .NET projects in a solution
 
 inputs:
   solution_file:
@@ -37,10 +37,10 @@ inputs:
     default: "false"
 outputs:
   affected_changes:
-    description: "The affected projects, if any"
+    description: The affected projects, if any
     value: ${{ steps.filter.outputs.affected_changes }}
   job_context:
-    description: "The job context output, if any"
+    description: The job context output, if any
     value: ${{ steps.filter.outputs.job_context }}
 
 runs:
@@ -65,7 +65,7 @@ runs:
         if (Test-Path $AffectedProjectsFile) {
           $affectedJson = Get-Content $AffectedProjectsFile
           "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
-          
+
           $job_context_output = Find-AffectedHosts -AffectedProjects $affectedJson -HostNames $hostNamesJson
           "job_context=$job_context_output" >> $env:GITHUB_OUTPUT
         } else {

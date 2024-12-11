@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Runtime.CompilerServices;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
-using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.Logging;
 using NCrontab;
 using NodaTime;
@@ -25,22 +23,24 @@ namespace Energinet.DataHub.ProcessManager.Scheduler;
 
 public class RecurringPlannerHandler(
     ILogger<RecurringPlannerHandler> logger,
+    DateTimeZone dateTimeZone,
     IClock clock,
     IRecurringOrchestrationQueries query,
     IStartOrchestrationInstanceCommands manager)
 {
     internal static readonly ActorIdentity DatahubAdministratorActorId =
-        new ActorIdentity(new ActorId(Guid.Parse("00000000-0000-0000-0000-000000000001")));
+        new(new ActorId(Guid.Parse("00000000-0000-0000-0000-000000000001")));
 
     private readonly ILogger _logger = logger;
+    private readonly DateTimeZone _dateTimeZone = dateTimeZone;
     private readonly IClock _clock = clock;
     private readonly IRecurringOrchestrationQueries _query = query;
     private readonly IStartOrchestrationInstanceCommands _manager = manager;
 
     public async Task PerformRecurringPlanningAsync()
     {
-        var now = _clock.GetCurrentInstant();
-        var runAtOrLater = now.PlusMinutes(5);
+        var zonedDateTimeNow = new ZonedDateTime(_clock.GetCurrentInstant(), _dateTimeZone);
+        var runAtOrLater = zonedDateTimeNow.PlusMinutes(5);
         var runAtOrEarlier = runAtOrLater.PlusHours(24);
 
         var orchestrationDescriptions = await _query
@@ -52,31 +52,47 @@ public class RecurringPlannerHandler(
             try
             {
                 var cronSchedule = CrontabSchedule.Parse(orchestrationDescription.RecurringCronExpression);
-                var scheduleAtOccurrences = cronSchedule.GetNextOccurrences(
-                    runAtOrLater.ToDateTimeUtc(),
-                    runAtOrEarlier.ToDateTimeUtc());
+                // Values must NOT be converted to UTC because the cron expression specified by developers
+                // are expected to be in local danish time.
+                var scheduleAtInTimeZone = cronSchedule.GetNextOccurrences(
+                    runAtOrLater.ToDateTimeUnspecified(),
+                    runAtOrEarlier.ToDateTimeUnspecified());
 
-                var scheduledInstances = await _query
-                    .SearchScheduledOrchestrationInstancesAsync(
-                        orchestrationDescription.UniqueName,
-                        runAtOrLater,
-                        runAtOrEarlier)
-                    .ConfigureAwait(false);
-
-                var missingOccurrences = scheduleAtOccurrences
-                    .Where(datetime => !scheduledInstances.Any(instance => instance.Lifecycle.ScheduledToRunAt!.Value.ToDateTimeUtc() == datetime))
-                    .ToList();
-
-                foreach (var occurrence in missingOccurrences)
+                if (scheduleAtInTimeZone.Any())
                 {
-                    var runAt = Instant.FromDateTimeUtc(occurrence);
+                    // Values must be converted to UTC
+                    var scheduleAtAsInstant = scheduleAtInTimeZone
+                        .Select(value =>
+                        {
+                            var localTime = new LocalTime(value.Hour, value.Minute);
+                            var localDate = new LocalDate(value.Year, value.Month, value.Day);
+                            var localDateTime = localDate.At(localTime);
+                            var dateTimeInZone = localDateTime.InZoneLeniently(_dateTimeZone);
 
-                    var orchestrationInstance = await _manager
-                        .ScheduleNewOrchestrationInstanceAsync(
-                            DatahubAdministratorActorId,
+                            return dateTimeInZone.ToInstant();
+                        });
+
+                    // In the database 'RunAt' is an instant (UTC), so we must compare using UTC
+                    var scheduledInstances = await _query
+                        .SearchScheduledOrchestrationInstancesAsync(
                             orchestrationDescription.UniqueName,
-                            runAt)
+                            runAtOrLater.ToInstant(),
+                            runAtOrEarlier.ToInstant())
                         .ConfigureAwait(false);
+
+                    var missingOccurrences = scheduleAtAsInstant
+                        .Where(x => !scheduledInstances.Any(instance => instance.Lifecycle.ScheduledToRunAt!.Value == x))
+                        .ToList();
+
+                    foreach (var occurrence in missingOccurrences)
+                    {
+                        var orchestrationInstance = await _manager
+                            .ScheduleNewOrchestrationInstanceAsync(
+                                DatahubAdministratorActorId,
+                                orchestrationDescription.UniqueName,
+                                runAt: occurrence)
+                            .ConfigureAwait(false);
+                    }
                 }
             }
             catch (Exception ex)

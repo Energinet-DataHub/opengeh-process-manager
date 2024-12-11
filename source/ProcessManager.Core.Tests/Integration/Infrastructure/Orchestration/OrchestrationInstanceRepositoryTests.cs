@@ -26,7 +26,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
 
-public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncDisposable
+public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerCoreFixture _fixture;
     private readonly ProcessManagerContext _dbContext;
@@ -39,7 +39,12 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         _sut = new OrchestrationInstanceRepository(_dbContext);
     }
 
-    public async ValueTask DisposeAsync()
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
     {
         await _dbContext.DisposeAsync();
     }

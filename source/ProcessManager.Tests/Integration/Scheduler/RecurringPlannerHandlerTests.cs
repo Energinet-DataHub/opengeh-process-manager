@@ -19,7 +19,6 @@ using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Scheduling;
 using Energinet.DataHub.ProcessManager.Scheduler;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
-using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -27,7 +26,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Tests.Integration.Scheduler;
 
-public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandlerFixture>
+public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandlerFixture>, IAsyncLifetime
 {
     private readonly RecurringPlannerHandlerFixture _fixture;
     private readonly Mock<IClock> _clockMock;
@@ -52,8 +51,21 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
             _managerMock.Object);
     }
 
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
+    {
+        // Disabling OrchestrationDescriptions so tests doesn't interfere with each other
+        await _dbContext.OrchestrationDescriptions.ForEachAsync(item => item.IsEnabled = false);
+        await _dbContext.SaveChangesAsync();
+        await _dbContext.DisposeAsync();
+    }
+
     [Fact]
-    public async Task GivenRecurringOrchestrationDescriptionPlannedFor12and17_WhenNoExistingOrchestrationInstances_ThenExpectedOrchestrationInstancesAreScheduled()
+    public async Task GivenRecurringOrchestrationDescriptionPlannedFor12and17_WhenNoOrchestrationInstancesAreScheduled_ThenTwoNewOrchestrationInstancesAreScheduled()
     {
         // Arrange
         var timeIs1100 = Instant.FromUtc(2024, 12, 1, 11, 0);
@@ -62,11 +74,11 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
 
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var cronExpressionPlanFor1200And1700 = "0 12,17 * * *";
-        var enabledOrchestrationDescription = CreateOrchestrationDescription(uniqueName, cronExpressionPlanFor1200And1700);
+        var orchestrationDescription = CreateOrchestrationDescription(uniqueName, cronExpressionPlanFor1200And1700);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
-            writeDbContext.OrchestrationDescriptions.Add(enabledOrchestrationDescription);
+            writeDbContext.OrchestrationDescriptions.Add(orchestrationDescription);
             await writeDbContext.SaveChangesAsync();
         }
 
@@ -84,6 +96,77 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
                 RecurringPlannerHandler.DatahubAdministratorActorId,
                 uniqueName,
                 Instant.FromUtc(2024, 12, 1, 17, 0)));
+        _managerMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task GivenRecurringOrchestrationDescriptionPlannedFor12and17_WhenAllOrchestrationInstancesAreScheduled_ThenNoNewOrchestrationInstancesAreScheduled()
+    {
+        // Arrange
+        var timeIs1100 = Instant.FromUtc(2024, 12, 1, 11, 0);
+        _clockMock.Setup(m => m.GetCurrentInstant())
+            .Returns(timeIs1100);
+
+        var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
+        var cronExpressionPlanFor1200And1700 = "0 12,17 * * *";
+        var orchestrationDescription = CreateOrchestrationDescription(uniqueName, cronExpressionPlanFor1200And1700);
+
+        var scheduledToRun01 = CreateOrchestrationInstance(
+            orchestrationDescription,
+            runAt: Instant.FromUtc(2024, 12, 1, 12, 0));
+
+        var scheduledToRun02 = CreateOrchestrationInstance(
+            orchestrationDescription,
+            runAt: Instant.FromUtc(2024, 12, 1, 17, 0));
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(orchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRun01);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRun02);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await _sut.PerformRecurringPlanningAsync();
+
+        // Assert
+        _managerMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task GivenRecurringOrchestrationDescriptionPlannedFor12and17_WhenOrchestrationInstanceAt12IsScheduled_ThenNewOrchestrationInstanceAt17IsScheduled()
+    {
+        // Arrange
+        var timeIs1100 = Instant.FromUtc(2024, 12, 1, 11, 0);
+        _clockMock.Setup(m => m.GetCurrentInstant())
+            .Returns(timeIs1100);
+
+        var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
+        var cronExpressionPlanFor1200And1700 = "0 12,17 * * *";
+        var orchestrationDescription = CreateOrchestrationDescription(uniqueName, cronExpressionPlanFor1200And1700);
+
+        var scheduledToRun01 = CreateOrchestrationInstance(
+            orchestrationDescription,
+            runAt: Instant.FromUtc(2024, 12, 1, 12, 0));
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(orchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRun01);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await _sut.PerformRecurringPlanningAsync();
+
+        // Assert
+        _managerMock.Verify(manager => manager
+            .ScheduleNewOrchestrationInstanceAsync(
+                RecurringPlannerHandler.DatahubAdministratorActorId,
+                uniqueName,
+                Instant.FromUtc(2024, 12, 1, 17, 0)));
+        _managerMock.VerifyNoOtherCalls();
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(

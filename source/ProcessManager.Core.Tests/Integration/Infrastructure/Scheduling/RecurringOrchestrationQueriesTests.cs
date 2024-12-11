@@ -23,7 +23,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Scheduling;
 
-public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
+public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncDisposable
 {
     private readonly ProcessManagerCoreFixture _fixture;
     private readonly ProcessManagerContext _dbContext;
@@ -36,12 +36,7 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
         _sut = new RecurringOrchestrationQueries(_dbContext);
     }
 
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _dbContext.DisposeAsync();
     }

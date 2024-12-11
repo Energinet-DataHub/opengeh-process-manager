@@ -30,6 +30,11 @@ on:
         required: false
         type: string
         default: nuget-pr${{ github.event.pull_request.number }}
+      dotnet_version:
+        description: The version of dotnet to use
+        required: false
+        type: string
+        default: 'net8.0'
 
 jobs:
   build_matrix:
@@ -47,7 +52,6 @@ jobs:
         shell: pwsh
         run: |
           $affectedProjects = '${{ inputs.affected_changes  }}' | ConvertFrom-Json
-          # $matrixBuilds = $affectedProjects | Where-Object {$_.Name -like '*Tests*'} | Select-Object -ExpandProperty Filepath  | ConvertTo-Json -Compress
 
           # I couldn't find a better way to lowercase keys in a hashtable
           $matrixBuilds = @()
@@ -58,7 +62,7 @@ jobs:
                 name           = $project.Name
                 filepath       = $project.FilePath
                 assembly_name  = "Energinet.DataHub.$($project.Name).dll"
-                dotnet_version = "net8.0"
+                dotnet_version = "${{ inputs.dotnet_version }}"
               }
             }
           }      
@@ -96,7 +100,7 @@ jobs:
   #     - uses: actions/cache@v4
   #       with:
   #         path: ~/.nuget/packages
-  #         key: ${{ needs.build_matrix.outputs.cache_key_prefix }}-${{ hashFiles('**/*.csproj') }}
+  #         key: ${{ inputs.nuget_cache_key_prefix }}-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
 
   #     - name: Build ${{ matrix.project.name }}
   #       run: |
@@ -122,7 +126,7 @@ jobs:
       fail-fast: false
       matrix:
         project: ${{fromJson(needs.build_matrix.outputs.matrix_builds)}}      
-    uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test-monorepo.yml@kerbou/2524-build-brs-pipeline
+    uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test-monorepo.yml@v14
     with:
       azure_integrationtest_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
       azure_integrationtest_subscription_id: ${{ vars.integration_test_azure_subscription_id }}

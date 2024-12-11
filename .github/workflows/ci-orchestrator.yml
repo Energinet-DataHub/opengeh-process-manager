@@ -35,7 +35,6 @@ jobs:
   changes:
     uses: ./.github/workflows/detect-changes.yml
     with:
-      print_debug_output: 'true'  # TODO: Remove before merge
       solution_file: 'source/ProcessManager.sln'
       hostnames: "
             {
@@ -78,7 +77,6 @@ jobs:
     needs: changes
     uses: ./.github/workflows/ci-dotnet-runtests.yml
     with:
-      print_debug_output: 'true'  # TODO: Remove before merge
       affected_changes: ${{ needs.changes.outputs.affected_changes }}
 
   #

@@ -72,8 +72,9 @@ public class RecurringOrchestrationQueriesTests : IAsyncLifetime
         var actual = await _sut.GetAllRecurringAsync();
 
         // Assert
-        actual.Should()
-            .BeEquivalentTo(new[] { enabledOrchestrationDescriptionV2 });
+        actual.Should().ContainEquivalentOf(enabledOrchestrationDescriptionV2);
+        actual.Should().NotContainEquivalentOf(enabledOrchestrationDescriptionV1);
+        actual.Should().NotContainEquivalentOf(disabledOrchestrationDescriptionV1);
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(

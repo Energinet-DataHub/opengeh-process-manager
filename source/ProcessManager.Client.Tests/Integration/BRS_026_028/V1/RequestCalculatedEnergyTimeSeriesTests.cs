@@ -83,7 +83,18 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         var businessReason = "test-business-reason";
         var startRequestCommand = new StartRequestCalculatedEnergyTimeSeriesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
-            new RequestCalculatedEnergyTimeSeriesInputV1(businessReason),
+            new RequestCalculatedEnergyTimeSeriesInputV1(
+                RequestedForActorNumber: "23143245321",
+                RequestedForActorRole: "EnergySupplier",
+                BusinessReason: "BalanceFixing",
+                PeriodStart: "2024-04-07 23:00:00",
+                PeriodEnd: "2024-04-08 23:00:00",
+                EnergySupplierNumber: null,
+                BalanceResponsibleNumber: null,
+                GridAreas: ["804"],
+                MeteringPointType: null,
+                SettlementMethod: null,
+                SettlementVersion: null),
             "test-message-id");
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();

@@ -36,9 +36,9 @@ jobs:
       solution_file: source/ProcessManager.sln
       hostnames: "
             {
-              'everest': 'ProcessManager.csproj',
-              'montblanc': 'ProcessManager.Orchestrations.csproj',
-              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
+              'processmanager_v1': 'ProcessManager.csproj',
+              'orchestrations_v1': 'ProcessManager.Orchestrations.csproj',
+              'dbmigrations_v1': 'ProcessManager.DatabaseMigration.csproj'
             }"
 
   ci_processmanager_nuget:

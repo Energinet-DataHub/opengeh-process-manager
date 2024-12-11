@@ -47,7 +47,7 @@ jobs:
     uses: ./.github/workflows/processmanager-client-bundle-publish.yml
     secrets: inherit
 
-  ci_dotnet_everest:
+  ci_processmanager:
     if: ${{ fromJson(needs.changes.outputs.job_context).processmanager == 'true' }}
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
@@ -56,7 +56,7 @@ jobs:
       project_file: source/ProcessManager/ProcessManager.csproj
       version: '1'
 
-  ci_dotnet_montblanc:
+  ci_orchestrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true' }}
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
@@ -65,7 +65,7 @@ jobs:
       project_file: source/ProcessManager/ProcessManager.csproj
       version: '1'
 
-  ci_dotnet_dbmigrations:
+  ci_dbmigrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
@@ -73,7 +73,7 @@ jobs:
       release_name: process_manager_dbmigrations
       project_file: source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj
       version: '1'
-      
+
   ci_run_tests:
     needs: changes
     uses: ./.github/workflows/ci-dotnet-runtests.yml
@@ -90,10 +90,10 @@ jobs:
       [
         ci_base,
         changes,
-        ci_dotnet_everest,
-        ci_dotnet_montblanc,
-        ci_dotnet_dbmigrations,
         ci_processmanager_nuget,
+        ci_processmanager,
+        ci_orchestrations,
+        ci_dbmigrations,
         ci_run_tests
       ]
     if: |

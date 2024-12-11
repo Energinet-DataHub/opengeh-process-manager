@@ -33,7 +33,7 @@ jobs:
   changes:
     uses: ./.github/workflows/detect-changes.yml
     with:
-      solution_file: 'source/ProcessManager.sln'
+      solution_file: source/ProcessManager.sln
       hostnames: "
             {
               'everest': 'ProcessManager.csproj',

@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.14.2
+
+- No functional change
+
 ## Version 0.14.1
 
 - Rename service bus client options

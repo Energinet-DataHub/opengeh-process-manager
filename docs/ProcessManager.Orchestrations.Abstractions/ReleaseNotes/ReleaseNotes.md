@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.2.2
+
+- No functional change
+
 ## Version 0.2.1
 
 - Updated `Brs_021_ForwardMeteredData_V1` unique name to `Brs_021_ForwardMeteredData`

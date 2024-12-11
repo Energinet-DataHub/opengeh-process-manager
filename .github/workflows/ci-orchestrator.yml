@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-name: CI orchestrator
+name: CI orchestrator (mono-repo)
 
 on:
   pull_request:
@@ -32,17 +32,53 @@ jobs:
   #
   changes:
     uses: ./.github/workflows/detect-changes.yml
-
-  ci_dotnet:
-    needs: changes
-    if: ${{ needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.db_migrations == 'true' }}
-    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      solution_file: source/ProcessManager.sln
+      hostnames: "
+            {
+              'processmanager': 'ProcessManager.csproj',
+              'orchestrations': 'ProcessManager.Orchestrations.csproj',
+              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
+            }"
 
   ci_processmanager_nuget:
     needs: changes
-    if: ${{ needs.changes.outputs.processmanager_nuget == 'true' }}
+    if: ${{ needs.changes.outputs.nuget_packages == 'true' }}
     uses: ./.github/workflows/processmanager-client-bundle-publish.yml
     secrets: inherit
+
+  ci_processmanager:
+    if: ${{ fromJson(needs.changes.outputs.job_context).processmanager == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      release_name: process_manager
+      project_file: source/ProcessManager/ProcessManager.csproj
+      version: 1
+
+  ci_orchestrations:
+    if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      release_name: process_manager_orchestrations
+      project_file: source/ProcessManager.Orchestrations/ProcessManager.Orchestrations.csproj
+      version: 1
+
+  ci_dbmigrations:
+    if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet.yml
+    with:
+      release_name: process_manager_dbmigrations
+      project_file: source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj
+      version: 1
+
+  ci_run_tests:
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet-runtests.yml
+    with:
+      affected_changes: ${{ needs.changes.outputs.affected_changes }}
 
   #
   # Branch policy status check
@@ -53,8 +89,12 @@ jobs:
     needs:
       [
         ci_base,
-        ci_dotnet,
+        changes,
         ci_processmanager_nuget,
+        ci_processmanager,
+        ci_orchestrations,
+        ci_dbmigrations,
+        ci_run_tests
       ]
     if: |
       always()

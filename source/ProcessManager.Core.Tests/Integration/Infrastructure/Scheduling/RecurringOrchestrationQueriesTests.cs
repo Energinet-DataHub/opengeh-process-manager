@@ -14,24 +14,24 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Registration;
+using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 
-namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Registration;
+namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Scheduling;
 
 [Collection(nameof(ProcessManagerCoreCollection))]
-public class OrchestrationRegisterTests : IAsyncLifetime
+public class RecurringOrchestrationQueriesTests : IAsyncLifetime
 {
     private readonly ProcessManagerCoreFixture _fixture;
     private readonly ProcessManagerContext _dbContext;
-    private readonly OrchestrationRegister _sut;
+    private readonly RecurringOrchestrationQueries _sut;
 
-    public OrchestrationRegisterTests(ProcessManagerCoreFixture fixture)
+    public RecurringOrchestrationQueriesTests(ProcessManagerCoreFixture fixture)
     {
         _fixture = fixture;
         _dbContext = _fixture.DatabaseManager.CreateDbContext();
-        _sut = new OrchestrationRegister(_dbContext);
+        _sut = new RecurringOrchestrationQueries(_dbContext);
     }
 
     public Task InitializeAsync()

@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
-using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +28,7 @@ namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Registration;
 internal class OrchestrationRegister(
     ProcessManagerContext context) :
         IOrchestrationRegister,
-        IOrchestrationRegisterQueries,
-        IRecurringOrchestrationDescriptionsQuery
+        IOrchestrationRegisterQueries
 {
     private readonly ProcessManagerContext _context = context;
 
@@ -58,16 +56,6 @@ internal class OrchestrationRegister(
 
         var query = _context.OrchestrationDescriptions
             .Where(x => x.HostName == hostName);
-
-        return await query.ToListAsync().ConfigureAwait(false);
-    }
-
-    /// <inheritdoc />
-    public async Task<IReadOnlyCollection<OrchestrationDescription>> GetAllRecurringAsync()
-    {
-        var query = _context.OrchestrationDescriptions
-            .Where(x => x.IsEnabled == true)
-            .Where(x => x.RecurringCronExpression != string.Empty);
 
         return await query.ToListAsync().ConfigureAwait(false);
     }

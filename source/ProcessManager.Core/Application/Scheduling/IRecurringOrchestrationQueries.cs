@@ -16,7 +16,10 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 
 namespace Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
 
-public interface IRecurringOrchestrationDescriptionsQuery
+/// <summary>
+/// Queries necessary to handle the planning of recurring orchestrations.
+/// </summary>
+public interface IRecurringOrchestrationQueries
 {
     /// <summary>
     /// Get all enabled orchestration descriptions that are recurring.

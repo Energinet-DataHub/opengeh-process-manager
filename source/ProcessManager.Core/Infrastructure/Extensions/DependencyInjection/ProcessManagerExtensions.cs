@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Registration;
+using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Scheduling;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.Options;
@@ -72,7 +73,7 @@ public static class ProcessManagerExtensions
         // => Scheduling
         services.TryAddScoped<IScheduledOrchestrationInstancesByInstantQuery, OrchestrationInstanceRepository>();
         services.TryAddScoped<IStartScheduledOrchestrationInstanceCommand, OrchestrationInstanceManager>();
-        services.TryAddScoped<IRecurringOrchestrationDescriptionsQuery, OrchestrationRegister>();
+        services.TryAddScoped<IRecurringOrchestrationQueries, RecurringOrchestrationQueries>();
         // => Cancellation (manager)
         services.TryAddScoped<ICancelScheduledOrchestrationInstanceCommand, OrchestrationInstanceManager>();
         // => Start instance (manager)

@@ -21,11 +21,11 @@ namespace Energinet.DataHub.ProcessManager.Scheduler;
 internal class RecurringPlannerHandler(
     ILogger<SchedulerHandler> logger,
     IClock clock,
-    IRecurringOrchestrationDescriptionsQuery query)
+    IRecurringOrchestrationQueries query)
 {
     private readonly ILogger _logger = logger;
     private readonly IClock _clock = clock;
-    private readonly IRecurringOrchestrationDescriptionsQuery _query = query;
+    private readonly IRecurringOrchestrationQueries _query = query;
 
     public async Task PerformRecurringPlanningAsync()
     {

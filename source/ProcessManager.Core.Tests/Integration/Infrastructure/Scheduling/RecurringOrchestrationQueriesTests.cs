@@ -13,10 +13,13 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Scheduling;
 
@@ -77,6 +80,77 @@ public class RecurringOrchestrationQueriesTests : IAsyncLifetime
         actual.Should().NotContainEquivalentOf(disabledOrchestrationDescriptionV1);
     }
 
+    [Fact]
+    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchScheduled_ThenExpectedOrchestrationInstancesAreRetrieved()
+    {
+        // Arrange
+        var currentInstant = SystemClock.Instance.GetCurrentInstant();
+
+        var uniqueName1 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
+        var existingOrchestrationDescription01 = CreateOrchestrationDescription(uniqueName1);
+
+        var scheduledToRunIn09 = CreateOrchestrationInstance(
+            existingOrchestrationDescription01,
+            runAt: currentInstant.PlusMinutes(09));
+        var scheduledToRunIn10 = CreateOrchestrationInstance(
+            existingOrchestrationDescription01,
+            runAt: currentInstant.PlusMinutes(10));
+        var scheduledToRunIn20_01 = CreateOrchestrationInstance(
+            existingOrchestrationDescription01,
+            runAt: currentInstant.PlusMinutes(20));
+        var scheduledToRunIn30 = CreateOrchestrationInstance(
+            existingOrchestrationDescription01,
+            runAt: currentInstant.PlusMinutes(30));
+        var scheduledToRunIn31 = CreateOrchestrationInstance(
+            existingOrchestrationDescription01,
+            runAt: currentInstant.PlusMinutes(31));
+        var scheduledIntoTheFarFuture = CreateOrchestrationInstance(
+            existingOrchestrationDescription01,
+            runAt: currentInstant.PlusDays(5));
+
+        var scheduledToRunIn10ButUserCanceled = CreateOrchestrationInstance(
+            existingOrchestrationDescription01,
+            runAt: currentInstant.PlusMinutes(10));
+        scheduledToRunIn10ButUserCanceled.Lifecycle.TransitionToUserCanceled(
+            SystemClock.Instance,
+            new UserIdentity(
+                new UserId(Guid.NewGuid()),
+                new ActorId(Guid.NewGuid())));
+
+        var existingOrchestrationDescription02 = CreateOrchestrationDescription(
+            new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1));
+        var scheduledToRunIn20_02 = CreateOrchestrationInstance(
+            existingOrchestrationDescription02,
+            runAt: currentInstant.PlusMinutes(20));
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription01);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRunIn09);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRunIn10);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRunIn20_01);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRunIn30);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRunIn31);
+            writeDbContext.OrchestrationInstances.Add(scheduledIntoTheFarFuture);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRunIn10ButUserCanceled);
+
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription02);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRunIn20_02);
+
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        var actual = await _sut.SearchScheduledOrchestrationInstancesAsync(
+            existingOrchestrationDescription01.UniqueName,
+            runAtOrLater: currentInstant.PlusMinutes(10),
+            runAtOrEarlier: currentInstant.PlusMinutes(30));
+
+        // Assert
+        actual.Should()
+            .BeEquivalentTo(new[] { scheduledToRunIn10, scheduledToRunIn20_01, scheduledToRunIn30 });
+    }
+
     private static OrchestrationDescription CreateOrchestrationDescription(
         OrchestrationDescriptionUniqueName uniqueName,
         string? recurringCronExpression = default,
@@ -93,5 +167,23 @@ public class RecurringOrchestrationQueriesTests : IAsyncLifetime
         orchestrationDescription.IsEnabled = isEnabled;
 
         return orchestrationDescription;
+    }
+
+    private static OrchestrationInstance CreateOrchestrationInstance(
+        OrchestrationDescription orchestrationDescription,
+        Instant? runAt = default)
+    {
+        var userIdentity = new UserIdentity(
+            new UserId(Guid.NewGuid()),
+            new ActorId(Guid.NewGuid()));
+
+        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
+            userIdentity,
+            orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance,
+            runAt: runAt);
+
+        return orchestrationInstance;
     }
 }

@@ -133,15 +133,17 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
     public async Task GivenScheduledOrchestrationInstancesInDatabase_WhenGetScheduledByInstant_ThenExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
+        var currentInstant = SystemClock.Instance.GetCurrentInstant();
+
         var existingOrchestrationDescription = CreateOrchestrationDescription();
 
         var notScheduled = CreateOrchestrationInstance(existingOrchestrationDescription);
         var scheduledToRun = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            runAt: SystemClock.Instance.GetCurrentInstant().PlusMinutes(1));
+            runAt: currentInstant.PlusMinutes(1));
         var scheduledIntoTheFarFuture = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            runAt: SystemClock.Instance.GetCurrentInstant().PlusDays(5));
+            runAt: currentInstant.PlusDays(5));
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -153,8 +155,7 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
         }
 
         // Act
-        var actual = await _sut.FindAsync(
-            SystemClock.Instance.GetCurrentInstant().Plus(Duration.FromMinutes(5)));
+        var actual = await _sut.FindAsync(currentInstant.Plus(Duration.FromMinutes(5)));
 
         // Assert
         actual.Should()

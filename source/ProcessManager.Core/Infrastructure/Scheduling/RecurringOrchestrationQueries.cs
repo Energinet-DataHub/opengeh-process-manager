@@ -54,6 +54,7 @@ internal class RecurringOrchestrationQueries(
                 description => description.Id,
                 instance => instance.OrchestrationDescriptionId,
                 (_, instance) => instance)
+            .Where(x => x.Lifecycle.State == OrchestrationInstanceLifecycleStates.Pending)
             .Where(x => x.Lifecycle.ScheduledToRunAt >= runAtOrLater)
             .Where(x => x.Lifecycle.ScheduledToRunAt <= runAtOrEarlier);
 

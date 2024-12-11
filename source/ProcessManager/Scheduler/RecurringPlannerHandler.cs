@@ -42,7 +42,7 @@ internal class RecurringPlannerHandler(
         var now = _clock.GetCurrentInstant();
 
         var orchestrationDescriptions = await _query
-            .GetAllRecurringAsync()
+            .SearchRecurringOrchestrationDescriptionsAsync()
             .ConfigureAwait(false);
 
         foreach (var orchestrationDescription in orchestrationDescriptions)

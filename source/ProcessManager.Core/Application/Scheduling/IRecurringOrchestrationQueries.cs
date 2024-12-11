@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
 
@@ -24,5 +26,14 @@ public interface IRecurringOrchestrationQueries
     /// <summary>
     /// Get all enabled orchestration descriptions that are recurring.
     /// </summary>
-    Task<IReadOnlyCollection<OrchestrationDescription>> GetAllRecurringAsync();
+    Task<IReadOnlyCollection<OrchestrationDescription>> SearchRecurringOrchestrationDescriptionsAsync();
+
+    /// <summary>
+    /// Get scheduled orchestration instances by their related orchestration definition unique name,
+    /// and by the time range they are are scheduled to run within.
+    /// </summary>
+    Task<IReadOnlyCollection<OrchestrationInstance>> SearchScheduledOrchestrationInstancesAsync(
+        OrchestrationDescriptionUniqueName uniqueName,
+        Instant runAtOrLater,
+        Instant runAtOrEarlier);
 }

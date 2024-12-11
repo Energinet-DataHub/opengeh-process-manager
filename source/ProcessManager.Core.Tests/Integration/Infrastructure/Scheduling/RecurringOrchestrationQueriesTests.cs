@@ -69,7 +69,7 @@ public class RecurringOrchestrationQueriesTests : IAsyncLifetime
         }
 
         // Act
-        var actual = await _sut.GetAllRecurringAsync();
+        var actual = await _sut.SearchRecurringOrchestrationDescriptionsAsync();
 
         // Assert
         actual.Should().ContainEquivalentOf(enabledOrchestrationDescriptionV2);

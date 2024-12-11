@@ -14,8 +14,10 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Scheduling;
 
@@ -29,11 +31,31 @@ internal class RecurringOrchestrationQueries(
     private readonly ProcessManagerContext _context = context;
 
     /// <inheritdoc />
-    public async Task<IReadOnlyCollection<OrchestrationDescription>> GetAllRecurringAsync()
+    public async Task<IReadOnlyCollection<OrchestrationDescription>> SearchRecurringOrchestrationDescriptionsAsync()
     {
         var query = _context.OrchestrationDescriptions
             .Where(x => x.IsEnabled == true)
             .Where(x => x.RecurringCronExpression != string.Empty);
+
+        return await query.ToListAsync().ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyCollection<OrchestrationInstance>> SearchScheduledOrchestrationInstancesAsync(
+        OrchestrationDescriptionUniqueName uniqueName,
+        Instant runAtOrLater,
+        Instant runAtOrEarlier)
+    {
+        var query = _context
+            .OrchestrationDescriptions
+                .Where(x => x.UniqueName == uniqueName)
+            .Join(
+                _context.OrchestrationInstances,
+                description => description.Id,
+                instance => instance.OrchestrationDescriptionId,
+                (_, instance) => instance)
+            .Where(x => x.Lifecycle.ScheduledToRunAt >= runAtOrLater)
+            .Where(x => x.Lifecycle.ScheduledToRunAt <= runAtOrEarlier);
 
         return await query.ToListAsync().ConfigureAwait(false);
     }

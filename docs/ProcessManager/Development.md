@@ -7,6 +7,7 @@
 We use TimerTrigger [built in functionality](https://learn.microsoft.com/en-us/azure/azure-functions/disable-function?tabs=portal) to disable them in preproduction and production.
 
 The TimerTriggers are:
+
 - `StartScheduledOrchestrationInstances`
 - `PerformRecurringPlanning`
 

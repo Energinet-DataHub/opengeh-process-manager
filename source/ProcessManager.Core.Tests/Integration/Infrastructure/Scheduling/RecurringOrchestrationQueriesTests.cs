@@ -23,8 +23,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Scheduling;
 
-[Collection(nameof(ProcessManagerCoreCollection))]
-public class RecurringOrchestrationQueriesTests : IAsyncLifetime
+public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerCoreFixture _fixture;
     private readonly ProcessManagerContext _dbContext;

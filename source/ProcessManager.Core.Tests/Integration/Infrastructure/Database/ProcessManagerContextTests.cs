@@ -21,8 +21,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
 
-[Collection(nameof(ProcessManagerCoreCollection))]
-public class ProcessManagerContextTests
+public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixture>
 {
     private readonly ProcessManagerCoreFixture _fixture;
 

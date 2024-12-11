@@ -90,7 +90,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-30);
+        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-40);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
 
         // Assert

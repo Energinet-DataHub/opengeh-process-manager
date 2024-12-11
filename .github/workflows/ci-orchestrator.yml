@@ -52,7 +52,7 @@ jobs:
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
     with:
-      release_name: process_manager_everest
+      release_name: process_manager
       project_file: source/ProcessManager/ProcessManager.csproj
       version: 1
 
@@ -61,8 +61,8 @@ jobs:
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
     with:
-      release_name: process_manager_montblanc
-      project_file: source/ProcessManager/ProcessManager.csproj
+      release_name: process_manager_orchestrations
+      project_file: source/ProcessManager.Orchestrations/ProcessManager.Orchestrations.csproj
       version: 1
 
   ci_dbmigrations:

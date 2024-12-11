@@ -22,20 +22,23 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Must be JSON serializable.
 /// </summary>
 public record StartForwardMeteredDataCommandV1
-    : StartOrchestrationInstanceCommand<ActorIdentityDto, MeteredDataForMeasurementPointMessageInputV1>
+        : MessageCommand<MeteredDataForMeasurementPointMessageInputV1>
 {
     /// <summary>
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
+    /// <param name="messageId">Id of the message that casued this command to be executed.</param>
     public StartForwardMeteredDataCommandV1(
         ActorIdentityDto operatingIdentity,
-        MeteredDataForMeasurementPointMessageInputV1 inputParameter)
+        MeteredDataForMeasurementPointMessageInputV1 inputParameter,
+        string messageId)
             : base(
                 operatingIdentity,
                 orchestrationDescriptionUniqueName: new Brs_021_ForwardedMeteredData_V1(),
-                inputParameter)
+                inputParameter,
+                messageId)
     {
     }
 }

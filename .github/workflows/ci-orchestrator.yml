@@ -24,8 +24,6 @@ jobs:
   #
   ci_base:
     uses: Energinet-DataHub/.github/.github/workflows/ci-base.yml@v14
-    with:
-      skip_yaml_lint: true  # TODO: Remove before merge
     secrets:
       dh3serviceaccount_privatekey: ${{ secrets.dh3serviceaccount_privatekey }}
 

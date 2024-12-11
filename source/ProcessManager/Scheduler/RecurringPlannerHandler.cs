@@ -18,8 +18,8 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Scheduler;
 
-internal class RecurringPlannerHandler(
-    ILogger<SchedulerHandler> logger,
+public class RecurringPlannerHandler(
+    ILogger<RecurringPlannerHandler> logger,
     IClock clock,
     IRecurringOrchestrationQueries query)
 {

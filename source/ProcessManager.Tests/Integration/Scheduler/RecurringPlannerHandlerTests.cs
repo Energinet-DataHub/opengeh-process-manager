@@ -12,16 +12,103 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Scheduling;
+using Energinet.DataHub.ProcessManager.Scheduler;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Tests.Integration.Scheduler;
 
 public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandlerFixture>
 {
     private readonly RecurringPlannerHandlerFixture _fixture;
+    private readonly Mock<IClock> _clockMock;
+    private readonly ProcessManagerContext _dbContext;
+    private readonly RecurringPlannerHandler _sut;
 
     public RecurringPlannerHandlerTests(RecurringPlannerHandlerFixture fixture)
     {
         _fixture = fixture;
+        _clockMock = new Mock<IClock>();
+        _dbContext = _fixture.DatabaseManager.CreateDbContext();
+        var queries = new RecurringOrchestrationQueries(_dbContext);
+        _sut = new RecurringPlannerHandler(
+            Mock.Of<ILogger<RecurringPlannerHandler>>(),
+            _clockMock.Object,
+            queries);
+    }
+
+    [Fact]
+    public async Task GivenRecurringOrchestrationDescriptionPlannedFor12and17_WhenNoExistingOrchestrationInstances_ThenExpectedOrchestrationInstancesAreScheduled()
+    {
+        // Arrange
+        var timeIs1100 = Instant.FromUtc(2024, 12, 1, 11, 0);
+        _clockMock.Setup(m => m.GetCurrentInstant())
+            .Returns(timeIs1100);
+
+        var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
+        var cronExpressionPlanFor1200And1700 = "0 12,17 * * *";
+        var enabledOrchestrationDescription = CreateOrchestrationDescription(uniqueName, cronExpressionPlanFor1200And1700);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(enabledOrchestrationDescription);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await _sut.PerformRecurringPlanningAsync();
+
+        // Assert
+        await using (var readDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            var actual = await readDbContext.OrchestrationInstances.ToListAsync();
+
+            actual.Should().Satisfy(x => x.Lifecycle.ScheduledToRunAt == Instant.FromUtc(2024, 12, 1, 12, 0));
+            actual.Should().Satisfy(x => x.Lifecycle.ScheduledToRunAt == Instant.FromUtc(2024, 12, 1, 17, 0));
+        }
+    }
+
+    private static OrchestrationDescription CreateOrchestrationDescription(
+        OrchestrationDescriptionUniqueName uniqueName,
+        string? recurringCronExpression = default,
+        bool isEnabled = true)
+    {
+        var orchestrationDescription = new OrchestrationDescription(
+            uniqueName,
+            canBeScheduled: true,
+            functionName: "TestOrchestrationFunction");
+
+        if (recurringCronExpression != null)
+            orchestrationDescription.RecurringCronExpression = recurringCronExpression;
+
+        orchestrationDescription.IsEnabled = isEnabled;
+
+        return orchestrationDescription;
+    }
+
+    private static OrchestrationInstance CreateOrchestrationInstance(
+        OrchestrationDescription orchestrationDescription,
+        Instant runAt = default)
+    {
+        var userIdentity = new UserIdentity(
+            new UserId(Guid.NewGuid()),
+            new ActorId(Guid.NewGuid()));
+
+        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
+            userIdentity,
+            orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance,
+            runAt: runAt);
+
+        return orchestrationInstance;
     }
 }

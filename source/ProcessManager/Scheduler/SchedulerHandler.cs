@@ -18,7 +18,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Scheduler;
 
-internal class SchedulerHandler(
+public class SchedulerHandler(
     ILogger<SchedulerHandler> logger,
     IClock clock,
     IScheduledOrchestrationInstancesByInstantQuery query,

@@ -2,7 +2,7 @@
 
 ## Version 0.2.2
 
-- Update (implement) correct input for starting BRS-026 and BRS-028 orchestrations.~~~~
+- Update (implement) correct input for starting BRS-026 and BRS-028 orchestrations.
 
 ## Version 0.2.1
 

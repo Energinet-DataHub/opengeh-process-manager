@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_Example.Example.V1.Activities;
+using Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1.Activities;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;

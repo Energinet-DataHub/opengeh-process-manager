@@ -32,4 +32,8 @@
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
     </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Energinet.DataHub.Example.Orchestrations.Tests" />
+    </ItemGroup>
 </Project>

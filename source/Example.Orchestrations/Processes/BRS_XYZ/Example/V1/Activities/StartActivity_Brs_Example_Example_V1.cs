@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_Example.Example.V1.Activities;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1.Activities;
 
 internal class StartActivity_Brs_Example_Example_V1(
     IClock clock,

@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using NodaTime;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_Example.Example.V1.Activities;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1.Activities;
 
 internal abstract class ProgressActivityBase(
     IClock clock,

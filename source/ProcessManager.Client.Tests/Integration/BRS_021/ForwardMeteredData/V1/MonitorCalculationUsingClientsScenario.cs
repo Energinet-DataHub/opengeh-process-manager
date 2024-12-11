@@ -69,18 +69,19 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
         _fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         _fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        return Task.CompletedTask;
+        await ServiceProvider.DisposeAsync();
     }
 
     [Fact]
     public async Task ForwardMeteredData_WhenStartedUsingClient_CanMonitorLifecycle()
     {
         // Arrange
+        //await Task.Delay(30000);
         var input = CreateMeteredDataForMeasurementPointMessageInputV1();
 
         var startCommand = new StartForwardMeteredDataCommandV1(
@@ -90,7 +91,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-40);
+        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-5);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
 
         // Assert
@@ -122,29 +123,29 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             null,
             new List<EnergyObservation>()
             {
-                new EnergyObservation("1", "112.000", "E01"),
-                new EnergyObservation("2", "112.000", "E01"),
-                new EnergyObservation("3", "112.000", "E01"),
-                new EnergyObservation("4", "112.000", "E01"),
-                new EnergyObservation("5", "112.000", "E01"),
-                new EnergyObservation("6", "112.000", "E01"),
-                new EnergyObservation("7", "112.000", "E01"),
-                new EnergyObservation("8", "112.000", "E01"),
-                new EnergyObservation("9", "112.000", "E01"),
-                new EnergyObservation("10", "112.000", "E01"),
-                new EnergyObservation("12", "112.000", "E01"),
-                new EnergyObservation("12", "112.000", "E01"),
-                new EnergyObservation("13", "112.000", "E01"),
-                new EnergyObservation("14", "112.000", "E01"),
-                new EnergyObservation("15", "112.000", "E01"),
-                new EnergyObservation("16", "112.000", "E01"),
-                new EnergyObservation("18", "112.000", "E01"),
-                new EnergyObservation("19", "112.000", "E01"),
-                new EnergyObservation("20", "112.000", "E01"),
-                new EnergyObservation("21", "112.000", "E01"),
-                new EnergyObservation("22", "112.000", "E01"),
-                new EnergyObservation("23", "112.000", "E01"),
-                new EnergyObservation("24", "112.000", "E01"),
+                new("1", "112.000", "E01"),
+                new("2", "112.000", "E01"),
+                new("3", "112.000", "E01"),
+                new("4", "112.000", "E01"),
+                new("5", "112.000", "E01"),
+                new("6", "112.000", "E01"),
+                new("7", "112.000", "E01"),
+                new("8", "112.000", "E01"),
+                new("9", "112.000", "E01"),
+                new("10", "112.000", "E01"),
+                new("12", "112.000", "E01"),
+                new("12", "112.000", "E01"),
+                new("13", "112.000", "E01"),
+                new("14", "112.000", "E01"),
+                new("15", "112.000", "E01"),
+                new("16", "112.000", "E01"),
+                new("18", "112.000", "E01"),
+                new("19", "112.000", "E01"),
+                new("20", "112.000", "E01"),
+                new("21", "112.000", "E01"),
+                new("22", "112.000", "E01"),
+                new("23", "112.000", "E01"),
+                new("24", "112.000", "E01"),
             });
         return input;
     }

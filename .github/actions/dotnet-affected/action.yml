@@ -17,22 +17,22 @@ description: "Find affected .NET projects in a solution."
 
 inputs:
   solution_file:
-    description: "The path to the solution file."
+    description: The path to the solution file
     required: true
   workspace_path:
-    description: "The path to the workspace."
+    description: The path to the workspace
     required: true
   from_sha:
-    description: "The commit SHA to compare from."
+    description: The commit SHA to compare from
     required: true
   to_sha:
-    description: "The commit SHA to compare to."
+    description: The commit SHA to compare to
     required: true
   host_names:
-    description: "Host names mapped to project names"
+    description: Host names mapped to project names
     required: true
   print_debug_output:
-    description: "Enable debug logging"
+    description: Enable debug logging
     required: false
     default: "false"
 outputs:

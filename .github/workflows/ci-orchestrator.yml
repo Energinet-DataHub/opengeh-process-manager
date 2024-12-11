@@ -37,7 +37,6 @@ jobs:
     with:
       print_debug_output: 'true'  # TODO: Remove before merge
       solution_file: 'source/ProcessManager.sln'
-      # Hostnames = famous mountains
       hostnames: "
             {
               'everest': 'ProcessManager.csproj',

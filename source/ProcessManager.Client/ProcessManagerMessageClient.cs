@@ -16,6 +16,7 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
+using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
@@ -26,7 +27,7 @@ public class ProcessManagerMessageClient(
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
         : IProcessManagerMessageClient
 {
-    private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(nameof(ProcessManagerServiceBusClientOptions.TopicName));
+    private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.ProcessManagerTopic);
 
     public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
         MessageCommand<TInputParameterDto> command,

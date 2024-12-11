@@ -79,7 +79,7 @@ public static class ClientExtensions
 
                         return serviceBusSender;
                     })
-                    .WithName(nameof(ProcessManagerServiceBusClientOptions.TopicName));
+                    .WithName(ServiceBusSenderNames.ProcessManagerTopic);
             });
 
         services.AddScoped<IProcessManagerMessageClient, ProcessManagerMessageClient>();

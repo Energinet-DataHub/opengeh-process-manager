@@ -30,12 +30,12 @@ var host = new HostBuilder()
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
 
+        // ProcessManager
+        services.AddProcessManagerCore();
+
         // Handlers
         services.AddScoped<RecurringPlannerHandler>();
         services.AddScoped<SchedulerHandler>();
-
-        // ProcessManager
-        services.AddProcessManagerCore();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

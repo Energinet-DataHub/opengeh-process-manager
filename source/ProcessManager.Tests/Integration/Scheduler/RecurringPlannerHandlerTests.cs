@@ -155,25 +155,21 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
 
     private static OrchestrationDescription CreateOrchestrationDescription(
         OrchestrationDescriptionUniqueName uniqueName,
-        string? recurringCronExpression = default,
-        bool isEnabled = true)
+        string recurringCronExpression)
     {
         var orchestrationDescription = new OrchestrationDescription(
             uniqueName,
             canBeScheduled: true,
             functionName: "TestOrchestrationFunction");
 
-        if (recurringCronExpression != null)
-            orchestrationDescription.RecurringCronExpression = recurringCronExpression;
-
-        orchestrationDescription.IsEnabled = isEnabled;
+        orchestrationDescription.RecurringCronExpression = recurringCronExpression;
 
         return orchestrationDescription;
     }
 
     private static OrchestrationInstance CreateOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
-        Instant runAt = default)
+        Instant runAt)
     {
         var userIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),

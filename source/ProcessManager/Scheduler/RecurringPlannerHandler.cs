@@ -39,9 +39,9 @@ public class RecurringPlannerHandler(
 
     public async Task PerformRecurringPlanningAsync()
     {
-        var zonedDateTimeNow = new ZonedDateTime(_clock.GetCurrentInstant(), _dateTimeZone);
-        var runAtOrLater = zonedDateTimeNow.PlusMinutes(5);
-        var runAtOrEarlier = runAtOrLater.PlusHours(24);
+        var nowInTimeZone = new ZonedDateTime(_clock.GetCurrentInstant(), _dateTimeZone);
+        var runAtOrLaterInTimeZone = nowInTimeZone.PlusMinutes(5);
+        var runAtOrEarlierInTimeZone = runAtOrLaterInTimeZone.PlusHours(24);
 
         var orchestrationDescriptions = await _query
             .SearchRecurringOrchestrationDescriptionsAsync()
@@ -55,33 +55,23 @@ public class RecurringPlannerHandler(
                 // Values must NOT be converted to UTC because the cron expression specified by developers
                 // are expected to be in local danish time.
                 var scheduleAtInTimeZone = cronSchedule.GetNextOccurrences(
-                    runAtOrLater.ToDateTimeUnspecified(),
-                    runAtOrEarlier.ToDateTimeUnspecified());
+                    runAtOrLaterInTimeZone.ToDateTimeUnspecified(),
+                    runAtOrEarlierInTimeZone.ToDateTimeUnspecified());
 
                 if (scheduleAtInTimeZone.Any())
                 {
-                    // Values must be converted to UTC
-                    var scheduleAtAsInstant = scheduleAtInTimeZone
-                        .Select(value =>
-                        {
-                            var localTime = new LocalTime(value.Hour, value.Minute);
-                            var localDate = new LocalDate(value.Year, value.Month, value.Day);
-                            var localDateTime = localDate.At(localTime);
-                            var dateTimeInZone = localDateTime.InZoneLeniently(_dateTimeZone);
-
-                            return dateTimeInZone.ToInstant();
-                        });
+                    var scheduleAtAsInstants = ConvertToInstants(scheduleAtInTimeZone);
 
                     // In the database 'RunAt' is an instant (UTC), so we must compare using UTC
                     var scheduledInstances = await _query
                         .SearchScheduledOrchestrationInstancesAsync(
                             orchestrationDescription.UniqueName,
-                            runAtOrLater.ToInstant(),
-                            runAtOrEarlier.ToInstant())
+                            runAtOrLaterInTimeZone.ToInstant(),
+                            runAtOrEarlierInTimeZone.ToInstant())
                         .ConfigureAwait(false);
 
-                    var missingOccurrences = scheduleAtAsInstant
-                        .Where(x => !scheduledInstances.Any(instance => instance.Lifecycle.ScheduledToRunAt!.Value == x))
+                    var missingOccurrences = scheduleAtAsInstants
+                        .Where(scheduleAt => false == scheduledInstances.Any(instance => instance.Lifecycle.ScheduledToRunAt!.Value == scheduleAt))
                         .ToList();
 
                     foreach (var occurrence in missingOccurrences)
@@ -105,5 +95,19 @@ public class RecurringPlannerHandler(
                     orchestrationDescription.Id.Value);
             }
         }
+    }
+
+    private IEnumerable<Instant> ConvertToInstants(IEnumerable<DateTime> scheduleAtInTimeZone)
+    {
+        return scheduleAtInTimeZone
+            .Select(value =>
+            {
+                var localTime = new LocalTime(value.Hour, value.Minute);
+                var localDate = new LocalDate(value.Year, value.Month, value.Day);
+                var localDateTime = localDate.At(localTime);
+                var dateTimeInZone = localDateTime.InZoneLeniently(_dateTimeZone);
+
+                return dateTimeInZone.ToInstant();
+            });
     }
 }

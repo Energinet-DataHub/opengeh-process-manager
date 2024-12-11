@@ -202,9 +202,12 @@ public class ProcessManagerAppManager : IAsyncDisposable
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
 
-        // Disable timer trigger (should be manually triggered in tests)
+        // Disable timer triggers (should be manually triggered in tests)
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"AzureWebJobs.StartScheduledOrchestrationInstances.Disabled",
+            "true");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"AzureWebJobs.PerformRecurringPlanning.Disabled",
             "true");
 
         return appHostSettings;

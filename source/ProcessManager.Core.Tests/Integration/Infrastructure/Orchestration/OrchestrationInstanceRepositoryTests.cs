@@ -26,8 +26,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
 
-[Collection(nameof(ProcessManagerCoreCollection))]
-public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
+public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerCoreFixture _fixture;
     private readonly ProcessManagerContext _dbContext;
@@ -110,7 +109,12 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescription);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            await writeDbContext.SaveChangesAsync();
+        }
 
         var newOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
 
@@ -128,27 +132,29 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
     public async Task GivenScheduledOrchestrationInstancesInDatabase_WhenGetScheduledByInstant_ThenExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
+        var currentInstant = SystemClock.Instance.GetCurrentInstant();
+
         var existingOrchestrationDescription = CreateOrchestrationDescription();
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescription);
 
         var notScheduled = CreateOrchestrationInstance(existingOrchestrationDescription);
-        await _sut.AddAsync(notScheduled);
-
         var scheduledToRun = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            runAt: SystemClock.Instance.GetCurrentInstant().PlusMinutes(1));
-        await _sut.AddAsync(scheduledToRun);
-
+            runAt: currentInstant.PlusMinutes(1));
         var scheduledIntoTheFarFuture = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            runAt: SystemClock.Instance.GetCurrentInstant().PlusDays(5));
-        await _sut.AddAsync(scheduledIntoTheFarFuture);
+            runAt: currentInstant.PlusDays(5));
 
-        await _sut.UnitOfWork.CommitAsync();
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(notScheduled);
+            writeDbContext.OrchestrationInstances.Add(scheduledToRun);
+            writeDbContext.OrchestrationInstances.Add(scheduledIntoTheFarFuture);
+            await writeDbContext.SaveChangesAsync();
+        }
 
         // Act
-        var actual = await _sut.FindAsync(
-            SystemClock.Instance.GetCurrentInstant().Plus(Duration.FromMinutes(5)));
+        var actual = await _sut.FindAsync(currentInstant.Plus(Duration.FromMinutes(5)));
 
         // Assert
         actual.Should()
@@ -163,19 +169,21 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
         // Arrange
         var uniqueName1 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var existingOrchestrationDescription01 = CreateOrchestrationDescription(uniqueName1);
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescription01);
 
         var uniqueName2 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var existingOrchestrationDescription02 = CreateOrchestrationDescription(uniqueName2);
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescription02);
 
         var basedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
-        await _sut.AddAsync(basedOn01);
-
         var basedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02);
-        await _sut.AddAsync(basedOn02);
 
-        await _sut.UnitOfWork.CommitAsync();
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription01);
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription02);
+            writeDbContext.OrchestrationInstances.Add(basedOn01);
+            writeDbContext.OrchestrationInstances.Add(basedOn02);
+            await writeDbContext.SaveChangesAsync();
+        }
 
         // Act
         var actual = await _sut.SearchAsync(existingOrchestrationDescription01.UniqueName.Name);
@@ -191,18 +199,19 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
         // Arrange
         var name = Guid.NewGuid().ToString();
         var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescriptionV1);
-
         var existingOrchestrationDescriptionV2 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 2));
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescriptionV2);
 
         var basedOnV1 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
-        await _sut.AddAsync(basedOnV1);
-
         var basedOnV2 = CreateOrchestrationInstance(existingOrchestrationDescriptionV2);
-        await _sut.AddAsync(basedOnV2);
 
-        await _sut.UnitOfWork.CommitAsync();
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescriptionV1);
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescriptionV2);
+            writeDbContext.OrchestrationInstances.Add(basedOnV1);
+            writeDbContext.OrchestrationInstances.Add(basedOnV2);
+            await writeDbContext.SaveChangesAsync();
+        }
 
         // Act
         var actual = await _sut.SearchAsync(existingOrchestrationDescriptionV1.UniqueName.Name, existingOrchestrationDescriptionV1.UniqueName.Version);
@@ -218,28 +227,30 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
         // Arrange
         var name = Guid.NewGuid().ToString();
         var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescriptionV1);
-
         var existingOrchestrationDescriptionV2 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 2));
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescriptionV2);
 
         var isPendingV1 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
-        await _sut.AddAsync(isPendingV1);
 
         var isRunningV1 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
         isRunningV1.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isRunningV1.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        await _sut.AddAsync(isRunningV1);
 
         var isPendingV2 = CreateOrchestrationInstance(existingOrchestrationDescriptionV2);
-        await _sut.AddAsync(isPendingV2);
 
         var isRunningV2 = CreateOrchestrationInstance(existingOrchestrationDescriptionV2);
         isRunningV2.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isRunningV2.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        await _sut.AddAsync(isRunningV2);
 
-        await _sut.UnitOfWork.CommitAsync();
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescriptionV1);
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescriptionV2);
+            writeDbContext.OrchestrationInstances.Add(isPendingV1);
+            writeDbContext.OrchestrationInstances.Add(isRunningV1);
+            writeDbContext.OrchestrationInstances.Add(isPendingV2);
+            writeDbContext.OrchestrationInstances.Add(isRunningV2);
+            await writeDbContext.SaveChangesAsync();
+        }
 
         // Act
         var actual = await _sut.SearchAsync(existingOrchestrationDescriptionV1.UniqueName.Name, lifecycleState: OrchestrationInstanceLifecycleStates.Running);
@@ -255,30 +266,32 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
         // Arrange
         var name = Guid.NewGuid().ToString();
         var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescriptionV1);
-
         var existingOrchestrationDescriptionV2 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 2));
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescriptionV2);
 
         var isPendingV1 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
-        await _sut.AddAsync(isPendingV1);
 
         var isTerminatedAsSucceededV1 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
         isTerminatedAsSucceededV1.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isTerminatedAsSucceededV1.Lifecycle.TransitionToRunning(SystemClock.Instance);
         isTerminatedAsSucceededV1.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
-        await _sut.AddAsync(isTerminatedAsSucceededV1);
 
         var isPendingV2 = CreateOrchestrationInstance(existingOrchestrationDescriptionV2);
-        await _sut.AddAsync(isPendingV2);
 
         var isTerminatedAsFailedV2 = CreateOrchestrationInstance(existingOrchestrationDescriptionV2);
         isTerminatedAsFailedV2.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isTerminatedAsFailedV2.Lifecycle.TransitionToRunning(SystemClock.Instance);
         isTerminatedAsFailedV2.Lifecycle.TransitionToFailed(SystemClock.Instance);
-        await _sut.AddAsync(isTerminatedAsFailedV2);
 
-        await _sut.UnitOfWork.CommitAsync();
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescriptionV1);
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescriptionV2);
+            writeDbContext.OrchestrationInstances.Add(isPendingV1);
+            writeDbContext.OrchestrationInstances.Add(isTerminatedAsSucceededV1);
+            writeDbContext.OrchestrationInstances.Add(isPendingV2);
+            writeDbContext.OrchestrationInstances.Add(isTerminatedAsFailedV2);
+            await writeDbContext.SaveChangesAsync();
+        }
 
         // Act
         var actual = await _sut.SearchAsync(
@@ -302,22 +315,25 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
 
         var name = Guid.NewGuid().ToString();
         var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescriptionV1);
 
         var isPending = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
-        await _sut.AddAsync(isPending);
 
         var isRunning01 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
         isRunning01.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isRunning01.Lifecycle.TransitionToRunning(startedAtClockMock01.Object);
-        await _sut.AddAsync(isRunning01);
 
         var isRunning02 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
         isRunning02.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isRunning02.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        await _sut.AddAsync(isRunning02);
 
-        await _sut.UnitOfWork.CommitAsync();
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescriptionV1);
+            writeDbContext.OrchestrationInstances.Add(isPending);
+            writeDbContext.OrchestrationInstances.Add(isRunning01);
+            writeDbContext.OrchestrationInstances.Add(isRunning02);
+            await writeDbContext.SaveChangesAsync();
+        }
 
         // Act
         var actual = await _sut.SearchAsync(
@@ -340,29 +356,32 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
 
         var name = Guid.NewGuid().ToString();
         var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
-        await SeedDatabaseWithOrchestrationDescriptionAsync(existingOrchestrationDescriptionV1);
 
         var isPending = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
-        await _sut.AddAsync(isPending);
 
         var isRunning = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
         isRunning.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isRunning.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        await _sut.AddAsync(isRunning);
 
         var isTerminated01 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
         isTerminated01.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isTerminated01.Lifecycle.TransitionToRunning(SystemClock.Instance);
         isTerminated01.Lifecycle.TransitionToSucceeded(terminatedAtClockMock01.Object);
-        await _sut.AddAsync(isTerminated01);
 
         var isTerminated02 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
         isTerminated02.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isTerminated02.Lifecycle.TransitionToRunning(SystemClock.Instance);
         isTerminated02.Lifecycle.TransitionToFailed(SystemClock.Instance);
-        await _sut.AddAsync(isTerminated02);
 
-        await _sut.UnitOfWork.CommitAsync();
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescriptionV1);
+            writeDbContext.OrchestrationInstances.Add(isPending);
+            writeDbContext.OrchestrationInstances.Add(isRunning);
+            writeDbContext.OrchestrationInstances.Add(isTerminated01);
+            writeDbContext.OrchestrationInstances.Add(isTerminated02);
+            await writeDbContext.SaveChangesAsync();
+        }
 
         // Act
         var actual = await _sut.SearchAsync(
@@ -412,15 +431,6 @@ public class OrchestrationInstanceRepositoryTests : IAsyncLifetime
         });
 
         return orchestrationInstance;
-    }
-
-    private async Task SeedDatabaseWithOrchestrationDescriptionAsync(OrchestrationDescription existingOrchestrationDescription)
-    {
-        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
-        {
-            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
-            await writeDbContext.SaveChangesAsync();
-        }
     }
 
     private class TestOrchestrationParameter

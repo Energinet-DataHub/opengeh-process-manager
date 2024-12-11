@@ -12,10 +12,11 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Scripts\202410240913 Create pm schema.sql" />
-    <EmbeddedResource Include="Scripts\202410240915 Create StepDescription table.sql" />
-    <EmbeddedResource Include="Scripts\202410240917 Create StepInstance table.sql" />
     <EmbeddedResource Include="Scripts\202410240914 Create OrchestrationDescription table.sql" />
+    <EmbeddedResource Include="Scripts\202410240915 Create StepDescription table.sql" />
     <EmbeddedResource Include="Scripts\202410240916 Create OrchestrationInstance table.sql" />
+    <EmbeddedResource Include="Scripts\202410240917 Create StepInstance table.sql" />
+    <EmbeddedResource Include="Scripts\202412101700 Add RecurringCronExpression.sql" />
   </ItemGroup>
 
 </Project>

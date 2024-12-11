@@ -16,18 +16,18 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Scheduler;
 
-internal class SchedulerTrigger(
-    SchedulerHandler handler)
+internal class RecurringPlannerTrigger(
+    RecurringPlannerHandler handler)
 {
-    private readonly SchedulerHandler _handler = handler;
+    private readonly RecurringPlannerHandler _handler = handler;
 
     /// <summary>
     /// DO NOT rename this function because we use the name to disable it in preproduction/production.
     /// </summary>
-    [Function(nameof(StartScheduledOrchestrationInstances))]
-    public Task StartScheduledOrchestrationInstances(
-        [TimerTrigger("*/10 * * * * *")] TimerInfo timerInfo) // Runs every 10 seconds
+    [Function(nameof(PerformRecurringPlanning))]
+    public Task PerformRecurringPlanning(
+        [TimerTrigger("0 0 * * * *")] TimerInfo timerInfo) // Runs every hour
     {
-        return _handler.StartScheduledOrchestrationInstancesAsync();
+        return _handler.PerformRecurringPlanningAsync();
     }
 }

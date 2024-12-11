@@ -64,6 +64,7 @@ var host = new HostBuilder()
         services.AddScoped<SearchCalculationHandler>();
         services.AddScoped<StartCalculationHandlerV1>();
         services.AddScoped<RequestCalculatedEnergyTimeSeriesHandler>();
+        services.AddScoped<StartForwardMeteredDataHandler>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

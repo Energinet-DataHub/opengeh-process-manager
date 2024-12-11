@@ -27,8 +27,9 @@ on:
         type: string
       nuget_cache_key_prefix:
         description: Cache key prefix
-        required: true
+        required: false
         type: string
+        default: nuget-pr${{ github.event.pull_request.number }}
 
 jobs:
   build_matrix:

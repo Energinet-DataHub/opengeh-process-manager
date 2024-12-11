@@ -39,16 +39,6 @@ public class RecurringPlannerHandler(
 
     public async Task PerformRecurringPlanningAsync()
     {
-        // - We should use NodaTime to determine "current" time, and ensure we use timezone "Europe/Copenhagen".
-        // - We should use a configured "actor id" for scheduling new orchestration instances.
-        //
-        // Psuedo code:
-        // 1. Find OrchestrationDescriptions that are recurring
-        // 2. For each recurring OrchestrationDescription
-        // 2.a. Determine "occurences" within the next 24 hours (five minutes from now)
-        // 2.b. Determine already scheduled instances within the next 24 hours (five minutes from now)
-        // 2.c. Compare the two lists, and schedule a new orchestration instance for any not appearing in "occurences"
-
         var now = _clock.GetCurrentInstant();
         var runAtOrLater = now.PlusMinutes(5);
         var runAtOrEarlier = runAtOrLater.PlusHours(24);

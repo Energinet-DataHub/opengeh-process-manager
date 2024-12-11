@@ -13,7 +13,9 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.Logging;
+using NCrontab;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Scheduler;
@@ -35,11 +37,13 @@ public class RecurringPlannerHandler(
         // Psuedo code:
         // 1. Find OrchestrationDescriptions that are recurring
         // 2. For each recurring OrchestrationDescription
-        // 2.a. Determine "occurences" within the next 24 hours (from the next hour)
-        // 2.b. Determine already scheduled instances within the next 24 hours (from the next hour)
+        // 2.a. Determine "occurences" within the next 24 hours (five minutes from now)
+        // 2.b. Determine already scheduled instances within the next 24 hours (five minutes from now)
         // 2.c. Compare the two lists, and schedule a new orchestration instance for any not appearing in "occurences"
 
         var now = _clock.GetCurrentInstant();
+        var runAtOrLater = now.PlusMinutes(5);
+        var runAtOrEarlier = runAtOrLater.PlusHours(24);
 
         var orchestrationDescriptions = await _query
             .SearchRecurringOrchestrationDescriptionsAsync()
@@ -49,10 +53,35 @@ public class RecurringPlannerHandler(
         {
             try
             {
+                var cronSchedule = CrontabSchedule.Parse(orchestrationDescription.RecurringCronExpression);
+                var scheduleAtOccurrences = cronSchedule.GetNextOccurrences(
+                    runAtOrLater.ToDateTimeUtc(),
+                    runAtOrEarlier.ToDateTimeUtc());
+
+                var scheduledInstances = await _query
+                    .SearchScheduledOrchestrationInstancesAsync(
+                        orchestrationDescription.UniqueName,
+                        runAtOrLater,
+                        runAtOrEarlier)
+                    .ConfigureAwait(false);
+
+                var missingOccurrences = scheduleAtOccurrences
+                    .Where(datetime => !scheduledInstances.Any(instance => instance.Lifecycle.ScheduledToRunAt!.Value.ToDateTimeUtc() == datetime))
+                    .ToList();
+
+                foreach (var occurrence in missingOccurrences)
+                {
+                    // TODO: Schedule orchestration instance
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: Log error
+                // Log error if we could not schedule successfully.
+                // Does not throw exception since we want to continue processing the next orchestration description.
+                _logger.LogError(
+                    ex,
+                    "Failed to schedule orchestration instances for orchestration description with id = {OrchestrationDescriptionId}",
+                    orchestrationDescription.Id.Value);
             }
         }
     }

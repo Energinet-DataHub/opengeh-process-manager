@@ -23,10 +23,9 @@ public interface IDatabricksJobsManager
     /// python parameters.
     /// </summary>
     /// <param name="jobName">Name of the job in the Databricks workspace.</param>
-    /// <param name="jobParameters">Python parameters that will be given as input to the job when started.
-    /// Key should only contain the 'name' and value should contain the parameter 'value'.</param>
+    /// <param name="jobParameters">Python parameters that will be given as input to the job when started.</param>
     /// <returns>Run id.</returns>
-    Task<JobRunId> StartJobAsync(string jobName, IReadOnlyDictionary<string, string> jobParameters);
+    Task<JobRunId> StartJobAsync(string jobName, IReadOnlyCollection<string> jobParameters);
 
     /// <summary>
     /// Retrieve the run status of a given run.

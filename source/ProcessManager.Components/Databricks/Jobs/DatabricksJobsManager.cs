@@ -24,12 +24,12 @@ internal class DatabricksJobsManager(
     private readonly IJobsApiClient _jobsApiClient = client;
 
     /// <inheritdoc />
-    public async Task<JobRunId> StartJobAsync(string jobName, IReadOnlyDictionary<string, string> jobParameters)
+    public async Task<JobRunId> StartJobAsync(string jobName, IReadOnlyCollection<string> jobParameters)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(jobName);
 
         var job = await FindJobByNameAsync(jobName).ConfigureAwait(false);
-        var inputParameters = BuildPythonJobParameters(jobParameters);
+        var inputParameters = RunParameters.CreatePythonParams(jobParameters);
         var runId = await StartJobAsync(job, inputParameters).ConfigureAwait(false);
 
         return new JobRunId(runId);
@@ -41,11 +41,6 @@ internal class DatabricksJobsManager(
         var run = await GetRunByIdAsync(runId).ConfigureAwait(false);
 
         return run.Run.Status;
-    }
-
-    private RunParameters BuildPythonJobParameters(IReadOnlyDictionary<string, string> jobParameters)
-    {
-        return RunParameters.CreatePythonParams(jobParameters.Select(item => $"--{item.Key}={item.Value}"));
     }
 
     private ValueTask<Job> FindJobByNameAsync(string jobName)

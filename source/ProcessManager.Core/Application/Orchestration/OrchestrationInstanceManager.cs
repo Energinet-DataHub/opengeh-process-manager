@@ -83,7 +83,7 @@ internal class OrchestrationInstanceManager(
 
     /// <inheritdoc />
     public async Task<OrchestrationInstanceId> ScheduleNewOrchestrationInstanceAsync(
-        UserIdentity userIdentity,
+        UserIdentity identity,
         OrchestrationDescriptionUniqueName uniqueName,
         Instant runAt)
     {
@@ -93,7 +93,7 @@ internal class OrchestrationInstanceManager(
             throw new InvalidOperationException("Orchestration description cannot be scheduled.");
 
         var orchestrationInstance = await CreateOrchestrationInstanceAsync(
-            userIdentity,
+            identity,
             orchestrationDescription,
             runAt).ConfigureAwait(false);
 

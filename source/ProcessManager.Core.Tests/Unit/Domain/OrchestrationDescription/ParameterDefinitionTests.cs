@@ -15,9 +15,9 @@
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using FluentAssertions;
 
-namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain;
+namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain.OrchestrationDescription;
 
-public class OrchestrationParameterDefinitionTests
+public class ParameterDefinitionTests
 {
     [Fact]
     public async Task GivenSetFromType_WhenValidatingInstanceOfSameType_ThenIsValid()

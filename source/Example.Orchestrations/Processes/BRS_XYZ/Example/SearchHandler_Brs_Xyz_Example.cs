@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Api.Mappers;
 using NodaTime;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example;
 
 internal class SearchHandler_Brs_Xyz_Example(
     IOrchestrationInstanceQueries queries)

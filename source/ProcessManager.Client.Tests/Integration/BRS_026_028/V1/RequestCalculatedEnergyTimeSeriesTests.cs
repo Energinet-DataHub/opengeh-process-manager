@@ -88,12 +88,13 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-30);
+        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-5);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, default);
 
         // Assert
         var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
-            orchestrationCreatedAfter);
+            orchestrationCreatedAfter,
+            name: "RequestCalculatedEnergyTimeSeriesOrchestrationV1");
         orchestration.Input.ToString().Should().Contain(businessReason);
 
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(

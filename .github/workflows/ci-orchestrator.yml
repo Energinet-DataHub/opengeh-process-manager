@@ -56,7 +56,6 @@ jobs:
     with:
       release_name: process_manager_core
       project_file: source/ProcessManager/ProcessManager.csproj
-      version: 1
 
   ci_orchestrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true' }}
@@ -66,7 +65,6 @@ jobs:
     with:
       release_name: process_manager_orchestrations
       project_file: source/ProcessManager.Orchestrations/ProcessManager.Orchestrations.csproj
-      version: 1
 
   ci_dbmigrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
@@ -76,7 +74,6 @@ jobs:
     with:
       release_name: process_manager_dbmigrations
       project_file: source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj
-      version: 1
 
   ci_run_tests:
     needs: changes

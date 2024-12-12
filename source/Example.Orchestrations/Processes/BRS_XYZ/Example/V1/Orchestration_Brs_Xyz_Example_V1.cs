@@ -22,8 +22,8 @@ namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 
 internal class Orchestration_Brs_Xyz_Example_V1
 {
-    internal const int CalculationStepSequence = 1;
-    internal const int SkipAbleStep = 2;
+    internal const int StartingStepSequence = 1;
+    internal const int SkipAbleStepSequence = 2;
 
     [Function(nameof(Orchestration_Brs_Xyz_Example_V1))]
     public async Task<string> Run(
@@ -44,7 +44,13 @@ internal class Orchestration_Brs_Xyz_Example_V1
 
         // Initialize
         await context.CallActivityAsync(
-            nameof(StartActivity_Brs_Example_Example_V1),
+            nameof(StartActivity_Brs_Xyz_Example_V1),
+            context.InstanceId,
+            defaultRetryOptions);
+
+        // skip able step
+        await context.CallActivityAsync(
+            nameof(SkipAbleActivity_Brs_Xyz_Example_V1),
             context.InstanceId,
             defaultRetryOptions);
 

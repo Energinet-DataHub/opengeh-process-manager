@@ -31,8 +31,8 @@ internal class StartHandler_Brs_Xyz_Example_V1(
         // See class Calculation and method IsValid in Wholesale.
 
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
-        IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.ExampleInput.ShouldSkipStepTwo
-        ? [Orchestration_Brs_Xyz_Example_V1.SkipAbleStep]
+        IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.ExampleSkipStep.ShouldSkipStepTwo
+        ? [Orchestration_Brs_Xyz_Example_V1.SkipAbleStepSequence]
         : [];
 
         var orchestrationInstanceId = await _manager

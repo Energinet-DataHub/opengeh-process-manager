@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
+namespace Energinet.DataHub.Example.Orchestrations.Tests.Models;
 
-/// <summary>
-/// Contains the input for the Example process.
-/// </summary>
-public record ExampleInput(bool ShouldSkipStepTwo);
+public record OrchestrationHistoryItem(
+    string? EventType,
+    string? Name = null,
+    string? FunctionName = null);

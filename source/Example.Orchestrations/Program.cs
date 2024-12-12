@@ -68,7 +68,7 @@ OrchestrationDescription CreateBrs_Xyz_Example_V1Description()
 
     description.ParameterDefinition.SetFromType<Input_Brs_Xyz_Example_V1>();
 
-    description.AppendStepDescription("Example step");
+    description.AppendStepDescription("Example step 1");
     description.AppendStepDescription(
         "Example step 2, can be skipped",
         canBeSkipped: true,

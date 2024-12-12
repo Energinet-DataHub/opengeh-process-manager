@@ -12,13 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-
 namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
 
-/// <summary>
-/// An immutable input to start the orchestration instance for "Example" V1.
-/// </summary>
-public record Input_Brs_Xyz_Example_V1(
-    ExampleSkipStep ExampleSkipStep)
-        : IInputParameterDto;
+public record ExampleSkipStep(bool ShouldSkipStepTwo);

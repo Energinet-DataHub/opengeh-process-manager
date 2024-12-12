@@ -45,5 +45,5 @@ public record ExampleQuery
 
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
 
-    public ExampleInput? ExampleTypes { get; set; }
+    public ExampleSkipStep? ExampleTypes { get; set; }
 }

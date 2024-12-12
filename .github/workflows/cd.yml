@@ -33,7 +33,7 @@ jobs:
               'core': 'ProcessManager.csproj',
               'orchestrations': 'ProcessManager.Orchestrations.csproj',
               'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
-            }"    
+            }"
 
   #
   # CD .NET
@@ -98,7 +98,7 @@ jobs:
           repository: ${{ vars.environment_repository_path }}
           event-type: process-manager-orchestrations-deployment-request-domain
           client-payload: '{"pr_number": "${{ steps.find_pull_request.outputs.pull_request_number }}"}' # yamllint disable-line rule:quoted-strings
-        
+
   dispatch_deploment_event_dbmigrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true'  }}
     runs-on: ubuntu-latest
@@ -122,7 +122,7 @@ jobs:
           repository: ${{ vars.environment_repository_path }}
           event-type: process-manager-dbmigrations-deployment-request-domain
           client-payload: '{"pr_number": "${{ steps.find_pull_request.outputs.pull_request_number }}"}' # yamllint disable-line rule:quoted-strings
-        
+
   #
   # Send notification to teams channel if deployment dispatch failed
   #

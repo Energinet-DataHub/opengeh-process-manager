@@ -102,11 +102,7 @@ public class RecurringPlannerHandler(
         return scheduleAtInTimeZone
             .Select(value =>
             {
-                var localTime = new LocalTime(value.Hour, value.Minute);
-                var localDate = new LocalDate(value.Year, value.Month, value.Day);
-                var localDateTime = localDate.At(localTime);
-                var dateTimeInZone = localDateTime.InZoneLeniently(_dateTimeZone);
-
+                var dateTimeInZone = LocalDateTime.FromDateTime(value).InZoneLeniently(_dateTimeZone);
                 return dateTimeInZone.ToInstant();
             });
     }

@@ -44,7 +44,7 @@ var host = new HostBuilder()
 
         // => Handlers
         services.AddScoped<SearchHandler_Brs_Xyz_Example>();
-        services.AddScoped<StartHandler_Brs_Xyz_V1>();
+        services.AddScoped<StartHandler_Brs_Xyz_Example_V1>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

@@ -57,14 +57,10 @@ public class Orchestrations_Brs_Xyz_Example_V1_Tests : IAsyncLifetime
     public async Task ExampleOrchestration_WhenItsStarted_ThenItCompletes()
     {
         // Arrange
-        var input = new Input_Brs_Xyz_Example_V1(new ExampleInput(true));
         var beforeOrchestrationCreated = SystemClock.Instance.GetCurrentInstant().Minus(Duration.FromSeconds(30));
 
         // Act
-        // Start the orchestration, empty string :8
         var orchestrationId = await StartOrchestrationAsync();
-
-        orchestrationId.Should().NotBeNull();
 
         // Assert
         var startedOrchestrationStatus = await Fixture.ExampleOrchestrationsAppManager.DurableClient.WaitForOrchestationStartedAsync(
@@ -79,27 +75,30 @@ public class Orchestrations_Brs_Xyz_Example_V1_Tests : IAsyncLifetime
         completedOrchestrationStatus.Should().NotBeNull();
     }
 
-    private async Task<string> StartOrchestrationAsync()
+    private async Task<string> StartOrchestrationAsync(bool shouldSkipStepTwo = false)
     {
         var command = new StartCommand_Brs_Xyz_Example_V1(
             operatingIdentity: new UserIdentityDto(
                 Guid.NewGuid(),
                 Guid.NewGuid()),
-            new Input_Brs_Xyz_Example_V1(new ExampleInput(true)));
+            new Input_Brs_Xyz_Example_V1(new ExampleInput(shouldSkipStepTwo)));
 
         var json = JsonSerializer.Serialize(command, command.GetType());
 
-        using var scheduleRequest = new HttpRequestMessage(
+        using var request = new HttpRequestMessage(
             HttpMethod.Post,
             $"/api/orchestrationinstance/command/start/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
 
-        scheduleRequest.Content = new StringContent(
+        request.Content = new StringContent(
             json,
             Encoding.UTF8,
             "application/json");
-        var id = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient
-            .Send(scheduleRequest)
+
+        var id = await (await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient
+                .SendAsync(request))
             .Content.ReadAsStringAsync();
-        return id;
+
+        // id is a string containing a start and end quote :(
+        return id.Substring(1, id.Length - 2);
     }
 }

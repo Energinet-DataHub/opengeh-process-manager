@@ -21,9 +21,9 @@ using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribut
 namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 
 internal class StartTrigger_Brs_Xyz_Example_V1(
-    StartHandler_Brs_Xyz_V1 handlerBrsXyz)
+    StartHandler_Brs_Xyz_Example_V1 handlerBrsXyzExample)
 {
-    private readonly StartHandler_Brs_Xyz_V1 _handlerBrsXyz = handlerBrsXyz;
+    private readonly StartHandler_Brs_Xyz_Example_V1 _handlerBrsXyzExample = handlerBrsXyzExample;
 
     /// <summary>
     /// Start a BRS-023 or BRS-027 calculation and return its id.
@@ -39,7 +39,7 @@ internal class StartTrigger_Brs_Xyz_Example_V1(
         StartCommand_Brs_Xyz_Example_V1 command,
         FunctionContext executionContext)
     {
-        var orchestrationInstanceId = await _handlerBrsXyz.StartNewCalculationAsync(command).ConfigureAwait(false);
+        var orchestrationInstanceId = await _handlerBrsXyzExample.StartNewCalculationAsync(command).ConfigureAwait(false);
         return new OkObjectResult(orchestrationInstanceId.Value);
     }
 }

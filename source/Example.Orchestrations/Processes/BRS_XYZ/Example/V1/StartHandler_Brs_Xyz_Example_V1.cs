@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 
 namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 
-internal class StartHandler_Brs_Xyz_V1(
+internal class StartHandler_Brs_Xyz_Example_V1(
     IStartOrchestrationInstanceCommands manager)
 {
     private readonly IStartOrchestrationInstanceCommands _manager = manager;

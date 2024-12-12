@@ -29,12 +29,15 @@ public record ExampleQuery
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
+    /// <param name="skipStep"> contains the Durable Functions orchestration input parameter value.</param>
     public ExampleQuery(
-        UserIdentityDto operatingIdentity)
+        UserIdentityDto operatingIdentity,
+        ExampleSkipStep skipStep)
             : base(
                 operatingIdentity,
                 new Brs_Xyz_Example_V1().Name)
     {
+        SkipStep = skipStep;
     }
 
     public OrchestrationInstanceLifecycleStates? LifecycleState { get; set; }
@@ -45,5 +48,5 @@ public record ExampleQuery
 
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
 
-    public ExampleSkipStep? ExampleTypes { get; set; }
+    public ExampleSkipStep? SkipStep { get; set; }
 }

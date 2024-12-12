@@ -29,7 +29,7 @@ public sealed record StartRequestCalculatedEnergyTimeSeriesCommandV1
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
-    /// <param name="messageId">Id of the message that casued this command to be executed.</param>
+    /// <param name="messageId">The message id, used for idempotency checks.</param>
     public StartRequestCalculatedEnergyTimeSeriesCommandV1(
         ActorIdentityDto operatingIdentity,
         RequestCalculatedEnergyTimeSeriesInputV1 inputParameter,

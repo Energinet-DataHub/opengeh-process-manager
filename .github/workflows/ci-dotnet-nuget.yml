@@ -31,24 +31,16 @@ name: Publish ProcessManager NuGet bundle(s)
 
 on:
   # Build, test, pack and publish release packages
-  # Only executed if any NuGet packages content or build scripts has changed;
-  # not if solution file, documentation or tests has changed
-  push:
-    branches:
-      - main
-    paths:
-      - source/ProcessManager.Client/**
-      - source/ProcessManager.Abstractions/**
-      - source/ProcessManager.Orchestrations.Abstractions/**
-      - .github/workflows/processmanager-client-bundle-publish.yml
-  # Build, test, pack
-  # Executed if any NuGet package folder or build scripts has changed;
-  # including if documentation or tests has changed
-  workflow_call: {}
-  # Build, test, pack and publish prerelease packages
-  # Executed if manually triggered
-  workflow_dispatch: {}
-
+  workflow_call:
+    inputs: 
+      project_file:
+        description: Project to build and pack
+        required: true
+        type: string
+      nupkg_recurse_path:
+        description: Path to nupkg files
+        required: true
+        type: string
 env:
   # Conditions
   PUSH_PACKAGES: ${{ github.event_name != 'pull_request' }}
@@ -87,72 +79,23 @@ jobs:
           use_azure_functions_tools: "true"
           azure_functions_core_tools_version: 4.0.5455
 
-      - name: Build and test solution
-        uses: Energinet-DataHub/.github/.github/actions/dotnet-solution-build-and-test@v14
-        with:
-          solution_file_path: ./source/ProcessManager.NuGet.Filtered.slnf
-          azure_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
-          azure_subscription_id: ${{ vars.integration_test_azure_subscription_id }}
-          azure_spn_id: ${{ vars.integration_test_azure_spn_id_oidc }}
-          publish_test_report: "true"
-
-      - name: Pack ProcessManager.Client project
+      - name: Pack project
         uses: Energinet-DataHub/.github/.github/actions/nuget-project-pack@v14
         with:
-          project_path: ./source/ProcessManager.Client/ProcessManager.Client.csproj
-
-      - name: Pack ProcessManager.Abstractions project
-        uses: Energinet-DataHub/.github/.github/actions/nuget-project-pack@v14
-        with:
-          project_path: ./source/ProcessManager.Abstractions/ProcessManager.Abstractions.csproj
-
-      - name: Pack ProcessManager.Orchestrations.Abstractions project
-        uses: Energinet-DataHub/.github/.github/actions/nuget-project-pack@v14
-        with:
-          project_path: ./source/ProcessManager.Orchestrations.Abstractions/ProcessManager.Orchestrations.Abstractions.csproj
-
-      - name: Package content or build has changed for PM.Client or PM.Abstractions
-        id: changed-content-client
-        uses: tj-actions/changed-files@v41
-        with:
-          files: |
-            source/ProcessManager.Client/**/*.*
-            source/ProcessManager.Abstractions/**/*.*
-            .github/workflows/processmanager-client-bundle-publish.yml
+          project_path: ${{ inputs.project_file }}
 
       - name: Assert version of ProcessManager.Client NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
         with:
           push_packages: ${{ env.PUSH_PACKAGES }}
-          content_changed: ${{ steps.changed-content-client.outputs.any_changed }}
+          content_changed: true
           nuget_token: ${{ secrets.nuget_token }}
-          nupkg_recurse_path: source/ProcessManager.Client
-
-      - name: Assert version of ProcessManager.Abstractions NuGet package and push it to NuGet.org
-        uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
-        with:
-          push_packages: ${{ env.PUSH_PACKAGES }}
-          content_changed: ${{ steps.changed-content-client.outputs.any_changed }}
-          nuget_token: ${{ secrets.nuget_token }}
-          nupkg_recurse_path: source/ProcessManager.Abstractions
-
-      # NOTICE:
-      # If dependency ProcessManager.Abstractions has changed then we enforce a publish as if the
-      # ProcessManager.Orchestrations.Abstractions has changed, because we want to ensure the
-      # version of ProcessManager.Orchestrations.Abstractions is bumped.
-      - name: Package content, dependencies or build has changed for PM.Abstractions or PM.Orchestrations.Abstractions
-        id: changed-content-orchestrations
-        uses: tj-actions/changed-files@v41
-        with:
-          files: |
-            source/ProcessManager.Orchestrations.Abstractions/**/*.*
-            source/ProcessManager.Abstractions/**/*.*
-            .github/workflows/processmanager-client-bundle-publish.yml
+          nupkg_recurse_path: ${{ inputs.nupkg_recurse_path }}
 
       - name: Assert version of ProcessManager.Orchestrations.Abstractions NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
         with:
           push_packages: ${{ env.PUSH_PACKAGES }}
-          content_changed: ${{ steps.changed-content-orchestrations.outputs.any_changed }}
+          content_changed: true
           nuget_token: ${{ secrets.nuget_token }}
           nupkg_recurse_path: source/ProcessManager.Orchestrations.Abstractions

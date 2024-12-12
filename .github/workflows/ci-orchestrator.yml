@@ -41,12 +41,31 @@ jobs:
               'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
             }"
 
-  ci_nuget:
+  # ci_nuget:
+  #   needs: changes
+  #   if: ${{ needs.changes.outputs.nuget_packages == 'true' }}
+  #   uses: ./.github/workflows/ci-dotnet-nuget.yml
+  #   name: Build NuGet packages
+  #   secrets: inherit
+
+  ci_nuget_process_manager_client:
+    if: ${{ fromJson(needs.changes.outputs.job_context).nuget_client == 'true' }}
     needs: changes
-    if: ${{ needs.changes.outputs.nuget_packages == 'true' }}
-    uses: ./.github/workflows/processmanager-client-bundle-publish.yml
-    name: Build NuGet packages
-    secrets: inherit
+    uses: ./.github/workflows/ci-dotnet-nuget.yml
+    name: Build NuGet package - Client
+    with:
+      project_file: ./source/ProcessManager.Client/ProcessManager.Client.csproj
+      nupkg_recurse_path: source/ProcessManager.Client
+
+  ci_nuget_process_manager_abstractions:
+    if: ${{ fromJson(needs.changes.outputs.job_context).nuget_abstractions == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet-nuget.yml
+    name: Build NuGet package - Abstractions
+    with:
+      project_file: ./source/ProcessManager.Orchestrations.Abstractions/ProcessManager.Orchestrations.Abstractions.csproj
+      nupkg_recurse_path: source/ProcessManager.Abstractions
+    
 
   ci_core:
     if: ${{ fromJson(needs.changes.outputs.job_context).core == 'true' }}

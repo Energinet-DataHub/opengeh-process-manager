@@ -70,7 +70,7 @@ public class RecurringPlannerHandler(
                         .ConfigureAwait(false);
 
                     var missingOccurrences = scheduleAtAsInstants
-                        .Where(scheduleAt => false == scheduledInstances.Any(instance => instance.Lifecycle.ScheduledToRunAt!.Value == scheduleAt))
+                        .Where(scheduleAt => !scheduledInstances.Any(instance => instance.Lifecycle.ScheduledToRunAt!.Value == scheduleAt))
                         .ToList();
 
                     foreach (var occurrence in missingOccurrences)

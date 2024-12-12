@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text;
+using System.Text.Json;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
 using Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 using Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using FluentAssertions;
 using NodaTime;
 using Xunit.Abstractions;
@@ -54,14 +57,12 @@ public class Orchestrations_Brs_Xyz_Example_V1_Tests : IAsyncLifetime
     public async Task ExampleOrchestration_WhenItsStarted_ThenItCompletes()
     {
         // Arrange
-        var input = new Input_Brs_Xyz_Example_V1(ExampleTypes.ExampleType1);
+        var input = new Input_Brs_Xyz_Example_V1(new ExampleInput(true));
         var beforeOrchestrationCreated = SystemClock.Instance.GetCurrentInstant().Minus(Duration.FromSeconds(30));
 
         // Act
-        // Start the orchestration
-        var orchestrationId = await StartOrchestrationAsync(
-            nameof(Orchestration_Brs_Xyz_Example_V1),
-            input);
+        // Start the orchestration, empty string :8
+        var orchestrationId = await StartOrchestrationAsync();
 
         orchestrationId.Should().NotBeNull();
 
@@ -73,18 +74,32 @@ public class Orchestrations_Brs_Xyz_Example_V1_Tests : IAsyncLifetime
 
         // => Wait for orchestration to complete
         var completedOrchestrationStatus = await Fixture.ExampleOrchestrationsAppManager.DurableClient.WaitForOrchestrationCompletedAsync(
-            orchestrationId, //startedOrchestrationStatus.InstanceId,
-            TimeSpan.FromMinutes(5));
+            orchestrationId,
+            TimeSpan.FromSeconds(120));
         completedOrchestrationStatus.Should().NotBeNull();
     }
 
-    private async Task<string> StartOrchestrationAsync(string orchestrationName, object input)
+    private async Task<string> StartOrchestrationAsync()
     {
-        
-        var orchestrationId = await Fixture.ExampleOrchestrationsAppManager.DurableClient.StartNewAsync(
-            orchestrationName,
-            input);
+        var command = new StartCommand_Brs_Xyz_Example_V1(
+            operatingIdentity: new UserIdentityDto(
+                Guid.NewGuid(),
+                Guid.NewGuid()),
+            new Input_Brs_Xyz_Example_V1(new ExampleInput(true)));
 
-        return orchestrationId;
+        var json = JsonSerializer.Serialize(command, command.GetType());
+
+        using var scheduleRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/command/start/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}");
+
+        scheduleRequest.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+        var id = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient
+            .Send(scheduleRequest)
+            .Content.ReadAsStringAsync();
+        return id;
     }
 }

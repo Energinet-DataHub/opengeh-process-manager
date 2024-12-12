@@ -23,7 +23,7 @@ namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
 internal class Orchestration_Brs_Xyz_Example_V1
 {
     internal const int CalculationStepSequence = 1;
-    internal const int EnqueueMessagesStepSequence = 2;
+    internal const int SkipAbleStep = 2;
 
     [Function(nameof(Orchestration_Brs_Xyz_Example_V1))]
     public async Task<string> Run(

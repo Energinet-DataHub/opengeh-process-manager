@@ -45,5 +45,5 @@ public record ExampleQuery
 
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
 
-    public IReadOnlyCollection<ExampleTypes>? ExampleTypes { get; set; }
+    public ExampleInput? ExampleTypes { get; set; }
 }

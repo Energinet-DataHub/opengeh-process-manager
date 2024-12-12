@@ -15,17 +15,6 @@
 namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
 
 /// <summary>
-/// Defines the wholesale calculation types
+/// Contains the input for the Example process.
 /// </summary>
-public enum ExampleTypes
-{
-    /// <summary>
-    /// Balance fixing
-    /// </summary>
-    ExampleType1 = 0,
-
-    /// <summary>
-    /// Aggregation.
-    /// </summary>
-    ExampleType2 = 1,
-}
+public record ExampleInput(bool ShouldSkipStepTwo);

@@ -61,8 +61,9 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             nameof(StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1),
             context.InstanceId,
             defaultRetryOptions);
+        //await context.WaitForExternalEvent<string>("Measurements_Notification");
         await context.CallActivityAsync(
-            nameof(WaitingMeteredDataForMeasurementPointIsStoredActivity_Brs_021_ForwardMeteredData_V1),
+            nameof(StoringStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
             context.InstanceId,
             defaultRetryOptions);
 
@@ -81,8 +82,9 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             nameof(EnqueueMessagesActivity_Brs_021_ForwardMeteredData_V1),
             context.InstanceId,
             defaultRetryOptions);
+        //await context.WaitForExternalEvent<string>("EDI_Notification");
         await context.CallActivityAsync(
-            nameof(WaitingMeteredDataForMeasurementPointIsEnqueuedActivity_Brs_021_ForwardMeteredData_V1),
+            nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
             context.InstanceId,
             defaultRetryOptions);
 

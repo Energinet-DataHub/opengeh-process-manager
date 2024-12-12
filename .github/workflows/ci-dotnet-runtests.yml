@@ -51,7 +51,7 @@ jobs:
         id: set-matrix
         shell: pwsh
         run: |
-          $affectedProjects = '${{ inputs.affected_changes  }}' | ConvertFrom-Json
+          $affectedProjects = '${{ inputs.affected_changes || '[]' }}' | ConvertFrom-Json
 
           # I couldn't find a better way to lowercase keys in a hashtable
           $matrixBuilds = @()

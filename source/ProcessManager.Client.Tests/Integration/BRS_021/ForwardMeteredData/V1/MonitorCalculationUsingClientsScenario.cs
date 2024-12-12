@@ -81,7 +81,6 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
     public async Task ForwardMeteredData_WhenStartedUsingClient_CanMonitorLifecycle()
     {
         // Arrange
-        //await Task.Delay(30000);
         var input = CreateMeteredDataForMeasurementPointMessageInputV1();
 
         var startCommand = new StartForwardMeteredDataCommandV1(

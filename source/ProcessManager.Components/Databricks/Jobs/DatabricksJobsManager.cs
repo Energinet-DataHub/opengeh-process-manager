@@ -30,7 +30,7 @@ internal class DatabricksJobsManager(
 
         var job = await FindJobByNameAsync(jobName).ConfigureAwait(false);
         var inputParameters = RunParameters.CreatePythonParams(jobParameters);
-        var runId = await StartJobAsync(job, inputParameters).ConfigureAwait(false);
+        var runId = await StartJobAsync(job.JobId, inputParameters).ConfigureAwait(false);
 
         return new JobRunId(runId);
     }
@@ -50,11 +50,11 @@ internal class DatabricksJobsManager(
             .SingleAsync();
     }
 
-    private Task<long> StartJobAsync(Job job, RunParameters inputParameters)
+    private Task<long> StartJobAsync(long jobId, RunParameters inputParameters)
     {
         return _jobsApiClient
             .Jobs
-            .RunNow(job.JobId, inputParameters);
+            .RunNow(jobId, inputParameters);
     }
 
     private Task<(Run Run, RepairHistory RepairHistory)> GetRunByIdAsync(JobRunId runId)

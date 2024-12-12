@@ -41,16 +41,18 @@ jobs:
               'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
             }"
 
-  ci_processmanager_nuget:
+  ci_nuget:
     needs: changes
     if: ${{ needs.changes.outputs.nuget_packages == 'true' }}
     uses: ./.github/workflows/processmanager-client-bundle-publish.yml
+    name: Build NuGet packages
     secrets: inherit
 
-  ci_processmanager:
+  ci_core:
     if: ${{ fromJson(needs.changes.outputs.job_context).core == 'true' }}
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
+    name: Build Core
     with:
       release_name: process_manager_core
       project_file: source/ProcessManager/ProcessManager.csproj
@@ -60,6 +62,7 @@ jobs:
     if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true' }}
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
+    name: Build Orchestrations
     with:
       release_name: process_manager_orchestrations
       project_file: source/ProcessManager.Orchestrations/ProcessManager.Orchestrations.csproj
@@ -69,6 +72,7 @@ jobs:
     if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
+    name: Build database migrations
     with:
       release_name: process_manager_dbmigrations
       project_file: source/ProcessManager.DatabaseMigration/ProcessManager.DatabaseMigration.csproj
@@ -77,6 +81,7 @@ jobs:
   ci_run_tests:
     needs: changes
     uses: ./.github/workflows/ci-dotnet-runtests.yml
+    name: Run tests
     with:
       affected_changes: ${{ needs.changes.outputs.affected_changes }}
 
@@ -90,8 +95,8 @@ jobs:
       [
         ci_base,
         changes,
-        ci_processmanager_nuget,
-        ci_processmanager,
+        ci_nuget,
+        ci_core,
         ci_orchestrations,
         ci_dbmigrations,
         ci_run_tests

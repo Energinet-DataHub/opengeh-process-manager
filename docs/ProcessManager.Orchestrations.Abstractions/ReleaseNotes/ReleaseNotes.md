@@ -1,8 +1,12 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 0.2.2
+## Version 0.2.3
 
 - No functional change
+
+## Version 0.2.2
+
+- Change `StartForwardMeteredDataCommandV1` to a `MessageCommand<MeteredDataForMeasurementPointMessageInputV1>`
 
 ## Version 0.2.1
 

@@ -2,6 +2,15 @@
 
 // TODO: This ducoment should be split into multiple; this is just a placeholder for relevant subjects that should be documented.
 
+## Active feature flags
+
+We use TimerTrigger [built in functionality](https://learn.microsoft.com/en-us/azure/azure-functions/disable-function?tabs=portal) to disable them in preproduction and production.
+
+The TimerTriggers are:
+
+- `StartScheduledOrchestrationInstances`
+- `PerformRecurringPlanning`
+
 ## Organization of artifacts
 
 // TODO: Describe organization in repository -> files/folders

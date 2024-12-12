@@ -27,12 +27,12 @@ using Xunit.Abstractions;
 namespace Energinet.DataHub.Example.Orchestrations.Tests.Integration.Processes.BRS_XYZ.Examples.V1;
 
 /// <summary>
-/// Tests that verify that we can start an orchestration instance for the "Example" V1 process.
+/// Tests that verify that we can start and finish a "BRS_XYZ" orchestration.
 /// </summary>
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
-public class Orchestrations_Brs_Xyz_Example_V1_Tests : IAsyncLifetime
+public class OrchestrationsCompletionsTests : IAsyncLifetime
 {
-    public Orchestrations_Brs_Xyz_Example_V1_Tests(ExampleOrchestrationsAppFixture fixture, ITestOutputHelper testOutputHelper)
+    public OrchestrationsCompletionsTests(ExampleOrchestrationsAppFixture fixture, ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
@@ -55,7 +55,7 @@ public class Orchestrations_Brs_Xyz_Example_V1_Tests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ExampleOrchestration_WhenNoActivitiesAreSkipped_ThenItCompletesAndHaveHistoryCountFour()
+    public async Task ExampleOrchestration_WhenOrchestrationIsStarted_ThenItCompletesAndHaveHistoryCountFour()
     {
         // Arrange
         var beforeOrchestrationCreated = SystemClock.Instance.GetCurrentInstant().Minus(Duration.FromSeconds(30));

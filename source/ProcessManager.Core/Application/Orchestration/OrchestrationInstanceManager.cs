@@ -83,7 +83,7 @@ internal class OrchestrationInstanceManager(
 
     /// <inheritdoc />
     public async Task<OrchestrationInstanceId> ScheduleNewOrchestrationInstanceAsync(
-        OperatingIdentity identity,
+        UserIdentity identity,
         OrchestrationDescriptionUniqueName uniqueName,
         Instant runAt)
     {

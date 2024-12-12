@@ -82,12 +82,12 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
         // Assert
         _managerMock.Verify(manager => manager
             .ScheduleNewOrchestrationInstanceAsync(
-                RecurringPlannerHandler.DatahubAdministratorActorId,
+                RecurringPlannerHandler.RecurringJobIdentity,
                 uniqueName,
                 _fixture.DkFirstOfDecember2024At1200.ToInstant()));
         _managerMock.Verify(manager => manager
             .ScheduleNewOrchestrationInstanceAsync(
-                RecurringPlannerHandler.DatahubAdministratorActorId,
+                RecurringPlannerHandler.RecurringJobIdentity,
                 uniqueName,
                 _fixture.DkFirstOfDecember2024At1700.ToInstant()));
         _managerMock.VerifyNoOtherCalls();
@@ -147,7 +147,7 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
         // Assert
         _managerMock.Verify(manager => manager
             .ScheduleNewOrchestrationInstanceAsync(
-                RecurringPlannerHandler.DatahubAdministratorActorId,
+                RecurringPlannerHandler.RecurringJobIdentity,
                 uniqueName,
                 _fixture.DkFirstOfDecember2024At1700.ToInstant()));
         _managerMock.VerifyNoOtherCalls();

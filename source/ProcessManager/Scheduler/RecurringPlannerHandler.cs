@@ -28,8 +28,7 @@ public class RecurringPlannerHandler(
     IRecurringOrchestrationQueries query,
     IStartOrchestrationInstanceCommands manager)
 {
-    internal static readonly ActorIdentity DatahubAdministratorActorId =
-        new(new ActorId(Guid.Parse("00000000-0000-0000-0000-000000000001")));
+    internal static readonly UserIdentity RecurringJobIdentity = CreateIdentity();
 
     private readonly ILogger _logger = logger;
     private readonly DateTimeZone _dateTimeZone = dateTimeZone;
@@ -78,7 +77,7 @@ public class RecurringPlannerHandler(
                     {
                         var orchestrationInstance = await _manager
                             .ScheduleNewOrchestrationInstanceAsync(
-                                DatahubAdministratorActorId,
+                                RecurringJobIdentity,
                                 orchestrationDescription.UniqueName,
                                 runAt: occurrence)
                             .ConfigureAwait(false);
@@ -95,6 +94,18 @@ public class RecurringPlannerHandler(
                     orchestrationDescription.Id.Value);
             }
         }
+    }
+
+    /// <summary>
+    /// We combine a "known user id" (known by Market Participant)
+    /// and the DataHub Administrator actor id to create an
+    /// operating identity for recurring jobs.
+    /// </summary>
+    private static UserIdentity CreateIdentity()
+    {
+        return new UserIdentity(
+            new UserId(Guid.Parse("C861C5E2-8DDA-43E5-A5D0-B94834EE3FF6")),
+            new ActorId(Guid.Parse("00000000-0000-0000-0000-000000000001")));
     }
 
     private IEnumerable<Instant> ConvertToInstants(IEnumerable<DateTime> scheduleAtInTimeZone)

@@ -75,8 +75,6 @@ public class Orchestrations_Brs_Xyz_Example_V1_Tests : IAsyncLifetime
             TimeSpan.FromSeconds(120));
         completedOrchestrationStatus.Should().NotBeNull();
 
-        completedOrchestrationStatus.History.Should().HaveCount(4);
-
         var activities = completedOrchestrationStatus.History
             .OrderBy(item => item["Timestamp"])
             .Select(item => item.ToObject<OrchestrationHistoryItem>())

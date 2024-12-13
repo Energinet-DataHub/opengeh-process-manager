@@ -49,7 +49,7 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Verify the response contains JSON in a format that the Health Checks UI supports
+    /// Verify the response contains JSON in a format that the Health Checks UI supports.
     /// </summary>
     [Theory]
     [InlineData("live")]

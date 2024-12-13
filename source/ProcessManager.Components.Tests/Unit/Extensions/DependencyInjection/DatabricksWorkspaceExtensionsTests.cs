@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using FluentAssertions;
+using FluentAssertions.Common;
+using FluentAssertions.Execution;
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,6 +78,38 @@ public class DatabricksWorkspaceExtensionsTests
         actualJobsClient.Should().NotBeNull();
     }
 
+    [Fact]
+    public void AddDatabricksJobs_WhenConfiguringMultipleWorkspaces_CanUseFromKeyedServicesToInjectClients()
+    {
+        // Arrange
+        var wholesaleSectionName = "Wholesale";
+        var measurementsSectionName = "Measurements";
+        AddInMemoryConfigurations(new Dictionary<string, string?>()
+        {
+            [$"{wholesaleSectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"] = "https://www.wholesale.com",
+            [$"{wholesaleSectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = TokenFake,
+            [$"{measurementsSectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"] = "https://www.measurements.com",
+            [$"{measurementsSectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = TokenFake,
+        });
+
+        Services.AddDatabricksJobs(configSectionPath: wholesaleSectionName);
+        Services.AddDatabricksJobs(configSectionPath: measurementsSectionName);
+
+        // Act
+        Services.AddTransient<WholesaleClientStub>();
+        Services.AddTransient<MeasurementsClientStub>();
+
+        // Assert
+        var assertionScope = new AssertionScope();
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var actualWholesaleClient = serviceProvider.GetRequiredService<WholesaleClientStub>();
+        actualWholesaleClient.Client.Should().NotBeNull();
+
+        var actualMeasurementsClient = serviceProvider.GetRequiredService<MeasurementsClientStub>();
+        actualMeasurementsClient.Client.Should().NotBeNull();
+    }
+
     private void AddInMemoryConfigurations(Dictionary<string, string?> configurations)
     {
         Services.AddScoped<IConfiguration>(_ =>
@@ -84,5 +118,31 @@ public class DatabricksWorkspaceExtensionsTests
                 .AddInMemoryCollection(configurations)
                 .Build();
         });
+    }
+
+    public class WholesaleClientStub
+    {
+        /// <summary>
+        /// The "key" must match the configuration section name give during registration.
+        /// </summary>
+        public WholesaleClientStub([FromKeyedServices("Wholesale")] IDatabricksJobsClient client)
+        {
+            Client = client;
+        }
+
+        public IDatabricksJobsClient Client { get; }
+    }
+
+    public class MeasurementsClientStub
+    {
+        /// <summary>
+        /// The "key" must match the configuration section name give during registration.
+        /// </summary>
+        public MeasurementsClientStub([FromKeyedServices("Measurements")] IDatabricksJobsClient client)
+        {
+            Client = client;
+        }
+
+        public IDatabricksJobsClient Client { get; }
     }
 }

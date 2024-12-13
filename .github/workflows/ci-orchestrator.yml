@@ -32,8 +32,6 @@ jobs:
   #
   changes:
     uses: ./.github/workflows/detect-changes.yml
-    with:
-      print_debug_output: true
 
   ci_nuget:
     needs: changes
@@ -75,6 +73,7 @@ jobs:
     name: Run tests
     with:
       affected_changes: ${{ needs.changes.outputs.affected_changes }}
+      print_debug_output: true
 
   #
   # Branch policy status check

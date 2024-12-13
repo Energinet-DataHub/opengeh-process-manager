@@ -37,7 +37,7 @@ on:
 jobs:
   changes:
     name: Detect changes
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       nuget_packages: ${{ steps.filter_nuget.outputs.nuget_packages }}
       affected_changes: ${{ steps.filter.outputs.affected_changes }}

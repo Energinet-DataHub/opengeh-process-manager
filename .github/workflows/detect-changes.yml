@@ -23,12 +23,6 @@ name: Detect changes
 on:
   workflow_call:
     inputs:
-      solution_file:
-        required: true
-        type: string
-      hostnames:
-        required: true
-        type: string
       print_debug_output:
         required: false
         type: string
@@ -60,11 +54,16 @@ jobs:
         uses: ./.github/actions/dotnet-affected
         id: filter
         with:
-          solution_file: ${{ inputs.solution_file }}
+          solution_file: source/ProcessManager.sln
           workspace_path: ${{ github.workspace }}
           from_sha: ${{ steps.set_shas.outputs.base }}
           to_sha: ${{ steps.set_shas.outputs.head }}
-          host_names: ${{ inputs.hostnames }}
+          host_names: "
+            {
+              'core': 'ProcessManager.csproj',
+              'orchestrations': 'ProcessManager.Orchestrations.csproj',
+              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
+            }"
           print_debug_output: ${{ inputs.print_debug_output }}
 
       - name: Detect Nuget changes

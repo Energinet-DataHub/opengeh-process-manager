@@ -34,13 +34,6 @@ jobs:
     uses: ./.github/workflows/detect-changes.yml
     with:
       print_debug_output: true
-      solution_file: source/ProcessManager.sln
-      hostnames: "
-            {
-              'core': 'ProcessManager.csproj',
-              'orchestrations': 'ProcessManager.Orchestrations.csproj',
-              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
-            }"
 
   ci_nuget:
     needs: changes

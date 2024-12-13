@@ -18,9 +18,9 @@ using ProcessManager.Components.Databricks.Jobs.Model;
 
 namespace ProcessManager.Components.Databricks.Jobs;
 
-internal class DatabricksJobsManager(
+internal class DatabricksJobsClient(
     IJobsApi jobsApi)
-        : IDatabricksJobsManager
+        : IDatabricksJobsClient
 {
     private readonly IJobsApi _jobsApi = jobsApi;
 

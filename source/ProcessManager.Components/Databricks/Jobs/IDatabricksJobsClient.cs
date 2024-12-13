@@ -16,7 +16,7 @@ using ProcessManager.Components.Databricks.Jobs.Model;
 
 namespace ProcessManager.Components.Databricks.Jobs;
 
-public interface IDatabricksJobsManager
+public interface IDatabricksJobsClient
 {
     /// <summary>
     /// Find the Databricks job by name and start it using given

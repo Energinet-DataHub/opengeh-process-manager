@@ -80,7 +80,6 @@ runs:
       shell: bash
       if: ${{ inputs.print_debug_output == 'true' }}
       run: |
-        echo "Debug output:"
+        echo "Debug output enabled"
         echo Affected projects: '${{ steps.filter.outputs.affected_changes }}'
-        echo ''
         echo Job context: '${{ steps.filter.outputs.job_context }}'

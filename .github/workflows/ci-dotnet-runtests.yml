@@ -77,6 +77,7 @@ jobs:
 
       - name: Print matrix output
         if: ${{ inputs.print_debug_output == 'true' }}
+        shell: pwsh
         run: |
           Write-Host 'Print matrix'
           $matrixBuilds = '${{steps.set-matrix.outputs.matrix_builds}}' | ConvertFrom-Json | ConvertTo-Json

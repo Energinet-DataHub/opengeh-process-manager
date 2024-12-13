@@ -62,20 +62,19 @@ runs:
         # Install and run dotnet-affected, outputs a json file with affected projects
         Write-AffectedProjectsFile -SolutionPath $solutionPath -WorkspacePath $workspacePath -FromSha $fromSha -ToSha $toSha
 
-        # if (Test-Path $AffectedProjectsFile) {
-          $affectedJson = Get-Content $AffectedProjectsFile -ErrorAction SilentlyContinue  # The file may not exist if no projects have changed
-          "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
+        $affectedJson = '[]'
+        if (Test-Path $AffectedProjectsFile) {
+          $affectedJson = Get-Content $AffectedProjectsFile
+        }
+        "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
 
-          $job_context_output = Find-AffectedHosts -AffectedProjects $affectedJson -HostNames $hostNamesJson
-          "job_context=$job_context_output" >> $env:GITHUB_OUTPUT
-        # } else {
-          # See https://github.com/leonardochaia/dotnet-affected?tab=readme-ov-file#dont-buildtestdeploy-when-no-projects-have-changed for details
+        $job_context_output = Find-AffectedHosts -AffectedProjects $affectedJson -HostNames $hostNamesJson
+        "job_context=$job_context_output" >> $env:GITHUB_OUTPUT
 
-          # "job_context={}" >> $env:GITHUB_OUTPUT
-          if ($LASTEXITCODE -eq 166) {
-            exit 0
-          }
-        # }
+        # See https://github.com/leonardochaia/dotnet-affected?tab=readme-ov-file#dont-buildtestdeploy-when-no-projects-have-changed for details
+        if ($LASTEXITCODE -eq 166) {
+          exit 0
+        }
 
     - name: Print debug output
       shell: bash

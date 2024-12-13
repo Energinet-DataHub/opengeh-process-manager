@@ -27,13 +27,7 @@ jobs:
   changes:
     uses: ./.github/workflows/detect-changes.yml
     with:
-      solution_file: source/ProcessManager.sln
-      hostnames: "
-            {
-              'core': 'ProcessManager.csproj',
-              'orchestrations': 'ProcessManager.Orchestrations.csproj',
-              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
-            }"
+      print_debug_output: true
 
   #
   # CD .NET
@@ -53,7 +47,7 @@ jobs:
 
   dispatch_deploment_event_core:
     if: ${{ fromJson(needs.changes.outputs.job_context).core == 'true'  }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [dotnet_promote_prerelease, changes]
     steps:
       - name: Find associated pull request
@@ -77,7 +71,7 @@ jobs:
 
   dispatch_deploment_event_orchestrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true'  }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [dotnet_promote_prerelease, changes]
     steps:
       - name: Find associated pull request
@@ -101,7 +95,7 @@ jobs:
 
   dispatch_deploment_event_dbmigrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true'  }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [dotnet_promote_prerelease, changes]
     steps:
       - name: Find associated pull request

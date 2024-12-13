@@ -33,6 +33,9 @@ function Find-AffectedHosts {
         }
     }
     
+    if ($null -eq $hostnamesOutput) {
+        $hostnamesOutput = '{}'
+    }
     return $hostnamesOutput | ConvertTo-Json -Compress
 }
 

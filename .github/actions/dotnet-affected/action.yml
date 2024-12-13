@@ -63,7 +63,7 @@ runs:
         Write-AffectedProjectsFile -SolutionPath $solutionPath -WorkspacePath $workspacePath -FromSha $fromSha -ToSha $toSha
 
         # if (Test-Path $AffectedProjectsFile) {
-          $affectedJson = Get-Content $AffectedProjectsFile
+          $affectedJson = Get-Content $AffectedProjectsFile -ErrorAction SilentlyContinue  # The file may not exist if no projects have changed
           "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
 
           $job_context_output = Find-AffectedHosts -AffectedProjects $affectedJson -HostNames $hostNamesJson

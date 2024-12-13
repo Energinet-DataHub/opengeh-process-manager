@@ -73,7 +73,7 @@ jobs:
             $matrixBuildsJson = $matrixBuilds | ConvertTo-Json -Compress
           }
 
-          if ($matrixBuildsJson -eq '') {
+          if ($null -eq $matrixBuildsJson) {
             $matrixBuildsJson = '[]'
           }
           "matrix_builds=$matrixBuildsJson" >> $env:GITHUB_OUTPUT

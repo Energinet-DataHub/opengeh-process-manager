@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using FluentAssertions;
-using FluentAssertions.Execution;
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,10 +48,30 @@ public class DatabricksWorkspaceExtensionsTests
         Services.AddDatabricksJobs();
 
         // Assert
-        using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
         var actualJobsApi = serviceProvider.GetRequiredService<IJobsApi>();
+        actualJobsApi.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AddDatabricksJobs_WhenCustomSectionName_RegistrationsArePerformedUsingKey()
+    {
+        // Arrange
+        var sectionName = "Custom";
+        AddInMemoryConfigurations(new Dictionary<string, string?>()
+        {
+            [$"{sectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"] = BaseUrlFake,
+            [$"{sectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = TokenFake,
+        });
+
+        // Act
+        Services.AddDatabricksJobs(configSectionPath: sectionName);
+
+        // Assert
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var actualJobsApi = serviceProvider.GetRequiredKeyedService<IJobsApi>(serviceKey: sectionName);
         actualJobsApi.Should().NotBeNull();
     }
 

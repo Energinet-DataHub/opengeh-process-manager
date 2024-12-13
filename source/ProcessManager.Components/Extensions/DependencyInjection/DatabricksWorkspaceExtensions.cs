@@ -74,7 +74,8 @@ public static class DatabricksWorkspaceExtensions
 
         serviceCollection.AddKeyedSingleton<DatabricksClient>(configSectionPath, (sp, key) =>
         {
-            var options = sp.GetRequiredKeyedService<IOptions<DatabricksWorkspaceOptions>>(key).Value;
+            var snapshot = sp.GetRequiredService<IOptionsSnapshot<DatabricksWorkspaceOptions>>();
+            var options = snapshot.Get(configSectionPath);
             return DatabricksClient.CreateClient(options.BaseUrl, options.Token);
         });
 

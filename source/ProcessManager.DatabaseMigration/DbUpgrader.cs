@@ -52,7 +52,7 @@ public static class DbUpgrader
                 EXEC('CREATE SCHEMA {schemaName}');
             END";
 
-        // Execute the pre-deployment script to create the schema if it doesn't exist
+        // Execute the pre-deployment script to create the schema if it doesn't exist.
         using var connection = new SqlConnection(connectionString);
         connection.Open();
 

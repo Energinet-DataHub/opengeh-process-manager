@@ -3,6 +3,20 @@ Describe "Find-AffectedProjects" {
         . $PSScriptRoot/Find-AffectedProjects.ps1
     }
 
+    Context "When no hosts exist" {
+
+        It 'should return nothing' {
+            $affectedProjectsJson = "[]" 
+
+            $hostNamesJson = ""
+
+            $expectedResult = '"{}"' | ConvertFrom-Json | ConvertTo-Json -Compress
+
+            $affectedHosts = Find-AffectedHosts -AffectedProjects $affectedProjectsJson -HostNames $hostNamesJson
+            $affectedHosts | Should -Be $expectedResult
+        }
+    }
+
     Context "When no hosts are affected" {
 
         It 'should return nothing' {

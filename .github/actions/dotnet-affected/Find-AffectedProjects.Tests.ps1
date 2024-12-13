@@ -3,6 +3,7 @@ Describe "Find-AffectedProjects" {
         . $PSScriptRoot/Find-AffectedProjects.ps1
     }
 
+
     Context "When no hosts are affected" {
 
         It 'should return nothing' {

@@ -23,12 +23,6 @@ name: Detect changes
 on:
   workflow_call:
     inputs:
-      solution_file:
-        required: true
-        type: string
-      hostnames:
-        required: true
-        type: string
       print_debug_output:
         required: false
         type: string
@@ -51,7 +45,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          show-progress: true
           fetch-depth: 0 # Fetch all history so that we can determine the base commit
+
+      - name: List checked out files
+        if: ${{ inputs.print_debug_output == 'true' }}
+        run: |
+          ls -la ${{ github.workspace }}
 
       - uses: nrwl/nx-set-shas@v4
         id: set_shas
@@ -60,11 +60,16 @@ jobs:
         uses: ./.github/actions/dotnet-affected
         id: filter
         with:
-          solution_file: ${{ inputs.solution_file }}
+          solution_file: source/ProcessManager.sln
           workspace_path: ${{ github.workspace }}
           from_sha: ${{ steps.set_shas.outputs.base }}
           to_sha: ${{ steps.set_shas.outputs.head }}
-          host_names: ${{ inputs.hostnames }}
+          host_names: "
+            {
+              'core': 'ProcessManager.csproj',
+              'orchestrations': 'ProcessManager.Orchestrations.csproj',
+              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
+            }"
           print_debug_output: ${{ inputs.print_debug_output }}
 
       - name: Detect Nuget changes

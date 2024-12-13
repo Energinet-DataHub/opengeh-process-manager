@@ -19,7 +19,7 @@ namespace Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescripti
 /// <summary>
 /// Durable Functions orchestration description.
 /// It contains the information necessary to locate and execute a Durable Functions
-/// orchestration.
+/// orchestration
 /// </summary>
 public class OrchestrationDescription
 {

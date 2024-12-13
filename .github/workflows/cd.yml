@@ -46,14 +46,14 @@ jobs:
     uses: Energinet-DataHub/.github/.github/workflows/promote-prerelease.yml@v14
     with:
       release_name_prefix: process_manager_orchestrations
-    
+
   promote_prerelease_dbmigrations:
     needs: changes
     if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
     uses: Energinet-DataHub/.github/.github/workflows/promote-prerelease.yml@v14
     with:
       release_name_prefix: process_manager_dbmigrations
-  
+
 
   #
   # Dispatch deployment request

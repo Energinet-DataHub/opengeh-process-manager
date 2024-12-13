@@ -31,18 +31,18 @@ public class ProcessManagerTopicOptions
     /// <summary>
     /// Name of the ProcessManager Service Bus topic
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string TopicName { get; } = string.Empty;
 
     /// <summary>
     /// Name of the subscription for BRS026 to the ProcessManager Service Bus topic
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string Brs026SubscriptionName { get; } = string.Empty;
 
     /// <summary>
     /// Name of the subscription for BRS021 ForwardMeteredData to the ProcessManager Service Bus topic
     /// </summary>
-    //[Required] // TODO: Removed required for now since tests cannot be run (yet)
+    //[Required(AllowEmptyStrings = false)] // TODO: Removed required for now since tests cannot be run (yet)
     public string Brs021ForwardMeteredDataSubscriptionName { get; } = string.Empty;
 }

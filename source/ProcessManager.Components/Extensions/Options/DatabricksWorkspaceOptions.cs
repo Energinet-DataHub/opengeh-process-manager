@@ -23,12 +23,12 @@ public class DatabricksWorkspaceOptions
     /// <summary>
     /// Workspace base URL, which looks like https://adb-&lt;workspace-id&gt;.&lt;random-number&gt;.azuredatabricks.net
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string BaseUrl { get; set; } = string.Empty;
 
     /// <summary>
     /// The access token. To generate a token, see: https://github.com/Azure/azure-databricks-client?tab=readme-ov-file#requirements
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string Token { get; set; } = string.Empty;
 }

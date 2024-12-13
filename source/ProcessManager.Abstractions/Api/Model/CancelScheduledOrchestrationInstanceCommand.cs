@@ -37,7 +37,7 @@ public sealed record CancelScheduledOrchestrationInstanceCommand
     }
 
     /// <summary>
-    /// Id of the scheduled orchestration instance to cancel.
+    /// Id of the scheduled orchestration instance to cancel
     /// </summary>
     public Guid Id { get; }
 }

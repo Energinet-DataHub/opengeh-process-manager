@@ -1,5 +1,10 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.3.0
+
+- Do not allow empty string in values of the following options:
+    - `ProcessManagerTopicOptions`
+
 ## Version 0.2.3
 
 - No functional change

@@ -16,6 +16,7 @@ using FluentAssertions;
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ProcessManager.Components.Databricks.Jobs;
 using ProcessManager.Components.Extensions.DependencyInjection;
 using ProcessManager.Components.Extensions.Options;
 using Xunit;
@@ -50,8 +51,8 @@ public class DatabricksWorkspaceExtensionsTests
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
 
-        var actualJobsApi = serviceProvider.GetRequiredService<IJobsApi>();
-        actualJobsApi.Should().NotBeNull();
+        var actualJobsClient = serviceProvider.GetRequiredService<IDatabricksJobsClient>();
+        actualJobsClient.Should().NotBeNull();
     }
 
     [Fact]
@@ -71,8 +72,8 @@ public class DatabricksWorkspaceExtensionsTests
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
 
-        var actualJobsApi = serviceProvider.GetRequiredKeyedService<IJobsApi>(serviceKey: sectionName);
-        actualJobsApi.Should().NotBeNull();
+        var actualJobsClient = serviceProvider.GetRequiredKeyedService<IDatabricksJobsClient>(serviceKey: sectionName);
+        actualJobsClient.Should().NotBeNull();
     }
 
     private void AddInMemoryConfigurations(Dictionary<string, string?> configurations)

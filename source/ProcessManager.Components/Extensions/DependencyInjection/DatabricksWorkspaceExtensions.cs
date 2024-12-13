@@ -15,6 +15,7 @@
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using ProcessManager.Components.Databricks.Jobs;
 using ProcessManager.Components.Extensions.Options;
 
 namespace ProcessManager.Components.Extensions.DependencyInjection;
@@ -47,7 +48,11 @@ public static class DatabricksWorkspaceExtensions
             return DatabricksClient.CreateClient(options.BaseUrl, options.Token);
         });
 
-        serviceCollection.AddTransient<IJobsApi>(sp => sp.GetRequiredService<DatabricksClient>().Jobs);
+        serviceCollection.AddTransient<IDatabricksJobsClient>(sp =>
+        {
+            var databricksClient = sp.GetRequiredService<DatabricksClient>();
+            return new DatabricksJobsClient(databricksClient.Jobs);
+        });
 
         return serviceCollection;
     }
@@ -79,8 +84,11 @@ public static class DatabricksWorkspaceExtensions
             return DatabricksClient.CreateClient(options.BaseUrl, options.Token);
         });
 
-        serviceCollection.AddKeyedTransient<IJobsApi>(configSectionPath, (sp, key) =>
-            sp.GetRequiredKeyedService<DatabricksClient>(key).Jobs);
+        serviceCollection.AddKeyedTransient<IDatabricksJobsClient>(configSectionPath, (sp, key) =>
+        {
+            var databricksClient = sp.GetRequiredKeyedService<DatabricksClient>(key);
+            return new DatabricksJobsClient(databricksClient.Jobs);
+        });
 
         return serviceCollection;
     }

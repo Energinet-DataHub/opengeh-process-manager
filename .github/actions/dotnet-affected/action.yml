@@ -70,6 +70,8 @@ runs:
           "job_context=$job_context_output" >> $env:GITHUB_OUTPUT
         } else {
           # See https://github.com/leonardochaia/dotnet-affected?tab=readme-ov-file#dont-buildtestdeploy-when-no-projects-have-changed for details
+
+          "job_context={}" >> $env:GITHUB_OUTPUT
           if ($LASTEXITCODE -eq 166) {
             exit 0
           }

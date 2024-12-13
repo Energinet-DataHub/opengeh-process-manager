@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace ProcessManager.Components.Databricks.Jobs;
+namespace ProcessManager.Components.Databricks.Jobs.Model;
 
 /// <summary>
 /// The run id of a Databricks job execution.

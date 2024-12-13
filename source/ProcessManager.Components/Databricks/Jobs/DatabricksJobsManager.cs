@@ -12,55 +12,83 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.Databricks.Jobs.Abstractions;
+using Microsoft.Azure.Databricks.Client;
 using Microsoft.Azure.Databricks.Client.Models;
+using ProcessManager.Components.Databricks.Jobs.Model;
 
 namespace ProcessManager.Components.Databricks.Jobs;
 
 internal class DatabricksJobsManager(
-    IJobsApiClient client)
+    IJobsApi jobsApi)
         : IDatabricksJobsManager
 {
-    private readonly IJobsApiClient _jobsApiClient = client;
+    private readonly IJobsApi _jobsApi = jobsApi;
 
     /// <inheritdoc />
-    public async Task<JobRunId> StartJobAsync(string jobName, IReadOnlyCollection<string> jobParameters)
+    public async Task<JobRunId> StartJobAsync(string jobName, IReadOnlyCollection<string> pythonParameters)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(jobName);
 
-        var job = await FindJobByNameAsync(jobName).ConfigureAwait(false);
-        var inputParameters = RunParameters.CreatePythonParams(jobParameters);
-        var runId = await StartJobAsync(job.JobId, inputParameters).ConfigureAwait(false);
+        var jobId = await FindJobIdByNameAsync(jobName).ConfigureAwait(false);
+        var runParameters = RunParameters.CreatePythonParams(pythonParameters);
+        var runId = await StartJobAsync(jobId, runParameters).ConfigureAwait(false);
 
         return new JobRunId(runId);
     }
 
     /// <inheritdoc />
-    public async Task<RunStatus> GetRunStatusAsync(JobRunId runId)
+    public async Task<JobRunStatus> GetRunStatusAsync(JobRunId runId)
     {
-        var run = await GetRunByIdAsync(runId).ConfigureAwait(false);
+        var result = await GetRunByIdAsync(runId).ConfigureAwait(false);
 
-        return run.Run.Status;
+        return ConvertToJobRunStatus(result.Run);
     }
 
-    private ValueTask<Job> FindJobByNameAsync(string jobName)
+    /// <summary>
+    /// Convert from the status used by the Databricks Jobs REST API documented
+    /// here: https://docs.databricks.com/api/azure/workspace/jobs/getrun#status
+    /// </summary>
+    private static JobRunStatus ConvertToJobRunStatus(Run jobRun)
     {
-        return _jobsApiClient.Jobs
+        return jobRun.Status.State switch
+        {
+            RunStatusState.PENDING => JobRunStatus.Pending,
+            RunStatusState.QUEUED => JobRunStatus.Queued,
+            RunStatusState.RUNNING => JobRunStatus.Running,
+
+            RunStatusState.TERMINATED or
+            RunStatusState.TERMINATING => jobRun.Status.TerminationDetails.Code switch
+            {
+                RunTerminationCode.SUCCESS => JobRunStatus.Completed,
+                RunTerminationCode.USER_CANCELED or
+                RunTerminationCode.CANCELED => JobRunStatus.Canceled,
+
+                _ => JobRunStatus.Failed,
+            },
+
+            _ => JobRunStatus.Failed,
+        };
+    }
+
+    private async Task<long> FindJobIdByNameAsync(string jobName)
+    {
+        var job = await _jobsApi
             .ListPageable(name: jobName)
-            .SingleAsync();
+            .SingleAsync()
+            .ConfigureAwait(false);
+
+        return job.JobId;
     }
 
     private Task<long> StartJobAsync(long jobId, RunParameters inputParameters)
     {
-        return _jobsApiClient
-            .Jobs
+        return _jobsApi
             .RunNow(jobId, inputParameters);
     }
 
     private Task<(Run Run, RepairHistory RepairHistory)> GetRunByIdAsync(JobRunId runId)
     {
-        return _jobsApiClient
-            .Jobs
+        return _jobsApi
             .RunsGet(runId.Id);
     }
 }

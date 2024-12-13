@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.Azure.Databricks.Client.Models;
+using ProcessManager.Components.Databricks.Jobs.Model;
 
 namespace ProcessManager.Components.Databricks.Jobs;
 
@@ -23,14 +23,14 @@ public interface IDatabricksJobsManager
     /// python parameters.
     /// </summary>
     /// <param name="jobName">Name of the job in the Databricks workspace.</param>
-    /// <param name="jobParameters">Python parameters that will be given as input to the job when started.</param>
+    /// <param name="pythonParameters">Python parameters that will be given as input to the job when started.</param>
     /// <returns>Run id.</returns>
-    Task<JobRunId> StartJobAsync(string jobName, IReadOnlyCollection<string> jobParameters);
+    Task<JobRunId> StartJobAsync(string jobName, IReadOnlyCollection<string> pythonParameters);
 
     /// <summary>
     /// Retrieve the run status of a given run.
     /// </summary>
     /// <param name="runId">Run id.</param>
     /// <returns>Run status.</returns>
-    Task<RunStatus> GetRunStatusAsync(JobRunId runId);
+    Task<JobRunStatus> GetRunStatusAsync(JobRunId runId);
 }

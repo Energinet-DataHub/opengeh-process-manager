@@ -47,7 +47,7 @@ jobs:
 
   dispatch_deploment_event_core:
     if: ${{ fromJson(needs.changes.outputs.job_context).core == 'true'  }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     needs: [dotnet_promote_prerelease, changes]
     steps:
       - name: Find associated pull request
@@ -71,7 +71,7 @@ jobs:
 
   dispatch_deploment_event_orchestrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true'  }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     needs: [dotnet_promote_prerelease, changes]
     steps:
       - name: Find associated pull request
@@ -95,7 +95,7 @@ jobs:
 
   dispatch_deploment_event_dbmigrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true'  }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     needs: [dotnet_promote_prerelease, changes]
     steps:
       - name: Find associated pull request

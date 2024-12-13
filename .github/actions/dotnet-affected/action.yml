@@ -62,24 +62,24 @@ runs:
         # Install and run dotnet-affected, outputs a json file with affected projects
         Write-AffectedProjectsFile -SolutionPath $solutionPath -WorkspacePath $workspacePath -FromSha $fromSha -ToSha $toSha
 
+        $affectedJson = '[]'
         if (Test-Path $AffectedProjectsFile) {
           $affectedJson = Get-Content $AffectedProjectsFile
-          "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
+        }
+        "affected_changes=$affectedJson" >> $env:GITHUB_OUTPUT
 
-          $job_context_output = Find-AffectedHosts -AffectedProjects $affectedJson -HostNames $hostNamesJson
-          "job_context=$job_context_output" >> $env:GITHUB_OUTPUT
-        } else {
-          # See https://github.com/leonardochaia/dotnet-affected?tab=readme-ov-file#dont-buildtestdeploy-when-no-projects-have-changed for details
-          if ($LASTEXITCODE -eq 166) {
-            exit 0
-          }
+        $job_context_output = Find-AffectedHosts -AffectedProjects $affectedJson -HostNames $hostNamesJson
+        "job_context=$job_context_output" >> $env:GITHUB_OUTPUT
+
+        # See https://github.com/leonardochaia/dotnet-affected?tab=readme-ov-file#dont-buildtestdeploy-when-no-projects-have-changed for details
+        if ($LASTEXITCODE -eq 166) {
+          exit 0
         }
 
     - name: Print debug output
       shell: bash
       if: ${{ inputs.print_debug_output == 'true' }}
       run: |
-        echo "Debug output:"
+        echo "Debug output enabled"
         echo Affected projects: '${{ steps.filter.outputs.affected_changes }}'
-        echo ''
         echo Job context: '${{ steps.filter.outputs.job_context }}'

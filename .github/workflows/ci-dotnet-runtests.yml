@@ -67,7 +67,12 @@ jobs:
             }
           }
 
-          $matrixBuildsJson = $matrixBuilds | ConvertTo-Json -Compress
+          if ($matrixBuilds.Count -eq 1) {
+            $matrixBuildsJson = $matrixBuilds | ConvertTo-Json -Compress -AsArray
+          } else {
+            $matrixBuildsJson = $matrixBuilds | ConvertTo-Json -Compress
+          }
+          
           "matrix_builds=$matrixBuildsJson" >> $env:GITHUB_OUTPUT
       
       - name: Print matrix output

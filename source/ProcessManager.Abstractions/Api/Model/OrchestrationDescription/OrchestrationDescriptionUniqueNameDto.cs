@@ -18,7 +18,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationD
 /// Uniquely identifies a specific implementation of the orchestration.
 /// </summary>
 /// <param name="Name">A common name to identity the orchestration.</param>
-/// <param name="Version">A version identifying a specific implementation of the orchestration</param>
+/// <param name="Version">A version identifying a specific implementation of the orchestration.</param>
 public record OrchestrationDescriptionUniqueNameDto(
     string Name,
     int Version);

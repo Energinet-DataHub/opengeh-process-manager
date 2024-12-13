@@ -15,7 +15,7 @@
 namespace Energinet.DataHub.ProcessManager.Tests.Fixtures;
 
 /// <summary>
-/// A xUnit collection fixture for ensuring tests don't run in parallel.
+/// A xUnit collection fixture for ensuring tests don't run in parallel
 ///
 /// xUnit documentation of collection fixtures:
 ///  * https://xunit.net/docs/shared-context#collection-fixture

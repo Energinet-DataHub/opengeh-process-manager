@@ -72,9 +72,9 @@ jobs:
           } else {
             $matrixBuildsJson = $matrixBuilds | ConvertTo-Json -Compress
           }
-          
+
           "matrix_builds=$matrixBuildsJson" >> $env:GITHUB_OUTPUT
-      
+
       - name: Print matrix output
         if: ${{ inputs.print_debug_output == 'true' }}
         run: |

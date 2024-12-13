@@ -122,6 +122,7 @@ jobs:
   #         path: ${{ env.OUTPUT_PATH }}/*
 
   integration_tests:
+    if: ${{ needs.build_matrix.outputs.matrix_builds != '[]' }}
     needs: [
       build_matrix
     ]

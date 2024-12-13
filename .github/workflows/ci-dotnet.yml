@@ -50,7 +50,7 @@ jobs:
       - name: Build ${{ inputs.release_name }}
         run: |
           dotnet publish \
-            '${{ github.workspace }}/${{ inputs.project_file }}' \
+            '${{ inputs.project_file }}' \
             --configuration Release \
             --output '${{ env.RELEASE_FOLDER_PATH }}'
 

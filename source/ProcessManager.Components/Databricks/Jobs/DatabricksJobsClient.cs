@@ -60,6 +60,7 @@ internal class DatabricksJobsClient(
             RunStatusState.TERMINATING => jobRun.Status.TerminationDetails.Code switch
             {
                 RunTerminationCode.SUCCESS => JobRunStatus.Completed,
+
                 RunTerminationCode.USER_CANCELED or
                 RunTerminationCode.CANCELED => JobRunStatus.Canceled,
 

@@ -24,27 +24,74 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.Jobs
 
 public class DatabricksJobsClientTests
 {
+    public DatabricksJobsClientTests()
+    {
+        JobRunId = new JobRunId(1024);
+        JobsApiMock = new Mock<IJobsApi>();
+        Sut = new DatabricksJobsClient(JobsApiMock.Object);
+    }
+
+    public JobRunId JobRunId { get; }
+
+    public Mock<IJobsApi> JobsApiMock { get; }
+
+    internal DatabricksJobsClient Sut { get; }
+
     [Theory]
-    [ClassData(typeof(StatusTestCases))]
-    public async Task EnsureAllRunStatusStatesAndRunTerminationCodesAreHandled(
+    // When RunStatus.State is not Terminated or Terminating, RunStatus.State will determine JobRunState
+    [InlineData(JobRunStatus.Pending, RunStatusState.PENDING, null)]
+    [InlineData(JobRunStatus.Queued, RunStatusState.QUEUED, null)]
+    [InlineData(JobRunStatus.Running, RunStatusState.RUNNING, null)]
+    [InlineData(JobRunStatus.Failed, RunStatusState.BLOCKED, null)]
+    // When RunStatus.State is Terminated or Terminating, TerminationDetails.Code will determine JobState
+    // Terminated
+    [InlineData(JobRunStatus.Completed, RunStatusState.TERMINATED, RunTerminationCode.SUCCESS)]
+    [InlineData(JobRunStatus.Canceled, RunStatusState.TERMINATED, RunTerminationCode.USER_CANCELED)]
+    [InlineData(JobRunStatus.Canceled, RunStatusState.TERMINATED, RunTerminationCode.CANCELED)]
+    [InlineData(JobRunStatus.Failed, RunStatusState.TERMINATED, RunTerminationCode.RUN_EXECUTION_ERROR)]
+    // Terminating
+    [InlineData(JobRunStatus.Completed, RunStatusState.TERMINATING, RunTerminationCode.SUCCESS)]
+    [InlineData(JobRunStatus.Canceled, RunStatusState.TERMINATING, RunTerminationCode.USER_CANCELED)]
+    [InlineData(JobRunStatus.Canceled, RunStatusState.TERMINATING, RunTerminationCode.CANCELED)]
+    [InlineData(JobRunStatus.Failed, RunStatusState.TERMINATING, RunTerminationCode.RUN_EXECUTION_ERROR)]
+    public async Task GetRunStatusAsync_WhenCalledWithKnownCombinations_ReturnsExpectedJobRunState(
+        JobRunStatus expectedJobRunState,
         RunStatusState runStatusState,
         RunTerminationCode? runTerminationCode)
     {
         // Arrange
-        var jobsApiMock = new Mock<IJobsApi>();
-
         var run = new Run { Status = new RunStatus { State = runStatusState } };
         if (runTerminationCode.HasValue)
             run.Status.TerminationDetails = new TerminationDetails { Code = runTerminationCode.Value };
 
-        jobsApiMock
+        JobsApiMock
             .Setup(mock => mock.RunsGet(It.IsAny<long>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((run, null));
 
-        var sut = new DatabricksJobsClient(jobsApiMock.Object);
+        // Act
+        var actualJobRunState = await Sut.GetRunStatusAsync(JobRunId);
+
+        // Assert
+        actualJobRunState.Should().Be(expectedJobRunState);
+    }
+
+    [Theory]
+    [ClassData(typeof(StatusTestCases))]
+    public async Task GetRunStatusAsync_WhenCalledWithAllCombinations_NoExceptionsAreThrown(
+        RunStatusState runStatusState,
+        RunTerminationCode? runTerminationCode)
+    {
+        // Arrange
+        var run = new Run { Status = new RunStatus { State = runStatusState } };
+        if (runTerminationCode.HasValue)
+            run.Status.TerminationDetails = new TerminationDetails { Code = runTerminationCode.Value };
+
+        JobsApiMock
+            .Setup(mock => mock.RunsGet(It.IsAny<long>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((run, null));
 
         // Act
-        var act = async () => await sut.GetRunStatusAsync(new JobRunId(1024));
+        var act = async () => await Sut.GetRunStatusAsync(JobRunId);
 
         // Assert
         await act.Should().NotThrowAsync("all states should be handled");

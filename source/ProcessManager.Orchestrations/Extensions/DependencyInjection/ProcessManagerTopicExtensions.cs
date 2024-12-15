@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Identity;
+using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 
@@ -22,12 +25,20 @@ public static class ProcessManagerTopicExtensions
     /// <summary>
     /// Add required dependencies to use the Process Manager Service Bus topic.
     /// </summary>
-    public static IServiceCollection AddProcessManagerTopic(this IServiceCollection services)
+    public static IServiceCollection AddProcessManagerTopic(this IServiceCollection services, DefaultAzureCredential credential)
     {
         services
             .AddOptions<ProcessManagerTopicOptions>()
             .BindConfiguration(ProcessManagerTopicOptions.SectionName)
             .ValidateDataAnnotations();
+
+        services.AddHealthChecks()
+            .AddAzureServiceBusSubscription(
+                fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.TopicName,
+                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.Brs026SubscriptionName,
+                tokenCredentialFactory: _ => credential,
+                name: "BRS-026 Subscription");
 
         return services;
     }

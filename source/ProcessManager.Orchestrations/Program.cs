@@ -29,6 +29,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Electric
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -36,6 +37,8 @@ var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
     .ConfigureServices((context, services) =>
     {
+        services.AddTransient<IConfiguration>(_ => context.Configuration);
+
         var azureCredential = new DefaultAzureCredential();
 
         // Common

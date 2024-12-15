@@ -31,13 +31,13 @@ public class ProcessManagerTopicOptions
     /// <summary>
     /// Name of the ProcessManager Service Bus topic
     /// </summary>
-    [Required]
+    // [Required]
     public string TopicName { get; } = string.Empty;
 
     /// <summary>
     /// Name of the subscription for BRS026 to the ProcessManager Service Bus topic
     /// </summary>
-    [Required]
+    // [Required]
     public string Brs026SubscriptionName { get; } = string.Empty;
 
     /// <summary>

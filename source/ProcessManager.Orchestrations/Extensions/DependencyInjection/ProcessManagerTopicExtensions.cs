@@ -33,6 +33,11 @@ public static class ProcessManagerTopicExtensions
             .ValidateDataAnnotations();
 
         services.AddHealthChecks()
+            .AddAzureServiceBusTopic(
+                fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.TopicName,
+                tokenCredentialFactory: _ => credential,
+                name: "Process Manager Topic")
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.TopicName,

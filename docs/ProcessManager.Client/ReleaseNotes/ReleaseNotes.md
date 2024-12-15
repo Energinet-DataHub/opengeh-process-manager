@@ -1,8 +1,12 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.14.3
+
+- No functional changes
+
 ## Version 0.14.2
 
-- No functional change
+- No functional changes
 
 ## Version 0.14.1
 

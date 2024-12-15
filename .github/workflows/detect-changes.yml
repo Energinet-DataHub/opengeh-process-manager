@@ -22,53 +22,65 @@ name: Detect changes
 
 on:
   workflow_call:
+    inputs:
+      print_debug_output:
+        required: false
+        type: string
     outputs:
-      dotnet:
-        value: ${{ jobs.changes.outputs.dotnet }}
-      db_migrations:
-        value: ${{ jobs.changes.outputs.db_migrations }}
-      processmanager_nuget:
-        value: ${{ jobs.changes.outputs.processmanager_nuget }}
-      render_c4model_views:
-        value: ${{ jobs.changes.outputs.render_c4model_views }}
+      nuget_packages:
+        value: ${{ jobs.changes.outputs.nuget_packages }}
+      affected_changes:
+        value: ${{ jobs.changes.outputs.affected_changes }}
+      job_context:
+        value: ${{ jobs.changes.outputs.job_context }}
 
 jobs:
   changes:
-    name: Determine relevant jobs
+    name: Detect changes
     runs-on: ubuntu-latest
-    # Set job outputs to values from filter step
     outputs:
-      dotnet: ${{ steps.filter.outputs.dotnet }}
-      db_migrations: ${{ steps.filter.outputs.db_migrations }}
-      processmanager_nuget: ${{ steps.filter.outputs.processmanager_nuget }}
-      render_c4model_views: ${{ steps.filter.outputs.render_c4model_views }}
+      nuget_packages: ${{ steps.filter_nuget.outputs.nuget_packages }}
+      affected_changes: ${{ steps.filter.outputs.affected_changes }}
+      job_context: ${{ steps.filter.outputs.job_context }}
     steps:
-      # For pull requests it's not necessary to checkout the code because GitHub REST API is used to determine changes
-      - name: Checkout repository
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          show-progress: true
+          fetch-depth: 0 # Fetch all history so that we can determine the base commit
 
-      - name: Detect file changes
-        uses: dorny/paths-filter@v3
+      - name: List checked out files
+        if: ${{ inputs.print_debug_output == 'true' }}
+        run: |
+          ls -la ${{ github.workspace }}
+
+      - uses: nrwl/nx-set-shas@v4
+        id: set_shas
+
+      - name: Run dotnet-affected
+        uses: ./.github/actions/dotnet-affected
         id: filter
         with:
+          solution_file: source/ProcessManager.sln
+          workspace_path: ${{ github.workspace }}
+          from_sha: ${{ steps.set_shas.outputs.base }}
+          to_sha: ${{ steps.set_shas.outputs.head }}
+          host_names: "
+            {
+              'core': 'ProcessManager.csproj',
+              'orchestrations': 'ProcessManager.Orchestrations.csproj',
+              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
+            }"
+          print_debug_output: ${{ inputs.print_debug_output }}
+
+      - name: Detect Nuget changes
+        uses: dorny/paths-filter@v3
+        id: filter_nuget
+        with:
           filters: |
-            dotnet:
-              - '.github/actions/dotnet-*/**'
-              - '.github/workflows/**'
-              - 'source/**'
-              - 'source/!(DatabaseMigration/**)**'
-              - 'source/!(ProcessManager.Client/**)**'
-            db_migrations:
-              - 'source/DatabaseMigration/**'
-            processmanager_nuget:
+            nuget_packages:
               - 'docs/ProcessManager.Client/**'
               - 'docs/ProcessManager.Orchestrations.Abstractions/**'
               - 'source/ProcessManager.Client*/**'
               - 'source/ProcessManager.Abstractions*/**'
               - 'source/ProcessManager.Orchestrations.Abstractions*/**'
               - '.github/workflows/processmanager-client-bundle-publish.yml'
-            render_c4model_views:
-              - 'docs/diagrams/c4-model/views.dsl'
-              - 'docs/diagrams/c4-model/views.json'
-              - 'docs/diagrams/c4-model/model.dsl'

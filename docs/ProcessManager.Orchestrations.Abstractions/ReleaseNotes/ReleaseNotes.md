@@ -1,8 +1,16 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 0.2.2
+## Version 0.2.4
 
 - Update (implement) correct input for starting BRS-026 and BRS-028 orchestrations.
+
+## Version 0.2.3
+
+- No functional changes.
+
+## Version 0.2.2
+
+- Change `StartForwardMeteredDataCommandV1` to a `MessageCommand<MeteredDataForMeasurementPointMessageInputV1>`
 
 ## Version 0.2.1
 

@@ -2,7 +2,7 @@
 
 ## Version 0.14.2
 
-- No functional changes
+- No functional change
 
 ## Version 0.14.1
 

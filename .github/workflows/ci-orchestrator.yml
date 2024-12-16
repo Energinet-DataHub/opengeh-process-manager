@@ -58,6 +58,15 @@ jobs:
       release_name: process_manager_orchestrations
       project_file: source/ProcessManager.Orchestrations/ProcessManager.Orchestrations.csproj
 
+  ci_example_orchestrations:
+    if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true' }}
+    needs: changes
+    uses: ./.github/workflows/ci-dotnet.yml
+    name: Build Example Orchestrations
+    with:
+      release_name: example_orchestrations
+      project_file: source/Example.Orchestrations/Example.Orchestrations.csproj
+        
   ci_dbmigrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
     needs: changes
@@ -88,6 +97,7 @@ jobs:
         ci_nuget,
         ci_core,
         ci_orchestrations,
+        ci_example_orchestrations,
         ci_dbmigrations,
         ci_run_tests
       ]

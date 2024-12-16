@@ -32,11 +32,11 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_X01.V1;
 /// Test case where we verify the Process Manager clients can be used to start a
 /// calculation orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ProcessManagerClientCollection))]
+[Collection(nameof(ProcessManagerExampleClientCollection))]
 public class MonitorExampleUsingClientsScenario : IAsyncLifetime
 {
     public MonitorExampleUsingClientsScenario(
-        ProcessManagerClientFixture fixture,
+        ProcessManagerExampleClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
@@ -54,7 +54,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    private ProcessManagerClientFixture Fixture { get; }
+    private ProcessManagerExampleClientFixture Fixture { get; }
 
     private ServiceProvider ServiceProvider { get; }
 
@@ -88,7 +88,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
 
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
-                new StartCommandV1(
+                new StartExampleCommandV1(
                     userIdentity,
                     input),
                 CancellationToken.None);
@@ -156,7 +156,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
         // Step 1: Schedule new calculation orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
-                new ScheduleCommandV1(
+                new ScheduleExampleCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
                     inputParameter: new InputV1(SkipStepTwo: false)),
@@ -199,7 +199,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
         // Step 1: Schedule new calculation orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
-                new ScheduleCommandV1(
+                new ScheduleExampleCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
                     inputParameter: new InputV1(SkipStepTwo: false)),

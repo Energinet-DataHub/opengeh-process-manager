@@ -28,18 +28,18 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_X01.V1;
 /// Test case where we verify the Process Manager clients can be used to start a
 /// calculation orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ProcessManagerClientCollection))]
+[Collection(nameof(ProcessManagerExampleClientCollection))]
 public class MonitorExampleUsingApiScenario : IAsyncLifetime
 {
     public MonitorExampleUsingApiScenario(
-        ProcessManagerClientFixture fixture,
+        ProcessManagerExampleClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
     }
 
-    private ProcessManagerClientFixture Fixture { get; }
+    private ProcessManagerExampleClientFixture Fixture { get; }
 
     public Task InitializeAsync()
     {

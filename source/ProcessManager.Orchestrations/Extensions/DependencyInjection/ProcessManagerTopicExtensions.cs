@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Azure.Identity;
+using Energinet.DataHub.Core.App.Common.Diagnostics.HealthChecks;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,10 @@ public static class ProcessManagerTopicExtensions
     /// </summary>
     public static IServiceCollection AddProcessManagerTopic(this IServiceCollection services, DefaultAzureCredential credential)
     {
+        services.AddOptions<ServiceBusNamespaceOptions>()
+            .BindConfiguration(ServiceBusNamespaceOptions.SectionName)
+            .ValidateDataAnnotations();
+
         services
             .AddOptions<ProcessManagerTopicOptions>()
             .BindConfiguration(ProcessManagerTopicOptions.SectionName)

@@ -16,10 +16,14 @@ using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using ProcessManager.Components.Diagnostics.HealthChecks;
+using ProcessManager.Components.Extensions.DependencyInjection;
 
 namespace ProcessManager.Components.Extensions.Builder;
 
-public static class DatabricksHealthCheckBuilderExtensions
+/// <summary>
+/// Health check builder extensions to be used from <see cref="DatabricksWorkspaceExtensions"/>.
+/// </summary>
+internal static class DatabricksHealthCheckBuilderExtensions
 {
     /// <summary>
     /// Add a health check that verifies we can reach the Databricks Jobs API of a workspace.

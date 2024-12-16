@@ -85,8 +85,9 @@ public class OrchestrationInstance
     /// <summary>
     /// Transition a step's lifecycle to running
     /// </summary>
-    /// <param name="sequence"></param>
+    /// <param name="sequence">The sequence number of the step to transition</param>
     /// <param name="clock"></param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if a step with the given <paramref name="sequence"/> isn't found.</exception>
     public void TransitionStepToRunning(int sequence, IClock clock)
     {
         var step = Steps.SingleOrDefault(s => s.Sequence == sequence);
@@ -97,6 +98,13 @@ public class OrchestrationInstance
         step.Lifecycle.TransitionToRunning(clock);
     }
 
+    /// <summary>
+    /// Transition a step's lifecycle to terminated, with the given <paramref name="terminationState"/>
+    /// </summary>
+    /// <param name="sequence">The sequence number of the step to transition</param>
+    /// <param name="terminationState">The state of the termination step (Succeeded, failed etc.)</param>
+    /// <param name="clock"></param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if a step with the given <paramref name="sequence"/> isn't found.</exception>
     public void TransitionStepToTerminated(int sequence, OrchestrationStepTerminationStates terminationState, IClock clock)
     {
         var step = Steps.SingleOrDefault(s => s.Sequence == sequence);

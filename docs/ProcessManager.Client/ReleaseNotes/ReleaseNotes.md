@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.14.4
+
+- Add actor id to start orchestration message
+
 ## Version 0.14.3
 
 - No functional changes

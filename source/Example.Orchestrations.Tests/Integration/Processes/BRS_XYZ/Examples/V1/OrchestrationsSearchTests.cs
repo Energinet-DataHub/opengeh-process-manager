@@ -77,6 +77,30 @@ public class OrchestrationsSearchTests : IAsyncLifetime
         actual.Should().NotBeNull().And.NotBeEmpty();
     }
 
+    [Fact]
+    public async Task ExampleOrchestration_WhenUsingCustomSearchCriteria_ThenItsSearchable()
+    {
+        // Arrange
+        var input = new ExampleSkipStep(ShouldSkipStepTwo: false);
+        await StartAndEnsureRunningAsync(input);
+        var inputWithSkip = new ExampleSkipStep(ShouldSkipStepTwo: false);
+        await StartAndEnsureRunningAsync(inputWithSkip);
+
+        var searchQuery = new ExampleQuery(
+            operatingIdentity: new UserIdentityDto(
+                Guid.NewGuid(),
+                Guid.NewGuid()),
+            skipStep: new ExampleSkipStep(ShouldSkipStepTwo: false));
+
+        var searchJson = JsonSerializer.Serialize(searchQuery, searchQuery.GetType());
+
+        // Act
+        var actual = await SendSearchRequestAsync(searchJson);
+
+        // Assert
+        actual.Should().NotBeNull().And.NotBeEmpty();
+    }
+
     private async Task<Collection<ExampleQueryResult>?> SendSearchRequestAsync(string search)
     {
         using var request = new HttpRequestMessage(
@@ -117,12 +141,14 @@ public class OrchestrationsSearchTests : IAsyncLifetime
             Encoding.UTF8,
             "application/json");
 
+        var beforeCreationOfOrchestration = SystemClock.Instance.GetCurrentInstant();
+
         var id = await (await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient
                 .SendAsync(request))
             .Content.ReadAsStringAsync();
 
         var startedOrchestrationStatus = await Fixture.ExampleOrchestrationsAppManager.DurableClient.WaitForOrchestationStartedAsync(
-            createdTimeFrom: SystemClock.Instance.GetCurrentInstant().Minus(Duration.FromSeconds(5)).ToDateTimeUtc(),
+            createdTimeFrom: beforeCreationOfOrchestration.ToDateTimeUtc(),
             name: nameof(Orchestration_Brs_Xyz_Example_V1));
         startedOrchestrationStatus.Should().NotBeNull("The orchestration should have been started");
 

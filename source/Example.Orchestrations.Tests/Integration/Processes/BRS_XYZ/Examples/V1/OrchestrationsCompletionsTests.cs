@@ -58,17 +58,12 @@ public class OrchestrationsCompletionsTests : IAsyncLifetime
     public async Task ExampleOrchestration_WhenOrchestrationIsStarted_ThenItCompletesAndHaveHistoryCountFour()
     {
         // Arrange
-        var beforeOrchestrationCreated = SystemClock.Instance.GetCurrentInstant().Minus(Duration.FromSeconds(30));
+        var input = new Input_Brs_Xyz_Example_V1(new ExampleSkipStep(false));
 
         // Act
-        var orchestrationId = await StartOrchestrationAsync();
+        var orchestrationId = await StartOrchestrationAsync(input);
 
         // Assert
-        var startedOrchestrationStatus = await Fixture.ExampleOrchestrationsAppManager.DurableClient.WaitForOrchestationStartedAsync(
-            createdTimeFrom: beforeOrchestrationCreated.ToDateTimeUtc(),
-            name: nameof(Orchestration_Brs_Xyz_Example_V1));
-        startedOrchestrationStatus.Should().NotBeNull();
-
         // => Wait for orchestration to complete
         var completedOrchestrationStatus = await Fixture.ExampleOrchestrationsAppManager.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestrationId,
@@ -103,13 +98,13 @@ public class OrchestrationsCompletionsTests : IAsyncLifetime
             ]);
     }
 
-    private async Task<string> StartOrchestrationAsync(bool shouldSkipStepTwo = false)
+    private async Task<string> StartOrchestrationAsync(Input_Brs_Xyz_Example_V1 input)
     {
         var command = new StartCommand_Brs_Xyz_Example_V1(
             operatingIdentity: new UserIdentityDto(
                 Guid.NewGuid(),
                 Guid.NewGuid()),
-            new Input_Brs_Xyz_Example_V1(new ExampleSkipStep(shouldSkipStepTwo)));
+            input);
 
         var json = JsonSerializer.Serialize(command, command.GetType());
 

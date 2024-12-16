@@ -122,7 +122,7 @@ public class OrchestrationsSearchTests : IAsyncLifetime
             .Content.ReadAsStringAsync();
 
         var startedOrchestrationStatus = await Fixture.ExampleOrchestrationsAppManager.DurableClient.WaitForOrchestationStartedAsync(
-            createdTimeFrom: SystemClock.Instance.GetCurrentInstant().Minus(Duration.FromSeconds(30)).ToDateTimeUtc(),
+            createdTimeFrom: SystemClock.Instance.GetCurrentInstant().Minus(Duration.FromSeconds(5)).ToDateTimeUtc(),
             name: nameof(Orchestration_Brs_Xyz_Example_V1));
         startedOrchestrationStatus.Should().NotBeNull("The orchestration should have been started");
 

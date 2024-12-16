@@ -19,14 +19,14 @@ using NodaTime;
 
 namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Activities;
 
-internal class SkipAbleActivity_Brs_X01_Example_V1(
+internal class SkippableActivity_Brs_X01_Example_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(SkipAbleActivity_Brs_X01_Example_V1))]
+    [Function(nameof(SkippableActivity_Brs_X01_Example_V1))]
     public async Task Run(
         [ActivityTrigger] Guid orchestrationInstanceId)
     {
@@ -34,7 +34,7 @@ internal class SkipAbleActivity_Brs_X01_Example_V1(
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_X01_Example_V1.SkipAbleStepSequence);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_X01_Example_V1.SkippableStepSequence);
 
         if (step.IsSkipped())
             return;

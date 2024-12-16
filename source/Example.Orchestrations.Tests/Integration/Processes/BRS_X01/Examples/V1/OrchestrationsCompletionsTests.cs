@@ -88,7 +88,7 @@
 //                 new OrchestrationHistoryItem(
 //                     EventType: "TaskCompleted",
 //                     Name: null,
-//                     FunctionName: "SkipAbleActivity_Brs_X01_Example_V1"),
+//                     FunctionName: "SkippableActivity_Brs_X01_Example_V1"),
 //                 new OrchestrationHistoryItem(
 //                     "ExecutionCompleted",
 //                     null,

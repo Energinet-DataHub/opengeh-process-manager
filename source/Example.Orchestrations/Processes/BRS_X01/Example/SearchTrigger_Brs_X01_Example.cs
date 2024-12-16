@@ -26,7 +26,7 @@ internal class SearchTrigger_Brs_X01_Example(
     private readonly SearchExampleHandler _exampleHandler = exampleHandler;
 
     /// <summary>
-    /// Search for instances of BRS-023 or BRS-027 calculations.
+    /// Search for instances of BRS-X01.
     /// </summary>
     [Function(nameof(SearchTrigger_Brs_X01_Example))]
     public async Task<IActionResult> Run(

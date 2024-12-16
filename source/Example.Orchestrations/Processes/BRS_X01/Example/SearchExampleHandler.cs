@@ -63,13 +63,6 @@ internal class SearchExampleHandler(
                 terminatedAtOrEarlier)
             .ConfigureAwait(false);
 
-        // TODO: Filter on additional properties here
-        //// query.CalculationTypes
-        //// query.GridAreaCodes
-        //// query.PeriodStartDate
-        //// query.PeriodEndDate
-        //// query.IsInternalCalculation
-
         return calculations
             .Select(item => new ExampleQueryResult(item.MapToTypedDto<InputV1>()))
             .ToList();

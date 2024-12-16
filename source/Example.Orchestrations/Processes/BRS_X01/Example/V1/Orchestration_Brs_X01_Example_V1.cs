@@ -12,29 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1.Activities;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
+using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Activities;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1;
 
-internal class Orchestration_Brs_Xyz_Example_V1
+internal class Orchestration_Brs_X01_Example_V1
 {
     internal const int StartingStepSequence = 1;
     internal const int SkipAbleStepSequence = 2;
 
-    [Function(nameof(Orchestration_Brs_Xyz_Example_V1))]
+    [Function(nameof(Orchestration_Brs_X01_Example_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        // TODO: For demo purposes; decide if we want to continue injecting parameters
-        // OR we want to have a pattern where developers load any info they need from the databae, using the first activity.
-        // Currently we inject parameters when an orchestration is started.
-        // But 'context.InstanceId' contains the 'OrchestrationInstance.Id' so it is possible to load all
-        // information about an 'OrchestrationInstance' in activities and use any information (e.g. UserIdentity).
-        var input = context.GetOrchestrationParameterValue<Input_Brs_Xyz_Example_V1>();
+        var input = context.GetOrchestrationParameterValue<InputV1>();
         if (input == null)
         {
             return "Error: No input specified.";
@@ -44,13 +39,13 @@ internal class Orchestration_Brs_Xyz_Example_V1
 
         // Initialize
         await context.CallActivityAsync(
-            nameof(StartActivity_Brs_Xyz_Example_V1),
+            nameof(StartActivity_Brs_X01_Example_V1),
             context.InstanceId,
             defaultRetryOptions);
 
         // skip able step
         await context.CallActivityAsync(
-            nameof(SkipAbleActivity_Brs_Xyz_Example_V1),
+            nameof(SkipAbleActivity_Brs_X01_Example_V1),
             context.InstanceId,
             defaultRetryOptions);
 

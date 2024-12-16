@@ -12,34 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example;
 
-internal class SearchTrigger_Brs_Xyz_Example(
-    SearchHandler_Brs_Xyz_Example handler)
+internal class SearchTrigger_Brs_X01_Example(
+    SearchExampleHandler exampleHandler)
 {
-    private readonly SearchHandler_Brs_Xyz_Example _handler = handler;
+    private readonly SearchExampleHandler _exampleHandler = exampleHandler;
 
     /// <summary>
     /// Search for instances of BRS-023 or BRS-027 calculations.
     /// </summary>
-    [Function(nameof(SearchTrigger_Brs_Xyz_Example))]
+    [Function(nameof(SearchTrigger_Brs_X01_Example))]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "orchestrationinstance/query/custom/brs_xyz/example")]
+            Route = "orchestrationinstance/query/custom/brs_x01/example")]
         HttpRequest httpRequest,
         [FromBody]
         ExampleQuery query,
         FunctionContext executionContext)
     {
-        var queryResultItems = await _handler.SearchAsync(query).ConfigureAwait(false);
+        var queryResultItems = await _exampleHandler.SearchAsync(query).ConfigureAwait(false);
 
         return new OkObjectResult(queryResultItems);
     }

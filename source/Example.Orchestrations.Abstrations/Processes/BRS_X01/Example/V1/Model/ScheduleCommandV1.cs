@@ -15,14 +15,14 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
+namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
 
 /// <summary>
-/// Command for scheduling the example.
+/// Command for scheduling the BRS_X01.
 /// Must be JSON serializable.
 /// </summary>
-public record ScheduleCommand_Brs_Xyz_Example_V1
-    : ScheduleOrchestrationInstanceCommand<Input_Brs_Xyz_Example_V1>
+public record ScheduleCommandV1
+    : ScheduleOrchestrationInstanceCommand<InputV1>
 {
     /// <summary>
     /// Construct command.
@@ -30,13 +30,13 @@ public record ScheduleCommand_Brs_Xyz_Example_V1
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
     /// <param name="inputParameter"> Contains the Durable Functions orchestration input parameter value.</param>
     /// <param name="runAt">The time when the orchestration instance should be executed by the Scheduler.</param>
-    public ScheduleCommand_Brs_Xyz_Example_V1(
+    public ScheduleCommandV1(
         UserIdentityDto operatingIdentity,
-        Input_Brs_Xyz_Example_V1 inputParameter,
+        InputV1 inputParameter,
         DateTimeOffset runAt)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_Xyz_Example_V1(),
+                orchestrationDescriptionUniqueName: new Brs_X01_Example_V1(),
                 inputParameter,
                 runAt)
     {

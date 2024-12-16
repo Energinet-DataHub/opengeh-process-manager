@@ -15,9 +15,9 @@
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example;
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
+using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example;
+using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
@@ -37,14 +37,14 @@ var host = new HostBuilder()
         // => Orchestration Descriptions
         services.AddProcessManagerForOrchestrations(() =>
         {
-            var brs_Xyz_Example_V1 = CreateBrs_Xyz_Example_V1Description();
+            var brs_X01_Example_V1 = CreateBrs_X01_Example_V1Description();
 
-            return [brs_Xyz_Example_V1];
+            return [brs_X01_Example_V1];
         });
 
         // => Handlers
-        services.AddScoped<SearchHandler_Brs_Xyz_Example>();
-        services.AddScoped<StartHandler_Brs_Xyz_Example_V1>();
+        services.AddScoped<SearchExampleHandler>();
+        services.AddScoped<StartExampleHandlerV1>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {
@@ -55,18 +55,18 @@ var host = new HostBuilder()
 await host.SynchronizeWithOrchestrationRegisterAsync("Example.Orchestrations").ConfigureAwait(false);
 await host.RunAsync().ConfigureAwait(false);
 
-OrchestrationDescription CreateBrs_Xyz_Example_V1Description()
+OrchestrationDescription CreateBrs_X01_Example_V1Description()
 {
-    var orchestrationDescriptionUniqueName = new Brs_Xyz_Example_V1();
+    var orchestrationDescriptionUniqueName = new Brs_X01_Example_V1();
 
     var description = new OrchestrationDescription(
         uniqueName: new OrchestrationDescriptionUniqueName(
             orchestrationDescriptionUniqueName.Name,
             orchestrationDescriptionUniqueName.Version),
         canBeScheduled: true,
-        functionName: nameof(Orchestration_Brs_Xyz_Example_V1));
+        functionName: nameof(Orchestration_Brs_X01_Example_V1));
 
-    description.ParameterDefinition.SetFromType<Input_Brs_Xyz_Example_V1>();
+    description.ParameterDefinition.SetFromType<InputV1>();
 
     description.AppendStepDescription("Example step 1");
     description.AppendStepDescription(

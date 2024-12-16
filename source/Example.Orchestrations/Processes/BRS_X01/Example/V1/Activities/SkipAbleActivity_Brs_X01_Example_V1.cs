@@ -17,16 +17,16 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_XYZ.Example.V1.Activities;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Activities;
 
-internal class StartActivity_Brs_Xyz_Example_V1(
+internal class SkipAbleActivity_Brs_X01_Example_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(StartActivity_Brs_Xyz_Example_V1))]
+    [Function(nameof(SkipAbleActivity_Brs_X01_Example_V1))]
     public async Task Run(
         [ActivityTrigger] Guid orchestrationInstanceId)
     {
@@ -34,7 +34,11 @@ internal class StartActivity_Brs_Xyz_Example_V1(
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_Xyz_Example_V1.StartingStepSequence);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_X01_Example_V1.SkipAbleStepSequence);
+
+        if (step.IsSkipped())
+            return;
+
         step.Lifecycle.TransitionToRunning(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 

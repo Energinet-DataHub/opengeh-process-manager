@@ -12,13 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
-namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1;
+namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
 
-/// <summary>
-/// Query result from searching BRS-Example.
-/// Must be JSON serializable.
-/// </summary>
-public record ExampleQueryResult(OrchestrationInstanceTypedDto<Input_Brs_Xyz_Example_V1> OrchestrationInstance);
+public record Brs_X01_Example_V1()
+    : OrchestrationDescriptionUniqueNameDto("Brs_X01_Example", 1);

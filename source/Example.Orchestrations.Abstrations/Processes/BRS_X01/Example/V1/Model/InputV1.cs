@@ -12,9 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
+namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
 
-public record Brs_Xyz_Example_V1()
-    : OrchestrationDescriptionUniqueNameDto("Brs_Xyz_Example", 1);
+/// <summary>
+/// An immutable input to start the orchestration instance for BRS_X01 V1.
+/// </summary>
+public record InputV1(
+    bool SkipStepTwo)
+        : IInputParameterDto;

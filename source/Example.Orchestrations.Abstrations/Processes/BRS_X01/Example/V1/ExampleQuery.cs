@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1.Model;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_XYZ.Example.V1;
+namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1;
 
 /// <summary>
-/// Query for searching for BRS-Example.
+/// Query for searching for BRS-X01.
 /// Must be JSON serializable.
 /// </summary>
 public record ExampleQuery
@@ -29,15 +29,15 @@ public record ExampleQuery
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
-    /// <param name="skipStep"> contains the Durable Functions orchestration input parameter value.</param>
+    /// <param name="skipStepTwo"> search criteria to check if step two was skipped</param>
     public ExampleQuery(
         UserIdentityDto operatingIdentity,
-        ExampleSkipStep skipStep)
+        bool skipStepTwo = default)
             : base(
                 operatingIdentity,
-                new Brs_Xyz_Example_V1().Name)
+                new Brs_X01_Example_V1().Name)
     {
-        SkipStep = skipStep;
+        SkipStep = skipStepTwo;
     }
 
     public OrchestrationInstanceLifecycleStates? LifecycleState { get; set; }
@@ -48,5 +48,5 @@ public record ExampleQuery
 
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
 
-    public ExampleSkipStep? SkipStep { get; set; }
+    public bool SkipStep { get; set; }
 }

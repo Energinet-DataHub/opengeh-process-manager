@@ -33,6 +33,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Example.Orchestrations.Abstrations\Example.Orchestrations.Abstrations.csproj" />
+    <ProjectReference Include="..\Example.Orchestrations\Example.Orchestrations.csproj" />
     <ProjectReference Include="..\ProcessManager.Client\ProcessManager.Client.csproj" />
     <ProjectReference Include="..\ProcessManager.DatabaseMigration\ProcessManager.DatabaseMigration.csproj" />
     <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />

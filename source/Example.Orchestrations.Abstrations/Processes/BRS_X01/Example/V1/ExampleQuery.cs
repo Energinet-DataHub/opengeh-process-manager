@@ -37,7 +37,7 @@ public record ExampleQuery
                 operatingIdentity,
                 new Brs_X01_Example_V1().Name)
     {
-        SkipStep = skipStepTwo;
+        SkipStepTwo = skipStepTwo;
     }
 
     public OrchestrationInstanceLifecycleStates? LifecycleState { get; set; }
@@ -48,5 +48,5 @@ public record ExampleQuery
 
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
 
-    public bool SkipStep { get; set; }
+    public bool SkipStepTwo { get; set; }
 }

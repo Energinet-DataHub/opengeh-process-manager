@@ -81,15 +81,16 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
     {
         // Arrange
         var businessReason = "BalanceFixing";
+        var energySupplierNumber = "23143245321";
         var startRequestCommand = new StartRequestCalculatedEnergyTimeSeriesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedEnergyTimeSeriesInputV1(
-                RequestedForActorNumber: "23143245321",
+                RequestedForActorNumber: energySupplierNumber,
                 RequestedForActorRole: "EnergySupplier",
                 BusinessReason: businessReason,
                 PeriodStart: "2024-04-07 23:00:00",
                 PeriodEnd: "2024-04-08 23:00:00",
-                EnergySupplierNumber: null,
+                EnergySupplierNumber: energySupplierNumber,
                 BalanceResponsibleNumber: null,
                 GridAreas: ["804"],
                 MeteringPointType: null,

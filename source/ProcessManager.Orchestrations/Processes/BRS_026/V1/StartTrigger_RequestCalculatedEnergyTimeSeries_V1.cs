@@ -24,10 +24,8 @@ using Microsoft.Extensions.Logging;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 
 public class StartTrigger_RequestCalculatedEnergyTimeSeries_V1(
-    ILogger<StartTrigger_RequestCalculatedEnergyTimeSeries_V1> logger,
     RequestCalculatedEnergyTimeSeriesHandlerV1 handler)
 {
-    private readonly ILogger<StartTrigger_RequestCalculatedEnergyTimeSeries_V1> _logger = logger;
     private readonly RequestCalculatedEnergyTimeSeriesHandlerV1 _handler = handler;
 
     /// <summary>

@@ -73,6 +73,7 @@ OrchestrationDescription CreateBrs_X01_Example_V1Description()
         "Example step 2, can be skipped",
         canBeSkipped: true,
         skipReason: "Do not perform this step if skipped");
+    description.AppendStepDescription("Example step 3");
 
     return description;
 }

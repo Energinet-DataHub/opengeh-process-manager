@@ -27,7 +27,7 @@ using Xunit.Abstractions;
 namespace Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
-/// Support testing Process Manager Orchestrations app and specifying configuration using inheritance.
+/// Support testing Example Orchestrations app and specifying configuration using inheritance.
 /// This allows us to use multiple fixtures and coordinate their configuration.
 /// </summary>
 public class ExampleOrchestrationsAppManager : IAsyncDisposable

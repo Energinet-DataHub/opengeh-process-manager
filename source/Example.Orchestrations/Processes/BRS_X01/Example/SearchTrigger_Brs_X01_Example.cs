@@ -33,7 +33,7 @@ internal class SearchTrigger_Brs_X01_Example(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "orchestrationinstance/query/custom/brs_x01/example")]
+            Route = "orchestrationinstance/query/custom/brs_x01_example")]
         HttpRequest httpRequest,
         [FromBody]
         ExampleQuery query,

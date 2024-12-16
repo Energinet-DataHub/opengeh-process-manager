@@ -38,7 +38,6 @@ internal class StartActivity_Brs_X01_Example_V1(
         step.Lifecycle.TransitionToRunning(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        // TODO: For demo purposes; remove when done
         await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
     }
 }

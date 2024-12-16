@@ -105,7 +105,7 @@
 //     {
 //         using var request = new HttpRequestMessage(
 //             HttpMethod.Post,
-//             $"/api/orchestrationinstance/query/custom/brs_x01/example");
+//             $"/api/orchestrationinstance/query/custom/brs_x01_example");
 //
 //         request.Content = new StringContent(
 //             search,

@@ -13,12 +13,13 @@
 // limitations under the License.
 
 using FluentAssertions;
-using FluentAssertions.Common;
 using FluentAssertions.Execution;
-using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using ProcessManager.Components.Databricks.Jobs;
+using ProcessManager.Components.Diagnostics.HealthChecks;
 using ProcessManager.Components.Extensions.DependencyInjection;
 using ProcessManager.Components.Extensions.Options;
 using Xunit;
@@ -51,10 +52,29 @@ public class DatabricksWorkspaceExtensionsTests
         Services.AddDatabricksJobs();
 
         // Assert
+        var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
+        // => Service
         var actualJobsClient = serviceProvider.GetRequiredService<IDatabricksJobsClient>();
         actualJobsClient.Should().NotBeNull();
+
+        // => Health check
+        var healthCheckRegistrations = serviceProvider
+            .GetRequiredService<IOptions<HealthCheckServiceOptions>>()
+            .Value
+            .Registrations;
+
+        healthCheckRegistrations
+            .Should()
+            .ContainSingle();
+
+        var healthCheckRegistration = healthCheckRegistrations.Single();
+
+        healthCheckRegistration.Name.Should().Contain("Databricks Jobs API");
+        healthCheckRegistration.Factory(serviceProvider)
+            .Should()
+            .BeOfType<DatabricksJobsApiHealthCheck>();
     }
 
     [Fact]
@@ -72,10 +92,29 @@ public class DatabricksWorkspaceExtensionsTests
         Services.AddDatabricksJobs(configSectionPath: sectionName);
 
         // Assert
+        var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
+        // => Service
         var actualJobsClient = serviceProvider.GetRequiredKeyedService<IDatabricksJobsClient>(serviceKey: sectionName);
         actualJobsClient.Should().NotBeNull();
+
+        // => Health check
+        var healthCheckRegistrations = serviceProvider
+            .GetRequiredService<IOptions<HealthCheckServiceOptions>>()
+            .Value
+            .Registrations;
+
+        healthCheckRegistrations
+            .Should()
+            .ContainSingle();
+
+        var healthCheckRegistration = healthCheckRegistrations.Single();
+
+        healthCheckRegistration.Name.Should().Contain(sectionName).And.Contain("Databricks Jobs API");
+        healthCheckRegistration.Factory(serviceProvider)
+            .Should()
+            .BeOfType<DatabricksJobsApiHealthCheck>();
     }
 
     [Fact]
@@ -103,9 +142,11 @@ public class DatabricksWorkspaceExtensionsTests
         var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
+        // => Wholesale
         var actualWholesaleClient = serviceProvider.GetRequiredService<WholesaleClientStub>();
         actualWholesaleClient.Client.Should().NotBeNull();
 
+        // => Measurements
         var actualMeasurementsClient = serviceProvider.GetRequiredService<MeasurementsClientStub>();
         actualMeasurementsClient.Client.Should().NotBeNull();
     }

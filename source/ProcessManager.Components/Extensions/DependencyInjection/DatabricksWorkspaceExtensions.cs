@@ -16,6 +16,7 @@ using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ProcessManager.Components.Databricks.Jobs;
+using ProcessManager.Components.Extensions.Builder;
 using ProcessManager.Components.Extensions.Options;
 
 namespace ProcessManager.Components.Extensions.DependencyInjection;
@@ -27,7 +28,7 @@ namespace ProcessManager.Components.Extensions.DependencyInjection;
 public static class DatabricksWorkspaceExtensions
 {
     /// <summary>
-    /// Register Databricks Jobs API services and options for use with a single Databricks workspace.
+    /// Register Databricks Jobs API services, options and health check for use with a single Databricks workspace.
     /// Options are read from the default configuration section name.
     /// </summary>
     /// <remarks>
@@ -54,11 +55,15 @@ public static class DatabricksWorkspaceExtensions
             return new DatabricksJobsClient(databricksClient.Jobs);
         });
 
+        serviceCollection
+            .AddHealthChecks()
+            .AddDatabricksJobsApi(name: "Databricks Jobs API");
+
         return serviceCollection;
     }
 
     /// <summary>
-    /// Register Databricks Jobs API services and options for use with a Databricks workspace.
+    /// Register Databricks Jobs API services, options and health check for use with a Databricks workspace.
     /// </summary>
     /// <remarks>
     /// By using different <paramref name="configSectionPath"/> it is possible to register
@@ -77,18 +82,24 @@ public static class DatabricksWorkspaceExtensions
             .BindConfiguration(configSectionPath)
             .ValidateDataAnnotations();
 
-        serviceCollection.AddKeyedSingleton<DatabricksClient>(configSectionPath, (sp, key) =>
+        serviceCollection.AddKeyedSingleton<DatabricksClient>(serviceKey: configSectionPath, (sp, key) =>
         {
             var snapshot = sp.GetRequiredService<IOptionsSnapshot<DatabricksWorkspaceOptions>>();
             var options = snapshot.Get(configSectionPath);
             return DatabricksClient.CreateClient(options.BaseUrl, options.Token);
         });
 
-        serviceCollection.AddKeyedTransient<IDatabricksJobsClient>(configSectionPath, (sp, key) =>
+        serviceCollection.AddKeyedTransient<IDatabricksJobsClient>(serviceKey: configSectionPath, (sp, key) =>
         {
             var databricksClient = sp.GetRequiredKeyedService<DatabricksClient>(key);
             return new DatabricksJobsClient(databricksClient.Jobs);
         });
+
+        serviceCollection
+            .AddHealthChecks()
+            .AddDatabricksJobsApi(
+                serviceKey: configSectionPath,
+                name: $"{configSectionPath}: Databricks Jobs API");
 
         return serviceCollection;
     }

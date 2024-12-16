@@ -36,7 +36,7 @@ internal class StartTrigger_Brs_X01_Example_V1(
             Route = "orchestrationinstance/command/start/custom/Brs_X01_Example/1")]
         HttpRequest httpRequest,
         [FromBody]
-        StartCommandV1 command,
+        StartExampleCommandV1 command,
         FunctionContext executionContext)
     {
         var orchestrationInstanceId = await _exampleHandler.StartNewCalculationAsync(command).ConfigureAwait(false);

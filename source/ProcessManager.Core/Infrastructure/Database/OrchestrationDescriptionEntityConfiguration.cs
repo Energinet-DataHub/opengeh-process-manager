@@ -42,6 +42,7 @@ internal class OrchestrationDescriptionEntityConfiguration : IEntityTypeConfigur
             });
 
         builder.Property(o => o.CanBeScheduled);
+        builder.Property(o => o.RecurringCronExpression);
         builder.Property(o => o.FunctionName);
 
         builder.ComplexProperty(

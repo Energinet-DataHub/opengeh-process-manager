@@ -12,13 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using Azure.Messaging.ServiceBus;
+
+namespace Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 
 /// <summary>
-/// A xUnit collection fixture for ensuring tests don't run in parallel.
-///
-/// xUnit documentation of collection fixtures:
-///  * https://xunit.net/docs/shared-context#collection-fixture
+/// Constants used for naming <see cref="ServiceBusSender"/> instances
 /// </summary>
-[CollectionDefinition(nameof(ProcessManagerCoreCollection))]
-public class ProcessManagerCoreCollection : ICollectionFixture<ProcessManagerCoreFixture>;
+public static class ServiceBusSenderNames
+{
+    /// <summary>
+    /// Service Bus sender for sending messages on the process manager service bus topic
+    /// </summary>
+    public const string ProcessManagerTopic = "ProcessManagerTopic";
+}

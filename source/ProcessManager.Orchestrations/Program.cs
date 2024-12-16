@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Identity;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
@@ -28,6 +29,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Electric
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -35,13 +37,17 @@ var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
     .ConfigureServices((context, services) =>
     {
+        services.AddTransient<IConfiguration>(_ => context.Configuration);
+
+        var azureCredential = new DefaultAzureCredential();
+
         // Common
         services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
 
         // ProcessManager
-        services.AddProcessManagerTopic();
+        services.AddProcessManagerTopic(azureCredential);
         // => Orchestration Descriptions
         services.AddProcessManagerForOrchestrations(() =>
         {
@@ -50,9 +56,9 @@ var host = new HostBuilder()
             // During DI we could then search for all these interface implementations and register them automatically.
             // This would ensure we didn't have to update Program.cs when we change orchestrations.
             var brs_021_ElectricalHeatingCalculation_v1 = CreateDescription_Brs_021_ElectricalHeatingCalculation_V1();
-            var brs_023_027_v1 = CreateBrs_023_027_V1Description();
-            var brs_026_v1 = CreateBrs_026_V1Description();
-            var brs_021_ForwardMeteredData_v1 = CreateBrs_021_ForwardMeteredData_V1Description();
+            var brs_021_ForwardMeteredData_v1 = CreateDescription_Brs_021_ForwardMeteredData_V1();
+            var brs_023_027_v1 = CreateDescription_Brs_023_027_V1();
+            var brs_026_v1 = CreateDescription_Brs_026_V1();
 
             return [
                 brs_021_ElectricalHeatingCalculation_v1,
@@ -83,8 +89,11 @@ OrchestrationDescription CreateDescription_Brs_021_ElectricalHeatingCalculation_
         uniqueName: new OrchestrationDescriptionUniqueName(
             orchestrationDescriptionUniqueName.Name,
             orchestrationDescriptionUniqueName.Version),
-        canBeScheduled: false,
+        canBeScheduled: true,
         functionName: nameof(Orchestration_Brs_021_ElectricalHeatingCalculation_V1));
+
+    // Runs at 12:00 and 17:00 every day
+    description.RecurringCronExpression = "0 12,17 * * *";
 
     foreach (var step in Orchestration_Brs_021_ElectricalHeatingCalculation_V1.Steps)
     {
@@ -94,7 +103,27 @@ OrchestrationDescription CreateDescription_Brs_021_ElectricalHeatingCalculation_
     return description;
 }
 
-OrchestrationDescription CreateBrs_023_027_V1Description()
+OrchestrationDescription CreateDescription_Brs_021_ForwardMeteredData_V1()
+{
+    var orchestrationDescriptionUniqueName = new Brs_021_ForwardedMeteredData_V1();
+
+    var description = new OrchestrationDescription(
+        uniqueName: new OrchestrationDescriptionUniqueName(
+            orchestrationDescriptionUniqueName.Name,
+            orchestrationDescriptionUniqueName.Version),
+        canBeScheduled: false,
+        functionName: nameof(Orchestration_Brs_021_ForwardMeteredData_V1));
+
+    description.ParameterDefinition.SetFromType<MeteredDataForMeasurementPointMessageInputV1>();
+    description.AppendStepDescription("Asynkron validering");
+    description.AppendStepDescription("Gemmer");
+    description.AppendStepDescription("Finder modtagere");
+    description.AppendStepDescription("Udsend beskeder");
+
+    return description;
+}
+
+OrchestrationDescription CreateDescription_Brs_023_027_V1()
 {
     var orchestrationDescriptionUniqueName = new Brs_023_027_V1();
 
@@ -116,7 +145,7 @@ OrchestrationDescription CreateBrs_023_027_V1Description()
     return description;
 }
 
-OrchestrationDescription CreateBrs_026_V1Description()
+OrchestrationDescription CreateDescription_Brs_026_V1()
 {
     var orchestrationDescriptionUniqueName = new Brs_026_V1();
 
@@ -131,26 +160,6 @@ OrchestrationDescription CreateBrs_026_V1Description()
 
     description.AppendStepDescription("Asynkron validering");
     description.AppendStepDescription("Hent anmodningsdata");
-    description.AppendStepDescription("Udsend beskeder");
-
-    return description;
-}
-
-OrchestrationDescription CreateBrs_021_ForwardMeteredData_V1Description()
-{
-    var orchestrationDescriptionUniqueName = new Brs_021_ForwardedMeteredData_V1();
-
-    var description = new OrchestrationDescription(
-        uniqueName: new OrchestrationDescriptionUniqueName(
-            orchestrationDescriptionUniqueName.Name,
-            orchestrationDescriptionUniqueName.Version),
-        canBeScheduled: false,
-        functionName: nameof(Orchestration_Brs_021_ForwardMeteredData_V1));
-
-    description.ParameterDefinition.SetFromType<MeteredDataForMeasurementPointMessageInputV1>();
-    description.AppendStepDescription("Asynkron validering");
-    description.AppendStepDescription("Gemmer");
-    description.AppendStepDescription("Finder modtagere");
     description.AppendStepDescription("Udsend beskeder");
 
     return description;

@@ -31,7 +31,7 @@ internal class CancelScheduledOrchestrationInstanceTrigger(
     private readonly ICancelScheduledOrchestrationInstanceCommand _command = command;
 
     /// <summary>
-    /// Cancel a scheduled orchestration instance.
+    /// Cancel a scheduled orchestration instance
     /// </summary>
     [Function(nameof(CancelScheduledOrchestrationInstanceTrigger))]
     public async Task<IActionResult> Run(

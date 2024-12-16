@@ -83,7 +83,7 @@ public class OrchestrationsSearchTests : IAsyncLifetime
         // Arrange
         var input = new ExampleSkipStep(ShouldSkipStepTwo: false);
         await StartAndEnsureRunningAsync(input);
-        var inputWithSkip = new ExampleSkipStep(ShouldSkipStepTwo: false);
+        var inputWithSkip = new ExampleSkipStep(ShouldSkipStepTwo: true);
         await StartAndEnsureRunningAsync(inputWithSkip);
 
         var searchQuery = new ExampleQuery(
@@ -98,7 +98,8 @@ public class OrchestrationsSearchTests : IAsyncLifetime
         var actual = await SendSearchRequestAsync(searchJson);
 
         // Assert
-        actual.Should().NotBeNull().And.NotBeEmpty();
+        // TODO: Should be 2, but the search is not working as of right now
+        actual.Should().NotBeNull().And.HaveCount(2);
     }
 
     private async Task<Collection<ExampleQueryResult>?> SendSearchRequestAsync(string search)

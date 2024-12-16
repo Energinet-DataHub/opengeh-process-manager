@@ -66,7 +66,7 @@ jobs:
     with:
       release_name: example_orchestrations
       project_file: source/Example.Orchestrations/Example.Orchestrations.csproj
-        
+
   ci_dbmigrations:
     if: ${{ fromJson(needs.changes.outputs.job_context).dbmigrations == 'true' }}
     needs: changes

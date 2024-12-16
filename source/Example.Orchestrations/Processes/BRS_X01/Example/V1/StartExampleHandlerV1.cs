@@ -24,7 +24,7 @@ internal class StartExampleHandlerV1(
 {
     private readonly IStartOrchestrationInstanceCommands _manager = manager;
 
-    public async Task<OrchestrationInstanceId> StartNewCalculationAsync(StartCommandV1 command)
+    public async Task<OrchestrationInstanceId> StartNewCalculationAsync(StartExampleCommandV1 command)
     {
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.SkipStepTwo

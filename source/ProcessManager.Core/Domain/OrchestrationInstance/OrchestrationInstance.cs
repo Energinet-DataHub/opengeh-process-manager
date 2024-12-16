@@ -83,6 +83,31 @@ public class OrchestrationInstance
     internal OrchestrationDescriptionId OrchestrationDescriptionId { get; }
 
     /// <summary>
+    /// Transition a step's lifecycle to running
+    /// </summary>
+    /// <param name="sequence"></param>
+    /// <param name="clock"></param>
+    public void TransitionStepToRunning(int sequence, IClock clock)
+    {
+        var step = Steps.SingleOrDefault(s => s.Sequence == sequence);
+
+        if (step == null)
+            throw new ArgumentOutOfRangeException(nameof(sequence), sequence, "A step with the given sequence does not exist");
+
+        step.Lifecycle.TransitionToRunning(clock);
+    }
+
+    public void TransitionStepToTerminated(int sequence, OrchestrationStepTerminationStates terminationState, IClock clock)
+    {
+        var step = Steps.SingleOrDefault(s => s.Sequence == sequence);
+
+        if (step == null)
+            throw new ArgumentOutOfRangeException(nameof(sequence), sequence, "A step with the given sequence does not exist");
+
+        step.Lifecycle.TransitionToTerminated(clock, terminationState);
+    }
+
+    /// <summary>
     /// Factory method that ensures domain rules are obeyed when creating a new
     /// orchestration instance.
     /// </summary>

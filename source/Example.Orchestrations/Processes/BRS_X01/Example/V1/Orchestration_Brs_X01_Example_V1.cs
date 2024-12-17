@@ -23,7 +23,7 @@ namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1;
 
 internal class Orchestration_Brs_X01_Example_V1
 {
-    internal const int StartingStepSequence = 1;
+    internal const int FirstStepSequence = 1;
     internal const int SkippableStepSequence = 2;
 
     [Function(nameof(Orchestration_Brs_X01_Example_V1))]

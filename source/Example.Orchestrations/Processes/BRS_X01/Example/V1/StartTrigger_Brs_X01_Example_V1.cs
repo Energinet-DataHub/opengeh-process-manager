@@ -39,7 +39,7 @@ internal class StartTrigger_Brs_X01_Example_V1(
         StartExampleCommandV1 command,
         FunctionContext executionContext)
     {
-        var orchestrationInstanceId = await _exampleHandler.StartNewCalculationAsync(command).ConfigureAwait(false);
+        var orchestrationInstanceId = await _exampleHandler.StartNewExampleAsync(command).ConfigureAwait(false);
         return new OkObjectResult(orchestrationInstanceId.Value);
     }
 }

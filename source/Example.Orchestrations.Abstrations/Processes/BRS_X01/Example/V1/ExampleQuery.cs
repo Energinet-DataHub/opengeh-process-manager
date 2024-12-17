@@ -29,15 +29,15 @@ public record ExampleQuery
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
-    /// <param name="skipStepTwo"> search criteria to check if step two was skipped</param>
+    /// <param name="skippedStepTwo"> search criteria to check if step two was skipped</param>
     public ExampleQuery(
         UserIdentityDto operatingIdentity,
-        bool skipStepTwo = default)
+        bool skippedStepTwo = default)
             : base(
                 operatingIdentity,
                 new Brs_X01_Example_V1().Name)
     {
-        SkipStep = skipStepTwo;
+        SkippedStepTwo = skippedStepTwo;
     }
 
     public OrchestrationInstanceLifecycleStates? LifecycleState { get; set; }
@@ -48,5 +48,5 @@ public record ExampleQuery
 
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
 
-    public bool SkipStep { get; set; }
+    public bool SkippedStepTwo { get; set; }
 }

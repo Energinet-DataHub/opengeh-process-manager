@@ -19,25 +19,27 @@ using NodaTime;
 
 namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Activities;
 
-internal class StartActivity_Brs_X01_Example_V1(
+internal class TerminateOrchestrationActivity_Brs_X01_Example_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
-        clock,
-        progressRepository)
+    clock,
+    progressRepository)
 {
-    [Function(nameof(StartActivity_Brs_X01_Example_V1))]
+    [Function(nameof(TerminateOrchestrationActivity_Brs_X01_Example_V1))]
     public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+        [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_X01_Example_V1.StartingStepSequence);
-        step.Lifecycle.TransitionToRunning(Clock);
+        orchestrationInstance.Lifecycle.TransitionToSucceeded(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
+
+    public record ActivityInput(
+        OrchestrationInstanceId OrchestrationInstanceId);
 }

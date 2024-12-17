@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.2.5
+
+- Add actor id to start orchestration messages.
+
 ## Version 0.2.4
 
 - Update (implement) correct input for starting BRS-026 and BRS-028 orchestrations.

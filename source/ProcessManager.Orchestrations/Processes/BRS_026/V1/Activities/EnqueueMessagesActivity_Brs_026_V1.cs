@@ -14,37 +14,44 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
 
 /// <summary>
-/// The last activity in the orchestration.
-/// It is responsible for updating the status to 'Terminated'.
+/// Enqueue messages in EDI (and set step to running)
 /// </summary>
-internal class OrchestrationTerminateActivity_Brs_023_027_V1(
+internal class EnqueueMessagesActivity_Brs_026_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
 {
-    [Function(nameof(OrchestrationTerminateActivity_Brs_023_027_V1))]
+    private readonly IClock _clock = clock;
+    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+
+    [Function(nameof(EnqueueMessagesActivity_Brs_026_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await ProgressRepository
+        var orchestrationInstance = await _progressRepository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.Lifecycle.TransitionToSucceeded(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        orchestrationInstance.TransitionStepToRunning(
+            Orchestration_RequestCalculatedEnergyTimeSeries_V1.EnqueueMessagesStepSequence,
+            _clock);
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        await EnqueueMessagesAsync(input).ConfigureAwait(false);
+    }
 
-        // TODO: For demo purposes; remove when done
+    private async Task EnqueueMessagesAsync(ActivityInput input)
+    {
+        // TODO: Enqueue message in EDI instead of delay
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId InstanceId);
+        OrchestrationInstanceId InstanceId,
+        RequestCalculatedEnergyTimeSeriesInputV1 RequestInput);
 }

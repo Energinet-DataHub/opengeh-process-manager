@@ -17,34 +17,36 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
 
-internal class EnqueueMessagesStepStartActivity_Brs_023_027_V1(
+/// <summary>
+/// Set the orchestration instance step lifecycle to terminated
+/// </summary>
+internal class TerminateStepActivity_Brs_026_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
 {
-    [Function(nameof(EnqueueMessagesStepStartActivity_Brs_023_027_V1))]
+    private readonly IClock _clock = clock;
+    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+
+    [Function(nameof(TerminateStepActivity_Brs_026_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await ProgressRepository
+        var orchestrationInstance = await _progressRepository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_023_027_V1.EnqueueMessagesStepSequence);
-        if (!step.IsSkipped())
-        {
-            step.Lifecycle.TransitionToRunning(Clock);
-            await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        orchestrationInstance.TransitionStepToTerminated(
+            input.StepSequence,
+            input.TerminationState,
+            _clock);
 
-            // TODO: For demo purposes; remove when done
-            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
-        }
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId InstanceId);
+        OrchestrationInstanceId InstanceId,
+        int StepSequence,
+        OrchestrationStepTerminationStates TerminationState);
 }

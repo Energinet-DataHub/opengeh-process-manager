@@ -126,12 +126,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
             if (brs026Subscription is null)
             {
-               topicResourceBuilder.AddSubscription(brs026SubscriptionName);
+               topicResourceBuilder.AddSubscription(brs026SubscriptionName)
+                   .AddSubjectFilter("Brs_026");
             }
 
             if (brs021ForwardMeteredDataSubscription is null)
             {
-                topicResourceBuilder.AddSubscription(brs021ForwardMeteredDataSubscriptionName);
+                topicResourceBuilder.AddSubscription(brs021ForwardMeteredDataSubscriptionName)
+                    .AddSubjectFilter("Brs_021_ForwardMeteredData");
             }
 
             var topicResource = await topicResourceBuilder.CreateAsync();

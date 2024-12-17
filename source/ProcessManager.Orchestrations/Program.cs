@@ -69,7 +69,7 @@ var host = new HostBuilder()
         // => Handlers
         services.AddScoped<SearchCalculationHandler>();
         services.AddScoped<StartCalculationHandlerV1>();
-        services.AddScoped<RequestCalculatedEnergyTimeSeriesHandler>();
+        services.AddScoped<RequestCalculatedEnergyTimeSeriesHandlerV1>();
         services.AddScoped<StartForwardMeteredDataHandler>();
     })
     .ConfigureLogging((hostingContext, logging) =>
@@ -154,12 +154,11 @@ OrchestrationDescription CreateDescription_Brs_026_V1()
             orchestrationDescriptionUniqueName.Name,
             orchestrationDescriptionUniqueName.Version),
         canBeScheduled: false,
-        functionName: nameof(RequestCalculatedEnergyTimeSeriesOrchestrationV1));
+        functionName: nameof(Orchestration_RequestCalculatedEnergyTimeSeries_V1));
 
     description.ParameterDefinition.SetFromType<RequestCalculatedEnergyTimeSeriesInputV1>();
 
     description.AppendStepDescription("Asynkron validering");
-    description.AppendStepDescription("Hent anmodningsdata");
     description.AppendStepDescription("Udsend beskeder");
 
     return description;

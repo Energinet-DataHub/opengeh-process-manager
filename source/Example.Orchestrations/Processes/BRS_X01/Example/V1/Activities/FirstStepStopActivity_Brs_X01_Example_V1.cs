@@ -34,7 +34,7 @@ internal class FirstStepStopActivity_Brs_X01_Example_V1(
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_X01_Example_V1.StartingStepSequence);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_X01_Example_V1.FirstStepSequence);
         step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 

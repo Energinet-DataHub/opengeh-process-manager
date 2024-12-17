@@ -25,10 +25,10 @@ internal class StartExampleHandlerV1(
 {
     private readonly IStartOrchestrationInstanceCommands _manager = manager;
 
-    public async Task<OrchestrationInstanceId> StartNewCalculationAsync(StartExampleCommandV1 command)
+    public async Task<OrchestrationInstanceId> StartNewExampleAsync(StartExampleCommandV1 command)
     {
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
-        IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.SkipStepTwo
+        IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.ShouldSkipSkippableStep
             ? [Orchestration_Brs_X01_Example_V1.SkippableStepSequence]
             : [];
 
@@ -47,10 +47,10 @@ internal class StartExampleHandlerV1(
         return orchestrationInstanceId;
     }
 
-    public async Task<OrchestrationInstanceId> ScheduleNewCalculationAsync(ScheduleExampleCommandV1 command)
+    public async Task<OrchestrationInstanceId> ScheduleNewExampleAsync(ScheduleExampleCommandV1 command)
     {
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
-        IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.SkipStepTwo
+        IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.ShouldSkipSkippableStep
             ? [Orchestration_Brs_X01_Example_V1.SkippableStepSequence]
             : [];
 

@@ -66,7 +66,7 @@
 //             operatingIdentity: new UserIdentityDto(
 //                 Guid.NewGuid(),
 //                 Guid.NewGuid()),
-//             skipStepTwo: skipStepTwo);
+//             SkippedStepTwo: skipStepTwo);
 //
 //         var searchJson = JsonSerializer.Serialize(searchQuery, searchQuery.GetType());
 //
@@ -89,7 +89,7 @@
 //             operatingIdentity: new UserIdentityDto(
 //                 Guid.NewGuid(),
 //                 Guid.NewGuid()),
-//             skipStepTwo: skipStepTwo);
+//             SkippedStepTwo: skipStepTwo);
 //
 //         var searchJson = JsonSerializer.Serialize(searchQuery, searchQuery.GetType());
 //

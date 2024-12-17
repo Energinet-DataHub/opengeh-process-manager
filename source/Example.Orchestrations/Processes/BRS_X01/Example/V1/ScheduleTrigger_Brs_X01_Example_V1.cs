@@ -26,7 +26,7 @@ internal class ScheduleTrigger_Brs_X01_Example_V1(
     private readonly StartExampleHandlerV1 _handler = handler;
 
     /// <summary>
-    /// Schedule a BRS-023 or BRS-027 calculation and return its id.
+    /// Schedule a BRS-X01 and return its id.
     /// </summary>
     [Function(nameof(ScheduleTrigger_Brs_X01_Example_V1))]
     public async Task<IActionResult> Run(
@@ -39,7 +39,7 @@ internal class ScheduleTrigger_Brs_X01_Example_V1(
         ScheduleExampleCommandV1 command,
         FunctionContext executionContext)
     {
-        var orchestrationInstanceId = await _handler.ScheduleNewCalculationAsync(command).ConfigureAwait(false);
+        var orchestrationInstanceId = await _handler.ScheduleNewExampleAsync(command).ConfigureAwait(false);
         return new OkObjectResult(orchestrationInstanceId.Value);
     }
 }

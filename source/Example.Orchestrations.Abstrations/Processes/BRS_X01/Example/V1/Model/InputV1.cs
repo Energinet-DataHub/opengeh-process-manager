@@ -20,5 +20,5 @@ namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X0
 /// An immutable input to start the orchestration instance for BRS_X01 V1.
 /// </summary>
 public record InputV1(
-    bool SkipStepTwo)
+    bool ShouldSkipSkippableStep)
         : IInputParameterDto;

@@ -30,7 +30,7 @@ internal class TerminateStepActivity_Brs_026_V1(
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
-    public static Task RunActivity(TaskOrchestrationContext context, TerminateStepActivityInput input, TaskOptions options)
+    public static Task RunActivity(TaskOrchestrationContext context, ActivityInput input, TaskOptions options)
     {
         return context.CallActivityAsync(
             nameof(TerminateStepActivity_Brs_026_V1),
@@ -40,7 +40,7 @@ internal class TerminateStepActivity_Brs_026_V1(
 
     [Function(nameof(TerminateStepActivity_Brs_026_V1))]
     public async Task Run(
-        [ActivityTrigger] TerminateStepActivityInput input)
+        [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _progressRepository
             .GetAsync(input.InstanceId)
@@ -54,7 +54,7 @@ internal class TerminateStepActivity_Brs_026_V1(
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
-    public record TerminateStepActivityInput(
+    public record ActivityInput(
         OrchestrationInstanceId InstanceId,
         int StepSequence,
         OrchestrationStepTerminationStates TerminationState);

@@ -50,7 +50,11 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
         var defaultRetryOptions = CreateDefaultRetryOptions();
 
         // Set orchestration lifecycle to running
-        await StartOrchestrationActivity_Brs_026_V1.RunActivity(context, instanceId, defaultRetryOptions);
+        await StartOrchestrationActivity_Brs_026_V1.RunActivity(
+            context,
+            new StartOrchestrationActivity_Brs_026_V1.ActivityInput(
+                instanceId),
+            defaultRetryOptions);
 
         var isValid = await PerformAsyncValidation(context, instanceId, input, defaultRetryOptions);
 
@@ -58,7 +62,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
         {
             await EnqueueMessagesActivity_Brs_026_V1.RunActivity(
                 context,
-                new EnqueueMessagesActivity_Brs_026_V1.EnqueueMessagesActivityInput(
+                new EnqueueMessagesActivity_Brs_026_V1.ActivityInput(
                     instanceId,
                     input),
                 defaultRetryOptions);
@@ -67,7 +71,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
         {
             await EnqueueRejectMessageActivity_Brs_026_V1.RunActivity(
                 context,
-                new EnqueueRejectMessageActivity_Brs_026_V1.EnqueueRejectMessageActivityInput(
+                new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
                     instanceId,
                     "Validation error"),
                 defaultRetryOptions);
@@ -80,7 +84,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
             : OrchestrationStepTerminationStates.Failed;
         await TerminateStepActivity_Brs_026_V1.RunActivity(
             context,
-            new TerminateStepActivity_Brs_026_V1.TerminateStepActivityInput(
+            new TerminateStepActivity_Brs_026_V1.ActivityInput(
                 instanceId,
                 EnqueueMessagesStepSequence,
                 enqueueMessagesTerminationState),
@@ -96,7 +100,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
 
             await TerminateOrchestrationActivity_Brs_026_V1.RunActivity(
                 context,
-                new TerminateOrchestrationActivity_Brs_026_V1.TerminateOrchestrationActivityInput(
+                new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
                     instanceId,
                     OrchestrationInstanceTerminationStates.Failed),
                 defaultRetryOptions);
@@ -106,7 +110,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
 
         await TerminateOrchestrationActivity_Brs_026_V1.RunActivity(
             context,
-            new TerminateOrchestrationActivity_Brs_026_V1.TerminateOrchestrationActivityInput(
+            new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
                 instanceId,
                 OrchestrationInstanceTerminationStates.Succeeded),
             defaultRetryOptions);
@@ -131,7 +135,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
     {
         var isValid = await PerformAsyncValidationActivity_Brs_026_V1.RunActivity(
             context,
-            new PerformAsyncValidationActivity_Brs_026_V1.AsyncValidationActivityInput(
+            new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
                 instanceId,
                 input),
             retryOptions);
@@ -141,7 +145,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
             : OrchestrationStepTerminationStates.Failed;
         await TerminateStepActivity_Brs_026_V1.RunActivity(
             context,
-            new TerminateStepActivity_Brs_026_V1.TerminateStepActivityInput(
+            new TerminateStepActivity_Brs_026_V1.ActivityInput(
                 instanceId,
                 AsyncValidationStepSequence,
                 asyncValidationTerminationState),

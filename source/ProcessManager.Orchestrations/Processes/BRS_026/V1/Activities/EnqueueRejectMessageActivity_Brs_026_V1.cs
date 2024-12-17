@@ -30,7 +30,7 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
-    public static Task RunActivity(TaskOrchestrationContext context, EnqueueRejectMessageActivityInput activityInput, TaskOptions options)
+    public static Task RunActivity(TaskOrchestrationContext context, ActivityInput activityInput, TaskOptions options)
     {
         return context.CallActivityAsync(
             nameof(EnqueueRejectMessageActivity_Brs_026_V1),
@@ -40,7 +40,7 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
 
     [Function(nameof(EnqueueRejectMessageActivity_Brs_026_V1))]
     public async Task Run(
-        [ActivityTrigger] EnqueueRejectMessageActivityInput input)
+        [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _progressRepository
             .GetAsync(input.InstanceId)
@@ -54,13 +54,13 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
         await EnqueueRejectMessageAsync(input).ConfigureAwait(false);
     }
 
-    private async Task EnqueueRejectMessageAsync(EnqueueRejectMessageActivityInput input)
+    private async Task EnqueueRejectMessageAsync(ActivityInput input)
     {
         // TODO: Enqueue message in EDI instead of delay
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 
-    public record EnqueueRejectMessageActivityInput(
+    public record ActivityInput(
         OrchestrationInstanceId InstanceId,
         string ValidationError);
 }

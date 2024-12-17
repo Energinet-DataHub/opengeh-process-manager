@@ -31,7 +31,7 @@ internal class EnqueueMessagesActivity_Brs_026_V1(
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
-    public static Task RunActivity(TaskOrchestrationContext context, EnqueueMessagesActivityInput activityInput, TaskOptions options)
+    public static Task RunActivity(TaskOrchestrationContext context, ActivityInput activityInput, TaskOptions options)
     {
         return context.CallActivityAsync(
             nameof(EnqueueMessagesActivity_Brs_026_V1),
@@ -41,7 +41,7 @@ internal class EnqueueMessagesActivity_Brs_026_V1(
 
     [Function(nameof(EnqueueMessagesActivity_Brs_026_V1))]
     public async Task Run(
-        [ActivityTrigger] EnqueueMessagesActivityInput input)
+        [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _progressRepository
             .GetAsync(input.InstanceId)
@@ -54,13 +54,13 @@ internal class EnqueueMessagesActivity_Brs_026_V1(
         await EnqueueMessagesAsync(input).ConfigureAwait(false);
     }
 
-    private async Task EnqueueMessagesAsync(EnqueueMessagesActivityInput input)
+    private async Task EnqueueMessagesAsync(ActivityInput input)
     {
         // TODO: Enqueue message in EDI instead of delay
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 
-    public record EnqueueMessagesActivityInput(
+    public record ActivityInput(
         OrchestrationInstanceId InstanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 RequestInput);
 }

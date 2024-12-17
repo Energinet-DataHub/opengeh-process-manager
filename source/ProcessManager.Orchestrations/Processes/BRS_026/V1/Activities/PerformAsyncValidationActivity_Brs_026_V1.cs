@@ -31,7 +31,7 @@ internal class PerformAsyncValidationActivity_Brs_026_V1(
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
-    public static Task<bool> RunActivity(TaskOrchestrationContext context, AsyncValidationActivityInput activityInput, TaskOptions options)
+    public static Task<bool> RunActivity(TaskOrchestrationContext context, ActivityInput activityInput, TaskOptions options)
     {
         return context.CallActivityAsync<bool>(
             nameof(PerformAsyncValidationActivity_Brs_026_V1),
@@ -41,7 +41,7 @@ internal class PerformAsyncValidationActivity_Brs_026_V1(
 
     [Function(nameof(PerformAsyncValidationActivity_Brs_026_V1))]
     public async Task<bool> Run(
-        [ActivityTrigger] AsyncValidationActivityInput input)
+        [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _progressRepository
             .GetAsync(input.InstanceId)
@@ -64,7 +64,7 @@ internal class PerformAsyncValidationActivity_Brs_026_V1(
         return true;
     }
 
-    public record AsyncValidationActivityInput(
+    public record ActivityInput(
         OrchestrationInstanceId InstanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 RequestInput);
 }

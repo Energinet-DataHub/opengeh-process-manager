@@ -30,23 +30,26 @@ internal class StartOrchestrationActivity_Brs_026_V1(
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
-    public static Task RunActivity(TaskOrchestrationContext context, OrchestrationInstanceId orchestrationId, TaskOptions options)
+    public static Task RunActivity(TaskOrchestrationContext context, ActivityInput input, TaskOptions options)
     {
         return context.CallActivityAsync(
             nameof(StartOrchestrationActivity_Brs_026_V1),
-            orchestrationId,
+            input,
             options);
     }
 
     [Function(nameof(StartOrchestrationActivity_Brs_026_V1))]
     public async Task Run(
-        [ActivityTrigger] OrchestrationInstanceId orchestrationInstanceId)
+        [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _progressRepository
-            .GetAsync(orchestrationInstanceId)
+            .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
         orchestrationInstance.Lifecycle.TransitionToRunning(_clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
+
+    public record ActivityInput(
+        OrchestrationInstanceId InstanceId);
 }

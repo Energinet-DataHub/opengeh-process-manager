@@ -12,27 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Shared;
+using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 
-public class RequestCalculatedEnergyTimeSeriesHandler(
+public class RequestCalculatedEnergyTimeSeriesHandlerV1(
+    ILogger<RequestCalculatedEnergyTimeSeriesHandlerV1> logger,
     IStartOrchestrationInstanceCommands commands)
+    : StartOrchestrationFromMessageHandlerBase<RequestCalculatedEnergyTimeSeriesInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceCommands _commands = commands;
 
-    /// <summary>
-    /// Start a request for calculated energy time series.
-    /// </summary>
-    public async Task StartRequestCalculatedEnergyTimeSeriesAsync(RequestCalculatedEnergyTimeSeriesInputV1 input)
+    protected override async Task StartOrchestration(ActorIdentity actorIdentity, RequestCalculatedEnergyTimeSeriesInputV1 input)
     {
         var orchestrationDescriptionUniqueName = new Brs_026_V1();
 
         await _commands.StartNewOrchestrationInstanceAsync(
-                identity: new ActorIdentity(new ActorId(Guid.NewGuid())), // TODO: Any call to commands must include identity information; see 'ScheduleOrchestrationInstanceCommand' and 'CancelScheduledOrchestrationInstanceCommand'
+                identity: actorIdentity,
                 uniqueName: new OrchestrationDescriptionUniqueName(
                     orchestrationDescriptionUniqueName.Name,
                     orchestrationDescriptionUniqueName.Version),

@@ -12,9 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
+using NodaTime;
 
-public record RequestCalculatedDataInputV1<TInput>(
-    string MessageId,
-    TInput Input)
-    where TInput : class;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Activities;
+
+internal abstract class ProgressActivityBase(
+    IClock clock,
+    IOrchestrationInstanceProgressRepository progressRepository)
+{
+    protected IClock Clock { get; } = clock;
+
+    protected IOrchestrationInstanceProgressRepository ProgressRepository { get; } = progressRepository;
+}

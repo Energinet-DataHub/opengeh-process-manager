@@ -34,10 +34,7 @@ public class ProcessManagerMessageClient(
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto
     {
-        var serviceBusMessage = CreateServiceBusMessage(
-            command.OrchestrationDescriptionUniqueName.Name,
-            command.OrchestrationDescriptionUniqueName.Version,
-            command);
+        var serviceBusMessage = CreateServiceBusMessage(command);
 
         return SendServiceBusMessage(
                 serviceBusMessage,
@@ -45,21 +42,20 @@ public class ProcessManagerMessageClient(
     }
 
     private ServiceBusMessage CreateServiceBusMessage<TInputParameterDto>(
-        string orchestrationName,
-        int orchestrationVersion,
         MessageCommand<TInputParameterDto> command)
     where TInputParameterDto : IInputParameterDto
     {
         var message = new StartOrchestrationDto
         {
-            OrchestrationName = orchestrationName,
-            OrchestrationVersion = orchestrationVersion,
+            OrchestrationName = command.OrchestrationDescriptionUniqueName.Name,
+            OrchestrationVersion = command.OrchestrationDescriptionUniqueName.Version,
+            StartedByActorId = command.OperatingIdentity.ActorId.ToString(),
             JsonInput = JsonSerializer.Serialize(command.InputParameter),
         };
 
         ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(message))
         {
-            Subject = orchestrationName,
+            Subject = command.OrchestrationDescriptionUniqueName.Name,
             MessageId = command.MessageId,
             ContentType = "application/json",
         };

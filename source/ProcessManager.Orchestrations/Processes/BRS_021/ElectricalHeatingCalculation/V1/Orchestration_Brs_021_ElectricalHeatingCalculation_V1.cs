@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
@@ -21,6 +22,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 // TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
 internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
 {
+    private readonly TaskOptions _defaultRetryOptions;
+
+    public Orchestration_Brs_021_ElectricalHeatingCalculation_V1()
+    {
+        _defaultRetryOptions = CreateDefaultRetryOptions();
+    }
+
     internal static StepIdentifierDto[] Steps => [CalculationStep, EnqueueMessagesStep];
 
     internal static StepIdentifierDto CalculationStep => new(1, "Beregning");
@@ -31,39 +39,40 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var defaultRetryOptions = CreateDefaultRetryOptions();
-
         // Initialize
-        await context.CallActivityAsync(
+        var executionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
             nameof(OrchestrationInitializeActivity_Brs_021_ElectricalHeatingCalculation_V1),
             context.InstanceId,
-            defaultRetryOptions);
+            _defaultRetryOptions);
 
         // Step: Calculation
         await context.CallActivityAsync(
             nameof(CalculationStepStartActivity_Brs_021_ElectricalHeatingCalculation_V1),
             context.InstanceId,
-            defaultRetryOptions);
+            _defaultRetryOptions);
         await context.CallActivityAsync(
             nameof(CalculationStepTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
             context.InstanceId,
-            defaultRetryOptions);
+            _defaultRetryOptions);
 
         // Step: Enqueue messages
-        await context.CallActivityAsync(
-            nameof(EnqueueMessagesStepStartActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            context.InstanceId,
-            defaultRetryOptions);
-        await context.CallActivityAsync(
-            nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            context.InstanceId,
-            defaultRetryOptions);
+        if (!executionPlan.SkippedStepsBySequence.Contains(EnqueueMessagesStep.Sequence))
+        {
+            await context.CallActivityAsync(
+                nameof(EnqueueMessagesStepStartActivity_Brs_021_ElectricalHeatingCalculation_V1),
+                context.InstanceId,
+                _defaultRetryOptions);
+            await context.CallActivityAsync(
+                nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
+                context.InstanceId,
+                _defaultRetryOptions);
+        }
 
         // Terminate
         await context.CallActivityAsync(
             nameof(OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
             context.InstanceId,
-            defaultRetryOptions);
+            _defaultRetryOptions);
 
         return "Success";
     }

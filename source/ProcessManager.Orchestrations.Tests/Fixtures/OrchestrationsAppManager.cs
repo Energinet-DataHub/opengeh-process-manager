@@ -126,12 +126,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
             if (brs026Subscription is null)
             {
-               topicResourceBuilder.AddSubscription(brs026SubscriptionName);
+               topicResourceBuilder.AddSubscription(brs026SubscriptionName)
+                   .AddSubjectFilter("Brs_026");
             }
 
             if (brs021ForwardMeteredDataSubscription is null)
             {
-                topicResourceBuilder.AddSubscription(brs021ForwardMeteredDataSubscriptionName);
+                topicResourceBuilder.AddSubscription(brs021ForwardMeteredDataSubscriptionName)
+                    .AddSubjectFilter("Brs_021_ForwardMeteredData");
             }
 
             var topicResource = await topicResourceBuilder.CreateAsync();
@@ -166,7 +168,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// <summary>
     /// Use this method to attach <paramref name="testOutputHelper"/> to the host logging pipeline.
     /// While attached, any entries written to host log pipeline will also be logged to xUnit test output.
-    /// It is important that it is only attached while a test i active. Hence, it should be attached in
+    /// It is important that it is only attached while a test is active. Hence, it should be attached in
     /// the test class constructor; and detached in the test class Dispose method (using 'null').
     /// </summary>
     /// <param name="testOutputHelper">If a xUnit test is active, this should be the instance of xUnit's <see cref="ITestOutputHelper"/>;
@@ -183,32 +185,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     public void CleanupAzuriteStorage()
     {
-        if (Directory.Exists("__blobstorage__"))
-            Directory.Delete("__blobstorage__", true);
-
-        if (Directory.Exists("__queuestorage__"))
-            Directory.Delete("__queuestorage__", true);
-
-        if (Directory.Exists("__tablestorage__"))
-            Directory.Delete("__tablestorage__", true);
-
-        if (File.Exists("__azurite_db_blob__.json"))
-            File.Delete("__azurite_db_blob__.json");
-
-        if (File.Exists("__azurite_db_blob_extent__.json"))
-            File.Delete("__azurite_db_blob_extent__.json");
-
-        if (File.Exists("__azurite_db_queue__.json"))
-            File.Delete("__azurite_db_queue__.json");
-
-        if (File.Exists("__azurite_db_queue_extent__.json"))
-            File.Delete("__azurite_db_queue_extent__.json");
-
-        if (File.Exists("__azurite_db_table__.json"))
-            File.Delete("__azurite_db_table__.json");
-
-        if (File.Exists("__azurite_db_table_extent__.json"))
-            File.Delete("__azurite_db_table_extent__.json");
+        AzuriteManager.CleanupAzuriteStorage();
     }
 
     private static void StartHost(FunctionAppHostManager hostManager)

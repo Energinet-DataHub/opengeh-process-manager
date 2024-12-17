@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <AssemblyName>Energinet.DataHub.Example.Orchestrations</AssemblyName>
+        <RootNamespace>Energinet.DataHub.Example.Orchestrations</RootNamespace>
+        <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
+        <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="13.2.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />
+        <ProjectReference Include="..\Example.Orchestrations.Abstrations\Example.Orchestrations.Abstrations.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Api\Mappers\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\Shared\ProcessManager\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="host.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="local.settings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Energinet.DataHub.Example.Orchestrations.Tests" />
+    </ItemGroup>
+</Project>

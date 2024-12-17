@@ -39,31 +39,73 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        /*
-         * Orchestration:
-         * 1. Deserialize input
-         * 2. Async validation
-         * 3. Enqueue Messages in EDI
-         * 4. Wait for notify from EDI
-         * 5. Complete process in database
-         */
-
         var input = context.GetOrchestrationParameterValue<RequestCalculatedEnergyTimeSeriesInputV1>();
         if (input == null)
             return "Error: No input specified.";
 
+        var instanceId = await InitializeOrchestrationAsync(context);
+
+        var isValidAsynchronousValidation = await PerformAsynchronousValidationAsync(context, instanceId, input);
+        await EnqueueMessagesInEdiAsync(context, instanceId, input, isValidAsynchronousValidation);
+
+        var wasMessagesEnqueued = await WaitForEnqueueMessagesResponseFromEdiAsync(context, instanceId);
+        return await TerminateOrchestrationAsync(context, instanceId, input, wasMessagesEnqueued);
+    }
+
+    private static TaskOptions CreateDefaultRetryOptions()
+    {
+        return TaskOptions.FromRetryPolicy(new RetryPolicy(
+            maxNumberOfAttempts: 5,
+            firstRetryInterval: TimeSpan.FromSeconds(30),
+            backoffCoefficient: 2.0));
+    }
+
+    private async Task<OrchestrationInstanceId> InitializeOrchestrationAsync(TaskOrchestrationContext context)
+    {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
-        // Set orchestration lifecycle to running
         await context.CallActivityAsync(
             nameof(StartOrchestrationActivity_Brs_026_V1),
             new StartOrchestrationActivity_Brs_026_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
 
-        var isValid = await PerformAsyncValidation(context, instanceId, input);
+        return instanceId;
+    }
 
-        if (isValid)
+    private async Task<bool> PerformAsynchronousValidationAsync(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        RequestCalculatedEnergyTimeSeriesInputV1 input)
+    {
+        var isValid = await context.CallActivityAsync<bool>(
+            nameof(PerformAsyncValidationActivity_Brs_026_V1),
+            new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
+                instanceId,
+                input),
+            _defaultRetryOptions);
+
+        var asyncValidationTerminationState = isValid
+            ? OrchestrationStepTerminationStates.Succeeded
+            : OrchestrationStepTerminationStates.Failed;
+        await context.CallActivityAsync(
+            nameof(TerminateStepActivity_Brs_026_V1),
+            new TerminateStepActivity_Brs_026_V1.ActivityInput(
+                instanceId,
+                AsyncValidationStepSequence,
+                asyncValidationTerminationState),
+            _defaultRetryOptions);
+
+        return isValid;
+    }
+
+    private async Task EnqueueMessagesInEdiAsync(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        RequestCalculatedEnergyTimeSeriesInputV1 input,
+        bool isValidAsyncValidation)
+    {
+        if (isValidAsyncValidation)
         {
             await context.CallActivityAsync(
                 nameof(EnqueueMessagesActivity_Brs_026_V1),
@@ -81,9 +123,25 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
                     "Validation error"),
                 _defaultRetryOptions);
         }
+    }
 
-        var wasMessagesEnqueued = await WaitForEnqueueMessagesResponse(context, instanceId);
+    private async Task<bool> WaitForEnqueueMessagesResponseFromEdiAsync(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId)
+    {
+        // TODO: Use monitor pattern to wait for "notify" from EDI
+        var waitForMessagesEnqueued = context.CreateTimer(TimeSpan.FromSeconds(1), CancellationToken.None);
+        await waitForMessagesEnqueued;
 
+        return true;
+    }
+
+    private async Task<string> TerminateOrchestrationAsync(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        RequestCalculatedEnergyTimeSeriesInputV1 input,
+        bool wasMessagesEnqueued)
+    {
         var enqueueMessagesTerminationState = wasMessagesEnqueued
             ? OrchestrationStepTerminationStates.Succeeded
             : OrchestrationStepTerminationStates.Failed;
@@ -112,57 +170,16 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
 
             return "Error: Timeout while waiting for enqueue messages";
         }
+        else
+        {
+            await context.CallActivityAsync(
+                nameof(TerminateOrchestrationActivity_Brs_026_V1),
+                new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
+                    instanceId,
+                    OrchestrationInstanceTerminationStates.Succeeded),
+                _defaultRetryOptions);
 
-        await context.CallActivityAsync(
-            nameof(TerminateOrchestrationActivity_Brs_026_V1),
-            new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
-                instanceId,
-                OrchestrationInstanceTerminationStates.Succeeded),
-            _defaultRetryOptions);
-
-        return $"Success (BusinessReason={input.BusinessReason})";
-    }
-
-    private static TaskOptions CreateDefaultRetryOptions()
-    {
-        return TaskOptions.FromRetryPolicy(new RetryPolicy(
-            maxNumberOfAttempts: 5,
-            firstRetryInterval: TimeSpan.FromSeconds(30),
-            backoffCoefficient: 2.0));
-    }
-
-    private async Task<bool> WaitForEnqueueMessagesResponse(TaskOrchestrationContext context, OrchestrationInstanceId instanceId)
-    {
-        // TODO: Use monitor pattern to wait for "notify" from EDI
-        var waitForMessagesEnqueued = context.CreateTimer(TimeSpan.FromSeconds(1), CancellationToken.None);
-        await waitForMessagesEnqueued;
-
-        return true;
-    }
-
-    private async Task<bool> PerformAsyncValidation(
-        TaskOrchestrationContext context,
-        OrchestrationInstanceId instanceId,
-        RequestCalculatedEnergyTimeSeriesInputV1 input)
-    {
-        var isValid = await context.CallActivityAsync<bool>(
-            nameof(PerformAsyncValidationActivity_Brs_026_V1),
-            new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
-                instanceId,
-                input),
-            _defaultRetryOptions);
-
-        var asyncValidationTerminationState = isValid
-            ? OrchestrationStepTerminationStates.Succeeded
-            : OrchestrationStepTerminationStates.Failed;
-        await context.CallActivityAsync(
-            nameof(TerminateStepActivity_Brs_026_V1),
-            new TerminateStepActivity_Brs_026_V1.ActivityInput(
-                instanceId,
-                AsyncValidationStepSequence,
-                asyncValidationTerminationState),
-            _defaultRetryOptions);
-
-        return isValid;
+            return $"Success (BusinessReason={input.BusinessReason})";
+        }
     }
 }

@@ -50,8 +50,8 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
         var defaultRetryOptions = CreateDefaultRetryOptions();
 
         // Set orchestration lifecycle to running
-        await StartOrchestrationActivity_Brs_026_V1.RunActivity(
-            context,
+        await context.CallActivityAsync(
+            nameof(StartOrchestrationActivity_Brs_026_V1),
             new StartOrchestrationActivity_Brs_026_V1.ActivityInput(
                 instanceId),
             defaultRetryOptions);
@@ -60,8 +60,8 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
 
         if (isValid)
         {
-            await EnqueueMessagesActivity_Brs_026_V1.RunActivity(
-                context,
+            await context.CallActivityAsync(
+                nameof(EnqueueMessagesActivity_Brs_026_V1),
                 new EnqueueMessagesActivity_Brs_026_V1.ActivityInput(
                     instanceId,
                     input),
@@ -69,8 +69,8 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
         }
         else
         {
-            await EnqueueRejectMessageActivity_Brs_026_V1.RunActivity(
-                context,
+            await context.CallActivityAsync(
+                nameof(EnqueueRejectMessageActivity_Brs_026_V1),
                 new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
                     instanceId,
                     "Validation error"),

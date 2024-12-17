@@ -30,14 +30,6 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
-    public static Task RunActivity(TaskOrchestrationContext context, ActivityInput activityInput, TaskOptions options)
-    {
-        return context.CallActivityAsync(
-            nameof(EnqueueRejectMessageActivity_Brs_026_V1),
-            activityInput,
-            options);
-    }
-
     [Function(nameof(EnqueueRejectMessageActivity_Brs_026_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)

@@ -15,7 +15,6 @@
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.DurableTask;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
@@ -29,14 +28,6 @@ internal class StartOrchestrationActivity_Brs_026_V1(
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
-
-    public static Task RunActivity(TaskOrchestrationContext context, ActivityInput input, TaskOptions options)
-    {
-        return context.CallActivityAsync(
-            nameof(StartOrchestrationActivity_Brs_026_V1),
-            input,
-            options);
-    }
 
     [Function(nameof(StartOrchestrationActivity_Brs_026_V1))]
     public async Task Run(

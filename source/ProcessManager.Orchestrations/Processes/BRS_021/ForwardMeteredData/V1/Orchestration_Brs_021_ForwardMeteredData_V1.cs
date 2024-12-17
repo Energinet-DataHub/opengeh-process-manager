@@ -49,7 +49,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // Step: Validating
         await context.CallActivityAsync(
             nameof(PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1),
-            context.InstanceId,
+            new PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(Guid.Parse(context.InstanceId)),
             defaultRetryOptions);
         await context.CallActivityAsync(
             nameof(ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1),

@@ -75,7 +75,7 @@ public class MonitorExampleUsingApiScenario : IAsyncLifetime
             HttpMethod.Post,
             $"/api/orchestrationinstance/command/start/custom/{orchestration.Name}/{orchestration.Version}");
         scheduleRequest.Content = new StringContent(
-            JsonSerializer.Serialize(command, command.GetType()),
+            JsonSerializer.Serialize(command),
             Encoding.UTF8,
             "application/json");
 
@@ -102,7 +102,7 @@ public class MonitorExampleUsingApiScenario : IAsyncLifetime
                     HttpMethod.Post,
                     "/api/orchestrationinstance/query/id");
                 queryRequest.Content = new StringContent(
-                    JsonSerializer.Serialize(getRequest, getRequest.GetType()),
+                    JsonSerializer.Serialize(getRequest),
                     Encoding.UTF8,
                     "application/json");
 

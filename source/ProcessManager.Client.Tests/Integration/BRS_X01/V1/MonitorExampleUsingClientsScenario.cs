@@ -75,7 +75,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Calculation_WhenStarted_CanMonitorLifecycle()
+    public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -145,7 +145,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Calculation_WhenScheduledToRunInThePast_CanMonitorLifecycle()
+    public async Task ExampleOrchestration_WhenScheduledToRunInThePast_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -188,7 +188,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CalculationScheduledToRunInTheFuture_WhenCanceled_CanMonitorLifecycle()
+    public async Task ExampleOrchestrationScheduledToRunInTheFuture_WhenCanceled_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

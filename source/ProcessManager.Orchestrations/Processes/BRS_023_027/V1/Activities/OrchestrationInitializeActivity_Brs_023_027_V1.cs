@@ -33,10 +33,10 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
 {
     [Function(nameof(OrchestrationInitializeActivity_Brs_023_027_V1))]
     public async Task<OrchestrationExecutionPlan> Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+        [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
         orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
@@ -48,4 +48,7 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
             .ToList();
         return new OrchestrationExecutionPlan(stepsSkippedBySequence);
     }
+
+    public record ActivityInput(
+        OrchestrationInstanceId InstanceId);
 }

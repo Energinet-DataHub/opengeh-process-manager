@@ -17,31 +17,28 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
 
-internal class EnqueueMessagesStepTerminateActivity_Brs_023_027_V1(
+/// <summary>
+/// Set the orchestration instance lifecycle to running
+/// </summary>
+internal class StartOrchestrationActivity_Brs_026_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
 {
-    [Function(nameof(EnqueueMessagesStepTerminateActivity_Brs_023_027_V1))]
+    private readonly IClock _clock = clock;
+    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+
+    [Function(nameof(StartOrchestrationActivity_Brs_026_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await ProgressRepository
+        var orchestrationInstance = await _progressRepository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps
-            .Single(step => step.Sequence == Orchestration_Brs_023_027_V1.EnqueueMessagesStepSequence);
-
-        step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        orchestrationInstance.Lifecycle.TransitionToRunning(_clock);
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
     public record ActivityInput(

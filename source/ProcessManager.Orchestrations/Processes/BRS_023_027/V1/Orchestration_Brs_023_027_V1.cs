@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
@@ -47,20 +48,25 @@ internal class Orchestration_Brs_023_027_V1
         if (input == null)
             return "Error: No input specified.";
 
+        var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
+
         // Initialize
         var executionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
             nameof(OrchestrationInitializeActivity_Brs_023_027_V1),
-            context.InstanceId,
+            new OrchestrationInitializeActivity_Brs_023_027_V1.ActivityInput(
+                instanceId),
             _defaultRetryOptions);
 
         // Step: Calculation
         await context.CallActivityAsync(
             nameof(CalculationStepStartActivity_Brs_023_027_V1),
-            context.InstanceId,
+            new CalculationStepStartActivity_Brs_023_027_V1.ActivityInput(
+                instanceId),
             _defaultRetryOptions);
         await context.CallActivityAsync(
             nameof(CalculationStepTerminateActivity_Brs_023_027_V1),
-            context.InstanceId,
+            new CalculationStepTerminateActivity_Brs_023_027_V1.ActivityInput(
+                instanceId),
             _defaultRetryOptions);
 
         // Step: Enqueue messages
@@ -68,18 +74,21 @@ internal class Orchestration_Brs_023_027_V1
         {
             await context.CallActivityAsync(
                 nameof(EnqueueMessagesStepStartActivity_Brs_023_027_V1),
-                context.InstanceId,
+                new EnqueueMessagesStepStartActivity_Brs_023_027_V1.ActivityInput(
+                    instanceId),
                 _defaultRetryOptions);
             await context.CallActivityAsync(
                 nameof(EnqueueMessagesStepTerminateActivity_Brs_023_027_V1),
-                context.InstanceId,
+                new EnqueueMessagesStepTerminateActivity_Brs_023_027_V1.ActivityInput(
+                    instanceId),
                 _defaultRetryOptions);
         }
 
         // Terminate
         await context.CallActivityAsync(
             nameof(OrchestrationTerminateActivity_Brs_023_027_V1),
-            context.InstanceId,
+            new OrchestrationTerminateActivity_Brs_023_027_V1.ActivityInput(
+                instanceId),
             _defaultRetryOptions);
 
         return "Success";

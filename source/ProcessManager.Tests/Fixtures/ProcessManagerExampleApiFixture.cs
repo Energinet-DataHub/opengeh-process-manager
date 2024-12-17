@@ -18,19 +18,18 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Tests.Fixtures;
 
-public class ProcessManagerExampleClientFixture : IAsyncLifetime
+public class ProcessManagerExampleApiFixture : IAsyncLifetime
 {
-    private const string TaskHubName = "ExampleClientsTest01";
+    private const string TaskHubName = "ExampleApiTest01";
 
-    public ProcessManagerExampleClientFixture()
+    public ProcessManagerExampleApiFixture()
     {
-        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManagerExampleClientTests");
+        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManagerExampleApiTests");
         AzuriteManager = new AzuriteManager(useOAuth: true);
         DurableTaskManager = new DurableTaskManager(
             "AzuriteConnectionString",
@@ -43,7 +42,7 @@ public class ProcessManagerExampleClientFixture : IAsyncLifetime
             IntegrationTestConfiguration,
             AzuriteManager,
             taskHubName: TaskHubName,
-            appPort: 8113,
+            appPort: 8123,
             manageDatabase: false,
             manageAzurite: false);
 
@@ -52,7 +51,7 @@ public class ProcessManagerExampleClientFixture : IAsyncLifetime
             IntegrationTestConfiguration,
             AzuriteManager,
             taskHubName: TaskHubName,
-            appPort: 8114,
+            appPort: 8124,
             manageDatabase: false,
             manageAzurite: false);
     }

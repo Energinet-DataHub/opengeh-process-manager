@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="..\ProcessManager.Core.Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
+    <Compile Include="..\Example.Orchestrations.Tests\Fixtures\ExampleOrchestrationsAppManager.cs" Link="Fixtures\ExampleOrchestrationsAppManager.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,6 +17,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Energinet.DataHub.Core.DurableFunctionApp.TestCommon" Version="7.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
@@ -23,6 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Example.Orchestrations.Abstrations\Example.Orchestrations.Abstrations.csproj" />
+    <ProjectReference Include="..\Example.Orchestrations\Example.Orchestrations.csproj" />
     <ProjectReference Include="..\ProcessManager.DatabaseMigration\ProcessManager.DatabaseMigration.csproj" />
     <ProjectReference Include="..\ProcessManager\ProcessManager.csproj" />
   </ItemGroup>

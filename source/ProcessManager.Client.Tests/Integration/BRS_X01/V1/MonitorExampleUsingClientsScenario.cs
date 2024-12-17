@@ -48,7 +48,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+                = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         });
         services.AddProcessManagerHttpClients();
         ServiceProvider = services.BuildServiceProvider();
@@ -61,7 +61,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
     public Task InitializeAsync()
     {
         Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
-        Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.ClearHostLog();
 
         return Task.CompletedTask;
     }
@@ -69,7 +69,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
     public async Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
-        Fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
+        Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
         await ServiceProvider.DisposeAsync();
     }

@@ -38,7 +38,7 @@ public class ProcessManagerExampleClientFixture : IAsyncLifetime
 
         IntegrationTestConfiguration = new IntegrationTestConfiguration();
 
-        OrchestrationsAppManager = new ExampleOrchestrationsAppManager(
+        ExampleOrchestrationsAppManager = new ExampleOrchestrationsAppManager(
             DatabaseManager,
             IntegrationTestConfiguration,
             AzuriteManager,
@@ -59,7 +59,7 @@ public class ProcessManagerExampleClientFixture : IAsyncLifetime
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
-    public ExampleOrchestrationsAppManager OrchestrationsAppManager { get; }
+    public ExampleOrchestrationsAppManager ExampleOrchestrationsAppManager { get; }
 
     public ProcessManagerAppManager ProcessManagerAppManager { get; }
 
@@ -74,20 +74,20 @@ public class ProcessManagerExampleClientFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        OrchestrationsAppManager.CleanupAzuriteStorage();
+        ExampleOrchestrationsAppManager.CleanupAzuriteStorage();
         AzuriteManager.StartAzurite();
 
         await DatabaseManager.CreateDatabaseAsync();
 
         DurableClient = DurableTaskManager.CreateClient(TaskHubName);
 
-        await OrchestrationsAppManager.StartAsync();
+        await ExampleOrchestrationsAppManager.StartAsync();
         await ProcessManagerAppManager.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
-        await OrchestrationsAppManager.DisposeAsync();
+        await ExampleOrchestrationsAppManager.DisposeAsync();
         await ProcessManagerAppManager.DisposeAsync();
         await DurableTaskManager.DisposeAsync();
         await DatabaseManager.DeleteDatabaseAsync();
@@ -96,7 +96,7 @@ public class ProcessManagerExampleClientFixture : IAsyncLifetime
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)
     {
-        OrchestrationsAppManager.SetTestOutputHelper(testOutputHelper);
+        ExampleOrchestrationsAppManager.SetTestOutputHelper(testOutputHelper);
         ProcessManagerAppManager.SetTestOutputHelper(testOutputHelper);
     }
 }

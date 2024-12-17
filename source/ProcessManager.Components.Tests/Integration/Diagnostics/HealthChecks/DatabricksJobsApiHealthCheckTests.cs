@@ -31,7 +31,7 @@ public class DatabricksJobsApiHealthCheckTests
     }
 
     /// <summary>
-    /// Verify the response contains JSON in a format that the Health Checks UI supports.
+    /// Also verifies the response contains JSON in a format that the Health Checks UI supports.
     /// </summary>
     [Fact]
     public async Task DatabricksJobsHealthCheckRegistered_WhenCallingReadyEndpoint_ReturnOKAndExpectedContent()

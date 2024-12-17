@@ -12,38 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Model;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Activities;
 
-internal class EnqueueMessagesStepTerminateActivity_Brs_023_027_V1(
+internal class InitializeOrchestrationActivity_Brs_X01_Example_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(EnqueueMessagesStepTerminateActivity_Brs_023_027_V1))]
-    public async Task Run(
+    [Function(nameof(InitializeOrchestrationActivity_Brs_X01_Example_V1))]
+    public async Task<OrchestrationExecutionPlan> Run(
         [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(input.InstanceId)
+            .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps
-            .Single(step => step.Sequence == Orchestration_Brs_023_027_V1.EnqueueMessagesStepSequence);
-
-        step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
+        orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        var stepsSkippedBySequence = orchestrationInstance.Steps
+            .Where(step => step.IsSkipped())
+            .Select(step => step.Sequence)
+            .ToList();
+        return new OrchestrationExecutionPlan(stepsSkippedBySequence);
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId InstanceId);
+        OrchestrationInstanceId OrchestrationInstanceId);
 }

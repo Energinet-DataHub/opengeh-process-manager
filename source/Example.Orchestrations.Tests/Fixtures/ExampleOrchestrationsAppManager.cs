@@ -14,25 +14,23 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Azure.Messaging.ServiceBus.Administration;
+using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
-using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+namespace Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
-/// Support testing Process Manager Orchestrations app and specifying configuration.
-/// This allows us to use multiple apps and coordinate their configuration.
+/// Support testing Example Orchestrations app and specifying configuration using inheritance.
+/// This allows us to use multiple fixtures and coordinate their configuration.
 /// </summary>
-public class OrchestrationsAppManager : IAsyncDisposable
+public class ExampleOrchestrationsAppManager : IAsyncDisposable
 {
     /// <summary>
     /// Durable Functions Task Hub Name
@@ -44,19 +42,19 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private readonly bool _manageDatabase;
     private readonly bool _manageAzurite;
 
-    public OrchestrationsAppManager()
+    public ExampleOrchestrationsAppManager()
         : this(
-            new ProcessManagerDatabaseManager("OrchestrationsTest"),
+            new ProcessManagerDatabaseManager("ExampleOrchestrationsTest"),
             new IntegrationTestConfiguration(),
             new AzuriteManager(useOAuth: true),
-            taskHubName: "OrchestrationsTest01",
-            appPort: 8010,
+            taskHubName: "ExampleOrchestrationsTest01",
+            appPort: 8012,
             manageDatabase: true,
             manageAzurite: true)
     {
     }
 
-    public OrchestrationsAppManager(
+    public ExampleOrchestrationsAppManager(
         ProcessManagerDatabaseManager databaseManager,
         IntegrationTestConfiguration configuration,
         AzuriteManager azuriteManager,
@@ -77,10 +75,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         IntegrationTestConfiguration = configuration;
         AzuriteManager = azuriteManager;
-        ServiceBusResourceProvider = new ServiceBusResourceProvider(
-            TestLogger,
-            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
-            IntegrationTestConfiguration.Credential);
+
+        DurableTaskManager = new DurableTaskManager(
+            nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString),
+            AzuriteManager.FullConnectionString);
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -90,20 +88,19 @@ public class OrchestrationsAppManager : IAsyncDisposable
     [NotNull]
     public FunctionAppHostManager? AppHostManager { get; private set; }
 
+    [NotNull]
+    public IDurableClient? DurableClient { get; private set; }
+
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
     private AzuriteManager AzuriteManager { get; }
 
-    private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
+    private DurableTaskManager DurableTaskManager { get; }
 
     /// <summary>
-    /// Start the orchestration app
+    /// Start the example orchestration app
     /// </summary>
-    /// <param name="brs026Subscription">The BRS-026 Service Bus subscription. A new subscription will be created if not provided.</param>
-    /// <param name="brs021ForwardMeteredDataSubscription">The BRS-021-forwardMeteredData Service Bus subscription. A new subscription will be created if not provided.</param>
-    public async Task StartAsync(
-        SubscriptionProperties? brs026Subscription = null,
-        SubscriptionProperties? brs021ForwardMeteredDataSubscription = null)
+    public async Task StartAsync()
     {
         if (_manageAzurite)
         {
@@ -117,52 +114,27 @@ public class OrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        // Process Manager topic
-        if (brs026Subscription is null || brs021ForwardMeteredDataSubscription is null)
-        {
-            var topicResourceBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
-            var brs026SubscriptionName = "brs-026-subscription";
-            var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
-
-            if (brs026Subscription is null)
-            {
-               topicResourceBuilder.AddSubscription(brs026SubscriptionName)
-                   .AddSubjectFilter("Brs_026");
-            }
-
-            if (brs021ForwardMeteredDataSubscription is null)
-            {
-                topicResourceBuilder.AddSubscription(brs021ForwardMeteredDataSubscriptionName)
-                    .AddSubjectFilter("Brs_021_ForwardMeteredData");
-            }
-
-            var topicResource = await topicResourceBuilder.CreateAsync();
-            brs026Subscription ??= topicResource.Subscriptions.Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
-            brs021ForwardMeteredDataSubscription ??= topicResource.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
-        }
-
         // Prepare host settings
-        var appHostSettings = CreateAppHostSettings(
-            "ProcessManager.Orchestrations",
-            brs026Subscription,
-            brs021ForwardMeteredDataSubscription);
+        var appHostSettings = CreateAppHostSettings("Example.Orchestrations");
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
+
         StartHost(AppHostManager);
+
+        DurableClient = DurableTaskManager.CreateClient(taskHubName: _taskHubName);
     }
 
     public async ValueTask DisposeAsync()
     {
         AppHostManager.Dispose();
+        await DurableTaskManager.DisposeAsync();
 
         if (_manageAzurite)
             AzuriteManager.Dispose();
 
         if (_manageDatabase)
             await DatabaseManager.DeleteDatabaseAsync();
-
-        await ServiceBusResourceProvider.DisposeAsync();
     }
 
     /// <summary>
@@ -222,10 +194,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 #endif
     }
 
-    private FunctionAppHostSettings CreateAppHostSettings(
-        string csprojName,
-        SubscriptionProperties brs026Subscription,
-        SubscriptionProperties brs021ForwardMeteredDataSubscription)
+    private FunctionAppHostSettings CreateAppHostSettings(string csprojName)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -265,19 +234,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
-        // => Service Bus
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
-            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.TopicName)}",
-            brs026Subscription.TopicName);
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}",
-            brs026Subscription.SubscriptionName);
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}",
-            brs021ForwardMeteredDataSubscription.SubscriptionName);
 
         return appHostSettings;
     }

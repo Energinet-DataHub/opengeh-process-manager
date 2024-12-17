@@ -34,15 +34,14 @@ internal class EnqueueMessagesStepStartActivity_Brs_023_027_V1(
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_023_027_V1.EnqueueMessagesStepSequence);
-        if (!step.IsSkipped())
-        {
-            step.Lifecycle.TransitionToRunning(Clock);
-            await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        var step = orchestrationInstance.Steps
+            .Single(step => step.Sequence == Orchestration_Brs_023_027_V1.EnqueueMessagesStepSequence);
 
-            // TODO: For demo purposes; remove when done
-            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
-        }
+        step.Lifecycle.TransitionToRunning(Clock);
+        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+
+        // TODO: For demo purposes; remove when done
+        await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
     }
 
     public record ActivityInput(

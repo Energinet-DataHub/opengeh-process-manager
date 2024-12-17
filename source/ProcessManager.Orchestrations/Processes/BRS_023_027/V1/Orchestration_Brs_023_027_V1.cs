@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
@@ -50,7 +51,7 @@ internal class Orchestration_Brs_023_027_V1
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         // Initialize
-        await context.CallActivityAsync(
+        var executionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
             nameof(OrchestrationInitializeActivity_Brs_023_027_V1),
             new OrchestrationInitializeActivity_Brs_023_027_V1.ActivityInput(
                 instanceId),
@@ -69,16 +70,19 @@ internal class Orchestration_Brs_023_027_V1
             _defaultRetryOptions);
 
         // Step: Enqueue messages
-        await context.CallActivityAsync(
-            nameof(EnqueueMessagesStepStartActivity_Brs_023_027_V1),
-            new EnqueueMessagesStepStartActivity_Brs_023_027_V1.ActivityInput(
-                instanceId),
-            _defaultRetryOptions);
-        await context.CallActivityAsync(
-            nameof(EnqueueMessagesStepTerminateActivity_Brs_023_027_V1),
-            new EnqueueMessagesStepTerminateActivity_Brs_023_027_V1.ActivityInput(
-                instanceId),
-            _defaultRetryOptions);
+        if (!executionPlan.SkippedStepsBySequence.Contains(EnqueueMessagesStepSequence))
+        {
+            await context.CallActivityAsync(
+                nameof(EnqueueMessagesStepStartActivity_Brs_023_027_V1),
+                new EnqueueMessagesStepStartActivity_Brs_023_027_V1.ActivityInput(
+                    instanceId),
+                _defaultRetryOptions);
+            await context.CallActivityAsync(
+                nameof(EnqueueMessagesStepTerminateActivity_Brs_023_027_V1),
+                new EnqueueMessagesStepTerminateActivity_Brs_023_027_V1.ActivityInput(
+                    instanceId),
+                _defaultRetryOptions);
+        }
 
         // Terminate
         await context.CallActivityAsync(

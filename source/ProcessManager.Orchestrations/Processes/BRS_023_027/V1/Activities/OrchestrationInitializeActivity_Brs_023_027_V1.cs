@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -31,7 +32,7 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
         progressRepository)
 {
     [Function(nameof(OrchestrationInitializeActivity_Brs_023_027_V1))]
-    public async Task Run(
+    public async Task<OrchestrationExecutionPlan> Run(
         [ActivityTrigger] Guid orchestrationInstanceId)
     {
         var orchestrationInstance = await ProgressRepository
@@ -41,7 +42,10 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
         orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        var stepsSkippedBySequence = orchestrationInstance.Steps
+            .Where(step => step.IsSkipped())
+            .Select(step => step.Sequence)
+            .ToList();
+        return new OrchestrationExecutionPlan(stepsSkippedBySequence);
     }
 }

@@ -28,6 +28,13 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
     public const int AsyncValidationStepSequence = 1;
     public const int EnqueueMessagesStepSequence = 2;
 
+    private readonly TaskOptions _defaultRetryOptions;
+
+    public Orchestration_RequestCalculatedEnergyTimeSeries_V1()
+    {
+        _defaultRetryOptions = CreateDefaultRetryOptions();
+    }
+
     [Function(nameof(Orchestration_RequestCalculatedEnergyTimeSeries_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
@@ -42,21 +49,19 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
          */
 
         var input = context.GetOrchestrationParameterValue<RequestCalculatedEnergyTimeSeriesInputV1>();
-
         if (input == null)
             return "Error: No input specified.";
 
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
-        var defaultRetryOptions = CreateDefaultRetryOptions();
 
         // Set orchestration lifecycle to running
         await context.CallActivityAsync(
             nameof(StartOrchestrationActivity_Brs_026_V1),
             new StartOrchestrationActivity_Brs_026_V1.ActivityInput(
                 instanceId),
-            defaultRetryOptions);
+            _defaultRetryOptions);
 
-        var isValid = await PerformAsyncValidation(context, instanceId, input, defaultRetryOptions);
+        var isValid = await PerformAsyncValidation(context, instanceId, input);
 
         if (isValid)
         {
@@ -65,7 +70,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
                 new EnqueueMessagesActivity_Brs_026_V1.ActivityInput(
                     instanceId,
                     input),
-                defaultRetryOptions);
+                _defaultRetryOptions);
         }
         else
         {
@@ -74,7 +79,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
                 new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
                     instanceId,
                     "Validation error"),
-                defaultRetryOptions);
+                _defaultRetryOptions);
         }
 
         var wasMessagesEnqueued = await WaitForEnqueueMessagesResponse(context, instanceId);
@@ -82,13 +87,13 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
         var enqueueMessagesTerminationState = wasMessagesEnqueued
             ? OrchestrationStepTerminationStates.Succeeded
             : OrchestrationStepTerminationStates.Failed;
-        await TerminateStepActivity_Brs_026_V1.RunActivity(
-            context,
+        await context.CallActivityAsync(
+            nameof(TerminateStepActivity_Brs_026_V1),
             new TerminateStepActivity_Brs_026_V1.ActivityInput(
                 instanceId,
                 EnqueueMessagesStepSequence,
                 enqueueMessagesTerminationState),
-            defaultRetryOptions);
+            _defaultRetryOptions);
 
         if (!wasMessagesEnqueued)
         {
@@ -98,24 +103,32 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
                 "Timeout while waiting for enqueue messages to complete (InstanceId={OrchestrationInstanceId}).",
                 instanceId.Value);
 
-            await TerminateOrchestrationActivity_Brs_026_V1.RunActivity(
-                context,
+            await context.CallActivityAsync(
+                nameof(TerminateOrchestrationActivity_Brs_026_V1),
                 new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
                     instanceId,
                     OrchestrationInstanceTerminationStates.Failed),
-                defaultRetryOptions);
+                _defaultRetryOptions);
 
             return "Error: Timeout while waiting for enqueue messages";
         }
 
-        await TerminateOrchestrationActivity_Brs_026_V1.RunActivity(
-            context,
+        await context.CallActivityAsync(
+            nameof(TerminateOrchestrationActivity_Brs_026_V1),
             new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
                 instanceId,
                 OrchestrationInstanceTerminationStates.Succeeded),
-            defaultRetryOptions);
+            _defaultRetryOptions);
 
         return $"Success (BusinessReason={input.BusinessReason})";
+    }
+
+    private static TaskOptions CreateDefaultRetryOptions()
+    {
+        return TaskOptions.FromRetryPolicy(new RetryPolicy(
+            maxNumberOfAttempts: 5,
+            firstRetryInterval: TimeSpan.FromSeconds(30),
+            backoffCoefficient: 2.0));
     }
 
     private async Task<bool> WaitForEnqueueMessagesResponse(TaskOrchestrationContext context, OrchestrationInstanceId instanceId)
@@ -130,35 +143,26 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
     private async Task<bool> PerformAsyncValidation(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        RequestCalculatedEnergyTimeSeriesInputV1 input,
-        TaskOptions retryOptions)
+        RequestCalculatedEnergyTimeSeriesInputV1 input)
     {
-        var isValid = await PerformAsyncValidationActivity_Brs_026_V1.RunActivity(
-            context,
+        var isValid = await context.CallActivityAsync<bool>(
+            nameof(PerformAsyncValidationActivity_Brs_026_V1),
             new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
                 instanceId,
                 input),
-            retryOptions);
+            _defaultRetryOptions);
 
         var asyncValidationTerminationState = isValid
             ? OrchestrationStepTerminationStates.Succeeded
             : OrchestrationStepTerminationStates.Failed;
-        await TerminateStepActivity_Brs_026_V1.RunActivity(
-            context,
+        await context.CallActivityAsync(
+            nameof(TerminateStepActivity_Brs_026_V1),
             new TerminateStepActivity_Brs_026_V1.ActivityInput(
                 instanceId,
                 AsyncValidationStepSequence,
                 asyncValidationTerminationState),
-            retryOptions);
+            _defaultRetryOptions);
 
         return isValid;
-    }
-
-    private TaskOptions CreateDefaultRetryOptions()
-    {
-        return TaskOptions.FromRetryPolicy(new RetryPolicy(
-            maxNumberOfAttempts: 5,
-            firstRetryInterval: TimeSpan.FromSeconds(30),
-            backoffCoefficient: 2.0));
     }
 }

@@ -16,7 +16,6 @@ using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.DurableTask;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
@@ -30,14 +29,6 @@ internal class PerformAsyncValidationActivity_Brs_026_V1(
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
-
-    public static Task<bool> RunActivity(TaskOrchestrationContext context, ActivityInput activityInput, TaskOptions options)
-    {
-        return context.CallActivityAsync<bool>(
-            nameof(PerformAsyncValidationActivity_Brs_026_V1),
-            activityInput,
-            options);
-    }
 
     [Function(nameof(PerformAsyncValidationActivity_Brs_026_V1))]
     public async Task<bool> Run(

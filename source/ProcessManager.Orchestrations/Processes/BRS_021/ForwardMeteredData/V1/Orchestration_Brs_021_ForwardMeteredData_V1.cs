@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
@@ -45,6 +46,19 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             nameof(OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1),
             context.InstanceId,
             defaultRetryOptions);
+
+        // Fetch Metering Point Master Data
+        var meteringPointMasterData = await context.CallActivityAsync<MeteringPointMasterData?>(
+            nameof(FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1),
+            new FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                new MeteringPointIdentification("1234567890")),
+            defaultRetryOptions);
+
+        if (meteringPointMasterData is null)
+        {
+            // We should poke EDI gently and tell them that we would like the actor to receive an RSM-09 message
+            return "Success";
+        }
 
         // Step: Validating
         await context.CallActivityAsync(

@@ -26,6 +26,13 @@ internal class Orchestration_Brs_X01_Example_V1
     internal const int FirstStepSequence = 1;
     internal const int SkippableStepSequence = 2;
 
+    private readonly TaskOptions _defaultRetryOptions;
+
+    public Orchestration_Brs_X01_Example_V1()
+    {
+        _defaultRetryOptions = CreateDefaultRetryOptions();
+    }
+
     [Function(nameof(Orchestration_Brs_X01_Example_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
@@ -36,45 +43,43 @@ internal class Orchestration_Brs_X01_Example_V1
             return "Error: No input specified.";
         }
 
-        var defaultRetryOptions = CreateDefaultRetryOptions();
-
         // Initialize
         await context.CallActivityAsync(
             nameof(InitializeOrchestrationActivity_Brs_X01_Example_V1),
             new InitializeOrchestrationActivity_Brs_X01_Example_V1.ActivityInput(
                 new OrchestrationInstanceId(Guid.Parse(context.InstanceId))),
-            defaultRetryOptions);
+            _defaultRetryOptions);
 
         // First Step
         await context.CallActivityAsync(
             nameof(FirstStepStartActivity_Brs_X01_Example_V1),
             new FirstStepStartActivity_Brs_X01_Example_V1.ActivityInput(
                 new OrchestrationInstanceId(Guid.Parse(context.InstanceId))),
-            defaultRetryOptions);
+            _defaultRetryOptions);
         await context.CallActivityAsync(
             nameof(FirstStepStopActivity_Brs_X01_Example_V1),
             new FirstStepStopActivity_Brs_X01_Example_V1.ActivityInput(
                 new OrchestrationInstanceId(Guid.Parse(context.InstanceId))),
-            defaultRetryOptions);
+            _defaultRetryOptions);
 
         // Skippable step
         await context.CallActivityAsync(
             nameof(SecondStepStartActivity_Brs_X01_Example_V1),
             new SecondStepStartActivity_Brs_X01_Example_V1.ActivityInput(
                 new OrchestrationInstanceId(Guid.Parse(context.InstanceId))),
-            defaultRetryOptions);
+            _defaultRetryOptions);
         await context.CallActivityAsync(
             nameof(SecondStepStopActivity_Brs_X01_Example_V1),
             new SecondStepStopActivity_Brs_X01_Example_V1.ActivityInput(
                 new OrchestrationInstanceId(Guid.Parse(context.InstanceId))),
-            defaultRetryOptions);
+            _defaultRetryOptions);
 
         // Terminate
         await context.CallActivityAsync(
             nameof(TerminateOrchestrationActivity_Brs_X01_Example_V1),
             new TerminateOrchestrationActivity_Brs_X01_Example_V1.ActivityInput(
                 new OrchestrationInstanceId(Guid.Parse(context.InstanceId))),
-            defaultRetryOptions);
+            _defaultRetryOptions);
 
         return "Success";
     }

@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Model;
 
-public record RequestCalculatedDataInputV1<TInput>(
-    string MessageId,
-    TInput Input)
-    where TInput : class;
+/// <summary>
+/// The purpose of this record is to give the orchestration information about
+/// skipped steps. This allow us to handle decision about activities to skip within
+/// the orchestration instead of within activities.
+/// </summary>
+/// <param name="SkippedStepsBySequence">Contains the sequence number of any skipped steps.</param>
+public record OrchestrationExecutionPlan(IReadOnlyCollection<int> SkippedStepsBySequence);

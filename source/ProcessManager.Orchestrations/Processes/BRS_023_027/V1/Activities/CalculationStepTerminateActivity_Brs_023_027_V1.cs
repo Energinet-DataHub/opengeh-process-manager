@@ -28,10 +28,10 @@ internal class CalculationStepTerminateActivity_Brs_023_027_V1(
 {
     [Function(nameof(CalculationStepTerminateActivity_Brs_023_027_V1))]
     public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+        [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
         var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_023_027_V1.CalculationStepSequence);
@@ -41,4 +41,7 @@ internal class CalculationStepTerminateActivity_Brs_023_027_V1(
         // TODO: For demo purposes; remove when done
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
+
+    public record ActivityInput(
+        OrchestrationInstanceId InstanceId);
 }

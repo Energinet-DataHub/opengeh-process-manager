@@ -34,14 +34,13 @@ internal class EnqueueMessagesStepTerminateActivity_Brs_021_ElectricalHeatingCal
             .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ElectricalHeatingCalculation_V1.EnqueueMessagesStep.Sequence);
-        if (!step.IsSkipped())
-        {
-            step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
-            await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        var step = orchestrationInstance.Steps
+            .Single(step => step.Sequence == Orchestration_Brs_021_ElectricalHeatingCalculation_V1.EnqueueMessagesStep.Sequence);
 
-            // TODO: For demo purposes; remove when done
-            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
-        }
+        step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
+        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+
+        // TODO: For demo purposes; remove when done
+        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 }

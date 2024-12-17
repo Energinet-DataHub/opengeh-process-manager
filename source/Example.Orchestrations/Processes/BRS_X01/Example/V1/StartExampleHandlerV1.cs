@@ -16,6 +16,7 @@ using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Ex
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using NodaTime.Extensions;
 
 namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1;
 
@@ -40,6 +41,29 @@ internal class StartExampleHandlerV1(
                     command.OrchestrationDescriptionUniqueName.Name,
                     command.OrchestrationDescriptionUniqueName.Version),
                 inputParameter: command.InputParameter,
+                skipStepsBySequence: skipStepsBySequence)
+            .ConfigureAwait(false);
+
+        return orchestrationInstanceId;
+    }
+
+    public async Task<OrchestrationInstanceId> ScheduleNewCalculationAsync(ScheduleExampleCommandV1 command)
+    {
+        // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
+        IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.SkipStepTwo
+            ? [Orchestration_Brs_X01_Example_V1.SkippableStepSequence]
+            : [];
+
+        var orchestrationInstanceId = await _manager
+            .ScheduleNewOrchestrationInstanceAsync(
+                identity: new UserIdentity(
+                    new UserId(command.OperatingIdentity.UserId),
+                    new ActorId(command.OperatingIdentity.ActorId)),
+                uniqueName: new OrchestrationDescriptionUniqueName(
+                    command.OrchestrationDescriptionUniqueName.Name,
+                    command.OrchestrationDescriptionUniqueName.Version),
+                inputParameter: command.InputParameter,
+                runAt: command.RunAt.ToInstant(),
                 skipStepsBySequence: skipStepsBySequence)
             .ConfigureAwait(false);
 

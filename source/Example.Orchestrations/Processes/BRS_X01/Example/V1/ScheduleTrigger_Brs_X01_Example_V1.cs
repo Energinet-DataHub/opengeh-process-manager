@@ -12,35 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1;
 
-internal class SearchTrigger_Brs_X01_Example(
-    SearchExampleHandler exampleHandler)
+internal class ScheduleTrigger_Brs_X01_Example_V1(
+    StartExampleHandlerV1 handler)
 {
-    private readonly SearchExampleHandler _exampleHandler = exampleHandler;
+    private readonly StartExampleHandlerV1 _handler = handler;
 
     /// <summary>
-    /// Search for instances of BRS-X01.
+    /// Schedule a BRS-023 or BRS-027 calculation and return its id.
     /// </summary>
-    [Function(nameof(SearchTrigger_Brs_X01_Example))]
+    [Function(nameof(ScheduleTrigger_Brs_X01_Example_V1))]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "orchestrationinstance/query/custom/brs_x01_example")]
+            Route = "orchestrationinstance/command/schedule/custom/brs_x01_example/1")]
         HttpRequest httpRequest,
         [FromBody]
-        ExampleQuery query,
+        ScheduleExampleCommandV1 command,
         FunctionContext executionContext)
     {
-        var queryResultItems = await _exampleHandler.SearchAsync(query).ConfigureAwait(false);
-
-        return new OkObjectResult(queryResultItems);
+        var orchestrationInstanceId = await _handler.ScheduleNewCalculationAsync(command).ConfigureAwait(false);
+        return new OkObjectResult(orchestrationInstanceId.Value);
     }
 }

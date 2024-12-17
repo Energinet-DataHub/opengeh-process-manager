@@ -24,6 +24,7 @@ internal class Orchestration_Brs_X01_Example_V1
 {
     internal const int StartingStepSequence = 1;
     internal const int SkippableStepSequence = 2;
+    internal const int EndStepSequence = 3;
 
     [Function(nameof(Orchestration_Brs_X01_Example_V1))]
     public async Task<string> Run(
@@ -43,37 +44,18 @@ internal class Orchestration_Brs_X01_Example_V1
             context.InstanceId,
             defaultRetryOptions);
 
-        // skip able step
+        // Skippable step
         await context.CallActivityAsync(
             nameof(SkippableActivity_Brs_X01_Example_V1),
             context.InstanceId,
             defaultRetryOptions);
 
-        // // Step: Calculation
-        // await context.CallActivityAsync(
-        //     nameof(Brs023CalculationStepStartActivityV1),
-        //     context.InstanceId,
-        //     defaultRetryOptions);
-        // await context.CallActivityAsync(
-        //     nameof(Brs023CalculationStepTerminateActivityV1),
-        //     context.InstanceId,
-        //     defaultRetryOptions);
-        //
-        // // Step: Enqueue messages
-        // await context.CallActivityAsync(
-        //     nameof(Brs023EnqueueMessagesStepStartActivityV1),
-        //     context.InstanceId,
-        //     defaultRetryOptions);
-        // await context.CallActivityAsync(
-        //     nameof(Brs023EnqueueMessagesStepTerminateActivityV1),
-        //     context.InstanceId,
-        //     defaultRetryOptions);
-        //
-        // // Terminate
-        // await context.CallActivityAsync(
-        //     nameof(Brs023OrchestrationTerminateActivityV1),
-        //     context.InstanceId,
-        //     defaultRetryOptions);
+        // End step
+        await context.CallActivityAsync(
+            nameof(EndActivity_Brs_X01_Example_V1),
+            context.InstanceId,
+            defaultRetryOptions);
+
         return "Success";
     }
 

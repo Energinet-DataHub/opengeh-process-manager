@@ -77,9 +77,9 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
                 defaultRetryOptions);
         }
 
-        var messagesEnqueued = await WaitForEnqueueMessagesResponse(context, instanceId);
+        var wasMessagesEnqueued = await WaitForEnqueueMessagesResponse(context, instanceId);
 
-        var enqueueMessagesTerminationState = messagesEnqueued
+        var enqueueMessagesTerminationState = wasMessagesEnqueued
             ? OrchestrationStepTerminationStates.Succeeded
             : OrchestrationStepTerminationStates.Failed;
         await TerminateStepActivity_Brs_026_V1.RunActivity(
@@ -90,7 +90,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
                 enqueueMessagesTerminationState),
             defaultRetryOptions);
 
-        if (!messagesEnqueued)
+        if (!wasMessagesEnqueued)
         {
             var logger = context.CreateReplaySafeLogger<Orchestration_RequestCalculatedEnergyTimeSeries_V1>();
             logger.Log(

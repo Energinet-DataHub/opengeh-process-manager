@@ -84,7 +84,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
             ActorId: Guid.NewGuid());
 
         // Step 1: Start new calculation orchestration instance
-        var input = new InputV1(SkipStepTwo: false);
+        var input = new InputV1(ShouldSkipSkippableStep: false);
 
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
@@ -131,7 +131,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
         // Step 4: Custom search
         var customQuery = new ExampleQuery(userIdentity)
         {
-            SkipStepTwo = input.SkipStepTwo,
+            SkippedStepTwo = input.ShouldSkipSkippableStep,
         };
         var orchestrationInstancesCustomSearch = await processManagerClient
             .SearchOrchestrationInstancesByNameAsync(
@@ -159,7 +159,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
                 new ScheduleExampleCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
-                    inputParameter: new InputV1(SkipStepTwo: false)),
+                    inputParameter: new InputV1(ShouldSkipSkippableStep: false)),
                 CancellationToken.None);
 
         // Step 2: Trigger the scheduler to queue the calculation orchestration instance
@@ -202,7 +202,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
                 new ScheduleExampleCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
-                    inputParameter: new InputV1(SkipStepTwo: false)),
+                    inputParameter: new InputV1(ShouldSkipSkippableStep: false)),
                 CancellationToken.None);
 
         // Step 2: Cancel the calculation orchestration instance

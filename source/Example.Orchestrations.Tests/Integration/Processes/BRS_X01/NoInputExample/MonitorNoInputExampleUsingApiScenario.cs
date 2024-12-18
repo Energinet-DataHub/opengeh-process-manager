@@ -71,7 +71,7 @@ public class MonitorNoInputExampleUsingApiScenario : IAsyncLifetime
 
         using var scheduleRequest = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/api/orchestrationinstance/command/start/{orchestration.Name}/{orchestration.Version}");
+            $"/api/orchestrationinstance/command/start");
         scheduleRequest.Content = new StringContent(
             JsonSerializer.Serialize(command),
             Encoding.UTF8,

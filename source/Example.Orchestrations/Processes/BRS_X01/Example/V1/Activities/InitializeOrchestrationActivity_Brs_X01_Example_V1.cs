@@ -38,6 +38,9 @@ internal class InitializeOrchestrationActivity_Brs_X01_Example_V1(
         orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
+        // Orchestrations that have input have a custom start handler in which they can
+        // transition steps to skipped before starting the orchestration.
+        // We can extract that information and use it to plan the execution of the orchestrations.
         var stepsSkippedBySequence = orchestrationInstance.Steps
             .Where(step => step.IsSkipped())
             .Select(step => step.Sequence)

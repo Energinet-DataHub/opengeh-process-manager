@@ -86,41 +86,6 @@ jobs:
           $matrixBuilds = '${{steps.set-matrix.outputs.matrix_builds}}' | ConvertFrom-Json | ConvertTo-Json
           Write-Host $matrixBuilds
 
-  # build_tests_in_project:
-  #   name: Build ${{ matrix.project.name }}
-  #   runs-on: ubuntu-24.04  # Build on pinned version of ubuntu
-  #   needs: build_matrix
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       project: ${{fromJson(needs.build_matrix.outputs.matrix_builds)}}
-  #   env:
-  #     OUTPUT_PATH: ${{ github.workspace }}/source/${{ matrix.project.name}}/bin/Release/${{matrix.project.dotnet_version}}
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-
-  #     - uses: actions/cache@v4
-  #       with:
-  #         path: ~/.nuget/packages
-  #         key: ${{ inputs.nuget_cache_key_prefix }}-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
-
-  #     - name: Build ${{ matrix.project.name }}
-  #       run: |
-  #         dotnet publish \
-  #           '${{ matrix.project.filepath }}' \
-  #           --configuration Release \
-  #           --output '${{ env.OUTPUT_PATH }}' \
-  #           -p:ErrorOnDuplicatePublishOutputFiles=false  # To avoid the error "Found multiple publish output files with the same relative path"
-
-  #         # ls ${{ env.OUTPUT_PATH}}
-
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         retention-days: 2
-  #         name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
-  #         path: ${{ env.OUTPUT_PATH }}/*
-
   integration_tests:
     if: ${{ needs.build_matrix.outputs.matrix_builds != '[]' }}
     needs: [

@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Example.Orchestrations.Tests\Fixtures\ExampleOrchestrationsAppManager.cs" Link="Fixtures\ExampleOrchestrationsAppManager.cs" />
     <Compile Include="..\ProcessManager.Core.Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
     <Compile Include="..\ProcessManager.Orchestrations.Tests\Fixtures\OrchestrationsAppManager.cs">
       <Link>Fixtures\OrchestrationsAppManager.cs</Link>

@@ -16,27 +16,28 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Client.Tests.Extensions;
-using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_023_027.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1;
 
 /// <summary>
 /// Test case where we verify the Process Manager clients can be used to start a
 /// calculation orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ObsoleteProcessManagerClientCollection))]
-public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
+[Collection(nameof(OrchestrationsAppCollection))]
+public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
-    public MonitorCalculationUsingClientsScenario(
-        ObsoleteProcessManagerClientFixture fixture,
+    public MonitorOrchestrationUsingClientsScenario(
+        OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
@@ -54,7 +55,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    private ObsoleteProcessManagerClientFixture Fixture { get; }
+    private OrchestrationsAppFixture Fixture { get; }
 
     private ServiceProvider ServiceProvider { get; }
 

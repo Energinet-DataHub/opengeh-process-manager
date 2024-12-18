@@ -68,7 +68,7 @@ public class CalculationCompletionTests : IAsyncLifetime
         completedOrchestrationStatus.Should().NotBeNull();
 
         await using var readDbContext = Fixture.OrchestrationsAppManager.DatabaseManager.CreateDbContext();
-        var orchestrationInstance = await readDbContext.OrchestrationInstances.FindAsync();
+        var orchestrationInstance = readDbContext.OrchestrationInstances.ToList();
         orchestrationInstance.Should().NotBeNull();
     }
 

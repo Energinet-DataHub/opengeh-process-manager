@@ -80,7 +80,9 @@ public class ProcessManagerClientFixture : IAsyncLifetime
     {
         await ExampleOrchestrationsAppManager.DisposeAsync();
         await ProcessManagerAppManager.DisposeAsync();
+
         await DatabaseManager.DeleteDatabaseAsync();
+
         AzuriteManager.Dispose();
     }
 

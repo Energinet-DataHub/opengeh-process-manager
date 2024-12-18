@@ -10,6 +10,7 @@
 
     <ItemGroup>
         <Compile Include="..\ProcessManager.Core.Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
+        <Compile Include="..\ProcessManager.Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -27,6 +28,7 @@
     <ItemGroup>
         <ProjectReference Include="..\ProcessManager.DatabaseMigration\ProcessManager.DatabaseMigration.csproj" />
         <ProjectReference Include="..\Example.Orchestrations\Example.Orchestrations.csproj" />
+        <ProjectReference Include="..\ProcessManager\ProcessManager.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -31,7 +31,7 @@ public class ObsoleteProcessManagerClientFixture : IAsyncLifetime
 
     public ObsoleteProcessManagerClientFixture()
     {
-        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManagerClientTests");
+        DatabaseManager = new ProcessManagerDatabaseManager("ObsoleteProcessManagerClientTests");
         AzuriteManager = new AzuriteManager(useOAuth: true);
         DurableTaskManager = new DurableTaskManager(
             "AzuriteConnectionString",

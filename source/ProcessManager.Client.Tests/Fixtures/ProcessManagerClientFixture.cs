@@ -30,7 +30,7 @@ public class ProcessManagerClientFixture : IAsyncLifetime
 
     public ProcessManagerClientFixture()
     {
-        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManagerExampleClientTests");
+        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManagerClientTests");
         AzuriteManager = new AzuriteManager(useOAuth: true);
         DurableTaskManager = new DurableTaskManager(
             "AzuriteConnectionString",

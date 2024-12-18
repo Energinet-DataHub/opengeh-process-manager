@@ -69,14 +69,14 @@ public class CalculationCompletionTests : IAsyncLifetime
         completedOrchestrationStatus.Should().NotBeNull();
 
         await using var readDbContext = Fixture.OrchestrationsAppManager.DatabaseManager.CreateDbContext();
-        var orchestrationInstance = readDbContext.OrchestrationInstances?.ToList();
-        var instance = orchestrationInstance.Should().ContainSingle().Subject;
+        var orchestrationInstances = readDbContext.OrchestrationInstances.ToList();
+        var orchestrationInstance = orchestrationInstances.Should().ContainSingle().Subject;
 
         using var assertionScope = new AssertionScope();
 
-        instance.Id.Should().Be(orchestrationId);
-        instance.Lifecycle.TerminationState.Should().Be(ProcessManagement.Core.Domain.OrchestrationInstance.OrchestrationInstanceTerminationStates.Succeeded);
-        instance.Lifecycle.State.Should().Be(ProcessManagement.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleStates.Terminated);
+        orchestrationInstance.Id.Should().Be(orchestrationId);
+        orchestrationInstance.Lifecycle.TerminationState.Should().Be(ProcessManagement.Core.Domain.OrchestrationInstance.OrchestrationInstanceTerminationStates.Succeeded);
+        orchestrationInstance.Lifecycle.State.Should().Be(ProcessManagement.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleStates.Terminated);
     }
 
     private async Task<OrchestrationInstanceId> StartOrchestrationAsync(CalculationInputV1 input)

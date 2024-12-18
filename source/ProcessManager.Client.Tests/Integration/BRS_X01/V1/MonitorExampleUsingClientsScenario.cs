@@ -29,8 +29,8 @@ using Xunit.Abstractions;
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_X01.V1;
 
 /// <summary>
-/// Test case where we verify the Process Manager clients can be used to start a
-/// calculation orchestration (with input parameter) and monitor its status during its lifetime.
+/// Test case where we verify the Process Manager clients can be used to start an
+/// example orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(ProcessManagerExampleClientCollection))]
 public class MonitorExampleUsingClientsScenario : IAsyncLifetime
@@ -83,7 +83,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
-        // Step 1: Start new calculation orchestration instance
+        // Step 1: Start new example orchestration instance
         var input = new InputV1(ShouldSkipSkippableStep: false);
 
         var orchestrationInstanceId = await processManagerClient
@@ -153,7 +153,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
-        // Step 1: Schedule new calculation orchestration instance
+        // Step 1: Schedule new example orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleExampleCommandV1(
@@ -162,7 +162,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
                     inputParameter: new InputV1(ShouldSkipSkippableStep: false)),
                 CancellationToken.None);
 
-        // Step 2: Trigger the scheduler to queue the calculation orchestration instance
+        // Step 2: Trigger the scheduler to queue the example orchestration instance
         await Fixture.ProcessManagerAppManager.AppHostManager
             .TriggerFunctionAsync("StartScheduledOrchestrationInstances");
 
@@ -196,7 +196,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
-        // Step 1: Schedule new calculation orchestration instance
+        // Step 1: Schedule new example orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleExampleCommandV1(
@@ -205,7 +205,7 @@ public class MonitorExampleUsingClientsScenario : IAsyncLifetime
                     inputParameter: new InputV1(ShouldSkipSkippableStep: false)),
                 CancellationToken.None);
 
-        // Step 2: Cancel the calculation orchestration instance
+        // Step 2: Cancel the example orchestration instance
         await processManagerClient
             .CancelScheduledOrchestrationInstanceAsync(
                 new CancelScheduledOrchestrationInstanceCommand(

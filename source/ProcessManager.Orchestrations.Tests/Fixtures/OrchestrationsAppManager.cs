@@ -168,6 +168,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         AppHostManager.Dispose();
+        await DurableTaskManager.DisposeAsync();
 
         if (_manageAzurite)
             AzuriteManager.Dispose();

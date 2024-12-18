@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1;
@@ -63,13 +64,19 @@ public class CalculationCompletionTests : IAsyncLifetime
         var orchestrationId = await StartOrchestrationAsync(input);
 
         var completedOrchestrationStatus = await Fixture.OrchestrationsAppManager.DurableClient.WaitForOrchestrationCompletedAsync(
-            orchestrationId.ToString(),
+            orchestrationId.Value.ToString(),
             TimeSpan.FromSeconds(60));
         completedOrchestrationStatus.Should().NotBeNull();
 
         await using var readDbContext = Fixture.OrchestrationsAppManager.DatabaseManager.CreateDbContext();
-        var orchestrationInstance = readDbContext.OrchestrationInstances.ToList();
-        orchestrationInstance.Should().NotBeNull();
+        var orchestrationInstance = readDbContext.OrchestrationInstances?.ToList();
+        var instance = orchestrationInstance.Should().ContainSingle().Subject;
+
+        using var assertionScope = new AssertionScope();
+
+        instance.Id.Should().Be(orchestrationId);
+        instance.Lifecycle.TerminationState.Should().Be(ProcessManagement.Core.Domain.OrchestrationInstance.OrchestrationInstanceTerminationStates.Succeeded);
+        instance.Lifecycle.State.Should().Be(ProcessManagement.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleStates.Terminated);
     }
 
     private async Task<OrchestrationInstanceId> StartOrchestrationAsync(CalculationInputV1 input)

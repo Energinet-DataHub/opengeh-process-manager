@@ -19,8 +19,8 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures.Extensions;
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -41,13 +41,13 @@ public class MonitorNoInputExampleUsingClientScenario : IAsyncLifetime
         Fixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
-        services.AddScoped(_ => CreateInMemoryConfigurations(new Dictionary<string, string?>()
+        services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
                 = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-        }));
+        });
         services.AddProcessManagerHttpClients();
         ServiceProvider = services.BuildServiceProvider();
     }
@@ -122,12 +122,5 @@ public class MonitorNoInputExampleUsingClientScenario : IAsyncLifetime
                 CancellationToken.None);
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
-    }
-
-    private IConfiguration CreateInMemoryConfigurations(Dictionary<string, string?> configurations)
-    {
-        return new ConfigurationBuilder()
-            .AddInMemoryCollection(configurations)
-            .Build();
     }
 }

@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 
 public class ObsoleteProcessManagerClientFixture : IAsyncLifetime
 {
-    private const string TaskHubName = "ObsoleteClientsTest01";
+    private const string TaskHubName = "ObsoleteClientTest01";
 
     public ObsoleteProcessManagerClientFixture()
     {

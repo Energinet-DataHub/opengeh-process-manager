@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
@@ -27,8 +28,7 @@ internal class PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1(
         progressRepository)
 {
     [Function(nameof(PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run(
-        [ActivityTrigger] ActivityInput activityInput)
+    public async Task<IReadOnlyCollection<string>> Run([ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
             .GetAsync(new OrchestrationInstanceId(activityInput.OrchestrationInstanceId))
@@ -39,9 +39,17 @@ internal class PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1(
                 orchestrationInstance)
             .ConfigureAwait(false);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        var errors = new List<string>();
+
+        if (activityInput.MeteringPointMasterData.Count == 0)
+        {
+            errors.Add("Error: No metering point master data found.");
+        }
+
+        return errors;
     }
 
-    public sealed record ActivityInput(Guid OrchestrationInstanceId);
+    public sealed record ActivityInput(
+        Guid OrchestrationInstanceId,
+        IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
 }

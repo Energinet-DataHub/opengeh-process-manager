@@ -48,27 +48,32 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             defaultRetryOptions);
 
         // Fetch Metering Point Master Data
-        var meteringPointMasterData = await context.CallActivityAsync<MeteringPointMasterData?>(
+        var meteringPointMasterData = await context.CallActivityAsync<IReadOnlyCollection<MeteringPointMasterData>>(
             nameof(FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1),
             new FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
-                new MeteringPointIdentification("1234567890")),
+                input.MeteringPointId,
+                input.StartDateTime,
+                input.EndDateTime),
             defaultRetryOptions);
-
-        if (meteringPointMasterData is null)
-        {
-            // We should poke EDI gently and tell them that we would like the actor to receive an RSM-09 message
-            return "Success";
-        }
 
         // Step: Validating
-        await context.CallActivityAsync(
+        var errors = await context.CallActivityAsync<IReadOnlyCollection<string>>(
             nameof(PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1),
-            new PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(Guid.Parse(context.InstanceId)),
+            new PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                Guid.Parse(context.InstanceId),
+                meteringPointMasterData),
             defaultRetryOptions);
+
         await context.CallActivityAsync(
             nameof(ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
             context.InstanceId,
             defaultRetryOptions);
+
+        // If there are errors, we stop the orchestration and inform EDI to pass along the errors
+        if (errors.Count != 0)
+        {
+            return "Success";
+        }
 
         // Step: Storing
         await context.CallActivityAsync(

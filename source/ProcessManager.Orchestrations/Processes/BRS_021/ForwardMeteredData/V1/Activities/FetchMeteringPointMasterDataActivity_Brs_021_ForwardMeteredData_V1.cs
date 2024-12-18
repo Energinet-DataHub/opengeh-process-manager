@@ -16,6 +16,7 @@ using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
+using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
@@ -30,11 +31,28 @@ internal sealed class FetchMeteringPointMasterDataActivity_Brs_021_ForwardMetere
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
     [Function(nameof(FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task<MeteringPointMasterData?> Run([ActivityTrigger] ActivityInput activityInput) =>
-        await _electricityMarketViews.GetMeteringPointMasterDataAsync(
-                activityInput.MeteringPointIdentification,
-                Clock.GetCurrentInstant())
-            .ConfigureAwait(false);
+    public async Task<IReadOnlyCollection<MeteringPointMasterData>> Run(
+        [ActivityTrigger] ActivityInput activityInput)
+    {
+        if (activityInput.MeteringPointIdentification is null || activityInput.EndDateTime is null)
+        {
+            return [];
+        }
 
-    public sealed record ActivityInput(MeteringPointIdentification MeteringPointIdentification);
+        var id = new MeteringPointIdentification(activityInput.MeteringPointIdentification);
+        var startDateTime = InstantPattern.General.Parse(activityInput.StartDateTime);
+        var endDateTime = InstantPattern.General.Parse(activityInput.EndDateTime);
+
+        if (!startDateTime.Success || !endDateTime.Success)
+        {
+            return [];
+        }
+
+        return await _electricityMarketViews
+            .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
+            .ToListAsync()
+            .ConfigureAwait(false);
+    }
+
+    public sealed record ActivityInput(string? MeteringPointIdentification, string StartDateTime, string? EndDateTime);
 }

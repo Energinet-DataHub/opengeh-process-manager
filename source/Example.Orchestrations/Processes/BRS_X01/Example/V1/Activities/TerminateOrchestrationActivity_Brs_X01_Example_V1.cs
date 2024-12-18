@@ -23,8 +23,8 @@ internal class TerminateOrchestrationActivity_Brs_X01_Example_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
-    clock,
-    progressRepository)
+        clock,
+        progressRepository)
 {
     [Function(nameof(TerminateOrchestrationActivity_Brs_X01_Example_V1))]
     public async Task Run(

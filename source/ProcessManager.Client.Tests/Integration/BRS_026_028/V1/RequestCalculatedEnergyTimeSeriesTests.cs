@@ -106,7 +106,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         // Assert
         var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
             createdTimeFrom: orchestrationCreatedAfter,
-            name: "RequestCalculatedEnergyTimeSeriesOrchestrationV1");
+            name: "Orchestration_RequestCalculatedEnergyTimeSeries_V1");
         orchestration.Input.ToString().Should().Contain(businessReason);
 
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(

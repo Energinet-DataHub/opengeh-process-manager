@@ -1,16 +1,20 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.14.4
+
+- Add actor id to start orchestration messages.
+
 ## Version 0.14.3
 
-- No functional changes
+- No functional changes.
 
 ## Version 0.14.2
 
-- No functional changes
+- No functional changes.
 
 ## Version 0.14.1
 
-- Rename service bus client options
+- Rename service bus client options.
 
 ## Version 0.14.0
 

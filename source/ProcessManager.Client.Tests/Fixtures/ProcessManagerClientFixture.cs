@@ -41,7 +41,7 @@ public class ProcessManagerClientFixture : IAsyncLifetime
             IntegrationTestConfiguration,
             AzuriteManager,
             taskHubName: TaskHubName,
-            appPort: 8113,
+            appPort: 8201,
             manageDatabase: false,
             manageAzurite: false);
 
@@ -50,7 +50,7 @@ public class ProcessManagerClientFixture : IAsyncLifetime
             IntegrationTestConfiguration,
             AzuriteManager,
             taskHubName: TaskHubName,
-            appPort: 8114,
+            appPort: 8202,
             manageDatabase: false,
             manageAzurite: false);
     }

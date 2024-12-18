@@ -79,13 +79,13 @@ public class MonitorExampleUsingApiScenario : IAsyncLifetime
             Encoding.UTF8,
             "application/json");
 
-        // Step 1: Start new example orchestration instance
+        // Step 1: Start new orchestration instance
         using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
             .HttpClient
             .SendAsync(scheduleRequest);
         response.EnsureSuccessStatusCode();
 
-        var calculationId = await response.Content
+        var orchestrationInstanceId = await response.Content
             .ReadFromJsonAsync<Guid>();
 
         // Step 2: Query until terminated with succeeded
@@ -93,7 +93,7 @@ public class MonitorExampleUsingApiScenario : IAsyncLifetime
             new UserIdentityDto(
                 Guid.NewGuid(),
                 Guid.NewGuid()),
-            calculationId);
+            orchestrationInstanceId);
 
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>

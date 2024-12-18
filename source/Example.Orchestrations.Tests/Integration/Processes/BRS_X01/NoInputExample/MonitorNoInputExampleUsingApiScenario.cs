@@ -12,39 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Dynamic;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
+using Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_023_027.V1;
+namespace Energinet.DataHub.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.NoInputExample;
 
 /// <summary>
-/// Test case where we verify the Process Manager clients can be used to start a
-/// calculation orchestration (with input parameter) and monitor its status during its lifetime.
+/// Test case where we verify the Example.Orchestrations and Process Manager Api
+/// can be used to start an example orchestration (with input parameter) and
+/// monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ObsoleteProcessManagerClientCollection))]
-public class MonitorCalculationUsingApiScenario : IAsyncLifetime
+[Collection(nameof(ExampleOrchestrationsAppCollection))]
+public class MonitorNoInputExampleUsingApiScenario : IAsyncLifetime
 {
-    public MonitorCalculationUsingApiScenario(
-        ObsoleteProcessManagerClientFixture fixture,
+    public MonitorNoInputExampleUsingApiScenario(
+        ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
     }
 
-    private ObsoleteProcessManagerClientFixture Fixture { get; }
+    private ExampleOrchestrationsAppFixture Fixture { get; }
 
     public Task InitializeAsync()
     {
         Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
-        Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.ClearHostLog();
 
         return Task.CompletedTask;
     }
@@ -52,52 +54,44 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
     public Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
-        Fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
+        Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
         return Task.CompletedTask;
     }
 
     [Fact]
-    public async Task Calculation_WhenStarted_CanMonitorLifecycle()
+    public async Task NoInputExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
-        // TODO: Move to API test project
-        dynamic scheduleRequestDto = new ExpandoObject();
-        scheduleRequestDto.OperatingIdentity = new ExpandoObject();
-        scheduleRequestDto.OperatingIdentity.UserId = Guid.NewGuid();
-        scheduleRequestDto.OperatingIdentity.ActorId = Guid.NewGuid();
-        scheduleRequestDto.OrchestrationDescriptionUniqueName = new ExpandoObject();
-        scheduleRequestDto.OrchestrationDescriptionUniqueName.Name = "BRS_023_027";
-        scheduleRequestDto.OrchestrationDescriptionUniqueName.Version = 1;
-        scheduleRequestDto.InputParameter = new ExpandoObject();
-        scheduleRequestDto.InputParameter.CalculationType = 0;
-        scheduleRequestDto.InputParameter.GridAreaCodes = new[] { "543" };
-        scheduleRequestDto.InputParameter.PeriodStartDate = "2024-10-29T15:19:10.0151351+01:00";
-        scheduleRequestDto.InputParameter.PeriodEndDate = "2024-10-29T16:19:10.0193962+01:00";
-        scheduleRequestDto.InputParameter.IsInternalCalculation = true;
+        var orchestration = new Brs_X01_NoInputExample_V1();
+
+        var command = new StartNoInputExampleComandV1(
+             operatingIdentity: new UserIdentityDto(
+                 Guid.NewGuid(),
+                 Guid.NewGuid()));
 
         using var scheduleRequest = new HttpRequestMessage(
             HttpMethod.Post,
-            "/api/orchestrationinstance/command/start/custom/brs_023_027/1");
+            $"/api/orchestrationinstance/command/start/{orchestration.Name}/{orchestration.Version}");
         scheduleRequest.Content = new StringContent(
-            JsonSerializer.Serialize(scheduleRequestDto),
+            JsonSerializer.Serialize(command),
             Encoding.UTF8,
             "application/json");
 
-        // Step 1: Start new calculation orchestration instance
-        using var scheduleResponse = await Fixture.OrchestrationsAppManager.AppHostManager
+        // Step 1: Start new orchestration instance
+        using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
             .HttpClient
             .SendAsync(scheduleRequest);
-        scheduleResponse.EnsureSuccessStatusCode();
+        response.EnsureSuccessStatusCode();
 
-        var orchestrationInstanceId = await scheduleResponse.Content
+        var orchestrationInstanceId = await response.Content
             .ReadFromJsonAsync<Guid>();
 
         // Step 2: Query until terminated with succeeded
-        dynamic queryRequestDto = new ExpandoObject();
-        queryRequestDto.OperatingIdentity = new ExpandoObject();
-        queryRequestDto.OperatingIdentity.UserId = Guid.NewGuid();
-        queryRequestDto.OperatingIdentity.ActorId = Guid.NewGuid();
-        queryRequestDto.Id = orchestrationInstanceId;
+        var getRequest = new GetOrchestrationInstanceByIdQuery(
+            new UserIdentityDto(
+                Guid.NewGuid(),
+                Guid.NewGuid()),
+            orchestrationInstanceId);
 
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
@@ -106,7 +100,7 @@ public class MonitorCalculationUsingApiScenario : IAsyncLifetime
                     HttpMethod.Post,
                     "/api/orchestrationinstance/query/id");
                 queryRequest.Content = new StringContent(
-                    JsonSerializer.Serialize(queryRequestDto),
+                    JsonSerializer.Serialize(getRequest),
                     Encoding.UTF8,
                     "application/json");
 

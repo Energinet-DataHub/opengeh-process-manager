@@ -69,11 +69,11 @@ internal class ProcessManagerClient : IProcessManagerClient
             : await _generalApiHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         actualResponse.EnsureSuccessStatusCode();
 
-        var calculationId = await actualResponse.Content
+        var orchestrationInstanceId = await actualResponse.Content
             .ReadFromJsonAsync<Guid>(cancellationToken)
             .ConfigureAwait(false);
 
-        return calculationId;
+        return orchestrationInstanceId;
     }
 
     /// <inheritdoc/>
@@ -124,11 +124,11 @@ internal class ProcessManagerClient : IProcessManagerClient
             : await _generalApiHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         actualResponse.EnsureSuccessStatusCode();
 
-        var calculationId = await actualResponse.Content
+        var orchestrationInstanceId = await actualResponse.Content
             .ReadFromJsonAsync<Guid>(cancellationToken)
             .ConfigureAwait(false);
 
-        return calculationId;
+        return orchestrationInstanceId;
     }
 
     /// <inheritdoc/>

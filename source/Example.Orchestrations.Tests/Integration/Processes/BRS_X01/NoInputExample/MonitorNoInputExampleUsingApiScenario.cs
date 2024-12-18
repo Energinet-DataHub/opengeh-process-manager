@@ -78,7 +78,7 @@ public class MonitorNoInputExampleUsingApiScenario : IAsyncLifetime
             "application/json");
 
         // Step 1: Start new orchestration instance
-        using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
+        using var response = await Fixture.ProcessManagerAppManager.AppHostManager
             .HttpClient
             .SendAsync(scheduleRequest);
         response.EnsureSuccessStatusCode();

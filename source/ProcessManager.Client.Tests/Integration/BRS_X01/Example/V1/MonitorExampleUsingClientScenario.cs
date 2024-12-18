@@ -83,7 +83,7 @@ public class MonitorExampleUsingClientScenario : IAsyncLifetime
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
-        // Step 1: Start new example orchestration instance
+        // Step 1: Start new orchestration instance
         var input = new InputV1(
             ShouldSkipSkippableStep: false);
         var orchestrationInstanceId = await processManagerClient

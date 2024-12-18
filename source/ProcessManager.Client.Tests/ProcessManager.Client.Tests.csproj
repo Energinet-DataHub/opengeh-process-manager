@@ -34,6 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Example.Orchestrations\Example.Orchestrations.csproj" />
     <ProjectReference Include="..\ProcessManager.Client\ProcessManager.Client.csproj" />
     <ProjectReference Include="..\ProcessManager.DatabaseMigration\ProcessManager.DatabaseMigration.csproj" />
     <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />
@@ -52,10 +53,6 @@
     <None Update="integrationtest.local.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Integration\BRS_X01\Example\V1\" />
   </ItemGroup>
 
 </Project>

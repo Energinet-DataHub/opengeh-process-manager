@@ -14,29 +14,29 @@
 
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Client.Tests.Extensions;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_023_027.V1;
+namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_X01.V1;
 
 /// <summary>
-/// Test case where we verify the Process Manager clients can be used to start a
-/// calculation orchestration (with input parameter) and monitor its status during its lifetime.
+/// Test case where we verify the Process Manager clients can be used to start an
+/// example orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ObsoleteProcessManagerClientCollection))]
-public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
+[Collection(nameof(ProcessManagerClientCollection))]
+public class MonitorExampleUsingClientScenario : IAsyncLifetime
 {
-    public MonitorCalculationUsingClientsScenario(
-        ObsoleteProcessManagerClientFixture fixture,
+    public MonitorExampleUsingClientScenario(
+        ProcessManagerClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
@@ -48,20 +48,20 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+                = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         });
         services.AddProcessManagerHttpClients();
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    private ObsoleteProcessManagerClientFixture Fixture { get; }
+    private ProcessManagerClientFixture Fixture { get; }
 
     private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
         Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
-        Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.ClearHostLog();
 
         return Task.CompletedTask;
     }
@@ -69,13 +69,13 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
     public async Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
-        Fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
+        Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
         await ServiceProvider.DisposeAsync();
     }
 
     [Fact]
-    public async Task Calculation_WhenStarted_CanMonitorLifecycle()
+    public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -83,18 +83,14 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
-        // Step 1: Start new calculation orchestration instance
-        var inputParameter = new CalculationInputV1(
-            CalculationTypes.WholesaleFixing,
-            GridAreaCodes: new[] { "543" },
-            PeriodStartDate: DateTimeOffset.Parse("2024-10-08T15:19:10.0151351+01:00"),
-            PeriodEndDate: DateTimeOffset.Parse("2024-10-11T16:19:10.0193962+01:00"),
-            IsInternalCalculation: false);
+        // Step 1: Start new example orchestration instance
+        var input = new InputV1(
+            ShouldSkipSkippableStep: false);
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
-                new StartCalculationCommandV1(
+                new StartExampleCommandV1(
                     userIdentity,
-                    inputParameter),
+                    input),
                 CancellationToken.None);
 
         // Step 2: Query until terminated with succeeded
@@ -102,7 +98,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             async () =>
             {
                 var orchestrationInstance = await processManagerClient
-                    .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
+                    .GetOrchestrationInstanceByIdAsync<InputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
                             orchestrationInstanceId),
@@ -119,10 +115,10 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
 
         // Step 3: General search using name and termination state
         var orchestrationInstancesGeneralSearch = await processManagerClient
-            .SearchOrchestrationInstancesByNameAsync<CalculationInputV1>(
+            .SearchOrchestrationInstancesByNameAsync<InputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
                     userIdentity,
-                    name: new Brs_023_027_V1().Name,
+                    name: new Brs_X01_Example_V1().Name,
                     version: null,
                     lifecycleState: OrchestrationInstanceLifecycleStates.Terminated,
                     terminationState: OrchestrationInstanceTerminationStates.Succeeded,
@@ -133,13 +129,9 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
 
         // Step 4: Custom search
-        var customQuery = new CalculationQuery(userIdentity)
+        var customQuery = new ExampleQuery(userIdentity)
         {
-            CalculationTypes = new[] { inputParameter.CalculationType },
-            GridAreaCodes = inputParameter.GridAreaCodes,
-            PeriodStartDate = inputParameter.PeriodStartDate,
-            PeriodEndDate = inputParameter.PeriodEndDate,
-            IsInternalCalculation = inputParameter.IsInternalCalculation,
+            SkippedStepTwo = input.ShouldSkipSkippableStep,
         };
         var orchestrationInstancesCustomSearch = await processManagerClient
             .SearchOrchestrationInstancesByNameAsync(
@@ -153,7 +145,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Calculation_WhenScheduledToRunInThePast_CanMonitorLifecycle()
+    public async Task ExampleOrchestration_WhenScheduledToRunInThePast_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -161,21 +153,17 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
-        // Step 1: Schedule new calculation orchestration instance
+        // Step 1: Schedule new example orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
-                new ScheduleCalculationCommandV1(
+                new ScheduleExampleCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
-                    inputParameter: new CalculationInputV1(
-                        CalculationTypes.BalanceFixing,
-                        GridAreaCodes: new[] { "543" },
-                        PeriodStartDate: DateTimeOffset.Parse("2024-10-29T15:19:10.0151351+01:00"),
-                        PeriodEndDate: DateTimeOffset.Parse("2024-10-29T16:19:10.0193962+01:00"),
-                        IsInternalCalculation: true)),
+                    inputParameter: new InputV1(
+                        ShouldSkipSkippableStep: false)),
                 CancellationToken.None);
 
-        // Step 2: Trigger the scheduler to queue the calculation orchestration instance
+        // Step 2: Trigger the scheduler to queue the example orchestration instance
         await Fixture.ProcessManagerAppManager.AppHostManager
             .TriggerFunctionAsync("StartScheduledOrchestrationInstances");
 
@@ -184,7 +172,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             async () =>
             {
                 var orchestrationInstance = await processManagerClient
-                    .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
+                    .GetOrchestrationInstanceByIdAsync<InputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
                             orchestrationInstanceId),
@@ -201,7 +189,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CalculationScheduledToRunInTheFuture_WhenCanceled_CanMonitorLifecycle()
+    public async Task ExampleOrchestrationScheduledToRunInTheFuture_WhenCanceled_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -209,21 +197,17 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
-        // Step 1: Schedule new calculation orchestration instance
+        // Step 1: Schedule new example orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
-                new ScheduleCalculationCommandV1(
+                new ScheduleExampleCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
-                    inputParameter: new CalculationInputV1(
-                        CalculationTypes.BalanceFixing,
-                        GridAreaCodes: new[] { "543" },
-                        PeriodStartDate: DateTimeOffset.Parse("2024-10-29T15:19:10.0151351+01:00"),
-                        PeriodEndDate: DateTimeOffset.Parse("2024-10-29T16:19:10.0193962+01:00"),
-                        IsInternalCalculation: true)),
+                    inputParameter: new InputV1(
+                        ShouldSkipSkippableStep: false)),
                 CancellationToken.None);
 
-        // Step 2: Cancel the calculation orchestration instance
+        // Step 2: Cancel the example orchestration instance
         await processManagerClient
             .CancelScheduledOrchestrationInstanceAsync(
                 new CancelScheduledOrchestrationInstanceCommand(
@@ -236,7 +220,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
             async () =>
             {
                 var orchestrationInstance = await processManagerClient
-                    .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
+                    .GetOrchestrationInstanceByIdAsync<InputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
                             orchestrationInstanceId),

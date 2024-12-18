@@ -53,4 +53,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Integration\BRS_X01\Example\V1\" />
+  </ItemGroup>
+
 </Project>

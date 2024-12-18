@@ -33,11 +33,11 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_023_027.
 /// Test case where we verify the Process Manager clients can be used to start a
 /// calculation orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ProcessManagerClientCollection))]
+[Collection(nameof(ObsoleteProcessManagerClientCollection))]
 public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
 {
     public MonitorCalculationUsingClientsScenario(
-        ProcessManagerClientFixture fixture,
+        ObsoleteProcessManagerClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
@@ -55,7 +55,7 @@ public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    private ProcessManagerClientFixture Fixture { get; }
+    private ObsoleteProcessManagerClientFixture Fixture { get; }
 
     private ServiceProvider ServiceProvider { get; }
 

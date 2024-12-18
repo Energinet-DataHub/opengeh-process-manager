@@ -20,8 +20,8 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 /// xUnit documentation of collection fixtures:
 ///  * https://xunit.net/docs/shared-context#collection-fixture
 /// </summary>
-[CollectionDefinition(nameof(ProcessManagerClientCollection))]
-public class ProcessManagerClientCollection :
-    ICollectionFixture<ProcessManagerClientFixture>
+[CollectionDefinition(nameof(ObsoleteProcessManagerClientCollection))]
+public class ObsoleteProcessManagerClientCollection :
+    ICollectionFixture<ObsoleteProcessManagerClientFixture>
 {
 }

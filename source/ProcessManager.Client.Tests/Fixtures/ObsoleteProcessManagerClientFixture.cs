@@ -25,11 +25,11 @@ using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 
-public class ProcessManagerClientFixture : IAsyncLifetime
+public class ObsoleteProcessManagerClientFixture : IAsyncLifetime
 {
     private const string TaskHubName = "ClientsTest01";
 
-    public ProcessManagerClientFixture()
+    public ObsoleteProcessManagerClientFixture()
     {
         DatabaseManager = new ProcessManagerDatabaseManager("ProcessManagerClientTests");
         AzuriteManager = new AzuriteManager(useOAuth: true);

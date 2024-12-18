@@ -91,7 +91,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         if (_manageAzurite)
         {
             // Clean up old Azurite storage
-            CleanupAzuriteStorage();
+            AzuriteManager.CleanupAzuriteStorage();
 
             // Storage emulator
             AzuriteManager.StartAzurite();
@@ -211,40 +211,5 @@ public class ProcessManagerAppManager : IAsyncDisposable
             "true");
 
         return appHostSettings;
-    }
-
-    /// <summary>
-    /// Cleanup Azurite storage to avoid situations where Durable Functions
-    /// would otherwise continue working on old orchestrations that e.g. failed in
-    /// previous runs.
-    /// </summary>
-    private void CleanupAzuriteStorage()
-    {
-        if (Directory.Exists("__blobstorage__"))
-            Directory.Delete("__blobstorage__", true);
-
-        if (Directory.Exists("__queuestorage__"))
-            Directory.Delete("__queuestorage__", true);
-
-        if (Directory.Exists("__tablestorage__"))
-            Directory.Delete("__tablestorage__", true);
-
-        if (File.Exists("__azurite_db_blob__.json"))
-            File.Delete("__azurite_db_blob__.json");
-
-        if (File.Exists("__azurite_db_blob_extent__.json"))
-            File.Delete("__azurite_db_blob_extent__.json");
-
-        if (File.Exists("__azurite_db_queue__.json"))
-            File.Delete("__azurite_db_queue__.json");
-
-        if (File.Exists("__azurite_db_queue_extent__.json"))
-            File.Delete("__azurite_db_queue_extent__.json");
-
-        if (File.Exists("__azurite_db_table__.json"))
-            File.Delete("__azurite_db_table__.json");
-
-        if (File.Exists("__azurite_db_table_extent__.json"))
-            File.Delete("__azurite_db_table_extent__.json");
     }
 }

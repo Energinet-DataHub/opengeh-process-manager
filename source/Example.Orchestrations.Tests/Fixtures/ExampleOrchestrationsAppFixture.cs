@@ -21,7 +21,7 @@ using Xunit.Abstractions;
 namespace Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
-/// Support testing the interactions between Example.Orchestrations and
+/// Support testing the interactions with Example.Orchestrations and
 /// Process Manager Api, by coordinating the startup of the dependent applications
 /// Example.Orchestrations and ProcessManager (Api).
 /// </summary>

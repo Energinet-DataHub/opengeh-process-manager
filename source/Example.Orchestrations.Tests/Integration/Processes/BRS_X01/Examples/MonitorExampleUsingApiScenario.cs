@@ -26,8 +26,9 @@ using Xunit.Abstractions;
 namespace Energinet.DataHub.ProcessManager.Tests.Integration.Processes;
 
 /// <summary>
-/// Test case where we verify the Process Manager clients can be used to start a
-/// calculation orchestration (with input parameter) and monitor its status during its lifetime.
+/// Test case where we verify the Example.Orchestrations and Process Manager Api
+/// can be used to start an example orchestration (with input parameter) and
+/// monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorExampleUsingApiScenario : IAsyncLifetime
@@ -59,7 +60,7 @@ public class MonitorExampleUsingApiScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Example_WhenStarted_CanMonitorLifecycle()
+    public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
         var orchestration = new Brs_X01_Example_V1();
         var input = new InputV1(false);

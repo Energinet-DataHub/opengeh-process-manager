@@ -27,7 +27,7 @@ namespace Energinet.DataHub.Example.Orchestrations.Tests.Integration.Processes.B
 
 /// <summary>
 /// Test case where we verify the Example.Orchestrations and Process Manager Api
-/// can be used to start an example orchestration (with input parameter) and
+/// can be used to start an example orchestration (with no-input parameter) and
 /// monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(ExampleOrchestrationsAppCollection))]

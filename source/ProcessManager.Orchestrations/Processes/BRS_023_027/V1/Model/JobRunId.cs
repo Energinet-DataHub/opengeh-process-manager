@@ -15,9 +15,7 @@
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 
 /// <summary>
-/// The purpose of this record is to give the orchestration information about
-/// skipped steps. This allow us to handle decision about activities to skip within
-/// the orchestration instead of within activities.
+/// The run id of a Databricks job execution.
 /// </summary>
-/// <param name="SkippedStepsBySequence">Contains the sequence number of any skipped steps.</param>
-public record OrchestrationExecutionPlan(IReadOnlyCollection<int> SkippedStepsBySequence);
+/// <param name="Id">Run id.</param>
+public sealed record JobRunId(long Id);

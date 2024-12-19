@@ -44,14 +44,14 @@ internal class Orchestration_Brs_023_027_V1
         // Currently we inject parameters when an orchestration is started.
         // But 'context.InstanceId' contains the 'OrchestrationInstance.Id' so it is possible to load all
         // information about an 'OrchestrationInstance' in activities and use any information (e.g. UserIdentity).
-        var input = context.GetOrchestrationParameterValue<CalculationInputV1>();
-        if (input == null)
+        var orchestrationInput = context.GetOrchestrationParameterValue<CalculationInputV1>();
+        if (orchestrationInput == null)
             return "Error: No input specified.";
 
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         // Initialize
-        var executionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
+        var executionContext = await context.CallActivityAsync<OrchestrationExecutionContext>(
             nameof(OrchestrationInitializeActivity_Brs_023_027_V1),
             new OrchestrationInitializeActivity_Brs_023_027_V1.ActivityInput(
                 instanceId),
@@ -63,6 +63,13 @@ internal class Orchestration_Brs_023_027_V1
             new CalculationStepStartActivity_Brs_023_027_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
+        var jobRunId = await context.CallActivityAsync<JobRunId>(
+            nameof(CalculationStepStartDatabricksJobActivity_Brs_023_027_V1),
+            new CalculationStepStartDatabricksJobActivity_Brs_023_027_V1.ActivityInput(
+                instanceId,
+                executionContext.UserId,
+                orchestrationInput),
+            _defaultRetryOptions);
         await context.CallActivityAsync(
             nameof(CalculationStepTerminateActivity_Brs_023_027_V1),
             new CalculationStepTerminateActivity_Brs_023_027_V1.ActivityInput(
@@ -70,7 +77,7 @@ internal class Orchestration_Brs_023_027_V1
             _defaultRetryOptions);
 
         // Step: Enqueue messages
-        if (!executionPlan.SkippedStepsBySequence.Contains(EnqueueMessagesStepSequence))
+        if (!executionContext.SkippedStepsBySequence.Contains(EnqueueMessagesStepSequence))
         {
             await context.CallActivityAsync(
                 nameof(EnqueueMessagesStepStartActivity_Brs_023_027_V1),

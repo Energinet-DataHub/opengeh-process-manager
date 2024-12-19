@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.2.7
+
+- Internal refactoring.
+
 ## Version 0.2.6
 
 - Internal refactoring.

@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <AssemblyName>Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions</AssemblyName>
+        <RootNamespace>Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
+    </ItemGroup>
+</Project>

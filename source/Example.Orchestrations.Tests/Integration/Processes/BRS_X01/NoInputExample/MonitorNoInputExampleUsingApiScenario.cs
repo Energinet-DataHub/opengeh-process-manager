@@ -62,8 +62,6 @@ public class MonitorNoInputExampleUsingApiScenario : IAsyncLifetime
     [Fact]
     public async Task NoInputExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
-        var orchestration = new Brs_X01_NoInputExample_V1();
-
         var command = new StartNoInputExampleCommandV1(
              operatingIdentity: new UserIdentityDto(
                  Guid.NewGuid(),
@@ -112,7 +110,8 @@ public class MonitorNoInputExampleUsingApiScenario : IAsyncLifetime
                 var orchestrationInstance = await queryResponse.Content
                     .ReadFromJsonAsync<OrchestrationInstanceDto>();
 
-                return orchestrationInstance!.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated;
+                return orchestrationInstance!.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
+                       && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
             },
             timeLimit: TimeSpan.FromSeconds(40),
             delay: TimeSpan.FromSeconds(2));

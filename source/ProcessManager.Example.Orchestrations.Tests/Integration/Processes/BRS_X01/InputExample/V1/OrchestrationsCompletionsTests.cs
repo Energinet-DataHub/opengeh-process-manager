@@ -16,13 +16,13 @@
 // using System.Text.Json;
 // using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 // using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
-// using Energinet.DataHub.ProcessManagerExample.Orchestrations.Tests.Fixtures;
-// using Energinet.DataHub.ProcessManagerExample.Orchestrations.Tests.Models;
+// using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
+// using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Models;
 // using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 // using FluentAssertions;
 // using Xunit.Abstractions;
 //
-// namespace Energinet.DataHub.ProcessManagerExample.Orchestrations.Tests.Integration.Processes.BRS_X01.Examples.V1;
+// namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.Examples.V1;
 //
 // /// <summary>
 // /// Tests that verify that we can start and finish a "BRS_X01" orchestration.

@@ -19,13 +19,13 @@
 // using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1;
 // using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
 // using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.Example.V1;
-// using Energinet.DataHub.ProcessManagerExample.Orchestrations.Tests.Fixtures;
+// using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 // using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 // using FluentAssertions;
 // using NodaTime;
 // using Xunit.Abstractions;
 //
-// namespace Energinet.DataHub.ProcessManagerExample.Orchestrations.Tests.Integration.Processes.BRS_X01.Examples.V1;
+// namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.Examples.V1;
 //
 // /// <summary>
 // /// Tests that verify that we can search in "BRS_X01" orchestrations.

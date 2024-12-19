@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
-
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>

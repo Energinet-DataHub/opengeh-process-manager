@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
@@ -27,7 +26,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_X01.V1;
+namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_X01.InputExample.V1;
 
 /// <summary>
 /// Test case where we verify the Process Manager clients can be used to start an

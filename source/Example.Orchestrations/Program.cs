@@ -15,9 +15,6 @@
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example;
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1;
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;

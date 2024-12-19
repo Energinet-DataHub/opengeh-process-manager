@@ -21,9 +21,9 @@ using Xunit.Abstractions;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
-/// Support testing the interactions with Example.Orchestrations and
+/// Support testing the interactions with ProcessManager.Example.Orchestrations and
 /// Process Manager Api, by coordinating the startup of the dependent applications
-/// Example.Orchestrations and ProcessManager (Api).
+/// ProcessManager.Example.Orchestrations and ProcessManager (Api).
 /// </summary>
 public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 {

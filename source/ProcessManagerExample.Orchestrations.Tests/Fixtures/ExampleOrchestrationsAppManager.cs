@@ -101,7 +101,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             await DatabaseManager.CreateDatabaseAsync();
 
         // Prepare host settings
-        var appHostSettings = CreateAppHostSettings("Example.Orchestrations");
+        var appHostSettings = CreateAppHostSettings("ProcessManager.Example.Orchestrations");
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);

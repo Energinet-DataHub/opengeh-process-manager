@@ -55,7 +55,7 @@ var host = new HostBuilder()
     })
     .Build();
 
-await host.SynchronizeWithOrchestrationRegisterAsync("Example.Orchestrations").ConfigureAwait(false);
+await host.SynchronizeWithOrchestrationRegisterAsync("ProcessManager.Example.Orchestrations").ConfigureAwait(false);
 await host.RunAsync().ConfigureAwait(false);
 
 OrchestrationDescription CreateDescription_Brs_X01_Example_V1()

@@ -26,7 +26,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\ProcessManager.DatabaseMigration\ProcessManager.DatabaseMigration.csproj" />
-        <ProjectReference Include="..\Example.Orchestrations\Example.Orchestrations.csproj" />
+        <ProjectReference Include="..\ProcessManager.Example.Orchestrations\ProcessManager.Example.Orchestrations.csproj" />
         <ProjectReference Include="..\ProcessManager\ProcessManager.csproj" />
     </ItemGroup>
 

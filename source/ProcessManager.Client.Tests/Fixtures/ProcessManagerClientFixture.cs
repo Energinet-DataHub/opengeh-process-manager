@@ -23,7 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 
 /// <summary>
 /// Support testing the Process Manager Clients by coordinating the startup
-/// of the dependent applications Example.Orchestrations and ProcessManager (Api).
+/// of the dependent applications ProcessManager.Example.Orchestrations and ProcessManager (Api).
 /// </summary>
 public class ProcessManagerClientFixture : IAsyncLifetime
 {

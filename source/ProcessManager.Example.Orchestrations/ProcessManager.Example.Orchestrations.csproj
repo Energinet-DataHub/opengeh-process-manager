@@ -12,7 +12,7 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />
-        <ProjectReference Include="..\Example.Orchestrations.Abstrations\Example.Orchestrations.Abstrations.csproj" />
+        <ProjectReference Include="..\ProcessManager.Example.Orchestrations.Abstrations\ProcessManager.Example.Orchestrations.Abstrations.csproj" />
     </ItemGroup>
 
     <ItemGroup>

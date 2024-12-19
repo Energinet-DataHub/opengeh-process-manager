@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Model;
+using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Activities;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Activities;
 
-internal class InitializeOrchestrationActivity_Brs_X01_Example_V1(
+internal class OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(InitializeOrchestrationActivity_Brs_X01_Example_V1))]
+    [Function(nameof(OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1))]
     public async Task<OrchestrationExecutionPlan> Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -40,9 +40,12 @@ internal class InitializeOrchestrationActivity_Brs_X01_Example_V1(
 
         // Orchestrations that have input have a custom start handler in which they can
         // transition steps to skipped before starting the orchestration.
-        // We can extract that information and use it to plan the execution of the orchestrations.
+        // Orchestrations without input doesn't have a custom start handler, so if they
+        // want to skip steps it must be done dynamically during the orchestration.
+        // Here we just use a random function to determine if skippable functions should be skipped or not.
+        var shouldSkip = Random.Shared.Next(0, 2) == 0;
         var stepsSkippedBySequence = orchestrationInstance.Steps
-            .Where(step => step.IsSkipped())
+            .Where(step => step.Lifecycle.CanBeSkipped && shouldSkip)
             .Select(step => step.Sequence)
             .ToList();
         return new OrchestrationExecutionPlan(stepsSkippedBySequence);

@@ -14,30 +14,31 @@
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Client.Tests.Extensions;
-using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_026_028.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_026_028.V1;
 
 /// <summary>
 /// Test collection that verifies the Process Manager clients can be used to start a
 /// request calculated energy time series orchestration and monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ProcessManagerClientCollection))]
+[Collection(nameof(OrchestrationsAppCollection))]
 public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
 {
-    private readonly ProcessManagerClientFixture _fixture;
+    private readonly OrchestrationsAppFixture _fixture;
 
     public RequestCalculatedEnergyTimeSeriesTests(
-        ProcessManagerClientFixture fixture,
+        OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;

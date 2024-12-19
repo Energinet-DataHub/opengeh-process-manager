@@ -50,7 +50,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             new IntegrationTestConfiguration(),
             new AzuriteManager(useOAuth: true),
             taskHubName: "OrchestrationsTest01",
-            appPort: 8010,
+            appPort: 8002,
             manageDatabase: true,
             manageAzurite: true)
     {
@@ -107,10 +107,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     {
         if (_manageAzurite)
         {
-            // Clean up old Azurite storage
-            CleanupAzuriteStorage();
-
-            // Storage emulator
+            AzuriteManager.CleanupAzuriteStorage();
             AzuriteManager.StartAzurite();
         }
 
@@ -176,16 +173,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)
     {
         TestLogger.TestOutputHelper = testOutputHelper;
-    }
-
-    /// <summary>
-    /// Cleanup Azurite storage to avoid situations where Durable Functions
-    /// would otherwise continue working on old orchestrations that e.g. failed in
-    /// previous runs.
-    /// </summary>
-    public void CleanupAzuriteStorage()
-    {
-        AzuriteManager.CleanupAzuriteStorage();
     }
 
     private static void StartHost(FunctionAppHostManager hostManager)

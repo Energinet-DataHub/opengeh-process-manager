@@ -33,7 +33,7 @@ internal class StartTrigger_Brs_X01_InputExample_V1(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "orchestrationinstance/command/start/custom/Brs_X01_Example/1")]
+            Route = "orchestrationinstance/command/start/custom/Brs_X01_InputExample/1")]
         HttpRequest httpRequest,
         [FromBody]
         StartInputExampleCommandV1 command,

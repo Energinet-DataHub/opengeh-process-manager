@@ -12,34 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1;
 
-internal class StartTrigger_Brs_X01_Example_V1(
-    StartExampleHandlerV1 exampleHandler)
+internal class ScheduleTrigger_Brs_X01_InputExample_V1(
+    StartInputExampleHandlerV1 handler)
 {
-    private readonly StartExampleHandlerV1 _exampleHandler = exampleHandler;
+    private readonly StartInputExampleHandlerV1 _handler = handler;
 
     /// <summary>
-    /// Start a BRS-X01 and return its id.
+    /// Schedule a BRS-X01 and return its id.
     /// </summary>
-    [Function(nameof(StartTrigger_Brs_X01_Example_V1))]
+    [Function(nameof(ScheduleTrigger_Brs_X01_InputExample_V1))]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "orchestrationinstance/command/start/custom/Brs_X01_Example/1")]
+            Route = "orchestrationinstance/command/schedule/custom/brs_x01_example/1")]
         HttpRequest httpRequest,
         [FromBody]
-        StartExampleCommandV1 command,
+        ScheduleInputExampleCommandV1 command,
         FunctionContext executionContext)
     {
-        var orchestrationInstanceId = await _exampleHandler.StartNewExampleAsync(command).ConfigureAwait(false);
+        var orchestrationInstanceId = await _handler.ScheduleNewExampleAsync(command).ConfigureAwait(false);
         return new OkObjectResult(orchestrationInstanceId.Value);
     }
 }

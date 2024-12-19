@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
+
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
 /// A xUnit collection fixture for ensuring tests don't run in parallel.

@@ -15,8 +15,6 @@
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example;
 using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1;
 using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
@@ -24,6 +22,11 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -46,8 +49,8 @@ var host = new HostBuilder()
         });
 
         // => Handlers
-        services.AddScoped<SearchExampleHandler>();
-        services.AddScoped<StartExampleHandlerV1>();
+        services.AddScoped<SearchInputExampleHandler>();
+        services.AddScoped<StartInputExampleHandlerV1>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {
@@ -60,14 +63,14 @@ await host.RunAsync().ConfigureAwait(false);
 
 OrchestrationDescription CreateDescription_Brs_X01_Example_V1()
 {
-    var orchestrationDescriptionUniqueName = new Brs_X01_Example_V1();
+    var orchestrationDescriptionUniqueName = new Brs_X01_InputExample_V1();
 
     var description = new OrchestrationDescription(
         uniqueName: new OrchestrationDescriptionUniqueName(
             orchestrationDescriptionUniqueName.Name,
             orchestrationDescriptionUniqueName.Version),
         canBeScheduled: true,
-        functionName: nameof(Orchestration_Brs_X01_Example_V1));
+        functionName: nameof(Orchestration_Brs_X01_InputExample_V1));
 
     description.ParameterDefinition.SetFromType<InputV1>();
 

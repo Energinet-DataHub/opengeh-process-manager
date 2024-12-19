@@ -12,29 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Activities;
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Model;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1;
 
-internal class Orchestration_Brs_X01_Example_V1
+internal class Orchestration_Brs_X01_InputExample_V1
 {
     internal const int FirstStepSequence = 1;
     internal const int SkippableStepSequence = 2;
 
     private readonly TaskOptions _defaultRetryOptions;
 
-    public Orchestration_Brs_X01_Example_V1()
+    public Orchestration_Brs_X01_InputExample_V1()
     {
         _defaultRetryOptions = CreateDefaultRetryOptions();
     }
 
-    [Function(nameof(Orchestration_Brs_X01_Example_V1))]
+    [Function(nameof(Orchestration_Brs_X01_InputExample_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
@@ -48,20 +48,20 @@ internal class Orchestration_Brs_X01_Example_V1
 
         // Initialize
         var executionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
-            nameof(InitializeOrchestrationActivity_Brs_X01_Example_V1),
-            new InitializeOrchestrationActivity_Brs_X01_Example_V1.ActivityInput(
+            nameof(InitializeOrchestrationActivity_Brs_X01_InputExample_V1),
+            new InitializeOrchestrationActivity_Brs_X01_InputExample_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
 
         // First Step
         await context.CallActivityAsync(
-            nameof(FirstStepStartActivity_Brs_X01_Example_V1),
-            new FirstStepStartActivity_Brs_X01_Example_V1.ActivityInput(
+            nameof(FirstStepStartActivity_Brs_X01_InputExample_V1),
+            new FirstStepStartActivity_Brs_X01_InputExample_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
         await context.CallActivityAsync(
-            nameof(FirstStepStopActivity_Brs_X01_Example_V1),
-            new FirstStepStopActivity_Brs_X01_Example_V1.ActivityInput(
+            nameof(FirstStepStopActivity_Brs_X01_InputExample_V1),
+            new FirstStepStopActivity_Brs_X01_InputExample_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
 
@@ -69,21 +69,21 @@ internal class Orchestration_Brs_X01_Example_V1
         if (!executionPlan.SkippedStepsBySequence.Contains(SkippableStepSequence))
         {
             await context.CallActivityAsync(
-                nameof(SecondStepStartActivity_Brs_X01_Example_V1),
-                new SecondStepStartActivity_Brs_X01_Example_V1.ActivityInput(
+                nameof(SecondStepStartActivity_Brs_X01_InputExample_V1),
+                new SecondStepStartActivity_Brs_X01_InputExample_V1.ActivityInput(
                     instanceId),
                 _defaultRetryOptions);
             await context.CallActivityAsync(
-                nameof(SecondStepStopActivity_Brs_X01_Example_V1),
-                new SecondStepStopActivity_Brs_X01_Example_V1.ActivityInput(
+                nameof(SecondStepStopActivity_Brs_X01_InputExample_V1),
+                new SecondStepStopActivity_Brs_X01_InputExample_V1.ActivityInput(
                     instanceId),
                 _defaultRetryOptions);
         }
 
         // Terminate
         await context.CallActivityAsync(
-            nameof(TerminateOrchestrationActivity_Brs_X01_Example_V1),
-            new TerminateOrchestrationActivity_Brs_X01_Example_V1.ActivityInput(
+            nameof(TerminateOrchestrationActivity_Brs_X01_InputExample_V1),
+            new TerminateOrchestrationActivity_Brs_X01_InputExample_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
 

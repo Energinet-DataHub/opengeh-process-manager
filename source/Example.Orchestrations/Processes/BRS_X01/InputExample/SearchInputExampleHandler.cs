@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1;
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Api.Mappers;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using NodaTime;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample;
 
-internal class SearchExampleHandler(
+internal class SearchInputExampleHandler(
     IOrchestrationInstanceQueries queries)
 {
     private readonly IOrchestrationInstanceQueries _queries = queries;
 
-    public async Task<IReadOnlyCollection<ExampleQueryResult>> SearchAsync(ExampleQuery query)
+    public async Task<IReadOnlyCollection<InputExampleQueryResult>> SearchAsync(InputExampleQuery query)
     {
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         //
@@ -64,7 +64,7 @@ internal class SearchExampleHandler(
             .ConfigureAwait(false);
 
         return calculations
-            .Select(item => new ExampleQueryResult(item.MapToTypedDto<InputV1>()))
+            .Select(item => new InputExampleQueryResult(item.MapToTypedDto<InputV1>()))
             .ToList();
     }
 }

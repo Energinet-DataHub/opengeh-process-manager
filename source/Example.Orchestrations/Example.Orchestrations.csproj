@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <AssemblyName>Energinet.DataHub.Example.Orchestrations</AssemblyName>
-        <RootNamespace>Energinet.DataHub.Example.Orchestrations</RootNamespace>
+        <AssemblyName>Energinet.DataHub.ProcessManager.Example.Orchestrations</AssemblyName>
+        <RootNamespace>Energinet.DataHub.ProcessManager.Example.Orchestrations</RootNamespace>
         <AzureFunctionsVersion>v4</AzureFunctionsVersion>
         <OutputType>Exe</OutputType>
     </PropertyGroup>

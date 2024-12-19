@@ -13,12 +13,12 @@
 // limitations under the License.
 
 using System.Net;
-using Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.Example.Orchestrations.Tests.Integration.Monitor;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Monitor;
 
 /// <summary>
 /// Tests verifying the configuration and behaviour of Health Checks.

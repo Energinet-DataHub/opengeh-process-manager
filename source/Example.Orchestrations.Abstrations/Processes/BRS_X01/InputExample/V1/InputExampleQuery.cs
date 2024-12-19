@@ -12,30 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 
-namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
 
 /// <summary>
 /// Query for searching for BRS-X01.
 /// Must be JSON serializable.
 /// </summary>
-public record ExampleQuery
-    : SearchOrchestrationInstancesByCustomQuery<ExampleQueryResult>
+public record InputExampleQuery
+    : SearchOrchestrationInstancesByCustomQuery<InputExampleQueryResult>
 {
     /// <summary>
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
     /// <param name="skippedStepTwo"> search criteria to check if step two was skipped</param>
-    public ExampleQuery(
+    public InputExampleQuery(
         UserIdentityDto operatingIdentity,
         bool skippedStepTwo = default)
             : base(
                 operatingIdentity,
-                new Brs_X01_Example_V1().Name)
+                new Brs_X01_InputExample_V1().Name)
     {
         SkippedStepTwo = skippedStepTwo;
     }

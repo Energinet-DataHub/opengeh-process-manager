@@ -12,13 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
+using NodaTime;
 
-namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
 
-/// <summary>
-/// An immutable input to start the orchestration instance for BRS_X01 V1.
-/// </summary>
-public record InputV1(
-    bool ShouldSkipSkippableStep)
-        : IInputParameterDto;
+internal abstract class ProgressActivityBase(
+    IClock clock,
+    IOrchestrationInstanceProgressRepository progressRepository)
+{
+    protected IClock Clock { get; } = clock;
+
+    protected IOrchestrationInstanceProgressRepository ProgressRepository { get; } = progressRepository;
+}

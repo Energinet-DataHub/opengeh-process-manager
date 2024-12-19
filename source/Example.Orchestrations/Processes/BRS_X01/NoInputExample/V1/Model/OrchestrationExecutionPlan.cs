@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Model;
 
 /// <summary>
 /// The purpose of this record is to give the orchestration information about

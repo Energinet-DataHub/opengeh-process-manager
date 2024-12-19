@@ -16,14 +16,14 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Energinet.DataHub.Core.TestCommon;
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
-using Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Tests.Integration.Processes;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.InputExample.V1;
 
 /// <summary>
 /// Test case where we verify the Example.Orchestrations and Process Manager Api
@@ -31,9 +31,9 @@ namespace Energinet.DataHub.ProcessManager.Tests.Integration.Processes;
 /// monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
-public class MonitorExampleUsingApiScenario : IAsyncLifetime
+public class MonitorInputExampleUsingApiScenario : IAsyncLifetime
 {
-    public MonitorExampleUsingApiScenario(
+    public MonitorInputExampleUsingApiScenario(
         ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
@@ -62,10 +62,10 @@ public class MonitorExampleUsingApiScenario : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
-        var orchestration = new Brs_X01_Example_V1();
+        var orchestration = new Brs_X01_InputExample_V1();
         var input = new InputV1(false);
 
-        var command = new StartExampleCommandV1(
+        var command = new StartInputExampleCommandV1(
              operatingIdentity: new UserIdentityDto(
                  Guid.NewGuid(),
                  Guid.NewGuid()),

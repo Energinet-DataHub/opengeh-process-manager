@@ -17,16 +17,16 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
 
-internal class TerminateOrchestrationActivity_Brs_X01_Example_V1(
+internal class SecondStepStartActivity_Brs_X01_InputExample_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(TerminateOrchestrationActivity_Brs_X01_Example_V1))]
+    [Function(nameof(SecondStepStartActivity_Brs_X01_InputExample_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -34,7 +34,10 @@ internal class TerminateOrchestrationActivity_Brs_X01_Example_V1(
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.Lifecycle.TransitionToSucceeded(Clock);
+        var step = orchestrationInstance.Steps
+            .Single(step => step.Sequence == Orchestration_Brs_X01_InputExample_V1.SkippableStepSequence);
+
+        step.Lifecycle.TransitionToRunning(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);

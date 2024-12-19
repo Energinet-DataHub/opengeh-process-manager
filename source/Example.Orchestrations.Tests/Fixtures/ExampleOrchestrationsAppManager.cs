@@ -22,7 +22,7 @@ using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Options
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
 /// Support testing Example Orchestrations app and specifying configuration using inheritance.

@@ -14,11 +14,12 @@
 
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
+using Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
 /// Support testing the interactions with Example.Orchestrations and

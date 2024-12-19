@@ -16,14 +16,14 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Energinet.DataHub.Core.TestCommon;
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
-using Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.NoInputExample;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.NoInputExample.V1;
 
 /// <summary>
 /// Test case where we verify the Example.Orchestrations and Process Manager Api

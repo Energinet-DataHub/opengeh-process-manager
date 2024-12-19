@@ -15,13 +15,14 @@
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1;
-using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
@@ -88,7 +89,7 @@ public class MonitorExampleUsingClientScenario : IAsyncLifetime
             ShouldSkipSkippableStep: false);
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
-                new StartExampleCommandV1(
+                new StartInputExampleCommandV1(
                     userIdentity,
                     input),
                 CancellationToken.None);
@@ -118,7 +119,7 @@ public class MonitorExampleUsingClientScenario : IAsyncLifetime
             .SearchOrchestrationInstancesByNameAsync<InputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
                     userIdentity,
-                    name: new Brs_X01_Example_V1().Name,
+                    name: new Brs_X01_InputExample_V1().Name,
                     version: null,
                     lifecycleState: OrchestrationInstanceLifecycleStates.Terminated,
                     terminationState: OrchestrationInstanceTerminationStates.Succeeded,
@@ -129,7 +130,7 @@ public class MonitorExampleUsingClientScenario : IAsyncLifetime
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
 
         // Step 4: Custom search
-        var customQuery = new ExampleQuery(userIdentity)
+        var customQuery = new InputExampleQuery(userIdentity)
         {
             SkippedStepTwo = input.ShouldSkipSkippableStep,
         };
@@ -156,7 +157,7 @@ public class MonitorExampleUsingClientScenario : IAsyncLifetime
         // Step 1: Schedule new example orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
-                new ScheduleExampleCommandV1(
+                new ScheduleInputExampleCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
                     inputParameter: new InputV1(
@@ -200,7 +201,7 @@ public class MonitorExampleUsingClientScenario : IAsyncLifetime
         // Step 1: Schedule new example orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
-                new ScheduleExampleCommandV1(
+                new ScheduleInputExampleCommandV1(
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
                     inputParameter: new InputV1(

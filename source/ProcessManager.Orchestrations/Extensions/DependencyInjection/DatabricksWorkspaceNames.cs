@@ -32,5 +32,5 @@ internal static class DatabricksWorkspaceNames
     /// Used for configuration section name when configuring the Measurements
     /// Databricks workspace, and as "key" when injecting the <see cref="IDatabricksJobsClient"/>.
     /// </summary>
-    public const string Measurements = "Measurements";
+    public const string Measurements = "MeasurementsWorkspace";
 }

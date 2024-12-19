@@ -5,6 +5,11 @@
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Orchestrations.Tests" />
+  </ItemGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="6.1.2" />

@@ -41,7 +41,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
             IntegrationTestConfiguration,
             AzuriteManager,
             taskHubName: TaskHubName,
-            appPort: 8113,
+            appPort: 8301,
             manageDatabase: false,
             manageAzurite: false);
 
@@ -50,7 +50,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
             IntegrationTestConfiguration,
             AzuriteManager,
             taskHubName: TaskHubName,
-            appPort: 8114,
+            appPort: 8302,
             manageDatabase: false,
             manageAzurite: false);
     }

@@ -50,7 +50,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             new IntegrationTestConfiguration(),
             new AzuriteManager(useOAuth: true),
             taskHubName: "OrchestrationsTest01",
-            appPort: 8010,
+            appPort: 8002,
             manageDatabase: true,
             manageAzurite: true)
     {

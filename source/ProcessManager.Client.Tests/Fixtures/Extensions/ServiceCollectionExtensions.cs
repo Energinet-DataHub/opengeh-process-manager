@@ -12,16 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-/// <summary>
-/// A xUnit collection fixture for ensuring tests don't run in parallel.
-///
-/// xUnit documentation of collection fixtures:
-///  * https://xunit.net/docs/shared-context#collection-fixture
-/// </summary>
-[CollectionDefinition(nameof(ObsoleteProcessManagerClientCollection))]
-public class ObsoleteProcessManagerClientCollection :
-    ICollectionFixture<ObsoleteProcessManagerClientFixture>
+namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures.Extensions;
+
+public static class ServiceCollectionExtensions
 {
+    public static IServiceCollection AddInMemoryConfiguration(
+        this IServiceCollection services,
+        Dictionary<string, string?> configurations)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configurations)
+            .Build();
+
+        services.AddScoped<IConfiguration>(_ => configuration);
+
+        return services;
+    }
 }

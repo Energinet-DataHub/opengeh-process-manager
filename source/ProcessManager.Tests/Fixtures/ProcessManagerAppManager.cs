@@ -46,7 +46,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
             new IntegrationTestConfiguration(),
             new AzuriteManager(useOAuth: true),
             taskHubName: "ProcessManagerTest01",
-            appPort: 8000,
+            appPort: 8001,
             manageDatabase: true,
             manageAzurite: true)
     {

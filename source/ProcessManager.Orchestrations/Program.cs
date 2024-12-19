@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
+using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
@@ -32,6 +33,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ProcessManager.Components.Extensions.DependencyInjection;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
@@ -45,6 +47,10 @@ var host = new HostBuilder()
         services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
+
+        // Databricks workspaces
+        services.AddDatabricksJobs(DatabricksWorkspaceNames.Wholesale);
+        services.AddDatabricksJobs(DatabricksWorkspaceNames.Measurements);
 
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);

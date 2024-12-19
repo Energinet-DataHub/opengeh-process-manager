@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.DurableTask" Version="1.2.2" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ProcessManager.Components\ProcessManager.Components.csproj" />
     <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />
     <ProjectReference Include="..\ProcessManager.Orchestrations.Abstractions\ProcessManager.Orchestrations.Abstractions.csproj" />
   </ItemGroup>

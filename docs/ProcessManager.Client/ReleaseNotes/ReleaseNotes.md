@@ -6,6 +6,10 @@
     - `ProcessManagerHttpClientsOptions`
     - `ProcessManagerServiceBusClientOptions`
 
+## Version 0.14.6
+
+- Internal refactoring.
+
 ## Version 0.14.5
 
 - Internal refactoring.

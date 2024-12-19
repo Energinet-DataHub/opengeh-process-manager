@@ -84,11 +84,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "7. Examples", "7. Examples"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{1F5C05E6-047F-42A6-8D1F-A272D8EE8E2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Orchestrations", "Example.Orchestrations\Example.Orchestrations.csproj", "{521163D1-3712-4DE6-A7BF-9425C9126350}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Example.Orchestrations", "ProcessManager.Example.Orchestrations\ProcessManager.Example.Orchestrations.csproj", "{521163D1-3712-4DE6-A7BF-9425C9126350}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Orchestrations.Abstrations", "Example.Orchestrations.Abstrations\Example.Orchestrations.Abstrations.csproj", "{13757251-5452-4F24-BF15-46997937AECD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Example.Orchestrations.Abstrations", "ProcessManager.Example.Orchestrations.Abstrations\ProcessManager.Example.Orchestrations.Abstrations.csproj", "{13757251-5452-4F24-BF15-46997937AECD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Orchestrations.Tests", "Example.Orchestrations.Tests\Example.Orchestrations.Tests.csproj", "{E394B655-B32A-416C-A3C9-BE6E475C60A8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Example.Orchestrations.Tests", "ProcessManager.Example.Orchestrations.Tests\ProcessManager.Example.Orchestrations.Tests.csproj", "{E394B655-B32A-416C-A3C9-BE6E475C60A8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Components", "ProcessManager.Components\ProcessManager.Components.csproj", "{D5F460EA-B843-465D-BD38-602CDD717936}"
 EndProject

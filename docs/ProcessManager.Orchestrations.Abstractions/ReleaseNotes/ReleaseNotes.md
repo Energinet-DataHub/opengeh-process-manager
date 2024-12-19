@@ -5,6 +5,10 @@
 - Do not allow empty string in values of the following options:
     - `ProcessManagerTopicOptions`
 
+## Version 0.2.7
+
+- Internal refactoring.
+
 ## Version 0.2.6
 
 - Internal refactoring.

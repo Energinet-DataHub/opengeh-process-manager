@@ -15,23 +15,23 @@
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
-/// Support testing the Process Manager Clients by coordinating the startup
-/// of the dependent applications ProcessManager.Example.Orchestrations and ProcessManager (Api).
+/// Support testing the interactions with ProcessManager.Example.Orchestrations and
+/// Process Manager Api, by coordinating the startup of the dependent applications
+/// ProcessManager.Example.Orchestrations and ProcessManager (Api).
 /// </summary>
-public class ProcessManagerClientFixture : IAsyncLifetime
+public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 {
-    private const string TaskHubName = "ClientTest01";
+    private const string TaskHubName = "ExampleOrchestrationsAppTest01";
 
-    public ProcessManagerClientFixture()
+    public ExampleOrchestrationsAppFixture()
     {
-        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManagerClientTests");
+        DatabaseManager = new ProcessManagerDatabaseManager("ExampleOrchestrationsAppTests");
         AzuriteManager = new AzuriteManager(useOAuth: true);
 
         IntegrationTestConfiguration = new IntegrationTestConfiguration();
@@ -41,7 +41,7 @@ public class ProcessManagerClientFixture : IAsyncLifetime
             IntegrationTestConfiguration,
             AzuriteManager,
             taskHubName: TaskHubName,
-            appPort: 8201,
+            appPort: 8301,
             manageDatabase: false,
             manageAzurite: false);
 
@@ -50,7 +50,7 @@ public class ProcessManagerClientFixture : IAsyncLifetime
             IntegrationTestConfiguration,
             AzuriteManager,
             taskHubName: TaskHubName,
-            appPort: 8202,
+            appPort: 8302,
             manageDatabase: false,
             manageAzurite: false);
     }

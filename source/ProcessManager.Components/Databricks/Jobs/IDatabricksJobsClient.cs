@@ -28,9 +28,9 @@ public interface IDatabricksJobsClient
     Task<JobRunId> StartJobAsync(string jobName, IReadOnlyCollection<string> pythonParameters);
 
     /// <summary>
-    /// Retrieve the run status of a given run.
+    /// Retrieve the job run status of a given run.
     /// </summary>
     /// <param name="runId">Run id.</param>
-    /// <returns>Run status.</returns>
-    Task<JobRunStatus> GetRunStatusAsync(JobRunId runId);
+    /// <returns>Job run status.</returns>
+    Task<JobRunStatus> GetJobRunStatusAsync(JobRunId runId);
 }

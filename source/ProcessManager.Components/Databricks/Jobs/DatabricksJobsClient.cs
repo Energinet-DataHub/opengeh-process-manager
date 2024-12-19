@@ -37,7 +37,7 @@ internal class DatabricksJobsClient(
     }
 
     /// <inheritdoc />
-    public async Task<JobRunStatus> GetRunStatusAsync(JobRunId runId)
+    public async Task<JobRunStatus> GetJobRunStatusAsync(JobRunId runId)
     {
         var result = await GetRunByIdAsync(runId).ConfigureAwait(false);
 

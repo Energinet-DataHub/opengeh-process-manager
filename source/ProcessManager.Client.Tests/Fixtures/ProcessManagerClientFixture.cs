@@ -12,39 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics.CodeAnalysis;
-using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
+using Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
 
+/// <summary>
+/// Support testing the Process Manager Clients by coordinating the startup
+/// of the dependent applications Example.Orchestrations and ProcessManager (Api).
+/// </summary>
 public class ProcessManagerClientFixture : IAsyncLifetime
 {
-    private const string TaskHubName = "ClientsTest01";
+    private const string TaskHubName = "ClientTest01";
 
     public ProcessManagerClientFixture()
     {
         DatabaseManager = new ProcessManagerDatabaseManager("ProcessManagerClientTests");
         AzuriteManager = new AzuriteManager(useOAuth: true);
-        DurableTaskManager = new DurableTaskManager(
-            "AzuriteConnectionString",
-            AzuriteManager.FullConnectionString);
 
         IntegrationTestConfiguration = new IntegrationTestConfiguration();
 
-        OrchestrationsAppManager = new OrchestrationsAppManager(
+        ExampleOrchestrationsAppManager = new ExampleOrchestrationsAppManager(
             DatabaseManager,
             IntegrationTestConfiguration,
             AzuriteManager,
             taskHubName: TaskHubName,
-            appPort: 8101,
+            appPort: 8113,
             manageDatabase: false,
             manageAzurite: false);
 
@@ -53,74 +50,45 @@ public class ProcessManagerClientFixture : IAsyncLifetime
             IntegrationTestConfiguration,
             AzuriteManager,
             taskHubName: TaskHubName,
-            appPort: 8102,
+            appPort: 8114,
             manageDatabase: false,
             manageAzurite: false);
-
-        ServiceBusResourceProvider = new ServiceBusResourceProvider(
-            OrchestrationsAppManager.TestLogger,
-            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
-            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
-    public OrchestrationsAppManager OrchestrationsAppManager { get; }
+    public ExampleOrchestrationsAppManager ExampleOrchestrationsAppManager { get; }
 
     public ProcessManagerAppManager ProcessManagerAppManager { get; }
-
-    [NotNull]
-    public IDurableClient? DurableClient { get; private set; }
-
-    [NotNull]
-    public TopicResource? ProcessManagerTopic { get; private set; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
     private AzuriteManager AzuriteManager { get; }
 
-    private DurableTaskManager DurableTaskManager { get; }
-
-    private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
-
     public async Task InitializeAsync()
     {
-        OrchestrationsAppManager.CleanupAzuriteStorage();
+        AzuriteManager.CleanupAzuriteStorage();
         AzuriteManager.StartAzurite();
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        DurableClient = DurableTaskManager.CreateClient(TaskHubName);
-
-        var brs026SubscriptionName = "brs-026-subscription";
-        var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
-
-        ProcessManagerTopic = await ServiceBusResourceProvider.BuildTopic("pm-topic")
-            .AddSubscription(brs026SubscriptionName)
-                .AddSubjectFilter("Brs_026")
-            .AddSubscription(brs021ForwardMeteredDataSubscriptionName)
-                .AddSubjectFilter("Brs_021_ForwardMeteredData")
-            .CreateAsync();
-        var brs026Subscription = ProcessManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
-        var brs021ForwardMeteredDataSubscription = ProcessManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
-
-        await OrchestrationsAppManager.StartAsync(brs026Subscription, brs021ForwardMeteredDataSubscription);
+        await ExampleOrchestrationsAppManager.StartAsync();
         await ProcessManagerAppManager.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
-        await OrchestrationsAppManager.DisposeAsync();
+        await ExampleOrchestrationsAppManager.DisposeAsync();
         await ProcessManagerAppManager.DisposeAsync();
-        await DurableTaskManager.DisposeAsync();
+
         await DatabaseManager.DeleteDatabaseAsync();
+
         AzuriteManager.Dispose();
-        await ServiceBusResourceProvider.DisposeAsync();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)
     {
-        OrchestrationsAppManager.SetTestOutputHelper(testOutputHelper);
+        ExampleOrchestrationsAppManager.SetTestOutputHelper(testOutputHelper);
         ProcessManagerAppManager.SetTestOutputHelper(testOutputHelper);
     }
 }

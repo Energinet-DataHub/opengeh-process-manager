@@ -31,13 +31,13 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_026_028.
 /// Test collection that verifies the Process Manager clients can be used to start a
 /// request calculated energy time series orchestration and monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ProcessManagerClientCollection))]
+[Collection(nameof(ObsoleteProcessManagerClientCollection))]
 public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
 {
-    private readonly ProcessManagerClientFixture _fixture;
+    private readonly ObsoleteProcessManagerClientFixture _fixture;
 
     public RequestCalculatedEnergyTimeSeriesTests(
-        ProcessManagerClientFixture fixture,
+        ObsoleteProcessManagerClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;

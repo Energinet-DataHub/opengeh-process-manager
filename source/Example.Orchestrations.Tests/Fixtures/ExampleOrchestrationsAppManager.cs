@@ -14,14 +14,12 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.Example.Orchestrations.Tests.Fixtures;
@@ -75,10 +73,6 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
 
         IntegrationTestConfiguration = configuration;
         AzuriteManager = azuriteManager;
-
-        DurableTaskManager = new DurableTaskManager(
-            nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString),
-            AzuriteManager.FullConnectionString);
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -88,14 +82,9 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     [NotNull]
     public FunctionAppHostManager? AppHostManager { get; private set; }
 
-    [NotNull]
-    public IDurableClient? DurableClient { get; private set; }
-
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
     private AzuriteManager AzuriteManager { get; }
-
-    private DurableTaskManager DurableTaskManager { get; }
 
     /// <summary>
     /// Start the example orchestration app
@@ -104,10 +93,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     {
         if (_manageAzurite)
         {
-            // Clean up old Azurite storage
-            CleanupAzuriteStorage();
-
-            // Storage emulator
+            AzuriteManager.CleanupAzuriteStorage();
             AzuriteManager.StartAzurite();
         }
 
@@ -119,16 +105,12 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
-
         StartHost(AppHostManager);
-
-        DurableClient = DurableTaskManager.CreateClient(taskHubName: _taskHubName);
     }
 
     public async ValueTask DisposeAsync()
     {
         AppHostManager.Dispose();
-        await DurableTaskManager.DisposeAsync();
 
         if (_manageAzurite)
             AzuriteManager.Dispose();
@@ -148,16 +130,6 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)
     {
         TestLogger.TestOutputHelper = testOutputHelper;
-    }
-
-    /// <summary>
-    /// Cleanup Azurite storage to avoid situations where Durable Functions
-    /// would otherwise continue working on old orchestrations that e.g. failed in
-    /// previous runs.
-    /// </summary>
-    public void CleanupAzuriteStorage()
-    {
-        AzuriteManager.CleanupAzuriteStorage();
     }
 
     private static void StartHost(FunctionAppHostManager hostManager)

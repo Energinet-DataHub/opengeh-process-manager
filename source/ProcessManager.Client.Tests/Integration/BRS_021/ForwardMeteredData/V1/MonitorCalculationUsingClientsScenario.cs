@@ -32,13 +32,13 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_021.Forw
 /// Test collection that verifies the Process Manager clients can be used to start a
 /// forward metered data orchestration and monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ProcessManagerClientCollection))]
+[Collection(nameof(ObsoleteProcessManagerClientCollection))]
 public class MonitorCalculationUsingClientsScenario : IAsyncLifetime
 {
-    private readonly ProcessManagerClientFixture _fixture;
+    private readonly ObsoleteProcessManagerClientFixture _fixture;
 
     public MonitorCalculationUsingClientsScenario(
-        ProcessManagerClientFixture fixture,
+        ObsoleteProcessManagerClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;

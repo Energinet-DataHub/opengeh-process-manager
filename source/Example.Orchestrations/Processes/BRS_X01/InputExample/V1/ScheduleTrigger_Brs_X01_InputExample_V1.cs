@@ -33,7 +33,7 @@ internal class ScheduleTrigger_Brs_X01_InputExample_V1(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "orchestrationinstance/command/schedule/custom/brs_x01_example/1")]
+            Route = "orchestrationinstance/command/schedule/custom/brs_x01_inputExample/1")]
         HttpRequest httpRequest,
         [FromBody]
         ScheduleInputExampleCommandV1 command,

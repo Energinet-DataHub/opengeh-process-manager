@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.Example.Orchestrations.Tests.Models;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Models;
 
 public record OrchestrationHistoryItem(
     string? EventType,

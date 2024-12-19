@@ -69,10 +69,10 @@ public class DatabricksJobsClientTests
             .ReturnsAsync((run, null));
 
         // Act
-        var actualJobRunState = await Sut.GetRunStatusAsync(JobRunId);
+        var actualJobRunStatus = await Sut.GetJobRunStatusAsync(JobRunId);
 
         // Assert
-        actualJobRunState.Should().Be(expectedJobRunState);
+        actualJobRunStatus.Should().Be(expectedJobRunState);
     }
 
     [Theory]
@@ -91,7 +91,7 @@ public class DatabricksJobsClientTests
             .ReturnsAsync((run, null));
 
         // Act
-        var act = async () => await Sut.GetRunStatusAsync(JobRunId);
+        var act = async () => await Sut.GetJobRunStatusAsync(JobRunId);
 
         // Assert
         await act.Should().NotThrowAsync("all states should be handled");

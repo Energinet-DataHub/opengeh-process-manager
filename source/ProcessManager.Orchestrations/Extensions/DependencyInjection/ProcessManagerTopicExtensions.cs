@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Azure.Identity;
-using Energinet.DataHub.Core.App.Common.Diagnostics.HealthChecks;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;

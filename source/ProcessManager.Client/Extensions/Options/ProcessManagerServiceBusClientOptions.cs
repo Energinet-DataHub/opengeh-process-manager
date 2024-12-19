@@ -27,6 +27,6 @@ public class ProcessManagerServiceBusClientOptions
     /// <summary>
     /// Name of the topic which the Process Manager receives service bus messages on
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string TopicName { get; set; } = string.Empty;
 }

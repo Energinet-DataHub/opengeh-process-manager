@@ -12,40 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Model;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1.Activities;
+namespace Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Activities;
 
-internal class InitializeOrchestrationActivity_Brs_X01_Example_V1(
+internal class SecondStepStopActivity_Brs_X01_NoInputExample_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(InitializeOrchestrationActivity_Brs_X01_Example_V1))]
-    public async Task<OrchestrationExecutionPlan> Run(
+    [Function(nameof(SecondStepStopActivity_Brs_X01_NoInputExample_V1))]
+    public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await ProgressRepository
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
+        var step = orchestrationInstance.Steps
+            .Single(step => step.Sequence == Orchestration_Brs_X01_NoInputExample_V1.SkippableStepSequence);
+
+        step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        // Orchestrations that have input have a custom start handler in which they can
-        // transition steps to skipped before starting the orchestration.
-        // We can extract that information and use it to plan the execution of the orchestrations.
-        var stepsSkippedBySequence = orchestrationInstance.Steps
-            .Where(step => step.IsSkipped())
-            .Select(step => step.Sequence)
-            .ToList();
-        return new OrchestrationExecutionPlan(stepsSkippedBySequence);
+        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 
     public record ActivityInput(

@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.2.6
+
+- Internal refactoring.
+
 ## Version 0.2.5
 
 - Add actor id to start orchestration messages.

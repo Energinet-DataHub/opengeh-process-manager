@@ -16,8 +16,10 @@ using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.Example.V1.Model;
+using Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example;
 using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.Example.V1;
+using Energinet.DataHub.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
@@ -37,9 +39,10 @@ var host = new HostBuilder()
         // => Orchestration Descriptions
         services.AddProcessManagerForOrchestrations(() =>
         {
-            var brs_X01_Example_V1 = CreateBrs_X01_Example_V1Description();
+            var brs_X01_Example_V1 = CreateDescription_Brs_X01_Example_V1();
+            var brs_X01_NoInputExample_V1 = CreateDescription_Brs_X01_NoInputExample_V1();
 
-            return [brs_X01_Example_V1];
+            return [brs_X01_Example_V1, brs_X01_NoInputExample_V1];
         });
 
         // => Handlers
@@ -55,7 +58,7 @@ var host = new HostBuilder()
 await host.SynchronizeWithOrchestrationRegisterAsync("Example.Orchestrations").ConfigureAwait(false);
 await host.RunAsync().ConfigureAwait(false);
 
-OrchestrationDescription CreateBrs_X01_Example_V1Description()
+OrchestrationDescription CreateDescription_Brs_X01_Example_V1()
 {
     var orchestrationDescriptionUniqueName = new Brs_X01_Example_V1();
 
@@ -72,7 +75,27 @@ OrchestrationDescription CreateBrs_X01_Example_V1Description()
     description.AppendStepDescription(
         "Example step 2, can be skipped",
         canBeSkipped: true,
-        skipReason: "Do not perform this step if skipped");
+        skipReason: "Can be skipped based on input");
+
+    return description;
+}
+
+OrchestrationDescription CreateDescription_Brs_X01_NoInputExample_V1()
+{
+    var orchestrationDescriptionUniqueName = new Brs_X01_NoInputExample_V1();
+
+    var description = new OrchestrationDescription(
+        uniqueName: new OrchestrationDescriptionUniqueName(
+            orchestrationDescriptionUniqueName.Name,
+            orchestrationDescriptionUniqueName.Version),
+        canBeScheduled: true,
+        functionName: nameof(Orchestration_Brs_X01_NoInputExample_V1));
+
+    description.AppendStepDescription("Example step 1");
+    description.AppendStepDescription(
+        "Example step 2, can be skipped",
+        canBeSkipped: true,
+        skipReason: "Can be skipped during orchestration (dynamic); determined in initialization");
 
     return description;
 }

@@ -16,19 +16,19 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Mappers;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using ProcessManager.Components.Databricks.Jobs;
+using ProcessManager.Components.Databricks.Jobs.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 
-internal class CalculationStepStartDatabricksJobActivity_Brs_023_027_V1(
+internal class CalculationStepStartJobActivity_Brs_023_027_V1(
     [FromKeyedServices(DatabricksWorkspaceNames.Wholesale)] IDatabricksJobsClient client)
 {
     private readonly IDatabricksJobsClient _client = client;
 
-    [Function(nameof(CalculationStepStartDatabricksJobActivity_Brs_023_027_V1))]
+    [Function(nameof(CalculationStepStartJobActivity_Brs_023_027_V1))]
     public async Task<JobRunId> Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -43,12 +43,9 @@ internal class CalculationStepStartDatabricksJobActivity_Brs_023_027_V1(
             $"--created-by-user-id={input.UserId}",
         };
         if (input.OrchestrationInput.IsInternalCalculation)
-        {
             jobParameters.Add("--is-internal-calculation");
-        }
 
-        var jobRunId = await _client.StartJobAsync("CalculatorJob", jobParameters).ConfigureAwait(false);
-        return new JobRunId(jobRunId.Id);
+        return await _client.StartJobAsync("CalculatorJob", jobParameters).ConfigureAwait(false);
     }
 
     public record ActivityInput(

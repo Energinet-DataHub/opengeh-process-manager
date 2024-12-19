@@ -24,7 +24,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 
 /// <summary>
 /// The first activity in the orchestration.
-/// It is responsible for updating the status to 'Running'.
+/// It is responsible for updating the status to 'Running' and return
+/// key information needed to configure, plan and handle the orchestration execution.
 /// </summary>
 internal class OrchestrationInitializeActivity_Brs_023_027_V1(
     IClock clock,
@@ -37,6 +38,9 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
     public async Task<OrchestrationExecutionContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
+        // TODO: Add to dependency injection container and inject in constructor to be able to configure these in app settings.
+        var orchestrationOptions = new OrchestrationOptions_Brs_023_027_V1();
+
         var orchestrationInstance = await ProgressRepository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
@@ -53,6 +57,7 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
         .ToList();
 
         return new OrchestrationExecutionContext(
+            orchestrationOptions,
             userIdentityDto.UserId,
             userIdentityDto.ActorId,
             stepsSkippedBySequence);

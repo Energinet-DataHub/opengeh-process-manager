@@ -14,7 +14,7 @@
 
 using ProcessManager.Components.Databricks.Jobs;
 
-namespace Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 
 /// <summary>
 /// Constants used for the registration of Databricks Jobs API services

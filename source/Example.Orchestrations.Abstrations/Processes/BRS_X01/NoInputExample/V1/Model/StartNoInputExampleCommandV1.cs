@@ -21,14 +21,14 @@ namespace Energinet.DataHub.Example.Orchestrations.Abstractions.Processes.BRS_X0
 /// Command for starting a BRS-X01 no-input example.
 /// Must be JSON serializable.
 /// </summary>
-public sealed record StartNoInputExampleComandV1
+public sealed record StartNoInputExampleCommandV1
     : StartOrchestrationInstanceCommand<UserIdentityDto>
 {
     /// <summary>
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    public StartNoInputExampleComandV1(
+    public StartNoInputExampleCommandV1(
         UserIdentityDto operatingIdentity)
             : base(
                 operatingIdentity,

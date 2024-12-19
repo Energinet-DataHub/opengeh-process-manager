@@ -64,7 +64,7 @@ public class MonitorNoInputExampleUsingApiScenario : IAsyncLifetime
     {
         var orchestration = new Brs_X01_NoInputExample_V1();
 
-        var command = new StartNoInputExampleComandV1(
+        var command = new StartNoInputExampleCommandV1(
              operatingIdentity: new UserIdentityDto(
                  Guid.NewGuid(),
                  Guid.NewGuid()));

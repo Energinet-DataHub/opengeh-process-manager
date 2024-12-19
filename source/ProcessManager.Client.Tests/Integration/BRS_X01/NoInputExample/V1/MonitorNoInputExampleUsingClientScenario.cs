@@ -84,7 +84,7 @@ public class MonitorNoInputExampleUsingClientScenario : IAsyncLifetime
         // Step 1: Start new orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
-                new StartNoInputExampleComandV1(
+                new StartNoInputExampleCommandV1(
                     userIdentity),
                 CancellationToken.None);
 

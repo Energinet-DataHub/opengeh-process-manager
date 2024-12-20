@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjec
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Mappers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
+using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 
@@ -37,8 +38,8 @@ internal class CalculationStepStartJobActivity_Brs_023_027_V1(
         {
             $"--calculation-id={input.InstanceId.Value}",
             $"--grid-areas=[{gridAreas}]",
-            $"--period-start-datetime={input.OrchestrationInput.PeriodStartDate}",
-            $"--period-end-datetime={input.OrchestrationInput.PeriodEndDate}",
+            $"--period-start-datetime={input.OrchestrationInput.PeriodStartDate.ToInstant()}",
+            $"--period-end-datetime={input.OrchestrationInput.PeriodEndDate.ToInstant()}",
             $"--calculation-type={CalculationTypeMapper.ToDeltaTableValue(input.OrchestrationInput.CalculationType)}",
             $"--created-by-user-id={input.UserId}",
         };

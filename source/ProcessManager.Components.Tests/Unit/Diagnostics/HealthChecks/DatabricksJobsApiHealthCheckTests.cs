@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Diagnostics.HealthChecks;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
-using ProcessManager.Components.Diagnostics.HealthChecks;
 using Xunit;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Diagnostics.HealthChecks;

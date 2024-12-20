@@ -87,9 +87,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 1: Start new calculation orchestration instance
         var inputParameter = new CalculationInputV1(
             CalculationTypes.WholesaleFixing,
-            GridAreaCodes: new[] { "543" },
-            PeriodStartDate: DateTimeOffset.Parse("2024-10-08T15:19:10.0151351+01:00"),
-            PeriodEndDate: DateTimeOffset.Parse("2024-10-11T16:19:10.0193962+01:00"),
+            GridAreaCodes: new[] { "804" },
+            PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
+            PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
             IsInternalCalculation: false);
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
@@ -171,9 +171,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     inputParameter: new CalculationInputV1(
                         CalculationTypes.BalanceFixing,
                         GridAreaCodes: new[] { "543" },
-                        PeriodStartDate: DateTimeOffset.Parse("2024-10-29T15:19:10.0151351+01:00"),
-                        PeriodEndDate: DateTimeOffset.Parse("2024-10-29T16:19:10.0193962+01:00"),
-                        IsInternalCalculation: true)),
+                        PeriodStartDate: new DateTimeOffset(2022, 1, 11, 23, 0, 0, TimeSpan.Zero),
+                        PeriodEndDate: new DateTimeOffset(2022, 1, 12, 23, 0, 0, TimeSpan.Zero),
+                        IsInternalCalculation: false)),
                 CancellationToken.None);
 
         // Step 2: Trigger the scheduler to queue the calculation orchestration instance
@@ -217,10 +217,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
                     inputParameter: new CalculationInputV1(
-                        CalculationTypes.BalanceFixing,
+                        CalculationTypes.Aggregation,
                         GridAreaCodes: new[] { "543" },
-                        PeriodStartDate: DateTimeOffset.Parse("2024-10-29T15:19:10.0151351+01:00"),
-                        PeriodEndDate: DateTimeOffset.Parse("2024-10-29T16:19:10.0193962+01:00"),
+                        PeriodStartDate: new DateTimeOffset(2022, 1, 11, 23, 0, 0, TimeSpan.Zero),
+                        PeriodEndDate: new DateTimeOffset(2022, 1, 12, 23, 0, 0, TimeSpan.Zero),
                         IsInternalCalculation: true)),
                 CancellationToken.None);
 

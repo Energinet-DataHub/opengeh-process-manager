@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Diagnostics.HealthChecks;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using ProcessManager.Components.Diagnostics.HealthChecks;
 
 namespace Energinet.DataHub.ProcessManager.Components.Extensions.Builder;
 

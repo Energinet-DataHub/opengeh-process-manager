@@ -51,7 +51,7 @@ internal static class CalculationTypeMapper
             _ => throw new ArgumentOutOfRangeException(
                 nameof(calculationType),
                 actualValue: calculationType,
-                "Value cannot be mapped to a string representation of a calculation type."),
+                "Value cannot be mapped to a string representation of a DeltaTableCalculation type."),
         };
     }
 }

@@ -26,12 +26,12 @@ public class ProcessManagerHttpClientsOptions
     /// <summary>
     /// Address to the general Api hosted in Process Manager.
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string GeneralApiBaseAddress { get; set; } = string.Empty;
 
     /// <summary>
     /// Address to the specific Api hosted in Process Manager Orchestrations.
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string OrchestrationsApiBaseAddress { get; set; } = string.Empty;
 }

@@ -184,7 +184,7 @@ public static class ProcessManagerExtensions
     }
 
     /// <summary>
-    /// Register Task Hub storage options and health checks.
+    /// Register Task Hub storage options.
     /// </summary>
     private static IServiceCollection AddTaskHubStorage(this IServiceCollection services)
     {
@@ -192,10 +192,6 @@ public static class ProcessManagerExtensions
             .AddOptions<ProcessManagerTaskHubOptions>()
             .BindConfiguration(configSectionPath: string.Empty)
             .ValidateDataAnnotations();
-
-        services
-            .AddHealthChecks();
-        // TODO: Add health check against Task Hub which means: Blob Containers, Queues and Tables
 
         return services;
     }

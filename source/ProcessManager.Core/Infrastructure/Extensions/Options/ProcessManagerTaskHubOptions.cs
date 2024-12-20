@@ -45,12 +45,12 @@ public class ProcessManagerTaskHubOptions
     /// <summary>
     /// Connection string for the Azure Storage that is used as the storage provider for Durable Functions.
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string ProcessManagerStorageConnectionString { get; set; } = string.Empty;
 
     /// <summary>
     /// Name of the Task Hub used by Durable Function.
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string ProcessManagerTaskHubName { get; set; } = string.Empty;
 }

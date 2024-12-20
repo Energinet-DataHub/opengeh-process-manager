@@ -12,12 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 
 /// <summary>
-/// The purpose of this record is to give the orchestration information about
-/// skipped steps. This allow us to handle decision about activities to skip within
-/// the orchestration instead of within activities.
+/// The converted status of a Databricks job execution.
+/// The purpose of this is to create an abstraction to the status used in the
+/// Databricks Jobs REST API documented here: https://docs.databricks.com/api/azure/workspace/jobs/getrun#status
 /// </summary>
-/// <param name="SkippedStepsBySequence">Contains the sequence number of any skipped steps.</param>
-public record OrchestrationExecutionPlan(IReadOnlyCollection<int> SkippedStepsBySequence);
+public enum JobRunStatus
+{
+    Pending = 0,
+    Queued,
+    Running,
+    Completed,
+    Failed,
+    Canceled,
+}

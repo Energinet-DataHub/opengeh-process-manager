@@ -22,7 +22,9 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Xunit.Abstractions;
 
@@ -265,6 +267,19 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}",
             brs021ForwardMeteredDataSubscription.SubscriptionName);
+        // => Databricks workspaces
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
+            IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.Token)}",
+            IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
+            IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.Token)}",
+            IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
 
         return appHostSettings;
     }

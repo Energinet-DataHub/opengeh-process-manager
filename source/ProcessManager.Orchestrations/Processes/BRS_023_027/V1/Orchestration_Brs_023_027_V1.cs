@@ -14,8 +14,10 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
+using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
@@ -44,14 +46,14 @@ internal class Orchestration_Brs_023_027_V1
         // Currently we inject parameters when an orchestration is started.
         // But 'context.InstanceId' contains the 'OrchestrationInstance.Id' so it is possible to load all
         // information about an 'OrchestrationInstance' in activities and use any information (e.g. UserIdentity).
-        var input = context.GetOrchestrationParameterValue<CalculationInputV1>();
-        if (input == null)
+        var orchestrationInput = context.GetOrchestrationParameterValue<CalculationInputV1>();
+        if (orchestrationInput == null)
             return "Error: No input specified.";
 
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         // Initialize
-        var executionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
+        var executionContext = await context.CallActivityAsync<OrchestrationExecutionContext>(
             nameof(OrchestrationInitializeActivity_Brs_023_027_V1),
             new OrchestrationInitializeActivity_Brs_023_027_V1.ActivityInput(
                 instanceId),
@@ -59,28 +61,99 @@ internal class Orchestration_Brs_023_027_V1
 
         // Step: Calculation
         await context.CallActivityAsync(
-            nameof(CalculationStepStartActivity_Brs_023_027_V1),
-            new CalculationStepStartActivity_Brs_023_027_V1.ActivityInput(
-                instanceId),
-            _defaultRetryOptions);
-        await context.CallActivityAsync(
-            nameof(CalculationStepTerminateActivity_Brs_023_027_V1),
-            new CalculationStepTerminateActivity_Brs_023_027_V1.ActivityInput(
-                instanceId),
+            nameof(TransitionStepToRunningActivity_Brs_023_027_V1),
+            new TransitionStepToRunningActivity_Brs_023_027_V1.ActivityInput(
+                instanceId,
+                CalculationStepSequence),
             _defaultRetryOptions);
 
+        // Start calculation (Databricks)
+        var jobRunId = await context.CallActivityAsync<JobRunId>(
+            nameof(CalculationStepStartJobActivity_Brs_023_027_V1),
+            new CalculationStepStartJobActivity_Brs_023_027_V1.ActivityInput(
+                instanceId,
+                executionContext.UserId,
+                orchestrationInput),
+            _defaultRetryOptions);
+
+        // TODO: We currently have removed the following functionality compared to the orchestration in Wholesale:
+        //  - Updating job status in SQL database; it can be found in durable function monitor if we need to
+        //  - "Restart" the calculation job if it was canceled; not sure this is a valid feature anymore
+        var continueCalculationMonitor = true;
+        var expiryTime = context.CurrentUtcDateTime
+            .AddSeconds(executionContext.OrchestrationOptions.CalculationJobStatusExpiryTimeInSeconds);
+        while (continueCalculationMonitor && context.CurrentUtcDateTime < expiryTime)
+        {
+            // Monitor calculation (Databricks)
+            var jobRunStatus = await context.CallActivityAsync<JobRunStatus>(
+                nameof(CalculationStepGetJobRunStatusActivity_Brs_023_027_V1),
+                new CalculationStepGetJobRunStatusActivity_Brs_023_027_V1.ActivityInput(
+                    jobRunId),
+                _defaultRetryOptions);
+
+            switch (jobRunStatus)
+            {
+                case JobRunStatus.Pending:
+                case JobRunStatus.Queued:
+                case JobRunStatus.Running:
+                    // Wait for the next checkpoint
+                    var nextCheckpoint = context.CurrentUtcDateTime
+                        .AddSeconds(executionContext.OrchestrationOptions.CalculationJobStatusPollingIntervalInSeconds);
+                    await context.CreateTimer(nextCheckpoint, CancellationToken.None);
+                    break;
+
+                case JobRunStatus.Completed:
+                    // Suceeded
+                    await context.CallActivityAsync(
+                        nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
+                        new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
+                            instanceId,
+                            CalculationStepSequence,
+                            OrchestrationStepTerminationStates.Succeeded),
+                        _defaultRetryOptions);
+
+                    continueCalculationMonitor = false;
+                    break;
+
+                case JobRunStatus.Failed:
+                case JobRunStatus.Canceled:
+                    // Failed
+                    await context.CallActivityAsync(
+                        nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
+                        new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
+                            instanceId,
+                            CalculationStepSequence,
+                            OrchestrationStepTerminationStates.Failed),
+                        _defaultRetryOptions);
+                    await context.CallActivityAsync(
+                        nameof(OrchestrationTerminateActivity_Brs_023_027_V1),
+                        new OrchestrationTerminateActivity_Brs_023_027_V1.ActivityInput(
+                            instanceId,
+                            OrchestrationInstanceTerminationStates.Failed),
+                        _defaultRetryOptions);
+
+                    // Quit orchestration
+                    return $"Error: Job run status '{jobRunStatus}'";
+                default:
+                    throw new InvalidOperationException("Unknown job run status '{jobRunStatus}'.");
+            }
+        }
+
         // Step: Enqueue messages
-        if (!executionPlan.SkippedStepsBySequence.Contains(EnqueueMessagesStepSequence))
+        if (!executionContext.SkippedStepsBySequence.Contains(EnqueueMessagesStepSequence))
         {
             await context.CallActivityAsync(
-                nameof(EnqueueMessagesStepStartActivity_Brs_023_027_V1),
-                new EnqueueMessagesStepStartActivity_Brs_023_027_V1.ActivityInput(
-                    instanceId),
+                nameof(TransitionStepToRunningActivity_Brs_023_027_V1),
+                new TransitionStepToRunningActivity_Brs_023_027_V1.ActivityInput(
+                    instanceId,
+                    EnqueueMessagesStepSequence),
                 _defaultRetryOptions);
             await context.CallActivityAsync(
-                nameof(EnqueueMessagesStepTerminateActivity_Brs_023_027_V1),
-                new EnqueueMessagesStepTerminateActivity_Brs_023_027_V1.ActivityInput(
-                    instanceId),
+                nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
+                new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
+                    instanceId,
+                    EnqueueMessagesStepSequence,
+                    OrchestrationStepTerminationStates.Succeeded),
                 _defaultRetryOptions);
         }
 
@@ -88,7 +161,8 @@ internal class Orchestration_Brs_023_027_V1
         await context.CallActivityAsync(
             nameof(OrchestrationTerminateActivity_Brs_023_027_V1),
             new OrchestrationTerminateActivity_Brs_023_027_V1.ActivityInput(
-                instanceId),
+                instanceId,
+                OrchestrationInstanceTerminationStates.Succeeded),
             _defaultRetryOptions);
 
         return "Success";

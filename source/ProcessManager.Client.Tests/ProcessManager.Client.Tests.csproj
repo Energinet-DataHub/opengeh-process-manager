@@ -14,7 +14,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -25,7 +25,6 @@
     <ProjectReference Include="..\ProcessManager.Example.Orchestrations\ProcessManager.Example.Orchestrations.csproj" />
     <ProjectReference Include="..\ProcessManager.Client\ProcessManager.Client.csproj" />
     <ProjectReference Include="..\ProcessManager.DatabaseMigration\ProcessManager.DatabaseMigration.csproj" />
-    <ProjectReference Include="..\ProcessManager.Orchestrations\ProcessManager.Orchestrations.csproj" />
     <ProjectReference Include="..\ProcessManager\ProcessManager.csproj" />
   </ItemGroup>
 

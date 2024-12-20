@@ -26,6 +26,6 @@ public class ProcessManagerOptions
     /// <summary>
     /// Connection string to the SQL database used by Process Manager components.
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string SqlDatabaseConnectionString { get; set; } = string.Empty;
 }

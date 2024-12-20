@@ -55,8 +55,8 @@ internal static class OrchestrationRegisterExtensions
                 .SingleOrDefault(x =>
                     x.UniqueName == hostDescription.UniqueName);
 
-            if (registerDescription == null || registerDescription.IsEnabled == false)
-                await register.RegisterAsync(hostDescription, hostName).ConfigureAwait(false);
+            if (register.ShouldRegisterOrUpdate(registerDescription, hostDescription))
+                await register.RegisterOrUpdateAsync(hostDescription, hostName).ConfigureAwait(false);
         }
     }
 }

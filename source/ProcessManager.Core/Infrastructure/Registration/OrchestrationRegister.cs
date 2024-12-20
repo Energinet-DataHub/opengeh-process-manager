@@ -61,38 +61,66 @@ internal class OrchestrationRegister(
     }
 
     /// <inheritdoc />
-    public async Task RegisterAsync(OrchestrationDescription orchestrationDescription, string hostName)
+    public bool ShouldRegisterOrUpdate(OrchestrationDescription? registerDescription, OrchestrationDescription hostDescription)
     {
-        ArgumentNullException.ThrowIfNull(orchestrationDescription);
+        return
+            registerDescription == null
+            || registerDescription.IsEnabled == false
+            || AnyRefreshablePropertyHasChanged(registerDescription, hostDescription);
+    }
+
+    /// <inheritdoc />
+    public async Task RegisterOrUpdateAsync(OrchestrationDescription hostDescription, string hostName)
+    {
+        ArgumentNullException.ThrowIfNull(hostDescription);
         ArgumentException.ThrowIfNullOrWhiteSpace(hostName);
 
-        var existing = await GetOrDefaultAsync(orchestrationDescription.UniqueName, isEnabled: null).ConfigureAwait(false);
-        if (existing == null)
+        var existingDescription = await GetOrDefaultAsync(hostDescription.UniqueName, isEnabled: null).ConfigureAwait(false);
+        if (existingDescription == null)
         {
-            // Enfore certain values
-            orchestrationDescription.HostName = hostName;
-            orchestrationDescription.IsEnabled = true;
-            _context.Add(orchestrationDescription);
+            // Enforce certain values
+            hostDescription.HostName = hostName;
+            hostDescription.IsEnabled = true;
+            _context.Add(hostDescription);
         }
         else
         {
-            existing.IsEnabled = true;
+            existingDescription.IsEnabled = true;
+            UpdateRefreshableProperties(existingDescription, hostDescription);
         }
 
         await _context.SaveChangesAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public async Task DeregisterAsync(OrchestrationDescription orchestrationDescription)
+    public async Task DeregisterAsync(OrchestrationDescription registerDescription)
     {
-        ArgumentNullException.ThrowIfNull(orchestrationDescription);
+        ArgumentNullException.ThrowIfNull(registerDescription);
 
-        var existing = await GetOrDefaultAsync(orchestrationDescription.UniqueName, isEnabled: true).ConfigureAwait(false);
-        if (existing == null)
+        var existingDescription = await GetOrDefaultAsync(registerDescription.UniqueName, isEnabled: true).ConfigureAwait(false);
+        if (existingDescription == null)
             throw new InvalidOperationException("Orchestration description has not been registered or is not currently enabled.");
 
-        existing.IsEnabled = false;
+        existingDescription.IsEnabled = false;
 
         await _context.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    private static bool AnyRefreshablePropertyHasChanged(
+        OrchestrationDescription registerDescription,
+        OrchestrationDescription hostDescription)
+    {
+        return registerDescription.RecurringCronExpression != hostDescription.RecurringCronExpression;
+    }
+
+    /// <summary>
+    /// Properties that can change the behaviour of the orchestation history should not be allowed to
+    /// change without bumping the version of the orchestration description.
+    /// </summary>
+    private static void UpdateRefreshableProperties(
+        OrchestrationDescription registerDescription,
+        OrchestrationDescription hostDescription)
+    {
+        registerDescription.RecurringCronExpression = hostDescription.RecurringCronExpression;
     }
 }

@@ -24,14 +24,27 @@ internal interface IOrchestrationRegister
     Task<IReadOnlyCollection<OrchestrationDescription>> GetAllByHostNameAsync(string hostName);
 
     /// <summary>
-    /// Durable Functions orchestration host's can use this method to register the orchestrations
+    /// Determine if <paramref name="hostDescription"/> is unknown to the register and needs to be registered;
+    /// or if it was previously disabled and needs to be enabled;
+    /// or if any refreshable property has changed.
+    /// </summary>
+    /// <param name="registerDescription">Orchestration description as described in the register.</param>
+    /// <param name="hostDescription">Orchestration description as described by the application host.</param>
+    /// <returns><see langword="true"/> if the orchestration description should be registered or updated; otherwise <see langword="false"/>.</returns>
+    bool ShouldRegisterOrUpdate(OrchestrationDescription? registerDescription, OrchestrationDescription hostDescription);
+
+    /// <summary>
+    /// Durable Functions orchestration host's can use this method to register or update the orchestrations
     /// they host.
     /// </summary>
-    Task RegisterAsync(OrchestrationDescription orchestrationDescription, string hostName);
+    /// <param name="hostDescription">Orchestration description as described by the application host.</param>
+    /// <param name="hostName">Name of the application host.</param>
+    Task RegisterOrUpdateAsync(OrchestrationDescription hostDescription, string hostName);
 
     /// <summary>
     /// Durable Functions orchestration host's can use this method to disable orchestrations they don't host anymore
     /// or want to disable for other reasons.
     /// </summary>
-    Task DeregisterAsync(OrchestrationDescription orchestrationDescription);
+    /// <param name="registerDescription">Orchestration description as described in the register.</param>
+    Task DeregisterAsync(OrchestrationDescription registerDescription);
 }

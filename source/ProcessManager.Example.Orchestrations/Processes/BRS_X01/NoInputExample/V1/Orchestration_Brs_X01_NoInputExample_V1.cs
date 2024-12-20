@@ -81,7 +81,8 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
         await context.CallActivityAsync(
             nameof(OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1),
             new OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1.ActivityInput(
-                instanceId),
+                instanceId,
+                OrchestrationInstanceTerminationStates.Succeeded),
             _defaultRetryOptions);
 
         return "Success";

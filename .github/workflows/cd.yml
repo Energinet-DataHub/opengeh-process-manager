@@ -139,7 +139,7 @@ jobs:
           token: ${{ steps.generate_token.outputs.token }}
           repository: ${{ vars.environment_repository_path }}
           event-type: process-manager-dbmigrations-deployment-request-domain
-          client-payload: '{"pr_number": "${{ steps.find_pull_request.outputs.pull_request_number }}"}' # yamllint disable-line rule:quoted-strings
+          client-payload: '{"dbmigrations_pr_number": "${{ steps.find_pull_request.outputs.pull_request_number }}"}' # yamllint disable-line rule:quoted-strings
 
   #
   # Send notification to teams channel if deployment dispatch failed

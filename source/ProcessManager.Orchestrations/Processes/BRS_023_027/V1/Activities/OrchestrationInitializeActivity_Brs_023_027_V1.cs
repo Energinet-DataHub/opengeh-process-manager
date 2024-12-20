@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Api.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -38,7 +39,9 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
     public async Task<OrchestrationExecutionContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        // TODO: Add to dependency injection container and inject in constructor to be able to configure these in app settings.
+        // IF we want to be able to configure this using app settings (or in tests), then
+        // add options to the dependency injection container
+        // and inject them in the constructor.
         var orchestrationOptions = new OrchestrationOptions_Brs_023_027_V1();
 
         var orchestrationInstance = await ProgressRepository

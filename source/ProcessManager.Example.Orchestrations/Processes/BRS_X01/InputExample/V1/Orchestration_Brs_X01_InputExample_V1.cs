@@ -64,7 +64,8 @@ internal class Orchestration_Brs_X01_InputExample_V1
             nameof(TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1),
             new TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1.ActivityInput(
                 instanceId,
-                FirstStepSequence),
+                FirstStepSequence,
+                OrchestrationStepTerminationStates.Succeeded),
             _defaultRetryOptions);
 
         // Skippable step
@@ -80,7 +81,8 @@ internal class Orchestration_Brs_X01_InputExample_V1
                 nameof(TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1),
                 new TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1.ActivityInput(
                     instanceId,
-                    SkippableStepSequence),
+                    SkippableStepSequence,
+                    OrchestrationStepTerminationStates.Succeeded),
                 _defaultRetryOptions);
         }
 

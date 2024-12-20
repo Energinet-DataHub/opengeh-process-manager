@@ -35,7 +35,7 @@ internal class TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1(
             .ConfigureAwait(false);
 
         var step = orchestrationInstance.Steps.Single(x => x.Sequence == input.StepSequence);
-        step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
+        step.Lifecycle.TransitionToTerminated(Clock, input.TerminationState);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
@@ -43,5 +43,6 @@ internal class TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        int StepSequence);
+        int StepSequence,
+        OrchestrationStepTerminationStates TerminationState);
 }

@@ -16,20 +16,21 @@ using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+using NodaTime;
 using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
 internal class StartCalculationHandlerV1(
+    DateTimeZone dateTimeZone,
     IStartOrchestrationInstanceCommands manager)
 {
+    private readonly DateTimeZone _dateTimeZone = dateTimeZone;
     private readonly IStartOrchestrationInstanceCommands _manager = manager;
 
     public async Task<OrchestrationInstanceId> StartNewCalculationAsync(StartCalculationCommandV1 command)
     {
-        // TODO:
-        // Server-side validation => Validate "period" is midnight values when given "timezone" etc.
-        // See class Calculation and method IsValid in Wholesale.
+        GuardInputParameter(command.InputParameter);
 
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
@@ -53,9 +54,7 @@ internal class StartCalculationHandlerV1(
 
     public async Task<OrchestrationInstanceId> ScheduleNewCalculationAsync(ScheduleCalculationCommandV1 command)
     {
-        // TODO:
-        // Server-side validation => Validate "period" is midnight values when given "timezone" etc.
-        // See class Calculation and method IsValid in Wholesale.
+        GuardInputParameter(command.InputParameter);
 
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
@@ -76,5 +75,55 @@ internal class StartCalculationHandlerV1(
             .ConfigureAwait(false);
 
         return orchestrationInstanceId;
+    }
+
+    private static bool IsEntireMonth(ZonedDateTime periodStart, ZonedDateTime periodEnd)
+    {
+        return periodStart.Day == 1 && periodEnd.LocalDateTime == periodStart.LocalDateTime.PlusMonths(1);
+    }
+
+    /// <summary>
+    /// Validate if input parameters are valid.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">If parameter input is not valid and exception is thrown that
+    /// contains validation errors in its message property.</exception>
+    private void GuardInputParameter(CalculationInputV1 inputParameter)
+    {
+        var validationErrors = new List<string>();
+
+        if (!inputParameter.GridAreaCodes.Any())
+            validationErrors.Add("Must contain at least one grid area code.");
+
+        if (inputParameter.PeriodStartDate >= inputParameter.PeriodEndDate)
+            validationErrors.Add($"'{nameof(inputParameter.PeriodStartDate)}' is greater or equal to '{nameof(inputParameter.PeriodEndDate)}'.");
+
+        var periodStart = inputParameter.PeriodStartDate.ToInstant();
+        var periodStartInTimeZone = new ZonedDateTime(periodStart, _dateTimeZone);
+
+        var periodEnd = inputParameter.PeriodEndDate.ToInstant();
+        var periodEndInTimeZone = new ZonedDateTime(periodEnd, _dateTimeZone);
+
+        // Validate that period start/end are set to midnight
+        if (periodStartInTimeZone.TimeOfDay != LocalTime.Midnight)
+            validationErrors.Add($"The period start '{periodStart}' must be midnight.");
+        if (periodEndInTimeZone.TimeOfDay != LocalTime.Midnight)
+            validationErrors.Add($"The period end '{periodEnd}' must be midnight.");
+
+        if (inputParameter.CalculationType is CalculationTypes.WholesaleFixing
+            or CalculationTypes.FirstCorrectionSettlement
+            or CalculationTypes.SecondCorrectionSettlement
+            or CalculationTypes.ThirdCorrectionSettlement)
+        {
+            if (!IsEntireMonth(periodStartInTimeZone, periodEndInTimeZone))
+            {
+                validationErrors.Add($"The period (start: '{periodStart}' end: '{periodEnd}') has to be an entire month when using calculation type '{inputParameter.CalculationType}'.");
+            }
+        }
+
+        if (inputParameter.IsInternalCalculation && inputParameter.CalculationType is not CalculationTypes.Aggregation)
+            validationErrors.Add($"Internal calculations is not allowed for '{inputParameter.CalculationType}'.");
+
+        if (validationErrors.Any())
+            throw new InvalidOperationException(string.Join(" ", validationErrors));
     }
 }

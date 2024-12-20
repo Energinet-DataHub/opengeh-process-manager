@@ -19,26 +19,27 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities;
 
-internal class CalculationStepTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1(
+internal class TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(CalculationStepTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1))]
+    [Function(nameof(TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1))]
     public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+        [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_021_ElectricalHeatingCalculation_V1.CalculationStep.Sequence);
-        step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
+        var step = orchestrationInstance.Steps.Single(step => step.Sequence == input.StepSequence);
+        step.Lifecycle.TransitionToRunning(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
+
+    public record ActivityInput(
+        OrchestrationInstanceId InstanceId,
+        int StepSequence);
 }

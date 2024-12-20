@@ -14,7 +14,10 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Api.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -22,7 +25,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 
 /// <summary>
 /// The first activity in the orchestration.
-/// It is responsible for updating the status to 'Running'.
+/// It is responsible for updating the status to 'Running' and return
+/// key information needed to configure, plan and handle the orchestration execution.
 /// </summary>
 internal class OrchestrationInitializeActivity_Brs_023_027_V1(
     IClock clock,
@@ -32,9 +36,14 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
         progressRepository)
 {
     [Function(nameof(OrchestrationInitializeActivity_Brs_023_027_V1))]
-    public async Task<OrchestrationExecutionPlan> Run(
+    public async Task<OrchestrationExecutionContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
+        // IF we want to be able to configure this using app settings (or in tests), then
+        // add options to the dependency injection container
+        // and inject them in the constructor.
+        var orchestrationOptions = new OrchestrationOptions_Brs_023_027_V1();
+
         var orchestrationInstance = await ProgressRepository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
@@ -42,11 +51,19 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
         orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
+        // Calculation must have been started by a User identity, so we know we can cast to it here
+        var userIdentityDto = (UserIdentityDto)orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto();
+
         var stepsSkippedBySequence = orchestrationInstance.Steps
             .Where(step => step.IsSkipped())
             .Select(step => step.Sequence)
-            .ToList();
-        return new OrchestrationExecutionPlan(stepsSkippedBySequence);
+        .ToList();
+
+        return new OrchestrationExecutionContext(
+            orchestrationOptions,
+            userIdentityDto.UserId,
+            userIdentityDto.ActorId,
+            stepsSkippedBySequence);
     }
 
     public record ActivityInput(

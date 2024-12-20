@@ -22,7 +22,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -74,7 +73,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact]
+    [Fact(Skip = "Must use WireMock to mock Databricks Job API")]
     public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();

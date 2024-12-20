@@ -75,7 +75,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact]
+    [Fact(Skip = "Must use WireMock to mock Databricks Job API")]
     public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
@@ -153,7 +153,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         ////orchestrationInstancesCustomSearch.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Fact(Skip = "Must use WireMock to mock Databricks Job API")]
     public async Task Calculation_WhenScheduledToRunInThePast_CanMonitorLifecycle()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();

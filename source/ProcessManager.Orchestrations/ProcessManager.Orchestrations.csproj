@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Api\Mappers\" />
+    <Folder Include="Processes\BRS_021\ElectricalHeatingCalculation\V1\Activities\CalculationStep\" />
     <Folder Include="Processes\BRS_021\ForwardMeteredData\" />
   </ItemGroup>
   <ItemGroup>

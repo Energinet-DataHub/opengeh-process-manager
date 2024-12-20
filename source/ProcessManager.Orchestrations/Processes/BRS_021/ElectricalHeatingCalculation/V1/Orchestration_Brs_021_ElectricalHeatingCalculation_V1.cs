@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Microsoft.Azure.Functions.Worker;
@@ -39,39 +40,54 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
+        var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
+
         // Initialize
-        var executionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
+        var executionContext = await context.CallActivityAsync<OrchestrationExecutionContext>(
             nameof(OrchestrationInitializeActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            context.InstanceId,
+            new OrchestrationInitializeActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                instanceId),
             _defaultRetryOptions);
 
         // Step: Calculation
         await context.CallActivityAsync(
-            nameof(CalculationStepStartActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            context.InstanceId,
+            nameof(TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1),
+            new TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                instanceId,
+                CalculationStep.Sequence),
             _defaultRetryOptions);
         await context.CallActivityAsync(
-            nameof(CalculationStepTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            context.InstanceId,
+            nameof(TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1),
+            new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                instanceId,
+                CalculationStep.Sequence,
+                OrchestrationStepTerminationStates.Succeeded),
             _defaultRetryOptions);
 
         // Step: Enqueue messages
-        if (!executionPlan.SkippedStepsBySequence.Contains(EnqueueMessagesStep.Sequence))
+        if (!executionContext.SkippedStepsBySequence.Contains(EnqueueMessagesStep.Sequence))
         {
             await context.CallActivityAsync(
-                nameof(EnqueueMessagesStepStartActivity_Brs_021_ElectricalHeatingCalculation_V1),
-                context.InstanceId,
+                nameof(TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1),
+                new TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                    instanceId,
+                    EnqueueMessagesStep.Sequence),
                 _defaultRetryOptions);
             await context.CallActivityAsync(
-                nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
-                context.InstanceId,
+                nameof(TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1),
+                new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                    instanceId,
+                    EnqueueMessagesStep.Sequence,
+                    OrchestrationStepTerminationStates.Succeeded),
                 _defaultRetryOptions);
         }
 
         // Terminate
         await context.CallActivityAsync(
             nameof(OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            context.InstanceId,
+            new OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                instanceId,
+                OrchestrationInstanceTerminationStates.Succeeded),
             _defaultRetryOptions);
 
         return "Success";

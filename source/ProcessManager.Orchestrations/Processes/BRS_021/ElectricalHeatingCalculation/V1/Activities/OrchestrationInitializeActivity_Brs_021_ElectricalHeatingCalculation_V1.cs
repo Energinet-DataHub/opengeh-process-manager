@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -22,7 +23,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 
 /// <summary>
 /// The first activity in the orchestration.
-/// It is responsible for updating the status to 'Running'.
+/// It is responsible for updating the status to 'Running' and return
+/// key information needed to configure, plan and handle the orchestration execution.
 /// </summary>
 internal class OrchestrationInitializeActivity_Brs_021_ElectricalHeatingCalculation_V1(
     IClock clock,
@@ -32,11 +34,16 @@ internal class OrchestrationInitializeActivity_Brs_021_ElectricalHeatingCalculat
         progressRepository)
 {
     [Function(nameof(OrchestrationInitializeActivity_Brs_021_ElectricalHeatingCalculation_V1))]
-    public async Task<OrchestrationExecutionPlan> Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+    public async Task<OrchestrationExecutionContext> Run(
+        [ActivityTrigger] ActivityInput input)
     {
+        // IF we want to be able to configure this using app settings (or in tests), then
+        // add options to the dependency injection container
+        // and inject them in the constructor.
+        var orchestrationOptions = new OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1();
+
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
         orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
@@ -45,7 +52,13 @@ internal class OrchestrationInitializeActivity_Brs_021_ElectricalHeatingCalculat
         var stepsSkippedBySequence = orchestrationInstance.Steps
             .Where(step => step.IsSkipped())
             .Select(step => step.Sequence)
-            .ToList();
-        return new OrchestrationExecutionPlan(stepsSkippedBySequence);
+        .ToList();
+
+        return new OrchestrationExecutionContext(
+            orchestrationOptions,
+            stepsSkippedBySequence);
     }
+
+    public record ActivityInput(
+        OrchestrationInstanceId InstanceId);
 }

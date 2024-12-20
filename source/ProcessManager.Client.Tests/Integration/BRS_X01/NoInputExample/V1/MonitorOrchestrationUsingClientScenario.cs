@@ -31,9 +31,9 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_X01.NoIn
 /// example orchestration (with no input parameter) and monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(ProcessManagerClientCollection))]
-public class MonitorNoInputExampleUsingClientScenario : IAsyncLifetime
+public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 {
-    public MonitorNoInputExampleUsingClientScenario(
+    public MonitorOrchestrationUsingClientScenario(
         ProcessManagerClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {

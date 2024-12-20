@@ -33,9 +33,9 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_X01.Inpu
 /// example orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(ProcessManagerClientCollection))]
-public class MonitorExampleUsingClientScenario : IAsyncLifetime
+public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 {
-    public MonitorExampleUsingClientScenario(
+    public MonitorOrchestrationUsingClientScenario(
         ProcessManagerClientFixture fixture,
         ITestOutputHelper testOutputHelper)
     {

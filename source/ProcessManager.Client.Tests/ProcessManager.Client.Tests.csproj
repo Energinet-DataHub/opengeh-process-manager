@@ -8,16 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\ProcessManager.Core.Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
-    <Compile Include="..\ProcessManager.Example.Orchestrations.Tests\Fixtures\ExampleOrchestrationsAppManager.cs">
-      <Link>Fixtures\ExampleOrchestrationsAppManager.cs</Link>
-    </Compile>
-    <Compile Include="..\ProcessManager.Tests\Fixtures\ProcessManagerAppManager.cs">
-      <Link>Fixtures\ProcessManagerAppManager.cs</Link>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

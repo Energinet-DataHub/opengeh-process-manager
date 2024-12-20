@@ -14,40 +14,35 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
 
-internal class InitializeOrchestrationActivity_Brs_X01_InputExample_V1(
+internal class TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(InitializeOrchestrationActivity_Brs_X01_InputExample_V1))]
-    public async Task<OrchestrationExecutionPlan> Run(
+    [Function(nameof(TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1))]
+    public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await ProgressRepository
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
+        var step = orchestrationInstance.Steps.Single(x => x.Sequence == input.StepSequence);
+        step.Lifecycle.TransitionToTerminated(Clock, input.TerminationState);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        // Orchestrations that have input have a custom start handler in which they can
-        // transition steps to skipped before starting the orchestration.
-        // We can extract that information and use it to plan the execution of the orchestrations.
-        var stepsSkippedBySequence = orchestrationInstance.Steps
-            .Where(step => step.IsSkipped())
-            .Select(step => step.Sequence)
-            .ToList();
-        return new OrchestrationExecutionPlan(stepsSkippedBySequence);
+        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId OrchestrationInstanceId);
+        OrchestrationInstanceId OrchestrationInstanceId,
+        int StepSequence,
+        OrchestrationStepTerminationStates TerminationState);
 }

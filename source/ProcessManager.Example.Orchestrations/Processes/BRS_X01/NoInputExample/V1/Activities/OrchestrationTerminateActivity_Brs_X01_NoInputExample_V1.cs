@@ -26,6 +26,9 @@ internal class OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1(
         clock,
         progressRepository)
 {
+    private readonly IClock _clock = clock;
+    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+
     [Function(nameof(OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
@@ -34,12 +37,27 @@ internal class OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1(
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.Lifecycle.TransitionToSucceeded(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        switch (input.TerminationState)
+        {
+            case OrchestrationInstanceTerminationStates.Succeeded:
+                orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
+                break;
+
+            case OrchestrationInstanceTerminationStates.Failed:
+                orchestrationInstance.Lifecycle.TransitionToFailed(_clock);
+                break;
+
+            case OrchestrationInstanceTerminationStates.UserCanceled:
+            default:
+                throw new ArgumentOutOfRangeException(nameof(input.TerminationState), input.TerminationState, "Invalid termination state");
+        }
+
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId OrchestrationInstanceId);
+        OrchestrationInstanceId OrchestrationInstanceId,
+        OrchestrationInstanceTerminationStates TerminationState);
 }

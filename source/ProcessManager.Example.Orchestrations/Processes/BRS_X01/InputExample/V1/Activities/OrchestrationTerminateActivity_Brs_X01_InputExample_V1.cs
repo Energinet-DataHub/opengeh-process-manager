@@ -17,16 +17,19 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
 
-internal class FirstStepStartActivity_Brs_X01_NoInputExample_V1(
+internal class OrchestrationTerminateActivity_Brs_X01_InputExample_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(FirstStepStartActivity_Brs_X01_NoInputExample_V1))]
+    private readonly IClock _clock = clock;
+    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+
+    [Function(nameof(OrchestrationTerminateActivity_Brs_X01_InputExample_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -34,13 +37,27 @@ internal class FirstStepStartActivity_Brs_X01_NoInputExample_V1(
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(x => x.Sequence == Orchestration_Brs_X01_NoInputExample_V1.FirstStepSequence);
-        step.Lifecycle.TransitionToRunning(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        switch (input.TerminationState)
+        {
+            case OrchestrationInstanceTerminationStates.Succeeded:
+                orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
+                break;
+
+            case OrchestrationInstanceTerminationStates.Failed:
+                orchestrationInstance.Lifecycle.TransitionToFailed(_clock);
+                break;
+
+            case OrchestrationInstanceTerminationStates.UserCanceled:
+            default:
+                throw new ArgumentOutOfRangeException(nameof(input.TerminationState), input.TerminationState, "Invalid termination state");
+        }
+
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId OrchestrationInstanceId);
+        OrchestrationInstanceId OrchestrationInstanceId,
+        OrchestrationInstanceTerminationStates TerminationState);
 }

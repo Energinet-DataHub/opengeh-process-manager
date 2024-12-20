@@ -18,30 +18,30 @@ using System.Text.Json;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.InputExample.V1;
+namespace Energinet.DataHub.ProcessManager.Tests.Integration.Processes.BRS_X01.NoInputExample.V1;
 
 /// <summary>
 /// Test case where we verify the ProcessManager.Example.Orchestrations and Process Manager Api
-/// can be used to start an example orchestration (with input parameter) and
+/// can be used to start an example orchestration (with no-input parameter) and
 /// monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ExampleOrchestrationsAppCollection))]
-public class MonitorInputExampleUsingApiScenario : IAsyncLifetime
+[Collection(nameof(ProcessManagerAppCollection))]
+public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
 {
-    public MonitorInputExampleUsingApiScenario(
-        ExampleOrchestrationsAppFixture fixture,
+    public MonitorOrchestrationUsingApiScenario(
+        ProcessManagerAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
     }
 
-    private ExampleOrchestrationsAppFixture Fixture { get; }
+    private ProcessManagerAppFixture Fixture { get; }
 
     public Task InitializeAsync()
     {
@@ -60,27 +60,23 @@ public class MonitorInputExampleUsingApiScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
+    public async Task NoInputExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
-        var orchestration = new Brs_X01_InputExample_V1();
-        var input = new InputV1(false);
-
-        var command = new StartInputExampleCommandV1(
+        var command = new StartNoInputExampleCommandV1(
              operatingIdentity: new UserIdentityDto(
                  Guid.NewGuid(),
-                 Guid.NewGuid()),
-             input);
+                 Guid.NewGuid()));
 
         using var scheduleRequest = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/api/orchestrationinstance/command/start/custom/{orchestration.Name}/{orchestration.Version}");
+            $"/api/orchestrationinstance/command/start");
         scheduleRequest.Content = new StringContent(
             JsonSerializer.Serialize(command),
             Encoding.UTF8,
             "application/json");
 
         // Step 1: Start new orchestration instance
-        using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
+        using var response = await Fixture.ProcessManagerAppManager.AppHostManager
             .HttpClient
             .SendAsync(scheduleRequest);
         response.EnsureSuccessStatusCode();
@@ -115,7 +111,7 @@ public class MonitorInputExampleUsingApiScenario : IAsyncLifetime
                     .ReadFromJsonAsync<OrchestrationInstanceDto>();
 
                 return orchestrationInstance!.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance!.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
+                       && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
             },
             timeLimit: TimeSpan.FromSeconds(40),
             delay: TimeSpan.FromSeconds(2));

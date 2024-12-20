@@ -48,28 +48,34 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
 
         // First Step
         await context.CallActivityAsync(
-            nameof(FirstStepStartActivity_Brs_X01_NoInputExample_V1),
-            new FirstStepStartActivity_Brs_X01_NoInputExample_V1.ActivityInput(
-                instanceId),
+            nameof(TransitionStepToRunningActivity_Brs_X01_NoInputExample_V1),
+            new TransitionStepToRunningActivity_Brs_X01_NoInputExample_V1.ActivityInput(
+                instanceId,
+                FirstStepSequence),
             _defaultRetryOptions);
         await context.CallActivityAsync(
-            nameof(FirstStepStopActivity_Brs_X01_NoInputExample_V1),
-            new FirstStepStopActivity_Brs_X01_NoInputExample_V1.ActivityInput(
-                instanceId),
+            nameof(TransitionStepToTerminatedActivity_Brs_X01_NoInputExample_V1),
+            new TransitionStepToTerminatedActivity_Brs_X01_NoInputExample_V1.ActivityInput(
+                instanceId,
+                FirstStepSequence,
+                OrchestrationStepTerminationStates.Succeeded),
             _defaultRetryOptions);
 
         // Skippable step
         if (!executionPlan.SkippedStepsBySequence.Contains(SkippableStepSequence))
         {
             await context.CallActivityAsync(
-                nameof(SecondStepStartActivity_Brs_X01_NoInputExample_V1),
-                new SecondStepStartActivity_Brs_X01_NoInputExample_V1.ActivityInput(
-                    instanceId),
+                nameof(TransitionStepToRunningActivity_Brs_X01_NoInputExample_V1),
+                new TransitionStepToRunningActivity_Brs_X01_NoInputExample_V1.ActivityInput(
+                    instanceId,
+                    SkippableStepSequence),
                 _defaultRetryOptions);
             await context.CallActivityAsync(
-                nameof(SecondStepStopActivity_Brs_X01_NoInputExample_V1),
-                new SecondStepStopActivity_Brs_X01_NoInputExample_V1.ActivityInput(
-                    instanceId),
+                nameof(TransitionStepToTerminatedActivity_Brs_X01_NoInputExample_V1),
+                new TransitionStepToTerminatedActivity_Brs_X01_NoInputExample_V1.ActivityInput(
+                    instanceId,
+                    SkippableStepSequence,
+                    OrchestrationStepTerminationStates.Succeeded),
                 _defaultRetryOptions);
         }
 
@@ -77,7 +83,8 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
         await context.CallActivityAsync(
             nameof(OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1),
             new OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1.ActivityInput(
-                instanceId),
+                instanceId,
+                OrchestrationInstanceTerminationStates.Succeeded),
             _defaultRetryOptions);
 
         return "Success";

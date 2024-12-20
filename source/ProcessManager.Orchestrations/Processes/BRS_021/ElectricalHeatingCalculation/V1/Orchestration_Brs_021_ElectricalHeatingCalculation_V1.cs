@@ -14,9 +14,11 @@
 
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
+using ProcessManager.Components.Databricks.Jobs.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1;
 
@@ -56,13 +58,73 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                 instanceId,
                 CalculationStep.Sequence),
             _defaultRetryOptions);
-        await context.CallActivityAsync(
-            nameof(TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                instanceId,
-                CalculationStep.Sequence,
-                OrchestrationStepTerminationStates.Succeeded),
+
+        // Start calculation (Databricks)
+        var jobRunId = await context.CallActivityAsync<JobRunId>(
+            nameof(CalculationStepStartJobActivity_Brs_021_ElectricalHeatingCalculation_V1),
+            new CalculationStepStartJobActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                instanceId),
             _defaultRetryOptions);
+
+        var continueCalculationMonitor = true;
+        var expiryTime = context.CurrentUtcDateTime
+            .AddSeconds(executionContext.OrchestrationOptions.CalculationJobStatusExpiryTimeInSeconds);
+        while (continueCalculationMonitor && context.CurrentUtcDateTime < expiryTime)
+        {
+            // Monitor calculation (Databricks)
+            var jobRunStatus = await context.CallActivityAsync<JobRunStatus>(
+                nameof(CalculationStepGetJobRunStatusActivity_Brs_021_ElectricalHeatingCalculation_V1),
+                new CalculationStepGetJobRunStatusActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                    jobRunId),
+                _defaultRetryOptions);
+
+            switch (jobRunStatus)
+            {
+                case JobRunStatus.Pending:
+                case JobRunStatus.Queued:
+                case JobRunStatus.Running:
+                    // Wait for the next checkpoint
+                    var nextCheckpoint = context.CurrentUtcDateTime
+                        .AddSeconds(executionContext.OrchestrationOptions.CalculationJobStatusPollingIntervalInSeconds);
+                    await context.CreateTimer(nextCheckpoint, CancellationToken.None);
+                    break;
+
+                case JobRunStatus.Completed:
+                    // Suceeded
+                    await context.CallActivityAsync(
+                        nameof(TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1),
+                        new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                            instanceId,
+                            CalculationStep.Sequence,
+                            OrchestrationStepTerminationStates.Succeeded),
+                        _defaultRetryOptions);
+
+                    continueCalculationMonitor = false;
+                    break;
+
+                case JobRunStatus.Failed:
+                case JobRunStatus.Canceled:
+                    // Failed
+                    await context.CallActivityAsync(
+                        nameof(TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1),
+                        new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                            instanceId,
+                            CalculationStep.Sequence,
+                            OrchestrationStepTerminationStates.Failed),
+                        _defaultRetryOptions);
+                    await context.CallActivityAsync(
+                        nameof(OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
+                        new OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                            instanceId,
+                            OrchestrationInstanceTerminationStates.Failed),
+                        _defaultRetryOptions);
+
+                    // Quit orchestration
+                    return $"Error: Job run status '{jobRunStatus}'";
+                default:
+                    throw new InvalidOperationException("Unknown job run status '{jobRunStatus}'.");
+            }
+        }
 
         // Step: Enqueue messages
         if (!executionContext.SkippedStepsBySequence.Contains(EnqueueMessagesStep.Sequence))

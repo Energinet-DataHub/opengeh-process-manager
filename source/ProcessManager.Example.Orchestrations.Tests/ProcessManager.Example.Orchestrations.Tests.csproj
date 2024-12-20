@@ -42,4 +42,8 @@
     <ItemGroup>
         <Using Include="Xunit" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Integration\Processes\BRS_X01\NoInputExample\V1\" />
+    </ItemGroup>
 </Project>

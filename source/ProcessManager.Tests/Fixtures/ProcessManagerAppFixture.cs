@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
+using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Tests.Fixtures;
@@ -19,28 +23,70 @@ namespace Energinet.DataHub.ProcessManager.Tests.Fixtures;
 /// <summary>
 /// Support testing Process Manager Orchestrations app using default fixture configuration.
 /// </summary>
-public class ProcessManagerAppFixture
-    : IAsyncLifetime
+public class ProcessManagerAppFixture : IAsyncLifetime
 {
+    private const string TaskHubName = "ApiOrchestrationsAppTest01";
+
     public ProcessManagerAppFixture()
     {
-        ProcessManagerAppManager = new ProcessManagerAppManager();
+        DatabaseManager = new ProcessManagerDatabaseManager("ApiOrchestrationsAppTests");
+        AzuriteManager = new AzuriteManager(useOAuth: true);
+
+        IntegrationTestConfiguration = new IntegrationTestConfiguration();
+
+        ExampleOrchestrationsAppManager = new ExampleOrchestrationsAppManager(
+            DatabaseManager,
+            IntegrationTestConfiguration,
+            AzuriteManager,
+            taskHubName: TaskHubName,
+            appPort: 8201,
+            manageDatabase: false,
+            manageAzurite: false);
+
+        ProcessManagerAppManager = new ProcessManagerAppManager(
+            DatabaseManager,
+            IntegrationTestConfiguration,
+            AzuriteManager,
+            taskHubName: TaskHubName,
+            appPort: 8202,
+            manageDatabase: false,
+            manageAzurite: false);
     }
+
+    public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
+
+    public ExampleOrchestrationsAppManager ExampleOrchestrationsAppManager { get; }
 
     public ProcessManagerAppManager ProcessManagerAppManager { get; }
 
+    private ProcessManagerDatabaseManager DatabaseManager { get; }
+
+    private AzuriteManager AzuriteManager { get; }
+
     public async Task InitializeAsync()
     {
+        AzuriteManager.CleanupAzuriteStorage();
+        AzuriteManager.StartAzurite();
+
+        await DatabaseManager.CreateDatabaseAsync();
+
+        await ExampleOrchestrationsAppManager.StartAsync();
         await ProcessManagerAppManager.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
+        await ExampleOrchestrationsAppManager.DisposeAsync();
         await ProcessManagerAppManager.DisposeAsync();
+
+        await DatabaseManager.DeleteDatabaseAsync();
+
+        AzuriteManager.Dispose();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)
     {
+        ExampleOrchestrationsAppManager.SetTestOutputHelper(testOutputHelper);
         ProcessManagerAppManager.SetTestOutputHelper(testOutputHelper);
     }
 }

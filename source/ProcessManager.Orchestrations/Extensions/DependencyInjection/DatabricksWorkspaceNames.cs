@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using ProcessManager.Components.Databricks.Jobs;
+using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 

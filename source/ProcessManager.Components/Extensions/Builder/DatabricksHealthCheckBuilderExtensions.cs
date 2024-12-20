@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using ProcessManager.Components.Diagnostics.HealthChecks;
-using ProcessManager.Components.Extensions.DependencyInjection;
 
-namespace ProcessManager.Components.Extensions.Builder;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.Builder;
 
 /// <summary>
 /// Health check builder extensions to be used from <see cref="DatabricksWorkspaceExtensions"/>.
@@ -31,7 +31,7 @@ internal static class DatabricksHealthCheckBuilderExtensions
     /// </summary>
     /// <remarks>
     /// If your application needs to access multiple Databricks workspaces, use the overloaded
-    /// method <see cref="DatabricksHealthCheckBuilderExtensions.AddDatabricksJobsApi(IHealthChecksBuilder, string, string, IEnumerable{string}?)"/>
+    /// method <see cref="AddDatabricksJobsApi(IHealthChecksBuilder, string, string, IEnumerable{string}?)"/>
     /// that allows you to specify the "service key".
     /// </remarks>
     /// <param name="builder">The health checks builder.</param>

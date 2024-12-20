@@ -15,7 +15,7 @@
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace ProcessManager.Components.Diagnostics.HealthChecks;
+namespace Energinet.DataHub.ProcessManager.Components.Diagnostics.HealthChecks;
 
 /// <summary>
 /// This health check verifies that we can reach the Databricks Jobs API of a workspace.

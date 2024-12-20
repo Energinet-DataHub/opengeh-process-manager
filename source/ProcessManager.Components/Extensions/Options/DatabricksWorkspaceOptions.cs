@@ -14,7 +14,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace ProcessManager.Components.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
 public class DatabricksWorkspaceOptions
 {

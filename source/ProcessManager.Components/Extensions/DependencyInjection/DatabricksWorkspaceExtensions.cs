@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Builder;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using ProcessManager.Components.Databricks.Jobs;
-using ProcessManager.Components.Extensions.Builder;
-using ProcessManager.Components.Extensions.Options;
 
-namespace ProcessManager.Components.Extensions.DependencyInjection;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
 /// <summary>
 /// Extension methods for <see cref="IServiceCollection"/>
@@ -43,7 +43,7 @@ public static class DatabricksWorkspaceExtensions
             .BindConfiguration(DatabricksWorkspaceOptions.SectionName)
             .ValidateDataAnnotations();
 
-        serviceCollection.AddSingleton<DatabricksClient>(sp =>
+        serviceCollection.AddSingleton(sp =>
         {
             var options = sp.GetRequiredService<IOptions<DatabricksWorkspaceOptions>>().Value;
             return DatabricksClient.CreateClient(options.BaseUrl, options.Token);
@@ -82,7 +82,7 @@ public static class DatabricksWorkspaceExtensions
             .BindConfiguration(configSectionPath)
             .ValidateDataAnnotations();
 
-        serviceCollection.AddKeyedSingleton<DatabricksClient>(serviceKey: configSectionPath, (sp, key) =>
+        serviceCollection.AddKeyedSingleton(serviceKey: configSectionPath, (sp, key) =>
         {
             var snapshot = sp.GetRequiredService<IOptionsSnapshot<DatabricksWorkspaceOptions>>();
             var options = snapshot.Get(configSectionPath);

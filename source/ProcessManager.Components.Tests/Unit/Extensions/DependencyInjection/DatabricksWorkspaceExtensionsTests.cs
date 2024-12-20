@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
+using Energinet.DataHub.ProcessManager.Components.Diagnostics.HealthChecks;
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using ProcessManager.Components.Databricks.Jobs;
-using ProcessManager.Components.Diagnostics.HealthChecks;
-using ProcessManager.Components.Extensions.DependencyInjection;
-using ProcessManager.Components.Extensions.Options;
 using Xunit;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Extensions.DependencyInjection;

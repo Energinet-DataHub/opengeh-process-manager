@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
+using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Azure.Databricks.Client.Models;
 using Moq;
-using ProcessManager.Components.Databricks.Jobs;
-using ProcessManager.Components.Databricks.Jobs.Model;
 using Xunit;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.Jobs;

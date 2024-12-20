@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 
 internal class TransitionStepToRunningActivity_Brs_023_027_V1(
     IClock clock,

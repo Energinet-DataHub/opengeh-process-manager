@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Microsoft.Azure.Databricks.Client;
 using Microsoft.Azure.Databricks.Client.Models;
-using ProcessManager.Components.Databricks.Jobs.Model;
 
-namespace ProcessManager.Components.Databricks.Jobs;
+namespace Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 
 internal class DatabricksJobsClient(
     IJobsApi jobsApi)

@@ -20,14 +20,14 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
 
-internal class InitializeOrchestrationActivity_Brs_X01_InputExample_V1(
+internal class OrchestrationInitializeActivity_Brs_X01_InputExample_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(InitializeOrchestrationActivity_Brs_X01_InputExample_V1))]
+    [Function(nameof(OrchestrationInitializeActivity_Brs_X01_InputExample_V1))]
     public async Task<OrchestrationExecutionPlan> Run(
         [ActivityTrigger] ActivityInput input)
     {

@@ -16,27 +16,28 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Client.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Integration.BRS_X01.InputExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.InputExample.V1;
 
 /// <summary>
 /// Test case where we verify the Process Manager clients can be used to start an
 /// example orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
-[Collection(nameof(ProcessManagerClientCollection))]
+[Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 {
     public MonitorOrchestrationUsingClientScenario(
-        ProcessManagerClientFixture fixture,
+        ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
@@ -54,7 +55,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    private ProcessManagerClientFixture Fixture { get; }
+    private ExampleOrchestrationsAppFixture Fixture { get; }
 
     private ServiceProvider ServiceProvider { get; }
 

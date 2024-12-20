@@ -15,7 +15,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Client.Tests.Fixtures.Extensions;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures.Extensions;
 
 public static class ServiceCollectionExtensions
 {

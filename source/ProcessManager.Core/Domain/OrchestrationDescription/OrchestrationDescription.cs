@@ -87,7 +87,7 @@ public class OrchestrationDescription
         {
             if (value != _recurringCronExpression)
             {
-                if (CrontabSchedule.TryParse(value) == null)
+                if (value != string.Empty && CrontabSchedule.TryParse(value) == null)
                     throw new ArgumentOutOfRangeException($"Invalid cron value '{value}'. See https://github.com/atifaziz/NCrontab/wiki/Crontab-Expression for expected format.");
 
                 _recurringCronExpression = value;

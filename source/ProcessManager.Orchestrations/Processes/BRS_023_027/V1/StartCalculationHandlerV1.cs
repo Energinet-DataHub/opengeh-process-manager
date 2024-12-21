@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManagement.Core.Application.Api;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
@@ -23,12 +24,14 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 
 internal class StartCalculationHandlerV1(
     DateTimeZone dateTimeZone,
-    IStartOrchestrationInstanceCommands manager)
+    IStartOrchestrationInstanceCommands manager) :
+        IStartOrchestrationInstanceCommandHandler<StartCalculationCommandV1, CalculationInputV1>,
+        IScheduleOrchestrationInstanceCommandHandler<ScheduleCalculationCommandV1, CalculationInputV1>
 {
     private readonly DateTimeZone _dateTimeZone = dateTimeZone;
     private readonly IStartOrchestrationInstanceCommands _manager = manager;
 
-    public async Task<OrchestrationInstanceId> StartNewCalculationAsync(StartCalculationCommandV1 command)
+    public async Task<Guid> HandleAsync(StartCalculationCommandV1 command)
     {
         GuardInputParameter(command.InputParameter);
 
@@ -49,10 +52,10 @@ internal class StartCalculationHandlerV1(
                 skipStepsBySequence: skipStepsBySequence)
             .ConfigureAwait(false);
 
-        return orchestrationInstanceId;
+        return orchestrationInstanceId.Value;
     }
 
-    public async Task<OrchestrationInstanceId> ScheduleNewCalculationAsync(ScheduleCalculationCommandV1 command)
+    public async Task<Guid> HandleAsync(ScheduleCalculationCommandV1 command)
     {
         GuardInputParameter(command.InputParameter);
 
@@ -74,7 +77,7 @@ internal class StartCalculationHandlerV1(
                 skipStepsBySequence: skipStepsBySequence)
             .ConfigureAwait(false);
 
-        return orchestrationInstanceId;
+        return orchestrationInstanceId.Value;
     }
 
     private static bool IsEntireMonth(ZonedDateTime periodStart, ZonedDateTime periodEnd)

@@ -39,7 +39,7 @@ internal class ScheduleTrigger_Brs_023_027_V1(
         ScheduleCalculationCommandV1 command,
         FunctionContext executionContext)
     {
-        var orchestrationInstanceId = await _handler.ScheduleNewCalculationAsync(command).ConfigureAwait(false);
-        return new OkObjectResult(orchestrationInstanceId.Value);
+        var orchestrationInstanceId = await _handler.HandleAsync(command).ConfigureAwait(false);
+        return new OkObjectResult(orchestrationInstanceId);
     }
 }

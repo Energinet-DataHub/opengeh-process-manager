@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Reflection;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
@@ -93,16 +94,9 @@ public static class ProcessManagerExtensions
     /// Should be used from host's that contains Durable Functions orchestrations.
     /// </summary>
     /// <param name="services"></param>
-    /// <param name="enabledDescriptionsFactory">
-    /// Build descriptions for all Durable Function orchestrations that should be enabled.
-    /// Leave out descriptions for any Durable Function orchestrations that should be disabled.
-    /// </param>
-    public static IServiceCollection AddProcessManagerForOrchestrations(
-        this IServiceCollection services,
-        Func<IReadOnlyCollection<OrchestrationDescription>> enabledDescriptionsFactory)
+    /// <param name="assemblyToScan">Specify the host assembly to scan for types implementing <see cref="IOrchestrationDescriptionBuilder"/>.</param>
+    public static IServiceCollection AddProcessManagerForOrchestrations(this IServiceCollection services, Assembly assemblyToScan)
     {
-        ArgumentNullException.ThrowIfNull(enabledDescriptionsFactory);
-
         // Process Manager Core
         services
             .AddProcessManagerOptions()
@@ -130,7 +124,7 @@ public static class ProcessManagerExtensions
 
         // ProcessManager components using interfaces to restrict access to functionality
         // => Orchestration Descriptions registration during startup
-        services.TryAddTransient<IReadOnlyCollection<OrchestrationDescription>>(sp => enabledDescriptionsFactory());
+        services.AddOrchestrationDescriptionBuilders(assemblyToScan);
         services.TryAddTransient<IOrchestrationRegister, OrchestrationRegister>();
         // => Start instance (manager)
         services.TryAddScoped<IOrchestrationInstanceExecutor, DurableOrchestrationInstanceExecutor>();
@@ -141,6 +135,26 @@ public static class ProcessManagerExtensions
         services.TryAddScoped<IOrchestrationInstanceQueries, OrchestrationInstanceRepository>();
         // => Public progress repository
         services.TryAddScoped<IOrchestrationInstanceProgressRepository, OrchestrationInstanceRepository>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Register implementations of <see cref="IOrchestrationDescriptionBuilder"/> found in <paramref name="assemblyToScan"/>.
+    /// </summary>
+    private static IServiceCollection AddOrchestrationDescriptionBuilders(this IServiceCollection services, Assembly assemblyToScan)
+    {
+        var interfaceType = typeof(IOrchestrationDescriptionBuilder);
+
+        var implementingTypes = assemblyToScan
+            .GetTypes()
+            .Where(type => type.IsClass && interfaceType.IsAssignableFrom(type))
+            .ToList();
+
+        foreach (var implementingType in implementingTypes)
+        {
+            services.AddTransient(interfaceType, implementingType);
+        }
 
         return services;
     }

@@ -37,7 +37,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Api\Mappers\" />
-    <Folder Include="Processes\BRS_021\ForwardMeteredData\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\ProcessManager\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />

@@ -13,21 +13,20 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Application.Api;
+namespace Energinet.DataHub.ProcessManagement.Core.Application.Api.Handlers;
 
 /// <summary>
-/// Interface for handling a command for starting an orchestration instance with an input parameter.
+/// Interface for handling a command for scheduling an orchestration instance with an input parameter.
 /// </summary>
 /// <typeparam name="TCommand">The type of the command.</typeparam>
 /// <typeparam name="TInputParameterDto">The type of the input parameter DTO.</typeparam>
-public interface IStartOrchestrationInstanceCommandHandler<TCommand, TInputParameterDto>
-    where TCommand : StartOrchestrationInstanceCommand<UserIdentityDto, TInputParameterDto>
+public interface IScheduleOrchestrationInstanceCommandHandler<TCommand, TInputParameterDto>
+    where TCommand : ScheduleOrchestrationInstanceCommand<TInputParameterDto>
     where TInputParameterDto : IInputParameterDto
 {
     /// <summary>
-    /// Handles a command for starting an orchestration instance.
+    /// Handles a command for scheduling an orchestration instance.
     /// </summary>
     /// <param name="command">The command to handle.</param>
     /// <returns>The ID of the orchestration instance.</returns>

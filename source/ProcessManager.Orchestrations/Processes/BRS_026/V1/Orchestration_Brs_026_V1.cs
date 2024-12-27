@@ -23,19 +23,19 @@ using Microsoft.Extensions.Logging;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 
 // TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
-internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
+internal class Orchestration_Brs_026_V1
 {
     public const int AsyncValidationStepSequence = 1;
     public const int EnqueueMessagesStepSequence = 2;
 
     private readonly TaskOptions _defaultRetryOptions;
 
-    public Orchestration_RequestCalculatedEnergyTimeSeries_V1()
+    public Orchestration_Brs_026_V1()
     {
         _defaultRetryOptions = CreateDefaultRetryOptions();
     }
 
-    [Function(nameof(Orchestration_RequestCalculatedEnergyTimeSeries_V1))]
+    [Function(nameof(Orchestration_Brs_026_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
@@ -155,7 +155,7 @@ internal class Orchestration_RequestCalculatedEnergyTimeSeries_V1
 
         if (!wasMessagesEnqueued)
         {
-            var logger = context.CreateReplaySafeLogger<Orchestration_RequestCalculatedEnergyTimeSeries_V1>();
+            var logger = context.CreateReplaySafeLogger<Orchestration_Brs_026_V1>();
             logger.Log(
                 LogLevel.Warning,
                 "Timeout while waiting for enqueue messages to complete (InstanceId={OrchestrationInstanceId}).",

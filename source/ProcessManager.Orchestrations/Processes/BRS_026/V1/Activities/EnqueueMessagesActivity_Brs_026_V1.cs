@@ -39,7 +39,7 @@ internal class EnqueueMessagesActivity_Brs_026_V1(
             .ConfigureAwait(false);
 
         orchestrationInstance.TransitionStepToRunning(
-            Orchestration_RequestCalculatedEnergyTimeSeries_V1.EnqueueMessagesStepSequence,
+            Orchestration_Brs_026_V1.EnqueueMessagesStepSequence,
             _clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         await EnqueueMessagesAsync(input).ConfigureAwait(false);

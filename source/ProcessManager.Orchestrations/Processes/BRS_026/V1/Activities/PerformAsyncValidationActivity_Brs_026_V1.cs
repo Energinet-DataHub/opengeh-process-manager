@@ -39,7 +39,7 @@ internal class PerformAsyncValidationActivity_Brs_026_V1(
             .ConfigureAwait(false);
 
         orchestrationInstance.TransitionStepToRunning(
-            Orchestration_RequestCalculatedEnergyTimeSeries_V1.AsyncValidationStepSequence,
+            Orchestration_Brs_026_V1.AsyncValidationStepSequence,
             _clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 

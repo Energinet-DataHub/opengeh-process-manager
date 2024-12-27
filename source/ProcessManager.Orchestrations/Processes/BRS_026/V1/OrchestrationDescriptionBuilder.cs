@@ -29,7 +29,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
                 orchestrationDescriptionUniqueName.Name,
                 orchestrationDescriptionUniqueName.Version),
             canBeScheduled: false,
-            functionName: nameof(Orchestration_RequestCalculatedEnergyTimeSeries_V1));
+            functionName: nameof(Orchestration_Brs_026_V1));
 
         description.ParameterDefinition.SetFromType<RequestCalculatedEnergyTimeSeriesInputV1>();
 

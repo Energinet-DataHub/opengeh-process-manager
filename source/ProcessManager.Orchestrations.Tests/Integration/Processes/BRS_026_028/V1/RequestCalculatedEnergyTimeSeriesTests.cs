@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -107,7 +108,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         // Assert
         var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
             createdTimeFrom: orchestrationCreatedAfter,
-            name: "Orchestration_RequestCalculatedEnergyTimeSeries_V1");
+            name: nameof(Orchestration_Brs_026_V1));
         orchestration.Input.ToString().Should().Contain(businessReason);
 
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(

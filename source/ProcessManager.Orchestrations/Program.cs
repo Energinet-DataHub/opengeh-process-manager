@@ -21,8 +21,6 @@ using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -48,9 +46,6 @@ var host = new HostBuilder()
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
-        // => Handlers
-        services.AddScoped<RequestCalculatedEnergyTimeSeriesHandlerV1>();
-        services.AddScoped<StartForwardMeteredDataHandlerV1>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

@@ -137,6 +137,7 @@ public static class ProcessManagerExtensions
         services.TryAddScoped<IOrchestrationInstanceProgressRepository, OrchestrationInstanceRepository>();
         // => Custom handlers
         services.AddCustomHandlersForHttpTriggers(assemblyToScan);
+        services.AddCustomHandlersForServiceBusTriggers(assemblyToScan);
 
         return services;
     }
@@ -150,10 +151,10 @@ public static class ProcessManagerExtensions
 
         var implementingTypes = assemblyToScan
             .DefinedTypes
-            .Where(type =>
-                type.IsClass
-                && !type.IsAbstract
-                && interfaceType.IsAssignableFrom(type))
+            .Where(typeInfo =>
+                typeInfo.IsClass
+                && !typeInfo.IsAbstract
+                && interfaceType.IsAssignableFrom(typeInfo))
             .ToList();
 
         foreach (var implementingType in implementingTypes)
@@ -180,21 +181,52 @@ public static class ProcessManagerExtensions
         {
             var implementingTypes = assemblyToScan
                 .DefinedTypes
-                .Where(type =>
-                    type.IsClass &&
-                    !type.IsAbstract &&
-                    type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterface))
+                .Where(typeInfo =>
+                    typeInfo.IsClass &&
+                    !typeInfo.IsAbstract &&
+                    typeInfo.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterface))
                 .ToList();
 
             foreach (var implementingType in implementingTypes)
             {
-                // We register handlers directly by their implementation, not their interface.
+                // We register handlers directly by their implementation, not by an interface.
                 // We DO NOT register the same type twice; e.g. if the same class implements two interfaces, we only register it once.
                 services.TryAddTransient(implementingType);
             }
         }
 
         return services;
+    }
+
+    /// <summary>
+    /// Register implementations of various custom handler used from ServiceBus triggers found in <paramref name="assemblyToScan"/>.
+    /// </summary>
+    internal static IServiceCollection AddCustomHandlersForServiceBusTriggers(this IServiceCollection services, Assembly assemblyToScan)
+    {
+        var handlerBaseType = typeof(StartOrchestrationInstanceFromMessageHandlerBase<>);
+
+        var implementingTypes = assemblyToScan
+            .DefinedTypes
+            .Where(typeInfo =>
+                typeInfo.IsClass &&
+                !typeInfo.IsAbstract &&
+                IsDirectSubclassOfHandlerBaseType(typeInfo, handlerBaseType))
+            .ToList();
+
+        foreach (var implementingType in implementingTypes)
+        {
+            services.AddTransient(implementingType);
+        }
+
+        return services;
+    }
+
+    private static bool IsDirectSubclassOfHandlerBaseType(TypeInfo typeInfo, Type handlerBaseType)
+    {
+        return
+            typeInfo.BaseType != null
+            && typeInfo.BaseType.IsGenericType
+            && typeInfo.BaseType.GetGenericTypeDefinition() == handlerBaseType;
     }
 
     /// <summary>

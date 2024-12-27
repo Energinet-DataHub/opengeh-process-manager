@@ -14,7 +14,6 @@
 
 using System.Reflection;
 using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using FluentAssertions;
 using FluentAssertions.Execution;

@@ -39,8 +39,7 @@ internal class SearchTrigger_Brs_X01_InputExample(
         InputExampleQuery query,
         FunctionContext executionContext)
     {
-        var queryResultItems = await _handler.SearchAsync(query).ConfigureAwait(false);
-
+        var queryResultItems = await _handler.HandleAsync(query).ConfigureAwait(false);
         return new OkObjectResult(queryResultItems);
     }
 }

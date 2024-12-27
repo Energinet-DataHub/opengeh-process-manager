@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -36,12 +35,16 @@ public static class HostExtensions
 
         try
         {
-            var enabledDescriptions = host.Services.GetRequiredService<IReadOnlyCollection<OrchestrationDescription>>();
+            var builders = host.Services.GetServices<IOrchestrationDescriptionBuilder>();
+            var orchestrationDescriptions = builders
+                .Select(c => c.Build())
+                .ToList();
+
             var register = host.Services.GetRequiredService<IOrchestrationRegister>();
             await register
                 .SynchronizeAsync(
                     hostName: hostName,
-                    enabledDescriptions)
+                    orchestrationDescriptions)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)

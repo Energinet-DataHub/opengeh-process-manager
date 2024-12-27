@@ -141,7 +141,7 @@ public static class ProcessManagerExtensions
     /// <summary>
     /// Register implementations of <see cref="IOrchestrationDescriptionBuilder"/> found in <paramref name="assemblyToScan"/>.
     /// </summary>
-    private static IServiceCollection AddOrchestrationDescriptionBuilders(this IServiceCollection services, Assembly assemblyToScan)
+    internal static IServiceCollection AddOrchestrationDescriptionBuilders(this IServiceCollection services, Assembly assemblyToScan)
     {
         var interfaceType = typeof(IOrchestrationDescriptionBuilder);
 

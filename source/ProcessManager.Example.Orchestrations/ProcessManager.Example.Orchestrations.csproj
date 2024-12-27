@@ -5,7 +5,11 @@
         <AzureFunctionsVersion>v4</AzureFunctionsVersion>
         <OutputType>Exe</OutputType>
     </PropertyGroup>
-    <ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Energinet.DataHub.Example.Orchestrations.Tests" />
+    <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Core.Tests" />
+  </ItemGroup>
+  <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
         <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="13.2.0" />
@@ -31,9 +35,5 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
-    </ItemGroup>
-
-    <ItemGroup>
-        <InternalsVisibleTo Include="Energinet.DataHub.Example.Orchestrations.Tests" />
     </ItemGroup>
 </Project>

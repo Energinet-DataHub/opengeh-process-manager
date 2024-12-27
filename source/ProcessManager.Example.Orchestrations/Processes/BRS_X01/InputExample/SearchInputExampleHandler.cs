@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManagement.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Api.Mappers;
@@ -22,11 +23,12 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample;
 
 internal class SearchInputExampleHandler(
-    IOrchestrationInstanceQueries queries)
+    IOrchestrationInstanceQueries queries) :
+        ISearchOrchestrationInstancesQueryHandler<InputExampleQuery, InputExampleQueryResult>
 {
     private readonly IOrchestrationInstanceQueries _queries = queries;
 
-    public async Task<IReadOnlyCollection<InputExampleQueryResult>> SearchAsync(InputExampleQuery query)
+    public async Task<IReadOnlyCollection<InputExampleQueryResult>> HandleAsync(InputExampleQuery query)
     {
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         //

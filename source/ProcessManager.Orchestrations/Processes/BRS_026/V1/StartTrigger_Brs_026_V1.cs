@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 
-public class StartTrigger_RequestCalculatedEnergyTimeSeries_V1(
+// TODO: We have decided to route on the "name" part of the "orchestration description unique name",
+// meaning not including the "version" part; this will minimize how often we need to adjust infrastructure
+// with regards to "subscriptions". Hence this trigger should not be located within the "V1".
+// Also we need a generic way to first parse the "version" of a command and then direct the message to
+// the correct "version handler."
+public class StartTrigger_Brs_026_V1(
     RequestCalculatedEnergyTimeSeriesHandlerV1 handler)
 {
     private readonly RequestCalculatedEnergyTimeSeriesHandlerV1 _handler = handler;
@@ -31,7 +32,7 @@ public class StartTrigger_RequestCalculatedEnergyTimeSeries_V1(
     /// <summary>
     /// Start a BRS-026 request.
     /// </summary>
-    [Function(nameof(StartTrigger_RequestCalculatedEnergyTimeSeries_V1))]
+    [Function(nameof(StartTrigger_Brs_026_V1))]
     public async Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",
@@ -39,7 +40,7 @@ public class StartTrigger_RequestCalculatedEnergyTimeSeries_V1(
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        await _handler.StartOrchestration(message)
+        await _handler.HandleAsync(message)
             .ConfigureAwait(false);
     }
 }

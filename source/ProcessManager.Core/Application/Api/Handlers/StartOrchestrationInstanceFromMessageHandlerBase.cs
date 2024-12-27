@@ -19,15 +19,15 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Shared;
+namespace Energinet.DataHub.ProcessManagement.Core.Application.Api.Handlers;
 
-public abstract class StartOrchestrationFromMessageHandlerBase<TInputParameterDto>(
+public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputParameterDto>(
     ILogger logger)
     where TInputParameterDto : IInputParameterDto
 {
     private readonly ILogger _logger = logger;
 
-    public Task StartOrchestration(ServiceBusReceivedMessage message)
+    public Task HandleAsync(ServiceBusReceivedMessage message)
     {
         using var serviceBusMessageLoggerScope = _logger.BeginScope(new
         {
@@ -70,10 +70,10 @@ public abstract class StartOrchestrationFromMessageHandlerBase<TInputParameterDt
                 message: $"Unable to parse {nameof(startOrchestrationDto.StartedByActorId)} to guid");
         }
 
-        return StartOrchestration(
+        return StartOrchestrationInstanceAsync(
             new ActorIdentity(new ActorId(actorId)),
             inputParameterDto);
     }
 
-    protected abstract Task StartOrchestration(ActorIdentity actorIdentity, TInputParameterDto input);
+    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input);
 }

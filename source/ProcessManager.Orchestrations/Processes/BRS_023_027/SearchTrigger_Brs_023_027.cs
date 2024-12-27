@@ -39,8 +39,7 @@ internal class SearchTrigger_Brs_023_027(
         CalculationQuery query,
         FunctionContext executionContext)
     {
-        var queryReultItems = await _handler.SearchAsync(query).ConfigureAwait(false);
-
-        return new OkObjectResult(queryReultItems);
+        var queryResultItems = await _handler.HandleAsync(query).ConfigureAwait(false);
+        return new OkObjectResult(queryResultItems);
     }
 }

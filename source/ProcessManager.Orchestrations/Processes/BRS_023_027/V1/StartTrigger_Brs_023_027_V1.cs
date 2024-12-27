@@ -39,7 +39,7 @@ internal class StartTrigger_Brs_023_027_V1(
         StartCalculationCommandV1 command,
         FunctionContext executionContext)
     {
-        var orchestrationInstanceId = await _handler.StartNewCalculationAsync(command).ConfigureAwait(false);
-        return new OkObjectResult(orchestrationInstanceId.Value);
+        var orchestrationInstanceId = await _handler.HandleAsync(command).ConfigureAwait(false);
+        return new OkObjectResult(orchestrationInstanceId);
     }
 }

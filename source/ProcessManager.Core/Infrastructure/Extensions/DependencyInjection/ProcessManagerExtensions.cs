@@ -136,7 +136,7 @@ public static class ProcessManagerExtensions
         // => Public progress repository
         services.TryAddScoped<IOrchestrationInstanceProgressRepository, OrchestrationInstanceRepository>();
         // => Custom handlers
-        services.AddCustomHandlers(assemblyToScan);
+        services.AddCustomHandlersForHttpTriggers(assemblyToScan);
 
         return services;
     }
@@ -165,9 +165,9 @@ public static class ProcessManagerExtensions
     }
 
     /// <summary>
-    /// Register implementations of various custom handlers found in <paramref name="assemblyToScan"/>.
+    /// Register implementations of various custom handler used from HTTP triggers found in <paramref name="assemblyToScan"/>.
     /// </summary>
-    internal static IServiceCollection AddCustomHandlers(this IServiceCollection services, Assembly assemblyToScan)
+    internal static IServiceCollection AddCustomHandlersForHttpTriggers(this IServiceCollection services, Assembly assemblyToScan)
     {
         var handlerInterfaces = new List<Type>
         {

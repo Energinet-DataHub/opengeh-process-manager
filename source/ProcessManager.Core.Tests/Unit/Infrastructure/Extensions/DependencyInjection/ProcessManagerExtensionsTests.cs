@@ -62,7 +62,7 @@ public class ProcessManagerExtensionsTests
     }
 
     [Fact]
-    public void AddCustomHandlers_WhenScanningExampleOrchestrations_ExpectedHandlersAreRegistered()
+    public void AddCustomHandlersForHttpTriggers_WhenScanningExampleOrchestrations_ExpectedHandlersAreRegistered()
     {
         // Arrange
         Services.AddSingleton(Mock.Of<IStartOrchestrationInstanceCommands>());
@@ -75,7 +75,7 @@ public class ProcessManagerExtensionsTests
         };
 
         // Act
-        Services.AddCustomHandlers(assemblyToScan: ExampleOrchestrationsAssembly);
+        Services.AddCustomHandlersForHttpTriggers(assemblyToScan: ExampleOrchestrationsAssembly);
 
         // Assert
         using var assertionScope = new AssertionScope();

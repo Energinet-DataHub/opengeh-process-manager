@@ -13,11 +13,14 @@
 // limitations under the License.
 
 using System.Reflection;
+using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using FluentAssertions;
+using FluentAssertions.Common;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Infrastructure.Extensions.DependencyInjection;
 
@@ -29,7 +32,7 @@ public class ProcessManagerExtensionsTests
         Services = new ServiceCollection();
     }
 
-    public Assembly ExampleOrchestrationsAssembly { get; }
+    private Assembly ExampleOrchestrationsAssembly { get; }
 
     private ServiceCollection Services { get; }
 
@@ -56,5 +59,34 @@ public class ProcessManagerExtensionsTests
 
         actualBuilders.Count()
             .Should().Be(expectedBuilderTypes.Count, "because we should find exactly the number of expected builder types");
+    }
+
+    [Fact]
+    public void AddCustomHandlers_WhenScanningExampleOrchestrations_ExpectedHandlersAreRegistered()
+    {
+        // Arrange
+        Services.AddSingleton(Mock.Of<IStartOrchestrationInstanceCommands>());
+        Services.AddSingleton(Mock.Of<IOrchestrationInstanceQueries>());
+
+        var expectedHandlerTypes = new List<Type>
+        {
+            typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.V1.StartInputExampleHandlerV1),
+            typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.SearchInputExampleHandler),
+        };
+
+        // Act
+        Services.AddCustomHandlers(assemblyToScan: ExampleOrchestrationsAssembly);
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        var serviceProvider = Services.BuildServiceProvider();
+
+        // => Start handler
+        var actualStartHandler = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X01.InputExample.V1.StartInputExampleHandlerV1>();
+        actualStartHandler.Should().NotBeNull();
+
+        // => Search handler
+        var actualSearchHandler = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X01.InputExample.SearchInputExampleHandler>();
+        actualSearchHandler.Should().NotBeNull();
     }
 }

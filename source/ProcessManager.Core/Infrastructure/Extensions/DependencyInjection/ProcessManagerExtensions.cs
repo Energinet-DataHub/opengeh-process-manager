@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Reflection;
+using Energinet.DataHub.ProcessManagement.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
@@ -134,6 +135,8 @@ public static class ProcessManagerExtensions
         services.TryAddScoped<IOrchestrationInstanceQueries, OrchestrationInstanceRepository>();
         // => Public progress repository
         services.TryAddScoped<IOrchestrationInstanceProgressRepository, OrchestrationInstanceRepository>();
+        // => Custom handlers
+        services.AddCustomHandlers(assemblyToScan);
 
         return services;
     }
@@ -146,13 +149,49 @@ public static class ProcessManagerExtensions
         var interfaceType = typeof(IOrchestrationDescriptionBuilder);
 
         var implementingTypes = assemblyToScan
-            .GetTypes()
-            .Where(type => type.IsClass && interfaceType.IsAssignableFrom(type))
+            .DefinedTypes
+            .Where(type =>
+                type.IsClass
+                && !type.IsAbstract
+                && interfaceType.IsAssignableFrom(type))
             .ToList();
 
         foreach (var implementingType in implementingTypes)
         {
             services.AddTransient(interfaceType, implementingType);
+        }
+
+        return services;
+    }
+
+    /// <summary>
+    /// Register implementations of various custom handlers found in <paramref name="assemblyToScan"/>.
+    /// </summary>
+    internal static IServiceCollection AddCustomHandlers(this IServiceCollection services, Assembly assemblyToScan)
+    {
+        var handlerInterfaces = new List<Type>
+        {
+            typeof(IStartOrchestrationInstanceCommandHandler<,>),
+            typeof(IScheduleOrchestrationInstanceCommandHandler<,>),
+            typeof(ISearchOrchestrationInstancesQueryHandler<,>),
+        };
+
+        foreach (var handlerInterface in handlerInterfaces)
+        {
+            var implementingTypes = assemblyToScan
+                .DefinedTypes
+                .Where(type =>
+                    type.IsClass &&
+                    !type.IsAbstract &&
+                    type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterface))
+                .ToList();
+
+            foreach (var implementingType in implementingTypes)
+            {
+                // We register handlers directly by their implementation, not their interface.
+                // We DO NOT register the same type twice; e.g. if the same class implements two interfaces, we only register it once.
+                services.TryAddTransient(implementingType);
+            }
         }
 
         return services;

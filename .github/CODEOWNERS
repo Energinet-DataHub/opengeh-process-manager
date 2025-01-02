@@ -1,8 +1,9 @@
 * @Energinet-DataHub/team-mosaic
 /.github/actions @Energinet-DataHub/TheOutlaws
 /.github/workflows @Energinet-DataHub/TheOutlaws
-# The following projects (directories) are for implementation of Orchestrations.
-# Add teams who should be able to implement Orchestrations in Process Manager.
-/source/ProcessManager.Orchestrations @Energinet-DataHub/Team-Mosaic @Energinet-DataHub/Mandalorian
+# The following projects (directories) are for implementation of Orchestrations
+# We allow teams to work with tests in general
 /source/ProcessManager.Orchestrations.Tests @Energinet-DataHub/Team-Mosaic @Energinet-DataHub/Mandalorian
-/source/ProcessManager.Orchestrations.Abstractions @Energinet-DataHub/Team-Mosaic @Energinet-DataHub/Mandalorian
+# We only allow teams access to folders under "Processes" matching the orchestrations they are responsible for
+/source/ProcessManager.Orchestrations/Processes/BRS_021/ElectricalHeatingCalculation @Energinet-DataHub/Team-Mosaic @Energinet-DataHub/Mandalorian
+/source/ProcessManager.Orchestrations.Abstractions/Processes/BRS_021/ElectricalHeatingCalculation @Energinet-DataHub/Team-Mosaic @Energinet-DataHub/Mandalorian

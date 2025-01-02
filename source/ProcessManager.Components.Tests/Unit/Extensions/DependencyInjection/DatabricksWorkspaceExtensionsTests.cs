@@ -52,7 +52,7 @@ public class DatabricksWorkspaceExtensionsTests
         Services.AddDatabricksJobs();
 
         // Assert
-        var assertionScope = new AssertionScope();
+        using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
         // => Service
@@ -92,7 +92,7 @@ public class DatabricksWorkspaceExtensionsTests
         Services.AddDatabricksJobs(configSectionPath: sectionName);
 
         // Assert
-        var assertionScope = new AssertionScope();
+        using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
         // => Service
@@ -139,7 +139,7 @@ public class DatabricksWorkspaceExtensionsTests
         Services.AddTransient<MeasurementsClientStub>();
 
         // Assert
-        var assertionScope = new AssertionScope();
+        using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
         // => Wholesale

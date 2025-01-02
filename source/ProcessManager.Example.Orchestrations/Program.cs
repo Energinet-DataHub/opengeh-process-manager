@@ -18,9 +18,6 @@ using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
@@ -32,11 +29,8 @@ var host = new HostBuilder()
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
 
-        // => Orchestration Descriptions
+        // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
-        // => Handlers
-        services.AddScoped<SearchInputExampleHandler>();
-        services.AddScoped<StartInputExampleHandlerV1>();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

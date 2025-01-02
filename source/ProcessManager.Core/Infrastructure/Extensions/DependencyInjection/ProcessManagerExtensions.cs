@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Reflection;
+using Energinet.DataHub.ProcessManagement.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
 using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
@@ -134,6 +135,9 @@ public static class ProcessManagerExtensions
         services.TryAddScoped<IOrchestrationInstanceQueries, OrchestrationInstanceRepository>();
         // => Public progress repository
         services.TryAddScoped<IOrchestrationInstanceProgressRepository, OrchestrationInstanceRepository>();
+        // => Custom handlers
+        services.AddCustomHandlersForHttpTriggers(assemblyToScan);
+        services.AddCustomHandlersForServiceBusTriggers(assemblyToScan);
 
         return services;
     }
@@ -141,13 +145,16 @@ public static class ProcessManagerExtensions
     /// <summary>
     /// Register implementations of <see cref="IOrchestrationDescriptionBuilder"/> found in <paramref name="assemblyToScan"/>.
     /// </summary>
-    private static IServiceCollection AddOrchestrationDescriptionBuilders(this IServiceCollection services, Assembly assemblyToScan)
+    internal static IServiceCollection AddOrchestrationDescriptionBuilders(this IServiceCollection services, Assembly assemblyToScan)
     {
         var interfaceType = typeof(IOrchestrationDescriptionBuilder);
 
         var implementingTypes = assemblyToScan
-            .GetTypes()
-            .Where(type => type.IsClass && interfaceType.IsAssignableFrom(type))
+            .DefinedTypes
+            .Where(typeInfo =>
+                typeInfo.IsClass
+                && !typeInfo.IsAbstract
+                && interfaceType.IsAssignableFrom(typeInfo))
             .ToList();
 
         foreach (var implementingType in implementingTypes)
@@ -156,6 +163,70 @@ public static class ProcessManagerExtensions
         }
 
         return services;
+    }
+
+    /// <summary>
+    /// Register implementations of various custom handler used from HTTP triggers found in <paramref name="assemblyToScan"/>.
+    /// </summary>
+    internal static IServiceCollection AddCustomHandlersForHttpTriggers(this IServiceCollection services, Assembly assemblyToScan)
+    {
+        var handlerInterfaces = new List<Type>
+        {
+            typeof(IStartOrchestrationInstanceCommandHandler<,>),
+            typeof(IScheduleOrchestrationInstanceCommandHandler<,>),
+            typeof(ISearchOrchestrationInstancesQueryHandler<,>),
+        };
+
+        foreach (var handlerInterface in handlerInterfaces)
+        {
+            var implementingTypes = assemblyToScan
+                .DefinedTypes
+                .Where(typeInfo =>
+                    typeInfo.IsClass &&
+                    !typeInfo.IsAbstract &&
+                    typeInfo.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterface))
+                .ToList();
+
+            foreach (var implementingType in implementingTypes)
+            {
+                // We register handlers directly by their implementation, not by an interface.
+                // We DO NOT register the same type twice; e.g. if the same class implements two interfaces, we only register it once.
+                services.TryAddTransient(implementingType);
+            }
+        }
+
+        return services;
+    }
+
+    /// <summary>
+    /// Register implementations of various custom handler used from ServiceBus triggers found in <paramref name="assemblyToScan"/>.
+    /// </summary>
+    internal static IServiceCollection AddCustomHandlersForServiceBusTriggers(this IServiceCollection services, Assembly assemblyToScan)
+    {
+        var handlerBaseType = typeof(StartOrchestrationInstanceFromMessageHandlerBase<>);
+
+        var implementingTypes = assemblyToScan
+            .DefinedTypes
+            .Where(typeInfo =>
+                typeInfo.IsClass &&
+                !typeInfo.IsAbstract &&
+                IsDirectSubclassOfHandlerBaseType(typeInfo, handlerBaseType))
+            .ToList();
+
+        foreach (var implementingType in implementingTypes)
+        {
+            services.AddTransient(implementingType);
+        }
+
+        return services;
+    }
+
+    private static bool IsDirectSubclassOfHandlerBaseType(TypeInfo typeInfo, Type handlerBaseType)
+    {
+        return
+            typeInfo.BaseType != null
+            && typeInfo.BaseType.IsGenericType
+            && typeInfo.BaseType.GetGenericTypeDefinition() == handlerBaseType;
     }
 
     /// <summary>

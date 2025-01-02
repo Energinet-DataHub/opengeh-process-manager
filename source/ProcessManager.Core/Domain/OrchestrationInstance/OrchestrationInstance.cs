@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using NodaTime;
 
@@ -81,6 +82,31 @@ public class OrchestrationInstance
     /// the workflow that the orchestration instance is an instance of.
     /// </summary>
     internal OrchestrationDescriptionId OrchestrationDescriptionId { get; }
+
+    /// <summary>
+    /// Try to get a step by its sequence number.
+    /// </summary>
+    /// <param name="sequence">Position in sequence</param>
+    /// <param name="step">Instance found</param>
+    /// <returns><c>true</c> if found, else <c>false</c></returns>
+    public bool TryGetStep(int sequence, [NotNullWhen(true)] out StepInstance? step)
+    {
+        step = Steps.SingleOrDefault(s => s.Sequence == sequence);
+        return step != null;
+    }
+
+    /// <summary>
+    /// Get a step by its sequence number.
+    /// </summary>
+    /// <param name="sequence">Position in sequence</param>
+    /// <returns>Step instance</returns>
+    /// <exception cref="ArgumentOutOfRangeException">StepInstance is not found with the given sequence</exception>
+    public StepInstance GetStep(int sequence)
+    {
+        return
+            Steps.SingleOrDefault(s => s.Sequence == sequence) ??
+            throw new ArgumentOutOfRangeException(nameof(sequence), sequence, "A step with the given sequence does not exist");
+    }
 
     /// <summary>
     /// Transition a step's lifecycle to running

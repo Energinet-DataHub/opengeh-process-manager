@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using FluentAssertions;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain.OrchestrationDescription;
@@ -23,7 +23,7 @@ public class OrchestrationDescriptionTests
     public void GivenInstance_WhenSettingValidRecurringCronExpression_ThenIsRecurringIsTrue()
     {
         // Arrange
-        var sut = new ProcessManagement.Core.Domain.OrchestrationDescription.OrchestrationDescription(
+        var sut = new Core.Domain.OrchestrationDescription.OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
                 name: "name",
                 version: 1),
@@ -41,7 +41,7 @@ public class OrchestrationDescriptionTests
     public void GivenInstance_WhenSettingInvalidRecurringCronExpression_ThenThrowsException()
     {
         // Arrange
-        var sut = new ProcessManagement.Core.Domain.OrchestrationDescription.OrchestrationDescription(
+        var sut = new Core.Domain.OrchestrationDescription.OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
                 name: "name",
                 version: 1),

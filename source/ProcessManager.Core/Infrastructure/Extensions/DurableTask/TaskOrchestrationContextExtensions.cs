@@ -15,7 +15,7 @@
 using System.Text.Json;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DurableTask;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 
 public static class TaskOrchestrationContextExtensions
 {

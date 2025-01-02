@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Application.Registration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;

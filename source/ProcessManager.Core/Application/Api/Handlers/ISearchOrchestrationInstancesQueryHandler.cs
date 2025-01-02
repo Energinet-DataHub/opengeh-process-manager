@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Application.Api.Handlers;
+namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
 /// <summary>
 /// Interface for handling a query for searching orchestration instances.

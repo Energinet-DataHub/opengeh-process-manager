@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 
 /// <summary>
 /// Describes an orchestration step that should be visible to the user

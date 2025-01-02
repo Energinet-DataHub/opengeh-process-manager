@@ -15,9 +15,9 @@
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()

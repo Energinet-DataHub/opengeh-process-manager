@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.Extensions.Logging;
 using NCrontab;
 using NodaTime;

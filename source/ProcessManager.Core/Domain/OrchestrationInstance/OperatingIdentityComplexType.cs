@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 public record OperatingIdentityComplexType
 {

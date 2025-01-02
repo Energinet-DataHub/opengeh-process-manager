@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Telemetry;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 
 public static class TelemetryConstants
 {

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Database;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.DatabaseMigration;
 using Microsoft.EntityFrameworkCore;
 

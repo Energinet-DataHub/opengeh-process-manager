@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.Registration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Registration;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 
 /// <summary>
 /// Keep a register of known Durable Functions orchestrations.

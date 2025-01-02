@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
+using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Startup;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 
 /// <summary>
 /// Provides extension methods for the <see cref="IHost"/> to ProcessManager related operations

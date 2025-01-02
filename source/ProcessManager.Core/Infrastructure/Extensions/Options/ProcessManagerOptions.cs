@@ -14,7 +14,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 
 /// <summary>
 /// Contains Process Manager options that we can configure as hierarchical.

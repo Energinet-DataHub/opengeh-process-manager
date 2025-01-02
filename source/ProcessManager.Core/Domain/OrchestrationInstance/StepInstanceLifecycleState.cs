@@ -14,7 +14,7 @@
 
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 public class StepInstanceLifecycleState
 {

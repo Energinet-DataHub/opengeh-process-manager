@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using DomainModel = Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using DomainModel = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Api.Mappers;
 

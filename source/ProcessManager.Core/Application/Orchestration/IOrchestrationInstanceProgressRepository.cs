@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
+namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 
 /// <summary>
 /// Use this from Durable Functions activities to get the orchestration instance and then

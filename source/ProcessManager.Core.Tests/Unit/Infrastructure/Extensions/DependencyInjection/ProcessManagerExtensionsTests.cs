@@ -13,9 +13,9 @@
 // limitations under the License.
 
 using System.Reflection;
-using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.Registration;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using FluentAssertions;
 using FluentAssertions.Common;
 using FluentAssertions.Execution;

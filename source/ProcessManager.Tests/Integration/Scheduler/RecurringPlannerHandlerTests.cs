@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Scheduling;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
 using Energinet.DataHub.ProcessManager.Scheduler;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;

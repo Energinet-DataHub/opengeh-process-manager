@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Application.Api.Handlers;
+namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
 /// <summary>
 /// Interface for handling a command for starting an orchestration instance with an input parameter.

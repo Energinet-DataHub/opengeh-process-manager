@@ -26,6 +26,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using WireMock.Server;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -103,9 +104,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     /// <param name="brs026Subscription">The BRS-026 Service Bus subscription. A new subscription will be created if not provided.</param>
     /// <param name="brs021ForwardMeteredDataSubscription">The BRS-021-forwardMeteredData Service Bus subscription. A new subscription will be created if not provided.</param>
+    /// <param name="mockServer">The mocked server</param>
     public async Task StartAsync(
         SubscriptionProperties? brs026Subscription = null,
-        SubscriptionProperties? brs021ForwardMeteredDataSubscription = null)
+        SubscriptionProperties? brs021ForwardMeteredDataSubscription = null,
+        WireMockServer? mockServer = null)
     {
         if (_manageAzurite)
         {
@@ -144,7 +147,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
             brs026Subscription,
-            brs021ForwardMeteredDataSubscription);
+            brs021ForwardMeteredDataSubscription,
+            mockServer);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -214,7 +218,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
         SubscriptionProperties brs026Subscription,
-        SubscriptionProperties brs021ForwardMeteredDataSubscription)
+        SubscriptionProperties brs021ForwardMeteredDataSubscription,
+        WireMockServer? mockServer = null)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -270,13 +275,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // => Databricks workspaces
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
-            IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
+            mockServer?.Url ?? IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
-            IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
+            mockServer?.Url ?? IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);

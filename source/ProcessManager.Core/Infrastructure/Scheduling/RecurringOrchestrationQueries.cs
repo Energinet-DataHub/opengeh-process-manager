@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Scheduling;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
 
 /// <summary>
 /// Queries necessary to handle the planning of recurring orchestrations.

@@ -14,7 +14,7 @@
 
 using NCrontab;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 
 /// <summary>
 /// Durable Functions orchestration description.

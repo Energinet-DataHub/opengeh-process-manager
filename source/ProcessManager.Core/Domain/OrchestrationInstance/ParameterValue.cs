@@ -15,7 +15,7 @@
 using System.Dynamic;
 using System.Text.Json;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 /// <summary>
 /// Store a Durable Functions orchestration input parameter value as JSON.

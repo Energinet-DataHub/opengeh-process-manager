@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
+using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 

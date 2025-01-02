@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 
 internal class OrchestrationDescriptionEntityConfiguration : IEntityTypeConfiguration<OrchestrationDescription>
 {

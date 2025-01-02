@@ -13,15 +13,15 @@
 // limitations under the License.
 
 using System.Reflection;
-using Energinet.DataHub.ProcessManagement.Core.Application.Api.Handlers;
-using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManagement.Core.Application.Registration;
-using Energinet.DataHub.ProcessManagement.Core.Application.Scheduling;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Database;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Options;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Orchestration;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Registration;
-using Energinet.DataHub.ProcessManagement.Core.Infrastructure.Scheduling;
+using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.Registration;
+using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.Options;
@@ -30,7 +30,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.DependencyInjection;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 
 /// <summary>
 /// Extension methods for <see cref="IServiceCollection"/>

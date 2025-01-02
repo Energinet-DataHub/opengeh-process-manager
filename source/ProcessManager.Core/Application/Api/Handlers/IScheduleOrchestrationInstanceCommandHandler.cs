@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Application.Api.Handlers;
+namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
 /// <summary>
 /// Interface for handling a command for scheduling an orchestration instance with an input parameter.

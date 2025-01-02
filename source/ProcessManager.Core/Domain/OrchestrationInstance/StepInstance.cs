@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using NodaTime;
-
-namespace Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 /// <summary>
 /// Represents the instance of a workflow (orchestration) step.

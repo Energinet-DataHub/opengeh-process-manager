@@ -14,7 +14,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManagement.Core.Infrastructure.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 
 /// <summary>
 /// Settings for the Task Hub used by Process Manager components.

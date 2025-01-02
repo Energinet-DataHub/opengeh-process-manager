@@ -38,7 +38,7 @@ var host = new HostBuilder()
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
 
-        // Databricks workspaces
+        // Databricks Workspaces
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Wholesale);
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Measurements);
 

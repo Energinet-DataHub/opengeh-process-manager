@@ -52,6 +52,7 @@ jobs:
           dotnet publish \
             '${{ inputs.project_file }}' \
             --configuration Release \
+            -p:SourceRevisionId=PR_${{ github.event.number }}+SHA_${{ github.sha }} \
             --output '${{ env.RELEASE_FOLDER_PATH }}'
 
       - name: Zip files for prerelease

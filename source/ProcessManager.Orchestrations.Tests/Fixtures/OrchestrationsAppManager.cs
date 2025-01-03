@@ -54,6 +54,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             new AzuriteManager(useOAuth: true),
             taskHubName: "OrchestrationsTest01",
             appPort: 8002,
+            wireMockServerPort: 8012,
             manageDatabase: true,
             manageAzurite: true)
     {
@@ -65,6 +66,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         AzuriteManager azuriteManager,
         string taskHubName,
         int appPort,
+        int wireMockServerPort,
         bool manageDatabase,
         bool manageAzurite)
     {
@@ -85,7 +87,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
 
-        MockServer = WireMockServer.Start(port: 1024);
+        MockServer = WireMockServer.Start(port: wireMockServerPort);
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }

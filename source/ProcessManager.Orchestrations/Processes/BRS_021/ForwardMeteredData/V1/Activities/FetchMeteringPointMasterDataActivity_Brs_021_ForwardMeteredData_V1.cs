@@ -12,34 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
+using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1(
+internal sealed class FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IElectricityMarketViews electricityMarketViews)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+    private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
+
+    [Function(nameof(FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1))]
+    public async Task<IReadOnlyCollection<MeteringPointMasterData>> Run(
+        [ActivityTrigger] ActivityInput activityInput)
     {
-        var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
-            .ConfigureAwait(false);
+        if (activityInput.MeteringPointIdentification is null || activityInput.EndDateTime is null)
+        {
+            return [];
+        }
 
-        await TransitionStepToRunningAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.ValidatingStep,
-                orchestrationInstance)
-            .ConfigureAwait(false);
+        var id = new MeteringPointIdentification(activityInput.MeteringPointIdentification);
+        var startDateTime = InstantPattern.General.Parse(activityInput.StartDateTime);
+        var endDateTime = InstantPattern.General.Parse(activityInput.EndDateTime);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        if (!startDateTime.Success || !endDateTime.Success)
+        {
+            return [];
+        }
+
+        return await _electricityMarketViews
+            .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
+            .ToListAsync()
+            .ConfigureAwait(false);
     }
+
+    public sealed record ActivityInput(string? MeteringPointIdentification, string StartDateTime, string? EndDateTime);
 }

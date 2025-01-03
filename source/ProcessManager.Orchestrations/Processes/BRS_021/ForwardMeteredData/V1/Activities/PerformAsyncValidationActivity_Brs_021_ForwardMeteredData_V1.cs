@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
@@ -19,31 +20,36 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-/// <summary>
-/// The first activity in the orchestration.
-/// It is responsible for updating the status to 'Running'.
-/// </summary>
-internal class OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1(
+internal class PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run(
-        [ActivityTrigger] ActivityInput activityInput)
+    [Function(nameof(PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1))]
+    public async Task<IReadOnlyCollection<string>> Run([ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
             .GetAsync(activityInput.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        await TransitionStepToRunningAsync(
+                Orchestration_Brs_021_ForwardMeteredData_V1.ValidatingStep,
+                orchestrationInstance)
+            .ConfigureAwait(false);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        var errors = new List<string>();
+
+        if (activityInput.MeteringPointMasterData.Count == 0)
+        {
+            errors.Add("Error: No metering point master data found.");
+        }
+
+        return errors;
     }
 
-    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
+    public sealed record ActivityInput(
+        OrchestrationInstanceId OrchestrationInstanceId,
+        IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
 }

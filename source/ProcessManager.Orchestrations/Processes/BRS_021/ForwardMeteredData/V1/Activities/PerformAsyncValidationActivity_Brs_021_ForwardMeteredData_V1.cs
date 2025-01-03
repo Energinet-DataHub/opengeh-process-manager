@@ -31,7 +31,7 @@ internal class PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1(
     public async Task<IReadOnlyCollection<string>> Run([ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(activityInput.OrchestrationInstanceId))
+            .GetAsync(activityInput.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
@@ -50,6 +50,6 @@ internal class PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1(
     }
 
     public sealed record ActivityInput(
-        Guid OrchestrationInstanceId,
+        OrchestrationInstanceId OrchestrationInstanceId,
         IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
 }

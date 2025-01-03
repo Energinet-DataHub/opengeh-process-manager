@@ -12,36 +12,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
+/// <summary>
+/// Enqueue reject message in EDI (and set step to running)
+/// </summary>
+internal class EnqueueRejectMessageActivity_Brs_021_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
-    [Function(nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run([ActivityTrigger] ActivityInput activityInput)
+    [Function(nameof(EnqueueRejectMessageActivity_Brs_021_V1))]
+    public async Task Run([ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _progressRepository
-            .GetAsync(activityInput.OrchestrationInstanceId)
+            .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.TransitionStepToTerminated(
+        orchestrationInstance.TransitionStepToRunning(
             Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueMessagesStep,
-            activityInput.TerminationState,
             _clock);
 
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+
+        await EnqueueRejectMessageAsync(input).ConfigureAwait(false);
     }
 
-    public sealed record ActivityInput(
-        OrchestrationInstanceId OrchestrationInstanceId,
-        OrchestrationStepTerminationStates TerminationState);
+    private async Task EnqueueRejectMessageAsync(ActivityInput input)
+    {
+        // TODO: Enqueue message in EDI instead of delay
+        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+    }
+
+    public record ActivityInput(
+        OrchestrationInstanceId InstanceId,
+        IReadOnlyCollection<string> ValidationError);
 }

@@ -71,7 +71,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ExampleOrchestration_WhenRanToCompletion_HasExceptedHistory()
+    public async Task ExampleOrchestration_WhenRunningEveryActivity_HasExceptedHistory()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -108,6 +108,56 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_InputExample_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_X01_InputExample_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationTerminateActivity_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("ExecutionCompleted"),
+        ]);
+
+        // => Verify that the durable function completed successfully
+        var last = completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Last();
+        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
+        last.Value<string>("Result").Should().Be("Success");
+    }
+
+    [Fact]
+    public async Task ExampleOrchestration_WhenSkippingActivities_HasExceptedHistory()
+    {
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
+        // Start new orchestration instance
+        var input = new InputV1(
+            ShouldSkipSkippableStep: true);
+        var orchestrationInstanceId = await processManagerClient
+            .StartNewOrchestrationInstanceAsync(
+                new StartInputExampleCommandV1(
+                    userIdentity,
+                    input),
+                CancellationToken.None);
+
+        // => Wait for completion
+        var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+            orchestrationInstanceId.ToString(),
+            TimeSpan.FromSeconds(20));
+
+        // => Expect history
+        using var assertionScope = new AssertionScope();
+
+        var activities = completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Select(item => item.ToObject<OrchestrationHistoryItem>())
+            .ToList();
+
+        activities.Should().NotBeNull().And.Equal(
+        [
+            new OrchestrationHistoryItem("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_InputExample_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_X01_InputExample_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationTerminateActivity_Brs_X01_InputExample_V1"),

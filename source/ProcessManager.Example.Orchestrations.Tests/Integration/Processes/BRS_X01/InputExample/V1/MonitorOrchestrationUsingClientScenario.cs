@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
@@ -143,6 +144,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // TODO: Enable when custom filtering has been implemented correct
         ////orchestrationInstancesCustomSearch.Count.Should().Be(1);
+
+        // => Wait for completion, this should be fairly quick, since we have mocked databricks
+        var completeOrchestrationStatus = await Fixture.ExampleOrchestrationsAppManager.DurableClient.WaitForOrchestrationCompletedAsync(
+            orchestrationInstanceId.ToString(),
+            TimeSpan.FromSeconds(10));
     }
 
     [Fact]
@@ -235,5 +241,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             delay: TimeSpan.FromSeconds(3));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+    }
+
+    [Fact]
+    public async Task ExampleOrchestration_WhenRanToCompletion_HasExceptedHistory()
+    {
+
     }
 }

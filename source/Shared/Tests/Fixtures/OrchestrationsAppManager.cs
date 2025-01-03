@@ -287,6 +287,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
 
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "DatabaseOptions__ConnectionString",
+            DatabaseManager.ConnectionString);
+
         return appHostSettings;
     }
 

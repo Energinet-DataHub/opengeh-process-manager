@@ -14,14 +14,12 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
@@ -84,14 +82,9 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     [NotNull]
     public FunctionAppHostManager? AppHostManager { get; private set; }
 
-    [NotNull]
-    public IDurableClient? DurableClient { get; private set; }
-
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
     private AzuriteManager AzuriteManager { get; }
-
-    private DurableTaskManager DurableTaskManager { get; }
 
     /// <summary>
     /// Start the example orchestration app
@@ -113,9 +106,6 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
         StartHost(AppHostManager);
-
-        // Create durable client when TaskHub has been created
-        DurableClient = DurableTaskManager.CreateClient(taskHubName: _taskHubName);
     }
 
     public async ValueTask DisposeAsync()

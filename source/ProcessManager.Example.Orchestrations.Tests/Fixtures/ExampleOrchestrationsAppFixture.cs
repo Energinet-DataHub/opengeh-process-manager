@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics.CodeAnalysis;
+using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
@@ -53,6 +56,10 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
             appPort: 8302,
             manageDatabase: false,
             manageAzurite: false);
+
+        DurableTaskManager = new DurableTaskManager(
+            "AzuriteConnectionString",
+            AzuriteManager.FullConnectionString);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -61,9 +68,14 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
     public ProcessManagerAppManager ProcessManagerAppManager { get; }
 
+    [NotNull]
+    public IDurableClient? DurableClient { get; private set; }
+
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
     private AzuriteManager AzuriteManager { get; }
+
+    private DurableTaskManager DurableTaskManager { get; }
 
     public async Task InitializeAsync()
     {
@@ -74,6 +86,9 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
         await ExampleOrchestrationsAppManager.StartAsync();
         await ProcessManagerAppManager.StartAsync();
+
+        // Create durable client when TaskHub has been created
+        DurableClient = DurableTaskManager.CreateClient(taskHubName: TaskHubName);
     }
 
     public async Task DisposeAsync()
@@ -84,6 +99,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         await DatabaseManager.DeleteDatabaseAsync();
 
         AzuriteManager.Dispose();
+        DurableTaskManager.Dispose();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)

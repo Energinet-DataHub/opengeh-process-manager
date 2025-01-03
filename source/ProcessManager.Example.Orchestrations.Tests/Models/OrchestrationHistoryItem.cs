@@ -14,6 +14,17 @@
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Models;
 
+/// <summary>
+/// History item for the orchestration. Which one may use to verify that the orchestration ran the expected activities.
+/// </summary>
+/// <param name="EventType">The event type which is made by the durable function. Most likely one of:
+/// "ExecutionStarted" (Function has started),
+/// "TaskCompleted" (Activity completed),
+/// "TimerCreated" (When the function is waiting for something, can be an external event),
+/// "EventRaised" (Event raised in the function, may be via the durableTaskClient.RaiseEventAsync(...) method),
+/// "ExecutionCompleted" (The function has run to completion) </param>
+/// <param name="Name">Can contain the name of the event raised for the function </param>
+/// <param name="FunctionName">Function name of the activity which was run </param>
 public record OrchestrationHistoryItem(
     string? EventType,
     string? Name = null,

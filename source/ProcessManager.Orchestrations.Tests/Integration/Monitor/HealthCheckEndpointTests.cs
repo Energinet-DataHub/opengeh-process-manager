@@ -37,6 +37,7 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     public Task InitializeAsync()
     {
         Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
+        Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(false);
 
         return Task.CompletedTask;
     }

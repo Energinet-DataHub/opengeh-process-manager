@@ -22,6 +22,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -50,6 +51,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         });
         services.AddProcessManagerHttpClients();
+
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -62,6 +64,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
         Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
 
+        Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
+
         return Task.CompletedTask;
     }
 
@@ -73,9 +77,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact(Skip = "Must use WireMock to mock Databricks Job API")]
+    [Fact]
     public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
+        // Mocking the databricks api. Forcing it to return a terminated successful job status
+        Fixture.OrchestrationsAppManager.MockServer.MockCalculationJobStatusResponse(RunLifeCycleState.TERMINATED, "ElectricalHeating");
+
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         var userIdentity = new UserIdentityDto(
@@ -104,7 +111,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
                     && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
             },
-            timeLimit: TimeSpan.FromSeconds(60),
+            timeLimit: TimeSpan.FromSeconds(20),
             delay: TimeSpan.FromSeconds(3));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");

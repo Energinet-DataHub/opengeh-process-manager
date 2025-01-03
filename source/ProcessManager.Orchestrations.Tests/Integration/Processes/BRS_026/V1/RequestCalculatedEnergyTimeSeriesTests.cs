@@ -27,7 +27,7 @@ using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_026_028.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_026.V1;
 
 /// <summary>
 /// Test collection that verifies the Process Manager clients can be used to start a
@@ -49,7 +49,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
-                = _fixture.ProcessManagerTopic.Name,
+                = _fixture.ProcessManagerTopicName,
         });
         services.AddAzureClients(
             b =>
@@ -84,7 +84,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         // Arrange
         var businessReason = "BalanceFixing";
         var energySupplierNumber = "23143245321";
-        var startRequestCommand = new StartRequestCalculatedEnergyTimeSeriesCommandV1(
+        var startRequestCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedEnergyTimeSeriesInputV1(
                 RequestedForActorNumber: energySupplierNumber,

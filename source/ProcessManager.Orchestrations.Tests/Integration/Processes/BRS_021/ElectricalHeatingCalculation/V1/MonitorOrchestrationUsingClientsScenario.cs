@@ -52,8 +52,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         });
         services.AddProcessManagerHttpClients();
 
-        Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
-
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -65,6 +63,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
         Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
+
+        Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
 
         return Task.CompletedTask;
     }

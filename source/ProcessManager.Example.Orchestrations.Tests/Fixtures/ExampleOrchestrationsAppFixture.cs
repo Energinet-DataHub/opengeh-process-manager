@@ -95,11 +95,10 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
     {
         await ExampleOrchestrationsAppManager.DisposeAsync();
         await ProcessManagerAppManager.DisposeAsync();
-
+        await DurableTaskManager.DisposeAsync();
         await DatabaseManager.DeleteDatabaseAsync();
 
         AzuriteManager.Dispose();
-        DurableTaskManager.Dispose();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)

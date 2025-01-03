@@ -44,6 +44,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             AzuriteManager,
             taskHubName: TaskHubName,
             appPort: 8101,
+            wireMockServerPort: 8112,
             manageDatabase: false,
             manageAzurite: false);
 

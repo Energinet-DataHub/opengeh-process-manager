@@ -84,6 +84,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
             TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
+
+        MockServer = WireMockServer.Start(port: 1024);
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -92,6 +94,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     [NotNull]
     public FunctionAppHostManager? AppHostManager { get; private set; }
+
+    public WireMockServer MockServer { get; }
 
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
@@ -104,11 +108,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     /// <param name="brs026Subscription">The BRS-026 Service Bus subscription. A new subscription will be created if not provided.</param>
     /// <param name="brs021ForwardMeteredDataSubscription">The BRS-021-forwardMeteredData Service Bus subscription. A new subscription will be created if not provided.</param>
-    /// <param name="mockServer">The mocked server</param>
     public async Task StartAsync(
         SubscriptionProperties? brs026Subscription = null,
-        SubscriptionProperties? brs021ForwardMeteredDataSubscription = null,
-        WireMockServer? mockServer = null)
+        SubscriptionProperties? brs021ForwardMeteredDataSubscription = null)
     {
         if (_manageAzurite)
         {
@@ -147,8 +149,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
             brs026Subscription,
-            brs021ForwardMeteredDataSubscription,
-            mockServer);
+            brs021ForwardMeteredDataSubscription);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -166,6 +167,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             await DatabaseManager.DeleteDatabaseAsync();
 
         await ServiceBusResourceProvider.DisposeAsync();
+        MockServer.Dispose();
     }
 
     /// <summary>
@@ -179,6 +181,21 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)
     {
         TestLogger.TestOutputHelper = testOutputHelper;
+    }
+
+    public void EnsureAppHostUsesMockedDatabricksApi(bool useMockServer = false)
+    {
+        AppHostManager.RestartHostIfChanges(new Dictionary<string, string>
+        {
+            {
+                $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
+                useMockServer ? MockServer.Url! : IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl
+            },
+            {
+                $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
+                useMockServer ? MockServer.Url! : IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl
+            },
+        });
     }
 
     private static void StartHost(FunctionAppHostManager hostManager)
@@ -218,8 +235,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
         SubscriptionProperties brs026Subscription,
-        SubscriptionProperties brs021ForwardMeteredDataSubscription,
-        WireMockServer? mockServer = null)
+        SubscriptionProperties brs021ForwardMeteredDataSubscription)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -275,13 +291,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // => Databricks workspaces
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
-            mockServer?.Url ?? IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
+            IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
-            mockServer?.Url ?? IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
+            IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);

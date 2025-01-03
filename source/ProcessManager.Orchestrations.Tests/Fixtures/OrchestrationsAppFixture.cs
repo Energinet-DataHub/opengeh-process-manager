@@ -20,7 +20,6 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using WireMock.Server;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -61,8 +60,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
-
-        MockServer = WireMockServer.Start(port: 1024);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -76,8 +73,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
     [NotNull]
     public TopicResource? ProcessManagerTopic { get; private set; }
-
-    public WireMockServer MockServer { get; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -108,7 +103,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         var brs026Subscription = ProcessManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
         var brs021ForwardMeteredDataSubscription = ProcessManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
 
-        await OrchestrationsAppManager.StartAsync(brs026Subscription, brs021ForwardMeteredDataSubscription, MockServer);
+        await OrchestrationsAppManager.StartAsync(brs026Subscription, brs021ForwardMeteredDataSubscription);
         await ProcessManagerAppManager.StartAsync();
     }
 
@@ -120,7 +115,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await DatabaseManager.DeleteDatabaseAsync();
         AzuriteManager.Dispose();
         await ServiceBusResourceProvider.DisposeAsync();
-        MockServer.Dispose();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)

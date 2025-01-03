@@ -51,6 +51,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         });
         services.AddProcessManagerHttpClients();
+
+        Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
+
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -77,8 +80,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
-        // Arrange
-        Fixture.MockServer.MockCalculationJobStatusResponse(RunLifeCycleState.TERMINATED, "ElectricalHeating");
+        // Mocking the databricks api. Forcing it to return a terminated successful job status
+        Fixture.OrchestrationsAppManager.MockServer.MockCalculationJobStatusResponse(RunLifeCycleState.TERMINATED, "ElectricalHeating");
 
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

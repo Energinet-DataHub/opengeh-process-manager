@@ -41,6 +41,12 @@ public class ProcessManagerTopicOptions
     public string Brs026SubscriptionName { get; set; } = string.Empty;
 
     /// <summary>
+    /// Name of the subscription for BRS026 to the ProcessManager Service Bus topic
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string Brs028SubscriptionName { get; set; } = string.Empty;
+
+    /// <summary>
     /// Name of the subscription for BRS021 ForwardMeteredData to the ProcessManager Service Bus topic
     /// </summary>
     //[Required(AllowEmptyStrings = false)] // TODO: Removed required for now since tests cannot be run (yet)

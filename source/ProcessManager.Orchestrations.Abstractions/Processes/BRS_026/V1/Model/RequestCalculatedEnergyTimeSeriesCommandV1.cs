@@ -21,7 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Command for starting a BRS-026.
 /// Must be JSON serializable.
 /// </summary>
-public sealed record StartRequestCalculatedEnergyTimeSeriesCommandV1
+public sealed record RequestCalculatedEnergyTimeSeriesCommandV1
     : MessageCommand<RequestCalculatedEnergyTimeSeriesInputV1>
 {
     /// <summary>
@@ -30,7 +30,7 @@ public sealed record StartRequestCalculatedEnergyTimeSeriesCommandV1
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
     /// <param name="messageId">Id of the message that casued this command to be executed.</param>
-    public StartRequestCalculatedEnergyTimeSeriesCommandV1(
+    public RequestCalculatedEnergyTimeSeriesCommandV1(
         ActorIdentityDto operatingIdentity,
         RequestCalculatedEnergyTimeSeriesInputV1 inputParameter,
         string messageId)

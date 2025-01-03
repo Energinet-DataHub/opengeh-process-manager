@@ -14,32 +14,32 @@
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1;
 
 // TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
-internal class Orchestration_Brs_026_V1
+internal class Orchestration_Brs_028_V1
 {
     public const int AsyncValidationStepSequence = 1;
     public const int EnqueueMessagesStepSequence = 2;
 
     private readonly TaskOptions _defaultRetryOptions;
 
-    public Orchestration_Brs_026_V1()
+    public Orchestration_Brs_028_V1()
     {
         _defaultRetryOptions = CreateDefaultRetryOptions();
     }
 
-    [Function(nameof(Orchestration_Brs_026_V1))]
+    [Function(nameof(Orchestration_Brs_028_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var input = context.GetOrchestrationParameterValue<RequestCalculatedEnergyTimeSeriesInputV1>();
+        var input = context.GetOrchestrationParameterValue<RequestCalculatedWholesaleServicesInputV1>();
 
         var instanceId = await InitializeOrchestrationAsync(context);
 
@@ -63,8 +63,8 @@ internal class Orchestration_Brs_026_V1
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         await context.CallActivityAsync(
-            nameof(StartOrchestrationActivity_Brs_026_V1),
-            new StartOrchestrationActivity_Brs_026_V1.ActivityInput(
+            nameof(StartOrchestrationActivity_Brs_028_V1),
+            new StartOrchestrationActivity_Brs_028_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
 
@@ -74,11 +74,11 @@ internal class Orchestration_Brs_026_V1
     private async Task<bool> PerformAsynchronousValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        RequestCalculatedEnergyTimeSeriesInputV1 input)
+        RequestCalculatedWholesaleServicesInputV1 input)
     {
         var isValid = await context.CallActivityAsync<bool>(
-            nameof(PerformAsyncValidationActivity_Brs_026_V1),
-            new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
+            nameof(PerformAsyncValidationActivity_Brs_028_V1),
+            new PerformAsyncValidationActivity_Brs_028_V1.ActivityInput(
                 instanceId,
                 input),
             _defaultRetryOptions);
@@ -87,8 +87,8 @@ internal class Orchestration_Brs_026_V1
             ? OrchestrationStepTerminationStates.Succeeded
             : OrchestrationStepTerminationStates.Failed;
         await context.CallActivityAsync(
-            nameof(TerminateStepActivity_Brs_026_V1),
-            new TerminateStepActivity_Brs_026_V1.ActivityInput(
+            nameof(TerminateStepActivity_Brs_028_V1),
+            new TerminateStepActivity_Brs_028_V1.ActivityInput(
                 instanceId,
                 AsyncValidationStepSequence,
                 asyncValidationTerminationState),
@@ -100,14 +100,14 @@ internal class Orchestration_Brs_026_V1
     private async Task EnqueueMessagesInEdiAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        RequestCalculatedEnergyTimeSeriesInputV1 input,
+        RequestCalculatedWholesaleServicesInputV1 input,
         bool isValidAsyncValidation)
     {
         if (isValidAsyncValidation)
         {
             await context.CallActivityAsync(
-                nameof(EnqueueMessagesActivity_Brs_026_V1),
-                new EnqueueMessagesActivity_Brs_026_V1.ActivityInput(
+                nameof(EnqueueMessagesActivity_Brs_028_V1),
+                new EnqueueMessagesActivity_Brs_028_V1.ActivityInput(
                     instanceId,
                     input),
                 _defaultRetryOptions);
@@ -115,8 +115,8 @@ internal class Orchestration_Brs_026_V1
         else
         {
             await context.CallActivityAsync(
-                nameof(EnqueueRejectMessageActivity_Brs_026_V1),
-                new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
+                nameof(EnqueueRejectMessageActivity_Brs_028_V1),
+                new EnqueueRejectMessageActivity_Brs_028_V1.ActivityInput(
                     instanceId,
                     "Validation error"),
                 _defaultRetryOptions);
@@ -137,15 +137,15 @@ internal class Orchestration_Brs_026_V1
     private async Task<string> TerminateOrchestrationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        RequestCalculatedEnergyTimeSeriesInputV1 input,
+        RequestCalculatedWholesaleServicesInputV1 input,
         bool wasMessagesEnqueued)
     {
         var enqueueMessagesTerminationState = wasMessagesEnqueued
             ? OrchestrationStepTerminationStates.Succeeded
             : OrchestrationStepTerminationStates.Failed;
         await context.CallActivityAsync(
-            nameof(TerminateStepActivity_Brs_026_V1),
-            new TerminateStepActivity_Brs_026_V1.ActivityInput(
+            nameof(TerminateStepActivity_Brs_028_V1),
+            new TerminateStepActivity_Brs_028_V1.ActivityInput(
                 instanceId,
                 EnqueueMessagesStepSequence,
                 enqueueMessagesTerminationState),
@@ -153,15 +153,15 @@ internal class Orchestration_Brs_026_V1
 
         if (!wasMessagesEnqueued)
         {
-            var logger = context.CreateReplaySafeLogger<Orchestration_Brs_026_V1>();
+            var logger = context.CreateReplaySafeLogger<Orchestration_Brs_028_V1>();
             logger.Log(
                 LogLevel.Warning,
                 "Timeout while waiting for enqueue messages to complete (InstanceId={OrchestrationInstanceId}).",
                 instanceId.Value);
 
             await context.CallActivityAsync(
-                nameof(TerminateOrchestrationActivity_Brs_026_V1),
-                new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
+                nameof(TerminateOrchestrationActivity_Brs_028_V1),
+                new TerminateOrchestrationActivity_Brs_028_V1.ActivityInput(
                     instanceId,
                     OrchestrationInstanceTerminationStates.Failed),
                 _defaultRetryOptions);
@@ -171,8 +171,8 @@ internal class Orchestration_Brs_026_V1
         else
         {
             await context.CallActivityAsync(
-                nameof(TerminateOrchestrationActivity_Brs_026_V1),
-                new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
+                nameof(TerminateOrchestrationActivity_Brs_028_V1),
+                new TerminateOrchestrationActivity_Brs_028_V1.ActivityInput(
                     instanceId,
                     OrchestrationInstanceTerminationStates.Succeeded),
                 _defaultRetryOptions);

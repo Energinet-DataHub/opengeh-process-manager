@@ -42,6 +42,9 @@ var host = new HostBuilder()
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Wholesale);
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Measurements);
 
+        // Enqueue Messages in EDI
+        services.AddEnqueueMessages(azureCredential);
+
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers

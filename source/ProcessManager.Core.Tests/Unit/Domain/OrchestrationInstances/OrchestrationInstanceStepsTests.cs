@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using FluentAssertions;
 using NodaTime;
-using OD = Energinet.DataHub.ProcessManagement.Core.Domain.OrchestrationDescription;
+using OD = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain.OrchestrationInstances;
 
@@ -97,7 +97,7 @@ public class OrchestrationInstanceStepsTests
         return orchestrationInstance;
     }
 
-    private static ProcessManagement.Core.Domain.OrchestrationDescription.OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)
+    private static ProcessManager.Core.Domain.OrchestrationDescription.OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)
     {
         var orchestrationDescription = new OD.OrchestrationDescription(
             uniqueName: uniqueName ?? new OrchestrationDescriptionUniqueName("TestOrchestration", 4),

@@ -73,7 +73,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     public IDurableClient? DurableClient { get; private set; }
 
     [NotNull]
-    public TopicResource? ProcessManagerTopic { get; private set; }
+    public string? ProcessManagerTopicName { get; private set; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -92,19 +92,11 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         DurableClient = DurableTaskManager.CreateClient(TaskHubName);
 
-        var brs026SubscriptionName = "brs-026-subscription";
-        var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
+        var serviceBusResources = await OrchestrationsAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
 
-        ProcessManagerTopic = await ServiceBusResourceProvider.BuildTopic("pm-topic")
-            .AddSubscription(brs026SubscriptionName)
-                .AddSubjectFilter("Brs_026")
-            .AddSubscription(brs021ForwardMeteredDataSubscriptionName)
-                .AddSubjectFilter("Brs_021_ForwardMeteredData")
-            .CreateAsync();
-        var brs026Subscription = ProcessManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
-        var brs021ForwardMeteredDataSubscription = ProcessManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
+        ProcessManagerTopicName = serviceBusResources.ProcessManagerTopic.Name;
 
-        await OrchestrationsAppManager.StartAsync(brs026Subscription, brs021ForwardMeteredDataSubscription);
+        await OrchestrationsAppManager.StartAsync(serviceBusResources);
         await ProcessManagerAppManager.StartAsync();
     }
 

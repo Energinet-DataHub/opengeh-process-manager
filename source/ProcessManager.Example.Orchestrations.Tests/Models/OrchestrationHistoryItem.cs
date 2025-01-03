@@ -13,6 +13,7 @@
 // limitations under the License.
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Models;
+
 /// <summary>
 /// History item for the orchestration. Which one may use to verify that the orchestration ran the expected activities.
 /// </summary>

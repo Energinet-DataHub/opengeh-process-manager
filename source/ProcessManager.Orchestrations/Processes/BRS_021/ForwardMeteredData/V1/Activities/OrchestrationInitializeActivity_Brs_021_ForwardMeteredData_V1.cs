@@ -32,10 +32,10 @@ internal class OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1(
 {
     [Function(nameof(OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+        [ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(activityInput.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
         orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
@@ -44,4 +44,6 @@ internal class OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1(
         // TODO: For demo purposes; remove when done
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
+
+    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
 }

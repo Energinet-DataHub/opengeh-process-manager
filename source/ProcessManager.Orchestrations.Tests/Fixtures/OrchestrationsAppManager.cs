@@ -101,11 +101,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// <summary>
     /// Start the orchestration app
     /// </summary>
-    /// <param name="brs026Subscription">The BRS-026 Service Bus subscription. A new subscription will be created if not provided.</param>
-    /// <param name="brs021ForwardMeteredDataSubscription">The BRS-021-forwardMeteredData Service Bus subscription. A new subscription will be created if not provided.</param>
+    /// <param name="orchestrationSubscriptions">The required Service Bus subscriptions. New subscriptions will be created if not provided.</param>
     public async Task StartAsync(
-        SubscriptionProperties? brs026Subscription = null,
-        SubscriptionProperties? brs021ForwardMeteredDataSubscription = null)
+        ServiceBusResources? orchestrationSubscriptions = null)
     {
         if (_manageAzurite)
         {
@@ -116,35 +114,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        // Process Manager topic
-        if (brs026Subscription is null || brs021ForwardMeteredDataSubscription is null)
-        {
-            var topicResourceBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
-            var brs026SubscriptionName = "brs-026-subscription";
-            var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
-
-            if (brs026Subscription is null)
-            {
-               topicResourceBuilder.AddSubscription(brs026SubscriptionName)
-                   .AddSubjectFilter("Brs_026");
-            }
-
-            if (brs021ForwardMeteredDataSubscription is null)
-            {
-                topicResourceBuilder.AddSubscription(brs021ForwardMeteredDataSubscriptionName)
-                    .AddSubjectFilter("Brs_021_ForwardMeteredData");
-            }
-
-            var topicResource = await topicResourceBuilder.CreateAsync();
-            brs026Subscription ??= topicResource.Subscriptions.Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
-            brs021ForwardMeteredDataSubscription ??= topicResource.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
-        }
+        if (orchestrationSubscriptions is null)
+            orchestrationSubscriptions = await ServiceBusResources.Create(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
-            brs026Subscription,
-            brs021ForwardMeteredDataSubscription);
+            orchestrationSubscriptions);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -213,8 +189,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        SubscriptionProperties brs026Subscription,
-        SubscriptionProperties brs021ForwardMeteredDataSubscription)
+        ServiceBusResources subscriptions)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -254,19 +229,28 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+
         // => Service Bus
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
+
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.TopicName)}",
-            brs026Subscription.TopicName);
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}",
-            brs026Subscription.SubscriptionName);
+            subscriptions.Brs026Subscription.TopicName);
+
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}",
-            brs021ForwardMeteredDataSubscription.SubscriptionName);
+            subscriptions.Brs021ForwardMeteredDataSubscription.SubscriptionName);
+
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}",
+            subscriptions.Brs026Subscription.SubscriptionName);
+
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs028SubscriptionName)}",
+            subscriptions.Brs028Subscription.SubscriptionName);
+
         // => Databricks workspaces
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
@@ -282,5 +266,55 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
 
         return appHostSettings;
+    }
+
+    public class ServiceBusResources
+    {
+        private ServiceBusResources(
+            TopicResource processManagerTopic,
+            SubscriptionProperties brs021ForwardMeteredDataSubscription,
+            SubscriptionProperties brs026Subscription,
+            SubscriptionProperties brs028Subscription)
+        {
+            ProcessManagerTopic = processManagerTopic;
+            Brs021ForwardMeteredDataSubscription = brs021ForwardMeteredDataSubscription;
+            Brs026Subscription = brs026Subscription;
+            Brs028Subscription = brs028Subscription;
+        }
+
+        public TopicResource ProcessManagerTopic { get; }
+
+        public SubscriptionProperties Brs021ForwardMeteredDataSubscription { get; }
+
+        public SubscriptionProperties Brs026Subscription { get; }
+
+        public SubscriptionProperties Brs028Subscription { get; }
+
+        public static async Task<ServiceBusResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
+        {
+            var topicResourceBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
+            var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
+            var brs026SubscriptionName = "brs-026-subscription";
+            var brs028SubscriptionName = "brs-028-subscription";
+
+            topicResourceBuilder
+                .AddSubscription(brs021ForwardMeteredDataSubscriptionName)
+                    .AddSubjectFilter("Brs_021_ForwardMeteredData")
+                .AddSubscription(brs026SubscriptionName)
+                    .AddSubjectFilter("Brs_026")
+                .AddSubscription(brs028SubscriptionName)
+                    .AddSubjectFilter("Brs_028");
+
+            var processManagerTopic = await topicResourceBuilder.CreateAsync();
+            var brs021ForwardMeteredDataSubscription = processManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
+            var brs026Subscription = processManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
+            var brs028Subscription = processManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs028SubscriptionName));
+
+            return new ServiceBusResources(
+                processManagerTopic,
+                brs021ForwardMeteredDataSubscription,
+                brs026Subscription,
+                brs028Subscription);
+        }
     }
 }

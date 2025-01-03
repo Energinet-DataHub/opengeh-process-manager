@@ -119,7 +119,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
                     && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
             },
-            timeLimit: TimeSpan.FromSeconds(60),
+            timeLimit: TimeSpan.FromSeconds(20),
             delay: TimeSpan.FromSeconds(3));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
@@ -204,7 +204,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
                     && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
             },
-            timeLimit: TimeSpan.FromSeconds(60),
+            timeLimit: TimeSpan.FromSeconds(20),
             delay: TimeSpan.FromSeconds(3));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");

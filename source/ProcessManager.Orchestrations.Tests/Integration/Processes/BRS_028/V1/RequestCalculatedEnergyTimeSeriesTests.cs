@@ -79,7 +79,7 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RequestCalculatedEnergyTimeSeries_WhenStarted_OrchestrationCompletesWithSuccess()
+    public async Task RequestCalculatedWholesaleServices_WhenStarted_OrchestrationCompletesWithSuccess()
     {
         // Arrange
         var businessReason = "WholesaleFixing";

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ElectricityMarket.Integration;
-using Energinet.DataHub.ProcessManagement.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 using NodaTime.Text;

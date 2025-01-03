@@ -71,9 +71,9 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                     errors),
                 _defaultRetryOptions);
 
-            var wasMessageEnqueued = await WaitForEnqueueMessagesResponseFromEdiAsync(context, instanceId);
+            var messagesEnqueuedSuccessfully = await WaitForEnqueueMessagesResponseFromEdiAsync(context, instanceId);
 
-            if (!wasMessageEnqueued)
+            if (!messagesEnqueuedSuccessfully)
             {
                 await context.CallActivityAsync(
                     nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),

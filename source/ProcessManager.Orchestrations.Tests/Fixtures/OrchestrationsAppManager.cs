@@ -26,6 +26,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using WireMock.Server;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -53,6 +54,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             new AzuriteManager(useOAuth: true),
             taskHubName: "OrchestrationsTest01",
             appPort: 8002,
+            wireMockServerPort: 8012,
             manageDatabase: true,
             manageAzurite: true)
     {
@@ -64,6 +66,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         AzuriteManager azuriteManager,
         string taskHubName,
         int appPort,
+        int wireMockServerPort,
         bool manageDatabase,
         bool manageAzurite)
     {
@@ -83,6 +86,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
             TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
+
+        MockServer = WireMockServer.Start(port: wireMockServerPort);
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -91,6 +96,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     [NotNull]
     public FunctionAppHostManager? AppHostManager { get; private set; }
+
+    public WireMockServer MockServer { get; }
 
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
@@ -138,6 +145,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             await DatabaseManager.DeleteDatabaseAsync();
 
         await ServiceBusResourceProvider.DisposeAsync();
+        MockServer.Dispose();
     }
 
     /// <summary>
@@ -151,6 +159,21 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)
     {
         TestLogger.TestOutputHelper = testOutputHelper;
+    }
+
+    public void EnsureAppHostUsesMockedDatabricksApi(bool useMockServer = false)
+    {
+        AppHostManager.RestartHostIfChanges(new Dictionary<string, string>
+        {
+            {
+                $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
+                useMockServer ? MockServer.Url! : IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl
+            },
+            {
+                $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
+                useMockServer ? MockServer.Url! : IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl
+            },
+        });
     }
 
     private static void StartHost(FunctionAppHostManager hostManager)

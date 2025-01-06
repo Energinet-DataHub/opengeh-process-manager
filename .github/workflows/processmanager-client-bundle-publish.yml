@@ -161,13 +161,9 @@ jobs:
       - name: Print variables
         run: |
           echo "TRIGGERED_BY_PR_COMMIT: ${{ env.TRIGGERED_BY_PR_COMMIT }}"
-          
+
           echo "ProcessManager.Client content changed: ${{ steps.changed-content-client.outputs.any_changed }}"
           echo "ProcessManager.Client push packages: ${{ (env.TRIGGERED_BY_PR_COMMIT == false) && steps.changed-content-client.outputs.any_changed }}"
-          
+
           echo "Orchestrations.Abstractions content changed: ${{ steps.changed-content-orchestrations.outputs.any_changed }}"
           echo "Orchestrations.Abstractions push packages: ${{ !env.TRIGGERED_BY_PR_COMMIT && steps.changed-content-orchestrations.outputs.any_changed }}"
-
-
-        
-        

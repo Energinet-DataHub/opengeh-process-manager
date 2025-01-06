@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.15.1
+
+- No functional changes.
+
 ## Version 0.15.0
 
 - Do not allow empty string in values of the following options:

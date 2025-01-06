@@ -12,23 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures.Extensions;
+namespace Energinet.DataHub.ProcessManager.Client.Tests.Unit.Extensions.DependencyInjection;
 
-public static class ServiceCollectionExtensions
+public class ClientExtensionsTests
 {
-    public static IServiceCollection AddInMemoryConfiguration(
-        this IServiceCollection services,
-        Dictionary<string, string?> configurations)
+    public ClientExtensionsTests()
     {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configurations)
-            .Build();
-
-        services.AddScoped<IConfiguration>(_ => configuration);
-
-        return services;
+        Services = new ServiceCollection();
     }
+
+    private ServiceCollection Services { get; }
 }

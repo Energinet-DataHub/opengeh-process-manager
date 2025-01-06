@@ -16,10 +16,10 @@ using Energinet.DataHub.Core.App.WebApp.Extensions.Builder;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Fixtures;
@@ -49,17 +49,12 @@ public sealed class HealthChecksFixture : IDisposable
         return new WebHostBuilder()
             .ConfigureServices(services =>
             {
-                services.AddScoped<IConfiguration>(_ =>
+                services.AddInMemoryConfiguration(new Dictionary<string, string?>
                 {
-                    return new ConfigurationBuilder()
-                        .AddInMemoryCollection(new Dictionary<string, string?>
-                        {
-                            [$"{DatabricksWorkspaceOptions.SectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"]
+                    [$"{DatabricksWorkspaceOptions.SectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"]
                                 = integrationTestConfiguration.DatabricksSettings.WorkspaceUrl,
-                            [$"{DatabricksWorkspaceOptions.SectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"]
+                    [$"{DatabricksWorkspaceOptions.SectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"]
                                 = integrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken,
-                        })
-                        .Build();
                 });
 
                 services.AddRouting();

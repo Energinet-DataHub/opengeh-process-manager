@@ -12,11 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Runtime.CompilerServices;
+using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Common;
 using FluentAssertions.Execution;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -27,6 +31,9 @@ public class ClientExtensionsTests
     private const string GeneralApiBaseAddressFake = "https://www.fake-general.com";
     private const string OrchestrationsApiBaseAddressFake = "https://www.fake-orchestrations.com";
 
+    private const string ServiceBusNamespace = "namespace.servicebus.windows.net";
+    private const string ServiceBusTopicName = "topic-name";
+
     public ClientExtensionsTests()
     {
         Services = new ServiceCollection();
@@ -35,7 +42,7 @@ public class ClientExtensionsTests
     private ServiceCollection Services { get; }
 
     [Fact]
-    public void AddProcessManagerHttpClientsAndConfigured_WhenCreatingEachClient_ClientCanBeCreated()
+    public void OptionsAreConfigured_WhenAddProcessManagerHttpClients_ClientCanBeCreated()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
@@ -48,6 +55,26 @@ public class ClientExtensionsTests
         Services.AddProcessManagerHttpClients();
 
         // Assert
+        using var assertionScope = new AssertionScope();
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var actualClient = serviceProvider.GetRequiredService<IProcessManagerClient>();
+        actualClient.Should().BeOfType<ProcessManagerClient>();
+    }
+
+    [Fact]
+    public void OptionsAreConfiguredAndAddProcessManagerHttpClients_WhenCreatingEachHttpClient_HttpClientCanBeCreatedWithExpectedBaseAddress()
+    {
+        // Arrange
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
+        {
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
+        });
+
+        Services.AddProcessManagerHttpClients();
+
+        // Act & Assert
         using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
@@ -64,15 +91,14 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void AddProcessManagerHttpClientsAndNotConfigured_WhenCreatingClient_ExceptionIsThrown()
+    public void OptionsAreNotConfiguredAndAddProcessManagerHttpClients_WhenCreatingEachHttpClient_ExceptionIsThrown()
     {
         // Arrange
         Services.AddInMemoryConfiguration([]);
 
-        // Act
         Services.AddProcessManagerHttpClients();
 
-        // Assert
+        // Act & Assert
         using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
@@ -90,5 +116,30 @@ public class ClientExtensionsTests
         orchestrationsApiClientAct.Should()
             .Throw<OptionsValidationException>()
             .WithMessage("*'The OrchestrationsApiBaseAddress field is required.'*");
+    }
+
+    [Fact]
+    public void ServiceBusClientIsRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_ClientCanBeCreated()
+    {
+        // Arrange
+        Services.AddAzureClients(
+            builder =>
+            {
+                builder.AddServiceBusClientWithNamespace(ServiceBusNamespace);
+            });
+
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
+        {
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"] = ServiceBusTopicName,
+        });
+
+        // Act
+        Services.AddProcessManagerMessageClient();
+
+        // Assert
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var actualClient = serviceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        actualClient.Should().BeOfType<ProcessManagerMessageClient>();
     }
 }

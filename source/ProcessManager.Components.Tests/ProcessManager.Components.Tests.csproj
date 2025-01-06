@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\Extensions\DatabricksApiWireMockExtensions.cs" Link="Fixtures\Extensions\DatabricksApiWireMockExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>

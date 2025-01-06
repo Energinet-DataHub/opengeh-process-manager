@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.16.0
+
+- Add `EnqueueMessages`
+
 ## Version 0.15.0
 
 - Do not allow empty string in values of the following options:

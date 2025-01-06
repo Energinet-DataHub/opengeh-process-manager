@@ -18,7 +18,7 @@ using FluentAssertions;
 using NodaTime;
 using OD = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 
-namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain.OrchestrationInstances;
+namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain.OrchestrationInstance;
 
 public class OrchestrationInstanceStepsTests
 {

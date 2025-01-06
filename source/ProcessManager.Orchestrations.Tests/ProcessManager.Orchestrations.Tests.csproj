@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Shared\ProcessManager\Tests\Fixtures\OrchestrationsAppManager.cs" Link="Fixtures\OrchestrationsAppManager.cs" />
-    <Compile Include="..\Shared\ProcessManager\Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
-    <Compile Include="..\Shared\ProcessManager\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\OrchestrationsAppManager.cs" Link="Fixtures\OrchestrationsAppManager.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
   </ItemGroup>
 
   <ItemGroup>

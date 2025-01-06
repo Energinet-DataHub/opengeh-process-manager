@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Unit.Extensions.DependencyInjection;
 
@@ -34,7 +35,7 @@ public class ClientExtensionsTests
     private ServiceCollection Services { get; }
 
     [Fact]
-    public void AddProcessManagerHttpClients_WhenConfiguration_ExpectedHttpClientsCanBeCreated()
+    public void AddProcessManagerHttpClientsAndConfigured_WhenCreatingClients_ClientsCanBeCreated()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
@@ -60,5 +61,34 @@ public class ClientExtensionsTests
         // => Orchestrations API client
         var orchestrationsApiClient = httpClientFactory.CreateClient(HttpClientNames.OrchestrationsApi);
         orchestrationsApiClient.BaseAddress.Should().Be(OrchestrationsApiBaseAddressFake);
+    }
+
+    [Fact]
+    public void AddProcessManagerHttpClientsAndNotConfigured_WhenCreatingClients_ExceptionIsThrown()
+    {
+        // Arrange
+        Services.AddInMemoryConfiguration([]);
+
+        // Act
+        Services.AddProcessManagerHttpClients();
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        var serviceProvider = Services.BuildServiceProvider();
+
+        // => Factory
+        var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+
+        // => General API client
+        var generalApiClientAct = () => httpClientFactory.CreateClient(HttpClientNames.GeneralApi);
+        generalApiClientAct.Should()
+            .Throw<OptionsValidationException>()
+            .WithMessage("*'The GeneralApiBaseAddress field is required.'*");
+
+        // => Orchestrations API client
+        var orchestrationsApiClientAct = () => httpClientFactory.CreateClient(HttpClientNames.OrchestrationsApi);
+        orchestrationsApiClientAct.Should()
+            .Throw<OptionsValidationException>()
+            .WithMessage("*'The OrchestrationsApiBaseAddress field is required.'*");
     }
 }

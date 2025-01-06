@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -58,5 +59,5 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        string ValidationError);
+        RequestCalculatedEnergyTimeSeriesRejectedV1 ValidationError);
 }

@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -50,7 +51,7 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
 
     private Task EnqueueRejectMessageAsync(ActivityInput input)
     {
-        return _enqueueMessagesClient.EnqueueAccepted(
+        return _enqueueMessagesClient.EnqueueRejected(
             Orchestration_Brs_028_V1.Name,
             "enqueue-" + input.InstanceId.Value,
             input.ValidationError);
@@ -58,5 +59,5 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        string ValidationError);
+        RequestCalculatedWholesaleServicesRejectedV1 ValidationError);
 }

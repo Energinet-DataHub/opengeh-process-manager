@@ -31,7 +31,7 @@ internal class PerformAsyncValidationActivity_Brs_028_V1(
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
     [Function(nameof(PerformAsyncValidationActivity_Brs_028_V1))]
-    public async Task<bool> Run(
+    public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _progressRepository
@@ -48,14 +48,20 @@ internal class PerformAsyncValidationActivity_Brs_028_V1(
         return isValid;
     }
 
-    private async Task<bool> PerformAsyncValidationAsync(RequestCalculatedWholesaleServicesInputV1 requestInput)
+    private async Task<ActivityOutput> PerformAsyncValidationAsync(RequestCalculatedWholesaleServicesInputV1 requestInput)
     {
         // TODO: Perform async validation instead of delay
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
-        return true;
+        return new ActivityOutput(
+            IsValid: true,
+            ValidationError: null);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
         RequestCalculatedWholesaleServicesInputV1 RequestInput);
+
+    public record ActivityOutput(
+        bool IsValid,
+        RequestCalculatedWholesaleServicesRejectedV1? ValidationError);
 }

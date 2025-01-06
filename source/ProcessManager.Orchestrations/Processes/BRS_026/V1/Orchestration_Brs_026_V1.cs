@@ -46,8 +46,8 @@ internal class Orchestration_Brs_026_V1
 
         var instanceId = await InitializeOrchestrationAsync(context);
 
-        var isValidAsynchronousValidation = await PerformAsynchronousValidationAsync(context, instanceId, input);
-        await EnqueueMessagesInEdiAsync(context, instanceId, input, isValidAsynchronousValidation);
+        var validationResult = await PerformAsynchronousValidationAsync(context, instanceId, input);
+        await EnqueueMessagesInEdiAsync(context, instanceId, input, validationResult);
 
         var wasMessagesEnqueued = await WaitForEnqueueMessagesResponseFromEdiAsync(context, instanceId);
         return await TerminateOrchestrationAsync(context, instanceId, input, wasMessagesEnqueued);
@@ -74,19 +74,19 @@ internal class Orchestration_Brs_026_V1
         return instanceId;
     }
 
-    private async Task<bool> PerformAsynchronousValidationAsync(
+    private async Task<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput> PerformAsynchronousValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input)
     {
-        var isValid = await context.CallActivityAsync<bool>(
+        var validationResult = await context.CallActivityAsync<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput>(
             nameof(PerformAsyncValidationActivity_Brs_026_V1),
             new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
                 instanceId,
                 input),
             _defaultRetryOptions);
 
-        var asyncValidationTerminationState = isValid
+        var asyncValidationTerminationState = validationResult.IsValid
             ? OrchestrationStepTerminationStates.Succeeded
             : OrchestrationStepTerminationStates.Failed;
         await context.CallActivityAsync(
@@ -97,16 +97,16 @@ internal class Orchestration_Brs_026_V1
                 asyncValidationTerminationState),
             _defaultRetryOptions);
 
-        return isValid;
+        return validationResult;
     }
 
     private async Task EnqueueMessagesInEdiAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input,
-        bool isValidAsyncValidation)
+        PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput validationResult)
     {
-        if (isValidAsyncValidation)
+        if (validationResult.IsValid)
         {
             await context.CallActivityAsync(
                 nameof(EnqueueMessagesActivity_Brs_026_V1),
@@ -117,11 +117,13 @@ internal class Orchestration_Brs_026_V1
         }
         else
         {
+            ArgumentNullException.ThrowIfNull(validationResult.ValidationError);
+
             await context.CallActivityAsync(
                 nameof(EnqueueRejectMessageActivity_Brs_026_V1),
                 new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
                     instanceId,
-                    "Validation error"),
+                    validationResult.ValidationError),
                 _defaultRetryOptions);
         }
     }

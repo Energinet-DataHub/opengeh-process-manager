@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Azure.Databricks.Client.Models;
 using WireMock.Server;
 

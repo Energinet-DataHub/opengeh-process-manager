@@ -19,7 +19,7 @@ using WireMock.ResponseBuilders;
 using WireMock.Server;
 using HeaderNames = Microsoft.Net.Http.Headers.HeaderNames;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 /// <summary>
 /// A collection of WireMock extensions for easy mock configuration of

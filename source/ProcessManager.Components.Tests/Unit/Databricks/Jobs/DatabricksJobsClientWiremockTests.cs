@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Extensions.Configuration;

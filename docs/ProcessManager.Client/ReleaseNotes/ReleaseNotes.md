@@ -3,6 +3,10 @@
 ## Version 0.16.0
 
 - Add `EnqueueMessages`
+- 
+## Version 0.15.1
+
+- No functional changes.
 
 ## Version 0.15.0
 

@@ -15,6 +15,7 @@
 using Azure.Core;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,6 +59,8 @@ public static class EnqueueMessagesExtensions
                         })
                     .WithName(ServiceBusSenderNames.EdiTopic);
             });
+
+        services.AddTransient<IEnqueueMessagesClient, EnqueueMessagesClient>();
 
         return services;
     }

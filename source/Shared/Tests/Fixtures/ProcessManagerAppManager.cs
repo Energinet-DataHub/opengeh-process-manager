@@ -19,10 +19,9 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
 /// <summary>
 /// Support testing Process Manager app and specifying configuration.

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+
 namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 
 /// <summary>
@@ -19,6 +21,11 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 /// </summary>
 public record OrchestrationDescriptionUniqueName
 {
+    public OrchestrationDescriptionUniqueName(OrchestrationDescriptionUniqueNameDto dto)
+        : this(dto.Name, dto.Version)
+    {
+    }
+
     public OrchestrationDescriptionUniqueName(string name, int version)
     {
         // Explicit guard for empty string

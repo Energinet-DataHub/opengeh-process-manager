@@ -23,13 +23,12 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using WireMock.Server;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
 /// <summary>
 /// Support testing Process Manager Orchestrations app and specifying configuration.

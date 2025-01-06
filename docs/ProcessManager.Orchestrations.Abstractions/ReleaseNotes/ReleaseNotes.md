@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.4.1
+
+- No functional changes.
+
 ## Version 0.4.0
 
 - Rename `StartRequestCalculatedEnergyTimeSeriesCommandV1` to `RequestCalculatedEnergyTimeSeriesCommandV1`

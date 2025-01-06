@@ -71,9 +71,9 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     }
 
     /// <summary>
-    /// A test to verify that the orchestration runs to completion and contains the expected history.
-    /// Note that we cant assert on the exact history, since we are skipping a step af random,
-    /// hence an exact comparison would give a flaky test.
+    /// A test to verify that the orchestration runs to completion and has the expected history.
+    /// Note that the expected history is dependent of the orchestration's history.
+    /// This is due to a random skip in the orchestration initialization step.
     /// </summary>
     [Fact]
     public async Task ExampleOrchestration_WhenRanToCompletion_HasExceptedHistory()

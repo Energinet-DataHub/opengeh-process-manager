@@ -13,12 +13,13 @@
 // limitations under the License.
 
 using System.Net;
+using Microsoft.Azure.Databricks.Client.Models;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using HeaderNames = Microsoft.Net.Http.Headers.HeaderNames;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 /// <summary>
 /// A collection of WireMock extensions for easy mock configuration of
@@ -95,7 +96,7 @@ public static class DatabricksApiWireMockExtensions
         return server;
     }
 
-    public static WireMockServer MockJobsRunsGet(this WireMockServer server, long runId, string lifeCycleState, string resultState, string jobName)
+    public static WireMockServer MockJobsRunsGet(this WireMockServer server, long runId, RunStatusState lifeCycleState, RunTerminationCode resultState)
     {
         var request = Request
             .Create()
@@ -176,7 +177,7 @@ public static class DatabricksApiWireMockExtensions
     /// <summary>
     /// Creates a '/jobs/runs/get' JSON response with the given job id (run id).
     /// </summary>
-    private static string BuildJobsRunsGetJson(long jobId, string lifeCycleState, string resultState)
+    private static string BuildJobsRunsGetJson(long jobId, RunStatusState lifeCycleState, RunTerminationCode resultState)
     {
         var json = """
                    {
@@ -194,7 +195,7 @@ public static class DatabricksApiWireMockExtensions
 
         return json
             .Replace("{jobId}", jobId.ToString())
-            .Replace("{lifeCycleState}", lifeCycleState)
-            .Replace("{resultState}", resultState);
+            .Replace("{lifeCycleState}", lifeCycleState.ToString())
+            .Replace("{resultState}", resultState.ToString());
     }
 }

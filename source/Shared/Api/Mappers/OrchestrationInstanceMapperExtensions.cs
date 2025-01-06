@@ -15,7 +15,7 @@
 using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using DomainModel = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Api.Mappers;
+namespace Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 
 #pragma warning disable SA1118 // Parameter should not span multiple lines
 internal static class OrchestrationInstanceMapperExtensions

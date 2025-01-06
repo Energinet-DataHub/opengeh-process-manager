@@ -44,7 +44,10 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
         Services.AddDatabricksJobs(_wholesaleSectionName);
 
         ServiceProvider = Services.BuildServiceProvider();
+        Sut = ServiceProvider.GetRequiredKeyedService<IDatabricksJobsClient>(_wholesaleSectionName);
     }
+
+    public IDatabricksJobsClient Sut { get;  }
 
     public WireMockServer MockServer { get; set; }
 
@@ -67,6 +70,7 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
     [Fact]
     public async Task StartJobAsync_WhenCallingWithoutParameters_ReturnsJobRunId()
     {
+        // Arrange
         var jobId = new JobRunId(123);
         var jobName = "jobName";
 
@@ -74,10 +78,8 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
             .MockJobsList(jobId.Id, jobName)
             .MockJobsRunNow(jobId.Id);
 
-        var sut = ServiceProvider.GetRequiredKeyedService<IDatabricksJobsClient>(_wholesaleSectionName);
-
         // Act
-        var actual = await sut.StartJobAsync(jobName, new List<string>());
+        var actual = await Sut.StartJobAsync(jobName, new List<string>());
 
         // Assert
         actual.Should().NotBeNull();
@@ -92,7 +94,7 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
     [InlineData(RunStatusState.TERMINATED, RunTerminationCode.SUCCESS, JobRunStatus.Completed)]
     [InlineData(RunStatusState.TERMINATING, RunTerminationCode.SUCCESS, JobRunStatus.Completed)]
 
-    // canceled
+    // Canceled
     [InlineData(RunStatusState.TERMINATING, RunTerminationCode.USER_CANCELED, JobRunStatus.Canceled)]
     [InlineData(RunStatusState.TERMINATING, RunTerminationCode.CANCELED, JobRunStatus.Canceled)]
 
@@ -102,16 +104,14 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
 
     public async Task GetRunStatusAsync_WhenCalledWithKnownJobRunId_ReturnsExpectedRunStatus(RunStatusState status, RunTerminationCode code, JobRunStatus expectedStatus)
     {
+        // Arrange
         var jobId = new JobRunId(123);
-        var jobName = "jobName";
 
         MockServer
-            .MockJobsRunsGet(jobId.Id, jobName, status, code);
-
-        var sut = ServiceProvider.GetRequiredKeyedService<IDatabricksJobsClient>(_wholesaleSectionName);
+            .MockJobsRunsGet(jobId.Id, "jobName", status, code);
 
         // Act
-        var actual = await sut.GetJobRunStatusAsync(jobId);
+        var actual = await Sut.GetJobRunStatusAsync(jobId);
 
         // Assert
         actual.Should().Be(expectedStatus);

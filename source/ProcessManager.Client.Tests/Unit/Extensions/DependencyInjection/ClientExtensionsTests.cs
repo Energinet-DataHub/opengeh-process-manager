@@ -12,16 +12,53 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Unit.Extensions.DependencyInjection;
 
 public class ClientExtensionsTests
 {
+    private const string GeneralApiBaseAddressFake = "https://www.fake-general.com";
+    private const string OrchestrationsApiBaseAddressFake = "https://www.fake-orchestrations.com";
+
     public ClientExtensionsTests()
     {
         Services = new ServiceCollection();
     }
 
     private ServiceCollection Services { get; }
+
+    [Fact]
+    public void AddProcessManagerHttpClients_WhenConfiguration_ExpectedHttpClientsCanBeCreated()
+    {
+        // Arrange
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
+        {
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
+        });
+
+        // Act
+        Services.AddProcessManagerHttpClients();
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        var serviceProvider = Services.BuildServiceProvider();
+
+        // => Factory
+        var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+
+        // => General API client
+        var generalApiClient = httpClientFactory.CreateClient(HttpClientNames.GeneralApi);
+        generalApiClient.BaseAddress.Should().Be(GeneralApiBaseAddressFake);
+
+        // => Orchestrations API client
+        var orchestrationsApiClient = httpClientFactory.CreateClient(HttpClientNames.OrchestrationsApi);
+        orchestrationsApiClient.BaseAddress.Should().Be(OrchestrationsApiBaseAddressFake);
+    }
 }

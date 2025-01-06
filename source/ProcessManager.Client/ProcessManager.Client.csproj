@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Client.Tests" />
+  </ItemGroup>
+
   <PropertyGroup>
     <AssemblyName>Energinet.DataHub.ProcessManager.Client</AssemblyName>
     <RootNamespace>Energinet.DataHub.ProcessManager.Client</RootNamespace>

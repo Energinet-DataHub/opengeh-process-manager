@@ -108,7 +108,7 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
         var jobId = new JobRunId(123);
 
         MockServer
-            .MockJobsRunsGet(jobId.Id, "jobName", status, code);
+            .MockJobsRunsGet(jobId.Id, status, code);
 
         // Act
         var actual = await Sut.GetJobRunStatusAsync(jobId);

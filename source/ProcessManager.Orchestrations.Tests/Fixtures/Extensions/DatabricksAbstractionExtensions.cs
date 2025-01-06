@@ -51,7 +51,7 @@ public static class DatabricksAbstractionExtensions
             .MockJobsList(jobId, jobName)
             .MockJobsGet(jobId, jobName)
             .MockJobsRunNow(runId.Value)
-            .MockJobsRunsGet(runId.Value, jobName, jobRunState, resultState);
+            .MockJobsRunsGet(runId.Value, jobRunState, resultState);
 
         return server;
     }

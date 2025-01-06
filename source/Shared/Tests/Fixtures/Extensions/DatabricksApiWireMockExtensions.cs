@@ -96,7 +96,7 @@ public static class DatabricksApiWireMockExtensions
         return server;
     }
 
-    public static WireMockServer MockJobsRunsGet(this WireMockServer server, long runId, string jobName, RunStatusState lifeCycleState, RunTerminationCode resultState)
+    public static WireMockServer MockJobsRunsGet(this WireMockServer server, long runId, RunStatusState lifeCycleState, RunTerminationCode resultState)
     {
         var request = Request
             .Create()

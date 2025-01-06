@@ -76,7 +76,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     /// hence an exact comparison would give a flaky test.
     /// </summary>
     [Fact]
-    public async Task ExampleOrchestration_WhenRanToCompletion_ContainsExceptedHistory()
+    public async Task ExampleOrchestration_WhenRanToCompletion_HasExceptedHistory()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

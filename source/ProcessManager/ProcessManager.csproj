@@ -28,7 +28,6 @@
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
     <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />
   </ItemGroup>
   <ItemGroup>

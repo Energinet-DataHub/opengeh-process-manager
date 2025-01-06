@@ -47,9 +47,9 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
         Sut = ServiceProvider.GetRequiredKeyedService<IDatabricksJobsClient>(_wholesaleSectionName);
     }
 
-    public IDatabricksJobsClient Sut { get;  }
+    private IDatabricksJobsClient Sut { get;  }
 
-    public WireMockServer MockServer { get; set; }
+    private WireMockServer MockServer { get; }
 
     private ServiceCollection Services { get; }
 

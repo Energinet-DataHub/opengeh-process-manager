@@ -35,7 +35,7 @@ public class ClientExtensionsTests
     private ServiceCollection Services { get; }
 
     [Fact]
-    public void AddProcessManagerHttpClientsAndConfigured_WhenCreatingClients_ClientsCanBeCreated()
+    public void AddProcessManagerHttpClientsAndConfigured_WhenCreatingEachClient_ClientCanBeCreated()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
@@ -64,7 +64,7 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void AddProcessManagerHttpClientsAndNotConfigured_WhenCreatingClients_ExceptionIsThrown()
+    public void AddProcessManagerHttpClientsAndNotConfigured_WhenCreatingClient_ExceptionIsThrown()
     {
         // Arrange
         Services.AddInMemoryConfiguration([]);

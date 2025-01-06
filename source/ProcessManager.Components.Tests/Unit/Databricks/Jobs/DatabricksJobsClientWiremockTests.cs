@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WireMock.Server;
@@ -82,14 +83,30 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
         actual.Should().NotBeNull();
     }
 
-    [Fact]
-    public async Task GetRunStatusAsync_WhenCalledWithKnownJobRunId_ReturnsExpectedRunStatus()
+    [Theory]
+    [InlineData(RunStatusState.PENDING, RunTerminationCode.SUCCESS, JobRunStatus.Pending)]
+    [InlineData(RunStatusState.QUEUED, RunTerminationCode.SUCCESS, JobRunStatus.Queued)]
+    [InlineData(RunStatusState.RUNNING, RunTerminationCode.SUCCESS, JobRunStatus.Running)]
+
+    // Completed
+    [InlineData(RunStatusState.TERMINATED, RunTerminationCode.SUCCESS, JobRunStatus.Completed)]
+    [InlineData(RunStatusState.TERMINATING, RunTerminationCode.SUCCESS, JobRunStatus.Completed)]
+
+    // canceled
+    [InlineData(RunStatusState.TERMINATING, RunTerminationCode.USER_CANCELED, JobRunStatus.Canceled)]
+    [InlineData(RunStatusState.TERMINATING, RunTerminationCode.CANCELED, JobRunStatus.Canceled)]
+
+    // Failed
+    [InlineData(RunStatusState.TERMINATING, RunTerminationCode.RUN_EXECUTION_ERROR, JobRunStatus.Failed)]
+    [InlineData(RunStatusState.BLOCKED, RunTerminationCode.RUN_EXECUTION_ERROR, JobRunStatus.Failed)]
+
+    public async Task GetRunStatusAsync_WhenCalledWithKnownJobRunId_ReturnsExpectedRunStatus(RunStatusState status, RunTerminationCode code, JobRunStatus expectedStatus)
     {
         var jobId = new JobRunId(123);
         var jobName = "jobName";
 
         MockServer
-            .MockJobsRunsGet(jobId.Id, "TERMINATED", "SUCCESS", jobName);
+            .MockJobsRunsGet(jobId.Id, jobName, status, code);
 
         var sut = ServiceProvider.GetRequiredKeyedService<IDatabricksJobsClient>(_wholesaleSectionName);
 
@@ -97,7 +114,7 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
         var actual = await sut.GetJobRunStatusAsync(jobId);
 
         // Assert
-        actual.Should().Be(JobRunStatus.Completed);
+        actual.Should().Be(expectedStatus);
     }
 
     private void AddInMemoryConfigurations(Dictionary<string, string?> configurations)

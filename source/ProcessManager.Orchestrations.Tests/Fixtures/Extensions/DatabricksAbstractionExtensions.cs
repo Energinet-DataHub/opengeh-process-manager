@@ -39,9 +39,9 @@ public static class DatabricksAbstractionExtensions
 
         var (jobRunState, resultState) = state switch
         {
-            RunLifeCycleState.PENDING => ("PENDING", "CANCELED"), // "CANCELED" should not matter here
-            RunLifeCycleState.RUNNING => ("RUNNING", "CANCELED"), // "CANCELED" should not matter here
-            RunLifeCycleState.TERMINATED => ("TERMINATED", "SUCCESS"),
+            RunLifeCycleState.PENDING => (RunStatusState.PENDING, RunTerminationCode.CANCELED), // "CANCELED" should not matter here
+            RunLifeCycleState.RUNNING => (RunStatusState.RUNNING, RunTerminationCode.CANCELED), // "CANCELED" should not matter here
+            RunLifeCycleState.TERMINATED => (RunStatusState.TERMINATED, RunTerminationCode.SUCCESS),
             _ => throw new ArgumentOutOfRangeException(nameof(state), state, "The given state is not implemented"),
         };
 
@@ -50,7 +50,7 @@ public static class DatabricksAbstractionExtensions
             .MockJobsList(jobId, jobName)
             .MockJobsGet(jobId, jobName)
             .MockJobsRunNow(runId.Value)
-            .MockJobsRunsGet(runId.Value, jobRunState, resultState, jobName);
+            .MockJobsRunsGet(runId.Value, jobName, jobRunState, resultState);
 
         return server;
     }

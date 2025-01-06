@@ -16,72 +16,76 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using FluentAssertions;
 using NodaTime;
-using OD = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using CoreDomain = Energinet.DataHub.ProcessManager.Core.Domain;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain.OrchestrationInstance;
 
 public class OrchestrationInstanceStepsTests
 {
     [Fact]
-    public void KnownInstance_WhenReadFromOrchestrationInstance_SequenceIsEqualToStepInstance()
+    public void ExistingStepSequence_WhenGetStep_StepWithSequenceIsReturned()
     {
         var orchestrationDescription = CreateOrchestrationDescription();
         var instance = CreateOrchestrationInstance(orchestrationDescription);
-        const int stepInstance = 1;
+        const int stepSequence = 1;
 
-        var step = instance.GetStep(stepInstance);
+        // Act
+        var step = instance.GetStep(stepSequence);
 
-        step.Sequence.Should().Be(stepInstance);
+        step.Sequence.Should().Be(stepSequence);
     }
 
     [Fact]
-    public void KnownInstance_WhenTriedReadFromOrchestrationInstance_SequenceIsEqualToStepInstance()
+    public void ExistingStepSequence_WhenTryGetStep_StepWithSequenceIsReturned()
     {
         var orchestrationDescription = CreateOrchestrationDescription();
         var instance = CreateOrchestrationInstance(orchestrationDescription);
-        const int stepInstance = 1;
+        const int stepSequence = 1;
 
-        var isFound = instance.TryGetStep(stepInstance, out var step);
+        // Act
+        var isFound = instance.TryGetStep(stepSequence, out var step);
 
         isFound.Should().BeTrue();
         step.Should().NotBeNull();
-        step!.Sequence.Should().Be(stepInstance);
+        step!.Sequence.Should().Be(stepSequence);
     }
 
     [Fact]
-    public void UnknownInstance_WhenTriedRead_ReturnsNoInstance()
+    public void UnknownStepSequence_WhenTryGetStep_ReturnsNoStep()
     {
         var orchestrationDescription = CreateOrchestrationDescription();
         var instance = CreateOrchestrationInstance(orchestrationDescription);
-        const int stepInstance = -1;
+        const int stepSequence = -1;
 
-        var isFound = instance.TryGetStep(stepInstance, out var step);
+        // Act
+        var isFound = instance.TryGetStep(stepSequence, out var step);
 
         isFound.Should().BeFalse();
         step.Should().BeNull();
     }
 
     [Fact]
-    public void UnknownInstance_WhenRead_ThrowsArgumentOfOfRangeException()
+    public void UnknownStepSequence_WhenGetStep_ThrowsArgumentOfOfRangeException()
     {
         var orchestrationDescription = CreateOrchestrationDescription();
         var instance = CreateOrchestrationInstance(orchestrationDescription);
-        const int stepInstance = -1;
+        const int stepSequence = -1;
 
-        instance.Invoking(i => i.GetStep(stepInstance))
+        // Act
+        instance.Invoking(i => i.GetStep(stepSequence))
             .Should()
             .Throw<ArgumentOutOfRangeException>();
     }
 
-    private static OrchestrationInstance CreateOrchestrationInstance(
-        OD.OrchestrationDescription orchestrationDescription,
+    private static CoreDomain.OrchestrationInstance.OrchestrationInstance CreateOrchestrationInstance(
+        CoreDomain.OrchestrationDescription.OrchestrationDescription orchestrationDescription,
         Instant? runAt = default)
     {
         var userIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
             new ActorId(Guid.NewGuid()));
 
-        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
+        var orchestrationInstance = CoreDomain.OrchestrationInstance.OrchestrationInstance.CreateFromDescription(
             userIdentity,
             orchestrationDescription,
             skipStepsBySequence: [],
@@ -97,9 +101,9 @@ public class OrchestrationInstanceStepsTests
         return orchestrationInstance;
     }
 
-    private static ProcessManager.Core.Domain.OrchestrationDescription.OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)
+    private static CoreDomain.OrchestrationDescription.OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)
     {
-        var orchestrationDescription = new OD.OrchestrationDescription(
+        var orchestrationDescription = new CoreDomain.OrchestrationDescription.OrchestrationDescription(
             uniqueName: uniqueName ?? new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
             canBeScheduled: true,
             functionName: "TestOrchestrationFunction");

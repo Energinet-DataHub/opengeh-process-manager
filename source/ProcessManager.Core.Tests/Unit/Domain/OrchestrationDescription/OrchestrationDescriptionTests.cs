@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using FluentAssertions;
+using CoreDomain = Energinet.DataHub.ProcessManager.Core.Domain;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain.OrchestrationDescription;
 
@@ -23,7 +24,7 @@ public class OrchestrationDescriptionTests
     public void GivenInstance_WhenSettingValidRecurringCronExpression_ThenIsRecurringIsTrue()
     {
         // Arrange
-        var sut = new Core.Domain.OrchestrationDescription.OrchestrationDescription(
+        var sut = new CoreDomain.OrchestrationDescription.OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
                 name: "name",
                 version: 1),
@@ -41,7 +42,7 @@ public class OrchestrationDescriptionTests
     public void GivenInstance_WhenSettingInvalidRecurringCronExpression_ThenThrowsException()
     {
         // Arrange
-        var sut = new Core.Domain.OrchestrationDescription.OrchestrationDescription(
+        var sut = new CoreDomain.OrchestrationDescription.OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
                 name: "name",
                 version: 1),

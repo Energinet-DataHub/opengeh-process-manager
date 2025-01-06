@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using NodaTime;
 
@@ -83,6 +84,31 @@ public class OrchestrationInstance
     internal OrchestrationDescriptionId OrchestrationDescriptionId { get; }
 
     /// <summary>
+    /// Try to get a step by its sequence number.
+    /// </summary>
+    /// <param name="sequence">Position in sequence</param>
+    /// <param name="step">Instance found</param>
+    /// <returns><see langword="true"/> if found; otherwise <see langword="false"/></returns>
+    public bool TryGetStep(int sequence, [NotNullWhen(true)] out StepInstance? step)
+    {
+        step = Steps.SingleOrDefault(s => s.Sequence == sequence);
+        return step != null;
+    }
+
+    /// <summary>
+    /// Get a step by its sequence number.
+    /// </summary>
+    /// <param name="sequence">Position in sequence</param>
+    /// <returns>Step instance</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if a step with the given <paramref name="sequence"/> isn't found.</exception>
+    public StepInstance GetStep(int sequence)
+    {
+        return !TryGetStep(sequence, out var step)
+            ? throw new ArgumentOutOfRangeException(nameof(sequence), sequence, "A step with the given sequence does not exist.")
+            : step;
+    }
+
+    /// <summary>
     /// Transition a step's lifecycle to running
     /// </summary>
     /// <param name="sequence">The sequence number of the step to transition</param>
@@ -90,11 +116,7 @@ public class OrchestrationInstance
     /// <exception cref="ArgumentOutOfRangeException">Thrown if a step with the given <paramref name="sequence"/> isn't found.</exception>
     public void TransitionStepToRunning(int sequence, IClock clock)
     {
-        var step = Steps.SingleOrDefault(s => s.Sequence == sequence);
-
-        if (step == null)
-            throw new ArgumentOutOfRangeException(nameof(sequence), sequence, "A step with the given sequence does not exist");
-
+        var step = GetStep(sequence);
         step.Lifecycle.TransitionToRunning(clock);
     }
 
@@ -107,11 +129,7 @@ public class OrchestrationInstance
     /// <exception cref="ArgumentOutOfRangeException">Thrown if a step with the given <paramref name="sequence"/> isn't found.</exception>
     public void TransitionStepToTerminated(int sequence, OrchestrationStepTerminationStates terminationState, IClock clock)
     {
-        var step = Steps.SingleOrDefault(s => s.Sequence == sequence);
-
-        if (step == null)
-            throw new ArgumentOutOfRangeException(nameof(sequence), sequence, "A step with the given sequence does not exist");
-
+        var step = GetStep(sequence);
         step.Lifecycle.TransitionToTerminated(clock, terminationState);
     }
 

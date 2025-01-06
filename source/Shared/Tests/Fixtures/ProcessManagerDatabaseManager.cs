@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.DatabaseMigration;
 using Microsoft.EntityFrameworkCore;
 
-namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
 public class ProcessManagerDatabaseManager(string name)
     : SqlServerDatabaseManager<ProcessManagerContext>(name + $"_{DateTime.Now:yyyyMMddHHmm}_")

@@ -166,4 +166,4 @@ jobs:
           echo "ProcessManager.Client push packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-client.outputs.any_changed == 'true' }}"
 
           echo "Orchestrations.Abstractions content changed: ${{ steps.changed-content-orchestrations.outputs.any_changed }}"
-          echo "Orchestrations.Abstractions push packages: ${{ !env.TRIGGERED_BY_PR_COMMIT && steps.changed-content-orchestrations.outputs.any_changed }}"
+          echo "Orchestrations.Abstractions push packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-orchestrations.outputs.any_changed == 'true' }}

@@ -124,7 +124,7 @@ jobs:
       - name: Assert version of ProcessManager.Client NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
         with:
-          push_packages: ${{ (env.TRIGGERED_BY_PR_COMMIT == false) && steps.changed-content-client.outputs.any_changed }}
+          push_packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-client.outputs.any_changed == 'true' }}
           content_changed: ${{ steps.changed-content-client.outputs.any_changed }}
           nuget_token: ${{ secrets.nuget_token }}
           nupkg_recurse_path: source/ProcessManager.Client
@@ -132,7 +132,7 @@ jobs:
       - name: Assert version of ProcessManager.Abstractions NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
         with:
-          push_packages: ${{ (env.TRIGGERED_BY_PR_COMMIT == false) && steps.changed-content-client.outputs.any_changed }}
+          push_packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-client.outputs.any_changed == 'true' }}
           content_changed: ${{ steps.changed-content-client.outputs.any_changed }}
           nuget_token: ${{ secrets.nuget_token }}
           nupkg_recurse_path: source/ProcessManager.Abstractions
@@ -153,7 +153,7 @@ jobs:
       - name: Assert version of ProcessManager.Orchestrations.Abstractions NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
         with:
-          push_packages: ${{ (env.TRIGGERED_BY_PR_COMMIT == false) && steps.changed-content-orchestrations.outputs.any_changed }}
+          push_packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-orchestrations.outputs.any_changed == 'true' }}
           content_changed: ${{ steps.changed-content-orchestrations.outputs.any_changed }}
           nuget_token: ${{ secrets.nuget_token }}
           nupkg_recurse_path: source/ProcessManager.Orchestrations.Abstractions
@@ -163,7 +163,7 @@ jobs:
           echo "TRIGGERED_BY_PR_COMMIT: ${{ env.TRIGGERED_BY_PR_COMMIT }}"
 
           echo "ProcessManager.Client content changed: ${{ steps.changed-content-client.outputs.any_changed }}"
-          echo "ProcessManager.Client push packages: ${{ (env.TRIGGERED_BY_PR_COMMIT == false) && steps.changed-content-client.outputs.any_changed }}"
+          echo "ProcessManager.Client push packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-client.outputs.any_changed == 'true' }}"
 
           echo "Orchestrations.Abstractions content changed: ${{ steps.changed-content-orchestrations.outputs.any_changed }}"
           echo "Orchestrations.Abstractions push packages: ${{ !env.TRIGGERED_BY_PR_COMMIT && steps.changed-content-orchestrations.outputs.any_changed }}"

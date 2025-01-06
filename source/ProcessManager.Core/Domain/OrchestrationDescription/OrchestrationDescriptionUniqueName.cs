@@ -21,11 +21,6 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 /// </summary>
 public record OrchestrationDescriptionUniqueName
 {
-    public OrchestrationDescriptionUniqueName(OrchestrationDescriptionUniqueNameDto dto)
-        : this(dto.Name, dto.Version)
-    {
-    }
-
     public OrchestrationDescriptionUniqueName(string name, int version)
     {
         // Explicit guard for empty string
@@ -44,4 +39,9 @@ public record OrchestrationDescriptionUniqueName
     /// A version identifying a specific implementation of the orchestration.
     /// </summary>
     public int Version { get; }
+
+    public static OrchestrationDescriptionUniqueName FromDto(OrchestrationDescriptionUniqueNameDto dto)
+    {
+        return new OrchestrationDescriptionUniqueName(dto.Name, dto.Version);
+    }
 }

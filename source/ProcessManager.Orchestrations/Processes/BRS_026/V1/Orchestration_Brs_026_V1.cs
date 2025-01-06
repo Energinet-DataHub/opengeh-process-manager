@@ -29,7 +29,7 @@ internal class Orchestration_Brs_026_V1
     public const int AsyncValidationStepSequence = 1;
     public const int EnqueueMessagesStepSequence = 2;
 
-    public static readonly OrchestrationDescriptionUniqueNameDto Name = new Brs_026_V1();
+    public static readonly Brs_026_V1 Name = new();
 
     private readonly TaskOptions _defaultRetryOptions;
 

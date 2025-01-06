@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
@@ -24,10 +25,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.A
 /// </summary>
 internal class EnqueueRejectMessageActivity_Brs_028_V1(
     IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IEnqueueMessagesClient enqueueMessagesClient)
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IEnqueueMessagesClient _enqueueMessagesClient = enqueueMessagesClient;
 
     [Function(nameof(EnqueueRejectMessageActivity_Brs_028_V1))]
     public async Task Run(
@@ -45,10 +48,12 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
         await EnqueueRejectMessageAsync(input).ConfigureAwait(false);
     }
 
-    private async Task EnqueueRejectMessageAsync(ActivityInput input)
+    private Task EnqueueRejectMessageAsync(ActivityInput input)
     {
-        // TODO: Enqueue message in EDI instead of delay
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        return _enqueueMessagesClient.EnqueueAccepted(
+            Orchestration_Brs_028_V1.Name,
+            "enqueue-" + input.InstanceId.Value,
+            input.ValidationError);
     }
 
     public record ActivityInput(

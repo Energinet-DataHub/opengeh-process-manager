@@ -34,7 +34,7 @@ public class RequestCalculatedEnergyTimeSeriesHandlerV1(
 
         await _commands.StartNewOrchestrationInstanceAsync(
                 identity: actorIdentity,
-                uniqueName: new OrchestrationDescriptionUniqueName(orchestrationName),
+                uniqueName: OrchestrationDescriptionUniqueName.FromDto(orchestrationName),
                 input,
                 [])
             .ConfigureAwait(false);

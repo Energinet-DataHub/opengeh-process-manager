@@ -116,7 +116,7 @@ jobs:
       #   id: changed-content-client
       #   uses: tj-actions/changed-files@v45
       #   with:
-      #     base_sha: 'main'
+      #     base_sha: main
       #     files: |
       #       source/ProcessManager.Client/**/*.*
       #       source/ProcessManager.Abstractions/**/*.*
@@ -125,7 +125,7 @@ jobs:
         id: changed-content-client
         uses: tj-actions/changed-files@v45
         with:
-          base_sha: 'main'
+          base_sha: main
           files: |
             source/ProcessManager.Client/**/*.*
             source/ProcessManager.Abstractions/**/*.*
@@ -163,7 +163,7 @@ jobs:
       #   id: changed-content-orchestrations
       #   uses: tj-actions/changed-files@v45
       #   with:
-      #     base_sha: 'main'
+      #     base_sha: main
       #     files: |
       #       source/ProcessManager.Orchestrations.Abstractions/**/*.*
       #       source/ProcessManager.Abstractions/**/*.*
@@ -172,7 +172,7 @@ jobs:
         id: changed-content-orchestrations
         uses: tj-actions/changed-files@v45
         with:
-          base_sha: 'main'
+          base_sha: main
           files: |
             source/ProcessManager.Orchestrations.Abstractions/**/*.*
             source/ProcessManager.Abstractions/**/*.*

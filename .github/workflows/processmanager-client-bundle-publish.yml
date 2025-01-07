@@ -80,14 +80,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        if: ${{ github.event_name != 'workflow_dispatch' }}
         uses: Energinet-DataHub/.github/.github/actions/nuget-checkout-repository@v14
-
-      - name: Checkout repository (workflow_dispatch)
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup dotnet and tools
         uses: Energinet-DataHub/.github/.github/actions/dotnet-setup-and-tools@v14
@@ -123,6 +116,7 @@ jobs:
       #   id: changed-content-client
       #   uses: tj-actions/changed-files@v45
       #   with:
+      #     base_sha: 'main'
       #     files: |
       #       source/ProcessManager.Client/**/*.*
       #       source/ProcessManager.Abstractions/**/*.*
@@ -131,6 +125,7 @@ jobs:
         id: changed-content-client
         uses: tj-actions/changed-files@v45
         with:
+          base_sha: 'main'
           files: |
             source/ProcessManager.Client/**/*.*
             source/ProcessManager.Abstractions/**/*.*
@@ -168,6 +163,7 @@ jobs:
       #   id: changed-content-orchestrations
       #   uses: tj-actions/changed-files@v45
       #   with:
+      #     base_sha: 'main'
       #     files: |
       #       source/ProcessManager.Orchestrations.Abstractions/**/*.*
       #       source/ProcessManager.Abstractions/**/*.*
@@ -176,6 +172,7 @@ jobs:
         id: changed-content-orchestrations
         uses: tj-actions/changed-files@v45
         with:
+          base_sha: 'main'
           files: |
             source/ProcessManager.Orchestrations.Abstractions/**/*.*
             source/ProcessManager.Abstractions/**/*.*

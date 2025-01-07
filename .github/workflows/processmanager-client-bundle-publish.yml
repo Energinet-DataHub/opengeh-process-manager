@@ -121,6 +121,14 @@ jobs:
             source/ProcessManager.Abstractions/**/*.*
             .github/workflows/processmanager-client-bundle-publish.yml
 
+      - name: List all changed files for PM.Client or PM.Abstractions
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-content-client.outputs.all_changed_files }}
+        run: |
+          for file in "$ALL_CHANGED_FILES"; do
+            echo "$file was changed"
+          done
+
       - name: Assert version of ProcessManager.Client NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
         with:
@@ -149,6 +157,14 @@ jobs:
             source/ProcessManager.Orchestrations.Abstractions/**/*.*
             source/ProcessManager.Abstractions/**/*.*
             .github/workflows/processmanager-client-bundle-publish.yml
+
+      - name: List all changed files for PM.Abstractions or PM.Orchestrations.Abstractions
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-content-orchestrations.outputs.all_changed_files }}
+        run: |
+          for file in "$ALL_CHANGED_FILES"; do
+            echo "$file was changed"
+          done
 
       - name: Assert version of ProcessManager.Orchestrations.Abstractions NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14

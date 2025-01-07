@@ -64,37 +64,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // If there are errors, we stop the orchestration and inform EDI to pass along the errors
         if (errors.Count != 0)
         {
-            await context.CallActivityAsync(
-                nameof(EnqueueRejectMessageActivity_Brs_021_V1),
-                new EnqueueRejectMessageActivity_Brs_021_V1.ActivityInput(
-                    instanceId,
-                    errors),
-                _defaultRetryOptions);
-
-            var messagesEnqueuedSuccessfully = await WaitForEnqueueMessagesResponseFromEdiAsync(context, instanceId);
-
-            if (!messagesEnqueuedSuccessfully)
-            {
-                await context.CallActivityAsync(
-                    nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-                    new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
-                        instanceId,
-                        OrchestrationStepTerminationStates.Failed),
-                    _defaultRetryOptions);
-
-                return "Error: Message was not enqueued.";
-            }
-            else
-            {
-                await context.CallActivityAsync(
-                    nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-                    new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
-                        instanceId,
-                        OrchestrationStepTerminationStates.Succeeded),
-                    _defaultRetryOptions);
-
-                return "Success";
-            }
+            return await HandleAsynchronousValidationErrors(context, instanceId, errors);
         }
 
         // Step: Storing
@@ -133,6 +103,42 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         await context.CallActivityAsync(
             nameof(OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1),
             instanceId,
+            _defaultRetryOptions);
+
+        return "Success";
+    }
+
+    private async Task<string> HandleAsynchronousValidationErrors(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        IReadOnlyCollection<string> errors)
+    {
+        await context.CallActivityAsync(
+            nameof(EnqueueRejectMessageActivity_Brs_021_V1),
+            new EnqueueRejectMessageActivity_Brs_021_V1.ActivityInput(
+                instanceId,
+                errors),
+            _defaultRetryOptions);
+
+        var messagesEnqueuedSuccessfully = await WaitForEnqueueMessagesResponseFromEdiAsync(context, instanceId);
+
+        if (!messagesEnqueuedSuccessfully)
+        {
+            await context.CallActivityAsync(
+                nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
+                new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                    instanceId,
+                    OrchestrationStepTerminationStates.Failed),
+                _defaultRetryOptions);
+
+            return "Error: Message was not enqueued.";
+        }
+
+        await context.CallActivityAsync(
+            nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
+            new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                instanceId,
+                OrchestrationStepTerminationStates.Succeeded),
             _defaultRetryOptions);
 
         return "Success";

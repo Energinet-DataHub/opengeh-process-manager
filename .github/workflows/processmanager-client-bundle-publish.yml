@@ -53,6 +53,8 @@ env:
   # Conditions
   # TRIGGERED_BY_PR_COMMIT is true if this run is automatically triggered by a commit in a Pull Request (feature branch)
   TRIGGERED_BY_PR_COMMIT: ${{ github.event_name == 'pull_request' }}
+  # BASE_SHA must be set if this run is triggered manually
+  BASE_SHA: ${{ (github.event_name == 'workflow_dispatch') && 'main' || '' }}
   # Necessary to manage Azure resources from automated tests
   AZURE_KEYVAULT_URL: ${{ vars.integration_test_azure_keyvault_url }}
   # Set value used by 'AzuriteManager'
@@ -116,7 +118,7 @@ jobs:
       #   id: changed-content-client
       #   uses: tj-actions/changed-files@v45
       #   with:
-      #     base_sha: main
+      #     base_sha: ${{ env.BASE_SHA }}
       #     files: |
       #       source/ProcessManager.Client/**/*.*
       #       source/ProcessManager.Abstractions/**/*.*
@@ -125,7 +127,7 @@ jobs:
         id: changed-content-client
         uses: tj-actions/changed-files@v45
         with:
-          base_sha: main
+          base_sha: ${{ env.BASE_SHA }}
           files: |
             source/ProcessManager.Client/**/*.*
             source/ProcessManager.Abstractions/**/*.*
@@ -163,7 +165,7 @@ jobs:
       #   id: changed-content-orchestrations
       #   uses: tj-actions/changed-files@v45
       #   with:
-      #     base_sha: main
+      #     base_sha: ${{ env.BASE_SHA }}
       #     files: |
       #       source/ProcessManager.Orchestrations.Abstractions/**/*.*
       #       source/ProcessManager.Abstractions/**/*.*
@@ -172,7 +174,7 @@ jobs:
         id: changed-content-orchestrations
         uses: tj-actions/changed-files@v45
         with:
-          base_sha: main
+          base_sha: ${{ env.BASE_SHA }}
           files: |
             source/ProcessManager.Orchestrations.Abstractions/**/*.*
             source/ProcessManager.Abstractions/**/*.*

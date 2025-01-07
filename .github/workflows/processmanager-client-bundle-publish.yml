@@ -124,6 +124,7 @@ jobs:
       - name: List all changed files for PM.Client or PM.Abstractions
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-content-client.outputs.all_changed_files }}
+        shell: bash
         run: |
           for file in "$ALL_CHANGED_FILES"; do
             echo "$file was changed"
@@ -161,6 +162,7 @@ jobs:
       - name: List all changed files for PM.Abstractions or PM.Orchestrations.Abstractions
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-content-orchestrations.outputs.all_changed_files }}
+        shell: bash
         run: |
           for file in "$ALL_CHANGED_FILES"; do
             echo "$file was changed"
@@ -173,13 +175,3 @@ jobs:
           content_changed: ${{ steps.changed-content-orchestrations.outputs.any_changed }}
           nuget_token: ${{ secrets.nuget_token }}
           nupkg_recurse_path: source/ProcessManager.Orchestrations.Abstractions
-
-      - name: Print variables
-        run: |
-          echo "TRIGGERED_BY_PR_COMMIT: ${{ env.TRIGGERED_BY_PR_COMMIT }}"
-
-          echo "ProcessManager.Client content changed: ${{ steps.changed-content-client.outputs.any_changed }}"
-          echo "ProcessManager.Client push packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-client.outputs.any_changed == 'true' }}"
-
-          echo "Orchestrations.Abstractions content changed: ${{ steps.changed-content-orchestrations.outputs.any_changed }}"
-          echo "Orchestrations.Abstractions push packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-orchestrations.outputs.any_changed == 'true' }}"

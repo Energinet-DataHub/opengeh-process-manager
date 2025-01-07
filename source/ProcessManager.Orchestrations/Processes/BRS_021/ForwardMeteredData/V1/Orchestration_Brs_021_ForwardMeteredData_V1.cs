@@ -108,6 +108,13 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         return "Success";
     }
 
+    private static TaskOptions CreateDefaultRetryOptions() =>
+        TaskOptions.FromRetryPolicy(
+            new RetryPolicy(
+                maxNumberOfAttempts: 5,
+                firstRetryInterval: TimeSpan.FromSeconds(30),
+                backoffCoefficient: 2.0));
+
     private async Task<string> HandleAsynchronousValidationErrors(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
@@ -143,13 +150,6 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
 
         return "Success";
     }
-
-    private static TaskOptions CreateDefaultRetryOptions() =>
-        TaskOptions.FromRetryPolicy(
-            new RetryPolicy(
-                maxNumberOfAttempts: 5,
-                firstRetryInterval: TimeSpan.FromSeconds(30),
-                backoffCoefficient: 2.0));
 
     private async Task<bool> WaitForEnqueueMessagesResponseFromEdiAsync(
         TaskOrchestrationContext context,

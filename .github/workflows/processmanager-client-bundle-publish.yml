@@ -114,15 +114,6 @@ jobs:
         with:
           project_path: ./source/ProcessManager.Orchestrations.Abstractions/ProcessManager.Orchestrations.Abstractions.csproj
 
-      # - name: Package content or build has changed for PM.Client or PM.Abstractions
-      #   id: changed-content-client
-      #   uses: tj-actions/changed-files@v45
-      #   with:
-      #     base_sha: ${{ env.BASE_SHA }}
-      #     files: |
-      #       source/ProcessManager.Client/**/*.*
-      #       source/ProcessManager.Abstractions/**/*.*
-      #       .github/workflows/processmanager-client-bundle-publish.yml
       - name: Package content or build has changed for PM.Client or PM.Abstractions
         id: changed-content-client
         uses: tj-actions/changed-files@v45
@@ -131,6 +122,7 @@ jobs:
           files: |
             source/ProcessManager.Client/**/*.*
             source/ProcessManager.Abstractions/**/*.*
+            .github/workflows/processmanager-client-bundle-publish.yml
 
       - name: List all changed files for PM.Client or PM.Abstractions
         env:
@@ -161,15 +153,6 @@ jobs:
       # If dependency ProcessManager.Abstractions has changed then we enforce a publish as if the
       # ProcessManager.Orchestrations.Abstractions has changed, because we want to ensure the
       # version of ProcessManager.Orchestrations.Abstractions is bumped.
-      # - name: Package content, dependencies or build has changed for PM.Abstractions or PM.Orchestrations.Abstractions
-      #   id: changed-content-orchestrations
-      #   uses: tj-actions/changed-files@v45
-      #   with:
-      #     base_sha: ${{ env.BASE_SHA }}
-      #     files: |
-      #       source/ProcessManager.Orchestrations.Abstractions/**/*.*
-      #       source/ProcessManager.Abstractions/**/*.*
-      #       .github/workflows/processmanager-client-bundle-publish.yml
       - name: Package content, dependencies or build has changed for PM.Abstractions or PM.Orchestrations.Abstractions
         id: changed-content-orchestrations
         uses: tj-actions/changed-files@v45
@@ -178,6 +161,7 @@ jobs:
           files: |
             source/ProcessManager.Orchestrations.Abstractions/**/*.*
             source/ProcessManager.Abstractions/**/*.*
+            .github/workflows/processmanager-client-bundle-publish.yml
 
       - name: List all changed files for PM.Abstractions or PM.Orchestrations.Abstractions
         env:

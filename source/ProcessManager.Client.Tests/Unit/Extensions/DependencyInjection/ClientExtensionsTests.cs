@@ -55,11 +55,31 @@ public class ClientExtensionsTests
         Services.AddProcessManagerHttpClients();
 
         // Assert
-        using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
         var actualClient = serviceProvider.GetRequiredService<IProcessManagerClient>();
         actualClient.Should().BeOfType<ProcessManagerClient>();
+    }
+
+    [Fact]
+    public void OptionsAreNotConfigured_WhenAddProcessManagerHttpClients_ExceptionIsThrownWhenRequestingClient()
+    {
+        // Arrange
+        Services.AddInMemoryConfiguration([]);
+
+        // Act
+        Services.AddProcessManagerHttpClients();
+
+        // Assert
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var clientAct = () => serviceProvider.GetRequiredService<IProcessManagerClient>();
+        clientAct.Should()
+            .Throw<OptionsValidationException>()
+                .WithMessage("DataAnnotation validation failed for 'ProcessManagerHttpClientsOptions'*")
+            .And.Failures.Should()
+                .ContainMatch("*GeneralApiBaseAddress field is required*")
+                .And.ContainMatch("*OrchestrationsApiBaseAddress field is required*");
     }
 
     [Fact]
@@ -91,42 +111,11 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void OptionsAreNotConfiguredAndAddProcessManagerHttpClients_WhenCreatingEachHttpClient_ExceptionIsThrown()
-    {
-        // Arrange
-        Services.AddInMemoryConfiguration([]);
-
-        Services.AddProcessManagerHttpClients();
-
-        // Act & Assert
-        using var assertionScope = new AssertionScope();
-        var serviceProvider = Services.BuildServiceProvider();
-
-        // => Factory
-        var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-
-        // => General API client
-        var generalApiClientAct = () => httpClientFactory.CreateClient(HttpClientNames.GeneralApi);
-        generalApiClientAct.Should()
-            .Throw<OptionsValidationException>()
-            .WithMessage("*'The GeneralApiBaseAddress field is required.'*");
-
-        // => Orchestrations API client
-        var orchestrationsApiClientAct = () => httpClientFactory.CreateClient(HttpClientNames.OrchestrationsApi);
-        orchestrationsApiClientAct.Should()
-            .Throw<OptionsValidationException>()
-            .WithMessage("*'The OrchestrationsApiBaseAddress field is required.'*");
-    }
-
-    [Fact]
     public void ServiceBusClientIsRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_ClientCanBeCreated()
     {
         // Arrange
         Services.AddAzureClients(
-            builder =>
-            {
-                builder.AddServiceBusClientWithNamespace(ServiceBusNamespace);
-            });
+            builder => builder.AddServiceBusClientWithNamespace(ServiceBusNamespace));
 
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
@@ -141,5 +130,49 @@ public class ClientExtensionsTests
 
         var actualClient = serviceProvider.GetRequiredService<IProcessManagerMessageClient>();
         actualClient.Should().BeOfType<ProcessManagerMessageClient>();
+    }
+
+    [Fact]
+    public void ServiceBusClientIsRegisteredAndOptionsAreNotConfigured_WhenAddProcessManagerMessageClient_ExceptionIsThrownWhenRequestingClient()
+    {
+        // Arrange
+        Services.AddAzureClients(
+            builder => builder.AddServiceBusClientWithNamespace(ServiceBusNamespace));
+
+        Services.AddInMemoryConfiguration([]);
+
+        // Act
+        Services.AddProcessManagerMessageClient();
+
+        // Assert
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var clientAct = () => serviceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        clientAct.Should()
+            .Throw<OptionsValidationException>()
+                .WithMessage("DataAnnotation validation failed for 'ProcessManagerServiceBusClientOptions'*")
+            .And.Failures.Should()
+                .ContainMatch("*TopicName field is required*");
+    }
+
+    [Fact]
+    public void ServiceBusClientIsNotRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_ExceptionIsThrownWhenRequestingClient()
+    {
+        // Arrange
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
+        {
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"] = ServiceBusTopicName,
+        });
+
+        // Act
+        Services.AddProcessManagerMessageClient();
+
+        // Assert
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var clientAct = () => serviceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        clientAct.Should()
+            .Throw<InvalidOperationException>()
+                .WithMessage("No service for type 'Azure.Messaging.ServiceBus.ServiceBusClient' has been registered*");
     }
 }

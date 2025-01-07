@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.15.2
+
+- Internal refactoring.
+
 ## Version 0.15.1
 
 - No functional changes.

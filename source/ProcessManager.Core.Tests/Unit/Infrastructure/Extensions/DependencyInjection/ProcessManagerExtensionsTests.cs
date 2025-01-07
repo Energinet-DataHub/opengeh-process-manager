@@ -17,7 +17,6 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using FluentAssertions;
-using FluentAssertions.Common;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;

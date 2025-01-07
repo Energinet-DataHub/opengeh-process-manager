@@ -19,7 +19,6 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WireMock.Server;
 using Xunit;
@@ -35,7 +34,7 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
         MockServer = WireMockServer.Start(port: 1111);
         Services = new ServiceCollection();
 
-        AddInMemoryConfigurations(new Dictionary<string, string?>()
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
             [$"{_wholesaleSectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"] = MockServer.Url,
             [$"{_wholesaleSectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = "not-empty",
@@ -115,15 +114,5 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
 
         // Assert
         actual.Should().Be(expectedStatus);
-    }
-
-    private void AddInMemoryConfigurations(Dictionary<string, string?> configurations)
-    {
-        Services.AddScoped<IConfiguration>(_ =>
-        {
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(configurations)
-                .Build();
-        });
     }
 }

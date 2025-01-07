@@ -121,7 +121,7 @@ jobs:
 
       # - name: Package content or build has changed for PM.Client or PM.Abstractions
       #   id: changed-content-client
-      #   uses: tj-actions/changed-files@v41
+      #   uses: tj-actions/changed-files@v45
       #   with:
       #     files: |
       #       source/ProcessManager.Client/**/*.*
@@ -129,7 +129,7 @@ jobs:
       #       .github/workflows/processmanager-client-bundle-publish.yml
       - name: Package content or build has changed for PM.Client or PM.Abstractions
         id: changed-content-client
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@v45
         with:
           files: |
             source/ProcessManager.Client/**/*.*
@@ -166,7 +166,7 @@ jobs:
       # version of ProcessManager.Orchestrations.Abstractions is bumped.
       # - name: Package content, dependencies or build has changed for PM.Abstractions or PM.Orchestrations.Abstractions
       #   id: changed-content-orchestrations
-      #   uses: tj-actions/changed-files@v41
+      #   uses: tj-actions/changed-files@v45
       #   with:
       #     files: |
       #       source/ProcessManager.Orchestrations.Abstractions/**/*.*
@@ -174,7 +174,7 @@ jobs:
       #       .github/workflows/processmanager-client-bundle-publish.yml
       - name: Package content, dependencies or build has changed for PM.Abstractions or PM.Orchestrations.Abstractions
         id: changed-content-orchestrations
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@v45
         with:
           files: |
             source/ProcessManager.Orchestrations.Abstractions/**/*.*

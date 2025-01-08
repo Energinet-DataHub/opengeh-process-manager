@@ -41,6 +41,7 @@ var host = new HostBuilder()
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
 
+        // TODO (ID-283)
         if (context.HostingEnvironment.IsEnvironment("IntegrationTests"))
         {
             services.AddSingleton<IElectricityMarketViews>(new ElectricityMarketViewsStub());

@@ -394,7 +394,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByActivatedAtTomorrow_ThenExpectedOrchestrationInstancesAreRetrieved()
+    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByActivatedWithinOneHourTomorrow_ThenExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
         var now = SystemClock.Instance.GetCurrentInstant();
@@ -451,7 +451,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         // Act
         var actual = await _sut.SearchAsync(
             activatedAtOrLater: tomorrow,
-            activatedAtOrEarlier: tomorrow);
+            activatedAtOrEarlier: tomorrow.PlusHours(1));
 
         // Assert
         actual.Should()

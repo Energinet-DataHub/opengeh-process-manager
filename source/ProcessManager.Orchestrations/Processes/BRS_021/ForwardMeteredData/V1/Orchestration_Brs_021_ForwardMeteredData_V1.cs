@@ -98,7 +98,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
             new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                 instanceId,
-                OrchestrationStepTerminationStates.Succeeded),
+                OrchestrationStepTerminationState.Succeeded),
             _defaultRetryOptions);
 
         // Terminate
@@ -137,7 +137,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                 nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
                 new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                     instanceId,
-                    OrchestrationStepTerminationStates.Failed),
+                    OrchestrationStepTerminationState.Failed),
                 _defaultRetryOptions);
 
             return "Error: Message was not enqueued.";
@@ -147,7 +147,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
             new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                 instanceId,
-                OrchestrationStepTerminationStates.Succeeded),
+                OrchestrationStepTerminationState.Succeeded),
             _defaultRetryOptions);
 
         return "Success";

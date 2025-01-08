@@ -76,21 +76,20 @@ An orchestration is a durable function with activities.
 We recommend that one follows the [guidelines for durable functions](https://energinet.atlassian.net/wiki/spaces/D3/pages/824475658/Durable+Functions)
 Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed.
 
+### Get started
+
+The `processManager` may be started locally, swing by the secrets repository and get the necessary secrets.
+To run the tests one needs to fill out the `integrationtest.local.settings.json` file.
+A sample file should be located in the root of the test project.
+
+If one creates a new test project and want it to be a part of CI, then this happens automatically.
+A consequence of this is that every test project should end with `Tests`.
+
 ### Testing
 
 Debugging the orchestration may be a troublesome task. Since it lives in another process, hence one has to manually attach the debugger.
 One can do this by setting a breakpoint in the test method just before the orchestration is started.
 Then attach the debugger and continue the test.
-
-### Get started
-
-// TODO: Goal - How to run tests locally to verify the development environment is ready
-// TODO: Goal - How to run relevant applications locally for debugging
-// TODO: Goal - How to create your first PR and verify it in CI and CD
-
-### Development Guidelines
-
-// TODO: Describe or link to development guidelines for Durable Functions and Extensions (we have guidelines for at least these in Confluence)
 
 ### Recipe for implementation of new process
 

@@ -20,11 +20,18 @@ Where folder 1, 2, 3, 7 are meant for the team maintaining the client and  4, 5,
 
 ### Solution folder 1. Client
 
+The `1. Client` folder contains the `Client` which is used to administrate the orchestrations from other subsystems.
+It is build as a nuget package containing a `HttpClient` and a `ServiceBusClient`.
+Furthermore this package contains the classes needed to communicate via the endpoints in [`2. Api`](#solution-folder-2-api).
+
+[`4. Orchestrations`](#solution-folder-4-orchestrations) contains an `Abstraction` solution as well,
+which is released as a nuget package and used by the `Client` to communicate with the orchestrations via the custom `HttpsTriggers`.
+
 ### Solution folder 2. Api
 
-The `Api` folder contains the `HttpTrigger` functions which are used to administrate the orchestrations.
+The `2. Api` folder contains the `HttpTrigger` functions which are used to administrate the orchestrations.
 It supports some basic functionality, such as starting an orchestration, checking the status of an orchestration and canceling an orchestration.
-Please note, that `Start` in the `Api`solution is restricted to orchestrations without input. 
+Please note, that `Start` in the `Api` solution is restricted to orchestrations without input. 
 If one wants to start an orchestration with input, one needs to implement a new `HttpTrigger` function in [`4. Orchestrations`](#solution-folder-4-orchestrations).
 
 ### Solution folder 3. Core

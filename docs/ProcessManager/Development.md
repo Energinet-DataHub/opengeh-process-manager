@@ -3,80 +3,6 @@ In the following we will give an introduction to the `process manager`, some gui
 If one wants a more abstract introduction then please consult the documentation in [Confluence](https://energinet.atlassian.net/wiki/spaces/D3/pages/1126072346/Analyse+og+design+til+PM-22+ProcessManager#ProcessManager-and-framework-design)
 or [Miro](https://miro.com/app/board/uXjVLXgfr7o=/)
 
-## Structure of the solution
-The process manager is structure as a monolith, hence it has a strict structure.
-If one opens the solution, one will notice that it consists of 7 different solution folders:
-
-- [`1. Client`](#solution-folder-1-client),
-- [`2. Api`](#solution-folder-2-api),
-- [`3. Core`](#solution-folder-3-core),
-- [`4. Orchestrations`](#solution-folder-4-orchestrations),
-- [`5. Components`](#solution-folder-5-components),
-- [`6. SubsystemTests`](#solution-folder-6-subsystemtests),
-- [`7. Examples`](#solution-folder-7-examples).
-
-Where folder 1, 2, 3, 7 are meant for the team maintaining the client and  4, 5, 6 are for business developers.
-
-
-### Solution folder 1. Client
-
-The `1. Client` folder contains the `Client` which is used to administrate the orchestrations from other subsystems.
-It is build as a nuget package containing a `HttpClient` and a `ServiceBusClient`.
-Furthermore this package contains the classes needed to communicate via the endpoints in [`2. Api`](#solution-folder-2-api).
-
-[`4. Orchestrations`](#solution-folder-4-orchestrations) contains an `Abstraction` solution as well,
-which is released as a nuget package and used by the `Client` to communicate with the orchestrations via the custom `HttpsTriggers`.
-
-### Solution folder 2. Api
-
-The `2. Api` folder contains the `HttpTrigger` functions which are used to administrate the orchestrations.
-It supports some basic functionality, such as starting an orchestration, checking the status of an orchestration and canceling an orchestration.
-Please note, that `Start` in the `Api` solution is restricted to orchestrations without input. 
-If one wants to start an orchestration with input, one needs to implement a new `HttpTrigger` function in [`4. Orchestrations`](#solution-folder-4-orchestrations).
-
-### Solution folder 3. Core
-
-
-
-### Solution folder 4. Orchestrations
-
-The projects inside solution folder `4. Orchestations` follows a strict folder structure, namely the following:
-
-```text
-├── Process
-│   ├── BRS_021
-│   │   ├── ElectricalHeatingCalculation
-|   |   |   |── V1
-|   |   |   |   |── Activities
-|   |   |   |   |── ...
-|   |   |   |   |── Orchestration_Brs_021_ElectricalHeatingCalculation_V1.cs
-|   |   |   |   └── OrchestrationDescription.cs
-|   |   |   └── SearchElectricalHeatingCalculationHandler.cs
-|   |   └── ForwardMeteredData
-|   |       └── V1
-|   |           |── Activities
-|   |           └── OrchestrationDescription.cs
-│   └── BRS_XYZ
-|       └── V1
-```
-
-With this structure we're able to assign the business teams ownership of the respected process,
-hence we may avoid unintentional errors.
-
-Every orchestration consists of a [durable function](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview?tabs=in-process%2Cnodejs-v3%2Cv1-model&pivots=csharp)
-which should be post-fixed with the corresponding folder structure, as in the example above: `Orchestration_Brs_021_ElectricalHeatingCalculation_V1.cs`.
-
-Consult the example orchestrations in [`7.Example`](#solution-folder-7-examples) for inspiration.
-
-### Solution folder 5. Components
-
-All functionality which may be used by more than one process should be placed here.
-This could be a client to `databricks` or the like.
-
-### Solution folder 6. SubsystemTests
-
-This is currently without functionality.
-
 ## Active feature flags
 
 We use TimerTrigger [built in functionality](https://learn.microsoft.com/en-us/azure/azure-functions/disable-function?tabs=portal) to disable them in preproduction and production.
@@ -120,6 +46,87 @@ Then attach the debugger and continue the test.
 
 // TODO: Describe how to implement the handling of a new process
 
+## GitHub Workflows
+
+// TODO: What is the purpose of each workflow; what is it's trigger; what is its "output"
+
+
+## Structure of the solution
+The process manager is a multipurpose tool, hence it has a strict structure.
+If one opens the solution, one will notice that it consists of 7 different solution folders:
+
+- [`1. Client`](#solution-folder-1-client),
+- [`2. Api`](#solution-folder-2-api),
+- [`3. Core`](#solution-folder-3-core),
+- [`4. Orchestrations`](#solution-folder-4-orchestrations),
+- [`5. Components`](#solution-folder-5-components),
+- [`6. SubsystemTests`](#solution-folder-6-subsystemtests),
+- [`7. Examples`](#solution-folder-7-examples).
+
+Where folder 1, 2, 3, 7 are meant for the team maintaining the client and  4, 5, 6 are for business developers.
+
+### Solution folder 1. Client
+
+The `1. Client` folder contains the `Client` which is used to administrate the orchestrations from other subsystems.
+It is build as a nuget package containing a `HttpClient` and a `ServiceBusClient`.
+Furthermore this package contains the classes needed to communicate via the endpoints in [`2. Api`](#solution-folder-2-api).
+
+[`4. Orchestrations`](#solution-folder-4-orchestrations) contains an `Abstraction` solution as well,
+which is released as a nuget package and used by the `Client` to communicate with the orchestrations via the custom `HttpsTriggers`.
+
+### Solution folder 2. Api
+
+The `2. Api` folder contains the `HttpTrigger` functions which are used to administrate the orchestrations.
+It supports some basic functionality, such as starting an orchestration, checking the status of an orchestration and canceling an orchestration.
+Please note, that `Start` in the `Api` solution is restricted to orchestrations without input.
+If one wants to start an orchestration with input, one needs to implement a new `HttpTrigger` function in [`4. Orchestrations`](#solution-folder-4-orchestrations).
+
+### Solution folder 3. Core
+
+The `3. Core` folder contains the database migrations and the communication with the database.
+It's furthermore responsible for registering the `Triggers` defined in [`4. Orchestrations`](#solution-folder-4-orchestrations)
+and the `OrchestrationDiscriptions` defined in the same solution folder.
+
+
+### Solution folder 4. Orchestrations
+
+The projects inside solution folder `4. Orchestations` follows a strict folder structure, namely the following:
+
+```text
+├── Process
+│   ├── BRS_021
+│   │   ├── ElectricalHeatingCalculation
+|   |   |   |── V1
+|   |   |   |   |── Activities
+|   |   |   |   |── ...
+|   |   |   |   |── Orchestration_Brs_021_ElectricalHeatingCalculation_V1.cs
+|   |   |   |   └── OrchestrationDescription.cs
+|   |   |   └── SearchElectricalHeatingCalculationHandler.cs
+|   |   └── ForwardMeteredData
+|   |       └── V1
+|   |           |── Activities
+|   |           └── OrchestrationDescription.cs
+│   └── BRS_XYZ
+|       └── V1
+```
+
+With this structure we're able to assign the business teams ownership of the respected process,
+hence we may avoid unintentional errors.
+
+Every orchestration consists of a [durable function](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview?tabs=in-process%2Cnodejs-v3%2Cv1-model&pivots=csharp)
+which should be post-fixed with the corresponding folder structure, as in the example above: `Orchestration_Brs_021_ElectricalHeatingCalculation_V1.cs`.
+
+Consult the example orchestrations in [`7.Example`](#solution-folder-7-examples) for inspiration.
+
+### Solution folder 5. Components
+
+All functionality which may be used by more than one process should be placed here.
+This could be a client to `databricks` or the like.
+
+### Solution folder 6. SubsystemTests
+
+This is currently without functionality.
+
 ### Solution folder 7. Examples
 
 The purpose of `7.Example` is to give inspiration of how may implement orchestrations in the `process manager`.
@@ -129,7 +136,3 @@ The tests document how one may start an orchestration.
 How one may test the orchestrations activities and how one may use the client to check the orchestration status.
 
 Besides that, the `Example orchestation` is used to test the client (solution folder 1, 2, 3 )
-
-## GitHub Workflows
-
-// TODO: What is the purpose of each workflow; what is it's trigger; what is its "output"

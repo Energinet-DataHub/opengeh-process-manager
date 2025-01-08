@@ -18,9 +18,9 @@ syntax = "proto3";
 option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
 
 message EnqueueMessagesDto {
-  string orchestration_name = 1; // The name of the orchestration to start.
-  int32 orchestration_version = 2; // The version of the orchestration to start.
-  string enqueued_by_actor_id = 4; // The actor id who wants to start the orchestration
-  string json_input = 3; // The input to the orchestration serialized as a JSON
-  optional string message_type = 5; // Optional message type (examples could be "Accepted" or "Rejected")
+  string orchestration_name = 1; // The name of the orchestration to enqueue messages for.
+  int32 orchestration_version = 2; // The version of the orchestration to enqueue messages for.
+  string enqueued_by_actor_id = 4; // The actor id who wants to enqueue messages
+  string json_input = 3; // The enqueue messages input serialized as a JSON
+  optional string message_type = 5; // Optional message type that describes the type of messages to enqueue (examples could be "Accepted" or "Rejected")
 }

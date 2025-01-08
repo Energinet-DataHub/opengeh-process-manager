@@ -225,6 +225,16 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.HostStartedEvent = "Host lock lease acquired";
 
         appHostSettings.ProcessEnvironmentVariables.Add(
+            "ASPNETCORE_ENVIRONMENT",
+            "IntegrationTests");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "DOTNET_ENVIRONMENT",
+            "IntegrationTests");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "AZURE_FUNCTIONS_ENVIRONMENT",
+            "IntegrationTests");
+
+        appHostSettings.ProcessEnvironmentVariables.Add(
             "FUNCTIONS_WORKER_RUNTIME",
             "dotnet-isolated");
         appHostSettings.ProcessEnvironmentVariables.Add(

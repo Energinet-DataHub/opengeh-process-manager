@@ -70,39 +70,41 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // Step: Storing
         await context.CallActivityAsync(
             nameof(StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1),
-            instanceId,
+            new StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("Measurements_Notification");
         await context.CallActivityAsync(
             nameof(StoringStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            instanceId,
+            new StoringStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
 
         // Step: Find Receiver
         await context.CallActivityAsync(
             nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1),
-            instanceId,
+            new FindReceiversActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
         await context.CallActivityAsync(
             nameof(FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            instanceId,
+            new FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
 
         // Step: Enqueueing
         await context.CallActivityAsync(
             nameof(EnqueueMessagesActivity_Brs_021_ForwardMeteredData_V1),
-            instanceId,
+            new EnqueueMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("EDI_Notification");
         await context.CallActivityAsync(
             nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            instanceId,
+            new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                instanceId,
+                OrchestrationStepTerminationStates.Succeeded),
             _defaultRetryOptions);
 
         // Terminate
         await context.CallActivityAsync(
             nameof(OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            instanceId,
+            new OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
 
         return "Success";

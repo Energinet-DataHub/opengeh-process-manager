@@ -184,6 +184,7 @@ internal class ProcessManagerClient : IProcessManagerClient
         return orchestrationInstance!;
     }
 
+    /// <inheritdoc/>
     public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchOrchestrationInstancesByNameAsync(
         SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)

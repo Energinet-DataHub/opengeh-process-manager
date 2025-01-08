@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
 
@@ -20,17 +22,20 @@ public interface IEnqueueMessagesClient
 {
     public Task Enqueue<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
+        OperatingIdentity enqueuedBy,
         string messageId,
         TData data,
         string? messageType = null);
 
     public Task EnqueueAccepted<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
+        OperatingIdentity enqueuedBy,
         string messageId,
         TData data);
 
     public Task EnqueueRejected<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
+        OperatingIdentity enqueuedBy,
         string messageId,
         TData data);
 }

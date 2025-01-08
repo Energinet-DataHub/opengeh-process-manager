@@ -17,6 +17,8 @@ using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 
@@ -30,15 +32,26 @@ public class EnqueueMessagesClient(
 
     public async Task Enqueue<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
+        OperatingIdentity enqueuedBy,
         string messageId,
         TData data,
         string? messageType = null)
     {
+        var actorId = enqueuedBy switch
+        {
+            ActorIdentity actor => actor.ActorId,
+            UserIdentity user => user.ActorId,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(enqueuedBy),
+                enqueuedBy.GetType().Name,
+                "Unknown enqueuedBy type"),
+        };
+
         var message = new EnqueueMessagesDto
         {
             OrchestrationName = orchestration.Name,
             OrchestrationVersion = orchestration.Version,
-            EnqueuedByActorId = "123", // TODO: Correct actor id
+            EnqueuedByActorId = actorId.ToString(),
             JsonInput = JsonSerializer.Serialize(data),
         };
 
@@ -56,13 +69,21 @@ public class EnqueueMessagesClient(
             .ConfigureAwait(false);
     }
 
-    public Task EnqueueAccepted<TData>(OrchestrationDescriptionUniqueNameDto orchestration, string messageId, TData data)
+    public Task EnqueueAccepted<TData>(
+        OrchestrationDescriptionUniqueNameDto orchestration,
+        OperatingIdentity enqueuedByActorId,
+        string messageId,
+        TData data)
     {
-        return Enqueue(orchestration, messageId, data, "Accepted");
+        return Enqueue(orchestration, enqueuedByActorId, messageId, data, "Accepted");
     }
 
-    public Task EnqueueRejected<TData>(OrchestrationDescriptionUniqueNameDto orchestration, string messageId, TData data)
+    public Task EnqueueRejected<TData>(
+        OrchestrationDescriptionUniqueNameDto orchestration,
+        OperatingIdentity enqueuedByActorId,
+        string messageId,
+        TData data)
     {
-        return Enqueue(orchestration, messageId, data, "Rejected");
+        return Enqueue(orchestration, enqueuedByActorId, messageId, data, "Rejected");
     }
 }

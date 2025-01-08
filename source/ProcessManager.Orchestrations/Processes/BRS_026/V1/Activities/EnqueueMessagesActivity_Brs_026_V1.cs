@@ -45,13 +45,14 @@ internal class EnqueueMessagesActivity_Brs_026_V1(
             Orchestration_Brs_026_V1.EnqueueMessagesStepSequence,
             _clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-        await EnqueueMessagesAsync(input).ConfigureAwait(false);
+        await EnqueueMessagesAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 
-    private Task EnqueueMessagesAsync(ActivityInput input)
+    private Task EnqueueMessagesAsync(OperatingIdentity enqueuedBy, ActivityInput input)
     {
         return _enqueueMessagesClient.EnqueueAccepted(
             Orchestration_Brs_026_V1.Name,
+            enqueuedBy,
             "enqueue-" + input.InstanceId.Value,
             input.RequestInput);
     }

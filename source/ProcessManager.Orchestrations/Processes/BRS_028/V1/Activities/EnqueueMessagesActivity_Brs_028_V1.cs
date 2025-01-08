@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -45,13 +46,14 @@ internal class EnqueueMessagesActivity_Brs_028_V1(
             Orchestration_Brs_028_V1.EnqueueMessagesStepSequence,
             _clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-        await EnqueueMessagesAsync(input).ConfigureAwait(false);
+        await EnqueueMessagesAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 
-    private Task EnqueueMessagesAsync(ActivityInput input)
+    private Task EnqueueMessagesAsync(OperatingIdentity identity, ActivityInput input)
     {
         return _enqueueMessagesClient.EnqueueAccepted(
             Orchestration_Brs_028_V1.Name,
+            identity,
             "enqueue-" + input.InstanceId.Value,
             input.RequestInput);
     }

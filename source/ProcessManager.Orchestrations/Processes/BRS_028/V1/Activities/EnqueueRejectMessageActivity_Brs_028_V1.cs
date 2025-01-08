@@ -46,13 +46,14 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
             _clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        await EnqueueRejectMessageAsync(input).ConfigureAwait(false);
+        await EnqueueRejectMessageAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 
-    private Task EnqueueRejectMessageAsync(ActivityInput input)
+    private Task EnqueueRejectMessageAsync(OperatingIdentity enqueuedBy, ActivityInput input)
     {
         return _enqueueMessagesClient.EnqueueRejected(
             Orchestration_Brs_028_V1.Name,
+            enqueuedBy,
             "enqueue-" + input.InstanceId.Value,
             input.ValidationError);
     }

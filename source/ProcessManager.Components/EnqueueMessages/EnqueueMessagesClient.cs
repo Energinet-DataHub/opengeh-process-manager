@@ -15,10 +15,9 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 
@@ -32,15 +31,15 @@ public class EnqueueMessagesClient(
 
     public async Task Enqueue<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
-        OperatingIdentity enqueuedBy,
+        IOperatingIdentityDto enqueuedBy,
         string messageId,
         TData data,
         string? messageType = null)
     {
         var actorId = enqueuedBy switch
         {
-            ActorIdentity actor => actor.ActorId,
-            UserIdentity user => user.ActorId,
+            ActorIdentityDto actor => actor.ActorId,
+            UserIdentityDto user => user.ActorId,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(enqueuedBy),
                 enqueuedBy.GetType().Name,
@@ -71,19 +70,19 @@ public class EnqueueMessagesClient(
 
     public Task EnqueueAccepted<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
-        OperatingIdentity enqueuedByActorId,
+        IOperatingIdentityDto enqueuedBy,
         string messageId,
         TData data)
     {
-        return Enqueue(orchestration, enqueuedByActorId, messageId, data, "Accepted");
+        return Enqueue(orchestration, enqueuedBy, messageId, data, "Accepted");
     }
 
     public Task EnqueueRejected<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
-        OperatingIdentity enqueuedByActorId,
+        IOperatingIdentityDto enqueuedBy,
         string messageId,
         TData data)
     {
-        return Enqueue(orchestration, enqueuedByActorId, messageId, data, "Rejected");
+        return Enqueue(orchestration, enqueuedBy, messageId, data, "Rejected");
     }
 }

@@ -49,11 +49,11 @@ internal class EnqueueMessagesActivity_Brs_028_V1(
         await EnqueueMessagesAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 
-    private Task EnqueueMessagesAsync(OperatingIdentity identity, ActivityInput input)
+    private Task EnqueueMessagesAsync(OperatingIdentity enqueuedBy, ActivityInput input)
     {
         return _enqueueMessagesClient.EnqueueAccepted(
             Orchestration_Brs_028_V1.Name,
-            identity,
+            enqueuedBy.ToDto(),
             "enqueue-" + input.InstanceId.Value,
             input.RequestInput);
     }

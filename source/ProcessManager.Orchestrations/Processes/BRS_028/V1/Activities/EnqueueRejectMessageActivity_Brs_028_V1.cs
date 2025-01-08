@@ -53,7 +53,7 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
     {
         return _enqueueMessagesClient.EnqueueRejected(
             Orchestration_Brs_028_V1.Name,
-            enqueuedBy,
+            enqueuedBy.ToDto(),
             "enqueue-" + input.InstanceId.Value,
             input.ValidationError);
     }

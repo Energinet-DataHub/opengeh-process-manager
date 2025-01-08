@@ -52,7 +52,7 @@ internal class EnqueueMessagesActivity_Brs_026_V1(
     {
         return _enqueueMessagesClient.EnqueueAccepted(
             Orchestration_Brs_026_V1.Name,
-            enqueuedBy,
+            enqueuedBy.ToDto(),
             "enqueue-" + input.InstanceId.Value,
             input.RequestInput);
     }

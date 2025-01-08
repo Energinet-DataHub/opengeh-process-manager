@@ -71,10 +71,10 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
                  Guid.NewGuid()),
              input);
 
-        using var scheduleRequest = new HttpRequestMessage(
+        using var startRequest = new HttpRequestMessage(
             HttpMethod.Post,
             $"/api/orchestrationinstance/command/start/custom/{orchestration.Name}/{orchestration.Version}");
-        scheduleRequest.Content = new StringContent(
+        startRequest.Content = new StringContent(
             JsonSerializer.Serialize(command),
             Encoding.UTF8,
             "application/json");
@@ -82,7 +82,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
         // Step 1: Start new orchestration instance
         using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
             .HttpClient
-            .SendAsync(scheduleRequest);
+            .SendAsync(startRequest);
         response.EnsureSuccessStatusCode();
 
         var orchestrationInstanceId = await response.Content

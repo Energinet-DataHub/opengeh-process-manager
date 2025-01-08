@@ -109,7 +109,7 @@ internal class Orchestration_Brs_023_027_V1
                         new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
                             instanceId,
                             CalculationStepSequence,
-                            OrchestrationStepTerminationStates.Succeeded),
+                            OrchestrationStepTerminationState.Succeeded),
                         _defaultRetryOptions);
 
                     continueCalculationMonitor = false;
@@ -123,13 +123,13 @@ internal class Orchestration_Brs_023_027_V1
                         new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
                             instanceId,
                             CalculationStepSequence,
-                            OrchestrationStepTerminationStates.Failed),
+                            OrchestrationStepTerminationState.Failed),
                         _defaultRetryOptions);
                     await context.CallActivityAsync(
                         nameof(OrchestrationTerminateActivity_Brs_023_027_V1),
                         new OrchestrationTerminateActivity_Brs_023_027_V1.ActivityInput(
                             instanceId,
-                            OrchestrationInstanceTerminationStates.Failed),
+                            OrchestrationInstanceTerminationState.Failed),
                         _defaultRetryOptions);
 
                     // Quit orchestration
@@ -153,7 +153,7 @@ internal class Orchestration_Brs_023_027_V1
                 new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
                     instanceId,
                     EnqueueMessagesStepSequence,
-                    OrchestrationStepTerminationStates.Succeeded),
+                    OrchestrationStepTerminationState.Succeeded),
                 _defaultRetryOptions);
         }
 
@@ -162,7 +162,7 @@ internal class Orchestration_Brs_023_027_V1
             nameof(OrchestrationTerminateActivity_Brs_023_027_V1),
             new OrchestrationTerminateActivity_Brs_023_027_V1.ActivityInput(
                 instanceId,
-                OrchestrationInstanceTerminationStates.Succeeded),
+                OrchestrationInstanceTerminationState.Succeeded),
             _defaultRetryOptions);
 
         return "Success";

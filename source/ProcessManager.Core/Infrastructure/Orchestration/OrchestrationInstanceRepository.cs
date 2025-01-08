@@ -56,7 +56,7 @@ internal class OrchestrationInstanceRepository(
     public async Task<IReadOnlyCollection<OrchestrationInstance>> FindAsync(Instant scheduledToRunBefore)
     {
         var query = _context.OrchestrationInstances
-            .Where(x => x.Lifecycle.State == OrchestrationInstanceLifecycleStates.Pending)
+            .Where(x => x.Lifecycle.State == OrchestrationInstanceLifecycleState.Pending)
             .Where(x => x.Lifecycle.ScheduledToRunAt != null && x.Lifecycle.ScheduledToRunAt.Value <= scheduledToRunBefore);
 
         return await query.ToListAsync().ConfigureAwait(false);
@@ -66,8 +66,8 @@ internal class OrchestrationInstanceRepository(
     public async Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
         string name,
         int? version = default,
-        OrchestrationInstanceLifecycleStates? lifecycleState = default,
-        OrchestrationInstanceTerminationStates? terminationState = default,
+        OrchestrationInstanceLifecycleState? lifecycleState = default,
+        OrchestrationInstanceTerminationState? terminationState = default,
         Instant? startedAtOrLater = default,
         Instant? terminatedAtOrEarlier = default)
     {

@@ -38,13 +38,13 @@ internal class SearchCalculationHandler(
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         var lifecycleState =
-            Enum.TryParse<OrchestrationInstanceLifecycleStates>(query.LifecycleState.ToString(), ignoreCase: true, out var lifecycleStateResult)
+            Enum.TryParse<OrchestrationInstanceLifecycleState>(query.LifecycleState.ToString(), ignoreCase: true, out var lifecycleStateResult)
             ? lifecycleStateResult
-            : (OrchestrationInstanceLifecycleStates?)null;
+            : (OrchestrationInstanceLifecycleState?)null;
         var terminationState =
-            Enum.TryParse<OrchestrationInstanceTerminationStates>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
+            Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
             ? terminationStateResult
-            : (OrchestrationInstanceTerminationStates?)null;
+            : (OrchestrationInstanceTerminationState?)null;
 
         // DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
         // See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier

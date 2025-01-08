@@ -1,8 +1,12 @@
 # ProcessManager.Client Release Notes
 
-## Version 0.16.0
+## Version 0.17.0
 
 - Add `EnqueueMessages`
+
+## Version 0.16.0
+
+- Renamed `enum` types to use singular naming to follow [Microsoft naming guidelines for naming enumerations](https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/names-of-classes-structs-and-interfaces#naming-enumerations).
 
 ## Version 0.15.3
 

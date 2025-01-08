@@ -114,8 +114,8 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
                 var orchestrationInstance = await queryResponse.Content
                     .ReadFromJsonAsync<OrchestrationInstanceDto>();
 
-                return orchestrationInstance!.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance!.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
+                return orchestrationInstance!.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance!.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
             },
             timeLimit: TimeSpan.FromSeconds(40),
             delay: TimeSpan.FromSeconds(2));

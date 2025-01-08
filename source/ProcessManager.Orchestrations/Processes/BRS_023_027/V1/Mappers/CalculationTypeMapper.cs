@@ -19,16 +19,16 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 
 internal static class CalculationTypeMapper
 {
-    public static CalculationTypes FromDeltaTableValue(string calculationType)
+    public static CalculationType FromDeltaTableValue(string calculationType)
     {
         return calculationType switch
         {
-            DeltaTableCalculationType.BalanceFixing => CalculationTypes.BalanceFixing,
-            DeltaTableCalculationType.Aggregation => CalculationTypes.Aggregation,
-            DeltaTableCalculationType.WholesaleFixing => CalculationTypes.WholesaleFixing,
-            DeltaTableCalculationType.FirstCorrectionSettlement => CalculationTypes.FirstCorrectionSettlement,
-            DeltaTableCalculationType.SecondCorrectionSettlement => CalculationTypes.SecondCorrectionSettlement,
-            DeltaTableCalculationType.ThirdCorrectionSettlement => CalculationTypes.ThirdCorrectionSettlement,
+            DeltaTableCalculationType.BalanceFixing => CalculationType.BalanceFixing,
+            DeltaTableCalculationType.Aggregation => CalculationType.Aggregation,
+            DeltaTableCalculationType.WholesaleFixing => CalculationType.WholesaleFixing,
+            DeltaTableCalculationType.FirstCorrectionSettlement => CalculationType.FirstCorrectionSettlement,
+            DeltaTableCalculationType.SecondCorrectionSettlement => CalculationType.SecondCorrectionSettlement,
+            DeltaTableCalculationType.ThirdCorrectionSettlement => CalculationType.ThirdCorrectionSettlement,
 
             _ => throw new ArgumentOutOfRangeException(
                 nameof(calculationType),
@@ -37,16 +37,16 @@ internal static class CalculationTypeMapper
         };
     }
 
-    public static string ToDeltaTableValue(CalculationTypes calculationType)
+    public static string ToDeltaTableValue(CalculationType calculationType)
     {
         return calculationType switch
         {
-            CalculationTypes.BalanceFixing => DeltaTableCalculationType.BalanceFixing,
-            CalculationTypes.Aggregation => DeltaTableCalculationType.Aggregation,
-            CalculationTypes.WholesaleFixing => DeltaTableCalculationType.WholesaleFixing,
-            CalculationTypes.FirstCorrectionSettlement => DeltaTableCalculationType.FirstCorrectionSettlement,
-            CalculationTypes.SecondCorrectionSettlement => DeltaTableCalculationType.SecondCorrectionSettlement,
-            CalculationTypes.ThirdCorrectionSettlement => DeltaTableCalculationType.ThirdCorrectionSettlement,
+            CalculationType.BalanceFixing => DeltaTableCalculationType.BalanceFixing,
+            CalculationType.Aggregation => DeltaTableCalculationType.Aggregation,
+            CalculationType.WholesaleFixing => DeltaTableCalculationType.WholesaleFixing,
+            CalculationType.FirstCorrectionSettlement => DeltaTableCalculationType.FirstCorrectionSettlement,
+            CalculationType.SecondCorrectionSettlement => DeltaTableCalculationType.SecondCorrectionSettlement,
+            CalculationType.ThirdCorrectionSettlement => DeltaTableCalculationType.ThirdCorrectionSettlement,
 
             _ => throw new ArgumentOutOfRangeException(
                 nameof(calculationType),

@@ -54,6 +54,16 @@ This is currently without functionality.
 
 ## Developing orchestrations
 
+An orchestration is a durable function with activities.
+We recommend that one follows the [guidelines for durable functions](https://energinet.atlassian.net/wiki/spaces/D3/pages/824475658/Durable+Functions)
+Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed.
+
+### Testing
+
+Debugging the orchestration may be a troublesome task. Since it lives in another process, hence one has to manually attach the debugger.
+One can do this by setting a breakpoint in the test method just before the orchestration is started.
+Then attach the debugger and continue the test.
+
 ## Active feature flags
 
 We use TimerTrigger [built in functionality](https://learn.microsoft.com/en-us/azure/azure-functions/disable-function?tabs=portal) to disable them in preproduction and production.

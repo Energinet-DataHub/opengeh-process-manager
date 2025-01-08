@@ -60,7 +60,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task NoInputExampleOrchestration_WhenStarted_CanMonitorLifecycle()
+    public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
         var command = new StartNoInputExampleCommandV1(
              operatingIdentity: new UserIdentityDto(

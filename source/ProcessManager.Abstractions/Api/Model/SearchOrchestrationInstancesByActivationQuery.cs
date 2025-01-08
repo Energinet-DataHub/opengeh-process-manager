@@ -27,8 +27,8 @@ public sealed record SearchOrchestrationInstancesByActivationQuery
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
-    /// <param name="activatedAtOrLater"></param>
-    /// <param name="activatedAtOrEarlier"></param>
+    /// <param name="activatedAtOrLater">The time (or later) when the orchestration instances was queued or scheduled to run at.</param>
+    /// <param name="activatedAtOrEarlier">The time (or earlier) when the orchestration instances was queued or scheduled to run at.</param>
     public SearchOrchestrationInstancesByActivationQuery(
         UserIdentityDto operatingIdentity,
         DateTimeOffset activatedAtOrLater,

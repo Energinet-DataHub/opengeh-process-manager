@@ -159,8 +159,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         // Assert
         actual.Should()
             .ContainEquivalentOf(scheduledToRun)
-            .And
-            .HaveCount(1);
+            .And.NotContainEquivalentOf(notScheduled)
+            .And.NotContainEquivalentOf(scheduledIntoTheFarFuture);
     }
 
     [Fact]

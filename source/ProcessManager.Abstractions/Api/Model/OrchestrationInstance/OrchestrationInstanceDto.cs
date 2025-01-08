@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationI
 /// <param name="CustomState">Any custom state of the orchestration instance.</param>
 public record OrchestrationInstanceDto(
     Guid Id,
-    OrchestrationInstanceLifecycleStateDto Lifecycle,
+    OrchestrationInstanceLifecycleDto Lifecycle,
     ExpandoObject ParameterValue,
     IReadOnlyCollection<StepInstanceDto> Steps,
     string CustomState);

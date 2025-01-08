@@ -37,15 +37,15 @@ public sealed record CalculationQuery
     {
     }
 
-    public OrchestrationInstanceLifecycleStates? LifecycleState { get; set; }
+    public OrchestrationInstanceLifecycleState? LifecycleState { get; set; }
 
-    public OrchestrationInstanceTerminationStates? TerminationState { get; set; }
+    public OrchestrationInstanceTerminationState? TerminationState { get; set; }
 
     public DateTimeOffset? StartedAtOrLater { get; set; }
 
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
 
-    public IReadOnlyCollection<CalculationTypes>? CalculationTypes { get; set; }
+    public IReadOnlyCollection<CalculationType>? CalculationTypes { get; set; }
 
     public IReadOnlyCollection<string>? GridAreaCodes { get; set; }
 

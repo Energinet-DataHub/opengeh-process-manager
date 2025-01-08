@@ -42,5 +42,5 @@ internal class TransitionStepToTerminatedActivity_Brs_023_027_V1(
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
         int StepSequence,
-        OrchestrationStepTerminationStates TerminationState);
+        OrchestrationStepTerminationState TerminationState);
 }

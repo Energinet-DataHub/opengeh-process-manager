@@ -31,7 +31,7 @@ public record OrchestrationInstanceTypedDto
     /// <param name="customState">Any custom state of the orchestration instance.</param>
     public OrchestrationInstanceTypedDto(
         Guid id,
-        OrchestrationInstanceLifecycleStateDto lifecycle,
+        OrchestrationInstanceLifecycleDto lifecycle,
         IReadOnlyCollection<StepInstanceDto> steps,
         string customState)
     {
@@ -46,7 +46,7 @@ public record OrchestrationInstanceTypedDto
     /// <summary>
     /// The high-level lifecycle states that all orchestration instances can go through.
     /// </summary>
-    public OrchestrationInstanceLifecycleStateDto Lifecycle { get; }
+    public OrchestrationInstanceLifecycleDto Lifecycle { get; }
 
     /// <summary>
     /// Workflow steps the orchestration instance is going through.
@@ -79,7 +79,7 @@ public record OrchestrationInstanceTypedDto<TInputParameterDto>
     /// <param name="parameterValue">Contains the Durable Functions orchestration input parameter value.</param>
     public OrchestrationInstanceTypedDto(
         Guid id,
-        OrchestrationInstanceLifecycleStateDto lifecycle,
+        OrchestrationInstanceLifecycleDto lifecycle,
         IReadOnlyCollection<StepInstanceDto> steps,
         string customState,
         TInputParameterDto parameterValue)

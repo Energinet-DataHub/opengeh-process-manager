@@ -17,7 +17,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationI
 /// <summary>
 /// High-level lifecycle states that all orchestration instances can go through.
 /// </summary>
-public enum OrchestrationInstanceLifecycleStates
+public enum OrchestrationInstanceLifecycleState
 {
     /// <summary>
     /// Created and waiting to be started.
@@ -36,12 +36,12 @@ public enum OrchestrationInstanceLifecycleStates
 
     /// <summary>
     /// A Durable Functions activity has transitioned the orchestration instance into terminated.
-    /// See <see cref="OrchestrationInstanceTerminationStates"/> for details.
+    /// See <see cref="OrchestrationInstanceTerminationState"/> for details.
     /// </summary>
     Terminated = 4,
 }
 
-public enum OrchestrationInstanceTerminationStates
+public enum OrchestrationInstanceTerminationState
 {
     Succeeded = 1,
 

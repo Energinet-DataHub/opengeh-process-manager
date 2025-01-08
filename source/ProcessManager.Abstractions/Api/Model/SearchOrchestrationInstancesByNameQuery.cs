@@ -37,8 +37,8 @@ public sealed record SearchOrchestrationInstancesByNameQuery
         UserIdentityDto operatingIdentity,
         string name,
         int? version,
-        OrchestrationInstanceLifecycleStates? lifecycleState,
-        OrchestrationInstanceTerminationStates? terminationState,
+        OrchestrationInstanceLifecycleState? lifecycleState,
+        OrchestrationInstanceTerminationState? terminationState,
         DateTimeOffset? startedAtOrLater,
         DateTimeOffset? terminatedAtOrEarlier)
             : base(operatingIdentity)
@@ -66,12 +66,12 @@ public sealed record SearchOrchestrationInstancesByNameQuery
     /// <summary>
     /// Lifecycle states that orchestration instances can be in.
     /// </summary>
-    public OrchestrationInstanceLifecycleStates? LifecycleState { get; }
+    public OrchestrationInstanceLifecycleState? LifecycleState { get; }
 
     /// <summary>
     /// Termination states that orchestration instances can be in.
     /// </summary>
-    public OrchestrationInstanceTerminationStates? TerminationState { get; }
+    public OrchestrationInstanceTerminationState? TerminationState { get; }
 
     /// <summary>
     /// The time (or later) when the orchestration instances was transitioned to the Running state.

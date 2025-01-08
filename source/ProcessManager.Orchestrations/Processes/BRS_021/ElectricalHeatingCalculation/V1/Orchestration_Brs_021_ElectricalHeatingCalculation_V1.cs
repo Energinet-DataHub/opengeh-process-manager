@@ -96,7 +96,7 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                         new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
                             instanceId,
                             CalculationStep.Sequence,
-                            OrchestrationStepTerminationStates.Succeeded),
+                            OrchestrationStepTerminationState.Succeeded),
                         _defaultRetryOptions);
 
                     continueCalculationMonitor = false;
@@ -110,13 +110,13 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                         new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
                             instanceId,
                             CalculationStep.Sequence,
-                            OrchestrationStepTerminationStates.Failed),
+                            OrchestrationStepTerminationState.Failed),
                         _defaultRetryOptions);
                     await context.CallActivityAsync(
                         nameof(OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
                         new OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
                             instanceId,
-                            OrchestrationInstanceTerminationStates.Failed),
+                            OrchestrationInstanceTerminationState.Failed),
                         _defaultRetryOptions);
 
                     // Quit orchestration
@@ -140,7 +140,7 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                 new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
                     instanceId,
                     EnqueueMessagesStep.Sequence,
-                    OrchestrationStepTerminationStates.Succeeded),
+                    OrchestrationStepTerminationState.Succeeded),
                 _defaultRetryOptions);
         }
 
@@ -149,7 +149,7 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
             nameof(OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
             new OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
                 instanceId,
-                OrchestrationInstanceTerminationStates.Succeeded),
+                OrchestrationInstanceTerminationState.Succeeded),
             _defaultRetryOptions);
 
         return "Success";

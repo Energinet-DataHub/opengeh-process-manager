@@ -15,6 +15,6 @@
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
 /// <summary>
-/// A model containing the validation errors if a energy time series request is rejected
+/// A model containing the validation errors if a energy time series request is rejected.
 /// </summary>
 public record RequestCalculatedEnergyTimeSeriesRejectedV1(List<string> ValidationErrors);

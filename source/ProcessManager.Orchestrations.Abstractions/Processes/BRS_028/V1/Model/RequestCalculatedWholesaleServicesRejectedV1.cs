@@ -15,6 +15,6 @@
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
 
 /// <summary>
-/// A model containing the validation errors if a wholesale services request is rejected
+/// A model containing the validation errors if a wholesale services request is rejected.
 /// </summary>
 public record RequestCalculatedWholesaleServicesRejectedV1(List<string> ValidationErrors);

@@ -46,7 +46,7 @@ internal static class OrchestrationInstanceMapperExtensions
     public static ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleDto MapToDto(
         this DomainModel.OrchestrationInstanceLifecycle entity)
     {
-        return new ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleStateDto(
+        return new ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleDto(
             CreatedBy: entity.CreatedBy.Value.MapToDto(),
             State: Enum
                 .TryParse<ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleState>(
@@ -103,7 +103,7 @@ internal static class OrchestrationInstanceMapperExtensions
     public static ApiModel.OrchestrationInstance.StepInstanceLifecycleDto MapToDto(
         this DomainModel.StepInstanceLifecycle entity)
     {
-        return new ApiModel.OrchestrationInstance.StepInstanceLifecycleStateDto(
+        return new ApiModel.OrchestrationInstance.StepInstanceLifecycleDto(
             State: Enum
                 .TryParse<ApiModel.OrchestrationInstance.StepInstanceLifecycleState>(
                     entity.State.ToString(),

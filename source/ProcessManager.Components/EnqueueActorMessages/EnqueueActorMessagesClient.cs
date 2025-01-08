@@ -63,6 +63,9 @@ public class EnqueueActorMessagesClient(
             ContentType = "application/json",
         };
 
+        serviceBusMessage.ApplicationProperties.Add("MajorVersion", EnqueueMessagesDtoV1.MajorVersion);
+        serviceBusMessage.ApplicationProperties.Add("MinorVersion", EnqueueMessagesDtoV1.MinorVersion);
+
         await _serviceBusSender.SendMessageAsync(serviceBusMessage)
             .ConfigureAwait(false);
     }

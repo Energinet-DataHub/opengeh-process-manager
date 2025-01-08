@@ -59,6 +59,9 @@ public class ProcessManagerMessageClient(
             ContentType = "application/json",
         };
 
+        serviceBusMessage.ApplicationProperties.Add("MajorVersion", StartOrchestrationDtoV1.MajorVersion);
+        serviceBusMessage.ApplicationProperties.Add("MinorVersion", StartOrchestrationDtoV1.MinorVersion);
+
         return serviceBusMessage;
     }
 

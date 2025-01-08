@@ -27,7 +27,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
 {
     private readonly ILogger _logger = logger;
 
-    public Task HandleAsync(ServiceBusReceivedMessage message)
+    public async Task HandleAsync(ServiceBusReceivedMessage message)
     {
         using var serviceBusMessageLoggerScope = _logger.BeginScope(new
         {
@@ -39,8 +39,26 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
             },
         });
 
-        var jsonMessage = message.Body.ToString();
-        var startOrchestration = StartOrchestration.Parser.ParseJson(jsonMessage);
+        var majorVersion = StartOrchestrationDtoV1.GetMajorVersionFromMessage(message.ApplicationProperties);
+        if (majorVersion != StartOrchestrationDtoV1.MajorVersion)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(majorVersion),
+                majorVersion,
+                "Unhandled StartOrchestrationDto service bus message version.");
+        }
+
+        var minorVersion = StartOrchestrationDtoV1.GetMinorVersionFromMessage(message.ApplicationProperties);
+        if (minorVersion != StartOrchestrationDtoV1.MinorVersion)
+        {
+            _logger.LogWarning(
+                "Received start orchestration message with minor version {MinorVersion}, but expected {ExpectedMinorVersion}. Major version is {MajorVersion}",
+                minorVersion,
+                StartOrchestrationDtoV1.MinorVersion,
+                majorVersion);
+        }
+
+        var startOrchestration = StartOrchestration.Parser.ParseJson(message.Body.ToString());
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
         {
             StartOrchestration = new
@@ -58,7 +76,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         if (inputParameterDto is null)
         {
             var inputTypeName = typeof(TInputParameterDto).Name;
-            _logger.LogWarning($"Unable to deserialize {nameof(startOrchestration.JsonInput)} to {inputTypeName} type:{Environment.NewLine}{0}", startOrchestration.JsonInput);
+            _logger.LogError($"Unable to deserialize {nameof(startOrchestration.JsonInput)} to {inputTypeName} type:{Environment.NewLine}{0}", startOrchestration.JsonInput);
             throw new ArgumentException($"Unable to deserialize {nameof(startOrchestration.JsonInput)} to {inputTypeName} type");
         }
 
@@ -70,9 +88,10 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
                 message: $"Unable to parse {nameof(startOrchestration.StartedByActorId)} to guid");
         }
 
-        return StartOrchestrationInstanceAsync(
+        await StartOrchestrationInstanceAsync(
             new ActorIdentity(new ActorId(actorId)),
-            inputParameterDto);
+            inputParameterDto)
+            .ConfigureAwait(false);
     }
 
     protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input);

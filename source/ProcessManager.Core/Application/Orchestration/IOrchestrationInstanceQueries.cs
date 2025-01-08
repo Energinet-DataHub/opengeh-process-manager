@@ -35,4 +35,12 @@ public interface IOrchestrationInstanceQueries
         OrchestrationInstanceTerminationState? terminationState,
         Instant? startedAtOrLater,
         Instant? terminatedAtOrEarlier);
+
+    /// <summary>
+    /// Get all orchestration instances filtered by their activation (queued at/scheduled to run at) timestamp.
+    /// This means orchestration instances from different orchestration descriptions can be searched for and returned.
+    /// </summary>
+    Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
+        Instant activatedAtOrLater,
+        Instant activatedAtOrEarlier);
 }

@@ -89,4 +89,23 @@ internal class OrchestrationInstanceRepository(
 
         return await query.ToListAsync().ConfigureAwait(false);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
+        Instant activatedAtOrLater,
+        Instant activatedAtOrEarlier)
+    {
+        var query = _context
+            .OrchestrationDescriptions
+            .Join(
+                _context.OrchestrationInstances,
+                description => description.Id,
+                instance => instance.OrchestrationDescriptionId,
+                (_, instance) => instance)
+            .Where(x =>
+                (x.Lifecycle.QueuedAt >= activatedAtOrLater && x.Lifecycle.QueuedAt <= activatedAtOrEarlier)
+                || (x.Lifecycle.ScheduledToRunAt >= activatedAtOrLater && x.Lifecycle.ScheduledToRunAt <= activatedAtOrEarlier));
+
+        return await query.ToListAsync().ConfigureAwait(false);
+    }
 }

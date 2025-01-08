@@ -12,34 +12,126 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Measurements;
+using Energinet.DataHub.ProcessManager.Components.Measurements.Models;
+using Energinet.DataHub.ProcessManager.Components.Models;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
+using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
 internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IMeteredDataClient meteredDataClient)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
+    private readonly IMeteredDataClient _meteredDataClient = meteredDataClient;
+
     [Function(nameof(StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+        [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
-            .ConfigureAwait(false);
+        var points = input.MeteredDataForMeasurementPointMessageInput.EnergyObservations
+            .Select(x => new Point(
+                ParsePosition(x.Position),
+                ParseQuantity(x.EnergyQuantity),
+                ParseQuality(x.QuantityQuality)))
+            .ToList();
 
-        await TransitionStepToRunningAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.StoringMeteredDataStep,
-                orchestrationInstance)
-            .ConfigureAwait(false);
+        var meteredData = new MeteredDataForMeasurementPoint(
+            input.OrchestrationInstanceId.ToString(),
+            input.MeteredDataForMeasurementPointMessageInput.MeteringPointId!,
+            input.MeteredDataForMeasurementPointMessageInput.TransactionId,
+            InstantPattern.General.Parse(input.MeteredDataForMeasurementPointMessageInput.RegistrationDateTime).Value,
+            InstantPattern.General.Parse(input.MeteredDataForMeasurementPointMessageInput.StartDateTime).Value,
+            InstantPattern.General.Parse(input.MeteredDataForMeasurementPointMessageInput.EndDateTime!).Value,
+            ParseMeteringPointType(input.MeteredDataForMeasurementPointMessageInput.MeteringPointType),
+            input.MeteredDataForMeasurementPointMessageInput.ProductNumber!,
+            ParseMeasureUnit(input.MeteredDataForMeasurementPointMessageInput.MeasureUnit),
+            ParseResolution(input.MeteredDataForMeasurementPointMessageInput.Resolution),
+            points);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        await _meteredDataClient.SendAsync(meteredData, CancellationToken.None).ConfigureAwait(false);
     }
+
+    private Resolution ParseResolution(string? resolution)
+    {
+        if (string.IsNullOrEmpty(resolution))
+        {
+            throw new ArgumentException("Resolution cannot be null or empty", nameof(resolution));
+        }
+
+        return Resolution.FromCode(resolution);
+    }
+
+    private MeasurementUnit ParseMeasureUnit(string? measureUnit)
+    {
+        if (string.IsNullOrEmpty(measureUnit))
+        {
+            throw new ArgumentException("Metering point type cannot be null or empty", nameof(measureUnit));
+        }
+
+        return MeasurementUnit.FromCode(measureUnit);
+    }
+
+    private MeteringPointType ParseMeteringPointType(string? meteringPointType)
+    {
+        if (string.IsNullOrEmpty(meteringPointType))
+        {
+            throw new ArgumentException("Metering point type cannot be null or empty", nameof(meteringPointType));
+        }
+
+        return MeteringPointType.FromCode(meteringPointType);
+    }
+
+    private Quality ParseQuality(string? quality)
+    {
+        if (string.IsNullOrEmpty(quality))
+        {
+            throw new ArgumentException("Quality cannot be null or empty", nameof(quality));
+        }
+
+        return Quality.FromCode(quality);
+    }
+
+    private double ParseQuantity(string? sourceQuantity)
+    {
+        if (string.IsNullOrEmpty(sourceQuantity))
+        {
+            throw new ArgumentException("Quantity cannot be null or empty", nameof(sourceQuantity));
+        }
+
+        if (!double.TryParse(sourceQuantity, out var quantity))
+        {
+            throw new FormatException($"Invalid quantity format: {sourceQuantity}");
+        }
+
+        return quantity;
+    }
+
+    private int ParsePosition(string? sourcePosition)
+    {
+        if (string.IsNullOrEmpty(sourcePosition))
+        {
+            throw new ArgumentException("Position cannot be null or empty", nameof(sourcePosition));
+        }
+
+        if (!int.TryParse(sourcePosition, out var position))
+        {
+            throw new FormatException($"Invalid position format: {sourcePosition}");
+        }
+
+        return position;
+    }
+
+    public record ActivityInput(
+        OrchestrationInstanceId OrchestrationInstanceId,
+        MeteredDataForMeasurementPointMessageInputV1 MeteredDataForMeasurementPointMessageInput);
 }

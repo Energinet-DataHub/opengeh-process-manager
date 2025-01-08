@@ -34,7 +34,7 @@ public class OrchestrationInstance
         Instant? runAt = default)
     {
         Id = new OrchestrationInstanceId(Guid.NewGuid());
-        Lifecycle = new OrchestrationInstanceLifecycleState(identity, clock, runAt);
+        Lifecycle = new OrchestrationInstanceLifecycle(identity, clock, runAt);
         ParameterValue = new();
         CustomState = new OrchestrationInstanceCustomState(string.Empty);
 
@@ -57,9 +57,9 @@ public class OrchestrationInstance
     public OrchestrationInstanceId Id { get; }
 
     /// <summary>
-    /// The high-level lifecycle states that all orchestration instances can go through.
+    /// The high-level lifecycle that all orchestration instances can go through.
     /// </summary>
-    public OrchestrationInstanceLifecycleState Lifecycle { get; }
+    public OrchestrationInstanceLifecycle Lifecycle { get; }
 
     /// <summary>
     /// Contains the Durable Functions orchestration input parameter value.
@@ -127,7 +127,7 @@ public class OrchestrationInstance
     /// <param name="terminationState">The state of the termination step (Succeeded, failed etc.)</param>
     /// <param name="clock"></param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if a step with the given <paramref name="sequence"/> isn't found.</exception>
-    public void TransitionStepToTerminated(int sequence, OrchestrationStepTerminationStates terminationState, IClock clock)
+    public void TransitionStepToTerminated(int sequence, OrchestrationStepTerminationState terminationState, IClock clock)
     {
         var step = GetStep(sequence);
         step.Lifecycle.TransitionToTerminated(clock, terminationState);
@@ -173,7 +173,7 @@ public class OrchestrationInstance
 
             if (skipStepsBySequence.Contains(stepInstance.Sequence))
             {
-                stepInstance.Lifecycle.TransitionToTerminated(clock, OrchestrationStepTerminationStates.Skipped);
+                stepInstance.Lifecycle.TransitionToTerminated(clock, OrchestrationStepTerminationState.Skipped);
             }
 
             orchestrationInstance._steps.Add(stepInstance);

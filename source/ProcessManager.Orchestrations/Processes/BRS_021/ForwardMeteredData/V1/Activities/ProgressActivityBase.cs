@@ -36,7 +36,7 @@ internal abstract class ProgressActivityBase(
     protected async Task CompleteStepAsync(int sequence, OrchestrationInstance orchestrationInstance)
     {
         var step = orchestrationInstance.Steps.Single(x => x.Sequence == sequence);
-        step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationStates.Succeeded);
+        step.Lifecycle.TransitionToTerminated(Clock, OrchestrationStepTerminationState.Succeeded);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 }

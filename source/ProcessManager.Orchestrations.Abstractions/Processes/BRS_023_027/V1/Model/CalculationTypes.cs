@@ -17,7 +17,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <summary>
 /// Defines the wholesale calculation types
 /// </summary>
-public enum CalculationTypes
+public enum CalculationType
 {
     /// <summary>
     /// Balance fixing

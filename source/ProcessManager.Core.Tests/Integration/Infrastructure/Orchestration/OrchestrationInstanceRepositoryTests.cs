@@ -253,7 +253,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         }
 
         // Act
-        var actual = await _sut.SearchAsync(existingOrchestrationDescriptionV1.UniqueName.Name, lifecycleState: OrchestrationInstanceLifecycleStates.Running);
+        var actual = await _sut.SearchAsync(existingOrchestrationDescriptionV1.UniqueName.Name, lifecycleState: OrchestrationInstanceLifecycleState.Running);
 
         // Assert
         actual.Should()
@@ -296,8 +296,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         // Act
         var actual = await _sut.SearchAsync(
             existingOrchestrationDescriptionV1.UniqueName.Name,
-            lifecycleState: OrchestrationInstanceLifecycleStates.Terminated,
-            terminationState: OrchestrationInstanceTerminationStates.Succeeded);
+            lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
+            terminationState: OrchestrationInstanceTerminationState.Succeeded);
 
         // Assert
         actual.Should()

@@ -398,10 +398,16 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     {
         // Arrange
         var now = SystemClock.Instance.GetCurrentInstant();
+
         var tomorrow = now.PlusDays(1);
         var tomorrowClockMock = new Mock<IClock>();
         tomorrowClockMock.Setup(m => m.GetCurrentInstant())
             .Returns(tomorrow);
+
+        var dayAfterTomorrow = tomorrow.PlusDays(1);
+        var dayAfterTomorrowClockMock = new Mock<IClock>();
+        dayAfterTomorrowClockMock.Setup(m => m.GetCurrentInstant())
+            .Returns(dayAfterTomorrow);
 
         // => Orchestration description 01
         var uniqueName01 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
@@ -415,6 +421,9 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         var isQueuedTomorrowBasedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
         isQueuedTomorrowBasedOn01.Lifecycle.TransitionToQueued(tomorrowClockMock.Object);
 
+        var isQueuedDayAfterTomorrowBasedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
+        isQueuedDayAfterTomorrowBasedOn01.Lifecycle.TransitionToQueued(dayAfterTomorrowClockMock.Object);
+
         // => Orchestration description 02
         var uniqueName02 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var existingOrchestrationDescription02 = CreateOrchestrationDescription(uniqueName02);
@@ -423,8 +432,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
 
         var isScheduledToRunTomorrowBasedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02, runAt: tomorrow);
 
-        var isQueuedTomorrowBasedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02);
-        isQueuedTomorrowBasedOn02.Lifecycle.TransitionToQueued(tomorrowClockMock.Object);
+        var isScheduledToRunDayAfterTomorrowBasedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02, runAt: dayAfterTomorrow);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -432,10 +440,11 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             writeDbContext.OrchestrationInstances.Add(isPendingBasedOn01);
             writeDbContext.OrchestrationInstances.Add(isQueuedNowBasedOn01);
             writeDbContext.OrchestrationInstances.Add(isQueuedTomorrowBasedOn01);
+            writeDbContext.OrchestrationInstances.Add(isQueuedDayAfterTomorrowBasedOn01);
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription02);
             writeDbContext.OrchestrationInstances.Add(isScheduledToRunNowBasedOn02);
             writeDbContext.OrchestrationInstances.Add(isScheduledToRunTomorrowBasedOn02);
-            writeDbContext.OrchestrationInstances.Add(isQueuedTomorrowBasedOn02);
+            writeDbContext.OrchestrationInstances.Add(isScheduledToRunDayAfterTomorrowBasedOn02);
             await writeDbContext.SaveChangesAsync();
         }
 
@@ -448,8 +457,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         actual.Should()
             .BeEquivalentTo([
                 isQueuedTomorrowBasedOn01,
-                isScheduledToRunTomorrowBasedOn02,
-                isQueuedTomorrowBasedOn02]);
+                isScheduledToRunTomorrowBasedOn02]);
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)

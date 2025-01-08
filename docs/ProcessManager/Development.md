@@ -27,6 +27,45 @@ An orchestration is a durable function with activities.
 We recommend that one follows the [guidelines for durable functions](https://energinet.atlassian.net/wiki/spaces/D3/pages/824475658/Durable+Functions).
 Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed.
 
+### Developing activities
+The activities should be idempotent and stateless.
+We recommend that an activity is made such that, if it fails, it can be retried without any side effects.
+
+Since the method `context.CallActivityAsync(...)` has no typechecking, we recommend that every activity has a record with the inputs.
+e.g.:
+
+```csharp
+internal class SomeActivity_Brs_XYZ_V1(
+    [FromKeyedServices(DatabricksWorkspaceNames.Measurements)] IDatabricksJobsClient client)
+{
+    private readonly ISomeClient _client;
+
+    [Function(nameof(SomeActivity_Brs_XYZ_V1))]
+    public async Task<JobRunId> Run(
+        [ActivityTrigger] ActivityInput input)
+    {
+
+        var jobParameters = new List<string>
+        {
+            $"--orchestration-instance-id={input.InstanceId.Value}",
+        };
+        return await _client.StartJobAsync("ElectricalHeating", jobParameters).ConfigureAwait(false);
+    }
+
+    public record ActivityInput(
+        OrchestrationInstanceId InstanceId);
+}
+```
+Such that the orchestration can call the activity like this:
+
+```csharp
+var jobRunId = await context.CallActivityAsync<JobRunId>(
+    nameof(SomeActivity_Brs_XYZ_V1),
+    new SomeActivity_Brs_XYZ_V1.ActivityInput(
+        instanceId),
+    _defaultRetryOptions);
+```
+
 ### Get started
 
 The `processManager` may be started locally, swing by the secrets repository and get the necessary secrets.
@@ -49,7 +88,6 @@ Then attach the debugger and continue the test.
 ## GitHub Workflows
 
 // TODO: What is the purpose of each workflow; what is it's trigger; what is its "output"
-
 
 ## Structure of the solution
 The process manager is a multipurpose tool, hence it has a strict structure.

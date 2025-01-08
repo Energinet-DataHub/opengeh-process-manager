@@ -1,19 +1,37 @@
 # Process Manager: Developer Handbook
+In the following we will give an introduction to the `process manager`, some guidelines and how to get started.
+If one wants a more abstract introduction then please consult the documentation in [Confluence](https://energinet.atlassian.net/wiki/spaces/D3/pages/1126072346/Analyse+og+design+til+PM-22+ProcessManager#ProcessManager-and-framework-design)
+or [Miro](https://miro.com/app/board/uXjVLXgfr7o=/)
 
-The process manager is structure as a modular monolith, hence it has a strict structure.
-If one opens the solution, one will notice that it consists of 7 different solution folder:
+## Structure of the solution
+The process manager is structure as a monolith, hence it has a strict structure.
+If one opens the solution, one will notice that it consists of 7 different solution folders:
 
-`1. Client`,
-`2. Api`,
-`3. Core`,
-[`4. Orchestrations`](#solution-folder-4-orchestrations),
-[`5. Components`](#solution-folder-5-components),
-[`6. SubsystemTests`](#solution-folder-6-subsystemtests),
-[`7. Examples`](#solution-folder-7-examples).
+- [`1. Client`](#solution-folder-1-client),
+- [`2. Api`](#solution-folder-2-api),
+- [`3. Core`](#solution-folder-3-core),
+- [`4. Orchestrations`](#solution-folder-4-orchestrations),
+- [`5. Components`](#solution-folder-5-components),
+- [`6. SubsystemTests`](#solution-folder-6-subsystemtests),
+- [`7. Examples`](#solution-folder-7-examples).
 
 Where folder 1, 2, 3, 7 are meant for the team maintaining the client and  4, 5, 6 are for business developers.
 
-## Solution folder 4. Orchestrations
+
+### Solution folder 1. Client
+
+### Solution folder 2. Api
+
+The `Api` folder contains the `HttpTrigger` functions which are used to administrate the orchestrations.
+It supports some basic functionality, such as starting an orchestration, checking the status of an orchestration and canceling an orchestration.
+Please note, that `Start` in the `Api`solution is restricted to orchestrations without input. 
+If one wants to start an orchestration with input, one needs to implement a new `HttpTrigger` function in [`4. Orchestrations`](#solution-folder-4-orchestrations).
+
+### Solution folder 3. Core
+
+
+
+### Solution folder 4. Orchestrations
 
 The projects inside solution folder `4. Orchestations` follows a strict folder structure, namely the following:
 
@@ -43,12 +61,12 @@ which should be post-fixed with the corresponding folder structure, as in the ex
 
 Consult the example orchestrations in [`7.Example`](#solution-folder-7-examples) for inspiration.
 
-## Solution folder 5. Components
+### Solution folder 5. Components
 
 All functionality which may be used by more than one process should be placed here.
 This could be a client to `databricks` or the like.
 
-## Solution folder 6. SubsystemTests
+### Solution folder 6. SubsystemTests
 
 This is currently without functionality.
 
@@ -73,7 +91,7 @@ The TimerTriggers are:
 ### Developing orchestrations
 
 An orchestration is a durable function with activities.
-We recommend that one follows the [guidelines for durable functions](https://energinet.atlassian.net/wiki/spaces/D3/pages/824475658/Durable+Functions)
+We recommend that one follows the [guidelines for durable functions](https://energinet.atlassian.net/wiki/spaces/D3/pages/824475658/Durable+Functions).
 Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed.
 
 ### Get started

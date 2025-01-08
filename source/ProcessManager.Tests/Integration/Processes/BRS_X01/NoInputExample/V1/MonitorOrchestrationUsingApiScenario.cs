@@ -85,7 +85,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             .ReadFromJsonAsync<Guid>();
 
         // Step 2: Query until terminated with succeeded
-        var getRequest = new GetOrchestrationInstanceByIdQuery(
+        var query = new GetOrchestrationInstanceByIdQuery(
             new UserIdentityDto(
                 Guid.NewGuid(),
                 Guid.NewGuid()),
@@ -98,7 +98,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
                     HttpMethod.Post,
                     "/api/orchestrationinstance/query/id");
                 queryRequest.Content = new StringContent(
-                    JsonSerializer.Serialize(getRequest),
+                    JsonSerializer.Serialize(query),
                     Encoding.UTF8,
                     "application/json");
 

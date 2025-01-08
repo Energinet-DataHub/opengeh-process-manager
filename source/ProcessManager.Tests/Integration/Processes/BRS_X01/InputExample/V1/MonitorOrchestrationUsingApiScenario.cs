@@ -89,7 +89,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             .ReadFromJsonAsync<Guid>();
 
         // Step 2: Query until terminated with succeeded
-        var getRequest = new GetOrchestrationInstanceByIdQuery(
+        var query = new GetOrchestrationInstanceByIdQuery(
             new UserIdentityDto(
                 Guid.NewGuid(),
                 Guid.NewGuid()),
@@ -102,7 +102,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
                     HttpMethod.Post,
                     "/api/orchestrationinstance/query/id");
                 queryRequest.Content = new StringContent(
-                    JsonSerializer.Serialize(getRequest),
+                    JsonSerializer.Serialize(query),
                     Encoding.UTF8,
                     "application/json");
 
@@ -121,5 +121,68 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             delay: TimeSpan.FromSeconds(2));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+    }
+
+    /// <summary>
+    /// The test schedules an orchestration instance, but since we always disable the schedule trigger in tests,
+    /// the orchestration instance will only be started if the schedule trigger is triggered from a test (could be another test).
+    /// </summary>
+    [Fact]
+    public async Task ExampleOrchestration_WhenScheduledToRunNow_CanFindByActivation()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var orchestration = new Brs_X01_InputExample_V1();
+        var input = new InputV1(false);
+
+        var command = new ScheduleInputExampleCommandV1(
+             operatingIdentity: new UserIdentityDto(
+                 Guid.NewGuid(),
+                 Guid.NewGuid()),
+             input,
+             runAt: now);
+
+        using var scheduleRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/command/schedule/custom/{orchestration.Name}/{orchestration.Version}");
+        scheduleRequest.Content = new StringContent(
+            JsonSerializer.Serialize(command),
+            Encoding.UTF8,
+            "application/json");
+
+        // Step 1: Schedule new orchestration instance
+        using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
+            .HttpClient
+            .SendAsync(scheduleRequest);
+        response.EnsureSuccessStatusCode();
+
+        var orchestrationInstanceId = await response.Content
+            .ReadFromJsonAsync<Guid>();
+
+        // Step 2: Query using activation timestamp
+        var query = new SearchOrchestrationInstancesByActivationQuery(
+            new UserIdentityDto(
+                Guid.NewGuid(),
+                Guid.NewGuid()),
+            activatedAtOrLater: now,
+            activatedAtOrEarlier: now);
+
+        using var queryRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/activation");
+        queryRequest.Content = new StringContent(
+            JsonSerializer.Serialize(query),
+            Encoding.UTF8,
+            "application/json");
+
+        using var queryResponse = await Fixture.ProcessManagerAppManager.AppHostManager
+            .HttpClient
+            .SendAsync(queryRequest);
+        queryResponse.EnsureSuccessStatusCode();
+
+        var orchestrationInstances = await queryResponse.Content
+            .ReadFromJsonAsync<IReadOnlyCollection<OrchestrationInstanceDto>>();
+
+        orchestrationInstances.Should()
+            .Contain(x => x.Id == orchestrationInstanceId, "because the orchestration instance should be scheduled to run at the timestamp we use in the query");
     }
 }

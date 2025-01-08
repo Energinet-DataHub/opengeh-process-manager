@@ -57,7 +57,7 @@ public class OrchestrationInstance
     public OrchestrationInstanceId Id { get; }
 
     /// <summary>
-    /// The high-level lifecycle states that all orchestration instances can go through.
+    /// The high-level lifecycle that all orchestration instances can go through.
     /// </summary>
     public OrchestrationInstanceLifecycle Lifecycle { get; }
 

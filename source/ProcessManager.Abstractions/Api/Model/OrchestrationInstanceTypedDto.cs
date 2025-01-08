@@ -44,7 +44,7 @@ public record OrchestrationInstanceTypedDto
     public Guid Id { get; }
 
     /// <summary>
-    /// The high-level lifecycle states that all orchestration instances can go through.
+    /// The high-level lifecycle that all orchestration instances can go through.
     /// </summary>
     public OrchestrationInstanceLifecycleDto Lifecycle { get; }
 

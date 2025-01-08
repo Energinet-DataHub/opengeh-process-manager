@@ -8,7 +8,7 @@ If one opens the solution, one will notice that it consists of 7 different solut
 `3. Core`,
 [`4. Orchestrations`](#solution-folder-4-orchestrations),
 [`5. Components`](#solution-folder-5-components),
-`6. SubsystemTests`,
+[`6. SubsystemTests`](#solution-folder-6-subsystemtests),
 [`7. Examples`](#solution-folder-7-examples).
 
 Where folder 1, 2, 3, 7 are meant for the team maintaining the client and  4, 5, 6 are for business developers.
@@ -45,7 +45,12 @@ Consult the example orchestrations in [`7.Example`](#solution-folder-7-examples)
 
 ## Solution folder 5. Components
 
-// Todo: Describe the purpose of the components folder
+All functionality which may be used by more than one process should be placed here.
+This could be a client to `databricks` or the like.
+
+## Solution folder 6. SubsystemTests
+
+This is currently without functionality.
 
 ## Developing orchestrations
 
@@ -57,10 +62,6 @@ The TimerTriggers are:
 
 - `StartScheduledOrchestrationInstances`
 - `PerformRecurringPlanning`
-
-## Organization of artifacts
-
-// TODO: Describe organization in repository -> files/folders
 
 ## Architecture
 

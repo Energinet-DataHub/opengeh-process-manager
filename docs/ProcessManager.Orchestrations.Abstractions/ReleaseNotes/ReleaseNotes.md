@@ -5,6 +5,14 @@
 - Add rejected model for `RequestCalculatedEnergyTimeSeriesRejectedV1`
 - Add rejected model for `RequestCalculatedWholesaleServicesRejectedV1`
 
+## Version 0.4.3
+
+- No functional changes.
+
+## Version 0.4.2
+
+- No functional changes.
+
 ## Version 0.4.1
 
 - No functional changes.

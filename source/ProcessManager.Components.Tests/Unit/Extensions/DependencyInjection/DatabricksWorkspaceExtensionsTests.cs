@@ -16,9 +16,9 @@ using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Diagnostics.HealthChecks;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -42,7 +42,7 @@ public class DatabricksWorkspaceExtensionsTests
     public void AddDatabricksJobs_WhenDefaultSectionName_RegistrationsArePerformed()
     {
         // Arrange
-        AddInMemoryConfigurations(new Dictionary<string, string?>()
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
             [$"{DatabricksWorkspaceOptions.SectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"] = BaseUrlFake,
             [$"{DatabricksWorkspaceOptions.SectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = TokenFake,
@@ -82,7 +82,7 @@ public class DatabricksWorkspaceExtensionsTests
     {
         // Arrange
         var sectionName = "Custom";
-        AddInMemoryConfigurations(new Dictionary<string, string?>()
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
             [$"{sectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"] = BaseUrlFake,
             [$"{sectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = TokenFake,
@@ -123,7 +123,7 @@ public class DatabricksWorkspaceExtensionsTests
         // Arrange
         var wholesaleSectionName = "Wholesale";
         var measurementsSectionName = "Measurements";
-        AddInMemoryConfigurations(new Dictionary<string, string?>()
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
             [$"{wholesaleSectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"] = "https://www.wholesale.com",
             [$"{wholesaleSectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = TokenFake,
@@ -149,16 +149,6 @@ public class DatabricksWorkspaceExtensionsTests
         // => Measurements
         var actualMeasurementsClient = serviceProvider.GetRequiredService<MeasurementsClientStub>();
         actualMeasurementsClient.Client.Should().NotBeNull();
-    }
-
-    private void AddInMemoryConfigurations(Dictionary<string, string?> configurations)
-    {
-        Services.AddScoped<IConfiguration>(_ =>
-        {
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(configurations)
-                .Build();
-        });
     }
 
     public class WholesaleClientStub

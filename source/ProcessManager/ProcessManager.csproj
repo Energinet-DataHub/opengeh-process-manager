@@ -33,7 +33,4 @@
   <ItemGroup>
     <Compile Include="..\Shared\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Api\Mappers\" />
-  </ItemGroup>
 </Project>

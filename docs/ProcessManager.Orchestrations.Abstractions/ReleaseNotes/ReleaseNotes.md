@@ -2,7 +2,7 @@
 
 ## Version 0.6.0
 
-- Updated NuGet dependencies.
+- Added types `ActorRequestQuery` and `ActorRequestQueryResult`.
 
 ## Version 0.5.0
 

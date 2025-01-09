@@ -10,6 +10,7 @@ or [Miro](https://miro.com/app/board/uXjVLXgfr7o=/)
 We use
 the [built in functionality](https://learn.microsoft.com/en-us/azure/azure-functions/disable-function?tabs=portal) to
 disable our `TimerTrigger`s used to manage scheduled and recurring orchestrations:
+
 - `StartScheduledOrchestrationInstances`
 - `PerformRecurringPlanning`
 

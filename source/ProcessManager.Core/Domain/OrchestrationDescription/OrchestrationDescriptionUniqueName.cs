@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+
 namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 
 /// <summary>
@@ -37,4 +39,9 @@ public record OrchestrationDescriptionUniqueName
     /// A version identifying a specific implementation of the orchestration.
     /// </summary>
     public int Version { get; }
+
+    public static OrchestrationDescriptionUniqueName FromDto(OrchestrationDescriptionUniqueNameDto dto)
+    {
+        return new OrchestrationDescriptionUniqueName(dto.Name, dto.Version);
+    }
 }

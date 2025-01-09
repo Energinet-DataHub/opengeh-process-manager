@@ -30,13 +30,11 @@ public class RequestCalculatedEnergyTimeSeriesHandlerV1(
 
     protected override async Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, RequestCalculatedEnergyTimeSeriesInputV1 input)
     {
-        var orchestrationDescriptionUniqueName = new Brs_026_V1();
+        var orchestrationName = Orchestration_Brs_026_V1.Name;
 
         await _commands.StartNewOrchestrationInstanceAsync(
                 identity: actorIdentity,
-                uniqueName: new OrchestrationDescriptionUniqueName(
-                    orchestrationDescriptionUniqueName.Name,
-                    orchestrationDescriptionUniqueName.Version),
+                uniqueName: OrchestrationDescriptionUniqueName.FromDto(orchestrationName),
                 input,
                 [])
             .ConfigureAwait(false);

@@ -14,38 +14,38 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
 /// <summary>
-/// Enqueue messages in EDI (and set step to running)
+/// Enqueue reject message in EDI (and set step to running)
 /// </summary>
-internal class EnqueueMessagesActivity_Brs_028_V1(
+internal class EnqueueRejectMessageActivity_Brs_021_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
-    [Function(nameof(EnqueueMessagesActivity_Brs_028_V1))]
-    public async Task Run(
-        [ActivityTrigger] ActivityInput input)
+    [Function(nameof(EnqueueRejectMessageActivity_Brs_021_V1))]
+    public async Task Run([ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _progressRepository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
         orchestrationInstance.TransitionStepToRunning(
-            Orchestration_Brs_028_V1.EnqueueMessagesStepSequence,
+            Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueActorMessagesStep,
             _clock);
+
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-        await EnqueueMessagesAsync(input).ConfigureAwait(false);
+
+        await EnqueueRejectMessageAsync(input).ConfigureAwait(false);
     }
 
-    private async Task EnqueueMessagesAsync(ActivityInput input)
+    private async Task EnqueueRejectMessageAsync(ActivityInput input)
     {
         // TODO: Enqueue message in EDI instead of delay
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
@@ -53,5 +53,5 @@ internal class EnqueueMessagesActivity_Brs_028_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        RequestCalculatedWholesaleServicesInputV1 RequestInput);
+        IReadOnlyCollection<string> ValidationError);
 }

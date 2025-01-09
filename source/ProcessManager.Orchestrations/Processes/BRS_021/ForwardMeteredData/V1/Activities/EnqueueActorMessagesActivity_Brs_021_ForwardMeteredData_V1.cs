@@ -19,27 +19,29 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class EnqueueMessagesActivity_Brs_021_ForwardMeteredData_V1(
+internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(EnqueueMessagesActivity_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+        [ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(activityInput.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueMessagesStep,
+                Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueActorMessagesStep,
                 orchestrationInstance)
             .ConfigureAwait(false);
 
         // TODO: For demo purposes; remove when done
         await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
     }
+
+    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
 }

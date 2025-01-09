@@ -16,11 +16,15 @@ using Azure.Identity;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
+using Energinet.DataHub.ElectricityMarket.Integration;
+using Energinet.DataHub.ElectricityMarket.Integration.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Orchestrations.TestServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,10 +41,24 @@ var host = new HostBuilder()
         services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
+        services.AddServiceBusClientForApplication(context.Configuration);
+
+        // TODO (ID-283)
+        if (context.HostingEnvironment.IsEnvironment("IntegrationTests"))
+        {
+            services.AddSingleton<IElectricityMarketViews>(new ElectricityMarketViewsStub());
+        }
+        else
+        {
+            services.AddElectricityMarketModule();
+        }
 
         // Databricks Workspaces
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Wholesale);
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Measurements);
+
+        // Enqueue Messages in EDI
+        services.AddEnqueueActorMessages(azureCredential);
 
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);

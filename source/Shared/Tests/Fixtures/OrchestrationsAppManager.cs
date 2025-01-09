@@ -45,6 +45,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private readonly int _appPort;
     private readonly bool _manageDatabase;
     private readonly bool _manageAzurite;
+    // TODO (ID-283)
+    private readonly string? _environment;
 
     public OrchestrationsAppManager()
         : this(
@@ -55,7 +57,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
             appPort: 8002,
             wireMockServerPort: 8012,
             manageDatabase: true,
-            manageAzurite: true)
+            manageAzurite: true,
+            // TODO (ID-283)
+            environment: null)
     {
     }
 
@@ -67,7 +71,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
         int appPort,
         int wireMockServerPort,
         bool manageDatabase,
-        bool manageAzurite)
+        bool manageAzurite,
+        // TODO (ID-283)
+        string? environment)
     {
         _taskHubName = string.IsNullOrWhiteSpace(taskHubName)
             ? throw new ArgumentException("Cannot be null or whitespace.", nameof(taskHubName))
@@ -75,6 +81,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         _appPort = appPort;
         _manageDatabase = manageDatabase;
         _manageAzurite = manageAzurite;
+        // TODO (ID-283)
+        _environment = environment;
 
         DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();
@@ -107,9 +115,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// <summary>
     /// Start the orchestration app
     /// </summary>
-    /// <param name="orchestrationSubscriptions">The required Service Bus subscriptions. New subscriptions will be created if not provided.</param>
+    /// <param name="serviceBusResources">The required Service Bus resources. New resources will be created if not provided.</param>
     public async Task StartAsync(
-        ServiceBusResources? orchestrationSubscriptions = null)
+        ServiceBusResources? serviceBusResources = null)
     {
         if (_manageAzurite)
         {
@@ -120,13 +128,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        if (orchestrationSubscriptions is null)
-            orchestrationSubscriptions = await ServiceBusResources.Create(ServiceBusResourceProvider);
+        if (serviceBusResources is null)
+            serviceBusResources = await ServiceBusResources.Create(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
-            orchestrationSubscriptions);
+            serviceBusResources);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -211,7 +219,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        ServiceBusResources subscriptions)
+        ServiceBusResources serviceBusResources)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -223,6 +231,24 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // It seems the host + worker is not ready if we use the default startup log message, so we override it here
         appHostSettings.HostStartedEvent = "Host lock lease acquired";
+
+        // TODO (ID-283): This is a temporary workaround to enable stubbing/mocking of external integrations.
+        //  Please do not copy, duplicate, or otherwise get inspired by this code.
+        //  The stubbing is achieved by changing the dependency injection
+        //  to either use the real implementation or a stub based on the host environment.
+        //  All relevant places in the code base for this workaround are marked with 'ID-283'.
+        if (_environment is not null)
+        {
+            appHostSettings.ProcessEnvironmentVariables.Add(
+                "ASPNETCORE_ENVIRONMENT",
+                _environment);
+            appHostSettings.ProcessEnvironmentVariables.Add(
+                "DOTNET_ENVIRONMENT",
+                _environment);
+            appHostSettings.ProcessEnvironmentVariables.Add(
+                "AZURE_FUNCTIONS_ENVIRONMENT",
+                _environment);
+        }
 
         appHostSettings.ProcessEnvironmentVariables.Add(
             "FUNCTIONS_WORKER_RUNTIME",
@@ -259,19 +285,23 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.TopicName)}",
-            subscriptions.Brs026Subscription.TopicName);
+            serviceBusResources.Brs026Subscription.TopicName);
 
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}",
-            subscriptions.Brs021ForwardMeteredDataSubscription.SubscriptionName);
+            serviceBusResources.Brs021ForwardMeteredDataSubscription.SubscriptionName);
 
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}",
-            subscriptions.Brs026Subscription.SubscriptionName);
+            serviceBusResources.Brs026Subscription.SubscriptionName);
 
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs028SubscriptionName)}",
-            subscriptions.Brs028Subscription.SubscriptionName);
+            serviceBusResources.Brs028Subscription.SubscriptionName);
+
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
+            serviceBusResources.ProcessManagerTopic.Name);
 
         // => Databricks workspaces
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -296,12 +326,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
             TopicResource processManagerTopic,
             SubscriptionProperties brs021ForwardMeteredDataSubscription,
             SubscriptionProperties brs026Subscription,
-            SubscriptionProperties brs028Subscription)
+            SubscriptionProperties brs028Subscription,
+            TopicResource ediTopic)
         {
             ProcessManagerTopic = processManagerTopic;
             Brs021ForwardMeteredDataSubscription = brs021ForwardMeteredDataSubscription;
             Brs026Subscription = brs026Subscription;
             Brs028Subscription = brs028Subscription;
+            EdiTopic = ediTopic;
         }
 
         public TopicResource ProcessManagerTopic { get; }
@@ -312,14 +344,17 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         public SubscriptionProperties Brs028Subscription { get; }
 
+        public TopicResource EdiTopic { get; }
+
         public static async Task<ServiceBusResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
         {
-            var topicResourceBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
+            // Process Manager topic & subscriptions
+            var processManagerTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
             var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
             var brs026SubscriptionName = "brs-026-subscription";
             var brs028SubscriptionName = "brs-028-subscription";
 
-            topicResourceBuilder
+            processManagerTopicResourceBuilder
                 .AddSubscription(brs021ForwardMeteredDataSubscriptionName)
                     .AddSubjectFilter("Brs_021_ForwardMeteredData")
                 .AddSubscription(brs026SubscriptionName)
@@ -327,16 +362,25 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 .AddSubscription(brs028SubscriptionName)
                     .AddSubjectFilter("Brs_028");
 
-            var processManagerTopic = await topicResourceBuilder.CreateAsync();
-            var brs021ForwardMeteredDataSubscription = processManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
-            var brs026Subscription = processManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
-            var brs028Subscription = processManagerTopic.Subscriptions.Single(x => x.SubscriptionName.Equals(brs028SubscriptionName));
+            var processManagerTopic = await processManagerTopicResourceBuilder.CreateAsync();
+            var brs021ForwardMeteredDataSubscription = processManagerTopic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(brs021ForwardMeteredDataSubscriptionName));
+            var brs026Subscription = processManagerTopic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
+            var brs028Subscription = processManagerTopic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(brs028SubscriptionName));
+
+            // EDI topic
+            var ediTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
+
+            var ediTopic = await ediTopicResourceBuilder.CreateAsync();
 
             return new ServiceBusResources(
                 processManagerTopic,
                 brs021ForwardMeteredDataSubscription,
                 brs026Subscription,
-                brs028Subscription);
+                brs028Subscription,
+                ediTopic);
         }
     }
 }

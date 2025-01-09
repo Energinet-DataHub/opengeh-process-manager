@@ -12,18 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-
-namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
 /// <summary>
-/// An actor identity performing a Process Manager operation.
+/// A model containing the data for an accepted request for calculated energy time series
 /// </summary>
-public record ActorIdentity(ActorId ActorId)
-    : OperatingIdentity
-{
-    public override IOperatingIdentityDto ToDto()
-    {
-        return new ActorIdentityDto(ActorId.Value);
-    }
-}
+public record RequestCalculatedEnergyTimeSeriesAcceptedV1(
+    string BusinessReason);

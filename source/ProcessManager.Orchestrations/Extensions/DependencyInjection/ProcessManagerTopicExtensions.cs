@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Core;
 using Azure.Identity;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
@@ -25,7 +26,7 @@ public static class ProcessManagerTopicExtensions
     /// <summary>
     /// Add required dependencies to use the Process Manager Service Bus topic.
     /// </summary>
-    public static IServiceCollection AddProcessManagerTopic(this IServiceCollection services, DefaultAzureCredential credential)
+    public static IServiceCollection AddProcessManagerTopic(this IServiceCollection services, TokenCredential credential)
     {
         services.AddOptions<ServiceBusNamespaceOptions>()
             .BindConfiguration(ServiceBusNamespaceOptions.SectionName)

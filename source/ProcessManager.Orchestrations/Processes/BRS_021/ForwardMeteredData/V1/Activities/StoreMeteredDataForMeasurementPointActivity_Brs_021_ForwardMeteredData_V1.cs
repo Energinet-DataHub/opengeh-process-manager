@@ -28,10 +28,10 @@ internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMetere
 {
     [Function(nameof(StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+        [ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(activityInput.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
@@ -42,4 +42,6 @@ internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMetere
         // TODO: For demo purposes; remove when done
         await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
     }
+
+    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
 }

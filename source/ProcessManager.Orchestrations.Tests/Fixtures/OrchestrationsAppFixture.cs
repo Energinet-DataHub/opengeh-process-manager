@@ -45,7 +45,9 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             appPort: 8101,
             wireMockServerPort: 8112,
             manageDatabase: false,
-            manageAzurite: false);
+            manageAzurite: false,
+            // TODO (ID-283)
+            environment: "IntegrationTests");
 
         ProcessManagerAppManager = new ProcessManagerAppManager(
             DatabaseManager,

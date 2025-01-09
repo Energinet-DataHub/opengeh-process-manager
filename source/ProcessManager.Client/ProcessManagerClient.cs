@@ -185,59 +185,6 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchOrchestrationInstancesByActivationAsync(
-        SearchOrchestrationInstancesByActivationQuery query,
-        CancellationToken cancellationToken)
-    {
-        using var request = new HttpRequestMessage(
-            HttpMethod.Post,
-            "/api/orchestrationinstance/query/activation");
-        var json = JsonSerializer.Serialize(query);
-        request.Content = new StringContent(
-            json,
-            Encoding.UTF8,
-            "application/json");
-
-        using var actualResponse = await _generalApiHttpClient
-            .SendAsync(request, cancellationToken)
-            .ConfigureAwait(false);
-        actualResponse.EnsureSuccessStatusCode();
-
-        var orchestrationInstances = await actualResponse.Content
-            .ReadFromJsonAsync<IReadOnlyCollection<OrchestrationInstanceTypedDto>>(cancellationToken)
-            .ConfigureAwait(false);
-
-        return orchestrationInstances!;
-    }
-
-    /// <inheritdoc/>
-    public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByActivationAsync<TInputParameterDto>(
-        SearchOrchestrationInstancesByActivationQuery query,
-        CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto
-    {
-        using var request = new HttpRequestMessage(
-            HttpMethod.Post,
-            "/api/orchestrationinstance/query/activation");
-        var json = JsonSerializer.Serialize(query);
-        request.Content = new StringContent(
-            json,
-            Encoding.UTF8,
-            "application/json");
-
-        using var actualResponse = await _generalApiHttpClient
-            .SendAsync(request, cancellationToken)
-            .ConfigureAwait(false);
-        actualResponse.EnsureSuccessStatusCode();
-
-        var orchestrationInstances = await actualResponse.Content
-            .ReadFromJsonAsync<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>>(cancellationToken)
-            .ConfigureAwait(false);
-
-        return orchestrationInstances!;
-    }
-
-    /// <inheritdoc/>
     public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchOrchestrationInstancesByNameAsync(
         SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)

@@ -59,23 +59,6 @@ public interface IProcessManagerClient
             where TInputParameterDto : IInputParameterDto;
 
     /// <summary>
-    /// Get all orchestration instances filtered by their by their activation (queued at/scheduled to run at) timestamp.
-    /// Returns orchestration instances.
-    /// </summary>
-    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchOrchestrationInstancesByActivationAsync(
-        SearchOrchestrationInstancesByActivationQuery query,
-        CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Get all orchestration instances filtered by their by their activation (queued at/scheduled to run at) timestamp.
-    /// Returns orchestration instances including their original input parameter value.
-    /// </summary>
-    Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByActivationAsync<TInputParameterDto>(
-        SearchOrchestrationInstancesByActivationQuery query,
-        CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto;
-
-    /// <summary>
     /// Get all orchestration instances filtered by their related orchestration definition name and version,
     /// and their lifecycle / termination states.
     /// Returns orchestration instances.

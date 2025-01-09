@@ -35,6 +35,7 @@ public sealed record CalculationQuery
         UserIdentityDto operatingIdentity)
             : base(operatingIdentity)
     {
+        OrchestrationDescriptionName = new Brs_023_027_V1().Name;
     }
 
     /// <inheritdoc/>
@@ -43,7 +44,7 @@ public sealed record CalculationQuery
     /// <summary>
     /// The name of the orchestration description to filter by.
     /// </summary>
-    public string OrchestrationDescriptionName => new Brs_023_027_V1().Name;
+    public string OrchestrationDescriptionName { get; }
 
     public OrchestrationInstanceLifecycleState? LifecycleState { get; set; }
 

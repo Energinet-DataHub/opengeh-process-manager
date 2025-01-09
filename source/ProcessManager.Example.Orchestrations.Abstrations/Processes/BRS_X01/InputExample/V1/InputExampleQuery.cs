@@ -37,6 +37,7 @@ public record InputExampleQuery
         bool skippedStepTwo = default)
             : base(operatingIdentity)
     {
+        OrchestrationDescriptionName = new Brs_X01_InputExample_V1().Name;
         SkippedStepTwo = skippedStepTwo;
     }
 
@@ -46,7 +47,7 @@ public record InputExampleQuery
     /// <summary>
     /// The name of the orchestration description to filter by.
     /// </summary>
-    public string OrchestrationDescriptionName => new Brs_X01_InputExample_V1().Name;
+    public string OrchestrationDescriptionName { get; }
 
     public OrchestrationInstanceLifecycleState? LifecycleState { get; set; }
 

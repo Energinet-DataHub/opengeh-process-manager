@@ -1,4 +1,5 @@
 # Process Manager: Developer Handbook
+
 In the following we will give an introduction to the `process manager`, some guidelines and how to get started.
 If one wants a more abstract introduction then please consult the documentation in [Confluence](https://energinet.atlassian.net/wiki/spaces/D3/pages/1126072346/Analyse+og+design+til+PM-22+ProcessManager#ProcessManager-and-framework-design)
 or [Miro](https://miro.com/app/board/uXjVLXgfr7o=/)
@@ -28,6 +29,7 @@ We recommend that one follows the [guidelines for durable functions](https://ene
 Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed.
 
 ### Developing activities
+
 The activities should be idempotent and stateless.
 We recommend that an activity is made such that, if it fails, it can be retried without any side effects.
 
@@ -56,6 +58,7 @@ internal class SomeActivity_Brs_XYZ_V1(
         OrchestrationInstanceId InstanceId);
 }
 ```
+
 Such that the orchestration can call the activity like this:
 
 ```csharp
@@ -90,6 +93,7 @@ Then attach the debugger and continue the test.
 // TODO: What is the purpose of each workflow; what is it's trigger; what is its "output"
 
 ## Structure of the solution
+
 The process manager is a multipurpose tool, hence it has a strict structure.
 If one opens the solution, one will notice that it consists of 7 different solution folders:
 
@@ -124,7 +128,6 @@ If one wants to start an orchestration with input, one needs to implement a new 
 The `3. Core` folder contains the database migrations and the communication with the database.
 It's furthermore responsible for registering the `Triggers` defined in [`4. Orchestrations`](#solution-folder-4-orchestrations)
 and the `OrchestrationDiscriptions` defined in the same solution folder.
-
 
 ### Solution folder 4. Orchestrations
 

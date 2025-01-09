@@ -57,7 +57,7 @@ internal class SearchCalculationHandler(
 
         var calculations = await _queries
             .SearchAsync(
-                query.Name,
+                query.OrchestrationDescriptionName,
                 version: null,
                 lifecycleState,
                 terminationState,

@@ -25,6 +25,8 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 public record InputExampleQuery
     : SearchOrchestrationInstancesByCustomQuery<InputExampleQueryResult>
 {
+    public const string RouteName = "brs_x01_inputExample";
+
     /// <summary>
     /// Construct query.
     /// </summary>
@@ -33,12 +35,18 @@ public record InputExampleQuery
     public InputExampleQuery(
         UserIdentityDto operatingIdentity,
         bool skippedStepTwo = default)
-            : base(
-                operatingIdentity,
-                new Brs_X01_InputExample_V1().Name)
+            : base(operatingIdentity)
     {
         SkippedStepTwo = skippedStepTwo;
     }
+
+    /// <inheritdoc/>
+    public override string QueryRouteName => RouteName;
+
+    /// <summary>
+    /// The name of the orchestration description to filter by.
+    /// </summary>
+    public string OrchestrationDescriptionName => new Brs_X01_InputExample_V1().Name;
 
     public OrchestrationInstanceLifecycleState? LifecycleState { get; set; }
 

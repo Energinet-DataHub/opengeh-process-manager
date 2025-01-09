@@ -135,7 +135,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             SkippedStepTwo = input.ShouldSkipSkippableStep,
         };
         var orchestrationInstancesCustomSearch = await processManagerClient
-            .SearchOrchestrationInstancesByNameAsync(
+            .SearchOrchestrationInstancesByCustomQueryAsync(
                 customQuery,
                 CancellationToken.None);
 

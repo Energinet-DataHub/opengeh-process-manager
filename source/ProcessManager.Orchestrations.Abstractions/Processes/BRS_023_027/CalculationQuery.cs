@@ -25,17 +25,25 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public sealed record CalculationQuery
     : SearchOrchestrationInstancesByCustomQuery<CalculationQueryResult>
 {
+    public const string RouteName = "brs_023_027";
+
     /// <summary>
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
     public CalculationQuery(
         UserIdentityDto operatingIdentity)
-            : base(
-                operatingIdentity,
-                new Brs_023_027_V1().Name)
+            : base(operatingIdentity)
     {
     }
+
+    /// <inheritdoc/>
+    public override string QueryRouteName => RouteName;
+
+    /// <summary>
+    /// The name of the orchestration description to filter by.
+    /// </summary>
+    public string OrchestrationDescriptionName => new Brs_023_027_V1().Name;
 
     public OrchestrationInstanceLifecycleState? LifecycleState { get; set; }
 

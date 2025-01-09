@@ -14,6 +14,8 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 
@@ -24,24 +26,29 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public sealed record ActorRequestQuery
     : SearchOrchestrationInstancesByCustomQuery<ActorRequestQueryResult>
 {
+    public const string RouteName = "brs_026_028";
+
     /// <summary>
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
-    /// <param name="orchestrationDescriptionNames">The names of the orchestration descriptions to filter by.</param>
     /// <param name="activatedAtOrLater">The time (or later) when the orchestration instances was queued or scheduled to run at.</param>
     /// <param name="activatedAtOrEarlier">The time (or earlier) when the orchestration instances was queued or scheduled to run at.</param>
     public ActorRequestQuery(
         UserIdentityDto operatingIdentity,
-        IReadOnlyCollection<string> orchestrationDescriptionNames,
         DateTimeOffset activatedAtOrLater,
         DateTimeOffset activatedAtOrEarlier)
-            : base(operatingIdentity, "brs_026_028")
+            : base(operatingIdentity)
     {
-        OrchestrationDescriptionNames = orchestrationDescriptionNames;
+        OrchestrationDescriptionNames = [
+            new Brs_026_V1().Name,
+            new Brs_028_V1().Name];
         ActivatedAtOrLater = activatedAtOrLater;
         ActivatedAtOrEarlier = activatedAtOrEarlier;
     }
+
+    /// <inheritdoc/>
+    public override string QueryRouteName => RouteName;
 
     /// <summary>
     /// The names of the orchestration descriptions to filter by.

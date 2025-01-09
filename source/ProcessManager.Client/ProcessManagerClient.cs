@@ -238,14 +238,14 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByNameAsync<TItem>(
+    public async Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByCustomQueryAsync<TItem>(
         SearchOrchestrationInstancesByCustomQuery<TItem> query,
         CancellationToken cancellationToken)
             where TItem : class
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/api/orchestrationinstance/query/custom/{query.Name}");
+            $"/api/orchestrationinstance/query/custom/{query.QueryRouteName}");
         var json = JsonSerializer.Serialize(query);
         request.Content = new StringContent(
             json,

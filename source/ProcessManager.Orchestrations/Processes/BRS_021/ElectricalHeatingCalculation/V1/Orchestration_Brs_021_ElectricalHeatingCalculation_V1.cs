@@ -32,11 +32,11 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
         _defaultRetryOptions = CreateDefaultRetryOptions();
     }
 
-    internal static StepIdentifierDto[] Steps => [CalculationStep, EnqueueMessagesStep];
+    internal static StepIdentifierDto[] Steps => [CalculationStep, EnqueueActorMessagesStep];
 
     internal static StepIdentifierDto CalculationStep => new(1, "Beregning");
 
-    internal static StepIdentifierDto EnqueueMessagesStep => new(2, "Besked dannelse");
+    internal static StepIdentifierDto EnqueueActorMessagesStep => new(2, "Besked dannelse");
 
     [Function(nameof(Orchestration_Brs_021_ElectricalHeatingCalculation_V1))]
     public async Task<string> Run(
@@ -127,19 +127,19 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
         }
 
         // Step: Enqueue messages
-        if (!executionContext.SkippedStepsBySequence.Contains(EnqueueMessagesStep.Sequence))
+        if (!executionContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.Sequence))
         {
             await context.CallActivityAsync(
                 nameof(TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1),
                 new TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
                     instanceId,
-                    EnqueueMessagesStep.Sequence),
+                    EnqueueActorMessagesStep.Sequence),
                 _defaultRetryOptions);
             await context.CallActivityAsync(
                 nameof(TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1),
                 new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
                     instanceId,
-                    EnqueueMessagesStep.Sequence,
+                    EnqueueActorMessagesStep.Sequence,
                     OrchestrationStepTerminationState.Succeeded),
                 _defaultRetryOptions);
         }

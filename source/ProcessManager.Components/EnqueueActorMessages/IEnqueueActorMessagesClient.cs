@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
-/// <summary>
-/// An actor identity performing a Process Manager operation.
-/// </summary>
-public record ActorIdentity(ActorId ActorId)
-    : OperatingIdentity
+public interface IEnqueueActorMessagesClient
 {
-    public override IOperatingIdentityDto ToDto()
-    {
-        return new ActorIdentityDto(ActorId.Value);
-    }
+    public Task Enqueue<TData>(
+        OrchestrationDescriptionUniqueNameDto orchestration,
+        IOperatingIdentityDto orchestrationStartedBy,
+        string messageId,
+        TData data);
 }

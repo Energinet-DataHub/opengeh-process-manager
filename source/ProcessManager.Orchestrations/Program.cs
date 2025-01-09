@@ -23,7 +23,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Orchestrations.FakeServices;
+using Energinet.DataHub.ProcessManager.Orchestrations.TestServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

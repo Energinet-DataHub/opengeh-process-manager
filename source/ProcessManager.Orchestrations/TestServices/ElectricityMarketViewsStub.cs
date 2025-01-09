@@ -19,7 +19,7 @@ using NodaTime;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.FakeServices;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.TestServices;
 
 // TODO (ID-283)
 public sealed class ElectricityMarketViewsStub : IElectricityMarketViews

@@ -31,31 +31,31 @@ public class EnqueueMessagesClient(
 
     public async Task Enqueue<TInputData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
-        IOperatingIdentityDto enqueuedBy,
+        IOperatingIdentityDto orchestrationStartedBy,
         string messageId,
         TInputData data)
     {
-        var (actorId, userId) = enqueuedBy switch
+        var (startedByActorId, startedByUserId) = orchestrationStartedBy switch
         {
             ActorIdentityDto actor => (actor.ActorId, (Guid?)null),
             UserIdentityDto user => (user.ActorId, user.UserId),
             _ => throw new ArgumentOutOfRangeException(
-                nameof(enqueuedBy),
-                enqueuedBy.GetType().Name,
+                nameof(orchestrationStartedBy),
+                orchestrationStartedBy.GetType().Name,
                 "Unknown enqueuedBy type"),
         };
 
-        var message = new EnqueueMessagesDto
+        var message = new EnqueueMessagesCommand
         {
             OrchestrationName = orchestration.Name,
             OrchestrationVersion = orchestration.Version,
-            OrchestrationStartedByActorId = actorId.ToString(),
+            OrchestrationStartedByActorId = startedByActorId.ToString(),
             JsonData = JsonSerializer.Serialize(data),
             DataType = typeof(TInputData).Name,
         };
 
-        if (userId is not null)
-            message.OrchestrationStartedByUserId = userId.ToString();
+        if (startedByUserId is not null)
+            message.OrchestrationStartedByUserId = startedByUserId.ToString();
 
         ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(message))
         {

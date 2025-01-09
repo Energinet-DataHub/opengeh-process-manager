@@ -40,34 +40,34 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         });
 
         var jsonMessage = message.Body.ToString();
-        var startOrchestrationDto = StartOrchestrationDto.Parser.ParseJson(jsonMessage);
+        var startOrchestrationCommand = StartOrchestrationCommand.Parser.ParseJson(jsonMessage);
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
         {
             StartOrchestration = new
             {
-                startOrchestrationDto.OrchestrationName,
-                startOrchestrationDto.OrchestrationVersion,
+                startOrchestrationCommand.OrchestrationName,
+                startOrchestrationCommand.OrchestrationVersion,
                 OperatingIdentity = new
                 {
-                    ActorId = startOrchestrationDto.StartedByActorId,
+                    ActorId = startOrchestrationCommand.StartedByActorId,
                 },
             },
         });
 
-        var inputParameterDto = JsonSerializer.Deserialize<TInputParameterDto>(startOrchestrationDto.JsonInput);
+        var inputParameterDto = JsonSerializer.Deserialize<TInputParameterDto>(startOrchestrationCommand.JsonInput);
         if (inputParameterDto is null)
         {
             var inputTypeName = typeof(TInputParameterDto).Name;
-            _logger.LogWarning($"Unable to deserialize {nameof(startOrchestrationDto.JsonInput)} to {inputTypeName} type:{Environment.NewLine}{0}", startOrchestrationDto.JsonInput);
-            throw new ArgumentException($"Unable to deserialize {nameof(startOrchestrationDto.JsonInput)} to {inputTypeName} type");
+            _logger.LogWarning($"Unable to deserialize {nameof(startOrchestrationCommand.JsonInput)} to {inputTypeName} type:{Environment.NewLine}{0}", startOrchestrationCommand.JsonInput);
+            throw new ArgumentException($"Unable to deserialize {nameof(startOrchestrationCommand.JsonInput)} to {inputTypeName} type");
         }
 
-        if (!Guid.TryParse(startOrchestrationDto.StartedByActorId, out var actorId))
+        if (!Guid.TryParse(startOrchestrationCommand.StartedByActorId, out var actorId))
         {
             throw new ArgumentOutOfRangeException(
-                paramName: nameof(StartOrchestrationDto.StartedByActorId),
-                actualValue: startOrchestrationDto.StartedByActorId,
-                message: $"Unable to parse {nameof(startOrchestrationDto.StartedByActorId)} to guid");
+                paramName: nameof(StartOrchestrationCommand.StartedByActorId),
+                actualValue: startOrchestrationCommand.StartedByActorId,
+                message: $"Unable to parse {nameof(startOrchestrationCommand.StartedByActorId)} to guid");
         }
 
         return StartOrchestrationInstanceAsync(

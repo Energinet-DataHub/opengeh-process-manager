@@ -45,7 +45,7 @@ public class ProcessManagerMessageClient(
         MessageCommand<TInputParameterDto> command)
     where TInputParameterDto : IInputParameterDto
     {
-        var message = new StartOrchestrationDto
+        var message = new StartOrchestrationCommand
         {
             OrchestrationName = command.OrchestrationDescriptionUniqueName.Name,
             OrchestrationVersion = command.OrchestrationDescriptionUniqueName.Version,

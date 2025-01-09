@@ -12,22 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Models;
-using NodaTime;
+using Azure.Messaging.EventHubs.Producer;
 
-namespace Energinet.DataHub.ProcessManager.Components.Measurements.Models;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
-public record MeteredDataForMeasurementPoint(
-    string OrchestrationId,
-    string MeteringPointId,
-    string TransactionId,
-    Instant CreatedAt,
-    Instant StartDateTime,
-    Instant EndDateTime,
-    MeteringPointType MeteringPointType,
-    string Product,
-    MeasurementUnit Unit,
-    Resolution Resolution,
-    IReadOnlyCollection<Point> Points);
-
-public record Point(int Position, double Quantity, Quality Quality);
+/// <summary>
+/// Constants used for naming <see cref="EventHubProducerClient"/> instances
+/// </summary>
+public static class EventHubProducerClientNames
+{
+    /// <summary>
+    /// Event hub producer for sending events on the measurements event hub.
+    /// </summary>
+    public const string MeasurementsEventHub = "MeasurementsEventHub";
+}

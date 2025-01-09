@@ -42,16 +42,13 @@ var host = new HostBuilder()
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Wholesale);
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Measurements);
 
-        // EventHub
-        services.AddSharedEventHub();
-
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
 
         // Measurements
-        services.AddMeasurements();
+        services.AddMeasurementsMeteredDataClient();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

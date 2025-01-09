@@ -15,26 +15,35 @@
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Measurements;
-using Energinet.DataHub.ProcessManager.Components.Measurements.Models;
+using Energinet.DataHub.ProcessManager.Components.Measurements.Model;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Azure;
 using Moq;
 using Xunit;
+using Point = Energinet.DataHub.ProcessManager.Components.Measurements.Model.Point;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Measurements;
 
-public class MeteredDataClientTests
+public class MeasurementsMeteredDataClientTests
 {
-    public MeteredDataClientTests()
+    public MeasurementsMeteredDataClientTests()
     {
+        var eventHubClientFactory = new Mock<IAzureClientFactory<EventHubProducerClient>>();
         EventHubProducerClientMock = new Mock<EventHubProducerClient>();
-        Sut = new MeteredDataClient(EventHubProducerClientMock.Object);
+
+        eventHubClientFactory
+            .Setup(factory => factory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub))
+            .Returns(EventHubProducerClientMock.Object);
+
+        Sut = new MeasurementsMeteredDataClient(eventHubClientFactory.Object);
     }
 
     internal Mock<EventHubProducerClient> EventHubProducerClientMock { get; }
 
-    internal MeteredDataClient Sut { get; }
+    internal MeasurementsMeteredDataClient Sut { get; }
 
     [Fact]
     public async Task SendAsync_WhenCalledWithMeteredData_SendsExpectedDataOnEventHub()
@@ -47,13 +56,13 @@ public class MeteredDataClientTests
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
-            Models.MeteringPointType.Consumption,
+            Datahub.ValueObjects.MeteringPointType.Consumption,
             "test-product",
-            Models.MeasurementUnit.KilowattHour,
-            Models.Resolution.QuarterHourly,
-            new List<Energinet.DataHub.ProcessManager.Components.Measurements.Models.Point>
+            Datahub.ValueObjects.MeasurementUnit.KilowattHour,
+            Datahub.ValueObjects.Resolution.QuarterHourly,
+            new List<Point>
             {
-                new(1, 100, Models.Quality.AsProvided),
+                new(1, 100, Datahub.ValueObjects.Quality.AsProvided),
             });
 
         var expectedData = new PersistSubmittedTransaction

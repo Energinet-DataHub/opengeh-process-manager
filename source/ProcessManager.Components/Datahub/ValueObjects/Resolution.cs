@@ -12,17 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 
-public class EventHubOptions
+[Serializable]
+public class Resolution : DataHubType<Resolution>
 {
-    public const string SectionName = "SharedEventHub";
+    public static readonly Resolution QuarterHourly = new("QuarterHourly", "PT15M");
+    public static readonly Resolution Hourly = new("Hourly", "PT1H");
+    public static readonly Resolution Daily = new("Daily", "P1D");
+    public static readonly Resolution Monthly = new("Monthly", "P1M");
 
-    [Required(AllowEmptyStrings = false)]
-    public string FullyQualifiedNamespace { get; set; } = string.Empty;
-
-    [Required(AllowEmptyStrings = false)]
-    public string EventHubName { get; set; } = string.Empty;
+    [JsonConstructor]
+    private Resolution(string name, string code)
+        : base(name, code)
+    {
+    }
 }

@@ -14,7 +14,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Components.Models;
+namespace Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 
 [Serializable]
 public class MeasurementUnit : DataHubType<MeasurementUnit>

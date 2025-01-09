@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Measurements;
-using Energinet.DataHub.ProcessManager.Components.Measurements.Models;
-using Energinet.DataHub.ProcessManager.Components.Models;
+using Energinet.DataHub.ProcessManager.Components.Measurements.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -27,12 +27,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
-    IMeteredDataClient meteredDataClient)
+    IMeasurementsMeteredDataClient measurementsMeteredDataClient)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    private readonly IMeteredDataClient _meteredDataClient = meteredDataClient;
+    private readonly IMeasurementsMeteredDataClient _measurementsMeteredDataClient = measurementsMeteredDataClient;
 
     [Function(nameof(StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
@@ -58,7 +58,7 @@ internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMetere
             ParseResolution(input.MeteredDataForMeasurementPointMessageInput.Resolution),
             points);
 
-        await _meteredDataClient.SendAsync(meteredData, CancellationToken.None).ConfigureAwait(false);
+        await _measurementsMeteredDataClient.SendAsync(meteredData, CancellationToken.None).ConfigureAwait(false);
     }
 
     private Resolution ParseResolution(string? resolution)

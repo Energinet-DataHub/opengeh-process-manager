@@ -14,7 +14,7 @@
 
 using System.Reflection;
 
-namespace Energinet.DataHub.ProcessManager.Components.Models;
+namespace Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 
 public abstract class EnumerationType : IComparable
 {

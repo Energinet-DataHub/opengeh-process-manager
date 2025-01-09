@@ -14,7 +14,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Components.Models;
+namespace Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 
 [Serializable]
 public class MeteringPointType : DataHubType<MeteringPointType>
@@ -36,7 +36,7 @@ public class MeteringPointType : DataHubType<MeteringPointType>
     public static readonly MeteringPointType TotalConsumption = new("TotalConsumption", "D12");
     public static readonly MeteringPointType ElectricalHeating = new("ElectricalHeating", "D14");
     public static readonly MeteringPointType NetConsumption = new("NetConsumption", "D15");
-    public static readonly MeteringPointType EffectPayment = new("EffectPayment", "D19");
+    public static readonly MeteringPointType CapacitySettlement = new("CapacitySettlement", "D19");
     public static readonly MeteringPointType Analysis = new("Analysis", "D02");
     public static readonly MeteringPointType NotUsed = new("NotUsed", "D03");
     public static readonly MeteringPointType SurplusProductionGroup6 = new("SurplusProductionGroup6", "D04");

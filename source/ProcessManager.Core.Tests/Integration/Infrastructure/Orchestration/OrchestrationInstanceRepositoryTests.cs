@@ -434,6 +434,16 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
 
         var isScheduledToRunDayAfterTomorrowBasedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02, runAt: dayAfterTomorrow);
 
+        // => Orchestration description 03
+        var uniqueName03 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
+        var existingOrchestrationDescription03 = CreateOrchestrationDescription(uniqueName03);
+
+        var isQueuedNowBasedOn03 = CreateOrchestrationInstance(existingOrchestrationDescription03);
+        isQueuedNowBasedOn03.Lifecycle.TransitionToQueued(SystemClock.Instance);
+
+        var isQueuedTomorrowBasedOn03 = CreateOrchestrationInstance(existingOrchestrationDescription03);
+        isQueuedTomorrowBasedOn03.Lifecycle.TransitionToQueued(tomorrowClockMock.Object);
+
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription01);
@@ -441,15 +451,22 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             writeDbContext.OrchestrationInstances.Add(isQueuedNowBasedOn01);
             writeDbContext.OrchestrationInstances.Add(isQueuedTomorrowBasedOn01);
             writeDbContext.OrchestrationInstances.Add(isQueuedDayAfterTomorrowBasedOn01);
+
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription02);
             writeDbContext.OrchestrationInstances.Add(isScheduledToRunNowBasedOn02);
             writeDbContext.OrchestrationInstances.Add(isScheduledToRunTomorrowBasedOn02);
             writeDbContext.OrchestrationInstances.Add(isScheduledToRunDayAfterTomorrowBasedOn02);
+
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription03);
+            writeDbContext.OrchestrationInstances.Add(isQueuedNowBasedOn03);
+            writeDbContext.OrchestrationInstances.Add(isQueuedTomorrowBasedOn03);
+
             await writeDbContext.SaveChangesAsync();
         }
 
         // Act
         var actual = await _sut.SearchAsync(
+            orchestrationDescriptionNames: [uniqueName01.Name, uniqueName02.Name],
             activatedAtOrLater: tomorrow,
             activatedAtOrEarlier: tomorrow.PlusHours(1));
 

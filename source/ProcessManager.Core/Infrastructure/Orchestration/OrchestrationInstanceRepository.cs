@@ -92,11 +92,13 @@ internal class OrchestrationInstanceRepository(
 
     /// <inheritdoc />
     public async Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
+        IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,
         Instant activatedAtOrEarlier)
     {
         var query = _context
             .OrchestrationDescriptions
+                .Where(x => orchestrationDescriptionNames.Contains(x.UniqueName.Name))
             .Join(
                 _context.OrchestrationInstances,
                 description => description.Id,

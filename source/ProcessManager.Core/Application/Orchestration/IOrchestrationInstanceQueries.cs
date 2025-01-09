@@ -41,6 +41,7 @@ public interface IOrchestrationInstanceQueries
     /// This means orchestration instances from different orchestration descriptions can be searched for and returned.
     /// </summary>
     Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
+        IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,
         Instant activatedAtOrEarlier);
 }

@@ -36,7 +36,7 @@ The activities should be idempotent and stateless.
 We recommend that an activity is made such that, if it fails, it can be retried without any side effects.
 
 Since the method `context.CallActivityAsync(...)` has no typechecking, we strongly advise that every activity has a
-record with the inputs, e.g.:
+record with the inputs and outputs, e.g.:
 
 ```csharp
 internal class SomeActivity_Brs_XYZ_V1(
@@ -45,7 +45,7 @@ internal class SomeActivity_Brs_XYZ_V1(
     private readonly ISomeClient _client;
 
     [Function(nameof(SomeActivity_Brs_XYZ_V1))]
-    public async Task<JobRunId> Run(
+    public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput input)
     {
 
@@ -53,18 +53,23 @@ internal class SomeActivity_Brs_XYZ_V1(
         {
             $"--orchestration-instance-id={input.InstanceId.Value}",
         };
-        return await _client.StartJobAsync("ElectricalHeating", jobParameters).ConfigureAwait(false);
+
+        var jobId = await _client.StartJobAsync("ElectricalHeating", jobParameters).ConfigureAwait(false);
+        return new ActivityOutput(jobId);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId);
+
+    public record ActivityOutput(
+        JobRunId jobId);
 }
 ```
 
 Such that the orchestration can invoke the activity like this:
 
 ```csharp
-var jobRunId = await context.CallActivityAsync<JobRunId>(
+var activityOutput = await context.CallActivityAsync<SomeActivity_Brs_XYZ_V1.ActivityOutput>(
     nameof(SomeActivity_Brs_XYZ_V1),
     new SomeActivity_Brs_XYZ_V1.ActivityInput(
         instanceId),

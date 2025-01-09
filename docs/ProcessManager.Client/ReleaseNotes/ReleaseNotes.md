@@ -2,7 +2,7 @@
 
 ## Version 0.17.0
 
-- Add `EnqueueMessages`
+- Add `EnqueueActorMessages`
 
 ## Version 0.16.0
 

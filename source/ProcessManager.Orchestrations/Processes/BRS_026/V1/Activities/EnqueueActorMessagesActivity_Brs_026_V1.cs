@@ -24,7 +24,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.A
 /// <summary>
 /// Enqueue messages in EDI (and set step to running)
 /// </summary>
-internal class EnqueueMessagesActivity_Brs_026_V1(
+internal class EnqueueActorMessagesActivity_Brs_026_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
@@ -33,7 +33,7 @@ internal class EnqueueMessagesActivity_Brs_026_V1(
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
-    [Function(nameof(EnqueueMessagesActivity_Brs_026_V1))]
+    [Function(nameof(EnqueueActorMessagesActivity_Brs_026_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -42,13 +42,13 @@ internal class EnqueueMessagesActivity_Brs_026_V1(
             .ConfigureAwait(false);
 
         orchestrationInstance.TransitionStepToRunning(
-            Orchestration_Brs_026_V1.EnqueueMessagesStepSequence,
+            Orchestration_Brs_026_V1.EnqueueActorMessagesStepSequence,
             _clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-        await EnqueueMessagesAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
+        await EnqueueActorMessagesAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 
-    private Task EnqueueMessagesAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
+    private Task EnqueueActorMessagesAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
         // TODO: Set correct data when async validation is implemented
         var acceptedData = new RequestCalculatedEnergyTimeSeriesAcceptedV1(

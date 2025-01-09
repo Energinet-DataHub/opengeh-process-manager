@@ -22,7 +22,7 @@ using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
-public class IEnqueueActorActorMessagesClient(
+public class EnqueueActorMessagesClient(
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
     : IEnqueueActorMessagesClient
 {
@@ -44,7 +44,7 @@ public class IEnqueueActorActorMessagesClient(
                 "Unknown enqueuedBy type"),
         };
 
-        var enqueueMessages = new Abstractions.Contracts.EnqueueActorMessages
+        var enqueueActorMessages = new Abstractions.Contracts.EnqueueActorMessages
         {
             OrchestrationName = orchestration.Name,
             OrchestrationVersion = orchestration.Version,
@@ -54,9 +54,9 @@ public class IEnqueueActorActorMessagesClient(
         };
 
         if (startedByUserId is not null)
-            enqueueMessages.OrchestrationStartedByUserId = startedByUserId.ToString();
+            enqueueActorMessages.OrchestrationStartedByUserId = startedByUserId.ToString();
 
-        ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(enqueueMessages))
+        ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(enqueueActorMessages))
         {
             Subject = "Enqueue_" + orchestration.Name.ToLower(),
             MessageId = messageId,

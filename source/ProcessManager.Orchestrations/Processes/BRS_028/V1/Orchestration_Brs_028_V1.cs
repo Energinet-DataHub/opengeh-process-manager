@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1;
 internal class Orchestration_Brs_028_V1
 {
     public const int AsyncValidationStepSequence = 1;
-    public const int EnqueueMessagesStepSequence = 2;
+    public const int EnqueueActorMessagesStepSequence = 2;
 
     public static readonly Brs_028_V1 Name = new();
 
@@ -47,9 +47,9 @@ internal class Orchestration_Brs_028_V1
         var instanceId = await InitializeOrchestrationAsync(context);
 
         var validationResult = await PerformAsynchronousValidationAsync(context, instanceId, input);
-        await EnqueueMessagesInEdiAsync(context, instanceId, input, validationResult);
+        await EnqueueActorMessagesInEdiAsync(context, instanceId, input, validationResult);
 
-        var wasMessagesEnqueued = await WaitForEnqueueMessagesResponseFromEdiAsync(context, instanceId);
+        var wasMessagesEnqueued = await WaitForEnqueueActorMessagesResponseFromEdiAsync(context, instanceId);
         return await TerminateOrchestrationAsync(context, instanceId, input, wasMessagesEnqueued);
     }
 
@@ -100,7 +100,7 @@ internal class Orchestration_Brs_028_V1
         return validationResult;
     }
 
-    private async Task EnqueueMessagesInEdiAsync(
+    private async Task EnqueueActorMessagesInEdiAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedWholesaleServicesInputV1 input,
@@ -109,8 +109,8 @@ internal class Orchestration_Brs_028_V1
         if (validationResult.IsValid)
         {
             await context.CallActivityAsync(
-                nameof(EnqueueMessagesActivity_Brs_028_V1),
-                new EnqueueMessagesActivity_Brs_028_V1.ActivityInput(
+                nameof(EnqueueActorMessagesActivity_Brs_028_V1),
+                new EnqueueActorMessagesActivity_Brs_028_V1.ActivityInput(
                     instanceId,
                     input),
                 _defaultRetryOptions);
@@ -128,7 +128,7 @@ internal class Orchestration_Brs_028_V1
         }
     }
 
-    private async Task<bool> WaitForEnqueueMessagesResponseFromEdiAsync(
+    private async Task<bool> WaitForEnqueueActorMessagesResponseFromEdiAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId)
     {
@@ -145,15 +145,15 @@ internal class Orchestration_Brs_028_V1
         RequestCalculatedWholesaleServicesInputV1 input,
         bool wasMessagesEnqueued)
     {
-        var enqueueMessagesTerminationState = wasMessagesEnqueued
+        var enqueueActorMessagesTerminationState = wasMessagesEnqueued
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
         await context.CallActivityAsync(
             nameof(TerminateStepActivity_Brs_028_V1),
             new TerminateStepActivity_Brs_028_V1.ActivityInput(
                 instanceId,
-                EnqueueMessagesStepSequence,
-                enqueueMessagesTerminationState),
+                EnqueueActorMessagesStepSequence,
+                enqueueActorMessagesTerminationState),
             _defaultRetryOptions);
 
         if (!wasMessagesEnqueued)

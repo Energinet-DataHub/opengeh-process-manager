@@ -28,7 +28,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     internal const int ValidatingStep = 1;
     internal const int StoringMeteredDataStep = 2;
     internal const int FindReceiverStep = 3;
-    internal const int EnqueueMessagesStep = 4;
+    internal const int EnqueueActorMessagesStep = 4;
 
     private readonly TaskOptions _defaultRetryOptions;
 
@@ -95,13 +95,13 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
 
         // Step: Enqueueing
         await context.CallActivityAsync(
-            nameof(EnqueueMessagesActivity_Brs_021_ForwardMeteredData_V1),
-            new EnqueueMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+            nameof(EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1),
+            new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("EDI_Notification");
         await context.CallActivityAsync(
-            nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+            nameof(EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
+            new EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                 instanceId,
                 OrchestrationStepTerminationState.Succeeded),
             _defaultRetryOptions);
@@ -134,13 +134,13 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                 errors),
             _defaultRetryOptions);
 
-        var messagesEnqueuedSuccessfully = await WaitForEnqueueMessagesResponseFromEdiAsync(context, instanceId);
+        var messagesEnqueuedSuccessfully = await WaitForEnqueueActorMessagesResponseFromEdiAsync(context, instanceId);
 
         if (!messagesEnqueuedSuccessfully)
         {
             await context.CallActivityAsync(
-                nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-                new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                nameof(EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
+                new EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                     instanceId,
                     OrchestrationStepTerminationState.Failed),
                 _defaultRetryOptions);
@@ -149,8 +149,8 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         }
 
         await context.CallActivityAsync(
-            nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            new EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+            nameof(EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
+            new EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                 instanceId,
                 OrchestrationStepTerminationState.Succeeded),
             _defaultRetryOptions);
@@ -158,7 +158,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         return "Success";
     }
 
-    private async Task<bool> WaitForEnqueueMessagesResponseFromEdiAsync(
+    private async Task<bool> WaitForEnqueueActorMessagesResponseFromEdiAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId)
     {

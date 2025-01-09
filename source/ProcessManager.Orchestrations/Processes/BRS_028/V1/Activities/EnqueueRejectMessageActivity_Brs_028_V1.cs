@@ -42,7 +42,7 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
             .ConfigureAwait(false);
 
         orchestrationInstance.TransitionStepToRunning(
-            Orchestration_Brs_028_V1.EnqueueMessagesStepSequence,
+            Orchestration_Brs_028_V1.EnqueueActorMessagesStepSequence,
             _clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 

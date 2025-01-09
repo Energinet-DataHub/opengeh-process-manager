@@ -23,9 +23,9 @@ using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
-public static class EnqueueMessagesExtensions
+public static class EnqueueActorMessagesExtensions
 {
-    public static IServiceCollection AddEnqueueMessages(this IServiceCollection services, TokenCredential azureCredential)
+    public static IServiceCollection AddEnqueueActorMessages(this IServiceCollection services, TokenCredential azureCredential)
     {
         services.AddOptions<ServiceBusNamespaceOptions>()
             .BindConfiguration(ServiceBusNamespaceOptions.SectionName)
@@ -60,7 +60,7 @@ public static class EnqueueMessagesExtensions
                     .WithName(ServiceBusSenderNames.EdiTopic);
             });
 
-        services.AddTransient<IEnqueueActorMessagesClient, IEnqueueActorActorMessagesClient>();
+        services.AddTransient<IEnqueueActorMessagesClient, EnqueueActorMessagesClient>();
 
         return services;
     }

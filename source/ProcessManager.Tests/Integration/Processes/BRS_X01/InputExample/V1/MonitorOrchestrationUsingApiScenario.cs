@@ -190,7 +190,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             .ReadFromJsonAsync<IReadOnlyCollection<OrchestrationInstanceDto>>();
 
         orchestrationInstancesFromNameQuery.Should()
-            .Contain(x => x.Id == orchestrationInstanceId, "because the orchestration instance with given name should exist");
+            .Contain(x => x.Id == orchestrationInstanceId, "because the orchestration instance with given name, should exist");
 
         // Step 3: Custom search
         var customQuery = new InputExampleQuery(
@@ -214,6 +214,6 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             .ReadFromJsonAsync<IReadOnlyCollection<InputExampleQueryResult>>();
 
         orchestrationInstancesFromCustomQuery.Should()
-            .Contain(x => x.OrchestrationInstance.Id == orchestrationInstanceId, "because the orchestration instance with implicit given orchestration description name should exist");
+            .Contain(x => x.OrchestrationInstance.Id == orchestrationInstanceId, "because the orchestration instance with orchestration description name defined in custom query, should exist");
     }
 }

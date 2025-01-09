@@ -93,7 +93,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 1: Start new calculation orchestration instance
         var inputParameter = new CalculationInputV1(
-            CalculationTypes.WholesaleFixing,
+            CalculationType.WholesaleFixing,
             GridAreaCodes: new[] { "804" },
             PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
             PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
@@ -117,8 +117,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
             },
             timeLimit: TimeSpan.FromSeconds(20),
             delay: TimeSpan.FromSeconds(3));
@@ -132,8 +132,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     userIdentity,
                     name: new Brs_023_027_V1().Name,
                     version: null,
-                    lifecycleState: OrchestrationInstanceLifecycleStates.Terminated,
-                    terminationState: OrchestrationInstanceTerminationStates.Succeeded,
+                    lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
+                    terminationState: OrchestrationInstanceTerminationState.Succeeded,
                     startedAtOrLater: null,
                     terminatedAtOrEarlier: null),
                 CancellationToken.None);
@@ -179,7 +179,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
                     inputParameter: new CalculationInputV1(
-                        CalculationTypes.BalanceFixing,
+                        CalculationType.BalanceFixing,
                         GridAreaCodes: new[] { "543" },
                         PeriodStartDate: new DateTimeOffset(2022, 1, 11, 23, 0, 0, TimeSpan.Zero),
                         PeriodEndDate: new DateTimeOffset(2022, 1, 12, 23, 0, 0, TimeSpan.Zero),
@@ -202,8 +202,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
             },
             timeLimit: TimeSpan.FromSeconds(20),
             delay: TimeSpan.FromSeconds(3));
@@ -227,7 +227,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
                     inputParameter: new CalculationInputV1(
-                        CalculationTypes.Aggregation,
+                        CalculationType.Aggregation,
                         GridAreaCodes: new[] { "543" },
                         PeriodStartDate: new DateTimeOffset(2022, 1, 11, 23, 0, 0, TimeSpan.Zero),
                         PeriodEndDate: new DateTimeOffset(2022, 1, 12, 23, 0, 0, TimeSpan.Zero),
@@ -254,8 +254,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.UserCanceled;
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.UserCanceled;
             },
             timeLimit: TimeSpan.FromSeconds(60),
             delay: TimeSpan.FromSeconds(3));

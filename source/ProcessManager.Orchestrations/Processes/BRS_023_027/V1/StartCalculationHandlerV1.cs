@@ -112,10 +112,10 @@ internal class StartCalculationHandlerV1(
         if (periodEndInTimeZone.TimeOfDay != LocalTime.Midnight)
             validationErrors.Add($"The period end '{periodEnd}' must be midnight.");
 
-        if (inputParameter.CalculationType is CalculationTypes.WholesaleFixing
-            or CalculationTypes.FirstCorrectionSettlement
-            or CalculationTypes.SecondCorrectionSettlement
-            or CalculationTypes.ThirdCorrectionSettlement)
+        if (inputParameter.CalculationType is CalculationType.WholesaleFixing
+            or CalculationType.FirstCorrectionSettlement
+            or CalculationType.SecondCorrectionSettlement
+            or CalculationType.ThirdCorrectionSettlement)
         {
             if (!IsEntireMonth(periodStartInTimeZone, periodEndInTimeZone))
             {
@@ -123,7 +123,7 @@ internal class StartCalculationHandlerV1(
             }
         }
 
-        if (inputParameter.IsInternalCalculation && inputParameter.CalculationType is not CalculationTypes.Aggregation)
+        if (inputParameter.IsInternalCalculation && inputParameter.CalculationType is not CalculationType.Aggregation)
             validationErrors.Add($"Internal calculations is not allowed for '{inputParameter.CalculationType}'.");
 
         if (validationErrors.Any())

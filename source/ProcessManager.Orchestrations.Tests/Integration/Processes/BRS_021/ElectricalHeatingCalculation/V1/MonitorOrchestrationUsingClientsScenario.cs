@@ -109,8 +109,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
             },
             timeLimit: TimeSpan.FromSeconds(20),
             delay: TimeSpan.FromSeconds(3));
@@ -124,8 +124,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     userIdentity,
                     name: new Brs_021_ElectricalHeatingCalculation_V1().Name,
                     version: null,
-                    lifecycleState: OrchestrationInstanceLifecycleStates.Terminated,
-                    terminationState: OrchestrationInstanceTerminationStates.Succeeded,
+                    lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
+                    terminationState: OrchestrationInstanceTerminationState.Succeeded,
                     startedAtOrLater: null,
                     terminatedAtOrEarlier: null),
                 CancellationToken.None);

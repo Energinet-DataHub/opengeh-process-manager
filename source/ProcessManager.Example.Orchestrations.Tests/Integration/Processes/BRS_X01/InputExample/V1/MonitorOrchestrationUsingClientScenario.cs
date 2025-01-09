@@ -106,8 +106,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
             },
             timeLimit: TimeSpan.FromSeconds(60),
             delay: TimeSpan.FromSeconds(3));
@@ -121,8 +121,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                     userIdentity,
                     name: new Brs_X01_InputExample_V1().Name,
                     version: null,
-                    lifecycleState: OrchestrationInstanceLifecycleStates.Terminated,
-                    terminationState: OrchestrationInstanceTerminationStates.Succeeded,
+                    lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
+                    terminationState: OrchestrationInstanceTerminationState.Succeeded,
                     startedAtOrLater: null,
                     terminatedAtOrEarlier: null),
                 CancellationToken.None);
@@ -180,8 +180,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.Succeeded;
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
             },
             timeLimit: TimeSpan.FromSeconds(60),
             delay: TimeSpan.FromSeconds(3));
@@ -228,8 +228,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleStates.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationStates.UserCanceled;
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.UserCanceled;
             },
             timeLimit: TimeSpan.FromSeconds(60),
             delay: TimeSpan.FromSeconds(3));

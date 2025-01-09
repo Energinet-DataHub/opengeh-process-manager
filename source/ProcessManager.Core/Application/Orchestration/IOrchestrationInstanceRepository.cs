@@ -43,8 +43,8 @@ internal interface IOrchestrationInstanceRepository
     Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
         string name,
         int? version,
-        OrchestrationInstanceLifecycleStates? lifecycleState,
-        OrchestrationInstanceTerminationStates? terminationState,
+        OrchestrationInstanceLifecycleState? lifecycleState,
+        OrchestrationInstanceTerminationState? terminationState,
         Instant? startedAtOrLater,
         Instant? terminatedAtOrEarlier);
 }

@@ -84,8 +84,8 @@ internal class Orchestration_Brs_028_V1
             _defaultRetryOptions);
 
         var asyncValidationTerminationState = isValid
-            ? OrchestrationStepTerminationStates.Succeeded
-            : OrchestrationStepTerminationStates.Failed;
+            ? OrchestrationStepTerminationState.Succeeded
+            : OrchestrationStepTerminationState.Failed;
         await context.CallActivityAsync(
             nameof(TerminateStepActivity_Brs_028_V1),
             new TerminateStepActivity_Brs_028_V1.ActivityInput(
@@ -141,8 +141,8 @@ internal class Orchestration_Brs_028_V1
         bool wasMessagesEnqueued)
     {
         var enqueueMessagesTerminationState = wasMessagesEnqueued
-            ? OrchestrationStepTerminationStates.Succeeded
-            : OrchestrationStepTerminationStates.Failed;
+            ? OrchestrationStepTerminationState.Succeeded
+            : OrchestrationStepTerminationState.Failed;
         await context.CallActivityAsync(
             nameof(TerminateStepActivity_Brs_028_V1),
             new TerminateStepActivity_Brs_028_V1.ActivityInput(
@@ -163,7 +163,7 @@ internal class Orchestration_Brs_028_V1
                 nameof(TerminateOrchestrationActivity_Brs_028_V1),
                 new TerminateOrchestrationActivity_Brs_028_V1.ActivityInput(
                     instanceId,
-                    OrchestrationInstanceTerminationStates.Failed),
+                    OrchestrationInstanceTerminationState.Failed),
                 _defaultRetryOptions);
 
             return "Error: Timeout while waiting for enqueue messages";
@@ -174,7 +174,7 @@ internal class Orchestration_Brs_028_V1
                 nameof(TerminateOrchestrationActivity_Brs_028_V1),
                 new TerminateOrchestrationActivity_Brs_028_V1.ActivityInput(
                     instanceId,
-                    OrchestrationInstanceTerminationStates.Succeeded),
+                    OrchestrationInstanceTerminationState.Succeeded),
                 _defaultRetryOptions);
 
             return $"Success (BusinessReason={input.BusinessReason})";

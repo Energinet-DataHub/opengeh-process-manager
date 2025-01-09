@@ -31,12 +31,12 @@ internal sealed class FetchMeteringPointMasterDataActivity_Brs_021_ForwardMetere
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
     [Function(nameof(FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task<IReadOnlyCollection<MeteringPointMasterData>> Run(
+    public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput activityInput)
     {
         if (activityInput.MeteringPointIdentification is null || activityInput.EndDateTime is null)
         {
-            return [];
+            return new([]);
         }
 
         var id = new MeteringPointIdentification(activityInput.MeteringPointIdentification);
@@ -45,14 +45,17 @@ internal sealed class FetchMeteringPointMasterDataActivity_Brs_021_ForwardMetere
 
         if (!startDateTime.Success || !endDateTime.Success)
         {
-            return [];
+            return new([]);
         }
 
-        return await _electricityMarketViews
+        return new(
+            await _electricityMarketViews
             .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
             .ToListAsync()
-            .ConfigureAwait(false);
+            .ConfigureAwait(false));
     }
 
     public sealed record ActivityInput(string? MeteringPointIdentification, string StartDateTime, string? EndDateTime);
+
+    public sealed record ActivityOutput(IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
 }

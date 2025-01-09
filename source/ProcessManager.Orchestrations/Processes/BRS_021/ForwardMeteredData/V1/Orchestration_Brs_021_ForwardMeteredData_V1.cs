@@ -50,7 +50,9 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         var instanceId = await InitializeOrchestrationAsync(context);
 
         // Fetch Metering Point Master Data
-        var meteringPointMasterData = await context.CallActivityAsync<IReadOnlyCollection<MeteringPointMasterData>>(
+        var meteringPointMasterData =
+            await context
+                .CallActivityAsync<FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
             nameof(FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1),
             new FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                 input.MeteringPointId,
@@ -59,7 +61,10 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             _defaultRetryOptions);
 
         // Step: Validating
-        var errors = await PerformAsynchronousValidationAsync(context, instanceId, meteringPointMasterData);
+        var errors = await PerformAsynchronousValidationAsync(
+            context,
+            instanceId,
+            meteringPointMasterData.MeteringPointMasterData);
 
         // If there are errors, we stop the orchestration and inform EDI to pass along the errors
         if (errors.Count != 0)

@@ -52,16 +52,16 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // Fetch Metering Point Master Data
         var meteringPointMasterData =
             await context
-                .CallActivityAsync<FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
-            nameof(FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1),
-            new FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                .CallActivityAsync<GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
+            nameof(GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1),
+            new GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                 input.MeteringPointId,
                 input.StartDateTime,
                 input.EndDateTime),
             _defaultRetryOptions);
 
         // Step: Validating
-        var errors = await PerformAsynchronousValidationAsync(
+        var errors = await PerformValidationAsync(
             context,
             instanceId,
             meteringPointMasterData.MeteringPointMasterData);
@@ -169,14 +169,14 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         return true;
     }
 
-    private async Task<IReadOnlyCollection<string>> PerformAsynchronousValidationAsync(
+    private async Task<IReadOnlyCollection<string>> PerformValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterData)
     {
         var errors = await context.CallActivityAsync<IReadOnlyCollection<string>>(
-            nameof(PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1),
-            new PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+            nameof(PerformValidationActivity_Brs_021_ForwardMeteredData_V1),
+            new PerformValidationActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                 instanceId,
                 meteringPointMasterData),
             _defaultRetryOptions);

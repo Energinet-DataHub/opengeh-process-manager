@@ -20,7 +20,7 @@ using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal sealed class FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1(
+internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
     IElectricityMarketViews electricityMarketViews)
@@ -30,7 +30,7 @@ internal sealed class FetchMeteringPointMasterDataActivity_Brs_021_ForwardMetere
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
-    [Function(nameof(FetchMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput activityInput)
     {

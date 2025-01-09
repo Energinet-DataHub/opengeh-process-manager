@@ -62,13 +62,15 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
         var orchestration = new Brs_X01_InputExample_V1();
         var input = new InputV1(false);
 
         var command = new StartInputExampleCommandV1(
-             operatingIdentity: new UserIdentityDto(
-                 Guid.NewGuid(),
-                 Guid.NewGuid()),
+             operatingIdentity: userIdentity,
              input);
 
         using var startRequest = new HttpRequestMessage(
@@ -90,9 +92,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
 
         // Step 2: Query until terminated with succeeded
         var query = new GetOrchestrationInstanceByIdQuery(
-            new UserIdentityDto(
-                Guid.NewGuid(),
-                Guid.NewGuid()),
+            userIdentity,
             orchestrationInstanceId);
 
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
@@ -130,14 +130,16 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestration_WhenScheduledToRunNow_CanFindByName()
     {
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
         var now = DateTimeOffset.UtcNow;
         var orchestration = new Brs_X01_InputExample_V1();
         var input = new InputV1(false);
 
         var command = new ScheduleInputExampleCommandV1(
-             operatingIdentity: new UserIdentityDto(
-                 Guid.NewGuid(),
-                 Guid.NewGuid()),
+             operatingIdentity: userIdentity,
              input,
              runAt: now);
 
@@ -158,11 +160,9 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
         var orchestrationInstanceId = await response.Content
             .ReadFromJsonAsync<Guid>();
 
-        // Step 2: Query using name
-        var query = new SearchOrchestrationInstancesByNameQuery(
-            new UserIdentityDto(
-                Guid.NewGuid(),
-                Guid.NewGuid()),
+        // Step 2: General search using name
+        var queryByName = new SearchOrchestrationInstancesByNameQuery(
+            userIdentity,
             orchestration.Name,
             version: null,
             lifecycleState: null,
@@ -174,19 +174,19 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             HttpMethod.Post,
             "/api/orchestrationinstance/query/name");
         queryRequest.Content = new StringContent(
-            JsonSerializer.Serialize(query),
+            JsonSerializer.Serialize(queryByName),
             Encoding.UTF8,
             "application/json");
 
-        using var queryResponse = await Fixture.ProcessManagerAppManager.AppHostManager
+        using var queryByNameResponse = await Fixture.ProcessManagerAppManager.AppHostManager
             .HttpClient
             .SendAsync(queryRequest);
-        queryResponse.EnsureSuccessStatusCode();
+        queryByNameResponse.EnsureSuccessStatusCode();
 
-        var orchestrationInstances = await queryResponse.Content
+        var orchestrationInstancesByName = await queryByNameResponse.Content
             .ReadFromJsonAsync<IReadOnlyCollection<OrchestrationInstanceDto>>();
 
-        orchestrationInstances.Should()
+        orchestrationInstancesByName.Should()
             .Contain(x => x.Id == orchestrationInstanceId, "because the orchestration instance should be scheduled to run at the timestamp we use in the query");
     }
 }

@@ -128,7 +128,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     /// the orchestration instance will only be started if the schedule trigger is triggered from a test (could be another test).
     /// </summary>
     [Fact]
-    public async Task ExampleOrchestration_WhenScheduledToRunNow_CanFindByActivation()
+    public async Task ExampleOrchestration_WhenScheduledToRunNow_CanFindByName()
     {
         var now = DateTimeOffset.UtcNow;
         var orchestration = new Brs_X01_InputExample_V1();
@@ -158,17 +158,21 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
         var orchestrationInstanceId = await response.Content
             .ReadFromJsonAsync<Guid>();
 
-        // Step 2: Query using activation timestamp
-        var query = new SearchOrchestrationInstancesByActivationQuery(
+        // Step 2: Query using name
+        var query = new SearchOrchestrationInstancesByNameQuery(
             new UserIdentityDto(
                 Guid.NewGuid(),
                 Guid.NewGuid()),
-            activatedAtOrLater: now,
-            activatedAtOrEarlier: now);
+            orchestration.Name,
+            version: null,
+            lifecycleState: null,
+            terminationState: null,
+            startedAtOrLater: null,
+            terminatedAtOrEarlier: null);
 
         using var queryRequest = new HttpRequestMessage(
             HttpMethod.Post,
-            "/api/orchestrationinstance/query/activation");
+            "/api/orchestrationinstance/query/name");
         queryRequest.Content = new StringContent(
             JsonSerializer.Serialize(query),
             Encoding.UTF8,

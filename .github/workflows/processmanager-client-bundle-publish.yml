@@ -53,6 +53,8 @@ env:
   # Conditions
   # TRIGGERED_BY_PR_COMMIT is true if this run is automatically triggered by a commit in a Pull Request (feature branch)
   TRIGGERED_BY_PR_COMMIT: ${{ github.event_name == 'pull_request' }}
+  # BASE_SHA must be set to 'main' if this run is triggered manually; otherwise file changes will not be detected correctly
+  BASE_SHA: ${{ (github.event_name == 'workflow_dispatch') && 'main' || '' }}
   # Necessary to manage Azure resources from automated tests
   AZURE_KEYVAULT_URL: ${{ vars.integration_test_azure_keyvault_url }}
   # Set value used by 'AzuriteManager'
@@ -114,12 +116,22 @@ jobs:
 
       - name: Package content or build has changed for PM.Client or PM.Abstractions
         id: changed-content-client
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@v45
         with:
+          base_sha: ${{ env.BASE_SHA }}
           files: |
             source/ProcessManager.Client/**/*.*
             source/ProcessManager.Abstractions/**/*.*
             .github/workflows/processmanager-client-bundle-publish.yml
+
+      - name: List all changed files for PM.Client or PM.Abstractions
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-content-client.outputs.all_changed_files }}
+        shell: bash
+        run: |
+          for file in "$ALL_CHANGED_FILES"; do
+            echo "$file was changed"
+          done
 
       - name: Assert version of ProcessManager.Client NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
@@ -143,12 +155,22 @@ jobs:
       # version of ProcessManager.Orchestrations.Abstractions is bumped.
       - name: Package content, dependencies or build has changed for PM.Abstractions or PM.Orchestrations.Abstractions
         id: changed-content-orchestrations
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@v45
         with:
+          base_sha: ${{ env.BASE_SHA }}
           files: |
             source/ProcessManager.Orchestrations.Abstractions/**/*.*
             source/ProcessManager.Abstractions/**/*.*
             .github/workflows/processmanager-client-bundle-publish.yml
+
+      - name: List all changed files for PM.Abstractions or PM.Orchestrations.Abstractions
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-content-orchestrations.outputs.all_changed_files }}
+        shell: bash
+        run: |
+          for file in "$ALL_CHANGED_FILES"; do
+            echo "$file was changed"
+          done
 
       - name: Assert version of ProcessManager.Orchestrations.Abstractions NuGet package and push it to NuGet.org
         uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
@@ -157,13 +179,3 @@ jobs:
           content_changed: ${{ steps.changed-content-orchestrations.outputs.any_changed }}
           nuget_token: ${{ secrets.nuget_token }}
           nupkg_recurse_path: source/ProcessManager.Orchestrations.Abstractions
-
-      - name: Print variables
-        run: |
-          echo "TRIGGERED_BY_PR_COMMIT: ${{ env.TRIGGERED_BY_PR_COMMIT }}"
-
-          echo "ProcessManager.Client content changed: ${{ steps.changed-content-client.outputs.any_changed }}"
-          echo "ProcessManager.Client push packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-client.outputs.any_changed == 'true' }}"
-
-          echo "Orchestrations.Abstractions content changed: ${{ steps.changed-content-orchestrations.outputs.any_changed }}"
-          echo "Orchestrations.Abstractions push packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-orchestrations.outputs.any_changed == 'true' }}"

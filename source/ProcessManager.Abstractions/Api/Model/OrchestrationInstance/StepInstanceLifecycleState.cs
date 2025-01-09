@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
 /// <summary>
-/// High-level lifecycle states that all orchestration instances can go through.
+/// High-level lifecycle states that all orchestration steps can go through.
 /// </summary>
-public enum OrchestrationInstanceLifecycleStates
+public enum StepInstanceLifecycleState
 {
     /// <summary>
     /// Created and waiting to be started.
@@ -25,30 +25,22 @@ public enum OrchestrationInstanceLifecycleStates
     Pending = 1,
 
     /// <summary>
-    /// The Process Manager has requested the Task Hub to start the Durable Functions orchestration instance.
+    /// A Durable Functions activity has transitioned the orchestration step into running.
     /// </summary>
-    Queued = 2,
+    Running = 2,
 
     /// <summary>
-    /// A Durable Functions activity has transitioned the orchestration instance into running.
+    /// A Durable Functions activity has transitioned the orchestration step into terminated.
+    /// See <see cref="OrchestrationStepTerminationState"/> for details.
     /// </summary>
-    Running = 3,
-
-    /// <summary>
-    /// A Durable Functions activity has transitioned the orchestration instance into terminated.
-    /// See <see cref="OrchestrationInstanceTerminationStates"/> for details.
-    /// </summary>
-    Terminated = 4,
+    Terminated = 3,
 }
 
-public enum OrchestrationInstanceTerminationStates
+public enum OrchestrationStepTerminationState
 {
     Succeeded = 1,
 
     Failed = 2,
 
-    /// <summary>
-    /// A user canceled the orchestration instance.
-    /// </summary>
-    UserCanceled = 3,
+    Skipped = 3,
 }

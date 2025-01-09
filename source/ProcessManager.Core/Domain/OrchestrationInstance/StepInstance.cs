@@ -28,7 +28,7 @@ public class StepInstance
         bool canBeSkipped)
     {
         Id = new StepInstanceId(Guid.NewGuid());
-        Lifecycle = new StepInstanceLifecycleState(canBeSkipped);
+        Lifecycle = new StepInstanceLifecycle(canBeSkipped);
         Description = description;
         Sequence = sequence;
         CustomState = new StepInstanceCustomState(string.Empty);
@@ -51,7 +51,7 @@ public class StepInstance
     /// <summary>
     /// The high-level lifecycle states that all orchestration steps can go through.
     /// </summary>
-    public StepInstanceLifecycleState Lifecycle { get; }
+    public StepInstanceLifecycle Lifecycle { get; }
 
     public string Description { get; }
 
@@ -73,6 +73,6 @@ public class StepInstance
 
     public bool IsSkipped()
     {
-        return Lifecycle.TerminationState == OrchestrationStepTerminationStates.Skipped;
+        return Lifecycle.TerminationState == OrchestrationStepTerminationState.Skipped;
     }
 }

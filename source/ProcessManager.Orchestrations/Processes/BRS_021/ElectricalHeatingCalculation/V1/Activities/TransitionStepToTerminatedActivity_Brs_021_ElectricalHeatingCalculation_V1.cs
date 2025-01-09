@@ -42,5 +42,5 @@ internal class TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalcu
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
         int StepSequence,
-        OrchestrationStepTerminationStates TerminationState);
+        OrchestrationStepTerminationState TerminationState);
 }

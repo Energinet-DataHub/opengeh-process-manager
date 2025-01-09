@@ -40,9 +40,9 @@ public record InputExampleQuery
         SkippedStepTwo = skippedStepTwo;
     }
 
-    public OrchestrationInstanceLifecycleStates? LifecycleState { get; set; }
+    public OrchestrationInstanceLifecycleState? LifecycleState { get; set; }
 
-    public OrchestrationInstanceTerminationStates? TerminationState { get; set; }
+    public OrchestrationInstanceTerminationState? TerminationState { get; set; }
 
     public DateTimeOffset? StartedAtOrLater { get; set; }
 

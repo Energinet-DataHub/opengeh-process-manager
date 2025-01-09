@@ -28,10 +28,10 @@ internal class EnqueueMessagesActivity_Brs_021_ForwardMeteredData_V1(
 {
     [Function(nameof(EnqueueMessagesActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+        [ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(activityInput.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
@@ -42,4 +42,6 @@ internal class EnqueueMessagesActivity_Brs_021_ForwardMeteredData_V1(
         // TODO: For demo purposes; remove when done
         await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
     }
+
+    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
 }

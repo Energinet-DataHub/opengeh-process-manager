@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
@@ -19,19 +20,18 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1(
+internal class PerformValidationActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+    [Function(nameof(PerformValidationActivity_Brs_021_ForwardMeteredData_V1))]
+    public async Task<IReadOnlyCollection<string>> Run([ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(activityInput.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
@@ -39,7 +39,17 @@ internal class PerformAsyncValidationActivity_Brs_021_ForwardMeteredData_V1(
                 orchestrationInstance)
             .ConfigureAwait(false);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        var errors = new List<string>();
+
+        if (activityInput.MeteringPointMasterData.Count == 0)
+        {
+            errors.Add("Error: No metering point master data found.");
+        }
+
+        return errors;
     }
+
+    public sealed record ActivityInput(
+        OrchestrationInstanceId OrchestrationInstanceId,
+        IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
 }

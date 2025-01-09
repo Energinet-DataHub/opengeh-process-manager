@@ -45,6 +45,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private readonly int _appPort;
     private readonly bool _manageDatabase;
     private readonly bool _manageAzurite;
+    // TODO (ID-283)
+    private readonly string? _environment;
 
     public OrchestrationsAppManager()
         : this(
@@ -55,7 +57,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
             appPort: 8002,
             wireMockServerPort: 8012,
             manageDatabase: true,
-            manageAzurite: true)
+            manageAzurite: true,
+            // TODO (ID-283)
+            environment: null)
     {
     }
 
@@ -67,7 +71,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
         int appPort,
         int wireMockServerPort,
         bool manageDatabase,
-        bool manageAzurite)
+        bool manageAzurite,
+        // TODO (ID-283)
+        string? environment)
     {
         _taskHubName = string.IsNullOrWhiteSpace(taskHubName)
             ? throw new ArgumentException("Cannot be null or whitespace.", nameof(taskHubName))
@@ -75,6 +81,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         _appPort = appPort;
         _manageDatabase = manageDatabase;
         _manageAzurite = manageAzurite;
+        // TODO (ID-283)
+        _environment = environment;
 
         DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();
@@ -223,6 +231,24 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // It seems the host + worker is not ready if we use the default startup log message, so we override it here
         appHostSettings.HostStartedEvent = "Host lock lease acquired";
+
+        // TODO (ID-283): This is a temporary workaround to enable stubbing/mocking of external integrations.
+        //  Please do not copy, duplicate, or otherwise get inspired by this code.
+        //  The stubbing is achieved by changing the dependency injection
+        //  to either use the real implementation or a stub based on the host environment.
+        //  All relevant places in the code base for this workaround are marked with 'ID-283'.
+        if (_environment is not null)
+        {
+            appHostSettings.ProcessEnvironmentVariables.Add(
+                "ASPNETCORE_ENVIRONMENT",
+                _environment);
+            appHostSettings.ProcessEnvironmentVariables.Add(
+                "DOTNET_ENVIRONMENT",
+                _environment);
+            appHostSettings.ProcessEnvironmentVariables.Add(
+                "AZURE_FUNCTIONS_ENVIRONMENT",
+                _environment);
+        }
 
         appHostSettings.ProcessEnvironmentVariables.Add(
             "FUNCTIONS_WORKER_RUNTIME",

@@ -26,7 +26,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationI
 /// <param name="CustomState">Any custom state of the step.</param>
 public record StepInstanceDto(
     Guid Id,
-    StepInstanceLifecycleStateDto Lifecycle,
+    StepInstanceLifecycleDto Lifecycle,
     string Description,
     int Sequence,
     string CustomState);

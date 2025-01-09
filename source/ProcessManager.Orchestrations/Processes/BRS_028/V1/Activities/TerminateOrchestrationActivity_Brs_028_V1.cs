@@ -39,15 +39,15 @@ internal class TerminateOrchestrationActivity_Brs_028_V1(
 
         switch (input.TerminationState)
         {
-            case OrchestrationInstanceTerminationStates.Succeeded:
+            case OrchestrationInstanceTerminationState.Succeeded:
                 orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
                 break;
 
-            case OrchestrationInstanceTerminationStates.Failed:
+            case OrchestrationInstanceTerminationState.Failed:
                 orchestrationInstance.Lifecycle.TransitionToFailed(_clock);
                 break;
 
-            case OrchestrationInstanceTerminationStates.UserCanceled:
+            case OrchestrationInstanceTerminationState.UserCanceled:
             default:
                 throw new ArgumentOutOfRangeException(nameof(input.TerminationState), input.TerminationState, "Invalid termination state");
         }
@@ -57,5 +57,5 @@ internal class TerminateOrchestrationActivity_Brs_028_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        OrchestrationInstanceTerminationStates TerminationState);
+        OrchestrationInstanceTerminationState TerminationState);
 }

@@ -12,10 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+
 namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 /// <summary>
 /// A user identity performing a Process Manager operation.
 /// </summary>
 public record UserIdentity(UserId UserId, ActorId ActorId)
-    : OperatingIdentity;
+    : OperatingIdentity
+{
+    public override IOperatingIdentityDto ToDto()
+    {
+        return new UserIdentityDto(UserId.Value, ActorId.Value);
+    }
+}

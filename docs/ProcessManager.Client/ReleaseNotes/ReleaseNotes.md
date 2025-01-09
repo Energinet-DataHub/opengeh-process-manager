@@ -1,9 +1,13 @@
 # ProcessManager.Client Release Notes
 
-## Version 0.17.0
+## Version 0.18.0
 
 - Updated code documenation (XML comments).
 - Refactored implementation of custom queries support.
+
+## Version 0.17.0
+
+- Add `EnqueueActorMessages`
 
 ## Version 0.16.0
 

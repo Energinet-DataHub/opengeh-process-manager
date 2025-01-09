@@ -19,14 +19,14 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
+internal class EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
-    [Function(nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run([ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await _progressRepository
@@ -34,7 +34,7 @@ internal class EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V
             .ConfigureAwait(false);
 
         orchestrationInstance.TransitionStepToTerminated(
-            Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueMessagesStep,
+            Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueActorMessagesStep,
             activityInput.TerminationState,
             _clock);
 

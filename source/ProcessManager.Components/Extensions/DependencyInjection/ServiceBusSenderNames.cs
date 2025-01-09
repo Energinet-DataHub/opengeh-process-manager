@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Azure.Messaging.ServiceBus;
 
-namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
 /// <summary>
-/// An actor identity performing a Process Manager operation.
+/// Constants used for naming <see cref="ServiceBusSender"/> instances
 /// </summary>
-public record ActorIdentity(ActorId ActorId)
-    : OperatingIdentity
+public static class ServiceBusSenderNames
 {
-    public override IOperatingIdentityDto ToDto()
-    {
-        return new ActorIdentityDto(ActorId.Value);
-    }
+    /// <summary>
+    /// Service Bus sender for sending messages on the EDI service bus topic
+    /// </summary>
+    public const string EdiTopic = "EdiTopic";
 }

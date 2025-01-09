@@ -1,9 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Client.Tests" />
-  </ItemGroup>
-
   <PropertyGroup>
     <AssemblyName>Energinet.DataHub.ProcessManager.Client</AssemblyName>
     <RootNamespace>Energinet.DataHub.ProcessManager.Client</RootNamespace>
@@ -50,6 +46,7 @@
     <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.18.2" />
@@ -64,6 +61,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Client.Tests" />
   </ItemGroup>
 
 </Project>

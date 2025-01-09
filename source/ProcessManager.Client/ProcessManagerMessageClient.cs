@@ -17,7 +17,6 @@ using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 
@@ -45,7 +44,7 @@ public class ProcessManagerMessageClient(
         MessageCommand<TInputParameterDto> command)
     where TInputParameterDto : IInputParameterDto
     {
-        var message = new StartOrchestrationDto
+        var startOrchestration = new StartOrchestration
         {
             OrchestrationName = command.OrchestrationDescriptionUniqueName.Name,
             OrchestrationVersion = command.OrchestrationDescriptionUniqueName.Version,
@@ -53,7 +52,7 @@ public class ProcessManagerMessageClient(
             JsonInput = JsonSerializer.Serialize(command.InputParameter),
         };
 
-        ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(message))
+        ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(startOrchestration))
         {
             Subject = command.OrchestrationDescriptionUniqueName.Name,
             MessageId = command.MessageId,

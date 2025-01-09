@@ -22,24 +22,26 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 internal class EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
 {
+    private readonly IClock _clock = clock;
+    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+
     [Function(nameof(EnqueueMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+    public async Task Run([ActivityTrigger] ActivityInput activityInput)
     {
-        var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+        var orchestrationInstance = await _progressRepository
+            .GetAsync(activityInput.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        await CompleteStepAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueMessagesStep,
-                orchestrationInstance)
-            .ConfigureAwait(false);
+        orchestrationInstance.TransitionStepToTerminated(
+            Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueMessagesStep,
+            activityInput.TerminationState,
+            _clock);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
+
+    public sealed record ActivityInput(
+        OrchestrationInstanceId OrchestrationInstanceId,
+        OrchestrationStepTerminationState TerminationState);
 }

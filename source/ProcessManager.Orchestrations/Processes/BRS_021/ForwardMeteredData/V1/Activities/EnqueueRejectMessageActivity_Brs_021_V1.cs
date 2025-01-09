@@ -19,29 +19,39 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class StoringStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
+/// <summary>
+/// Enqueue reject message in EDI (and set step to running)
+/// </summary>
+internal class EnqueueRejectMessageActivity_Brs_021_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
 {
-    [Function(nameof(StoringStepTerminateActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run(
-        [ActivityTrigger] ActivityInput activityInput)
+    private readonly IClock _clock = clock;
+    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+
+    [Function(nameof(EnqueueRejectMessageActivity_Brs_021_V1))]
+    public async Task Run([ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await ProgressRepository
-            .GetAsync(activityInput.OrchestrationInstanceId)
+        var orchestrationInstance = await _progressRepository
+            .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        await CompleteStepAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.StoringMeteredDataStep,
-                orchestrationInstance)
-            .ConfigureAwait(false);
+        orchestrationInstance.TransitionStepToRunning(
+            Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueMessagesStep,
+            _clock);
 
-        // TODO: For demo purposes; remove when done
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+
+        await EnqueueRejectMessageAsync(input).ConfigureAwait(false);
+    }
+
+    private async Task EnqueueRejectMessageAsync(ActivityInput input)
+    {
+        // TODO: Enqueue message in EDI instead of delay
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 
-    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
+    public record ActivityInput(
+        OrchestrationInstanceId InstanceId,
+        IReadOnlyCollection<string> ValidationError);
 }

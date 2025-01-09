@@ -27,11 +27,10 @@ internal class ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
         progressRepository)
 {
     [Function(nameof(ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run(
-        [ActivityTrigger] Guid orchestrationInstanceId)
+    public async Task Run([ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(new OrchestrationInstanceId(orchestrationInstanceId))
+            .GetAsync(activityInput.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
         await CompleteStepAsync(
@@ -42,4 +41,6 @@ internal class ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
         // TODO: For demo purposes; remove when done
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
+
+    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
 }

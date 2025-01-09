@@ -29,17 +29,16 @@ public class EnqueueMessagesClient(
 {
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.EdiTopic);
 
-    public async Task Enqueue<TData>(
+    public async Task Enqueue<TInputData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
         IOperatingIdentityDto enqueuedBy,
         string messageId,
-        TData data,
-        string? messageType = null)
+        TInputData data)
     {
-        var actorId = enqueuedBy switch
+        var (actorId, userId) = enqueuedBy switch
         {
-            ActorIdentityDto actor => actor.ActorId,
-            UserIdentityDto user => user.ActorId,
+            ActorIdentityDto actor => (actor.ActorId, (Guid?)null),
+            UserIdentityDto user => (user.ActorId, user.UserId),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(enqueuedBy),
                 enqueuedBy.GetType().Name,
@@ -50,12 +49,13 @@ public class EnqueueMessagesClient(
         {
             OrchestrationName = orchestration.Name,
             OrchestrationVersion = orchestration.Version,
-            EnqueuedByActorId = actorId.ToString(),
-            JsonInput = JsonSerializer.Serialize(data),
+            OrchestrationStartedByActorId = actorId.ToString(),
+            JsonData = JsonSerializer.Serialize(data),
+            DataType = typeof(TInputData).Name,
         };
 
-        if (messageType is not null)
-            message.MessageType = messageType;
+        if (userId is not null)
+            message.OrchestrationStartedByUserId = userId.ToString();
 
         ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(message))
         {
@@ -66,23 +66,5 @@ public class EnqueueMessagesClient(
 
         await _serviceBusSender.SendMessageAsync(serviceBusMessage)
             .ConfigureAwait(false);
-    }
-
-    public Task EnqueueAccepted<TData>(
-        OrchestrationDescriptionUniqueNameDto orchestration,
-        IOperatingIdentityDto enqueuedBy,
-        string messageId,
-        TData data)
-    {
-        return Enqueue(orchestration, enqueuedBy, messageId, data, "Accepted");
-    }
-
-    public Task EnqueueRejected<TData>(
-        OrchestrationDescriptionUniqueNameDto orchestration,
-        IOperatingIdentityDto enqueuedBy,
-        string messageId,
-        TData data)
-    {
-        return Enqueue(orchestration, enqueuedBy, messageId, data, "Rejected");
     }
 }

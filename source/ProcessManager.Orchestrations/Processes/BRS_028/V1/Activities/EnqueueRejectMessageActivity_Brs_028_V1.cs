@@ -51,14 +51,15 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
 
     private Task EnqueueRejectMessageAsync(OperatingIdentity enqueuedBy, ActivityInput input)
     {
-        return _enqueueMessagesClient.EnqueueRejected(
+        // TODO: Set correct data when async validation is implemented
+        return _enqueueMessagesClient.Enqueue(
             Orchestration_Brs_028_V1.Name,
             enqueuedBy.ToDto(),
             "enqueue-" + input.InstanceId.Value,
-            input.ValidationError);
+            input.RejectedData);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        RequestCalculatedWholesaleServicesRejectedV1 ValidationError);
+        RequestCalculatedWholesaleServicesRejectedV1 RejectedData);
 }

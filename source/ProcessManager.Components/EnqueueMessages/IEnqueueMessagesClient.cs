@@ -23,18 +23,17 @@ public interface IEnqueueMessagesClient
         OrchestrationDescriptionUniqueNameDto orchestration,
         IOperatingIdentityDto enqueuedBy,
         string messageId,
-        TData data,
-        string? messageType = null);
-
-    public Task EnqueueAccepted<TData>(
-        OrchestrationDescriptionUniqueNameDto orchestration,
-        IOperatingIdentityDto enqueuedBy,
-        string messageId,
         TData data);
 
-    public Task EnqueueRejected<TData>(
-        OrchestrationDescriptionUniqueNameDto orchestration,
-        IOperatingIdentityDto enqueuedBy,
-        string messageId,
-        TData data);
+    // public Task EnqueueAccepted<TData>(
+    //     OrchestrationDescriptionUniqueNameDto orchestration,
+    //     IOperatingIdentityDto enqueuedBy,
+    //     string messageId,
+    //     TData data);
+    //
+    // public Task EnqueueRejected<TData>(
+    //     OrchestrationDescriptionUniqueNameDto orchestration,
+    //     IOperatingIdentityDto enqueuedBy,
+    //     string messageId,
+    //     TData data);
 }

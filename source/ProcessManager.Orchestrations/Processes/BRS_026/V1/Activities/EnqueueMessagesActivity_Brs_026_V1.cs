@@ -48,13 +48,17 @@ internal class EnqueueMessagesActivity_Brs_026_V1(
         await EnqueueMessagesAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 
-    private Task EnqueueMessagesAsync(OperatingIdentity enqueuedBy, ActivityInput input)
+    private Task EnqueueMessagesAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
-        return _enqueueMessagesClient.EnqueueAccepted(
+        // TODO: Set correct data when async validation is implemented
+        var acceptedData = new RequestCalculatedEnergyTimeSeriesAcceptedV1(
+            input.RequestInput.BusinessReason);
+
+        return _enqueueMessagesClient.Enqueue(
             Orchestration_Brs_026_V1.Name,
-            enqueuedBy.ToDto(),
+            orchestrationCreatedBy.ToDto(),
             "enqueue-" + input.InstanceId.Value,
-            input.RequestInput);
+            acceptedData);
     }
 
     public record ActivityInput(

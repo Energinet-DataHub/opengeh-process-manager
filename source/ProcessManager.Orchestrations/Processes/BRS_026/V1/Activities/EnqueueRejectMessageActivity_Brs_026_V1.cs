@@ -49,16 +49,17 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
         await EnqueueRejectMessageAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 
-    private Task EnqueueRejectMessageAsync(OperatingIdentity enqueuedBy, ActivityInput input)
+    private Task EnqueueRejectMessageAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
-        return _enqueueMessagesClient.EnqueueRejected(
+        // TODO: Set correct data when async validation is implemented
+        return _enqueueMessagesClient.Enqueue(
             Orchestration_Brs_026_V1.Name,
-            enqueuedBy.ToDto(),
+            orchestrationCreatedBy.ToDto(),
             "enqueue-" + input.InstanceId.Value,
-            input.ValidationError);
+            input.RejectedData);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        RequestCalculatedEnergyTimeSeriesRejectedV1 ValidationError);
+        RequestCalculatedEnergyTimeSeriesRejectedV1 RejectedData);
 }

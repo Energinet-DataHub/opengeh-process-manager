@@ -51,11 +51,15 @@ internal class EnqueueMessagesActivity_Brs_028_V1(
 
     private Task EnqueueMessagesAsync(OperatingIdentity enqueuedBy, ActivityInput input)
     {
-        return _enqueueMessagesClient.EnqueueAccepted(
+        // TODO: Set correct data when async validation is implemented
+        var acceptedData = new RequestCalculatedWholesaleServicesAcceptedV1(
+            BusinessReason: input.RequestInput.BusinessReason);
+
+        return _enqueueMessagesClient.Enqueue(
             Orchestration_Brs_028_V1.Name,
             enqueuedBy.ToDto(),
             "enqueue-" + input.InstanceId.Value,
-            input.RequestInput);
+            acceptedData);
     }
 
     public record ActivityInput(

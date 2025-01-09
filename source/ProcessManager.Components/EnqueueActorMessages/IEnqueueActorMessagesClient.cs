@@ -15,25 +15,13 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
+namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
-public interface IEnqueueMessagesClient
+public interface IEnqueueActorMessagesClient
 {
     public Task Enqueue<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
         IOperatingIdentityDto orchestrationStartedBy,
         string messageId,
         TData data);
-
-    // public Task EnqueueAccepted<TData>(
-    //     OrchestrationDescriptionUniqueNameDto orchestration,
-    //     IOperatingIdentityDto enqueuedBy,
-    //     string messageId,
-    //     TData data);
-    //
-    // public Task EnqueueRejected<TData>(
-    //     OrchestrationDescriptionUniqueNameDto orchestration,
-    //     IOperatingIdentityDto enqueuedBy,
-    //     string messageId,
-    //     TData data);
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
+using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
@@ -27,11 +27,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.A
 internal class EnqueueRejectMessageActivity_Brs_028_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
-    IEnqueueMessagesClient enqueueMessagesClient)
+    IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
-    private readonly IEnqueueMessagesClient _enqueueMessagesClient = enqueueMessagesClient;
+    private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
     [Function(nameof(EnqueueRejectMessageActivity_Brs_028_V1))]
     public async Task Run(
@@ -52,7 +52,7 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
     private Task EnqueueRejectMessageAsync(OperatingIdentity enqueuedBy, ActivityInput input)
     {
         // TODO: Set correct data when async validation is implemented
-        return _enqueueMessagesClient.Enqueue(
+        return _enqueueActorMessagesClient.Enqueue(
             Orchestration_Brs_028_V1.Name,
             enqueuedBy.ToDto(),
             "enqueue-" + input.InstanceId.Value,

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
+using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
@@ -27,11 +27,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.A
 internal class EnqueueMessagesActivity_Brs_026_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
-    IEnqueueMessagesClient enqueueMessagesClient)
+    IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
-    private readonly IEnqueueMessagesClient _enqueueMessagesClient = enqueueMessagesClient;
+    private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
     [Function(nameof(EnqueueMessagesActivity_Brs_026_V1))]
     public async Task Run(
@@ -54,7 +54,7 @@ internal class EnqueueMessagesActivity_Brs_026_V1(
         var acceptedData = new RequestCalculatedEnergyTimeSeriesAcceptedV1(
             input.RequestInput.BusinessReason);
 
-        return _enqueueMessagesClient.Enqueue(
+        return _enqueueActorMessagesClient.Enqueue(
             Orchestration_Brs_026_V1.Name,
             orchestrationCreatedBy.ToDto(),
             "enqueue-" + input.InstanceId.Value,

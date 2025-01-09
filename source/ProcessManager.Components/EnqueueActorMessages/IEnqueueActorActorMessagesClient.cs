@@ -16,16 +16,15 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 
-namespace Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
+namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
-public class EnqueueMessagesClient(
+public class IEnqueueActorActorMessagesClient(
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
-    : IEnqueueMessagesClient
+    : IEnqueueActorMessagesClient
 {
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.EdiTopic);
 
@@ -45,7 +44,7 @@ public class EnqueueMessagesClient(
                 "Unknown enqueuedBy type"),
         };
 
-        var message = new EnqueueMessagesCommand
+        var enqueueMessages = new Abstractions.Contracts.EnqueueActorMessages
         {
             OrchestrationName = orchestration.Name,
             OrchestrationVersion = orchestration.Version,
@@ -55,9 +54,9 @@ public class EnqueueMessagesClient(
         };
 
         if (startedByUserId is not null)
-            message.OrchestrationStartedByUserId = startedByUserId.ToString();
+            enqueueMessages.OrchestrationStartedByUserId = startedByUserId.ToString();
 
-        ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(message))
+        ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(enqueueMessages))
         {
             Subject = "Enqueue_" + orchestration.Name.ToLower(),
             MessageId = messageId,

@@ -75,6 +75,11 @@ public class MeasurementsMeteredDataClientExtensionsTests
     [Fact]
     public async Task AzureEventHubHealthCheckAreConfigured_WhenAddMeasurementsMeteredDataClient_MeasurementsEventHubHealthCheckIsRegistered()
     {
+        //TODO: var healthCheckRegistrations = serviceProvider
+                            // .GetRequiredService<IOptions<HealthCheckServiceOptions>>()
+                            // .Value
+                            // .Registrations;
+
         // Arrange
         // Add logging is required for the health check service
         Services.AddLogging();

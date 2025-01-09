@@ -13,10 +13,14 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using Azure.Identity;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ResourceProvider;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
+using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
@@ -26,6 +30,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 public class OrchestrationsAppFixture : IAsyncLifetime
 {
     private const string TaskHubName = "OrchestrationsTest01";
+    private const string MeasurementEventHubName = "eventhub-2024.11.28t08.28.30-d4d659af-f729-4244-b9c2-1051c0f0e4aa";
 
     public OrchestrationsAppFixture()
     {
@@ -46,8 +51,10 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             wireMockServerPort: 8112,
             manageDatabase: false,
             manageAzurite: false,
+            manageEventHub: true,
             // TODO (ID-283)
-            environment: "IntegrationTests");
+            environment: "IntegrationTests",
+            eventHubName: MeasurementEventHubName);
 
         ProcessManagerAppManager = new ProcessManagerAppManager(
             DatabaseManager,
@@ -62,6 +69,14 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
+
+        EventHubListener = new EventHubListenerMock(
+            new TestDiagnosticsLogger(),
+            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+            eventHubName: MeasurementEventHubName,
+            AzuriteManager.BlobStorageServiceUri,
+            blobContainerName: "container-01",
+            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -69,6 +84,8 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     public OrchestrationsAppManager OrchestrationsAppManager { get; }
 
     public ProcessManagerAppManager ProcessManagerAppManager { get; }
+
+    public EventHubListenerMock EventHubListener { get; }
 
     [NotNull]
     public IDurableClient? DurableClient { get; private set; }
@@ -99,6 +116,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         await OrchestrationsAppManager.StartAsync(serviceBusResources);
         await ProcessManagerAppManager.StartAsync();
+        await EventHubListener.InitializeAsync();
     }
 
     public async Task DisposeAsync()
@@ -109,6 +127,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await DatabaseManager.DeleteDatabaseAsync();
         AzuriteManager.Dispose();
         await ServiceBusResourceProvider.DisposeAsync();
+        // TODO: await EventHubListener.DisposeAsync();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)

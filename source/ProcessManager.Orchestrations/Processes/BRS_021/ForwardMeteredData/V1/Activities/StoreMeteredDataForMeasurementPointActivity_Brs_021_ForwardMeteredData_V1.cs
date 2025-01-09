@@ -38,6 +38,15 @@ internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMetere
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
+        var orchestrationInstance = await ProgressRepository
+            .GetAsync(input.OrchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        await TransitionStepToRunningAsync(
+                Orchestration_Brs_021_ForwardMeteredData_V1.StoringMeteredDataStep,
+                orchestrationInstance)
+            .ConfigureAwait(false);
+
         var points = input.MeteredDataForMeasurementPointMessageInput.EnergyObservations
             .Select(x => new Point(
                 ParsePosition(x.Position),

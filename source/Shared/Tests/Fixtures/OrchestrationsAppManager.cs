@@ -17,6 +17,7 @@ using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ResourceProvider;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
@@ -45,8 +46,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private readonly int _appPort;
     private readonly bool _manageDatabase;
     private readonly bool _manageAzurite;
+    private readonly bool _manageEventHub;
     // TODO (ID-283)
     private readonly string? _environment;
+    private readonly string _eventHubName;
 
     public OrchestrationsAppManager()
         : this(
@@ -58,8 +61,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
             wireMockServerPort: 8012,
             manageDatabase: true,
             manageAzurite: true,
+            manageEventHub: true,
             // TODO (ID-283)
-            environment: null)
+            environment: null,
+            eventHubName: "eventhub_pm")
     {
     }
 
@@ -72,8 +77,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
         int wireMockServerPort,
         bool manageDatabase,
         bool manageAzurite,
+        bool manageEventHub,
         // TODO (ID-283)
-        string? environment)
+        string? environment,
+        string eventHubName)
     {
         _taskHubName = string.IsNullOrWhiteSpace(taskHubName)
             ? throw new ArgumentException("Cannot be null or whitespace.", nameof(taskHubName))
@@ -81,8 +88,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
         _appPort = appPort;
         _manageDatabase = manageDatabase;
         _manageAzurite = manageAzurite;
+        _manageEventHub = manageEventHub;
         // TODO (ID-283)
         _environment = environment;
+        _eventHubName = eventHubName;
 
         DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();
@@ -92,6 +101,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
         ServiceBusResourceProvider = new ServiceBusResourceProvider(
             TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
+
+        EventHubResourceProvider = new EventHubResourceProvider(
+            new TestDiagnosticsLogger(),
+            IntegrationTestConfiguration.EventHubNamespaceName,
+            IntegrationTestConfiguration.ResourceManagementSettings,
             IntegrationTestConfiguration.Credential);
 
         MockServer = WireMockServer.Start(port: wireMockServerPort);
@@ -112,6 +127,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
+    private EventHubResourceProvider EventHubResourceProvider { get; }
+
     /// <summary>
     /// Start the orchestration app
     /// </summary>
@@ -127,6 +144,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
+
+        // TODO:  if (_manageEventHub)
+        //await ResourceProvider.BuildEventHub(_measurementEventHubName).CreateAsync();
 
         if (orchestrationSubscriptions is null)
             orchestrationSubscriptions = await ServiceBusResources.Create(ServiceBusResourceProvider);
@@ -152,6 +172,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             await DatabaseManager.DeleteDatabaseAsync();
 
         await ServiceBusResourceProvider.DisposeAsync();
+        //TODO: await EventHubResourceProvider.DisposeAsync();
         MockServer.Dispose();
     }
 
@@ -312,6 +333,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
+
+        // Measurements Metered Data Event Hub
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}",
+            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
+            _eventHubName);
 
         return appHostSettings;
     }

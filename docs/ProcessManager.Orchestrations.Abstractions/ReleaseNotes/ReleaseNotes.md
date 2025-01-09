@@ -2,6 +2,7 @@
 
 ## Version 0.6.0
 
+- Refactored implementation of custom queries support.
 - Added types `ActorRequestQuery` and `ActorRequestQueryResult`.
 
 ## Version 0.5.0

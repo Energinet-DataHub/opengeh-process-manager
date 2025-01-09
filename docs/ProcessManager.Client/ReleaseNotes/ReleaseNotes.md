@@ -3,6 +3,7 @@
 ## Version 0.17.0
 
 - Updated code documenation (XML comments).
+- Refactored implementation of custom queries support.
 
 ## Version 0.16.0
 

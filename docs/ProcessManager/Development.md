@@ -26,9 +26,8 @@ disable our `TimerTrigger`s used to manage scheduled and recurring orchestration
 
 An orchestration is a durable function with activities.
 We recommend that one follows the [guidelines for durable functions](https://energinet.atlassian.net/wiki/spaces/D3/pages/824475658/Durable+Functions).
-Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed.
-
-[//]: # (Overvejer om vi kort skal skrive hvorfor dette er en god ide? At man potentielt ødelægger levende orchs, fordi man ændre i hvordan fx history burde se ud.)
+Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed
+to ensure that the history of the running orchestration are intact. (The previous versions may not run to completion if this happens)
 
 ### Developing activities
 

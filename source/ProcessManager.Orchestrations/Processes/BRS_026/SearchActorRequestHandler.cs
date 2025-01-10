@@ -14,7 +14,10 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
 
@@ -22,11 +25,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026;
 
 internal class SearchActorRequestHandler(
     IOrchestrationInstanceQueries queries) :
-        ISearchOrchestrationInstancesQueryHandler<ActorRequestQuery, ActorRequestQueryResult>
+        ISearchOrchestrationInstancesQueryHandler<ActorRequestQuery, IActorRequestQueryResult>
 {
     private readonly IOrchestrationInstanceQueries _queries = queries;
 
-    public async Task<IReadOnlyCollection<ActorRequestQueryResult>> HandleAsync(ActorRequestQuery query)
+    public async Task<IReadOnlyCollection<IActorRequestQueryResult>> HandleAsync(ActorRequestQuery query)
     {
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         //
@@ -49,7 +52,32 @@ internal class SearchActorRequestHandler(
             .ConfigureAwait(false);
 
         return orchestrationInstances
-            .Select(item => new ActorRequestQueryResult(item.MapToDto()))
+            .Select(item => MapToConcreteResultDto(item))
             .ToList();
+    }
+
+    private IActorRequestQueryResult MapToConcreteResultDto(OrchestrationInstance item)
+    {
+        // TODO: Refactor; query should return info about which orchestration description each item belongs to
+        if (item.ParameterValue.SerializedParameterValue.Contains("BalanceResponsibleNumber"))
+        {
+            var original = item.MapToTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>();
+            return new Brs026Result(
+                original.Id,
+                original.Lifecycle,
+                original.Steps,
+                original.CustomState,
+                original.ParameterValue);
+        }
+        else
+        {
+            var original = item.MapToTypedDto<RequestCalculatedWholesaleServicesInputV1>();
+            return new Brs028Result(
+                original.Id,
+                original.Lifecycle,
+                original.Steps,
+                original.CustomState,
+                original.ParameterValue);
+        }
     }
 }

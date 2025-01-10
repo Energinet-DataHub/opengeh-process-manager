@@ -12,12 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 
 /// <summary>
 /// Query result from searching for BRS-026 or BRS-028 orchestration instances.
-/// Must be JSON serializable.
+/// We use https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/polymorphism
 /// </summary>
-public record ActorRequestQueryResult(OrchestrationInstanceDto OrchestrationInstance);
+[JsonPolymorphic(UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FallBackToNearestAncestor)]
+[JsonDerivedType(typeof(IActorRequestQueryResult), typeDiscriminator: "base")]
+[JsonDerivedType(typeof(Brs026Result), typeDiscriminator: "brs026")]
+[JsonDerivedType(typeof(Brs028Result), typeDiscriminator: "brs028")]
+public interface IActorRequestQueryResult;

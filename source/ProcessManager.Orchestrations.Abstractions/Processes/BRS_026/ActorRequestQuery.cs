@@ -24,7 +24,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Must be JSON serializable.
 /// </summary>
 public sealed record ActorRequestQuery
-    : SearchOrchestrationInstancesByCustomQuery<ActorRequestQueryResult>
+    : SearchOrchestrationInstancesByCustomQuery<IActorRequestQueryResult>
 {
     public const string RouteName = "brs_026_028";
 

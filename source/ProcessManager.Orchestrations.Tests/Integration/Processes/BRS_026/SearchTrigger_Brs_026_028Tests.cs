@@ -90,10 +90,10 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
     }
 
     /// <summary>
-    /// The
+    /// This test proves that we can get type strong result objects return from the custom query.
     /// </summary>
     [Fact]
-    public async Task Brs026And028OrchestrationInstancesInDatabase_WhenQueryActorRequests_ExpectedOrchestrationInstancesAreRetrieved()
+    public async Task Brs026And028OrchestrationInstancesInDatabase_WhenQueryActorRequests_ExpectedResultTypesAreRetrieved()
     {
         // Arrange
         var now = DateTimeOffset.UtcNow;
@@ -104,20 +104,21 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         var energySupplierNumber = "23143245321";
 
         // => Brs 026
+        var brs026Input = new RequestCalculatedEnergyTimeSeriesInputV1(
+            RequestedForActorNumber: energySupplierNumber,
+            RequestedForActorRole: "EnergySupplier",
+            BusinessReason: "BalanceFixing",
+            PeriodStart: "2024-04-07 23:00:00",
+            PeriodEnd: "2024-04-08 23:00:00",
+            EnergySupplierNumber: energySupplierNumber,
+            BalanceResponsibleNumber: null,
+            GridAreas: ["804"],
+            MeteringPointType: null,
+            SettlementMethod: null,
+            SettlementVersion: null);
         var startRequestCalculatedEnergyTimeSeriesCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
             actorIdentity,
-            new RequestCalculatedEnergyTimeSeriesInputV1(
-                RequestedForActorNumber: energySupplierNumber,
-                RequestedForActorRole: "EnergySupplier",
-                BusinessReason: "BalanceFixing",
-                PeriodStart: "2024-04-07 23:00:00",
-                PeriodEnd: "2024-04-08 23:00:00",
-                EnergySupplierNumber: energySupplierNumber,
-                BalanceResponsibleNumber: null,
-                GridAreas: ["804"],
-                MeteringPointType: null,
-                SettlementMethod: null,
-                SettlementVersion: null),
+            brs026Input,
             messageId: Guid.NewGuid().ToString());
 
         var orchestrationBrs026CreatedAfter = DateTime.UtcNow.AddSeconds(-1);
@@ -130,20 +131,21 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
             name: nameof(Orchestration_Brs_026_V1));
 
         // => Brs 028
+        var brs028Input = new RequestCalculatedWholesaleServicesInputV1(
+            RequestedForActorNumber: energySupplierNumber,
+            RequestedForActorRole: "EnergySupplier",
+            BusinessReason: "WholesaleFixing",
+            PeriodStart: "2024-04-01 23:00:00",
+            PeriodEnd: "2024-04-30 23:00:00",
+            Resolution: null,
+            EnergySupplierNumber: energySupplierNumber,
+            ChargeOwnerNumber: null,
+            GridAreas: ["804"],
+            SettlementVersion: null,
+            ChargeTypes: null);
         var startRequestCalculatedWholesaleServicesCommand = new RequestCalculatedWholesaleServicesCommandV1(
             actorIdentity,
-            new RequestCalculatedWholesaleServicesInputV1(
-                RequestedForActorNumber: energySupplierNumber,
-                RequestedForActorRole: "EnergySupplier",
-                BusinessReason: "WholesaleFixing",
-                PeriodStart: "2024-04-01 23:00:00",
-                PeriodEnd: "2024-04-30 23:00:00",
-                Resolution: null,
-                EnergySupplierNumber: energySupplierNumber,
-                ChargeOwnerNumber: null,
-                GridAreas: ["804"],
-                SettlementVersion: null,
-                ChargeTypes: null),
+            brs028Input,
             messageId: Guid.NewGuid().ToString());
 
         var orchestrationBrs028CreatedAfter = DateTime.UtcNow.AddSeconds(-1);
@@ -172,6 +174,13 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
                 CancellationToken.None);
 
         // Assert
-        actual.Should().HaveCount(2); // TODO: Should compare using known values like e.g. an ID
+        // TODO:
+        // We could improve this test by having an ID to compare from the "request",
+        // but currently this is not supported when using the ProcessManager over ServiceBus
+        actual.Should()
+            .Contain(x =>
+                x.GetType() == typeof(Brs026Result))
+            .And.Contain(x =>
+                x.GetType() == typeof(Brs028Result));
     }
 }

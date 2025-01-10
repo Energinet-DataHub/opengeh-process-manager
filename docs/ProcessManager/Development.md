@@ -28,7 +28,7 @@ disable our `TimerTrigger`s used to manage scheduled and recurring orchestration
 An orchestration is a durable function with activities.
 We recommend that one follows the [guidelines for durable functions](https://energinet.atlassian.net/wiki/spaces/D3/pages/824475658/Durable+Functions).
 Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed
-to ensure that the history of the running orchestration are intact. 
+to ensure that the history of the running orchestration are intact.
 The previous versions may not run to completion if this happens,
 consult [microsoft's versioning documentation for more information](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-versioning?tabs=csharp).
 (The process manager supports the "side-by-side" Mitigation strategy).

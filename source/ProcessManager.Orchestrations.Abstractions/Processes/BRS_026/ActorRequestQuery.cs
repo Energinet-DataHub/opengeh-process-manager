@@ -19,6 +19,12 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 
+// TODO:
+// Should be moved to another namespace because this is shared between BRS 026 + 028.
+// We have talked about combining these BRS's into ne top-folder similar to BRS 023 + 027,
+// and then use subfolders to split them per orchestration OR perhaps even use the same orchestration
+// because their logic is very similar.
+
 /// <summary>
 /// Query for searching for BRS-026 or BRS-028 orchestration instances.
 /// Must be JSON serializable.

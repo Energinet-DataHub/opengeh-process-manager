@@ -27,7 +27,6 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
-using NodaTime;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_026;
@@ -121,9 +120,14 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
                 SettlementVersion: null),
             messageId: Guid.NewGuid().ToString());
 
+        var orchestrationBrs026CreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startRequestCalculatedEnergyTimeSeriesCommand,
             cancellationToken: default);
+
+        await Fixture.DurableClient.WaitForOrchestationStartedAsync(
+            createdTimeFrom: orchestrationBrs026CreatedAfter,
+            name: nameof(Orchestration_Brs_026_V1));
 
         // => Brs 028
         var startRequestCalculatedWholesaleServicesCommand = new RequestCalculatedWholesaleServicesCommandV1(
@@ -142,16 +146,13 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
                 ChargeTypes: null),
             messageId: Guid.NewGuid().ToString());
 
+        var orchestrationBrs028CreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startRequestCalculatedWholesaleServicesCommand,
             cancellationToken: default);
 
-        // Wait until we are sure orchestrations has been created in the database
         await Fixture.DurableClient.WaitForOrchestationStartedAsync(
-            createdTimeFrom: now.DateTime,
-            name: nameof(Orchestration_Brs_026_V1));
-        await Fixture.DurableClient.WaitForOrchestationStartedAsync(
-            createdTimeFrom: now.DateTime,
+            createdTimeFrom: orchestrationBrs028CreatedAfter,
             name: nameof(Orchestration_Brs_028_V1));
 
         // => Custom query

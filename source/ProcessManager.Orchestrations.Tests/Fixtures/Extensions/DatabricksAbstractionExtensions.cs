@@ -55,4 +55,38 @@ public static class DatabricksAbstractionExtensions
 
         return server;
     }
+
+    public static WireMockServer MockCalculationJobStatusResponse(
+        this WireMockServer server,
+        Func<RunLifeCycleState?> jobRunStateCallback,
+        string jobName,
+        int? runId = null)
+    {
+        // => Databricks Jobs API
+        var jobId = Random.Shared.Next(1, 1000);
+        runId ??= Random.Shared.Next(1000, 2000);
+
+        (RunStatusState Status, RunTerminationCode TerminationCode)? JobRunStateStringCallback()
+        {
+            var state = jobRunStateCallback();
+
+            return state switch
+            {
+                null => null,
+                RunLifeCycleState.PENDING => (RunStatusState.PENDING, RunTerminationCode.CANCELED), // "CANCELED" should not matter here
+                RunLifeCycleState.RUNNING => (RunStatusState.RUNNING, RunTerminationCode.CANCELED), // "CANCELED" should not matter here
+                RunLifeCycleState.TERMINATED => (RunStatusState.TERMINATED, RunTerminationCode.SUCCESS),
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, "The given state is not implemented"),
+            };
+        }
+
+        // => Mock job run status to respond according to the JobRunStateStringCallback
+        server
+            .MockJobsList(jobId, jobName)
+            .MockJobsGet(jobId, jobName)
+            .MockJobsRunNow(runId.Value)
+            .MockJobsRunsGet(runId.Value, JobRunStateStringCallback);
+
+        return server;
+    }
 }

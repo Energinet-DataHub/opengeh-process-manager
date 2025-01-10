@@ -25,6 +25,7 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using WireMock.Server;
 using Xunit.Abstractions;
 
@@ -317,6 +318,16 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
 
+        // => BRS 023 027
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.CalculationJobStatusPollingIntervalInSeconds)}",
+            "3");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.CalculationJobStatusExpiryTimeInSeconds)}",
+            "20");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
+            "20");
         return appHostSettings;
     }
 

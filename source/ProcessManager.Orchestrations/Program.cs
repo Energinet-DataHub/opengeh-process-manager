@@ -24,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.TestServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,6 +65,10 @@ var host = new HostBuilder()
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
+
+        services
+            .AddOptions<OrchestrationOptions_Brs_023_027_V1>()
+            .BindConfiguration(OrchestrationOptions_Brs_023_027_V1.SectionName);
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

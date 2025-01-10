@@ -110,7 +110,9 @@ internal class OrchestrationRegister(
         OrchestrationDescription registerDescription,
         OrchestrationDescription hostDescription)
     {
-        return registerDescription.RecurringCronExpression != hostDescription.RecurringCronExpression;
+        return
+            registerDescription.RecurringCronExpression != hostDescription.RecurringCronExpression
+            || registerDescription.FunctionName != hostDescription.FunctionName;
     }
 
     /// <summary>
@@ -122,5 +124,6 @@ internal class OrchestrationRegister(
         OrchestrationDescription hostDescription)
     {
         registerDescription.RecurringCronExpression = hostDescription.RecurringCronExpression;
+        registerDescription.FunctionName = hostDescription.FunctionName;
     }
 }

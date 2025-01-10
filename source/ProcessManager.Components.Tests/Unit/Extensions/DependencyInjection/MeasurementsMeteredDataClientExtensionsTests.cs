@@ -74,10 +74,9 @@ public class MeasurementsMeteredDataClientExtensionsTests
     }
 
     [Fact]
-    public Task AzureEventHubHealthCheckAreConfigured_WhenAddMeasurementsMeteredDataClient_MeasurementsEventHubHealthCheckIsRegistered()
+    public void AzureEventHubHealthCheckAreConfigured_WhenAddMeasurementsMeteredDataClient_MeasurementsEventHubHealthCheckIsRegistered()
     {
         // Arrange
-        Services.AddLogging();
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"] = EventHubNamespace,
@@ -102,6 +101,5 @@ public class MeasurementsMeteredDataClientExtensionsTests
         healthCheckRegistration.Factory(serviceProvider)
             .Should()
             .BeOfType<AzureEventHubHealthCheck>();
-        return Task.CompletedTask;
     }
 }

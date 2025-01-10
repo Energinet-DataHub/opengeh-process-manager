@@ -87,7 +87,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         _manageAzurite = manageAzurite;
         // TODO (ID-283)
         _environment = environment;
-        EventHubName = eventHubName;
         _eventHubName = eventHubName;
 
         DatabaseManager = databaseManager;
@@ -116,7 +115,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
     [NotNull]
     public FunctionAppHostManager? AppHostManager { get; private set; }
 
-    public string EventHubName { get; private set; }
+    [NotNull]
+    public string? EventHubName { get; private set; }
 
     public WireMockServer MockServer { get; }
 

@@ -19,7 +19,7 @@
     "WholesaleWorkspace__Token": "<Workspace Token>",
     "MeasurementsWorkspace__BaseUrl": "<Workspace URL>",
     "MeasurementsWorkspace__Token": "<Workspace Token>",
-    // Meassurements
+    // Meassurements Event Hub
     "MeasurementsEventHub__FullyQualifiedNamespace": "<Event Hub fully qualified namespace>",
     "MeasurementsEventHub__EventHubName": "<Event Hub name>"
   }

@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -24,10 +26,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.A
 /// </summary>
 internal class EnqueueRejectMessageActivity_Brs_026_V1(
     IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
     [Function(nameof(EnqueueRejectMessageActivity_Brs_026_V1))]
     public async Task Run(
@@ -38,20 +42,24 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
             .ConfigureAwait(false);
 
         orchestrationInstance.TransitionStepToRunning(
-            Orchestration_Brs_026_V1.EnqueueMessagesStepSequence,
+            Orchestration_Brs_026_V1.EnqueueActorMessagesStepSequence,
             _clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        await EnqueueRejectMessageAsync(input).ConfigureAwait(false);
+        await EnqueueRejectMessageAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 
-    private async Task EnqueueRejectMessageAsync(ActivityInput input)
+    private Task EnqueueRejectMessageAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
-        // TODO: Enqueue message in EDI instead of delay
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        // TODO: Set correct data when async validation is implemented
+        return _enqueueActorMessagesClient.Enqueue(
+            Orchestration_Brs_026_V1.Name,
+            orchestrationCreatedBy.ToDto(),
+            "enqueue-" + input.InstanceId.Value,
+            input.RejectedData);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        string ValidationError);
+        RequestCalculatedEnergyTimeSeriesRejectedV1 RejectedData);
 }

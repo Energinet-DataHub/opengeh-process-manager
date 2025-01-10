@@ -28,7 +28,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 internal class Orchestration_Brs_023_027_V1
 {
     internal const int CalculationStepSequence = 1;
-    internal const int EnqueueMessagesStepSequence = 2;
+    internal const int EnqueueActorMessagesStepSequence = 2;
 
     private readonly TaskOptions _defaultRetryOptions;
 
@@ -140,19 +140,19 @@ internal class Orchestration_Brs_023_027_V1
         }
 
         // Step: Enqueue messages
-        if (!executionContext.SkippedStepsBySequence.Contains(EnqueueMessagesStepSequence))
+        if (!executionContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStepSequence))
         {
             await context.CallActivityAsync(
                 nameof(TransitionStepToRunningActivity_Brs_023_027_V1),
                 new TransitionStepToRunningActivity_Brs_023_027_V1.ActivityInput(
                     instanceId,
-                    EnqueueMessagesStepSequence),
+                    EnqueueActorMessagesStepSequence),
                 _defaultRetryOptions);
             await context.CallActivityAsync(
                 nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
                 new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
                     instanceId,
-                    EnqueueMessagesStepSequence,
+                    EnqueueActorMessagesStepSequence,
                     OrchestrationStepTerminationState.Succeeded),
                 _defaultRetryOptions);
         }

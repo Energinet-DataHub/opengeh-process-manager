@@ -1,0 +1,28 @@
+/* Copyright 2020 Energinet DataHub A/S
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License2");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
+
+// EnqueueActorMessages describes the type of the Service Bus message body when an orchestration enqueues messages using the EDI Service Bus topic
+message EnqueueActorMessages {
+  string orchestration_name = 1; // The name of the orchestration to enqueue actor messages for.
+  int32 orchestration_version = 2; // The version of the orchestration to enqueue actor messages for.
+  string json_data = 3; // The enqueue actor messages data serialized as a JSON
+  string data_type = 5; // Name of the JSON data type (examples could be "RequestCalculatedEnergyTimeSeriesAcceptedV1" or "RequestCalculatedEnergyTimeSeriesRejectedV1")
+  string orchestration_started_by_actor_id = 4; // The actor id that started the orchestration
+  optional string orchestration_started_by_user_id = 6; // The user id that started the orchestration, if any
+}

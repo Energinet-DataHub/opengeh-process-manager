@@ -16,6 +16,7 @@ using Azure.Identity;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
 using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ElectricityMarket.Integration.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
@@ -40,6 +41,7 @@ var host = new HostBuilder()
         services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
+        services.AddServiceBusClientForApplication(context.Configuration);
 
         // TODO (ID-283)
         if (context.HostingEnvironment.IsEnvironment("IntegrationTests"))
@@ -54,6 +56,9 @@ var host = new HostBuilder()
         // Databricks Workspaces
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Wholesale);
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Measurements);
+
+        // Enqueue Messages in EDI
+        services.AddEnqueueActorMessages(azureCredential);
 
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
@@ -26,7 +27,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 internal class Orchestration_Brs_026_V1
 {
     public const int AsyncValidationStepSequence = 1;
-    public const int EnqueueMessagesStepSequence = 2;
+    public const int EnqueueActorMessagesStepSequence = 2;
+
+    public static readonly Brs_026_V1 Name = new();
 
     private readonly TaskOptions _defaultRetryOptions;
 
@@ -43,10 +46,10 @@ internal class Orchestration_Brs_026_V1
 
         var instanceId = await InitializeOrchestrationAsync(context);
 
-        var isValidAsynchronousValidation = await PerformAsynchronousValidationAsync(context, instanceId, input);
-        await EnqueueMessagesInEdiAsync(context, instanceId, input, isValidAsynchronousValidation);
+        var validationResult = await PerformAsynchronousValidationAsync(context, instanceId, input);
+        await EnqueueActorMessagesInEdiAsync(context, instanceId, input, validationResult);
 
-        var wasMessagesEnqueued = await WaitForEnqueueMessagesResponseFromEdiAsync(context, instanceId);
+        var wasMessagesEnqueued = await WaitForEnqueueActorMessagesResponseFromEdiAsync(context, instanceId);
         return await TerminateOrchestrationAsync(context, instanceId, input, wasMessagesEnqueued);
     }
 
@@ -71,19 +74,19 @@ internal class Orchestration_Brs_026_V1
         return instanceId;
     }
 
-    private async Task<bool> PerformAsynchronousValidationAsync(
+    private async Task<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput> PerformAsynchronousValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input)
     {
-        var isValid = await context.CallActivityAsync<bool>(
+        var validationResult = await context.CallActivityAsync<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput>(
             nameof(PerformAsyncValidationActivity_Brs_026_V1),
             new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
                 instanceId,
                 input),
             _defaultRetryOptions);
 
-        var asyncValidationTerminationState = isValid
+        var asyncValidationTerminationState = validationResult.IsValid
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
         await context.CallActivityAsync(
@@ -94,36 +97,38 @@ internal class Orchestration_Brs_026_V1
                 asyncValidationTerminationState),
             _defaultRetryOptions);
 
-        return isValid;
+        return validationResult;
     }
 
-    private async Task EnqueueMessagesInEdiAsync(
+    private async Task EnqueueActorMessagesInEdiAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input,
-        bool isValidAsyncValidation)
+        PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput validationResult)
     {
-        if (isValidAsyncValidation)
+        if (validationResult.IsValid)
         {
             await context.CallActivityAsync(
-                nameof(EnqueueMessagesActivity_Brs_026_V1),
-                new EnqueueMessagesActivity_Brs_026_V1.ActivityInput(
+                nameof(EnqueueActorMessagesActivity_Brs_026_V1),
+                new EnqueueActorMessagesActivity_Brs_026_V1.ActivityInput(
                     instanceId,
                     input),
                 _defaultRetryOptions);
         }
         else
         {
+            ArgumentNullException.ThrowIfNull(validationResult.ValidationError);
+
             await context.CallActivityAsync(
                 nameof(EnqueueRejectMessageActivity_Brs_026_V1),
                 new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
                     instanceId,
-                    "Validation error"),
+                    validationResult.ValidationError),
                 _defaultRetryOptions);
         }
     }
 
-    private async Task<bool> WaitForEnqueueMessagesResponseFromEdiAsync(
+    private async Task<bool> WaitForEnqueueActorMessagesResponseFromEdiAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId)
     {
@@ -140,15 +145,15 @@ internal class Orchestration_Brs_026_V1
         RequestCalculatedEnergyTimeSeriesInputV1 input,
         bool wasMessagesEnqueued)
     {
-        var enqueueMessagesTerminationState = wasMessagesEnqueued
+        var enqueueActorMessagesTerminationState = wasMessagesEnqueued
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
         await context.CallActivityAsync(
             nameof(TerminateStepActivity_Brs_026_V1),
             new TerminateStepActivity_Brs_026_V1.ActivityInput(
                 instanceId,
-                EnqueueMessagesStepSequence,
-                enqueueMessagesTerminationState),
+                EnqueueActorMessagesStepSequence,
+                enqueueActorMessagesTerminationState),
             _defaultRetryOptions);
 
         if (!wasMessagesEnqueued)

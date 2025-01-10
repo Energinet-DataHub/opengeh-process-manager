@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
-/// <summary>
-/// An actor identity performing a Process Manager operation.
-/// </summary>
-public record ActorIdentity(ActorId ActorId)
-    : OperatingIdentity
+public class EdiTopicOptions
 {
-    public override IOperatingIdentityDto ToDto()
-    {
-        return new ActorIdentityDto(ActorId.Value);
-    }
+    public const string SectionName = "EdiTopic";
+
+    /// <summary>
+    /// EDI Service Bus topic name
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string Name { get; set; } = string.Empty;
 }

@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Measurements;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using HealthChecks.Azure.Messaging.EventHubs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -73,15 +74,9 @@ public class MeasurementsMeteredDataClientExtensionsTests
     }
 
     [Fact]
-    public async Task AzureEventHubHealthCheckAreConfigured_WhenAddMeasurementsMeteredDataClient_MeasurementsEventHubHealthCheckIsRegistered()
+    public Task AzureEventHubHealthCheckAreConfigured_WhenAddMeasurementsMeteredDataClient_MeasurementsEventHubHealthCheckIsRegistered()
     {
-        //TODO: var healthCheckRegistrations = serviceProvider
-                            // .GetRequiredService<IOptions<HealthCheckServiceOptions>>()
-                            // .Value
-                            // .Registrations;
-
         // Arrange
-        // Add logging is required for the health check service
         Services.AddLogging();
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
@@ -90,13 +85,23 @@ public class MeasurementsMeteredDataClientExtensionsTests
         });
         Services.AddMeasurementsMeteredDataClient();
         var serviceProvider = Services.BuildServiceProvider();
-        var healthCheckService = serviceProvider.GetRequiredService<HealthCheckService>();
 
         // Act
-        var healthReport = await healthCheckService.CheckHealthAsync(CancellationToken.None);
+        var healthCheckRegistrations = serviceProvider
+            .GetRequiredService<IOptions<HealthCheckServiceOptions>>()
+            .Value
+            .Registrations;
 
         // Assert
-        Assert.NotNull(healthReport);
-        Assert.Contains(EventHubProducerClientNames.MeasurementsEventHub, healthReport.Entries.Keys);
+        var healthCheckRegistration = healthCheckRegistrations
+            .Should()
+            .ContainSingle()
+            .Subject;
+        healthCheckRegistration.Name.Should()
+            .BeSameAs(MeasurementsMeteredDataClientOptions.SectionName);
+        healthCheckRegistration.Factory(serviceProvider)
+            .Should()
+            .BeOfType<AzureEventHubHealthCheck>();
+        return Task.CompletedTask;
     }
 }

@@ -46,7 +46,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private readonly int _appPort;
     private readonly bool _manageDatabase;
     private readonly bool _manageAzurite;
-    private readonly bool _manageEventHub;
     // TODO (ID-283)
     private readonly string? _environment;
     private readonly string _eventHubName;
@@ -61,7 +60,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
             wireMockServerPort: 8012,
             manageDatabase: true,
             manageAzurite: true,
-            manageEventHub: true,
             // TODO (ID-283)
             environment: null,
             eventHubName: "eventhub_pm")
@@ -77,7 +75,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         int wireMockServerPort,
         bool manageDatabase,
         bool manageAzurite,
-        bool manageEventHub,
         // TODO (ID-283)
         string? environment,
         string eventHubName)
@@ -88,9 +85,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
         _appPort = appPort;
         _manageDatabase = manageDatabase;
         _manageAzurite = manageAzurite;
-        _manageEventHub = manageEventHub;
         // TODO (ID-283)
         _environment = environment;
+        EventHubName = eventHubName;
         _eventHubName = eventHubName;
 
         DatabaseManager = databaseManager;
@@ -119,6 +116,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
     [NotNull]
     public FunctionAppHostManager? AppHostManager { get; private set; }
 
+    public string EventHubName { get; private set; }
+
     public WireMockServer MockServer { get; }
 
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -145,8 +144,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        // TODO:  if (_manageEventHub)
-        //await ResourceProvider.BuildEventHub(_measurementEventHubName).CreateAsync();
+        var eventHubResource = await EventHubResourceProvider.BuildEventHub(_eventHubName).CreateAsync();
+        EventHubName = eventHubResource.Name;
 
         if (orchestrationSubscriptions is null)
             orchestrationSubscriptions = await ServiceBusResources.Create(ServiceBusResourceProvider);
@@ -154,7 +153,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
-            orchestrationSubscriptions);
+            orchestrationSubscriptions,
+            eventHubResource);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -172,7 +172,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             await DatabaseManager.DeleteDatabaseAsync();
 
         await ServiceBusResourceProvider.DisposeAsync();
-        //TODO: await EventHubResourceProvider.DisposeAsync();
+        await EventHubResourceProvider.DisposeAsync();
         MockServer.Dispose();
     }
 
@@ -240,7 +240,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        ServiceBusResources subscriptions)
+        ServiceBusResources subscriptions,
+        EventHubResource eventHubResource)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -340,7 +341,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
-            _eventHubName);
+            eventHubResource.Name);
 
         return appHostSettings;
     }

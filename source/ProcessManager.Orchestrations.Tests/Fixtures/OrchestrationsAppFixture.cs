@@ -30,7 +30,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 public class OrchestrationsAppFixture : IAsyncLifetime
 {
     private const string TaskHubName = "OrchestrationsTest01";
-    private const string MeasurementEventHubName = "eventhub-2024.11.28t08.28.30-d4d659af-f729-4244-b9c2-1051c0f0e4aa";
+    private const string MeasurementEventHubName = "eventhub-measurements";
 
     public OrchestrationsAppFixture()
     {
@@ -51,7 +51,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             wireMockServerPort: 8112,
             manageDatabase: false,
             manageAzurite: false,
-            manageEventHub: true,
             // TODO (ID-283)
             environment: "IntegrationTests",
             eventHubName: MeasurementEventHubName);
@@ -69,14 +68,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
-
-        EventHubListener = new EventHubListenerMock(
-            new TestDiagnosticsLogger(),
-            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
-            eventHubName: MeasurementEventHubName,
-            AzuriteManager.BlobStorageServiceUri,
-            blobContainerName: "container-01",
-            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -85,7 +76,8 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
     public ProcessManagerAppManager ProcessManagerAppManager { get; }
 
-    public EventHubListenerMock EventHubListener { get; }
+    [NotNull]
+    public EventHubListenerMock? EventHubListener { get; private set; }
 
     [NotNull]
     public IDurableClient? DurableClient { get; private set; }
@@ -116,18 +108,26 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         await OrchestrationsAppManager.StartAsync(serviceBusResources);
         await ProcessManagerAppManager.StartAsync();
+
+        EventHubListener = new EventHubListenerMock(
+            new TestDiagnosticsLogger(),
+            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+            eventHubName: OrchestrationsAppManager.EventHubName,
+            AzuriteManager.BlobStorageServiceUri,
+            blobContainerName: "container-01",
+            IntegrationTestConfiguration.Credential);
         await EventHubListener.InitializeAsync();
     }
 
     public async Task DisposeAsync()
     {
+        await EventHubListener.DisposeAsync();
         await OrchestrationsAppManager.DisposeAsync();
         await ProcessManagerAppManager.DisposeAsync();
         await DurableTaskManager.DisposeAsync();
         await DatabaseManager.DeleteDatabaseAsync();
         AzuriteManager.Dispose();
         await ServiceBusResourceProvider.DisposeAsync();
-        // TODO: await EventHubListener.DisposeAsync();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)

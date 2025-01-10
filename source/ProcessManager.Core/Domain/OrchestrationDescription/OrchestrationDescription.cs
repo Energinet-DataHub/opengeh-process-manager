@@ -100,7 +100,7 @@ public class OrchestrationDescription
     /// <summary>
     /// The name of the Durable Functions orchestration implementation.
     /// </summary>
-    public string FunctionName { get; }
+    public string FunctionName { get; set; }
 
     /// <summary>
     /// Defines the Durable Functions orchestration input parameter type.

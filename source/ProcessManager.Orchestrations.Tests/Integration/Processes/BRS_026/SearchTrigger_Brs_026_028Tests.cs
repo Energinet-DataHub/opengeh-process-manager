@@ -179,8 +179,8 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         // but currently this is not supported when using the ProcessManager over ServiceBus
         actual.Should()
             .Contain(x =>
-                x.GetType() == typeof(Brs026Result))
+                x.GetType() == typeof(RequestCalculatedEnergyTimeSeriesResult))
             .And.Contain(x =>
-                x.GetType() == typeof(Brs028Result));
+                x.GetType() == typeof(RequestCalculatedWholesaleServicesResult));
     }
 }

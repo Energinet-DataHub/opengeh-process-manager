@@ -22,6 +22,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// </summary>
 [JsonPolymorphic(UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FallBackToNearestAncestor)]
 [JsonDerivedType(typeof(IActorRequestQueryResult), typeDiscriminator: "base")]
-[JsonDerivedType(typeof(Brs026Result), typeDiscriminator: "brs026")]
-[JsonDerivedType(typeof(Brs028Result), typeDiscriminator: "brs028")]
+[JsonDerivedType(typeof(RequestCalculatedEnergyTimeSeriesResult), typeDiscriminator: "brs026")]
+[JsonDerivedType(typeof(RequestCalculatedWholesaleServicesResult), typeDiscriminator: "brs028")]
 public interface IActorRequestQueryResult;

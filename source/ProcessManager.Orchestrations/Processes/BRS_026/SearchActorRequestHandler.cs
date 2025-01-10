@@ -62,7 +62,7 @@ internal class SearchActorRequestHandler(
         if (item.ParameterValue.SerializedParameterValue.Contains("BalanceResponsibleNumber"))
         {
             var original = item.MapToTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>();
-            return new Brs026Result(
+            return new RequestCalculatedEnergyTimeSeriesResult(
                 original.Id,
                 original.Lifecycle,
                 original.Steps,
@@ -72,7 +72,7 @@ internal class SearchActorRequestHandler(
         else
         {
             var original = item.MapToTypedDto<RequestCalculatedWholesaleServicesInputV1>();
-            return new Brs028Result(
+            return new RequestCalculatedWholesaleServicesResult(
                 original.Id,
                 original.Lifecycle,
                 original.Steps,

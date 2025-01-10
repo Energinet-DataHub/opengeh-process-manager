@@ -161,7 +161,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     public async Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceByIdAsync<TInputParameterDto>(
         GetOrchestrationInstanceByIdQuery query,
         CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto
+            where TInputParameterDto : class, IInputParameterDto
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
@@ -214,7 +214,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
         SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto
+            where TInputParameterDto : class, IInputParameterDto
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,

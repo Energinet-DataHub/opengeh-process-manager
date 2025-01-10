@@ -18,11 +18,11 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 
-public record Brs026Result :
+public record RequestCalculatedEnergyTimeSeriesResult :
     OrchestrationInstanceTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>,
     IActorRequestQueryResult
 {
-    public Brs026Result(
+    public RequestCalculatedEnergyTimeSeriesResult(
         Guid id,
         OrchestrationInstanceLifecycleDto lifecycle,
         IReadOnlyCollection<StepInstanceDto> steps,

@@ -56,7 +56,7 @@ public interface IProcessManagerClient
     Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceByIdAsync<TInputParameterDto>(
         GetOrchestrationInstanceByIdQuery query,
         CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto;
+            where TInputParameterDto : class, IInputParameterDto;
 
     /// <summary>
     /// Get all orchestration instances filtered by their related orchestration definition name and version,
@@ -75,7 +75,7 @@ public interface IProcessManagerClient
     Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
         SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto;
+            where TInputParameterDto : class, IInputParameterDto;
 
     /// <summary>
     /// Get all orchestration instances filtered by a custom query.

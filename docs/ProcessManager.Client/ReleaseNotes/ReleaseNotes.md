@@ -4,6 +4,7 @@
 
 - Updated code documenation (XML comments).
 - Refactored implementation of custom queries support.
+- Implemented interface `IOrchestrationInstanceTypedDto<out TInputParameterDto>` and added it to `OrchestrationInstanceTypedDto<TInputParameterDto>`.
 
 ## Version 0.17.0
 

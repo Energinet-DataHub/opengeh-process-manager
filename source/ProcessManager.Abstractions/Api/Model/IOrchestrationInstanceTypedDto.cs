@@ -16,8 +16,12 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-public interface IOrchestrationInstanceTypedDto<out TParameterValue>
-    where TParameterValue : class, IInputParameterDto
+/// <summary>
+/// This interface is nexessary to be able to use "out TInputParameterDto".
+/// </summary>
+/// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
+public interface IOrchestrationInstanceTypedDto<out TInputParameterDto>
+    where TInputParameterDto : class, IInputParameterDto
 {
     /// <summary>
     /// The id of the orchestration instance.
@@ -37,5 +41,5 @@ public interface IOrchestrationInstanceTypedDto<out TParameterValue>
     /// <summary>
     /// The parameter value.
     /// </summary>
-    TParameterValue ParameterValue { get; }
+    TInputParameterDto ParameterValue { get; }
 }

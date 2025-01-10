@@ -154,7 +154,7 @@ solution folder.
 The projects inside solution folder `4. Orchestations` follows a strict folder structure, namely the following:
 
 ```text
-├── Process
+├── Processes
 │   ├── BRS_021
 │   │   ├── ElectricalHeatingCalculation
 |   |   |   |── V1

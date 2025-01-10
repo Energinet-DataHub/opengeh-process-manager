@@ -28,12 +28,20 @@ disable our `TimerTrigger`s used to manage scheduled and recurring orchestration
 An orchestration is a durable function with activities.
 We recommend that one follows the [guidelines for durable functions](https://energinet.atlassian.net/wiki/spaces/D3/pages/824475658/Durable+Functions).
 Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed
-to ensure that the history of the running orchestration are intact. (The previous versions may not run to completion if this happens)
+to ensure that the history of the running orchestration are intact. 
+The previous versions may not run to completion if this happens,
+consult [microsoft's versioning documentation for more information](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-versioning?tabs=csharp).
+(The process manager supports the "side-by-side" Mitigation strategy).
+
+As a rule of thumb, one should make a new version if one of the following is true:
+
+- Input/output to the orchestration has changed
+- Input/output to any activity has changed
+- Any activity has been added or removed to the orchestration
 
 ### Developing activities
 
 The activities should be idempotent and stateless.
-We recommend that an activity is made such that, if it fails, it can be retried without any side effects.
 
 Since the method `context.CallActivityAsync(...)` has no typechecking, we strongly advise that every activity has a
 record with the inputs and outputs, e.g.:
@@ -78,7 +86,7 @@ var activityOutput = await context.CallActivityAsync<SomeActivity_Brs_XYZ_V1.Act
 
 ### Get started
 
-The `processManager` may be started locally; swing by the secrets repository and get the necessary secrets.
+The process manager may be started locally; swing by the secrets repository and get the necessary secrets.
 To run the tests, one needs to fill out the `integrationtest.local.settings.json` file.
 A sample file should be located in the root of the test project.
 
@@ -185,7 +193,7 @@ This is currently without functionality.
 
 ### Solution folder 7. Examples
 
-The purpose of `7.Example` is to give inspiration of how one may implement orchestrations in the `process manager`.
+The purpose of `7.Example` is to give inspiration of how one may implement orchestrations in the process manager.
 Notice how the structure is a simplified version of folder [`4. Orchestrations`](#solution-folder-4-orchestrations).
 The `Example Orchestration` contains two examples, with and without input. These can be used as inspiration to get up
 and running.

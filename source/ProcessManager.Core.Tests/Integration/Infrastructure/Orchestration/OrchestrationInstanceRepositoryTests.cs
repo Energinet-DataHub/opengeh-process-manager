@@ -473,8 +473,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         // Assert
         actual.Should()
             .BeEquivalentTo([
-                isQueuedTomorrowBasedOn01,
-                isScheduledToRunTomorrowBasedOn02]);
+                (uniqueName01, isQueuedTomorrowBasedOn01),
+                (uniqueName02, isScheduledToRunTomorrowBasedOn02)]);
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)

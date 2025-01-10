@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -91,7 +92,7 @@ internal class OrchestrationInstanceRepository(
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
+    public async Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,
         Instant activatedAtOrEarlier)
@@ -103,10 +104,11 @@ internal class OrchestrationInstanceRepository(
                 _context.OrchestrationInstances,
                 description => description.Id,
                 instance => instance.OrchestrationDescriptionId,
-                (_, instance) => instance)
+                (description, instance) => new { description.UniqueName, instance })
             .Where(x =>
-                (x.Lifecycle.QueuedAt >= activatedAtOrLater && x.Lifecycle.QueuedAt <= activatedAtOrEarlier)
-                || (x.Lifecycle.ScheduledToRunAt >= activatedAtOrLater && x.Lifecycle.ScheduledToRunAt <= activatedAtOrEarlier));
+                (x.instance.Lifecycle.QueuedAt >= activatedAtOrLater && x.instance.Lifecycle.QueuedAt <= activatedAtOrEarlier)
+                || (x.instance.Lifecycle.ScheduledToRunAt >= activatedAtOrLater && x.instance.Lifecycle.ScheduledToRunAt <= activatedAtOrEarlier))
+            .Select(x => ValueTuple.Create(x.UniqueName, x.instance));
 
         return await query.ToListAsync().ConfigureAwait(false);
     }

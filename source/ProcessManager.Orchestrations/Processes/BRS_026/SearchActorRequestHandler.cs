@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
@@ -49,24 +50,23 @@ internal class SearchActorRequestHandler(
         var activatedAtOrLater = Instant.FromDateTimeOffset(query.ActivatedAtOrLater);
         var activatedAtOrEarlier = Instant.FromDateTimeOffset(query.ActivatedAtOrEarlier);
 
-        var orchestrationInstances = await _queries
+        var results = await _queries
             .SearchAsync(
                 query.OrchestrationDescriptionNames,
                 activatedAtOrLater,
                 activatedAtOrEarlier)
             .ConfigureAwait(false);
 
-        return orchestrationInstances
-            .Select(item => MapToConcreteResultDto(item))
+        return results
+            .Select(item => MapToConcreteResultDto(item.UniqueName, item.Instance))
             .ToList();
     }
 
-    private IActorRequestQueryResult MapToConcreteResultDto(OrchestrationInstance item)
+    private IActorRequestQueryResult MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
     {
-        // TODO: Refactor; query should return info about which orchestration description each item belongs to
-        if (item.ParameterValue.SerializedParameterValue.Contains("BalanceResponsibleNumber"))
+        if (uniqueName.Name == new Brs_026_V1().Name)
         {
-            var original = item.MapToTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>();
+            var original = instance.MapToTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>();
             return new RequestCalculatedEnergyTimeSeriesResult(
                 original.Id,
                 original.Lifecycle,
@@ -74,9 +74,10 @@ internal class SearchActorRequestHandler(
                 original.CustomState,
                 original.ParameterValue);
         }
-        else
+
+        if (uniqueName.Name == new Brs_028_V1().Name)
         {
-            var original = item.MapToTypedDto<RequestCalculatedWholesaleServicesInputV1>();
+            var original = instance.MapToTypedDto<RequestCalculatedWholesaleServicesInputV1>();
             return new RequestCalculatedWholesaleServicesResult(
                 original.Id,
                 original.Lifecycle,
@@ -84,5 +85,7 @@ internal class SearchActorRequestHandler(
                 original.CustomState,
                 original.ParameterValue);
         }
+
+        throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
     }
 }

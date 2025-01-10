@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using NodaTime;
 
@@ -40,8 +41,10 @@ public interface IOrchestrationInstanceQueries
     /// Get all orchestration instances filtered by their orchestration description name and activation
     /// (queued at/scheduled to run at) timestamp. This means orchestration instances from different
     /// orchestration descriptions can be searched for and returned.
+    /// Use the returned unique name to determine which orchestration description a given orchestration instance
+    /// was created from.
     /// </summary>
-    Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
+    Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,
         Instant activatedAtOrEarlier);

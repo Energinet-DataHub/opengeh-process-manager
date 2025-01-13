@@ -19,7 +19,6 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
-using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
@@ -32,6 +31,7 @@ public class EnqueueActorMessagesClient(
 
     public async Task Enqueue<TInputData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
+        Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
         string messageId,
         TInputData data)
@@ -54,6 +54,7 @@ public class EnqueueActorMessagesClient(
             Data = JsonSerializer.Serialize(data),
             DataType = typeof(TInputData).Name,
             DataFormat = "application/json",
+            OrchestrationInstanceId = orchestrationInstanceId.ToString(),
         };
 
         if (startedByUserId is not null)

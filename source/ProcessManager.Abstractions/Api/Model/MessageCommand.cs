@@ -33,19 +33,24 @@ public abstract record MessageCommand<TInputParameterDto>
     /// <param name="orchestrationDescriptionUniqueName">Uniquely identifies the orchestration description from which the
     /// orchestration instance should be created.</param>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
-    /// <param name="messageId">Id of the message that casued this command to be executed.</param>
+    /// <param name="idempotencyKey">
+    /// A value used by the Process Manager to ensure idempotency for a command.
+    /// The producer of the <see cref="MessageCommand{TInputParameterDto}"/> should
+    /// create a key that is unique per command.</param>
     public MessageCommand(
         ActorIdentityDto operatingIdentity,
         OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
         TInputParameterDto inputParameter,
-        string messageId)
+        string idempotencyKey)
             : base(operatingIdentity, orchestrationDescriptionUniqueName, inputParameter)
     {
-        MessageId = messageId;
+        IdempotencyKey = idempotencyKey;
     }
 
     /// <summary>
-    /// Id of the message that casued this command to be executed.
+    /// A value used by the Process Manager to ensure idempotency for a command.
+    /// The producer of the <see cref="MessageCommand{TInputParameterDto}"/> should
+    /// create a key that is unique per command.
     /// </summary>
-    public string MessageId { get; }
+    public string IdempotencyKey { get; }
 }

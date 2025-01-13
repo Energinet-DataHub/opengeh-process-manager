@@ -55,7 +55,7 @@ public class ProcessManagerMessageClient(
         ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(startOrchestration))
         {
             Subject = command.OrchestrationDescriptionUniqueName.Name,
-            MessageId = command.MessageId,
+            MessageId = command.IdempotencyKey,
             ContentType = "application/json",
         };
 

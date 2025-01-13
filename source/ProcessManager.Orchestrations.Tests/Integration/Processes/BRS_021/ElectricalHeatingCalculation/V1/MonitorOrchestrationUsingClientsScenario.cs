@@ -36,6 +36,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
+    private const string CalculationJobName = "ElectricalHeating";
+
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
@@ -82,7 +84,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
         // Mocking the databricks api. Forcing it to return a terminated successful job status
-        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(RunLifeCycleState.TERMINATED, "ElectricalHeating");
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(RunLifeCycleState.TERMINATED, CalculationJobName);
 
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

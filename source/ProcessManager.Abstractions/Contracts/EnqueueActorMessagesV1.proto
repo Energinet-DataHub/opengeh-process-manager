@@ -28,4 +28,6 @@ message EnqueueActorMessagesV1 {
   string data = 3; // The enqueue actor messages data serialized.
   string data_type = 5; // Name of the data type (examples could be "RequestCalculatedEnergyTimeSeriesAcceptedV1" or "RequestCalculatedEnergyTimeSeriesRejectedV1").
   string data_format = 7; // The format the data field is serialized as (example: "application/json" etc.)
+
+  string orchestration_instance_id = 8; // The id of the orchestration instance, used for notifying when the messages has been enqueued.
 }

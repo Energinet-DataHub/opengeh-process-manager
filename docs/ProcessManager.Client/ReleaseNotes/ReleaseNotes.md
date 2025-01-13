@@ -2,7 +2,7 @@
 
 ## Version 0.18.0
 
-- Add version to service bus messages:
+- Add version suffix to service bus messages names:
     - `EnqueueActorMessagesV1`
     - `StartOrchestrationV1`
 - Refactor `EnqueueActorMessagesV1` and `StartOrchestrationV1` service bus message fields

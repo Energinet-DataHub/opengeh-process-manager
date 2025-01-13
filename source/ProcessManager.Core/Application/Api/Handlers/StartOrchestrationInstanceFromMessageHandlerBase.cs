@@ -17,6 +17,7 @@ using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
@@ -39,26 +40,27 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
             },
         });
 
-        var majorVersion = StartOrchestrationDtoV1.GetMajorVersionFromMessage(message.ApplicationProperties);
-        if (majorVersion != StartOrchestrationDtoV1.MajorVersion)
+        var actualMajorVersion = message.GetMajorVersion();
+        if (actualMajorVersion == StartOrchestrationV1.MajorVersion)
         {
+            await HandleV1(message)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            _logger.LogError($"");
             throw new ArgumentOutOfRangeException(
-                nameof(majorVersion),
-                majorVersion,
-                "Unhandled StartOrchestrationDto service bus message version.");
+                nameof(actualMajorVersion),
+                actualMajorVersion,
+                $"Unhandled {nameof(StartOrchestrationV1)} service bus message version.");
         }
+    }
 
-        var minorVersion = StartOrchestrationDtoV1.GetMinorVersionFromMessage(message.ApplicationProperties);
-        if (minorVersion != StartOrchestrationDtoV1.MinorVersion)
-        {
-            _logger.LogWarning(
-                "Received start orchestration message with minor version {MinorVersion}, but expected {ExpectedMinorVersion}. Major version is {MajorVersion}",
-                minorVersion,
-                StartOrchestrationDtoV1.MinorVersion,
-                majorVersion);
-        }
+    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input);
 
-        var startOrchestration = StartOrchestration.Parser.ParseJson(message.Body.ToString());
+    private async Task HandleV1(ServiceBusReceivedMessage message)
+    {
+        var startOrchestration = StartOrchestrationV1.Parser.ParseJson(message.Body.ToString());
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
         {
             StartOrchestration = new
@@ -83,7 +85,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         if (!Guid.TryParse(startOrchestration.StartedByActorId, out var actorId))
         {
             throw new ArgumentOutOfRangeException(
-                paramName: nameof(StartOrchestration.StartedByActorId),
+                paramName: nameof(StartOrchestrationV1.StartedByActorId),
                 actualValue: startOrchestration.StartedByActorId,
                 message: $"Unable to parse {nameof(startOrchestration.StartedByActorId)} to guid");
         }
@@ -93,6 +95,4 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
             inputParameterDto)
             .ConfigureAwait(false);
     }
-
-    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input);
 }

@@ -16,7 +16,9 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 
@@ -44,7 +46,7 @@ public class EnqueueActorMessagesClient(
                 "Unknown enqueuedBy type"),
         };
 
-        var enqueueActorMessages = new Abstractions.Contracts.EnqueueActorMessages
+        var enqueueActorMessages = new EnqueueActorMessagesV1
         {
             OrchestrationName = orchestration.Name,
             OrchestrationVersion = orchestration.Version,
@@ -56,15 +58,9 @@ public class EnqueueActorMessagesClient(
         if (startedByUserId is not null)
             enqueueActorMessages.OrchestrationStartedByUserId = startedByUserId.ToString();
 
-        ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(enqueueActorMessages))
-        {
-            Subject = "Enqueue_" + orchestration.Name.ToLower(),
-            MessageId = messageId,
-            ContentType = "application/json",
-        };
-
-        serviceBusMessage.ApplicationProperties.Add("MajorVersion", EnqueueMessagesDtoV1.MajorVersion);
-        serviceBusMessage.ApplicationProperties.Add("MinorVersion", EnqueueMessagesDtoV1.MinorVersion);
+        var serviceBusMessage = enqueueActorMessages.ToServiceBusMessage(
+            subject: "Enqueue_" + orchestration.Name.ToLower(),
+            idempotencyKey: messageId);
 
         await _serviceBusSender.SendMessageAsync(serviceBusMessage)
             .ConfigureAwait(false);

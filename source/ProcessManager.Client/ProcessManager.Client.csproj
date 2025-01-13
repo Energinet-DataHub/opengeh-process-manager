@@ -67,4 +67,10 @@
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Client.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Shared\Extensions\ServiceBusMessageExtensions.cs">
+      <Link>Extensions\ServiceBusMessageExtensions.cs</Link>
+    </Compile>
+  </ItemGroup>
+
 </Project>

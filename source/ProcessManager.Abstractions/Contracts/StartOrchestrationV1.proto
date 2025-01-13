@@ -15,25 +15,11 @@
 
 syntax = "proto3";
 
-import "google/protobuf/descriptor.proto";
-
 option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
 
-<<<<<<<< HEAD:source/ProcessManager.Abstractions/Contracts/StartOrchestration.proto
-message StartOrchestration {
-========
-extend google.protobuf.MessageOptions {
-  optional int32 minor_version = 50001;
-}
-
-message StartOrchestrationDtoV1 {
->>>>>>>> c61479e (Add major/minor versions):source/ProcessManager.Abstractions/Contracts/StartOrchestrationDtoV1.proto
+message StartOrchestrationV1 {
   string orchestration_name = 1; // The name of the orchestration to start.
   int32 orchestration_version = 2; // The version of the orchestration to start.
   string started_by_actor_id = 4; // The actor id who wants to start the orchestration
   string json_input = 3; // The input to the orchestration serialized as a JSON
-
-  // !!! Update the minor version below when making changes to this protobuf contract.
-  // The "= 1" is a static value, not the property "position" like with the properties above.
-  option (minor_version) = 1; // A minor version constant. Can be used to warn if the message doesn't match the expected minor version.
 }

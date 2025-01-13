@@ -15,33 +15,14 @@
 
 syntax = "proto3";
 
-import "google/protobuf/descriptor.proto";
-
 option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
 
-<<<<<<<< HEAD:source/ProcessManager.Abstractions/Contracts/EnqueueActorMessages.proto
 // EnqueueActorMessages describes the type of the Service Bus message body when an orchestration enqueues messages using the EDI Service Bus topic
-message EnqueueActorMessages {
+message EnqueueActorMessagesV1 {
   string orchestration_name = 1; // The name of the orchestration to enqueue actor messages for.
   int32 orchestration_version = 2; // The version of the orchestration to enqueue actor messages for.
   string json_data = 3; // The enqueue actor messages data serialized as a JSON
   string data_type = 5; // Name of the JSON data type (examples could be "RequestCalculatedEnergyTimeSeriesAcceptedV1" or "RequestCalculatedEnergyTimeSeriesRejectedV1")
   string orchestration_started_by_actor_id = 4; // The actor id that started the orchestration
   optional string orchestration_started_by_user_id = 6; // The user id that started the orchestration, if any
-========
-extend google.protobuf.MessageOptions {
-  optional int32 minor_version = 50001;
-}
-
-message EnqueueMessagesDtoV1 {
-  string orchestration_name = 1; // The name of the orchestration to start.
-  int32 orchestration_version = 2; // The version of the orchestration to start.
-  string enqueued_by_actor_id = 4; // The actor id who wants to start the orchestration
-  string json_input = 3; // The input to the orchestration serialized as a JSON
-  optional string message_type = 5; // Optional message type (examples could be "Accepted" or "Rejected")
-
-  // !!! Update the minor version below when making changes to this protobuf contract.
-  // The "= 1" is a static value, not the property "position" like with the properties above.
-  option (minor_version) = 1; // A minor version constant. Can be used to warn if the message doesn't match the expected minor version.
->>>>>>>> c61479e (Add major/minor versions):source/ProcessManager.Abstractions/Contracts/EnqueueMessagesDtoV1.proto
 }

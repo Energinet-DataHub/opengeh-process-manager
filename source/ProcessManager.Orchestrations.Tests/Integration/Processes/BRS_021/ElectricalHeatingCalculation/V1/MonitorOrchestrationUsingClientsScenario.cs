@@ -82,7 +82,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
         // Mocking the databricks api. Forcing it to return a terminated successful job status
-        Fixture.OrchestrationsAppManager.MockServer.MockCalculationJobStatusResponse(RunLifeCycleState.TERMINATED, "ElectricalHeating");
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(RunLifeCycleState.TERMINATED, "ElectricalHeating");
 
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

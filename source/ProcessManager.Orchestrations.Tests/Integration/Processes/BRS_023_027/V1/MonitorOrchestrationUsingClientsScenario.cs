@@ -83,7 +83,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
         // Mocking the databricks api. Forcing it to return a terminated successful job status
-        Fixture.OrchestrationsAppManager.MockServer.MockCalculationJobStatusResponse(RunLifeCycleState.TERMINATED, "CalculatorJob");
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(RunLifeCycleState.TERMINATED, "CalculatorJob");
 
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -164,7 +164,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     public async Task Calculation_WhenScheduledToRunInThePast_CanMonitorLifecycle()
     {
         // Mocking the databricks api. Forcing it to return a terminated successful job status
-        Fixture.OrchestrationsAppManager.MockServer.MockCalculationJobStatusResponse(RunLifeCycleState.TERMINATED, "CalculatorJob");
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(RunLifeCycleState.TERMINATED, "CalculatorJob");
 
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

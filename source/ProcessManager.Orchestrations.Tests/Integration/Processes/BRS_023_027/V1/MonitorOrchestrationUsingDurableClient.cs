@@ -88,11 +88,11 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     public async Task Calculation_WhenMonitoringDatabricksJobStatusMultipleTimes_ContainsExceptedHistory()
     {
         // => Databricks Jobs API
-        // The current databrick calculation state. Can be null, "PENDING", "RUNNING", "TERMINATED" (success)
+        // The current databricks job state. Can be null, "PENDING", "RUNNING", "TERMINATED" (success)
         // The mock response will wait for the value to not be null before returning
-        var calculationJobStateCallback = new CallbackValue<RunLifeCycleState?>(null);
-        Fixture.OrchestrationsAppManager.MockServer.MockCalculationJobStatusResponse(
-            calculationJobStateCallback.GetValue,
+        var jobStatusCallback = new CallbackValue<RunLifeCycleState?>(null);
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
+            jobStatusCallback.GetValue,
             "CalculatorJob");
 
         var userIdentity = new UserIdentityDto(
@@ -102,20 +102,21 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var beforeStartingOrchestration = DateTime.UtcNow.AddSeconds(-5);
 
         var orchestrationId = await StartCalculationAsync(userIdentity);
+
         await Fixture.DurableClient.WaitForOrchestationStartedAsync(
             createdTimeFrom: beforeStartingOrchestration,
             name: nameof(Orchestration_Brs_023_027_V1));
 
-        calculationJobStateCallback.SetValue(RunLifeCycleState.PENDING);
-        var isPending = await CheckJobStatusAsync(JobRunStatus.Pending, orchestrationId);
+        jobStatusCallback.SetValue(RunLifeCycleState.PENDING);
+        var isPending = await AwaitJobStatusAsync(JobRunStatus.Pending, orchestrationId);
         isPending.Should().BeTrue("because we expects the orchestration instance to be pending within given wait time");
 
-        calculationJobStateCallback.SetValue(RunLifeCycleState.RUNNING);
-        var isRunning = await CheckJobStatusAsync(JobRunStatus.Running, orchestrationId);
+        jobStatusCallback.SetValue(RunLifeCycleState.RUNNING);
+        var isRunning = await AwaitJobStatusAsync(JobRunStatus.Running, orchestrationId);
         isRunning.Should().BeTrue("because we expects the orchestration instance to be running within given wait time");
 
-        calculationJobStateCallback.SetValue(RunLifeCycleState.TERMINATED);
-        var isTerminated = await CheckJobStatusAsync(JobRunStatus.Completed, orchestrationId);
+        jobStatusCallback.SetValue(RunLifeCycleState.TERMINATED);
+        var isTerminated = await AwaitJobStatusAsync(JobRunStatus.Completed, orchestrationId);
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
 
         var status = await Fixture.DurableClient.GetStatusAsync(
@@ -129,7 +130,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             .HaveCount(3, "because we expects the orchestration instance to have 3 activities of type CalculationStepGetJobRunStatusActivity_Brs_023_027_V1");
     }
 
-    private async Task<bool> CheckJobStatusAsync(JobRunStatus expectedStatus, Guid instanceId)
+    private async Task<bool> AwaitJobStatusAsync(JobRunStatus expectedStatus, Guid instanceId)
     {
         var matchFound = await Awaiter.TryWaitUntilConditionAsync(
             () => FindOrchestrationActivityAndCheckStatusAsync(

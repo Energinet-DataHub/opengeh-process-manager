@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using Energinet.DataHub.ProcessManager.Core.Application;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
@@ -138,6 +140,8 @@ public static class ProcessManagerExtensions
         // => Custom handlers
         services.AddCustomHandlersForHttpTriggers(assemblyToScan);
         services.AddCustomHandlersForServiceBusTriggers(assemblyToScan);
+        // => Add custom dependencies
+        services.AddCustomDependencyInjection(assemblyToScan);
 
         return services;
     }
@@ -216,6 +220,27 @@ public static class ProcessManagerExtensions
         foreach (var implementingType in implementingTypes)
         {
             services.AddTransient(implementingType);
+        }
+
+        return services;
+    }
+
+    internal static IServiceCollection AddCustomDependencyInjection(this IServiceCollection services, Assembly assemblyToScan)
+    {
+        var serviceInterface = typeof(IServiceCollectionAdder);
+
+        var customServices = assemblyToScan.DefinedTypes
+            .Where(typeInfo =>
+                typeInfo.IsClass &&
+                !typeInfo.IsAbstract &&
+                typeInfo.IsAssignableTo(serviceInterface))
+            .ToList();
+
+        var enumerable = customServices.Select(t => (IServiceCollectionAdder)RuntimeHelpers.GetUninitializedObject(t));
+
+        foreach (var adder in enumerable)
+        {
+            adder.Add(services);
         }
 
         return services;

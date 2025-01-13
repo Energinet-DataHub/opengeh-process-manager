@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.ComponentModel.DataAnnotations;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 
 /// <summary>
@@ -24,15 +26,18 @@ public class OrchestrationOptions_Brs_023_027_V1
     /// <summary>
     /// Time between each call to get the calculation job status.
     /// </summary>
+    [Required(AllowEmptyStrings = false)]
     public int CalculationJobStatusPollingIntervalInSeconds { get; set; } = 60; // 1 minute
 
     /// <summary>
     /// Expiry time of the calculation job status monitor (loop).
     /// </summary>
+    [Required(AllowEmptyStrings = false)]
     public int CalculationJobStatusExpiryTimeInSeconds { get; set; } = 3600 * 12; // 1 hour * 12
 
     /// <summary>
     /// Expiry time of the actor messages enqueuing monitor.
     /// </summary>
+    [Required(AllowEmptyStrings = false)]
     public int MessagesEnqueuingExpiryTimeInSeconds { get; set; } = 3600 * 24 * 14; // 1 hour * 24 * 14 = 14 days
 }

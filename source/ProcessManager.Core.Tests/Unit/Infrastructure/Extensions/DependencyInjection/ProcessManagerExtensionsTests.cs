@@ -16,9 +16,13 @@ using System.Reflection;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Infrastructure.Extensions.DependencyInjection;
@@ -87,5 +91,30 @@ public class ProcessManagerExtensionsTests
         // => Search handler
         var actualSearchHandler = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X01.InputExample.SearchInputExampleHandler>();
         actualSearchHandler.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AddCustomDependencyInjection_WhenScanningExampleOrchestrations_CollectionContainsExpectedServices()
+    {
+        // Arrange
+        const string expectedArbitraryValue = "SomeValue";
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
+        {
+            {
+                $"{OrchestrationOptions_Brs_X01_InputExample_V1.SectionName}:{nameof(OrchestrationOptions_Brs_X01_InputExample_V1.SomeArbitraryAttribute)}",
+                expectedArbitraryValue
+            },
+        });
+        Services.AddCustomDependencyInjection(assemblyToScan: ExampleOrchestrationsAssembly);
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        var serviceProvider = Services.BuildServiceProvider();
+
+        // Assert
+        var option = serviceProvider.GetRequiredService<IOptions<OrchestrationOptions_Brs_X01_InputExample_V1>>();
+        option.Should().NotBeNull();
+
+        option!.Value.SomeArbitraryAttribute.Should().Be(expectedArbitraryValue);
     }
 }

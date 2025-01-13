@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.7.0
+
+- Dependent NuGet packages updated
+
 ## Version 0.6.0
 
 - Add rejected model for `RequestCalculatedEnergyTimeSeriesRejectedV1`

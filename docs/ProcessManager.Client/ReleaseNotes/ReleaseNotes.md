@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.18.0
+
+- Renamed `MessageCommand` property `MessageId` to `IdempotencyKey`
+
 ## Version 0.17.0
 
 - Add `EnqueueActorMessages`

@@ -50,7 +50,7 @@ public class ProcessManagerMessageClient(
             OrchestrationName = command.OrchestrationDescriptionUniqueName.Name,
             OrchestrationVersion = command.OrchestrationDescriptionUniqueName.Version,
             StartedByActorId = command.OperatingIdentity.ActorId.ToString(),
-            JsonInput = JsonSerializer.Serialize(command.InputParameter),
+            Input = JsonSerializer.Serialize(command.InputParameter),
         };
 
         ServiceBusMessage serviceBusMessage = new()

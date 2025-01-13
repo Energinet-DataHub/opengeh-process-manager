@@ -60,7 +60,17 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
 
     private async Task HandleV1(ServiceBusReceivedMessage message)
     {
-        var startOrchestration = StartOrchestrationV1.Parser.ParseJson(message.Body.ToString());
+        var messageBodyFormat = message.GetBodyFormat();
+        var startOrchestration = messageBodyFormat switch
+        {
+            "application/json" => StartOrchestrationV1.Parser.ParseJson(message.Body.ToString()),
+            "application/octet-stream" => StartOrchestrationV1.Parser.ParseFrom(message.Body),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(messageBodyFormat),
+                messageBodyFormat,
+                $"Unhandled message body format (MessageId={message.MessageId}, Subject={message.Subject})"),
+        };
+
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
         {
             StartOrchestration = new
@@ -74,12 +84,24 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
             },
         });
 
-        var inputParameterDto = JsonSerializer.Deserialize<TInputParameterDto>(startOrchestration.JsonInput);
+        var inputParameterDto = startOrchestration.InputFormat switch
+        {
+            "application/json" => JsonSerializer.Deserialize<TInputParameterDto>(startOrchestration.Input),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(startOrchestration.InputFormat),
+                startOrchestration.InputFormat,
+                $"Unhandled input format (MessageId={message.MessageId}, Subject={message.Subject})"),
+        };
+
         if (inputParameterDto is null)
         {
             var inputTypeName = typeof(TInputParameterDto).Name;
-            _logger.LogError($"Unable to deserialize {nameof(startOrchestration.JsonInput)} to {inputTypeName} type:{Environment.NewLine}{0}", startOrchestration.JsonInput);
-            throw new ArgumentException($"Unable to deserialize {nameof(startOrchestration.JsonInput)} to {inputTypeName} type");
+            _logger.LogError(
+                "Unable to deserialize message input to {InputTypeName} (format: {InputFormat}):\n{Input}",
+                inputTypeName,
+                startOrchestration.InputFormat,
+                startOrchestration.Input.Length <= 51200 ? startOrchestration.Input : startOrchestration.Input.Substring(0, 51200)); // 51200 length ~ 100KB
+            throw new ArgumentException($"Unable to deserialize {nameof(startOrchestration.Input)} to {inputTypeName} type");
         }
 
         if (!Guid.TryParse(startOrchestration.StartedByActorId, out var actorId))

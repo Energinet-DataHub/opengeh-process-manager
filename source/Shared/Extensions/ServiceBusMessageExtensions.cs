@@ -21,6 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Shared.Extensions;
 public static class ServiceBusMessageExtensions
 {
     private const string MajorVersionKey = "MajorVersion";
+    private const string BodyFormatKey = "BodyFormat";
 
     public static string GetMajorVersion(this ServiceBusReceivedMessage message)
     {
@@ -30,12 +31,17 @@ public static class ServiceBusMessageExtensions
                    $"{MajorVersionKey} must be present in the ApplicationProperties of the received service bus message (MessageId={message.MessageId}, Subject={message.Subject}).");
     }
 
+    public static string GetBodyFormat(this ServiceBusReceivedMessage message)
+    {
+        return (string?)message.ApplicationProperties.GetValueOrDefault(BodyFormatKey)
+               ?? throw new ArgumentNullException(
+                   nameof(message.ApplicationProperties),
+                   $"{BodyFormatKey} must be present in the ApplicationProperties of the received service bus message (MessageId={message.MessageId}, Subject={message.Subject}).");
+    }
+
     /// <summary>
     /// Wrap the protobuf message in a service bus message, with the given subject and idempotency key.
     /// </summary>
-    /// <param name="message"></param>
-    /// <param name="subject"></param>
-    /// <param name="idempotencyKey"></param>
     public static ServiceBusMessage ToServiceBusMessage(this IMessage message, string subject, string idempotencyKey)
     {
         ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(message))
@@ -46,6 +52,7 @@ public static class ServiceBusMessageExtensions
         };
 
         serviceBusMessage.ApplicationProperties.Add(MajorVersionKey, message.GetType().Name);
+        serviceBusMessage.ApplicationProperties.Add(BodyFormatKey, "application/json");
 
         return serviceBusMessage;
     }

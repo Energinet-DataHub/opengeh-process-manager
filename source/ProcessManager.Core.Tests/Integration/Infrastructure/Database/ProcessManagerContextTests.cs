@@ -16,6 +16,8 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
+using FluentAssertions.Execution;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
@@ -102,6 +104,85 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
+    public async Task Given_OrchestrationInstanceWithUniqueIdempotencyKeyAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: Guid.NewGuid().ToString());
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
+        var orchestrationInstance = await readDbContext.OrchestrationInstances.FindAsync(existingOrchestrationInstance.Id);
+
+        // Assert
+        orchestrationInstance.Should()
+            .NotBeNull()
+            .And
+            .BeEquivalentTo(existingOrchestrationInstance);
+    }
+
+    [Fact]
+    public async Task Given_MultipleOrchestrationInstancesWithNullInIdempotencyKeyAddedToDbContext_WhenSaveChangesAsync_NoExceptionThrown()
+    {
+        // Arrange
+        string? idempotencyKey = null;
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance01 = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: idempotencyKey);
+        var existingOrchestrationInstance02 = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: idempotencyKey);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance01);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance02);
+            // Act
+            await writeDbContext.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Given_MultipleOrchestrationInstancesWithSameValueInIdempotencyKeyAddedToDbContext_WhenSaveChangesAsync_ThrowsExpectedException()
+    {
+        // Arrange
+        var idempotencyKey = Guid.NewGuid().ToString();
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance01 = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: idempotencyKey);
+        var existingOrchestrationInstance02 = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: idempotencyKey);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance01);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance02);
+            // Act
+            var act = () => writeDbContext.SaveChangesAsync();
+            // Assert
+            var assertionScope = new AssertionScope();
+            var ex = await act.Should()
+                .ThrowAsync<DbUpdateException>();
+            ex.Which!.InnerException!.Message
+                .Contains("Cannot insert duplicate key row in object 'pm.OrchestrationInstance' with unique index 'UX_OrchestrationInstance_IdempotencyKey'");
+        }
+    }
+
+    [Fact]
     public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_WhenFilteringJsonColumn_ReturnsExpectedItem()
     {
         // Arrange
@@ -177,7 +258,12 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         return orchestrationDescription;
     }
 
-    private static OrchestrationInstance CreateOrchestrationInstance(OrchestrationDescription orchestrationDescription, OperatingIdentity? identity = default, Instant? runAt = default, int? testInt = default)
+    private static OrchestrationInstance CreateOrchestrationInstance(
+        OrchestrationDescription orchestrationDescription,
+        OperatingIdentity? identity = default,
+        Instant? runAt = default,
+        int? testInt = default,
+        string? idempotencyKey = default)
     {
         var operatingIdentity = identity
             ?? new UserIdentity(
@@ -189,7 +275,8 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             orchestrationDescription,
             skipStepsBySequence: [3],
             clock: SystemClock.Instance,
-            runAt);
+            runAt,
+            idempotencyKey);
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {

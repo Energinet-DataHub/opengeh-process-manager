@@ -31,12 +31,14 @@ public class OrchestrationInstance
         OrchestrationDescriptionId orchestrationDescriptionId,
         OperatingIdentity identity,
         IClock clock,
-        Instant? runAt = default)
+        Instant? runAt = default,
+        string? idempotencyKey = default)
     {
         Id = new OrchestrationInstanceId(Guid.NewGuid());
         Lifecycle = new OrchestrationInstanceLifecycle(identity, clock, runAt);
         ParameterValue = new();
         CustomState = new OrchestrationInstanceCustomState(string.Empty);
+        IdempotencyKey = idempotencyKey;
 
         _steps = [];
         Steps = _steps.AsReadOnly();
@@ -76,6 +78,11 @@ public class OrchestrationInstance
     /// Any custom state of the orchestration instance.
     /// </summary>
     public OrchestrationInstanceCustomState CustomState { get; }
+
+    /// <summary>
+    /// A value used by the Process Manager to ensure idempotency for a message command.
+    /// </summary>
+    public string? IdempotencyKey { get; private set; }
 
     /// <summary>
     /// The orchestration description for the Durable Functions orchestration which describes
@@ -142,7 +149,8 @@ public class OrchestrationInstance
         OrchestrationDescription.OrchestrationDescription description,
         IReadOnlyCollection<int> skipStepsBySequence,
         IClock clock,
-        Instant? runAt = default)
+        Instant? runAt = default,
+        string? idempotencyKey = default)
     {
         foreach (var stepSequence in skipStepsBySequence)
         {
@@ -161,7 +169,8 @@ public class OrchestrationInstance
             description.Id,
             identity,
             clock,
-            runAt);
+            runAt,
+            idempotencyKey);
 
         foreach (var stepDefinition in description.Steps)
         {

@@ -1,10 +1,10 @@
 # ProcessManager.Client Release Notes
 
-## Version 0.17.0
+## Version 0.18.0
 
 - Add version to service bus messages
-  - `EnqueueActorMessagesV1`
-  - `StartOrchestrationV1`
+    - `EnqueueActorMessagesV1`
+      - `StartOrchestrationV1`
 - Refactor `EnqueueActorMessagesV1` and `StartOrchestrationV1` service bus message fields
 
 ## Version 0.17.0

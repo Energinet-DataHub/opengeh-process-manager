@@ -2,6 +2,13 @@
 
 ## Version 0.17.0
 
+- Add version to service bus messages
+  - `EnqueueActorMessagesV1`
+  - `StartOrchestrationV1`
+- Refactor `EnqueueActorMessagesV1` and `StartOrchestrationV1` service bus message fields
+
+## Version 0.17.0
+
 - Add `EnqueueActorMessages`
 
 ## Version 0.16.0

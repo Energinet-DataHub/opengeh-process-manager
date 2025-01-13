@@ -85,7 +85,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Calculation_WhenMonitoringDatabricksJobStatusMultipleTimes_ContainsExceptedHistory()
+    public async Task Calculation_WhenMonitoringDatabricksJobStatusMultipleTimes_ContainsThreeStatusChecksInTheHistory()
     {
         // => Databricks Jobs API
         // The current databricks job state. Can be null, "PENDING", "RUNNING", "TERMINATED" (success)
@@ -109,15 +109,15 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         jobStatusCallback.SetValue(RunLifeCycleState.PENDING);
         var isPending = await AwaitJobStatusAsync(JobRunStatus.Pending, orchestrationId);
-        isPending.Should().BeTrue("because we expects the orchestration instance to be pending within given wait time");
+        isPending.Should().BeTrue("because we expects the orchestration instance to be pending within the given wait time");
 
         jobStatusCallback.SetValue(RunLifeCycleState.RUNNING);
         var isRunning = await AwaitJobStatusAsync(JobRunStatus.Running, orchestrationId);
-        isRunning.Should().BeTrue("because we expects the orchestration instance to be running within given wait time");
+        isRunning.Should().BeTrue("because we expects the orchestration instance to be running within the given wait time");
 
         jobStatusCallback.SetValue(RunLifeCycleState.TERMINATED);
         var isTerminated = await AwaitJobStatusAsync(JobRunStatus.Completed, orchestrationId);
-        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within the given wait time");
 
         var status = await Fixture.DurableClient.GetStatusAsync(
             instanceId: orchestrationId.ToString(),
@@ -127,7 +127,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         status.History
             .Where(item => item["FunctionName"]?.ToString() == nameof(CalculationStepGetJobRunStatusActivity_Brs_023_027_V1))
             .Should()
-            .HaveCount(3, "because we expects the orchestration instance to have 3 activities of type CalculationStepGetJobRunStatusActivity_Brs_023_027_V1");
+            .HaveCount(3, $"because we expects the orchestration instance to have 3 activities of type {nameof(CalculationStepGetJobRunStatusActivity_Brs_023_027_V1)}");
     }
 
     private async Task<bool> AwaitJobStatusAsync(JobRunStatus expectedStatus, Guid instanceId)

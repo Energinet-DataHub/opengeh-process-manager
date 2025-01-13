@@ -39,6 +39,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 {
+    private const string CalculationJobName = "CalculatorJob";
+
     public MonitorOrchestrationUsingDurableClient(
         OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
@@ -93,7 +95,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var jobStatusCallback = new CallbackValue<RunLifeCycleState?>(null);
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             jobStatusCallback.GetValue,
-            "CalculatorJob");
+            CalculationJobName);
 
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),

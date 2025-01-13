@@ -54,7 +54,7 @@ public class MeasurementsMeteredDataClient(
         data.Points.AddRange(meteredDataForMeasurementPoint.Points.Select(p => new Point()
         {
             Position = p.Position,
-            Quantity = p.Quantity,
+            Quantity = DecimalValueMapper.Map(p.Quantity),
             Quality = MeteredDataToMeasurementMapper.Quality.Map(p.Quality),
         }));
 

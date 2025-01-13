@@ -12,22 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
-using NodaTime;
+using Energinet.DataHub.Measurements.Contracts;
 
-namespace Energinet.DataHub.ProcessManager.Components.Measurements.Model;
+namespace Energinet.DataHub.ProcessManager.Components.Measurements.Mappers;
 
-public record MeteredDataForMeasurementPoint(
-    string OrchestrationId,
-    string MeteringPointId,
-    string TransactionId,
-    Instant CreatedAt,
-    Instant StartDateTime,
-    Instant EndDateTime,
-    MeteringPointType MeteringPointType,
-    string Product,
-    MeasurementUnit Unit,
-    Resolution Resolution,
-    IReadOnlyCollection<Point> Points);
-
-public record Point(int Position, decimal Quantity, Quality Quality);
+public static class DecimalValueMapper
+{
+    public static DecimalValue Map(decimal value)
+    {
+        var units = decimal.ToInt64(value);
+        var nanoFactor = 1_000_000_000;
+        return new DecimalValue() { Units = units, Nanos = decimal.ToInt32((value - units) * nanoFactor), };
+    }
+}

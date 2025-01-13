@@ -12,22 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
-using NodaTime;
+syntax = "proto3";
 
-namespace Energinet.DataHub.ProcessManager.Components.Measurements.Model;
+package google.protobuf;
 
-public record MeteredDataForMeasurementPoint(
-    string OrchestrationId,
-    string MeteringPointId,
-    string TransactionId,
-    Instant CreatedAt,
-    Instant StartDateTime,
-    Instant EndDateTime,
-    MeteringPointType MeteringPointType,
-    string Product,
-    MeasurementUnit Unit,
-    Resolution Resolution,
-    IReadOnlyCollection<Point> Points);
+option csharp_namespace = "Energinet.DataHub.Measurements.Contracts";
 
-public record Point(int Position, decimal Quantity, Quality Quality);
+/* ProtoBuf doesn't support decimal.
+ * This implementation is inspired by https://docs.microsoft.com/en-us/aspnet/core/grpc/protobuf?view=aspnetcore-5.0#decimals.
+ *
+ * Example: 12345.6789 -> { units = 12345, nanos = 678900000 }
+*/
+message DecimalValue {
+  // Whole units part of the amount
+  int64 units = 1;
+  // Nano units of the amount (10^-9)
+  // Must be same sign as units
+  sfixed32 nanos = 2;
+}

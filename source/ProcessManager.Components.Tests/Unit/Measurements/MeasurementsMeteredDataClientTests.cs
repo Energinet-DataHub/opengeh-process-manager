@@ -17,6 +17,7 @@ using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Measurements;
+using Energinet.DataHub.ProcessManager.Components.Measurements.Mappers;
 using Energinet.DataHub.ProcessManager.Components.Measurements.Model;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -80,7 +81,7 @@ public class MeasurementsMeteredDataClientTests
             Resolution = Resolution.RPt15M,
         };
 
-        expectedData.Points.Add(new Energinet.DataHub.Measurements.Contracts.Point { Position = 1, Quantity = 100, Quality = Quality.QMeasured });
+        expectedData.Points.Add(new Energinet.DataHub.Measurements.Contracts.Point { Position = 1, Quantity = DecimalValueMapper.Map(100), Quality = Quality.QMeasured });
 
         var expectedEventData = new EventData(expectedData.ToByteArray());
 

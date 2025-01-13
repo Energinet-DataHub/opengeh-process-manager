@@ -39,11 +39,10 @@ public static class MeteredDataToMeasurementMapper
     {
         { Datahub.ValueObjects.MeasurementUnit.KilowattHour, Unit.UKwh },
         { Datahub.ValueObjects.MeasurementUnit.MegawattHour, Unit.UMwh },
-        { Datahub.ValueObjects.MeasurementUnit.MegaVoltAmpereReactivePower, Unit.UMvarh },
-        //{ Datahub.ValueObjects.MeasurementUnit.KiloVoltAmpereReactiveHour, Unit.UKvarh }, TODO: awaiting new contract
+        { Datahub.ValueObjects.MeasurementUnit.MegaVoltAmpereReactivePower, Unit.UMvar },
+        { Datahub.ValueObjects.MeasurementUnit.KiloVoltAmpereReactiveHour, Unit.UKvarh },
         { Datahub.ValueObjects.MeasurementUnit.Kilowatt, Unit.UKw },
-        { Datahub.ValueObjects.MeasurementUnit.MetricTon, Unit.UT },
-        { Datahub.ValueObjects.MeasurementUnit.KiloVoltAmpereReactiveHour, Unit.UK3 },
+        { Datahub.ValueObjects.MeasurementUnit.MetricTon, Unit.UTonne },
     };
 
     internal static Dictionary<Datahub.ValueObjects.MeteringPointType, DataHub.Measurements.Contracts.MeteringPointType> MeteringPointType { get; } = new()

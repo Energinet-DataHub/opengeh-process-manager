@@ -50,7 +50,7 @@ internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMetere
         var points = input.MeteredDataForMeasurementPointMessageInput.EnergyObservations
             .Select(x => new Point(
                 ParsePosition(x.Position),
-                ParseQuantity(x.EnergyQuantity),
+                0m, //ParseQuantity(x.EnergyQuantity),
                 ParseQuality(x.QuantityQuality)))
             .ToList();
 

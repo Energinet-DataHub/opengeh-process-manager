@@ -34,7 +34,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
+  
   <ItemGroup>
     <Protobuf Include="./Measurements/Contracts/**/*.proto">
       <GrpcServices>None</GrpcServices>
@@ -44,17 +44,8 @@
       <Generator>MSBuild:Compile</Generator>
     </Protobuf>
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Include="./Measurements/Contracts/**/*.proto">
-      <GrpcServices>None</GrpcServices>
-      <Access>Public</Access>
-      <ProtoCompile>True</ProtoCompile>
-      <CompileOutputs>True</CompileOutputs>
-      <Generator>MSBuild:Compile</Generator>
-    </Protobuf>
   </ItemGroup>
 </Project>

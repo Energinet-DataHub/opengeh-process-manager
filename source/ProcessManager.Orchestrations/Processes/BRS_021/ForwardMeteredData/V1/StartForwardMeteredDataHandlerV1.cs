@@ -28,10 +28,14 @@ public class StartForwardMeteredDataHandlerV1(
 {
     private readonly IStartOrchestrationInstanceCommands _commands = commands;
 
-    protected override async Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, MeteredDataForMeasurementPointMessageInputV1 input)
+    protected override async Task StartOrchestrationInstanceAsync(
+        ActorIdentity actorIdentity,
+        MeteredDataForMeasurementPointMessageInputV1 input,
+        string idempotencyKey)
     {
         var orchestrationDescriptionUniqueName = new Brs_021_ForwardedMeteredData_V1();
 
+        // TODO: Extend command operation to accept "idempotencyKey"
         await _commands.StartNewOrchestrationInstanceAsync(
                 identity: actorIdentity,
                 uniqueName: new OrchestrationDescriptionUniqueName(

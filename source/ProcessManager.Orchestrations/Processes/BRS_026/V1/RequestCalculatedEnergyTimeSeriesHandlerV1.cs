@@ -28,10 +28,14 @@ public class RequestCalculatedEnergyTimeSeriesHandlerV1(
 {
     private readonly IStartOrchestrationInstanceCommands _commands = commands;
 
-    protected override async Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, RequestCalculatedEnergyTimeSeriesInputV1 input)
+    protected override async Task StartOrchestrationInstanceAsync(
+        ActorIdentity actorIdentity,
+        RequestCalculatedEnergyTimeSeriesInputV1 input,
+        string idempotencyKey)
     {
         var orchestrationName = Orchestration_Brs_026_V1.Name;
 
+        // TODO: Extend command operation to accept "idempotencyKey"
         await _commands.StartNewOrchestrationInstanceAsync(
                 identity: actorIdentity,
                 uniqueName: OrchestrationDescriptionUniqueName.FromDto(orchestrationName),

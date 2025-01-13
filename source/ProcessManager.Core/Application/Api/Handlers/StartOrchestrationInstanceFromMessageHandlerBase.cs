@@ -72,8 +72,9 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
 
         return StartOrchestrationInstanceAsync(
             new ActorIdentity(new ActorId(actorId)),
-            inputParameterDto);
+            inputParameterDto,
+            message.MessageId);
     }
 
-    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input);
+    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input, string idempotencyKey);
 }

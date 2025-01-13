@@ -121,7 +121,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             "K3",
             "2024-12-03T08:00:00Z",
             "PT1H",
-            "2024-12-01T23:00:00Z",
+            "2024-12-01T23:00Z",
             "2024-12-02T23:00:00Z",
             "5790002606892",
             null,

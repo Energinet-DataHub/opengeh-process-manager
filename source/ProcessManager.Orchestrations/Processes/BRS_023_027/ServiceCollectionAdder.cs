@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Core.Application;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027;
 
 public class ServiceCollectionAdder : IServiceCollectionAdder
 {

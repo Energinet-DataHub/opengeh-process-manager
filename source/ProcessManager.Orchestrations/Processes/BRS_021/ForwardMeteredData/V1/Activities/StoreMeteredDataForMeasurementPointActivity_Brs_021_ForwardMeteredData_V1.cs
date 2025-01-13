@@ -50,7 +50,7 @@ internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMetere
         var points = input.MeteredDataForMeasurementPointMessageInput.EnergyObservations
             .Select(x => new Point(
                 ParsePosition(x.Position),
-                0m, //ParseQuantity(x.EnergyQuantity),
+                ParseQuantity(x.EnergyQuantity),
                 ParseQuality(x.QuantityQuality)))
             .ToList();
 
@@ -110,14 +110,14 @@ internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMetere
         return Quality.FromCode(quality);
     }
 
-    private double ParseQuantity(string? sourceQuantity)
+    private decimal ParseQuantity(string? sourceQuantity)
     {
         if (string.IsNullOrEmpty(sourceQuantity))
         {
             throw new ArgumentException("Quantity cannot be null or empty", nameof(sourceQuantity));
         }
 
-        if (!double.TryParse(sourceQuantity, out var quantity))
+        if (!decimal.TryParse(sourceQuantity, out var quantity))
         {
             throw new FormatException($"Invalid quantity format: {sourceQuantity}");
         }

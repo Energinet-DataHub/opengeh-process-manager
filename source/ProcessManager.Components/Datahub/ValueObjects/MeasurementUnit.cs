@@ -30,8 +30,6 @@ public class MeasurementUnit : DataHubType<MeasurementUnit>
     public static readonly MeasurementUnit MegaVoltAmpereReactivePower = new("MegaVoltAmpereReactivePower", "Z03");
     public static readonly MeasurementUnit DanishTariffCode = new("Kw", "Z14");
 
-    // Subscription and Fees are measured in pieces
-
     [JsonConstructor]
     private MeasurementUnit(string name, string code)
         : base(name, code)

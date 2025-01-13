@@ -52,10 +52,4 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Energinet.DataHub.ProcessManager.Components">
-      <HintPath>..\ProcessManager.Components.Tests\bin\Debug\net8.0\Energinet.DataHub.ProcessManager.Components.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

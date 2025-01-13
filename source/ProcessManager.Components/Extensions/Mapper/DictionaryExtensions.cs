@@ -21,8 +21,8 @@ internal static class DictionaryExtensions
         TSource source)
         where TSource : notnull
     {
-        return !dictionary.TryGetValue(source, out var mappedResolution)
+        return !dictionary.TryGetValue(source, out var result)
             ? throw new ArgumentOutOfRangeException(nameof(source), source, null)
-            : mappedResolution;
+            : result;
     }
 }

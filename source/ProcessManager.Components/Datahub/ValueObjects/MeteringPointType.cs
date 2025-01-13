@@ -19,7 +19,6 @@ namespace Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 [Serializable]
 public class MeteringPointType : DataHubType<MeteringPointType>
 {
-    // Metering point types
     public static readonly MeteringPointType Consumption = new("Consumption", "E17");
     public static readonly MeteringPointType Production = new("Production", "E18");
     public static readonly MeteringPointType Exchange = new("Exchange", "E20");

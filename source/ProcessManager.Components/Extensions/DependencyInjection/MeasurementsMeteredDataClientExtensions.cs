@@ -29,7 +29,7 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 public static class MeasurementsMeteredDataClientExtensions
 {
     /// <summary>
-    /// Register Measurements metered data client for use in applications.
+    /// Register Measurements metered data client.
     /// </summary>
     public static IServiceCollection AddMeasurementsMeteredDataClient(this IServiceCollection services)
     {

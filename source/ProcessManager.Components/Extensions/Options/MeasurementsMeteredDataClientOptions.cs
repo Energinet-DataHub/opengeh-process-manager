@@ -24,10 +24,10 @@ public class MeasurementsMeteredDataClientOptions
     public const string SectionName = "MeasurementsEventHub";
 
     /// <summary>
-    /// Fully qualified namespace of the event hub which the Process Manager sends events on
+    /// The namespace name of the event hub which the Process Manager sends events on
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string FullyQualifiedNamespace { get; set; } = string.Empty;
+    public string NamespaceName { get; set; } = string.Empty;
 
     /// <summary>
     /// Name of the event hub which the Process Manager sends events on

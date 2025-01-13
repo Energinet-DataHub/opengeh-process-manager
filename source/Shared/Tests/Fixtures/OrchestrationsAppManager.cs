@@ -341,8 +341,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // Measurements Metered Data Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}",
-            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}",
+            IntegrationTestConfiguration.EventHubNamespaceName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
             eventHubResource.Name);

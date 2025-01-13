@@ -20,7 +20,7 @@
     "MeasurementsWorkspace__BaseUrl": "<Workspace URL>",
     "MeasurementsWorkspace__Token": "<Workspace Token>",
     // Meassurements Event Hub
-    "MeasurementsEventHub__FullyQualifiedNamespace": "<Event Hub fully qualified namespace>",
+    "MeasurementsEventHub__NamespaceName": "<Event Hub namespace name>",
     "MeasurementsEventHub__EventHubName": "<Event Hub name>"
   }
 }

@@ -38,7 +38,7 @@ public class MeasurementsMeteredDataClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"] = EventHubNamespace,
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}"] = EventHubNamespace,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"] = EventHubName,
         });
 
@@ -69,7 +69,7 @@ public class MeasurementsMeteredDataClientExtensionsTests
             .Throw<OptionsValidationException>()
                 .WithMessage("DataAnnotation validation failed for 'MeasurementsMeteredDataClientOptions'*")
             .And.Failures.Should()
-                .ContainMatch("*FullyQualifiedNamespace field is required*")
+                .ContainMatch("*NamespaceName field is required*")
                 .And.ContainMatch("*The EventHubName field is required*");
     }
 
@@ -79,7 +79,7 @@ public class MeasurementsMeteredDataClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"] = EventHubNamespace,
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}"] = EventHubNamespace,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"] = EventHubName,
         });
         Services.AddMeasurementsMeteredDataClient();

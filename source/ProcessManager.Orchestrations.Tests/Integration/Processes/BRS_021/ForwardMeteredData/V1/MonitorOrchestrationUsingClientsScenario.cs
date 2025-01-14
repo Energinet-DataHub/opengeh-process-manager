@@ -95,7 +95,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-5);
+        // Act
+        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
 
         // Assert

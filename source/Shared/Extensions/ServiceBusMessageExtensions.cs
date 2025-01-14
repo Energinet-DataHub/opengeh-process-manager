@@ -41,7 +41,14 @@ public static class ServiceBusMessageExtensions
 
     /// <summary>
     /// Wrap the protobuf message in a service bus message, with the given subject and idempotency key.
+    /// This also sets the content type, major version and body format.
     /// </summary>
+    /// <param name="message">The protobuf message is serialized into the body of the Service Bus message.</param>
+    /// <param name="subject">The subject of the service bus message, used for routing to the correct topic subscription.</param>
+    /// <param name="idempotencyKey">
+    /// The idempotency key is sent as <see cref="ServiceBusMessage.MessageId"/> on the
+    /// Service Bus message, and is used to check for idempotency.
+    /// </param>
     public static ServiceBusMessage ToServiceBusMessage(this IMessage message, string subject, string idempotencyKey)
     {
         ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(message))

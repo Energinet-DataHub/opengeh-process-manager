@@ -28,4 +28,19 @@ public interface IProcessManagerMessageClient
         StartOrchestrationMessageCommand<TInputParameterDto> command,
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto;
+
+    /// <summary>
+    /// Send a notify event to an orchestration instance.
+    /// </summary>
+    public Task NotifyOrchestrationInstanceAsync(
+        NotifyOrchestrationEvent notifyEvent,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Send a notify event (with data) to an orchestration instance.
+    /// </summary>
+    public Task NotifyOrchestrationInstanceAsync<TNotifyDataDto>(
+        NotifyOrchestrationEvent<TNotifyDataDto> notifyEvent,
+        CancellationToken cancellationToken)
+        where TNotifyDataDto : INotifyDataDto;
 }

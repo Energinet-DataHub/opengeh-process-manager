@@ -31,14 +31,20 @@ internal interface IOrchestrationInstanceRepository
     Task AddAsync(OrchestrationInstance orchestrationInstance);
 
     /// <summary>
-    /// Get existing orchestration instance.
+    /// Get existing orchestration instance by id.
     /// To commit changes use <see cref="UnitOfWork"/>.
     /// </summary>
     Task<OrchestrationInstance> GetAsync(OrchestrationInstanceId id);
 
     /// <summary>
-    /// Get all orchestration instances filtered by their related orchestration definition name and version,
-    /// and their lifecycle / termination states.
+    /// Get existing orchestration instance by idempotency key.
+    /// To commit changes use <see cref="UnitOfWork"/>.
+    /// </summary>
+    Task<OrchestrationInstance?> GetOrDefaultAsync(IdempotencyKey idempotencyKey);
+
+    /// <summary>
+    /// Get all orchestration instances filtered by their related orchestration definition name
+    /// and version, and their lifecycle / termination states.
     /// </summary>
     Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
         string name,

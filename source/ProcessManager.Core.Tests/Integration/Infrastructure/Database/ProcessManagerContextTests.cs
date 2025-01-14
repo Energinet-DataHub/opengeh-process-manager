@@ -17,7 +17,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
@@ -110,7 +109,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            idempotencyKey: Guid.NewGuid().ToString());
+            idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -134,7 +133,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_MultipleOrchestrationInstancesWithNullInIdempotencyKeyAddedToDbContext_WhenSaveChangesAsync_NoExceptionThrown()
     {
         // Arrange
-        string? idempotencyKey = null;
+        IdempotencyKey? idempotencyKey = null;
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance01 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
@@ -157,7 +156,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_MultipleOrchestrationInstancesWithSameValueInIdempotencyKeyAddedToDbContext_WhenSaveChangesAsync_ThrowsExpectedException()
     {
         // Arrange
-        var idempotencyKey = Guid.NewGuid().ToString();
+        var idempotencyKey = new IdempotencyKey(Guid.NewGuid().ToString());
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance01 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
@@ -263,7 +262,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         OperatingIdentity? identity = default,
         Instant? runAt = default,
         int? testInt = default,
-        string? idempotencyKey = default)
+        IdempotencyKey? idempotencyKey = default)
     {
         var operatingIdentity = identity
             ?? new UserIdentity(

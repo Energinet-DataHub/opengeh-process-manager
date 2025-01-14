@@ -32,7 +32,7 @@ public class OrchestrationInstance
         OperatingIdentity identity,
         IClock clock,
         Instant? runAt = default,
-        string? idempotencyKey = default)
+        IdempotencyKey? idempotencyKey = default)
     {
         Id = new OrchestrationInstanceId(Guid.NewGuid());
         Lifecycle = new OrchestrationInstanceLifecycle(identity, clock, runAt);
@@ -82,7 +82,7 @@ public class OrchestrationInstance
     /// <summary>
     /// A value used by the Process Manager to ensure idempotency for a message command.
     /// </summary>
-    public string? IdempotencyKey { get; private set; }
+    public IdempotencyKey? IdempotencyKey { get; private set; }
 
     /// <summary>
     /// The orchestration description for the Durable Functions orchestration which describes
@@ -150,7 +150,7 @@ public class OrchestrationInstance
         IReadOnlyCollection<int> skipStepsBySequence,
         IClock clock,
         Instant? runAt = default,
-        string? idempotencyKey = default)
+        IdempotencyKey? idempotencyKey = default)
     {
         foreach (var stepSequence in skipStepsBySequence)
         {

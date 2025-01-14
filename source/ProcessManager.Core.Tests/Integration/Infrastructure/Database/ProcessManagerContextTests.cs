@@ -173,7 +173,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             // Act
             var act = () => writeDbContext.SaveChangesAsync();
             // Assert
-            var assertionScope = new AssertionScope();
+            using var assertionScope = new AssertionScope();
             var ex = await act.Should()
                 .ThrowAsync<DbUpdateException>();
             ex.Which!.InnerException!.Message

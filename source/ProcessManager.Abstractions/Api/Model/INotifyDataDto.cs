@@ -12,20 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-
-namespace Energinet.DataHub.ProcessManager.Client;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Client for using the Process Manager / Orchestrations API.
+/// Allows for generic type constraints of serializable notify data to an orchestration instance.
 /// </summary>
-public interface IProcessManagerMessageClient
-{
-    /// <summary>
-    /// Start an orchestration instance.
-    /// </summary>
-    Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
-        StartOrchestrationMessageCommand<TInputParameterDto> command,
-        CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto;
-}
+public interface INotifyDataDto;

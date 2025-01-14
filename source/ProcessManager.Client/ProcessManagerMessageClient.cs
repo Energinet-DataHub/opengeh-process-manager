@@ -30,19 +30,46 @@ public class ProcessManagerMessageClient(
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.ProcessManagerTopic);
 
     public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
-        MessageCommand<TInputParameterDto> command,
+        StartOrchestrationMessageCommand<TInputParameterDto> command,
         CancellationToken cancellationToken)
             where TInputParameterDto : IInputParameterDto
     {
-        var serviceBusMessage = CreateServiceBusMessage(command);
+        var serviceBusMessage = CreateStartOrchestrationServiceBusMessage(command);
 
         return SendServiceBusMessage(
                 serviceBusMessage,
                 cancellationToken);
     }
 
-    private ServiceBusMessage CreateServiceBusMessage<TInputParameterDto>(
-        MessageCommand<TInputParameterDto> command)
+    public Task NotifyOrchestrationInstanceAsync(
+        NotifyOrchestrationEvent notifyEvent,
+        CancellationToken cancellationToken)
+    {
+        var serviceBusMessage = CreateNotifyOrchestrationServiceBusMessage<int?>(
+            notifyEvent,
+            data: null);
+
+        return SendServiceBusMessage(
+            serviceBusMessage,
+            cancellationToken);
+    }
+
+    public Task NotifyOrchestrationInstanceAsync<TNotifyDataDto>(
+        NotifyOrchestrationEvent<TNotifyDataDto> notifyEvent,
+        CancellationToken cancellationToken)
+        where TNotifyDataDto : INotifyDataDto
+    {
+        var serviceBusMessage = CreateNotifyOrchestrationServiceBusMessage(
+            notifyEvent,
+            notifyEvent.Data);
+
+        return SendServiceBusMessage(
+            serviceBusMessage,
+            cancellationToken);
+    }
+
+    private ServiceBusMessage CreateStartOrchestrationServiceBusMessage<TInputParameterDto>(
+        StartOrchestrationMessageCommand<TInputParameterDto> command)
     where TInputParameterDto : IInputParameterDto
     {
         var startOrchestration = new StartOrchestrationV1
@@ -57,6 +84,30 @@ public class ProcessManagerMessageClient(
         var serviceBusMessage = startOrchestration.ToServiceBusMessage(
             subject: command.OrchestrationDescriptionUniqueName.Name,
             idempotencyKey: command.MessageId);
+
+        return serviceBusMessage;
+    }
+
+    private ServiceBusMessage CreateNotifyOrchestrationServiceBusMessage<TNotifyData>(
+        NotifyOrchestrationEvent notifyEvent,
+        TNotifyData? data)
+    {
+        var notifyOrchestration = new NotifyOrchestrationV1
+        {
+            OrchestrationInstanceId = notifyEvent.OrchestrationInstanceId,
+            EventName = notifyEvent.EventName,
+        };
+
+        if (data is not null)
+        {
+            notifyOrchestration.Data = JsonSerializer.Serialize(data);
+            notifyOrchestration.DataFormat = "application/json";
+            notifyOrchestration.DataType = typeof(TNotifyData).Name;
+        }
+
+        var serviceBusMessage = notifyOrchestration.ToServiceBusMessage(
+            subject: "NotifyOrchestration",
+            idempotencyKey: notifyEvent.IdempotencyKey);
 
         return serviceBusMessage;
     }

@@ -37,7 +37,7 @@ public record NotifyOrchestrationEvent(
 /// </param>
 /// <param name="Data">Data to send with the notify event (which should be serializable).</param>
 /// <typeparam name="TNotifyData">Must be a serializable type.</typeparam>
-public sealed record NotifyOrchestrationEvent<TNotifyData>(
+public record NotifyOrchestrationEvent<TNotifyData>(
     string OrchestrationInstanceId,
     string EventName,
     string IdempotencyKey,

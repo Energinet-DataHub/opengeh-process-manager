@@ -141,7 +141,7 @@ public static class ProcessManagerExtensions
         services.AddCustomHandlersForHttpTriggers(assemblyToScan);
         services.AddCustomHandlersForServiceBusTriggers(assemblyToScan);
         // => Add custom dependencies
-        services.AddCustomDependencyInjection(assemblyToScan);
+        services.AddCustomOptions(assemblyToScan);
 
         return services;
     }
@@ -230,7 +230,7 @@ public static class ProcessManagerExtensions
     /// Then registries everything in the "Configure" method.
     /// This should only be used to add options.
     /// </summary>
-    internal static IServiceCollection AddCustomDependencyInjection(this IServiceCollection services, Assembly assemblyToScan)
+    internal static IServiceCollection AddCustomOptions(this IServiceCollection services, Assembly assemblyToScan)
     {
         var interfaceType = typeof(IOptionsConfiguration);
 
@@ -241,7 +241,10 @@ public static class ProcessManagerExtensions
                 typeInfo.IsAssignableTo(interfaceType))
             .ToList();
 
-        var serviceAdders = implementingTypes.Select(t => (IOptionsConfiguration)RuntimeHelpers.GetUninitializedObject(t));
+        var serviceAdders = implementingTypes
+                .Select(Activator.CreateInstance)
+                .Where(instance => instance != null)
+                .Select(instance => (IOptionsConfiguration)instance!);
 
         foreach (var adder in serviceAdders)
         {

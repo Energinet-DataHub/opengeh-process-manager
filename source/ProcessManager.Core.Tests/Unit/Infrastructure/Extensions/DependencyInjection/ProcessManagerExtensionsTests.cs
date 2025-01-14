@@ -93,7 +93,7 @@ public class ProcessManagerExtensionsTests
     }
 
     [Fact]
-    public void AddCustomDependencyInjection_WhenScanningExampleOrchestrations_CollectionContainsExpectedServices()
+    public void AddCustomOptions_WhenScanningExampleOrchestrations_CollectionContainsExpectedServices()
     {
         // Arrange
         const string expectedOptionValue = "not-empty-string";
@@ -104,7 +104,7 @@ public class ProcessManagerExtensionsTests
                 expectedOptionValue
             },
         });
-        Services.AddCustomDependencyInjection(assemblyToScan: ExampleOrchestrationsAssembly);
+        Services.AddCustomOptions(assemblyToScan: ExampleOrchestrationsAssembly);
 
         // Assert
         using var assertionScope = new AssertionScope();

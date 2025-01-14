@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.M
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Options;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
@@ -30,20 +31,18 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 /// </summary>
 internal class OrchestrationInitializeActivity_Brs_023_027_V1(
     IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IOptions<OrchestrationOptions_Brs_023_027_V1> orchestrationOptions)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
+    private readonly OrchestrationOptions_Brs_023_027_V1 _orchestrationOptions = orchestrationOptions.Value;
+
     [Function(nameof(OrchestrationInitializeActivity_Brs_023_027_V1))]
     public async Task<OrchestrationExecutionContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        // IF we want to be able to configure this using app settings (or in tests), then
-        // add options to the dependency injection container
-        // and inject them in the constructor.
-        var orchestrationOptions = new OrchestrationOptions_Brs_023_027_V1();
-
         var orchestrationInstance = await ProgressRepository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
@@ -60,7 +59,7 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
         .ToList();
 
         return new OrchestrationExecutionContext(
-            orchestrationOptions,
+            _orchestrationOptions,
             userIdentityDto.UserId,
             userIdentityDto.ActorId,
             stepsSkippedBySequence);

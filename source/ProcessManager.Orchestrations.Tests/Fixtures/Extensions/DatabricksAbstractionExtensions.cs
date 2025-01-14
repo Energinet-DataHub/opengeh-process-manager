@@ -25,10 +25,10 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensi
 public static class DatabricksAbstractionExtensions
 {
     /// <summary>
-    /// Setup databrick api response mocks to be able to respond with the job state provided by <paramref name="state"/>
+    /// Setup databricks api response mocks to be able to respond with the job state provided by <paramref name="state"/>
     /// Supports PENDING, RUNNING and TERMINATED (which resolves to SUCCESS resultState)
     /// </summary>
-    public static WireMockServer MockCalculationJobStatusResponse(
+    public static WireMockServer MockDatabricksJobStatusResponse(
         this WireMockServer server,
         RunLifeCycleState state,
         string jobName,
@@ -52,6 +52,44 @@ public static class DatabricksAbstractionExtensions
             .MockJobsGet(jobId, jobName)
             .MockJobsRunNow(runId.Value)
             .MockJobsRunsGet(runId.Value, jobRunState, resultState);
+
+        return server;
+    }
+
+    /// <summary>
+    /// Setup databricks api response mocks to be able to respond with the job state provided by <paramref name="jobRunStateCallback"/>
+    /// Supports PENDING, RUNNING and TERMINATED (which resolves to SUCCESS resultState)
+    /// </summary>
+    public static WireMockServer MockDatabricksJobStatusResponse(
+        this WireMockServer server,
+        Func<RunLifeCycleState?> jobRunStateCallback,
+        string jobName,
+        int? runId = null)
+    {
+        // => Databricks Jobs API
+        var jobId = Random.Shared.Next(1, 1000);
+        runId ??= Random.Shared.Next(1000, 2000);
+
+        (RunStatusState Status, RunTerminationCode TerminationCode)? JobRunStateStringCallback()
+        {
+            var state = jobRunStateCallback();
+
+            return state switch
+            {
+                null => null,
+                RunLifeCycleState.PENDING => (RunStatusState.PENDING, RunTerminationCode.CANCELED), // "CANCELED" should not matter here
+                RunLifeCycleState.RUNNING => (RunStatusState.RUNNING, RunTerminationCode.CANCELED), // "CANCELED" should not matter here
+                RunLifeCycleState.TERMINATED => (RunStatusState.TERMINATED, RunTerminationCode.SUCCESS),
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, "The given state is not implemented"),
+            };
+        }
+
+        // => Mock job run status to respond according to the JobRunStateStringCallback
+        server
+            .MockJobsList(jobId, jobName)
+            .MockJobsGet(jobId, jobName)
+            .MockJobsRunNow(runId.Value)
+            .MockJobsRunsGet(runId.Value, JobRunStateStringCallback);
 
         return server;
     }

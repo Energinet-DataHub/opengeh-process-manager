@@ -1,6 +1,10 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 0.6.1
+## Version 0.6.2
+
+- No functional changes.
+
+## Version 0.6.1~~~~
 
 - No functional changes.
 

@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.19.0
+
+- Add `NotifyOrchestrationInstanceAsync` to `IProcessManagerMessageClient`
+
 ## Version 0.18.0
 
 - Add version suffix to service bus messages names:

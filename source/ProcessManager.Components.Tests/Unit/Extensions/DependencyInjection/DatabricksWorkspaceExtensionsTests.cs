@@ -111,7 +111,10 @@ public class DatabricksWorkspaceExtensionsTests
 
         var healthCheckRegistration = healthCheckRegistrations.Single();
 
-        healthCheckRegistration.Name.Should().Contain(sectionName).And.Contain("Databricks Jobs API");
+        healthCheckRegistration.Name.Should()
+            .Contain(sectionName)
+            .And.Contain("Databricks Jobs API");
+
         healthCheckRegistration.Factory(serviceProvider)
             .Should()
             .BeOfType<DatabricksJobsApiHealthCheck>();

@@ -23,6 +23,10 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using WireMock.Server;
@@ -327,12 +331,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
             SubscriptionProperties brs021ForwardMeteredDataSubscription,
             SubscriptionProperties brs026Subscription,
             SubscriptionProperties brs028Subscription,
+            SubscriptionProperties brs023027Subscription,
             TopicResource ediTopic)
         {
             ProcessManagerTopic = processManagerTopic;
             Brs021ForwardMeteredDataSubscription = brs021ForwardMeteredDataSubscription;
             Brs026Subscription = brs026Subscription;
             Brs028Subscription = brs028Subscription;
+            Brs023027Subscription = brs023027Subscription;
             EdiTopic = ediTopic;
         }
 
@@ -344,6 +350,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         public SubscriptionProperties Brs028Subscription { get; }
 
+        public SubscriptionProperties Brs023027Subscription { get; }
+
         public TopicResource EdiTopic { get; }
 
         public static async Task<ServiceBusResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
@@ -353,14 +361,17 @@ public class OrchestrationsAppManager : IAsyncDisposable
             var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
             var brs026SubscriptionName = "brs-026-subscription";
             var brs028SubscriptionName = "brs-028-subscription";
+            var brs023027SubscriptionName = "brs-023-027-subscription";
 
             processManagerTopicResourceBuilder
                 .AddSubscription(brs021ForwardMeteredDataSubscriptionName)
-                    .AddSubjectFilter("Brs_021_ForwardMeteredData")
+                    .AddSubjectFilter(new Brs_021_ForwardedMeteredData_V1().Name)
                 .AddSubscription(brs026SubscriptionName)
-                    .AddSubjectFilter("Brs_026")
+                    .AddSubjectFilter(new Brs_026_V1().Name)
                 .AddSubscription(brs028SubscriptionName)
-                    .AddSubjectFilter("Brs_028");
+                    .AddSubjectFilter(new Brs_028_V1().Name)
+                .AddSubscription(brs023027SubscriptionName)
+                    .AddSubjectFilter(new Brs_023_027_V1().Name);
 
             var processManagerTopic = await processManagerTopicResourceBuilder.CreateAsync();
             var brs021ForwardMeteredDataSubscription = processManagerTopic.Subscriptions
@@ -369,6 +380,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 .Single(x => x.SubscriptionName.Equals(brs026SubscriptionName));
             var brs028Subscription = processManagerTopic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(brs028SubscriptionName));
+            var brs023027Subscription = processManagerTopic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(brs023027SubscriptionName));
 
             // EDI topic
             var ediTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
@@ -380,6 +393,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 brs021ForwardMeteredDataSubscription,
                 brs026Subscription,
                 brs028Subscription,
+                brs023027Subscription,
                 ediTopic);
         }
     }

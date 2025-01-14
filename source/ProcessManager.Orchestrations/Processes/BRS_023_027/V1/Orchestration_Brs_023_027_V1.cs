@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTas
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
@@ -29,6 +30,8 @@ internal class Orchestration_Brs_023_027_V1
 {
     internal const int CalculationStepSequence = 1;
     internal const int EnqueueActorMessagesStepSequence = 2;
+
+    public static readonly Brs_023_027_V1 Name = new();
 
     private readonly TaskOptions _defaultRetryOptions;
 
@@ -148,6 +151,15 @@ internal class Orchestration_Brs_023_027_V1
                     instanceId,
                     EnqueueActorMessagesStepSequence),
                 _defaultRetryOptions);
+
+            await context.CallActivityAsync(
+                nameof(EnqueueActorMessagesActivity_Brs_023_027_V1),
+                new EnqueueActorMessagesActivity_Brs_023_027_V1.ActivityInput(
+                    instanceId,
+                    orchestrationInput.CalculationType,
+                    jobRunId),
+                _defaultRetryOptions);
+
             await context.CallActivityAsync(
                 nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
                 new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(

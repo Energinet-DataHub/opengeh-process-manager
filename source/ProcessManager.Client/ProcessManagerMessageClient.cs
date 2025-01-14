@@ -51,6 +51,7 @@ public class ProcessManagerMessageClient(
             OrchestrationVersion = command.OrchestrationDescriptionUniqueName.Version,
             StartedByActorId = command.OperatingIdentity.ActorId.ToString(),
             Input = JsonSerializer.Serialize(command.InputParameter),
+            InputFormat = "application/json",
         };
 
         var serviceBusMessage = startOrchestration.ToServiceBusMessage(

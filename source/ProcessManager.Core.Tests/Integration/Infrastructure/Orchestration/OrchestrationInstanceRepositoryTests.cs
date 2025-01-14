@@ -87,6 +87,43 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
+    public async Task GivenOrchestrationInstanceNotInDatabase_WhenGetByIdempotencyKey_ThenReturnsNull()
+    {
+        // Arrange
+        var idempotencyKey = new IdempotencyKey(Guid.NewGuid().ToString());
+
+        // Act
+        var actual = await _sut.GetOrDefaultAsync(idempotencyKey);
+
+        // Assert
+        actual.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GivenOrchestrationInstanceInDatabase_WhenGetByIdempotencyKey_ThenExpectedOrchestrationInstanceIsRetrieved()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        var actual = await _sut.GetOrDefaultAsync(existingOrchestrationInstance.IdempotencyKey!);
+
+        // Assert
+        actual.Should()
+            .BeEquivalentTo(existingOrchestrationInstance);
+    }
+
+    [Fact]
     public async Task GivenOrchestrationDescriptionNotInDatabase_WhenAddOrchestrationInstance_ThenThrowsException()
     {
         // Arrange
@@ -411,7 +448,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
 
     private static OrchestrationInstance CreateOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
-        Instant? runAt = default)
+        Instant? runAt = default,
+        IdempotencyKey? idempotencyKey = default)
     {
         var userIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
@@ -422,7 +460,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             orchestrationDescription,
             skipStepsBySequence: [],
             clock: SystemClock.Instance,
-            runAt: runAt);
+            runAt: runAt,
+            idempotencyKey: idempotencyKey);
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {

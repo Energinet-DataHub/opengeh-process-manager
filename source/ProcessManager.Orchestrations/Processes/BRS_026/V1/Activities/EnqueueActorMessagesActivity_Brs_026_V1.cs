@@ -56,6 +56,7 @@ internal class EnqueueActorMessagesActivity_Brs_026_V1(
 
         return _enqueueActorMessagesClient.Enqueue(
             Orchestration_Brs_026_V1.Name,
+            input.InstanceId.Value,
             orchestrationCreatedBy.ToDto(),
             "enqueue-" + input.InstanceId.Value,
             acceptedData);

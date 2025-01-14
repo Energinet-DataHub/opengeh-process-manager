@@ -1,5 +1,12 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.18.0
+
+- Add version suffix to service bus messages names:
+    - `EnqueueActorMessagesV1`
+    - `StartOrchestrationV1`
+- Refactor `EnqueueActorMessagesV1` and `StartOrchestrationV1` service bus message fields
+
 ## Version 0.17.0
 
 - Add `EnqueueActorMessages`

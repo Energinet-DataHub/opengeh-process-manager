@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <PackageId>Energinet.DataHub.ProcessManager.Client</PackageId>
-    <PackageVersion>0.17.0$(VersionSuffix)</PackageVersion>
+    <PackageVersion>0.18.0$(VersionSuffix)</PackageVersion>
     <Title>DH3 Process Manager Client library</Title>
     <Company>Energinet-DataHub</Company>
     <Authors>Energinet-DataHub</Authors>
@@ -65,6 +65,12 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Client.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\Extensions\ServiceBusMessageExtensions.cs">
+      <Link>Extensions\ServiceBusMessageExtensions.cs</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>

@@ -12,17 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
-namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
-
-public interface IEnqueueActorMessagesClient
+public partial class StartOrchestrationV1
 {
-    public Task Enqueue<TData>(
-        OrchestrationDescriptionUniqueNameDto orchestration,
-        Guid orchestrationInstanceId,
-        IOperatingIdentityDto orchestrationStartedBy,
-        string messageId,
-        TData data);
+    public static string MajorVersion => nameof(StartOrchestrationV1);
 }

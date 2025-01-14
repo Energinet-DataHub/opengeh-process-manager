@@ -51,10 +51,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Unit\Measurements\Contracts\DecimalValue.proto">
-      <Generator>MSBuild:Compile</Generator>
-    </Protobuf>
-    <Protobuf Include="Unit\Measurements\Contracts\PersistSubmittedTransaction.proto">
+    <Protobuf Include="./Unit/Measurements/Contracts/**/*.proto">
+      <GrpcServices>None</GrpcServices>
+      <Access>Public</Access>
+      <ProtoCompile>True</ProtoCompile>
+      <CompileOutputs>True</CompileOutputs>
       <Generator>MSBuild:Compile</Generator>
     </Protobuf>
   </ItemGroup>

@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Globalization;
 using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 using NodaTime.Text;
@@ -40,8 +42,8 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
         }
 
         var id = new MeteringPointIdentification(activityInput.MeteringPointIdentification);
-        var startDateTime = InstantPattern.General.Parse(activityInput.StartDateTime);
-        var endDateTime = InstantPattern.General.Parse(activityInput.EndDateTime);
+        var startDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.StartDateTime);
+        var endDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.EndDateTime);
 
         if (!startDateTime.Success || !endDateTime.Success)
         {

@@ -53,13 +53,7 @@ public class ProcessManagerMessageClient(
             Input = JsonSerializer.Serialize(command.InputParameter),
         };
 
-        ServiceBusMessage serviceBusMessage = new()
-        {
-            Subject = command.OrchestrationDescriptionUniqueName.Name,
-            MessageId = command.MessageId,
-        };
-
-        startOrchestration.ToServiceBusMessage(
+        var serviceBusMessage = startOrchestration.ToServiceBusMessage(
             subject: command.OrchestrationDescriptionUniqueName.Name,
             idempotencyKey: command.MessageId);
 

@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using Energinet.DataHub.ProcessManager.Core.Application;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
@@ -140,6 +142,8 @@ public static class ProcessManagerExtensions
         // => Custom handlers
         services.AddCustomHandlersForHttpTriggers(assemblyToScan);
         services.AddCustomHandlersForServiceBusTriggers(assemblyToScan);
+        // => Add custom dependencies
+        services.AddCustomOptions(assemblyToScan);
 
         return services;
     }
@@ -218,6 +222,35 @@ public static class ProcessManagerExtensions
         foreach (var implementingType in implementingTypes)
         {
             services.AddTransient(implementingType);
+        }
+
+        return services;
+    }
+
+    /// <summary>
+    /// Finds all implementations of "IOptionsConfiguration" in <paramref name="assemblyToScan"/>.
+    /// Then registries everything in the "Configure" method.
+    /// This should only be used to add options.
+    /// </summary>
+    internal static IServiceCollection AddCustomOptions(this IServiceCollection services, Assembly assemblyToScan)
+    {
+        var interfaceType = typeof(IOptionsConfiguration);
+
+        var implementingTypes = assemblyToScan.DefinedTypes
+            .Where(typeInfo =>
+                typeInfo.IsClass &&
+                !typeInfo.IsAbstract &&
+                typeInfo.IsAssignableTo(interfaceType))
+            .ToList();
+
+        var serviceAdders = implementingTypes
+                .Select(Activator.CreateInstance)
+                .Where(instance => instance != null)
+                .Select(instance => (IOptionsConfiguration)instance!);
+
+        foreach (var adder in serviceAdders)
+        {
+            adder.Configure(services);
         }
 
         return services;

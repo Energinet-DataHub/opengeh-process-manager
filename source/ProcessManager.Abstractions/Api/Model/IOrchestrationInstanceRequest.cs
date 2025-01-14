@@ -12,17 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// An orchestration instance request executed by an identity.
-/// Must be JSON serializable.
+/// An orchestration instance request
 /// </summary>
-/// <typeparam name="TOperatingIdentity">The operating identity type. Must be a JSON serializable type.</typeparam>
-/// <param name="OperatingIdentity">The identity executing the request.</param>
-public abstract record OrchestrationInstanceRequest<TOperatingIdentity>(
-    TOperatingIdentity OperatingIdentity)
-        : IOrchestrationInstanceRequest
-            where TOperatingIdentity : IOperatingIdentityDto;
+public interface IOrchestrationInstanceRequest;

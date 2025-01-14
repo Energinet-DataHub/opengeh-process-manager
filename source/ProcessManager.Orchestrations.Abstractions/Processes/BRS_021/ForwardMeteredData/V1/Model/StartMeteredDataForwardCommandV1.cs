@@ -29,16 +29,18 @@ public record StartForwardMeteredDataCommandV1
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
-    /// <param name="messageId">Id of the message that casued this command to be executed.</param>
+    /// <param name="idempotencyKey">
+    /// A value used by the Process Manager to ensure idempotency for a message command.
+    /// The creator of the command must create a key that is unique per command.</param>
     public StartForwardMeteredDataCommandV1(
         ActorIdentityDto operatingIdentity,
         MeteredDataForMeasurementPointMessageInputV1 inputParameter,
-        string messageId)
+        string idempotencyKey)
             : base(
                 operatingIdentity,
                 orchestrationDescriptionUniqueName: new Brs_021_ForwardedMeteredData_V1(),
                 inputParameter,
-                messageId)
+                idempotencyKey)
     {
     }
 }

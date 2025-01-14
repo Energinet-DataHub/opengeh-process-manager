@@ -87,7 +87,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var startCommand = new StartForwardMeteredDataCommandV1(
             new ActorIdentityDto(input.AuthenticatedActorId),
             input,
-            "test-message-id");
+            idempotencyKey: Guid.NewGuid().ToString());
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 

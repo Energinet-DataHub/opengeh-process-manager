@@ -98,7 +98,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
                 MeteringPointType: null,
                 SettlementMethod: null,
                 SettlementVersion: null),
-            "test-message-id");
+            idempotencyKey: Guid.NewGuid().ToString());
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 

@@ -15,6 +15,6 @@
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// An orchestration instance request
+/// The most basic orchestration instance request
 /// </summary>
 public interface IOrchestrationInstanceRequest;

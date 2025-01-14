@@ -1,0 +1,70 @@
+﻿// Copyright 2020 Energinet DataHub A/S
+//
+// Licensed under the Apache License, Version 2.0 (the "License2");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Producer;
+using Energinet.DataHub.Measurements.Contracts;
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Mapper;
+using Energinet.DataHub.ProcessManager.Components.Measurements.Mappers;
+using Energinet.DataHub.ProcessManager.Components.Measurements.Model;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Azure;
+using NodaTime;
+using Point = Energinet.DataHub.Measurements.Contracts.Point;
+
+namespace Energinet.DataHub.ProcessManager.Components.Measurements;
+
+public class MeasurementsMeteredDataClient(
+    IAzureClientFactory<EventHubProducerClient> eventHubClientFactory)
+        : IMeasurementsMeteredDataClient
+{
+    private readonly EventHubProducerClient _eventHubProducerClient =
+        eventHubClientFactory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub);
+
+    public async Task SendAsync(MeteredDataForMeasurementPoint meteredDataForMeasurementPoint, CancellationToken cancellationToken)
+    {
+        var data = new PersistSubmittedTransaction()
+        {
+            OrchestrationInstanceId = meteredDataForMeasurementPoint.OrchestrationId,
+            OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
+            MeteringPointId = meteredDataForMeasurementPoint.MeteringPointId,
+            TransactionId = meteredDataForMeasurementPoint.TransactionId,
+            TransactionCreationDatetime = MapDateTime(meteredDataForMeasurementPoint.CreatedAt),
+            StartDatetime = MapDateTime(meteredDataForMeasurementPoint.StartDateTime),
+            EndDatetime = MapDateTime(meteredDataForMeasurementPoint.EndDateTime),
+            MeteringPointType = MeteredDataToMeasurementMapper.MeteringPointType.Map(meteredDataForMeasurementPoint.MeteringPointType),
+            Product = meteredDataForMeasurementPoint.Product,
+            Unit = MeteredDataToMeasurementMapper.MeasurementUnit.Map(meteredDataForMeasurementPoint.Unit),
+            Resolution = MeteredDataToMeasurementMapper.Resolution.Map(meteredDataForMeasurementPoint.Resolution),
+        };
+
+        data.Points.AddRange(meteredDataForMeasurementPoint.Points.Select(p => new Point()
+        {
+            Position = p.Position,
+            Quantity = DecimalValueMapper.Map(p.Quantity),
+            Quality = MeteredDataToMeasurementMapper.Quality.Map(p.Quality),
+        }));
+
+        // Serialize the data to a byte array
+        var eventData = new EventData(data.ToByteArray());
+        await _eventHubProducerClient.SendAsync([eventData], cancellationToken).ConfigureAwait(false);
+    }
+
+    private Timestamp MapDateTime(Instant instant)
+    {
+        return Timestamp.FromDateTimeOffset(instant.ToDateTimeOffset());
+    }
+}

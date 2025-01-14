@@ -16,9 +16,12 @@ using System.Reflection;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Infrastructure.Extensions.DependencyInjection;
@@ -87,5 +90,30 @@ public class ProcessManagerExtensionsTests
         // => Search handler
         var actualSearchHandler = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X01.InputExample.SearchInputExampleHandler>();
         actualSearchHandler.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AddCustomOptions_WhenScanningExampleOrchestrations_CollectionContainsExpectedServices()
+    {
+        // Arrange
+        const string expectedOptionValue = "not-empty-string";
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
+        {
+            {
+                $"{OrchestrationOptions_Brs_X01_InputExample_V1.SectionName}:{nameof(OrchestrationOptions_Brs_X01_InputExample_V1.OptionValue)}",
+                expectedOptionValue
+            },
+        });
+        Services.AddCustomOptions(assemblyToScan: ExampleOrchestrationsAssembly);
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        var serviceProvider = Services.BuildServiceProvider();
+
+        // Assert
+        var option = serviceProvider.GetRequiredService<IOptions<OrchestrationOptions_Brs_X01_InputExample_V1>>();
+        option.Should().NotBeNull();
+
+        option!.Value.OptionValue.Should().Be(expectedOptionValue, "because the option value should depend on our configuration");
     }
 }

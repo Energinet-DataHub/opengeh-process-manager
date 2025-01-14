@@ -48,4 +48,11 @@
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\Extensions\ServiceBusMessageExtensions.cs">
+      <Link>Extensions\ServiceBusMessageExtensions.cs</Link>
+    </Compile>
+  </ItemGroup>
+
 </Project>

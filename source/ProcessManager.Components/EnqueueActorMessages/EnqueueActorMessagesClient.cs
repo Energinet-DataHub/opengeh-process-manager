@@ -16,8 +16,9 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Google.Protobuf;
+using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
@@ -30,6 +31,7 @@ public class EnqueueActorMessagesClient(
 
     public async Task Enqueue<TInputData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
+        Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
         string messageId,
         TInputData data)
@@ -44,24 +46,23 @@ public class EnqueueActorMessagesClient(
                 "Unknown enqueuedBy type"),
         };
 
-        var enqueueActorMessages = new Abstractions.Contracts.EnqueueActorMessages
+        var enqueueActorMessages = new EnqueueActorMessagesV1
         {
             OrchestrationName = orchestration.Name,
             OrchestrationVersion = orchestration.Version,
             OrchestrationStartedByActorId = startedByActorId.ToString(),
-            JsonData = JsonSerializer.Serialize(data),
+            Data = JsonSerializer.Serialize(data),
             DataType = typeof(TInputData).Name,
+            DataFormat = "application/json",
+            OrchestrationInstanceId = orchestrationInstanceId.ToString(),
         };
 
         if (startedByUserId is not null)
             enqueueActorMessages.OrchestrationStartedByUserId = startedByUserId.ToString();
 
-        ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(enqueueActorMessages))
-        {
-            Subject = "Enqueue_" + orchestration.Name.ToLower(),
-            MessageId = messageId,
-            ContentType = "application/json",
-        };
+        var serviceBusMessage = enqueueActorMessages.ToServiceBusMessage(
+            subject: "Enqueue_" + orchestration.Name.ToLower(),
+            idempotencyKey: messageId);
 
         await _serviceBusSender.SendMessageAsync(serviceBusMessage)
             .ConfigureAwait(false);

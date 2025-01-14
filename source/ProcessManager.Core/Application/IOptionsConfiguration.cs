@@ -12,21 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027;
+namespace Energinet.DataHub.ProcessManager.Core.Application;
 
-public class ServiceCollectionAdder : IServiceCollectionAdder
+/// <summary>
+/// Register options to the service container.
+/// All implementations of this interface will be loaded during startup and
+/// used to register options for Durable Function orchestrations.
+/// </summary>
+public interface IOptionsConfiguration
 {
-    public IServiceCollection Add(IServiceCollection services)
-    {
-        services
-            .AddOptions<OrchestrationOptions_Brs_023_027_V1>()
-            .BindConfiguration(OrchestrationOptions_Brs_023_027_V1.SectionName)
-            .ValidateDataAnnotations();
-
-        return services;
-    }
+    /// <summary>
+    /// Adds the specified services to the service collection.
+    /// </summary>
+    IServiceCollection Configure(IServiceCollection services);
 }

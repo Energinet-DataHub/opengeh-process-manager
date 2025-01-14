@@ -25,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensi
 public static class DatabricksAbstractionExtensions
 {
     /// <summary>
-    /// Setup databrick api response mocks to be able to respond with the job state provided by <paramref name="state"/>
+    /// Setup databricks api response mocks to be able to respond with the job state provided by <paramref name="state"/>
     /// Supports PENDING, RUNNING and TERMINATED (which resolves to SUCCESS resultState)
     /// </summary>
     public static WireMockServer MockDatabricksJobStatusResponse(
@@ -56,6 +56,10 @@ public static class DatabricksAbstractionExtensions
         return server;
     }
 
+    /// <summary>
+    /// Setup databricks api response mocks to be able to respond with the job state provided by <paramref name="jobRunStateCallback"/>
+    /// Supports PENDING, RUNNING and TERMINATED (which resolves to SUCCESS resultState)
+    /// </summary>
     public static WireMockServer MockDatabricksJobStatusResponse(
         this WireMockServer server,
         Func<RunLifeCycleState?> jobRunStateCallback,

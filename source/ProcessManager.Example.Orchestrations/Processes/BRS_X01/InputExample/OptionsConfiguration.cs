@@ -12,18 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Application;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Core.Application;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample;
 
-/// <summary>
-/// This interface is used to add services to the service collection.
-/// It's done via the method "RuntimeHelpers.GetUninitializedObject(t)" hence it may never have a constructor.
-/// </summary>
-public interface IServiceCollectionAdder
+public class OptionsConfiguration : IOptionsConfiguration
 {
-    /// <summary>
-    /// Some implementations of this interface will add services to the service collection.
-    /// </summary>
-    IServiceCollection Add(IServiceCollection services);
+    public IServiceCollection Configure(IServiceCollection services)
+    {
+        services.AddOptions<OrchestrationOptions_Brs_X01_InputExample_V1>()
+            .BindConfiguration(OrchestrationOptions_Brs_X01_InputExample_V1.SectionName)
+            .ValidateDataAnnotations();
+
+        return services;
+    }
 }

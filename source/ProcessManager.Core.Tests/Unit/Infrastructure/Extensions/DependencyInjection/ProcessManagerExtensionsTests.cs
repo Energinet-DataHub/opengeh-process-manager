@@ -96,12 +96,12 @@ public class ProcessManagerExtensionsTests
     public void AddCustomDependencyInjection_WhenScanningExampleOrchestrations_CollectionContainsExpectedServices()
     {
         // Arrange
-        const string expectedArbitraryValue = "SomeValue";
+        const string expectedOptionValue = "not-empty-string";
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
             {
-                $"{OrchestrationOptions_Brs_X01_InputExample_V1.SectionName}:{nameof(OrchestrationOptions_Brs_X01_InputExample_V1.SomeArbitraryAttribute)}",
-                expectedArbitraryValue
+                $"{OrchestrationOptions_Brs_X01_InputExample_V1.SectionName}:{nameof(OrchestrationOptions_Brs_X01_InputExample_V1.OptionValue)}",
+                expectedOptionValue
             },
         });
         Services.AddCustomDependencyInjection(assemblyToScan: ExampleOrchestrationsAssembly);
@@ -114,6 +114,6 @@ public class ProcessManagerExtensionsTests
         var option = serviceProvider.GetRequiredService<IOptions<OrchestrationOptions_Brs_X01_InputExample_V1>>();
         option.Should().NotBeNull();
 
-        option!.Value.SomeArbitraryAttribute.Should().Be(expectedArbitraryValue);
+        option!.Value.OptionValue.Should().Be(expectedOptionValue, "because the option value should depend on our configuration");
     }
 }

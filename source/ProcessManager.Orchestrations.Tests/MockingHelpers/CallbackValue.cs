@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.MockingHelpers;
 
+/// <summary>
+/// Class to hold a value that can be set and retrieved as a callback.
+/// This is useful for testing with wiremock, and the like,
+/// since we may change the output of <see cref="GetValue"/> via <see cref="SetValue"/> while running the test.
+/// </summary>
 public class CallbackValue<T>
 {
     private T? _value;
@@ -23,7 +28,13 @@ public class CallbackValue<T>
         _value = value;
     }
 
+    /// <summary>
+    /// Get the value set by <see cref="SetValue"/>.
+    /// </summary>
     public T? GetValue() => _value;
 
+    /// <summary>
+    /// Sets the value which will be returned by <see cref="GetValue"/>.
+    /// </summary>
     public void SetValue(T newValue) => _value = newValue;
 }

@@ -21,5 +21,5 @@ public class OrchestrationOptions_Brs_X01_InputExample_V1
     public const string SectionName = "Orchestration_Brs_X01_InputExample_V1";
 
     [Required(AllowEmptyStrings = false)]
-    public string SomeArbitraryAttribute { get; set; } = "XYZ";
+    public string OptionValue { get; set; } = string.Empty;
 }

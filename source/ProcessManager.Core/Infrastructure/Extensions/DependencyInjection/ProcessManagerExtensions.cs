@@ -225,22 +225,26 @@ public static class ProcessManagerExtensions
         return services;
     }
 
+    /// <summary>
+    /// Finds all implementations of "IOptionsConfiguration" in <paramref name="assemblyToScan"/>.
+    /// Then registries everything in the "Configure" method.
+    /// </summary>
     internal static IServiceCollection AddCustomDependencyInjection(this IServiceCollection services, Assembly assemblyToScan)
     {
-        var serviceInterface = typeof(IServiceCollectionAdder);
+        var interfaceType = typeof(IOptionsConfiguration);
 
-        var customServices = assemblyToScan.DefinedTypes
+        var implementingTypes = assemblyToScan.DefinedTypes
             .Where(typeInfo =>
                 typeInfo.IsClass &&
                 !typeInfo.IsAbstract &&
-                typeInfo.IsAssignableTo(serviceInterface))
+                typeInfo.IsAssignableTo(interfaceType))
             .ToList();
 
-        var enumerable = customServices.Select(t => (IServiceCollectionAdder)RuntimeHelpers.GetUninitializedObject(t));
+        var serviceAdders = implementingTypes.Select(t => (IOptionsConfiguration)RuntimeHelpers.GetUninitializedObject(t));
 
-        foreach (var adder in enumerable)
+        foreach (var adder in serviceAdders)
         {
-            adder.Add(services);
+            adder.Configure(services);
         }
 
         return services;

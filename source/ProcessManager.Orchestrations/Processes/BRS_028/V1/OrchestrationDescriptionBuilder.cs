@@ -22,10 +22,8 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 {
     public OrchestrationDescription Build()
     {
-        var orchestrationName = Orchestration_Brs_028_V1.Name;
-
         var description = new OrchestrationDescription(
-            uniqueName: OrchestrationDescriptionUniqueName.FromDto(orchestrationName),
+            uniqueName: OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_028_V1.UniqueName),
             canBeScheduled: false,
             functionName: nameof(Orchestration_Brs_028_V1));
 

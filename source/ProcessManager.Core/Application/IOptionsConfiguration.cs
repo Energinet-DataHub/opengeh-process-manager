@@ -25,6 +25,7 @@ public interface IOptionsConfiguration
 {
     /// <summary>
     /// Adds the specified services to the service collection.
+    /// Please only add options this ways and register other services in "program.cs"
     /// </summary>
     IServiceCollection Configure(IServiceCollection services);
 }

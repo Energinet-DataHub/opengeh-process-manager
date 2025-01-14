@@ -228,6 +228,7 @@ public static class ProcessManagerExtensions
     /// <summary>
     /// Finds all implementations of "IOptionsConfiguration" in <paramref name="assemblyToScan"/>.
     /// Then registries everything in the "Configure" method.
+    /// This should only be used to add options.
     /// </summary>
     internal static IServiceCollection AddCustomDependencyInjection(this IServiceCollection services, Assembly assemblyToScan)
     {

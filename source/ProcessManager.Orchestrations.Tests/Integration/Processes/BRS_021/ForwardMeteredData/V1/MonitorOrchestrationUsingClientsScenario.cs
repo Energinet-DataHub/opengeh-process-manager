@@ -82,7 +82,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     public async Task ForwardMeteredData_WhenStartedUsingClient_CanMonitorLifecycle()
     {
         // Arrange
-        var input = CreateMeteredDataForMeasurementPointMessageInputV1();
+        var input = CreateMeteredDataForMeteringPointMessageInputV1();
 
         var startCommand = new StartForwardMeteredDataCommandV1(
             new ActorIdentityDto(input.AuthenticatedActorId),
@@ -106,9 +106,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
     }
 
-    private static MeteredDataForMeasurementPointMessageInputV1 CreateMeteredDataForMeasurementPointMessageInputV1()
+    private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1()
     {
-        var input = new MeteredDataForMeasurementPointMessageInputV1(
+        var input = new MeteredDataForMeteringPointMessageInputV1(
             Guid.NewGuid(),
             "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
             "571313101700011887",

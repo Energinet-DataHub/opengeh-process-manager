@@ -100,9 +100,12 @@ public class ProcessManagerMessageClient(
 
         if (data is not null)
         {
-            notifyOrchestration.Data = JsonSerializer.Serialize(data);
-            notifyOrchestration.DataFormat = "application/json";
-            notifyOrchestration.DataType = typeof(TNotifyData).Name;
+            notifyOrchestration.Data = new NotifyOrchestrationDataV1
+            {
+                Data = JsonSerializer.Serialize(data),
+                DataFormat = "application/json",
+                DataType = typeof(TNotifyData).Name,
+            };
         }
 
         var serviceBusMessage = notifyOrchestration.ToServiceBusMessage(

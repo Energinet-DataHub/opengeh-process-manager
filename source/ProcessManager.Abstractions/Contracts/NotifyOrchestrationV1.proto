@@ -19,10 +19,12 @@ option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contrac
 
 message NotifyOrchestrationV1 {
   string orchestration_instance_id = 1; // The id of the orchestration instance to notify.
-
   string event_name = 2; // The name of the notification event (example: "EnqueueActorMessagesCompleted").
+  optional NotifyOrchestrationDataV1 data = 3; // Optional data for the notification event.
+}
 
-  optional string data = 3; // Optional data serialized as string.
-  optional string data_type = 4; // Optional name of the data type. Should be set if data is set.
-  optional string data_format = 5; // Optional format the data field is serialized as (example: "application/json" etc.). Should be set if data is set.
+message NotifyOrchestrationDataV1 {
+  string data = 1; // Data serialized as string.
+  string data_type = 2; // Name of the data type. Should be set if data is set.
+  string data_format = 3; // Format the data field is serialized as (example: "application/json" etc.). Should be set if data is set.
 }

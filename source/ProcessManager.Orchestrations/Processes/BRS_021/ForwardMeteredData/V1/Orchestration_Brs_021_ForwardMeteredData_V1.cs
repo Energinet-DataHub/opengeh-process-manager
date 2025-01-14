@@ -76,7 +76,9 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // Step: Storing
         await context.CallActivityAsync(
             nameof(StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1),
-            new StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+            new StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                instanceId,
+                input),
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("Measurements_Notification");
         await context.CallActivityAsync(

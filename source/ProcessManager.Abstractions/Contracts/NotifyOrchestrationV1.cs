@@ -14,7 +14,7 @@
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
-public partial class EnqueueActorMessagesV1
+public partial class NotifyOrchestrationV1
 {
-    public const string MajorVersion = nameof(EnqueueActorMessagesV1);
+    public const string MajorVersion = nameof(NotifyOrchestrationV1);
 }

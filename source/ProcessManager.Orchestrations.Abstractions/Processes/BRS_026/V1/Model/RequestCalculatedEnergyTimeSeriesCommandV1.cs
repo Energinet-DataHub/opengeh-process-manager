@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Must be JSON serializable.
 /// </summary>
 public sealed record RequestCalculatedEnergyTimeSeriesCommandV1
-    : MessageCommand<RequestCalculatedEnergyTimeSeriesInputV1>
+    : StartOrchestrationInstanceMessageCommand<RequestCalculatedEnergyTimeSeriesInputV1>
 {
     /// <summary>
     /// Construct command.

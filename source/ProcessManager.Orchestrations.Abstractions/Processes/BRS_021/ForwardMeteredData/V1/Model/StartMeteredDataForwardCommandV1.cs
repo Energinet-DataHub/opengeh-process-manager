@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Must be JSON serializable.
 /// </summary>
 public record StartForwardMeteredDataCommandV1
-        : MessageCommand<MeteredDataForMeteringPointMessageInputV1>
+        : StartOrchestrationInstanceMessageCommand<MeteredDataForMeteringPointMessageInputV1>
 {
     /// <summary>
     /// Construct command.

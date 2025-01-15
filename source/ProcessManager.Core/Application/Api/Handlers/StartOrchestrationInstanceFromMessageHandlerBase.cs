@@ -45,7 +45,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         _logger.LogInformation("Handling received start orchestration service bus message.");
 
         var majorVersion = message.GetMajorVersion();
-        if (majorVersion == StartOrchestrationV1.MajorVersion)
+        if (majorVersion == StartOrchestrationInstanceV1.MajorVersion)
         {
             await HandleV1(message)
                 .ConfigureAwait(false);
@@ -66,12 +66,12 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         var messageBodyFormat = message.GetBodyFormat();
         var startOrchestration = messageBodyFormat switch
         {
-            "application/json" => StartOrchestrationV1.Parser.ParseJson(message.Body.ToString()),
-            "application/octet-stream" => StartOrchestrationV1.Parser.ParseFrom(message.Body),
+            "application/json" => StartOrchestrationInstanceV1.Parser.ParseJson(message.Body.ToString()),
+            "application/octet-stream" => StartOrchestrationInstanceV1.Parser.ParseFrom(message.Body),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(messageBodyFormat),
                 messageBodyFormat,
-                $"Unhandled message body format when deserializing the received {nameof(StartOrchestrationV1)} message (MessageId={message.MessageId}, Subject={message.Subject})"),
+                $"Unhandled message body format when deserializing the received {nameof(StartOrchestrationInstanceV1)} message (MessageId={message.MessageId}, Subject={message.Subject})"),
         };
 
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
@@ -94,7 +94,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
             _ => throw new ArgumentOutOfRangeException(
                 nameof(startOrchestration.InputFormat),
                 startOrchestration.InputFormat,
-                $"Unhandled input format when deserializing the received {nameof(StartOrchestrationV1)} message (MessageId={message.MessageId}, Subject={message.Subject})"),
+                $"Unhandled input format when deserializing the received {nameof(StartOrchestrationInstanceV1)} message (MessageId={message.MessageId}, Subject={message.Subject})"),
         };
 
         if (inputParameterDto is null)
@@ -116,7 +116,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         if (!Guid.TryParse(startOrchestration.StartedByActorId, out var actorId))
         {
             throw new ArgumentOutOfRangeException(
-                paramName: nameof(StartOrchestrationV1.StartedByActorId),
+                paramName: nameof(StartOrchestrationInstanceV1.StartedByActorId),
                 actualValue: startOrchestration.StartedByActorId,
                 message: $"Unable to parse {nameof(startOrchestration.StartedByActorId)} to guid (MessageId={message.MessageId}, Subject={message.Subject})");
         }

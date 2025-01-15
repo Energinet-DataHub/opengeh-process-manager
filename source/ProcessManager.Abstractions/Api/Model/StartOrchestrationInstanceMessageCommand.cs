@@ -21,8 +21,8 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// Command for starting an orchestration instance for a message.
 /// Must be JSON serializable.
 /// </summary>
-/// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
-public abstract record MessageCommand<TInputParameterDto>
+/// <typeparam name="TInputParameterDto">Must be a serializable type.</typeparam>
+public abstract record StartOrchestrationInstanceMessageCommand<TInputParameterDto>
     : StartOrchestrationInstanceCommand<ActorIdentityDto, TInputParameterDto>
         where TInputParameterDto : IInputParameterDto
 {
@@ -37,7 +37,7 @@ public abstract record MessageCommand<TInputParameterDto>
     /// A value used by the Process Manager to ensure idempotency for a message command.
     /// The producer of the <see cref="MessageCommand{TInputParameterDto}"/> should
     /// create a key that is unique per command.</param>
-    public MessageCommand(
+    public StartOrchestrationInstanceMessageCommand(
         ActorIdentityDto operatingIdentity,
         OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
         TInputParameterDto inputParameter,

@@ -17,9 +17,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.Shared.BRS_026_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -29,7 +29,7 @@ using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_026;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.Shared.BRS_026_028;
 
 /// <summary>
 /// Test collection that verifies the Process Manager clients can be used to
@@ -175,7 +175,7 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
 
         // Assert
         // TODO:
-        // We could improve this test by having an ID to compare from the "request",
+        // We could improve this test by using the "Idempotency Key" to compare from the "request",
         // but currently this is not supported when using the ProcessManager over ServiceBus
         actual.Should()
             .Contain(x =>

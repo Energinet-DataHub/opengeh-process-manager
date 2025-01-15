@@ -35,7 +35,7 @@ public sealed record CalculationQuery
         UserIdentityDto operatingIdentity)
             : base(operatingIdentity)
     {
-        OrchestrationDescriptionName = new Brs_023_027_V1().Name;
+        OrchestrationDescriptionName = Brs_023_027.Name;
     }
 
     /// <inheritdoc/>

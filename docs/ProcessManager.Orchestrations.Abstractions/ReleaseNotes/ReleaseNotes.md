@@ -3,7 +3,11 @@
 ## Version 0.7.0
 
 - Refactored implementation of custom queries support.
-- Added types `ActorRequestQuery`, `IActorRequestQueryResult`, `RequestCalculatedEnergyTimeSeriesResult` and `RequestCalculatedWholesaleServicesResult` for quering data spanning BRS 026 + 028..
+- Added types for quering data spanning BRS 026 + 028:
+    - `ActorRequestQuery`
+    - `IActorRequestQueryResult`
+    - `RequestCalculatedEnergyTimeSeriesResult`
+    - `RequestCalculatedWholesaleServicesResult`
 
 ## Version 0.6.3
 

@@ -133,14 +133,13 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_MultipleOrchestrationInstancesWithNullInIdempotencyKeyAddedToDbContext_WhenSaveChangesAsync_NoExceptionThrown()
     {
         // Arrange
-        IdempotencyKey? idempotencyKey = null;
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance01 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            idempotencyKey: idempotencyKey);
+            idempotencyKey: null);
         var existingOrchestrationInstance02 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            idempotencyKey: idempotencyKey);
+            idempotencyKey: null);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {

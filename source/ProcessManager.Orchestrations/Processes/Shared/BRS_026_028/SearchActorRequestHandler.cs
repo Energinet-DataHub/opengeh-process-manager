@@ -20,16 +20,12 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.Shared.BRS_026_028;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.Shared.BRS_026_028;
 
-// TODO:
-// Should be moved to another namespace because this is shared between BRS 026 + 028.
-// We have talked about combining these BRS's into ne top-folder similar to BRS 023 + 027,
-// and then use subfolders to split them per orchestration OR perhaps even use the same orchestration
-// because their logic is very similar.
 internal class SearchActorRequestHandler(
     IOrchestrationInstanceQueries queries) :
         ISearchOrchestrationInstancesQueryHandler<ActorRequestQuery, IActorRequestQueryResult>

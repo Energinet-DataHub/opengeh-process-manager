@@ -17,7 +17,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
@@ -29,7 +28,6 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     internal const int StoringMeteredDataStep = 2;
     internal const int FindReceiverStep = 3;
     internal const int EnqueueActorMessagesStep = 4;
-
     private readonly TaskOptions _defaultRetryOptions;
 
     public Orchestration_Brs_021_ForwardMeteredData_V1()
@@ -98,7 +96,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // Step: Enqueueing
         await context.CallActivityAsync(
             nameof(EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1),
-            new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+            new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId, input),
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("EDI_Notification");
         await context.CallActivityAsync(

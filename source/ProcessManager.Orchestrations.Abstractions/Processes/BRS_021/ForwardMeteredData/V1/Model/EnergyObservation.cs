@@ -15,6 +15,6 @@
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 public record EnergyObservation(
-    string? Position,
+    string? Position, // should have been an int? LRN
     string? EnergyQuantity,
     string? QuantityQuality);

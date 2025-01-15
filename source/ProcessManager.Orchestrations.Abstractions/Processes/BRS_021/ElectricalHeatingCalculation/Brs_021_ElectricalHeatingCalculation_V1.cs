@@ -14,7 +14,11 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 
-public record Brs_021_ForwardedMeteredData_V1()
-    : OrchestrationDescriptionUniqueNameDto("Brs_021_ForwardMeteredData", 1);
+public static class Brs_021_ElectricalHeatingCalculation
+{
+    public const string Name = "Brs_021_ElectricalHeatingCalculation";
+
+    public static OrchestrationDescriptionUniqueNameDto V1 { get; } = new(Name, 1);
+}

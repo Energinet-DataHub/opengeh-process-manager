@@ -119,7 +119,7 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         var startRequestCalculatedEnergyTimeSeriesCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
             actorIdentity,
             brs026Input,
-            messageId: Guid.NewGuid().ToString());
+            idempotencyKey: Guid.NewGuid().ToString());
 
         var orchestrationBrs026CreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
@@ -146,7 +146,7 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         var startRequestCalculatedWholesaleServicesCommand = new RequestCalculatedWholesaleServicesCommandV1(
             actorIdentity,
             brs028Input,
-            messageId: Guid.NewGuid().ToString());
+            idempotencyKey: Guid.NewGuid().ToString());
 
         var orchestrationBrs028CreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(

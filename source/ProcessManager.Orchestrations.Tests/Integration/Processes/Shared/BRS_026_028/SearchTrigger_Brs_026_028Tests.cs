@@ -175,7 +175,7 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
 
         // Assert
         // TODO:
-        // We could improve this test by having an ID to compare from the "request",
+        // We could improve this test by using the "Idempotency Key" to compare from the "request",
         // but currently this is not supported when using the ProcessManager over ServiceBus
         actual.Should()
             .Contain(x =>

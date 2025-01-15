@@ -35,7 +35,7 @@ public abstract record StartOrchestrationInstanceMessageCommand<TInputParameterD
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
     /// <param name="idempotencyKey">
     /// A value used by the Process Manager to ensure idempotency for a message command.
-    /// The producer of the <see cref="MessageCommand{TInputParameterDto}"/> should
+    /// The producer of the <see cref="StartOrchestrationInstanceMessageCommand{TInputParameterDto}"/> should
     /// create a key that is unique per command.</param>
     public StartOrchestrationInstanceMessageCommand(
         ActorIdentityDto operatingIdentity,
@@ -49,7 +49,7 @@ public abstract record StartOrchestrationInstanceMessageCommand<TInputParameterD
 
     /// <summary>
     /// A value used by the Process Manager to ensure idempotency for a message command.
-    /// The producer of the <see cref="MessageCommand{TInputParameterDto}"/> should
+    /// The producer of the <see cref="StartOrchestrationInstanceMessageCommand{TInputParameterDto}"/> should
     /// create a key that is unique per command.
     /// Max length is 1024 characters.
     /// </summary>

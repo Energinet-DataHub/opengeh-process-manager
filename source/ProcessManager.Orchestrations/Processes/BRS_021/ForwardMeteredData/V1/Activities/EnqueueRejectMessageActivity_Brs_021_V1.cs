@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -53,5 +54,5 @@ internal class EnqueueRejectMessageActivity_Brs_021_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        IReadOnlyCollection<string> ValidationError);
+        MeteredDataForMeasurementPointRejectedV1 RejectMessage);
 }

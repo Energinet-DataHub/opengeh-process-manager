@@ -69,7 +69,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // If there are errors, we stop the orchestration and inform EDI to pass along the errors
         if (errors.Count != 0)
         {
-            return await HandleAsynchronousValidationErrors(context, instanceId, errors);
+            return await HandleAsynchronousValidationErrors(context, instanceId, input.TransactionId, errors);
         }
 
         // Step: Storing
@@ -127,13 +127,23 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     private async Task<string> HandleAsynchronousValidationErrors(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
+        string inputTransactionId,
         IReadOnlyCollection<string> errors)
     {
+        var rejectMessage =
+            await context.CallActivityAsync<CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
+                nameof(CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1),
+                new CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                    instanceId,
+                    inputTransactionId,
+                    errors),
+                _defaultRetryOptions);
+
         await context.CallActivityAsync(
             nameof(EnqueueRejectMessageActivity_Brs_021_V1),
             new EnqueueRejectMessageActivity_Brs_021_V1.ActivityInput(
                 instanceId,
-                errors),
+                rejectMessage.RejectMessage),
             _defaultRetryOptions);
 
         var messagesEnqueuedSuccessfully = await WaitForEnqueueActorMessagesResponseFromEdiAsync(context, instanceId);

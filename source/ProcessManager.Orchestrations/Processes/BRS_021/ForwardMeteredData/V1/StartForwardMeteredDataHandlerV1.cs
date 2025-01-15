@@ -24,11 +24,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class StartForwardMeteredDataHandlerV1(
     ILogger<StartForwardMeteredDataHandlerV1> logger,
     IStartOrchestrationInstanceCommands commands)
-        : StartOrchestrationInstanceFromMessageHandlerBase<MeteredDataForMeasurementPointMessageInputV1>(logger)
+        : StartOrchestrationInstanceFromMessageHandlerBase<MeteredDataForMeteringPointMessageInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceCommands _commands = commands;
 
-    protected override async Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, MeteredDataForMeasurementPointMessageInputV1 input)
+    protected override async Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, MeteredDataForMeteringPointMessageInputV1 input)
     {
         var orchestrationDescriptionUniqueName = new Brs_021_ForwardedMeteredData_V1();
 

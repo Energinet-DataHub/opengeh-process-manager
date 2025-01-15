@@ -50,7 +50,7 @@ public class MeasurementsMeteredDataClientTests
     public async Task SendAsync_WhenCalledWithMeteredData_SendsExpectedDataOnEventHub()
     {
         // Arrange
-        var meteredData = new MeteredDataForMeasurementPoint(
+        var meteredData = new MeteredDataForMeteringPoint(
             "test-orchestration-id",
             "test-metering-point-id",
             "test-transaction-id",

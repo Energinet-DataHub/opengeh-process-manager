@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Globalization;
 using Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Measurements;
 using Energinet.DataHub.ProcessManager.Components.Measurements.Model;
@@ -22,11 +21,10 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
-using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1(
+internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
     IMeasurementsMeteredDataClient measurementsMeteredDataClient)
@@ -36,7 +34,7 @@ internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMetere
 {
     private readonly IMeasurementsMeteredDataClient _measurementsMeteredDataClient = measurementsMeteredDataClient;
 
-    [Function(nameof(StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -49,24 +47,24 @@ internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMetere
                 orchestrationInstance)
             .ConfigureAwait(false);
 
-        var points = input.MeteredDataForMeasurementPointMessageInput.EnergyObservations
+        var points = input.MeteredDataForMeteringPointMessageInput.EnergyObservations
             .Select(x => new Point(
                 ParsePosition(x.Position),
                 ParseQuantity(x.EnergyQuantity),
                 ParseQuality(x.QuantityQuality)))
             .ToList();
 
-        var meteredData = new MeteredDataForMeasurementPoint(
+        var meteredData = new MeteredDataForMeteringPoint(
             input.OrchestrationInstanceId.ToString(),
-            input.MeteredDataForMeasurementPointMessageInput.MeteringPointId!,
-            input.MeteredDataForMeasurementPointMessageInput.TransactionId,
-            ParseDateTime(input.MeteredDataForMeasurementPointMessageInput.RegistrationDateTime),
-            ParseDateTime(input.MeteredDataForMeasurementPointMessageInput.StartDateTime),
-            ParseDateTime(input.MeteredDataForMeasurementPointMessageInput.EndDateTime),
-            ParseMeteringPointType(input.MeteredDataForMeasurementPointMessageInput.MeteringPointType),
-            input.MeteredDataForMeasurementPointMessageInput.ProductNumber!,
-            ParseMeasureUnit(input.MeteredDataForMeasurementPointMessageInput.MeasureUnit),
-            ParseResolution(input.MeteredDataForMeasurementPointMessageInput.Resolution),
+            input.MeteredDataForMeteringPointMessageInput.MeteringPointId!,
+            input.MeteredDataForMeteringPointMessageInput.TransactionId,
+            ParseDateTime(input.MeteredDataForMeteringPointMessageInput.RegistrationDateTime),
+            ParseDateTime(input.MeteredDataForMeteringPointMessageInput.StartDateTime),
+            ParseDateTime(input.MeteredDataForMeteringPointMessageInput.EndDateTime),
+            ParseMeteringPointType(input.MeteredDataForMeteringPointMessageInput.MeteringPointType),
+            input.MeteredDataForMeteringPointMessageInput.ProductNumber!,
+            ParseMeasureUnit(input.MeteredDataForMeteringPointMessageInput.MeasureUnit),
+            ParseResolution(input.MeteredDataForMeteringPointMessageInput.Resolution),
             points);
 
         await _measurementsMeteredDataClient.SendAsync(meteredData, CancellationToken.None).ConfigureAwait(false);
@@ -149,5 +147,5 @@ internal class StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMetere
 
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        MeteredDataForMeasurementPointMessageInputV1 MeteredDataForMeasurementPointMessageInput);
+        MeteredDataForMeteringPointMessageInputV1 MeteredDataForMeteringPointMessageInput);
 }

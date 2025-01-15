@@ -34,24 +34,24 @@ public class MeasurementsMeteredDataClient(
     private readonly EventHubProducerClient _eventHubProducerClient =
         eventHubClientFactory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub);
 
-    public async Task SendAsync(MeteredDataForMeasurementPoint meteredDataForMeasurementPoint, CancellationToken cancellationToken)
+    public async Task SendAsync(MeteredDataForMeteringPoint meteredDataForMeteringPoint, CancellationToken cancellationToken)
     {
         var data = new PersistSubmittedTransaction()
         {
-            OrchestrationInstanceId = meteredDataForMeasurementPoint.OrchestrationId,
+            OrchestrationInstanceId = meteredDataForMeteringPoint.OrchestrationId,
             OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
-            MeteringPointId = meteredDataForMeasurementPoint.MeteringPointId,
-            TransactionId = meteredDataForMeasurementPoint.TransactionId,
-            TransactionCreationDatetime = MapDateTime(meteredDataForMeasurementPoint.CreatedAt),
-            StartDatetime = MapDateTime(meteredDataForMeasurementPoint.StartDateTime),
-            EndDatetime = MapDateTime(meteredDataForMeasurementPoint.EndDateTime),
-            MeteringPointType = MeteredDataToMeasurementMapper.MeteringPointType.Map(meteredDataForMeasurementPoint.MeteringPointType),
-            Product = meteredDataForMeasurementPoint.Product,
-            Unit = MeteredDataToMeasurementMapper.MeasurementUnit.Map(meteredDataForMeasurementPoint.Unit),
-            Resolution = MeteredDataToMeasurementMapper.Resolution.Map(meteredDataForMeasurementPoint.Resolution),
+            MeteringPointId = meteredDataForMeteringPoint.MeteringPointId,
+            TransactionId = meteredDataForMeteringPoint.TransactionId,
+            TransactionCreationDatetime = MapDateTime(meteredDataForMeteringPoint.CreatedAt),
+            StartDatetime = MapDateTime(meteredDataForMeteringPoint.StartDateTime),
+            EndDatetime = MapDateTime(meteredDataForMeteringPoint.EndDateTime),
+            MeteringPointType = MeteredDataToMeasurementMapper.MeteringPointType.Map(meteredDataForMeteringPoint.MeteringPointType),
+            Product = meteredDataForMeteringPoint.Product,
+            Unit = MeteredDataToMeasurementMapper.MeasurementUnit.Map(meteredDataForMeteringPoint.Unit),
+            Resolution = MeteredDataToMeasurementMapper.Resolution.Map(meteredDataForMeteringPoint.Resolution),
         };
 
-        data.Points.AddRange(meteredDataForMeasurementPoint.Points.Select(p => new Point()
+        data.Points.AddRange(meteredDataForMeteringPoint.Points.Select(p => new Point()
         {
             Position = p.Position,
             Quantity = DecimalValueMapper.Map(p.Quantity),

@@ -50,7 +50,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstanceIdNotInDatabase_WhenGetById_ThenThrowsException()
+    public async Task Given_OrchestrationInstanceIdNotInDatabase_When_GetById_Then_ThrowsException()
     {
         // Arrange
         var id = new OrchestrationInstanceId(Guid.NewGuid());
@@ -65,7 +65,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstanceIdInDatabase_WhenGetById_ThenExpectedOrchestrationInstanceIsRetrieved()
+    public async Task Given_OrchestrationInstanceIdInDatabase_When_GetById_Then_ExpectedOrchestrationInstanceIsRetrieved()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -87,7 +87,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstanceNotInDatabase_WhenGetByIdempotencyKey_ThenReturnsNull()
+    public async Task Given_OrchestrationInstanceNotInDatabase_When_GetByIdempotencyKey_Then_ReturnsNull()
     {
         // Arrange
         var idempotencyKey = new IdempotencyKey(Guid.NewGuid().ToString());
@@ -100,7 +100,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstanceInDatabase_WhenGetByIdempotencyKey_ThenExpectedOrchestrationInstanceIsRetrieved()
+    public async Task Given_OrchestrationInstanceInDatabase_When_GetByIdempotencyKey_Then_ExpectedOrchestrationInstanceIsRetrieved()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -124,7 +124,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationDescriptionNotInDatabase_WhenAddOrchestrationInstance_ThenThrowsException()
+    public async Task Given_OrchestrationDescriptionNotInDatabase_When_AddOrchestrationInstance_Then_ThrowsException()
     {
         // Arrange
         var newOrchestrationDescription = CreateOrchestrationDescription();
@@ -142,7 +142,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationDescriptionInDatabase_WhenAddOrchestrationInstance_ThenOrchestrationInstanceIsAdded()
+    public async Task Given_OrchestrationDescriptionInDatabase_When_AddOrchestrationInstance_Then_OrchestrationInstanceIsAdded()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -166,7 +166,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenScheduledOrchestrationInstancesInDatabase_WhenGetScheduledByInstant_ThenExpectedOrchestrationInstancesAreRetrieved()
+    public async Task Given_ScheduledOrchestrationInstancesInDatabase_When_GetScheduledByInstant_Then_ExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
         var currentInstant = SystemClock.Instance.GetCurrentInstant();
@@ -201,7 +201,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByName_ThenExpectedOrchestrationInstancesAreRetrieved()
+    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByName_Then_ExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
         var uniqueName1 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
@@ -231,7 +231,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByNameAndVersion_ThenExpectedOrchestrationInstancesAreRetrieved()
+    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByNameAndVersion_Then_ExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
         var name = Guid.NewGuid().ToString();
@@ -259,7 +259,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByNameAndLifecycleState_ThenExpectedOrchestrationInstancesAreRetrieved()
+    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByNameAndLifecycleState_Then_ExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
         var name = Guid.NewGuid().ToString();
@@ -298,7 +298,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByNameAndTerminationState_ThenExpectedOrchestrationInstancesAreRetrieved()
+    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByNameAndTerminationState_Then_ExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
         var name = Guid.NewGuid().ToString();
@@ -342,7 +342,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByNameAndStartedAt_ThenExpectedOrchestrationInstancesAreRetrieved()
+    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByNameAndStartedAt_Then_ExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
         var startedAt01 = SystemClock.Instance.GetCurrentInstant().PlusDays(1);
@@ -383,7 +383,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByNameAndTerminatedAt_ThenExpectedOrchestrationInstancesAreRetrieved()
+    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByNameAndTerminatedAt_Then_ExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
         var terminatedAt01 = SystemClock.Instance.GetCurrentInstant().PlusDays(-1);

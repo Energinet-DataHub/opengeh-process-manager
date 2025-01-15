@@ -21,6 +21,7 @@ public interface IEnqueueActorMessagesClient
 {
     public Task Enqueue<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
+        Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
         string messageId,
         TData data);

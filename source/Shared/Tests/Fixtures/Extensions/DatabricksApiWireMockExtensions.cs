@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Net;
+using Energinet.DataHub.Core.TestCommon;
 using Microsoft.Azure.Databricks.Client.Models;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -109,6 +110,45 @@ public static class DatabricksApiWireMockExtensions
             .WithStatusCode(HttpStatusCode.OK)
             .WithHeader(HeaderNames.ContentType, "application/json")
             .WithBody(BuildJobsRunsGetJson(runId, lifeCycleState, resultState));
+
+        server
+            .Given(request)
+            .RespondWith(response);
+
+        return server;
+    }
+
+    /// <summary>
+    /// Mock get job runs endpoint. Waits for <paramref name="getLifeCycleState"/> to not return null before
+    /// returning a response.
+    /// </summary>
+    public static WireMockServer MockJobsRunsGet(
+        this WireMockServer server,
+        long runId,
+        Func<(RunStatusState Status, RunTerminationCode Code)?> getLifeCycleState)
+    {
+        var request = Request
+            .Create()
+            .WithPath("/api/2.1/jobs/runs/get")
+            .WithParam("run_id", runId.ToString())
+            .UsingGet();
+
+        var response = Response
+            .Create()
+            .WithStatusCode(HttpStatusCode.OK)
+            .WithHeader(HeaderNames.ContentType, "application/json")
+            .WithBody(async _ =>
+            {
+                await Awaiter.WaitUntilConditionAsync(
+                    () => getLifeCycleState() != null,
+                    TimeSpan.FromSeconds(30),
+                    TimeSpan.FromMilliseconds(500));
+
+                var (lifeCycleState, terminationCode) = getLifeCycleState() ??
+                                     throw new Exception("LifeCycleState is null, waiting for LifeCycleState state failed");
+
+                return BuildJobsRunsGetJson(runId, lifeCycleState, terminationCode);
+            });
 
         server
             .Given(request)

@@ -14,9 +14,11 @@
 
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
+using DurableTask.Core.Common;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
@@ -27,7 +29,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
 {
     private readonly ILogger _logger = logger;
 
-    public Task HandleAsync(ServiceBusReceivedMessage message)
+    public async Task HandleAsync(ServiceBusReceivedMessage message)
     {
         using var serviceBusMessageLoggerScope = _logger.BeginScope(new
         {
@@ -36,11 +38,42 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
                 message.MessageId,
                 message.CorrelationId,
                 message.Subject,
+                message.ApplicationProperties,
             },
         });
 
-        var jsonMessage = message.Body.ToString();
-        var startOrchestration = StartOrchestration.Parser.ParseJson(jsonMessage);
+        _logger.LogInformation("Handling received start orchestration service bus message.");
+
+        var majorVersion = message.GetMajorVersion();
+        if (majorVersion == StartOrchestrationV1.MajorVersion)
+        {
+            await HandleV1(message)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(majorVersion),
+                majorVersion,
+                $"Unhandled major version in the received start orchestration service bus message (Subject={message.Subject}, MessageId={message.MessageId}).");
+        }
+    }
+
+    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input);
+
+    private async Task HandleV1(ServiceBusReceivedMessage message)
+    {
+        var messageBodyFormat = message.GetBodyFormat();
+        var startOrchestration = messageBodyFormat switch
+        {
+            "application/json" => StartOrchestrationV1.Parser.ParseJson(message.Body.ToString()),
+            "application/octet-stream" => StartOrchestrationV1.Parser.ParseFrom(message.Body),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(messageBodyFormat),
+                messageBodyFormat,
+                $"Unhandled message body format when deserializing the received {nameof(StartOrchestrationV1)} message (MessageId={message.MessageId}, Subject={message.Subject})"),
+        };
+
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
         {
             StartOrchestration = new
@@ -51,29 +84,46 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
                 {
                     ActorId = startOrchestration.StartedByActorId,
                 },
+                startOrchestration.InputFormat,
             },
         });
 
-        var inputParameterDto = JsonSerializer.Deserialize<TInputParameterDto>(startOrchestration.JsonInput);
+        var inputParameterDto = startOrchestration.InputFormat switch
+        {
+            "application/json" => JsonSerializer.Deserialize<TInputParameterDto>(startOrchestration.Input),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(startOrchestration.InputFormat),
+                startOrchestration.InputFormat,
+                $"Unhandled input format when deserializing the received {nameof(StartOrchestrationV1)} message (MessageId={message.MessageId}, Subject={message.Subject})"),
+        };
+
         if (inputParameterDto is null)
         {
             var inputTypeName = typeof(TInputParameterDto).Name;
-            _logger.LogWarning($"Unable to deserialize {nameof(startOrchestration.JsonInput)} to {inputTypeName} type:{Environment.NewLine}{0}", startOrchestration.JsonInput);
-            throw new ArgumentException($"Unable to deserialize {nameof(startOrchestration.JsonInput)} to {inputTypeName} type");
+            throw new ArgumentException($"Unable to deserialize message input to {inputTypeName}")
+            {
+                Data =
+                {
+                    { "TargetType", inputTypeName },
+                    { "InputFormat", startOrchestration.InputFormat },
+                    { "Input", startOrchestration.Input.Truncate(maxLength: 1000) },
+                    { "MessageId", message.MessageId },
+                    { "MessageSubject", message.Subject },
+                },
+            };
         }
 
         if (!Guid.TryParse(startOrchestration.StartedByActorId, out var actorId))
         {
             throw new ArgumentOutOfRangeException(
-                paramName: nameof(StartOrchestration.StartedByActorId),
+                paramName: nameof(StartOrchestrationV1.StartedByActorId),
                 actualValue: startOrchestration.StartedByActorId,
-                message: $"Unable to parse {nameof(startOrchestration.StartedByActorId)} to guid");
+                message: $"Unable to parse {nameof(startOrchestration.StartedByActorId)} to guid (MessageId={message.MessageId}, Subject={message.Subject})");
         }
 
-        return StartOrchestrationInstanceAsync(
+        await StartOrchestrationInstanceAsync(
             new ActorIdentity(new ActorId(actorId)),
-            inputParameterDto);
+            inputParameterDto)
+            .ConfigureAwait(false);
     }
-
-    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input);
 }

@@ -5,6 +5,14 @@
 - Refactored implementation of custom queries support.
 - Added types `ActorRequestQuery`, `IActorRequestQueryResult`, `RequestCalculatedEnergyTimeSeriesResult` and `RequestCalculatedWholesaleServicesResult` for quering data spanning BRS 026 + 028..
 
+## Version 0.6.2
+
+- Rename MeteredDataForMeasurementPointMessageInputV1 to MeteredDataForMeteredPointMessageInputV1
+
+## Version 0.6.1
+
+- No functional changes.
+
 ## Version 0.6.0
 
 - Add rejected model for `RequestCalculatedEnergyTimeSeriesRejectedV1`

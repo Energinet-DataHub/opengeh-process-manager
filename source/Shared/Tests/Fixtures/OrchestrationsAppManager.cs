@@ -17,6 +17,7 @@ using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ResourceProvider;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
@@ -25,6 +26,7 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using WireMock.Server;
 using Xunit.Abstractions;
 
@@ -47,6 +49,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private readonly bool _manageAzurite;
     // TODO (ID-283)
     private readonly string? _environment;
+    private readonly string _eventHubName;
 
     public OrchestrationsAppManager()
         : this(
@@ -59,7 +62,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
             manageDatabase: true,
             manageAzurite: true,
             // TODO (ID-283)
-            environment: null)
+            environment: null,
+            eventHubName: "eventhub_pm")
     {
     }
 
@@ -73,7 +77,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         bool manageDatabase,
         bool manageAzurite,
         // TODO (ID-283)
-        string? environment)
+        string? environment,
+        string eventHubName)
     {
         _taskHubName = string.IsNullOrWhiteSpace(taskHubName)
             ? throw new ArgumentException("Cannot be null or whitespace.", nameof(taskHubName))
@@ -83,6 +88,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         _manageAzurite = manageAzurite;
         // TODO (ID-283)
         _environment = environment;
+        _eventHubName = eventHubName;
 
         DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();
@@ -92,6 +98,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
         ServiceBusResourceProvider = new ServiceBusResourceProvider(
             TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
+
+        EventHubResourceProvider = new EventHubResourceProvider(
+            new TestDiagnosticsLogger(),
+            IntegrationTestConfiguration.EventHubNamespaceName,
+            IntegrationTestConfiguration.ResourceManagementSettings,
             IntegrationTestConfiguration.Credential);
 
         MockServer = WireMockServer.Start(port: wireMockServerPort);
@@ -104,6 +116,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
     [NotNull]
     public FunctionAppHostManager? AppHostManager { get; private set; }
 
+    [NotNull]
+    public string? EventHubName { get; private set; }
+
     public WireMockServer MockServer { get; }
 
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -111,6 +126,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private AzuriteManager AzuriteManager { get; }
 
     private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
+
+    private EventHubResourceProvider EventHubResourceProvider { get; }
 
     /// <summary>
     /// Start the orchestration app
@@ -128,13 +145,17 @@ public class OrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
+        var eventHubResource = await EventHubResourceProvider.BuildEventHub(_eventHubName).CreateAsync();
+        EventHubName = eventHubResource.Name;
+
         if (serviceBusResources is null)
             serviceBusResources = await ServiceBusResources.Create(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
-            serviceBusResources);
+            serviceBusResources,
+            eventHubResource);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -152,6 +173,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             await DatabaseManager.DeleteDatabaseAsync();
 
         await ServiceBusResourceProvider.DisposeAsync();
+        await EventHubResourceProvider.DisposeAsync();
         MockServer.Dispose();
     }
 
@@ -219,7 +241,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        ServiceBusResources serviceBusResources)
+        ServiceBusResources serviceBusResources,
+        EventHubResource eventHubResource)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -316,6 +339,24 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
+
+        // => BRS 023 027
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.CalculationJobStatusPollingIntervalInSeconds)}",
+            "3");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.CalculationJobStatusExpiryTimeInSeconds)}",
+            "20");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
+            "20");
+        // Measurements Metered Data Event Hub
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}",
+            IntegrationTestConfiguration.EventHubNamespaceName);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
+            eventHubResource.Name);
 
         return appHostSettings;
     }

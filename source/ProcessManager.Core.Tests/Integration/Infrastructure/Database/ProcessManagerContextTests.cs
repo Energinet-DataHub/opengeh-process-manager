@@ -32,7 +32,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationDescriptionAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    public async Task Given_OrchestrationDescriptionAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -55,7 +55,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_RecurringOrchestrationDescriptionAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    public async Task Given_RecurringOrchestrationDescriptionAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription(recurringCronExpression: "0 0 * * *");
@@ -78,7 +78,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -103,7 +103,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithUniqueIdempotencyKeyAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    public async Task Given_OrchestrationInstanceWithUniqueIdempotencyKeyAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -130,7 +130,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_MultipleOrchestrationInstancesWithNullInIdempotencyKeyAddedToDbContext_WhenSaveChangesAsync_NoExceptionThrown()
+    public async Task Given_MultipleOrchestrationInstancesWithNullInIdempotencyKeyAddedToDbContext_When_SaveChangesAsync_Then_NoExceptionThrown()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -152,7 +152,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_MultipleOrchestrationInstancesWithSameValueInIdempotencyKeyAddedToDbContext_WhenSaveChangesAsync_ThrowsExpectedException()
+    public async Task Given_MultipleOrchestrationInstancesWithSameValueInIdempotencyKeyAddedToDbContext_When_SaveChangesAsync_Then_ThrowsExpectedException()
     {
         // Arrange
         var idempotencyKey = new IdempotencyKey(Guid.NewGuid().ToString());
@@ -181,7 +181,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_WhenFilteringJsonColumn_ReturnsExpectedItem()
+    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_When_FilteringJsonColumn_Then_ReturnsExpectedItem()
     {
         // Arrange
         var expectedTestInt = 52;
@@ -207,7 +207,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_UserCanceledOrchestrationInstanceAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    public async Task Given_UserCanceledOrchestrationInstanceAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
         var userIdentity = new UserIdentity(new UserId(Guid.NewGuid()), new ActorId(Guid.NewGuid()));

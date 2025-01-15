@@ -40,27 +40,15 @@ public class NotifyOrchestrationInstanceTrigger(
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        // TODO: Parse correctly, check major version etc.
-
-        string orchestrationInstanceId;
-        string eventName;
-        object? eventData;
-
         var majorVersion = message.GetMajorVersion();
-        var bodyFormat = message.GetBodyFormat();
-        if (majorVersion == NotifyOrchestrationInstanceV1.MajorVersion)
+        var (orchestrationInstanceId, eventName, eventData) = majorVersion switch
         {
-            (orchestrationInstanceId, eventName, eventData) = HandleV1(
-                message: message,
-                bodyFormat: bodyFormat);
-        }
-        else
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(majorVersion),
-                majorVersion,
-                $"Unhandled major version in received notify service bus message (MessageId={message.MessageId})");
-        }
+            NotifyOrchestrationInstanceV1.MajorVersion => HandleV1(message),
+            _ => throw new ArgumentOutOfRangeException(
+                                nameof(majorVersion),
+                                majorVersion,
+                                $"Unhandled major version in received notify service bus message (MessageId={message.MessageId})"),
+        };
 
         return _notifyOrchestrationCommands.NotifyOrchestrationInstanceAsync(
             new OrchestrationInstanceId(Guid.Parse(orchestrationInstanceId)),
@@ -68,35 +56,13 @@ public class NotifyOrchestrationInstanceTrigger(
             eventData);
     }
 
-    private (string OrchestrationInstanceId, string EventName, object? EventData) HandleV1(
-        ServiceBusReceivedMessage message,
-        string bodyFormat)
+    private (string OrchestrationInstanceId, string EventName, object? EventData) HandleV1(ServiceBusReceivedMessage message)
     {
-        var notifyOrchestrationInstanceV1 = bodyFormat switch
-        {
-            "application/json" => NotifyOrchestrationInstanceV1.Parser.ParseJson(message.Body.ToString()),
-            "application/octet-stream" => NotifyOrchestrationInstanceV1.Parser.ParseFrom(message.Body),
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(bodyFormat),
-                bodyFormat,
-                $"Unhandled body format in received {nameof(NotifyOrchestrationInstanceV1)} message (MessageId={message.MessageId})"),
-        };
+        var notifyOrchestrationInstanceV1 = message.ParseMessageBody<NotifyOrchestrationInstanceV1>();
 
         var orchestrationInstanceId = notifyOrchestrationInstanceV1.OrchestrationInstanceId;
         var eventName = notifyOrchestrationInstanceV1.EventName;
-
-        object? eventData = null;
-        if (notifyOrchestrationInstanceV1.Data != null)
-        {
-            eventData = notifyOrchestrationInstanceV1.Data.DataFormat switch
-            {
-                "application/json" => JsonSerializer.Deserialize<object>(notifyOrchestrationInstanceV1.Data.Data),
-                _ => throw new ArgumentOutOfRangeException(
-                    nameof(notifyOrchestrationInstanceV1.Data.DataFormat),
-                    notifyOrchestrationInstanceV1.Data.DataFormat,
-                    $"Unhandled data format in received {nameof(NotifyOrchestrationInstanceV1)} message (MessageId={message.MessageId})"),
-            };
-        }
+        var eventData = notifyOrchestrationInstanceV1.ParseData<object?>();
 
         return (orchestrationInstanceId, eventName, eventData);
     }

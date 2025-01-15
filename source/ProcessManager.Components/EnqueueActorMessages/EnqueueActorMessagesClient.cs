@@ -53,7 +53,7 @@ public class EnqueueActorMessagesClient(
             OrchestrationStartedByActorId = startedByActorId.ToString(),
             Data = JsonSerializer.Serialize(data),
             DataType = typeof(TInputData).Name,
-            DataFormat = "application/json",
+            DataFormat = EnqueueActorMessagesDataFormatV1.Json,
             OrchestrationInstanceId = orchestrationInstanceId.ToString(),
         };
 

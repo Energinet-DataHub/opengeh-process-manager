@@ -78,7 +78,7 @@ public class ProcessManagerMessageClient(
             OrchestrationVersion = command.OrchestrationDescriptionUniqueName.Version,
             StartedByActorId = command.OperatingIdentity.ActorId.ToString(),
             Input = JsonSerializer.Serialize(command.InputParameter),
-            InputFormat = "application/json",
+            InputFormat = StartOrchestrationInstanceInputFormatV1.Json,
         };
 
         var serviceBusMessage = startOrchestration.ToServiceBusMessage(
@@ -103,7 +103,7 @@ public class ProcessManagerMessageClient(
             notifyOrchestration.Data = new NotifyOrchestrationInstanceDataV1
             {
                 Data = JsonSerializer.Serialize(data),
-                DataFormat = "application/json",
+                DataFormat = NotifyOrchestrationInstanceDataFormatV1.Json,
                 DataType = typeof(TNotifyData).Name,
             };
         }

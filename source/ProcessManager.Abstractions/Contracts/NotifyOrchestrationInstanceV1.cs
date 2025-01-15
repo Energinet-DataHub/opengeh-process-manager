@@ -14,7 +14,7 @@
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
-public partial class NotifyOrchestrationV1
+public partial class NotifyOrchestrationInstanceV1
 {
-    public const string MajorVersion = nameof(NotifyOrchestrationV1);
+    public const string MajorVersion = nameof(NotifyOrchestrationInstanceV1);
 }

@@ -19,28 +19,20 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// </summary>
 /// <param name="OrchestrationInstanceId">The orchestration instance id to notify</param>
 /// <param name="EventName">The notify event name (an example could be "EnqueueMessagesCompleted").</param>
-/// <param name="IdempotencyKey">
-/// A key used to ensure idempotency. If a event with the same key has already been received, this event will be ignored.
-/// </param>
-public record NotifyOrchestrationEvent(
+public record NotifyOrchestrationInstanceEvent(
     string OrchestrationInstanceId,
-    string EventName,
-    string IdempotencyKey) : IOrchestrationInstanceRequest;
+    string EventName) : IOrchestrationInstanceRequest;
 
 /// <summary>
 /// Event (with data) for notifying to an orchestration instance.
 /// </summary>
 /// <param name="OrchestrationInstanceId">The orchestration instance id to notify</param>
 /// <param name="EventName">The notify event name (an example could be "EnqueueActorMessagesCompleted").</param>
-/// <param name="IdempotencyKey">
-/// A key used to ensure idempotency. If an event with the same key has already been received, this event will be ignored.
-/// </param>
 /// <param name="Data">Data to send with the notify event (which should be serializable).</param>
 /// <typeparam name="TNotifyData">Must be a serializable type.</typeparam>
-public record NotifyOrchestrationEvent<TNotifyData>(
+public record NotifyOrchestrationInstanceEvent<TNotifyData>(
     string OrchestrationInstanceId,
     string EventName,
-    string IdempotencyKey,
     TNotifyData Data)
-        : NotifyOrchestrationEvent(OrchestrationInstanceId, EventName, IdempotencyKey)
+        : NotifyOrchestrationInstanceEvent(OrchestrationInstanceId, EventName)
         where TNotifyData : INotifyDataDto;

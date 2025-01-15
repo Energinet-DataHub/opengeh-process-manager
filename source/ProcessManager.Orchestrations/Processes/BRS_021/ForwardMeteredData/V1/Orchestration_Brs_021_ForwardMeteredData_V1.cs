@@ -30,7 +30,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     internal const int FindReceiverStep = 3;
     internal const int EnqueueActorMessagesStep = 4;
 
-    public static readonly Brs_021_ForwardedMeteredData_V1 Name = new();
+    public static readonly Brs_021_ForwardedMeteredData_V1 UniqueName = new();
 
     private readonly TaskOptions _defaultRetryOptions;
 

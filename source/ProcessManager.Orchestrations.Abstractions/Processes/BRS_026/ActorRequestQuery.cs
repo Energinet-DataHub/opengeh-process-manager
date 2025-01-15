@@ -47,7 +47,7 @@ public sealed record ActorRequestQuery
             : base(operatingIdentity)
     {
         OrchestrationDescriptionNames = [
-            new Brs_026_V1().Name,
+            Brs_026.Name,
             new Brs_028_V1().Name];
         ActivatedAtOrLater = activatedAtOrLater;
         ActivatedAtOrEarlier = activatedAtOrEarlier;

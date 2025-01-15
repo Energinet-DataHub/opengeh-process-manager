@@ -64,7 +64,7 @@ internal class SearchActorRequestHandler(
 
     private IActorRequestQueryResult MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
     {
-        if (uniqueName.Name == new Brs_026_V1().Name)
+        if (uniqueName.Name == Brs_026.Name)
         {
             var original = instance.MapToTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>();
             return new RequestCalculatedEnergyTimeSeriesResult(

@@ -100,7 +100,7 @@ public class ProcessManagerMessageClient(
 
         if (data is not null)
         {
-            notifyOrchestration.Data = new NotifyOrchestrationDataV1
+            notifyOrchestration.Data = new NotifyOrchestrationInstanceDataV1
             {
                 Data = JsonSerializer.Serialize(data),
                 DataFormat = "application/json",

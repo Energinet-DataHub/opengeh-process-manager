@@ -2,18 +2,23 @@
 
 ## Version 0.19.0
 
-- Add `NotifyOrchestrationInstanceAsync` to `IProcessManagerMessageClient`
+- Add `NotifyOrchestrationInstanceAsync` to `IProcessManagerMessageClient`.
+- Add `NotifyOrchestrationInstanceEvent` and `NotifyOrchestrationInstanceEvent<TData>` requests.
+    - Add `INotifyDataDto` marker interface for `NotifyOrchestrationInstanceEvent<TData>`.
+- Add `NotifyOrchestrationInstanceV1` and `NotifyOrchestrationInstanceDataV1` protobuf models.
+- Rename `StartOrchestrationV1` to `StartOrchestrationInstanceV1`.
+- Add `IOrchestrationInstanceRequest` interface as a base interface for all orchestration instance requests.
 
 ## Version 0.18.0
 
 - Add version suffix to service bus messages names:
     - `EnqueueActorMessagesV1`
     - `StartOrchestrationV1`
-- Refactor `EnqueueActorMessagesV1` and `StartOrchestrationV1` service bus message fields
+- Refactor `EnqueueActorMessagesV1` and `StartOrchestrationV1` service bus message fields.
 
 ## Version 0.17.0
 
-- Add `EnqueueActorMessages`
+- Add `EnqueueActorMessages`.
 
 ## Version 0.16.0
 

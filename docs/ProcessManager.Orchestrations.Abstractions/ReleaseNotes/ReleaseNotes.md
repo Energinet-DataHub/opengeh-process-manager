@@ -1,5 +1,13 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.10.0
+
+- Moved types used for custom querying BRS 026 + 028 to a shared namespace:
+    - `ActorRequestQuery`
+    - `IActorRequestQueryResult`
+    - `RequestCalculatedEnergyTimeSeriesResult`
+    - `RequestCalculatedWholesaleServicesResult`
+
 ## Version 0.9.0
 
 - Refactored all `OrchestrationDescriptionUniqueNameDto` implementations to use an implementation with a shared const `Name` and a readonly property per version.

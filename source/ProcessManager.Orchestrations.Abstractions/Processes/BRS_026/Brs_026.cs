@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 
 public static class Brs_026
 {

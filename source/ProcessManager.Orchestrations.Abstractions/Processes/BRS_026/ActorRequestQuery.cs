@@ -14,8 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 
@@ -48,7 +47,7 @@ public sealed record ActorRequestQuery
     {
         OrchestrationDescriptionNames = [
             Brs_026.Name,
-            new Brs_028_V1().Name];
+            Brs_028.Name];
         ActivatedAtOrLater = activatedAtOrLater;
         ActivatedAtOrEarlier = activatedAtOrEarlier;
     }

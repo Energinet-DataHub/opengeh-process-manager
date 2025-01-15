@@ -18,7 +18,6 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
-using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Client;
@@ -27,6 +26,11 @@ public class ProcessManagerMessageClient(
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
         : IProcessManagerMessageClient
 {
+    /// <summary>
+    /// NotifyOrchestrationInstanceSubject must match the Process Manager service bus topic filter.
+    /// </summary>
+    private const string NotifyOrchestrationInstanceSubject = "NotifyOrchestration";
+
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.ProcessManagerTopic);
 
     public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
@@ -103,7 +107,7 @@ public class ProcessManagerMessageClient(
             notifyOrchestration.SetData(data);
 
         var serviceBusMessage = notifyOrchestration.ToServiceBusMessage(
-            subject: "NotifyOrchestration",
+            subject: NotifyOrchestrationInstanceSubject,
             idempotencyKey: Guid.NewGuid().ToString());
 
         return serviceBusMessage;

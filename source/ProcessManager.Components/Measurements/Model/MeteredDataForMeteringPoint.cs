@@ -17,7 +17,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Components.Measurements.Model;
 
-public record MeteredDataForMeasurementPoint(
+public record MeteredDataForMeteringPoint(
     string OrchestrationId,
     string MeteringPointId,
     string TransactionId,

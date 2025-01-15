@@ -24,13 +24,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class StartForwardMeteredDataHandlerV1(
     ILogger<StartForwardMeteredDataHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-        : StartOrchestrationInstanceFromMessageHandlerBase<MeteredDataForMeasurementPointMessageInputV1>(logger)
+        : StartOrchestrationInstanceFromMessageHandlerBase<MeteredDataForMeteringPointMessageInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,
-        MeteredDataForMeasurementPointMessageInputV1 input,
+        MeteredDataForMeteringPointMessageInputV1 input,
         string idempotencyKey)
     {
         await _commands.StartNewOrchestrationInstanceAsync(

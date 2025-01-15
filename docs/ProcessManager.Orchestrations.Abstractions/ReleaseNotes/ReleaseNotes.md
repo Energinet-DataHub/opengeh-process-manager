@@ -4,6 +4,10 @@
 
 - Dependent NuGet packages updated
 
+## Version 0.6.2
+
+- Rename MeteredDataForMeasurementPointMessageInputV1 to MeteredDataForMeteredPointMessageInputV1
+
 ## Version 0.6.1
 
 - No functional changes.

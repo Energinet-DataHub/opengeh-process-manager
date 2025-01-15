@@ -55,10 +55,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 = _fixture.ProcessManagerTopicName,
         });
         services.AddAzureClients(
-            b =>
-            {
-                b.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
-            });
+            builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
         ServiceProvider = services.BuildServiceProvider();
     }

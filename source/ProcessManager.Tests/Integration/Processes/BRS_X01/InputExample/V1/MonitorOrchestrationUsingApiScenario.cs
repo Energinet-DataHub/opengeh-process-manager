@@ -18,6 +18,7 @@ using System.Text.Json;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using FluentAssertions;
@@ -62,19 +63,22 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
         var orchestration = new Brs_X01_InputExample_V1();
-        var input = new InputV1(false);
+        var input = new InputV1(
+            ShouldSkipSkippableStep: false);
 
         var command = new StartInputExampleCommandV1(
-             operatingIdentity: new UserIdentityDto(
-                 Guid.NewGuid(),
-                 Guid.NewGuid()),
+             operatingIdentity: userIdentity,
              input);
 
-        using var scheduleRequest = new HttpRequestMessage(
+        using var startRequest = new HttpRequestMessage(
             HttpMethod.Post,
             $"/api/orchestrationinstance/command/start/custom/{orchestration.Name}/{orchestration.Version}");
-        scheduleRequest.Content = new StringContent(
+        startRequest.Content = new StringContent(
             JsonSerializer.Serialize(command),
             Encoding.UTF8,
             "application/json");
@@ -82,17 +86,15 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
         // Step 1: Start new orchestration instance
         using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
             .HttpClient
-            .SendAsync(scheduleRequest);
+            .SendAsync(startRequest);
         response.EnsureSuccessStatusCode();
 
         var orchestrationInstanceId = await response.Content
             .ReadFromJsonAsync<Guid>();
 
         // Step 2: Query until terminated with succeeded
-        var getRequest = new GetOrchestrationInstanceByIdQuery(
-            new UserIdentityDto(
-                Guid.NewGuid(),
-                Guid.NewGuid()),
+        var query = new GetOrchestrationInstanceByIdQuery(
+            userIdentity,
             orchestrationInstanceId);
 
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
@@ -102,7 +104,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
                     HttpMethod.Post,
                     "/api/orchestrationinstance/query/id");
                 queryRequest.Content = new StringContent(
-                    JsonSerializer.Serialize(getRequest),
+                    JsonSerializer.Serialize(query),
                     Encoding.UTF8,
                     "application/json");
 
@@ -121,5 +123,97 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             delay: TimeSpan.FromSeconds(2));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+    }
+
+    /// <summary>
+    /// The test schedules an orchestration instance, but since we always disable the schedule trigger in tests,
+    /// the orchestration instance will only be started if the schedule trigger is triggered from a test (could be another test).
+    /// </summary>
+    [Fact]
+    public async Task ExampleOrchestration_WhenScheduledToRunNow_CanSearch()
+    {
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
+        var now = DateTimeOffset.UtcNow;
+        var orchestration = new Brs_X01_InputExample_V1();
+        var input = new InputV1(
+            ShouldSkipSkippableStep: false);
+
+        var command = new ScheduleInputExampleCommandV1(
+             operatingIdentity: userIdentity,
+             input,
+             runAt: now);
+
+        using var scheduleRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/command/schedule/custom/{orchestration.Name}/{orchestration.Version}");
+        scheduleRequest.Content = new StringContent(
+            JsonSerializer.Serialize(command),
+            Encoding.UTF8,
+            "application/json");
+
+        // Step 1: Schedule new orchestration instance
+        using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
+            .HttpClient
+            .SendAsync(scheduleRequest);
+        response.EnsureSuccessStatusCode();
+
+        var orchestrationInstanceId = await response.Content
+            .ReadFromJsonAsync<Guid>();
+
+        // Step 2: General search using name
+        var queryByName = new SearchOrchestrationInstancesByNameQuery(
+            userIdentity,
+            orchestration.Name,
+            version: null,
+            lifecycleState: null,
+            terminationState: null,
+            startedAtOrLater: null,
+            terminatedAtOrEarlier: null);
+
+        using var queryByNameRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/name");
+        queryByNameRequest.Content = new StringContent(
+            JsonSerializer.Serialize(queryByName),
+            Encoding.UTF8,
+            "application/json");
+
+        using var queryByNameResponse = await Fixture.ProcessManagerAppManager.AppHostManager
+            .HttpClient
+            .SendAsync(queryByNameRequest);
+        queryByNameResponse.EnsureSuccessStatusCode();
+
+        var orchestrationInstancesFromNameQuery = await queryByNameResponse.Content
+            .ReadFromJsonAsync<IReadOnlyCollection<OrchestrationInstanceDto>>();
+
+        orchestrationInstancesFromNameQuery.Should()
+            .Contain(x => x.Id == orchestrationInstanceId, "because the orchestration instance with given name, should exist");
+
+        // Step 3: Custom search
+        var customQuery = new InputExampleQuery(
+            userIdentity,
+            skippedStepTwo: input.ShouldSkipSkippableStep);
+
+        using var customQueryRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/query/custom/{InputExampleQuery.RouteName}");
+        customQueryRequest.Content = new StringContent(
+            JsonSerializer.Serialize(customQueryRequest),
+            Encoding.UTF8,
+            "application/json");
+
+        using var customQueryResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
+            .HttpClient
+            .SendAsync(customQueryRequest);
+        customQueryResponse.EnsureSuccessStatusCode();
+
+        var orchestrationInstancesFromCustomQuery = await customQueryResponse.Content
+            .ReadFromJsonAsync<IReadOnlyCollection<InputExampleQueryResult>>();
+
+        orchestrationInstancesFromCustomQuery.Should()
+            .Contain(x => x.OrchestrationInstance.Id == orchestrationInstanceId, "because the orchestration instance with orchestration description name defined in custom query, should exist");
     }
 }

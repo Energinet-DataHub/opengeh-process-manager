@@ -196,8 +196,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         // Assert
         actual.Should()
             .ContainEquivalentOf(scheduledToRun)
-            .And
-            .HaveCount(1);
+            .And.NotContainEquivalentOf(notScheduled)
+            .And.NotContainEquivalentOf(scheduledIntoTheFarFuture);
     }
 
     [Fact]
@@ -428,6 +428,90 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         // Assert
         actual.Should()
             .BeEquivalentTo(new[] { isTerminated01 });
+    }
+
+    [Fact]
+    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByActivatedWithinOneHourTomorrow_ThenExpectedOrchestrationInstancesAreRetrieved()
+    {
+        // Arrange
+        var now = SystemClock.Instance.GetCurrentInstant();
+
+        var tomorrow = now.PlusDays(1);
+        var tomorrowClockMock = new Mock<IClock>();
+        tomorrowClockMock.Setup(m => m.GetCurrentInstant())
+            .Returns(tomorrow);
+
+        var dayAfterTomorrow = tomorrow.PlusDays(1);
+        var dayAfterTomorrowClockMock = new Mock<IClock>();
+        dayAfterTomorrowClockMock.Setup(m => m.GetCurrentInstant())
+            .Returns(dayAfterTomorrow);
+
+        // => Orchestration description 01
+        var uniqueName01 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
+        var existingOrchestrationDescription01 = CreateOrchestrationDescription(uniqueName01);
+
+        var isPendingBasedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
+
+        var isQueuedNowBasedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
+        isQueuedNowBasedOn01.Lifecycle.TransitionToQueued(SystemClock.Instance);
+
+        var isQueuedTomorrowBasedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
+        isQueuedTomorrowBasedOn01.Lifecycle.TransitionToQueued(tomorrowClockMock.Object);
+
+        var isQueuedDayAfterTomorrowBasedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
+        isQueuedDayAfterTomorrowBasedOn01.Lifecycle.TransitionToQueued(dayAfterTomorrowClockMock.Object);
+
+        // => Orchestration description 02
+        var uniqueName02 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
+        var existingOrchestrationDescription02 = CreateOrchestrationDescription(uniqueName02);
+
+        var isScheduledToRunNowBasedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02, runAt: now);
+
+        var isScheduledToRunTomorrowBasedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02, runAt: tomorrow);
+
+        var isScheduledToRunDayAfterTomorrowBasedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02, runAt: dayAfterTomorrow);
+
+        // => Orchestration description 03
+        var uniqueName03 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
+        var existingOrchestrationDescription03 = CreateOrchestrationDescription(uniqueName03);
+
+        var isQueuedNowBasedOn03 = CreateOrchestrationInstance(existingOrchestrationDescription03);
+        isQueuedNowBasedOn03.Lifecycle.TransitionToQueued(SystemClock.Instance);
+
+        var isQueuedTomorrowBasedOn03 = CreateOrchestrationInstance(existingOrchestrationDescription03);
+        isQueuedTomorrowBasedOn03.Lifecycle.TransitionToQueued(tomorrowClockMock.Object);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription01);
+            writeDbContext.OrchestrationInstances.Add(isPendingBasedOn01);
+            writeDbContext.OrchestrationInstances.Add(isQueuedNowBasedOn01);
+            writeDbContext.OrchestrationInstances.Add(isQueuedTomorrowBasedOn01);
+            writeDbContext.OrchestrationInstances.Add(isQueuedDayAfterTomorrowBasedOn01);
+
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription02);
+            writeDbContext.OrchestrationInstances.Add(isScheduledToRunNowBasedOn02);
+            writeDbContext.OrchestrationInstances.Add(isScheduledToRunTomorrowBasedOn02);
+            writeDbContext.OrchestrationInstances.Add(isScheduledToRunDayAfterTomorrowBasedOn02);
+
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription03);
+            writeDbContext.OrchestrationInstances.Add(isQueuedNowBasedOn03);
+            writeDbContext.OrchestrationInstances.Add(isQueuedTomorrowBasedOn03);
+
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        var actual = await _sut.SearchAsync(
+            orchestrationDescriptionNames: [uniqueName01.Name, uniqueName02.Name],
+            activatedAtOrLater: tomorrow,
+            activatedAtOrEarlier: tomorrow.PlusHours(1));
+
+        // Assert
+        actual.Should()
+            .BeEquivalentTo([
+                (uniqueName01, isQueuedTomorrowBasedOn01),
+                (uniqueName02, isScheduledToRunTomorrowBasedOn02)]);
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)

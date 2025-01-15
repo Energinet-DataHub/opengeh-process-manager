@@ -1,5 +1,11 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.21.0
+
+- Updated code documenation (XML comments).
+- Refactored implementation of custom queries support.
+- Implemented interface `IOrchestrationInstanceTypedDto<out TInputParameterDto>` and added it to `OrchestrationInstanceTypedDto<TInputParameterDto>`.
+
 ## Version 0.20.0
 
 - Renamed `MessageCommand` property `MessageId` to `IdempotencyKey`.

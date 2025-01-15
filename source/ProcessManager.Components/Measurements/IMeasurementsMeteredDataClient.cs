@@ -21,7 +21,7 @@ public interface IMeasurementsMeteredDataClient
     /// <summary>
     /// Responsible for sending metered data for a measurement point to Measurements.
     /// </summary>
-    /// <param name="meteredDataForMeasurementPoint"></param>
+    /// <param name="meteredDataForMeteringPoint"></param>
     /// <param name="cancellationToken"></param>
-    public Task SendAsync(MeteredDataForMeasurementPoint meteredDataForMeasurementPoint, CancellationToken cancellationToken);
+    public Task SendAsync(MeteredDataForMeteringPoint meteredDataForMeteringPoint, CancellationToken cancellationToken);
 }

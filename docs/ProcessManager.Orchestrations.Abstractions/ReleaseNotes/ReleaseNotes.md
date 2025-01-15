@@ -1,8 +1,12 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 0.6.2
+## Version 0.6.3
 
 - No functional changes.
+
+## Version 0.6.2
+
+- Rename `MeteredDataForMeasurementPointMessageInputV1` to `MeteredDataForMeteredPointMessageInputV1`
 
 ## Version 0.6.1
 

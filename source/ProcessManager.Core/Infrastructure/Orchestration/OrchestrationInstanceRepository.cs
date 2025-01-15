@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -39,16 +40,18 @@ internal class OrchestrationInstanceRepository(
     /// <inheritdoc />
     public Task<OrchestrationInstance> GetAsync(OrchestrationInstanceId id)
     {
-        ArgumentNullException.ThrowIfNull(id);
-
         return _context.OrchestrationInstances.FirstAsync(x => x.Id == id);
+    }
+
+    /// <inheritdoc />
+    public Task<OrchestrationInstance?> GetOrDefaultAsync(IdempotencyKey idempotencyKey)
+    {
+        return _context.OrchestrationInstances.FirstOrDefaultAsync(x => x.IdempotencyKey == idempotencyKey);
     }
 
     /// <inheritdoc />
     public async Task AddAsync(OrchestrationInstance orchestrationInstance)
     {
-        ArgumentNullException.ThrowIfNull(orchestrationInstance);
-
         await _context.OrchestrationInstances.AddAsync(orchestrationInstance).ConfigureAwait(false);
     }
 
@@ -86,6 +89,28 @@ internal class OrchestrationInstanceRepository(
             .Where(x => terminationState == null || x.Lifecycle.TerminationState == terminationState)
             .Where(x => startedAtOrLater == null || x.Lifecycle.StartedAt >= startedAtOrLater)
             .Where(x => terminatedAtOrEarlier == null || x.Lifecycle.TerminatedAt <= terminatedAtOrEarlier);
+
+        return await query.ToListAsync().ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
+        IReadOnlyCollection<string> orchestrationDescriptionNames,
+        Instant activatedAtOrLater,
+        Instant activatedAtOrEarlier)
+    {
+        var query = _context
+            .OrchestrationDescriptions
+                .Where(x => orchestrationDescriptionNames.Contains(x.UniqueName.Name))
+            .Join(
+                _context.OrchestrationInstances,
+                description => description.Id,
+                instance => instance.OrchestrationDescriptionId,
+                (description, instance) => new { description.UniqueName, instance })
+            .Where(x =>
+                (x.instance.Lifecycle.QueuedAt >= activatedAtOrLater && x.instance.Lifecycle.QueuedAt <= activatedAtOrEarlier)
+                || (x.instance.Lifecycle.ScheduledToRunAt >= activatedAtOrLater && x.instance.Lifecycle.ScheduledToRunAt <= activatedAtOrEarlier))
+            .Select(x => ValueTuple.Create(x.UniqueName, x.instance));
 
         return await query.ToListAsync().ConfigureAwait(false);
     }

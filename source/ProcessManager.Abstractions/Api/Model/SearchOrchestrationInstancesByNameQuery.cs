@@ -31,8 +31,8 @@ public sealed record SearchOrchestrationInstancesByNameQuery
     /// <param name="version">A version identifying a specific implementation of the orchestration which the instances was created from.</param>
     /// <param name="lifecycleState">Lifecycle states that orchestration instances can be in.</param>
     /// <param name="terminationState">Termination states that orchestration instances can be in.</param>
-    /// <param name="startedAtOrLater"></param>
-    /// <param name="terminatedAtOrEarlier"></param>
+    /// <param name="startedAtOrLater">The time (or later) when the orchestration instances was transitioned to the Running state.</param>
+    /// <param name="terminatedAtOrEarlier">The time (or earlier) when the orchestration instances was transitioned to the Terminated state.</param>
     public SearchOrchestrationInstancesByNameQuery(
         UserIdentityDto operatingIdentity,
         string name,

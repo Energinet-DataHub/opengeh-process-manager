@@ -29,6 +29,7 @@ internal class OrchestrationInstanceManager(
     IOrchestrationRegisterQueries orchestrationRegister,
     IOrchestrationInstanceRepository repository) :
         IStartOrchestrationInstanceCommands,
+        IStartOrchestrationInstanceMessageCommands,
         IStartScheduledOrchestrationInstanceCommand,
         ICancelScheduledOrchestrationInstanceCommand
 {
@@ -48,7 +49,7 @@ internal class OrchestrationInstanceManager(
             identity,
             orchestrationDescription).ConfigureAwait(false);
 
-        await RequestStartOfOrchestrationInstanceAsync(
+        await RequestStartOfOrchestrationInstanceIfPendingAsync(
             orchestrationDescription,
             orchestrationInstance).ConfigureAwait(false);
 
@@ -74,7 +75,36 @@ internal class OrchestrationInstanceManager(
             inputParameter,
             skipStepsBySequence).ConfigureAwait(false);
 
-        await RequestStartOfOrchestrationInstanceAsync(
+        await RequestStartOfOrchestrationInstanceIfPendingAsync(
+            orchestrationDescription,
+            orchestrationInstance).ConfigureAwait(false);
+
+        return orchestrationInstance.Id;
+    }
+
+    /// <inheritdoc />
+    public async Task<OrchestrationInstanceId> StartNewOrchestrationInstanceAsync<TParameter>(
+        ActorIdentity identity,
+        OrchestrationDescriptionUniqueName uniqueName,
+        TParameter inputParameter,
+        IReadOnlyCollection<int> skipStepsBySequence,
+        IdempotencyKey idempotencyKey)
+            where TParameter : class
+    {
+        var orchestrationDescription = await GuardMatchingOrchestrationDescriptionWithInputAsync(
+            uniqueName,
+            inputParameter,
+            skipStepsBySequence).ConfigureAwait(false);
+
+        // Idempotency check
+        var orchestrationInstance = await _repository.GetOrDefaultAsync(idempotencyKey).ConfigureAwait(false);
+        orchestrationInstance ??= await CreateOrchestrationInstanceWithInputAsync(
+                identity,
+                orchestrationDescription,
+                inputParameter,
+                skipStepsBySequence).ConfigureAwait(false);
+
+        await RequestStartOfOrchestrationInstanceIfPendingAsync(
             orchestrationDescription,
             orchestrationInstance).ConfigureAwait(false);
 
@@ -138,7 +168,7 @@ internal class OrchestrationInstanceManager(
         if (!orchestrationDescription.IsEnabled)
             throw new InvalidOperationException("Orchestration instance is based on a disabled orchestration definition.");
 
-        await RequestStartOfOrchestrationInstanceAsync(orchestrationDescription, orchestrationInstance).ConfigureAwait(false);
+        await RequestStartOfOrchestrationInstanceIfPendingAsync(orchestrationDescription, orchestrationInstance).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -160,10 +190,9 @@ internal class OrchestrationInstanceManager(
         OrchestrationDescriptionUniqueName uniqueName)
     {
         var orchestrationDescription = await _orchestrationRegister.GetOrDefaultAsync(uniqueName, isEnabled: true).ConfigureAwait(false);
-        if (orchestrationDescription == null)
-            throw new InvalidOperationException($"No enabled orchestration description matches UniqueName='{uniqueName}'.");
-
-        return orchestrationDescription;
+        return orchestrationDescription == null
+            ? throw new InvalidOperationException($"No enabled orchestration description matches UniqueName='{uniqueName}'.")
+            : orchestrationDescription;
     }
 
     /// <summary>
@@ -204,7 +233,7 @@ internal class OrchestrationInstanceManager(
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             identity,
             orchestrationDescription,
-            [],
+            skipStepsBySequence: [],
             _clock,
             runAt);
 
@@ -237,13 +266,17 @@ internal class OrchestrationInstanceManager(
         return orchestrationInstance;
     }
 
-    private async Task RequestStartOfOrchestrationInstanceAsync(
+    private async Task RequestStartOfOrchestrationInstanceIfPendingAsync(
         OrchestrationDescription orchestrationDescription,
         OrchestrationInstance orchestrationInstance)
     {
-        await _executor.StartNewOrchestrationInstanceAsync(orchestrationDescription, orchestrationInstance).ConfigureAwait(false);
+        if (orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Pending)
+        {
+            // TODO: Should try/catch on exception that will be thrown IF instance exists in Durable Task Hub
+            await _executor.StartNewOrchestrationInstanceAsync(orchestrationDescription, orchestrationInstance).ConfigureAwait(false);
 
-        orchestrationInstance.Lifecycle.TransitionToQueued(_clock);
-        await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+            orchestrationInstance.Lifecycle.TransitionToQueued(_clock);
+            await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        }
     }
 }

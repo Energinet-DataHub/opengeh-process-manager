@@ -33,7 +33,7 @@ internal class SearchTrigger_Brs_023_027(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "orchestrationinstance/query/custom/brs_023_027")]
+            Route = $"orchestrationinstance/query/custom/{CalculationQuery.RouteName}")]
         HttpRequest httpRequest,
         [FromBody]
         CalculationQuery query,

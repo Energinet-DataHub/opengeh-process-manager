@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
@@ -31,7 +32,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationDescriptionAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    public async Task Given_OrchestrationDescriptionAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -54,7 +55,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_RecurringOrchestrationDescriptionAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    public async Task Given_RecurringOrchestrationDescriptionAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription(recurringCronExpression: "0 0 * * *");
@@ -77,7 +78,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -102,7 +103,85 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_WhenFilteringJsonColumn_ReturnsExpectedItem()
+    public async Task Given_OrchestrationInstanceWithUniqueIdempotencyKeyAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
+        var orchestrationInstance = await readDbContext.OrchestrationInstances.FindAsync(existingOrchestrationInstance.Id);
+
+        // Assert
+        orchestrationInstance.Should()
+            .NotBeNull()
+            .And
+            .BeEquivalentTo(existingOrchestrationInstance);
+    }
+
+    [Fact]
+    public async Task Given_MultipleOrchestrationInstancesWithNullInIdempotencyKeyAddedToDbContext_When_SaveChangesAsync_Then_NoExceptionThrown()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var newOrchestrationInstance01 = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: null);
+        var newOrchestrationInstance02 = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: null);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(newOrchestrationInstance01);
+            writeDbContext.OrchestrationInstances.Add(newOrchestrationInstance02);
+            // Act
+            await writeDbContext.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Given_MultipleOrchestrationInstancesWithSameValueInIdempotencyKeyAddedToDbContext_When_SaveChangesAsync_Then_ThrowsExpectedException()
+    {
+        // Arrange
+        var idempotencyKey = new IdempotencyKey(Guid.NewGuid().ToString());
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var newOrchestrationInstance01 = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: idempotencyKey);
+        var newOrchestrationInstance02 = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            idempotencyKey: idempotencyKey);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(newOrchestrationInstance01);
+            writeDbContext.OrchestrationInstances.Add(newOrchestrationInstance02);
+            // Act
+            var act = () => writeDbContext.SaveChangesAsync();
+            // Assert
+            using var assertionScope = new AssertionScope();
+            var ex = await act.Should()
+                .ThrowAsync<DbUpdateException>();
+            ex.Which!.InnerException!.Message
+                .Contains("Cannot insert duplicate key row in object 'pm.OrchestrationInstance' with unique index 'UX_OrchestrationInstance_IdempotencyKey'");
+        }
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_When_FilteringJsonColumn_Then_ReturnsExpectedItem()
     {
         // Arrange
         var expectedTestInt = 52;
@@ -128,7 +207,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_UserCanceledOrchestrationInstanceAddedToDbContext_WhenRetrievingFromDatabase_HasCorrectValues()
+    public async Task Given_UserCanceledOrchestrationInstanceAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
         var userIdentity = new UserIdentity(new UserId(Guid.NewGuid()), new ActorId(Guid.NewGuid()));
@@ -177,7 +256,12 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         return orchestrationDescription;
     }
 
-    private static OrchestrationInstance CreateOrchestrationInstance(OrchestrationDescription orchestrationDescription, OperatingIdentity? identity = default, Instant? runAt = default, int? testInt = default)
+    private static OrchestrationInstance CreateOrchestrationInstance(
+        OrchestrationDescription orchestrationDescription,
+        OperatingIdentity? identity = default,
+        Instant? runAt = default,
+        int? testInt = default,
+        IdempotencyKey? idempotencyKey = default)
     {
         var operatingIdentity = identity
             ?? new UserIdentity(
@@ -189,7 +273,8 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             orchestrationDescription,
             skipStepsBySequence: [3],
             clock: SystemClock.Instance,
-            runAt);
+            runAt,
+            idempotencyKey);
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {

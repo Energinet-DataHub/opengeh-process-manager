@@ -23,22 +23,22 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public class StartForwardMeteredDataHandlerV1(
     ILogger<StartForwardMeteredDataHandlerV1> logger,
-    IStartOrchestrationInstanceCommands commands)
-        : StartOrchestrationInstanceFromMessageHandlerBase<MeteredDataForMeasurementPointMessageInputV1>(logger)
+    IStartOrchestrationInstanceMessageCommands commands)
+        : StartOrchestrationInstanceFromMessageHandlerBase<MeteredDataForMeteringPointMessageInputV1>(logger)
 {
-    private readonly IStartOrchestrationInstanceCommands _commands = commands;
+    private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 
-    protected override async Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, MeteredDataForMeasurementPointMessageInputV1 input)
+    protected override async Task StartOrchestrationInstanceAsync(
+        ActorIdentity actorIdentity,
+        MeteredDataForMeteringPointMessageInputV1 input,
+        string idempotencyKey)
     {
-        var orchestrationDescriptionUniqueName = new Brs_021_ForwardedMeteredData_V1();
-
         await _commands.StartNewOrchestrationInstanceAsync(
-                identity: actorIdentity,
-                uniqueName: new OrchestrationDescriptionUniqueName(
-                    orchestrationDescriptionUniqueName.Name,
-                    orchestrationDescriptionUniqueName.Version),
+                actorIdentity,
+                OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName),
                 input,
-                [])
+                skipStepsBySequence: [],
+                new IdempotencyKey(idempotencyKey))
             .ConfigureAwait(false);
     }
 }

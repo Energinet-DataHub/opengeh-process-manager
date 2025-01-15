@@ -29,18 +29,14 @@ public abstract record SearchOrchestrationInstancesByCustomQuery<TItem>
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
-    /// <param name="name">A common name to identity the orchestration which the instances was created from.</param>
     public SearchOrchestrationInstancesByCustomQuery(
-        UserIdentityDto operatingIdentity,
-        string name)
+        UserIdentityDto operatingIdentity)
             : base(operatingIdentity)
     {
-        Name = name;
     }
 
     /// <summary>
-    /// A common name to identity the orchestration description which the orchestration instances
-    /// was created from.
+    /// A query name used to route the underlying request to the correct custom query trigger.
     /// </summary>
-    public string Name { get; }
+    public abstract string QueryRouteName { get; }
 }

@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Energinet.DataHub.Core.App.WebApp" Version="14.0.2" />
-    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="7.1.1" />
+    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="7.2.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -33,6 +33,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.29.1" />
+    <PackageReference Include="Grpc.Tools" Version="2.68.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Components\ProcessManager.Components.csproj" />
   </ItemGroup>
 
@@ -40,6 +48,16 @@
     <None Update="integrationtest.local.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="./Unit/Measurements/Contracts/**/*.proto">
+      <GrpcServices>None</GrpcServices>
+      <Access>Public</Access>
+      <ProtoCompile>True</ProtoCompile>
+      <CompileOutputs>True</CompileOutputs>
+      <Generator>MSBuild:Compile</Generator>
+    </Protobuf>
   </ItemGroup>
 
 </Project>

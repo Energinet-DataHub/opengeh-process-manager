@@ -21,8 +21,8 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// Command for starting an orchestration instance for a message.
 /// Must be JSON serializable.
 /// </summary>
-/// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
-public abstract record MessageCommand<TInputParameterDto>
+/// <typeparam name="TInputParameterDto">Must be a serializable type.</typeparam>
+public abstract record StartOrchestrationInstanceMessageCommand<TInputParameterDto>
     : StartOrchestrationInstanceCommand<ActorIdentityDto, TInputParameterDto>
         where TInputParameterDto : IInputParameterDto
 {
@@ -33,19 +33,25 @@ public abstract record MessageCommand<TInputParameterDto>
     /// <param name="orchestrationDescriptionUniqueName">Uniquely identifies the orchestration description from which the
     /// orchestration instance should be created.</param>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
-    /// <param name="messageId">Id of the message that casued this command to be executed.</param>
-    public MessageCommand(
+    /// <param name="idempotencyKey">
+    /// A value used by the Process Manager to ensure idempotency for a message command.
+    /// The producer of the <see cref="StartOrchestrationInstanceMessageCommand{TInputParameterDto}"/> should
+    /// create a key that is unique per command.</param>
+    public StartOrchestrationInstanceMessageCommand(
         ActorIdentityDto operatingIdentity,
         OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
         TInputParameterDto inputParameter,
-        string messageId)
+        string idempotencyKey)
             : base(operatingIdentity, orchestrationDescriptionUniqueName, inputParameter)
     {
-        MessageId = messageId;
+        IdempotencyKey = idempotencyKey;
     }
 
     /// <summary>
-    /// Id of the message that casued this command to be executed.
+    /// A value used by the Process Manager to ensure idempotency for a message command.
+    /// The producer of the <see cref="StartOrchestrationInstanceMessageCommand{TInputParameterDto}"/> should
+    /// create a key that is unique per command.
+    /// Max length is 1024 characters.
     /// </summary>
-    public string MessageId { get; }
+    public string IdempotencyKey { get; }
 }

@@ -17,7 +17,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
@@ -30,6 +29,8 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     internal const int FindReceiverStep = 3;
     internal const int EnqueueActorMessagesStep = 4;
 
+    public static readonly Brs_021_ForwardedMeteredData_V1 UniqueName = new();
+
     private readonly TaskOptions _defaultRetryOptions;
 
     public Orchestration_Brs_021_ForwardMeteredData_V1()
@@ -41,7 +42,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var input = context.GetOrchestrationParameterValue<MeteredDataForMeasurementPointMessageInputV1>();
+        var input = context.GetOrchestrationParameterValue<MeteredDataForMeteringPointMessageInputV1>();
 
         if (input == null)
             return "Error: No input specified.";
@@ -74,8 +75,10 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
 
         // Step: Storing
         await context.CallActivityAsync(
-            nameof(StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1),
-            new StoreMeteredDataForMeasurementPointActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+            nameof(StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredData_V1),
+            new StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                instanceId,
+                input),
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("Measurements_Notification");
         await context.CallActivityAsync(

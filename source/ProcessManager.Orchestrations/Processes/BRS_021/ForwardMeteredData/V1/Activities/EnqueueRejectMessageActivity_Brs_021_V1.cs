@@ -59,5 +59,5 @@ internal class EnqueueRejectMessageActivity_Brs_021_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        MeteredDataForMeasurementPointRejectedV1 RejectMessage);
+        MeteredDataForMeteringPointRejectedV1 RejectMessage);
 }

@@ -25,7 +25,7 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
         [ActivityTrigger] ActivityInput activityInput)
     {
         var result = new ActivityOutput(
-            new MeteredDataForMeasurementPointRejectedV1(
+            new MeteredDataForMeteringPointRejectedV1(
                 Guid.NewGuid().ToString("N"),
                 "BusinessReason",
                 "1111111111111",
@@ -54,5 +54,5 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
         string InputTransactionId,
         IReadOnlyCollection<string> Errors);
 
-    public sealed record ActivityOutput(MeteredDataForMeasurementPointRejectedV1 RejectMessage);
+    public sealed record ActivityOutput(MeteredDataForMeteringPointRejectedV1 RejectMessage);
 }

@@ -16,7 +16,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-public sealed record MeteredDataForMeasurementPointRejectedV1(
+public sealed record MeteredDataForMeteringPointRejectedV1(
     string EventId,
     string BusinessReason,
     string ReceiverId,

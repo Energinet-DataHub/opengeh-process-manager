@@ -83,7 +83,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ForwardMeteredData_WhenStartedUsingClient_CanMonitorLifecycle()
+    public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
     {
         // Arrange
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
@@ -105,14 +105,68 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var inputToken = JToken.FromObject(input);
         orchestration.Input.ToString().Should().BeEquivalentTo(inputToken.ToString(Newtonsoft.Json.Formatting.None));
 
-        var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+        var completeOrchestrationStatus = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestration.InstanceId);
-        completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
-        await _fixture.EventHubListener.WhenAny().VerifyOnceAsync();
+
+        // => Assert expected history
+        using var assertionScope = new AssertionScope();
+
+        var activities = completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Select(item => item.ToObject<OrchestrationHistoryItem>())
+            .ToList();
+
+        activities.Should()
+            .NotBeNull()
+            .And.Equal(
+                new OrchestrationHistoryItem(
+                    "ExecutionStarted",
+                    FunctionName: "Orchestration_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "PerformValidationActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "StoringStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "FindReceiversActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem("ExecutionCompleted"));
+
+        // => Verify that the durable function completed successfully
+        var last = completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Last();
+        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
+        last.Value<string>("Result").Should().Be("Success");
     }
 
     [Fact]
-    public async Task ForwardMeteredData_WhenStartedWithFaultyInput_ExecutedErrorFlow()
+    public async Task ForwardMeteredData_WhenStartedWithFaultyInput_ThenExecutedErrorPath()
     {
         // Arrange
         var input = CreateMeteredDataForMeteringPointMessageInputV1(true);

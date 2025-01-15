@@ -33,7 +33,6 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
                 activityInput.OrchestrationInstanceId.Value,
                 Guid.NewGuid(),
                 new AcknowledgementV1(
-                    Guid.NewGuid().ToString("N"),
                     null,
                     activityInput.InputTransactionId,
                     null,

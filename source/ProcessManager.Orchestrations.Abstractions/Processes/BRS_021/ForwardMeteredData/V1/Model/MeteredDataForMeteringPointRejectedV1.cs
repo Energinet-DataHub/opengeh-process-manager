@@ -26,7 +26,6 @@ public sealed record MeteredDataForMeteringPointRejectedV1(
     AcknowledgementV1 AcknowledgementV1);
 
 public sealed record AcknowledgementV1(
-    string TransactionId,
     DateTimeOffset? ReceivedMarketDocumentCreatedDateTime,
     string? ReceivedMarketDocumentTransactionId,
     string? ReceivedMarketDocumentProcessProcessType,

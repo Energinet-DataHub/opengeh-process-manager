@@ -20,6 +20,17 @@ public partial class NotifyOrchestrationInstanceV1
 {
     public const string MajorVersion = nameof(NotifyOrchestrationInstanceV1);
 
+    public void SetData<TNotifyData>(TNotifyData data)
+        where TNotifyData : class
+    {
+        Data = new NotifyOrchestrationInstanceDataV1
+        {
+            Data = JsonSerializer.Serialize(data),
+            DataFormat = NotifyOrchestrationInstanceDataFormatV1.Json,
+            DataType = typeof(TNotifyData).Name,
+        };
+    }
+
     public T? ParseData<T>()
         where T : class?
     {

@@ -45,7 +45,7 @@ public class ProcessManagerMessageClient(
         NotifyOrchestrationInstanceEvent notifyEvent,
         CancellationToken cancellationToken)
     {
-        var serviceBusMessage = CreateNotifyOrchestrationInstanceServiceBusMessage<int?>(
+        var serviceBusMessage = CreateNotifyOrchestrationInstanceServiceBusMessage<object>(
             notifyEvent,
             data: null);
 
@@ -57,7 +57,7 @@ public class ProcessManagerMessageClient(
     public Task NotifyOrchestrationInstanceAsync<TNotifyDataDto>(
         NotifyOrchestrationInstanceEvent<TNotifyDataDto> notifyEvent,
         CancellationToken cancellationToken)
-        where TNotifyDataDto : INotifyDataDto
+        where TNotifyDataDto : class, INotifyDataDto
     {
         var serviceBusMessage = CreateNotifyOrchestrationInstanceServiceBusMessage(
             notifyEvent,
@@ -91,6 +91,7 @@ public class ProcessManagerMessageClient(
     private ServiceBusMessage CreateNotifyOrchestrationInstanceServiceBusMessage<TNotifyData>(
         NotifyOrchestrationInstanceEvent notifyEvent,
         TNotifyData? data)
+            where TNotifyData : class
     {
         var notifyOrchestration = new NotifyOrchestrationInstanceV1
         {
@@ -99,14 +100,7 @@ public class ProcessManagerMessageClient(
         };
 
         if (data is not null)
-        {
-            notifyOrchestration.Data = new NotifyOrchestrationInstanceDataV1
-            {
-                Data = JsonSerializer.Serialize(data),
-                DataFormat = NotifyOrchestrationInstanceDataFormatV1.Json,
-                DataType = typeof(TNotifyData).Name,
-            };
-        }
+            notifyOrchestration.SetData(data);
 
         var serviceBusMessage = notifyOrchestration.ToServiceBusMessage(
             subject: "NotifyOrchestration",

@@ -42,5 +42,5 @@ public interface IProcessManagerMessageClient
     public Task NotifyOrchestrationInstanceAsync<TNotifyDataDto>(
         NotifyOrchestrationInstanceEvent<TNotifyDataDto> notifyEvent,
         CancellationToken cancellationToken)
-        where TNotifyDataDto : INotifyDataDto;
+        where TNotifyDataDto : class, INotifyDataDto;
 }

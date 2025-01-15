@@ -14,13 +14,19 @@
 
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Extensions.Options;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Api;
 
-public class NotifyOrchestrationInstanceTrigger
+public class NotifyOrchestrationInstanceTrigger(
+    INotifyOrchestrationInstanceCommands notifyOrchestrationCommands)
 {
+    private readonly INotifyOrchestrationInstanceCommands _notifyOrchestrationCommands = notifyOrchestrationCommands;
+
     /// <summary>
     /// Start a BRS-026 request.
     /// </summary>
@@ -32,6 +38,17 @@ public class NotifyOrchestrationInstanceTrigger
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        return Task.CompletedTask;
+        var t = NotifyOrchestrationInstanceV1.Parser.ParseJson(message.Body.ToString());
+
+        ArgumentNullException.ThrowIfNull(t);
+
+        var data = t.Data != null
+            ? t.Data
+            : null;
+
+        return _notifyOrchestrationCommands.NotifyOrchestrationInstanceAsync(
+            new OrchestrationInstanceId(Guid.Parse(t.OrchestrationInstanceId)),
+            t.EventName,
+            data);
     }
 }

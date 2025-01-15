@@ -31,7 +31,8 @@ internal class OrchestrationInstanceManager(
         IStartOrchestrationInstanceCommands,
         IStartOrchestrationInstanceMessageCommands,
         IStartScheduledOrchestrationInstanceCommand,
-        ICancelScheduledOrchestrationInstanceCommand
+        ICancelScheduledOrchestrationInstanceCommand,
+        INotifyOrchestrationInstanceCommands
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceExecutor _executor = executor;
@@ -181,6 +182,12 @@ internal class OrchestrationInstanceManager(
         // Transition lifecycle
         orchestrationInstance.Lifecycle.TransitionToUserCanceled(_clock, userIdentity);
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    public Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? eventData)
+        where TData : class
+    {
+        return _executor.NotifyOrchestrationInstanceAsync(id, eventName, eventData);
     }
 
     /// <summary>

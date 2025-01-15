@@ -12,20 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 
-/// <summary>
-/// Abstracts the execution of orchestration instances from technology specific implementations.
-/// </summary>
-internal interface IOrchestrationInstanceExecutor
+public interface INotifyOrchestrationInstanceCommands
 {
     /// <summary>
-    /// Start a new orchestration instance.
+    /// Send a notify event to the specified orchestration instance.
     /// </summary>
-    Task StartNewOrchestrationInstanceAsync(OrchestrationDescription orchestrationDescription, OrchestrationInstance orchestrationInstance);
-
-    Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? data);
+    Task NotifyOrchestrationInstanceAsync<TData>(
+        OrchestrationInstanceId id,
+        string eventName,
+        TData? eventData)
+        where TData : class;
 }

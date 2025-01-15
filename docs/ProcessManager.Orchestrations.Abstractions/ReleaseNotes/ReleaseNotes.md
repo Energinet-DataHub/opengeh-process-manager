@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.7.0
+
+- Dependent NuGet packages updated
+
 ## Version 0.6.3
 
 - No functional changes.

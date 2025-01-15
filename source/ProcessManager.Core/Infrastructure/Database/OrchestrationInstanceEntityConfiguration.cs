@@ -126,6 +126,15 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                 state => state.Value,
                 dbValue => new OrchestrationInstanceCustomState(dbValue));
 
+        builder.Property(o => o.IdempotencyKey)
+            .HasConversion(
+                state => state == null
+                    ? null
+                    : state.Value,
+                dbValue => dbValue == null
+                    ? null
+                    : new IdempotencyKey(dbValue));
+
         // Relation to description
         builder.Property(o => o.OrchestrationDescriptionId)
             .ValueGeneratedNever()

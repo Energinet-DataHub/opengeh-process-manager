@@ -103,26 +103,24 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         var beforeStartingOrchestration = DateTime.UtcNow.AddSeconds(-5);
 
-        var orchestrationId = await StartCalculationAsync(userIdentity);
+        var orchestrationInstanceId = await StartCalculationAsync(userIdentity);
 
-        await Fixture.DurableClient.WaitForOrchestationStartedAsync(
-            createdTimeFrom: beforeStartingOrchestration,
-            name: nameof(Orchestration_Brs_023_027_V1));
+        await Fixture.DurableClient.WaitForOrchestrationRunningAsync(orchestrationInstanceId.ToString());
 
         jobStatusCallback.SetValue(RunLifeCycleState.PENDING);
-        var isPending = await AwaitJobStatusAsync(JobRunStatus.Pending, orchestrationId);
+        var isPending = await AwaitJobStatusAsync(JobRunStatus.Pending, orchestrationInstanceId);
         isPending.Should().BeTrue("because we expects the orchestration instance to be pending within the given wait time");
 
         jobStatusCallback.SetValue(RunLifeCycleState.RUNNING);
-        var isRunning = await AwaitJobStatusAsync(JobRunStatus.Running, orchestrationId);
+        var isRunning = await AwaitJobStatusAsync(JobRunStatus.Running, orchestrationInstanceId);
         isRunning.Should().BeTrue("because we expects the orchestration instance to be running within the given wait time");
 
         jobStatusCallback.SetValue(RunLifeCycleState.TERMINATED);
-        var isTerminated = await AwaitJobStatusAsync(JobRunStatus.Completed, orchestrationId);
+        var isTerminated = await AwaitJobStatusAsync(JobRunStatus.Completed, orchestrationInstanceId);
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within the given wait time");
 
         var status = await Fixture.DurableClient.GetStatusAsync(
-            instanceId: orchestrationId.ToString(),
+            instanceId: orchestrationInstanceId.ToString(),
             showHistory: true,
             showHistoryOutput: true);
 
@@ -132,11 +130,11 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             .HaveCount(3, $"because we expects the orchestration instance to have 3 activities of type {nameof(CalculationStepGetJobRunStatusActivity_Brs_023_027_V1)}");
     }
 
-    private async Task<bool> AwaitJobStatusAsync(JobRunStatus expectedStatus, Guid instanceId)
+    private async Task<bool> AwaitJobStatusAsync(JobRunStatus expectedStatus, Guid orchestrationInstanceId)
     {
         var matchFound = await Awaiter.TryWaitUntilConditionAsync(
             () => FindOrchestrationActivityAndCheckStatusAsync(
-                instanceId,
+                orchestrationInstanceId,
                 nameof(CalculationStepGetJobRunStatusActivity_Brs_023_027_V1),
                 expectedStatus),
             TimeSpan.FromSeconds(30),
@@ -145,10 +143,10 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         return matchFound;
     }
 
-    private async Task<bool> FindOrchestrationActivityAndCheckStatusAsync(Guid instanceId, string activityName, JobRunStatus runStatus)
+    private async Task<bool> FindOrchestrationActivityAndCheckStatusAsync(Guid orchestrationInstanceId, string activityName, JobRunStatus runStatus)
     {
         var status = await Fixture.DurableClient.GetStatusAsync(
-            instanceId: instanceId.ToString(),
+            instanceId: orchestrationInstanceId.ToString(),
             showHistory: true,
             showHistoryOutput: true);
 

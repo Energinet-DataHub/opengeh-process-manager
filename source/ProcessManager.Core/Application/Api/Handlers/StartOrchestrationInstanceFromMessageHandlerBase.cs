@@ -59,7 +59,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         }
     }
 
-    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input);
+    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input, string idempotencyKey);
 
     private async Task HandleV1(ServiceBusReceivedMessage message)
     {
@@ -123,7 +123,8 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
 
         await StartOrchestrationInstanceAsync(
             new ActorIdentity(new ActorId(actorId)),
-            inputParameterDto)
+            inputParameterDto,
+            idempotencyKey: message.MessageId)
             .ConfigureAwait(false);
     }
 }

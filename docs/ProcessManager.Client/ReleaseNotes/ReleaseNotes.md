@@ -1,5 +1,10 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.20.0
+
+- Renamed `MessageCommand` property `MessageId` to `IdempotencyKey`.
+    - The Process Manager will use the `IdempotencyKey` to handle idempotency for commands initiated using messages.
+
 ## Version 0.19.0
 
 - Add `NotifyOrchestrationInstanceAsync` to `IProcessManagerMessageClient`.

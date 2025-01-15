@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-public partial class StartOrchestrationV1
-{
-    public static string MajorVersion => nameof(StartOrchestrationV1);
-}
+/// <summary>
+/// Allows for generic type constraints of serializable notify data to an orchestration instance.
+/// </summary>
+public interface INotifyDataDto;

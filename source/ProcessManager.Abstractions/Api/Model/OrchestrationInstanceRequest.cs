@@ -17,11 +17,12 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// A orchestration instance request executed by an identity.
+/// An orchestration instance request executed by an identity.
 /// Must be JSON serializable.
 /// </summary>
 /// <typeparam name="TOperatingIdentity">The operating identity type. Must be a JSON serializable type.</typeparam>
 /// <param name="OperatingIdentity">The identity executing the request.</param>
 public abstract record OrchestrationInstanceRequest<TOperatingIdentity>(
     TOperatingIdentity OperatingIdentity)
-        where TOperatingIdentity : IOperatingIdentityDto;
+        : IOrchestrationInstanceRequest
+            where TOperatingIdentity : IOperatingIdentityDto;

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-public partial class EnqueueActorMessagesV1
-{
-    public const string MajorVersion = nameof(EnqueueActorMessagesV1);
-}
+/// <summary>
+/// The most basic orchestration instance request
+/// </summary>
+public interface IOrchestrationInstanceRequest;

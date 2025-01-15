@@ -21,8 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// <param name="EventName">The notify event name (an example could be "EnqueueMessagesCompleted").</param>
 public record NotifyOrchestrationInstanceEvent(
     string OrchestrationInstanceId,
-    string EventName)
-        : IOrchestrationInstanceRequest;
+    string EventName) : IOrchestrationInstanceRequest;
 
 /// <summary>
 /// Event (with data) for notifying to an orchestration instance.

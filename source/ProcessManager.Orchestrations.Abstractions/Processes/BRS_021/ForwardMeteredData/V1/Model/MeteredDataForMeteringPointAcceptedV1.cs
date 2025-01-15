@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// A model containing the data required for notifying market actors when new metered data has been accepted.
 /// </summary>
 public record MeteredDataForMeteringPointAcceptedV1(
-    string MeteringPointId, // Should PM know if the value is actually an GLN?
+    string MeteringPointId,
     MeteringPointType MeteringPointType,
     string OriginalTransactionId, // What term is used in PM to describe this?
     string Product, // Do we need to pass this along?

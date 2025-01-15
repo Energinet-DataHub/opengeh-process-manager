@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
@@ -64,7 +65,7 @@ internal class SearchActorRequestHandler(
 
     private IActorRequestQueryResult MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
     {
-        if (uniqueName.Name == new Brs_026_V1().Name)
+        if (uniqueName.Name == Brs_026.Name)
         {
             var original = instance.MapToTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>();
             return new RequestCalculatedEnergyTimeSeriesResult(
@@ -75,7 +76,7 @@ internal class SearchActorRequestHandler(
                 original.ParameterValue);
         }
 
-        if (uniqueName.Name == new Brs_028_V1().Name)
+        if (uniqueName.Name == Brs_028.Name)
         {
             var original = instance.MapToTypedDto<RequestCalculatedWholesaleServicesInputV1>();
             return new RequestCalculatedWholesaleServicesResult(

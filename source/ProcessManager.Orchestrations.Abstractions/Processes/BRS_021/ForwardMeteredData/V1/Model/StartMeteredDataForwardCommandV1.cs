@@ -38,7 +38,7 @@ public record StartForwardMeteredDataCommandV1
         string idempotencyKey)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_021_ForwardedMeteredData_V1(),
+                orchestrationDescriptionUniqueName: Brs_021_ForwardedMeteredData.V1,
                 inputParameter,
                 idempotencyKey)
     {

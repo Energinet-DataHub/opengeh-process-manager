@@ -32,7 +32,7 @@ public sealed record StartElectricalHeatingCalculationCommandV1
         UserIdentityDto operatingIdentity)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_021_ElectricalHeatingCalculation_V1())
+                orchestrationDescriptionUniqueName: Brs_021_ElectricalHeatingCalculation.V1)
     {
     }
 }

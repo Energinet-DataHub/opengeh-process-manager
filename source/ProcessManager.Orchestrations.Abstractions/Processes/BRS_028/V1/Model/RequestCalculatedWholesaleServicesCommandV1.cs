@@ -38,7 +38,7 @@ public sealed record RequestCalculatedWholesaleServicesCommandV1
         string idempotencyKey)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_028_V1(),
+                orchestrationDescriptionUniqueName: Brs_028.V1,
                 inputParameter,
                 idempotencyKey)
     {

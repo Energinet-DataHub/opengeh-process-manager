@@ -343,7 +343,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
             SubscriptionProperties brs026Subscription,
             SubscriptionProperties brs028Subscription,
             SubscriptionProperties brs023027Subscription,
-            TopicResource ediTopic)
+            TopicResource ediTopic,
+            SubscriptionProperties ediBrs023027Subscription)
         {
             ProcessManagerTopic = processManagerTopic;
             Brs021ForwardMeteredDataSubscription = brs021ForwardMeteredDataSubscription;
@@ -351,6 +352,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             Brs028Subscription = brs028Subscription;
             Brs023027Subscription = brs023027Subscription;
             EdiTopic = ediTopic;
+            EdiBrs023027Subscription = ediBrs023027Subscription;
         }
 
         public TopicResource ProcessManagerTopic { get; }
@@ -365,10 +367,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         public TopicResource EdiTopic { get; }
 
+        public SubscriptionProperties EdiBrs023027Subscription { get; }
+
         public static async Task<ServiceBusResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             // Process Manager topic & subscriptions
-            var processManagerTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
+            var processManagerTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("pm-topic-1234567");
             var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
             var brs026SubscriptionName = "brs-026-subscription";
             var brs028SubscriptionName = "brs-028-subscription";
@@ -395,9 +399,16 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 .Single(x => x.SubscriptionName.Equals(brs023027SubscriptionName));
 
             // EDI topic
-            var ediTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
+            var ediTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("edi-topic-111111");
+
+            ediTopicResourceBuilder
+                .AddSubscription(brs023027SubscriptionName)
+                    .AddSubjectFilter(new Brs_023_027_V1().Name);
 
             var ediTopic = await ediTopicResourceBuilder.CreateAsync();
+
+            var ediBrs023027Subscription = processManagerTopic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(brs023027SubscriptionName));
 
             return new ServiceBusResources(
                 processManagerTopic,
@@ -405,7 +416,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 brs026Subscription,
                 brs028Subscription,
                 brs023027Subscription,
-                ediTopic);
+                ediTopic,
+                ediBrs023027Subscription);
         }
     }
 }

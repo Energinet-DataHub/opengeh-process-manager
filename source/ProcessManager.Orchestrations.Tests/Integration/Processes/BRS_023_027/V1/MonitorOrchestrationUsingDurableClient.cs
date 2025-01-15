@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
+using Azure.Identity;
+using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
@@ -29,6 +32,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Wiremock;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -97,8 +101,11 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
+        var calculationType = CalculationType.WholesaleFixing;
 
-        var orchestrationId = await StartCalculationAsync(userIdentity);
+        var orchestrationId = await StartCalculationAsync(
+            userIdentity,
+            calculationType);
 
         var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestrationId.ToString(),
@@ -125,11 +132,15 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         ]);
 
         // => Verify that the durable function completed successfully
-        var last = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Last();
-        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
-        last.Value<string>("Result").Should().Be("Success");
+        completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
+
+        var serviceBusMessage = await Fixture.ServiceBusEdiBrs023027Receiver
+            .ReceiveMessageAsync(TimeSpan.FromSeconds(120), CancellationToken.None);
+
+        serviceBusMessage.Should().NotBeNull();
+        var calculationCompleted = JsonSerializer.Deserialize<CalculationCompletedV1>(serviceBusMessage.Body);
+        calculationCompleted!.CalculationType.Should().Be(calculationType);
+        calculationCompleted!.OrchestrationInstanceId.Should().Be(orchestrationId);
     }
 
     [Fact]
@@ -209,10 +220,12 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         return match != null;
     }
 
-    private async Task<Guid> StartCalculationAsync(UserIdentityDto userIdentity)
+    private async Task<Guid> StartCalculationAsync(
+        UserIdentityDto userIdentity,
+        CalculationType calculationType = CalculationType.WholesaleFixing)
     {
         var inputParameter = new CalculationInputV1(
-            CalculationType.WholesaleFixing,
+            calculationType,
             GridAreaCodes: new[] { "804" },
             PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
             PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),

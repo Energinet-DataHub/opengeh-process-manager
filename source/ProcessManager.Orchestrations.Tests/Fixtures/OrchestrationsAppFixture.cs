@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
@@ -76,6 +77,9 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     [NotNull]
     public string? ProcessManagerTopicName { get; private set; }
 
+    [NotNull]
+    public ServiceBusReceiver? ServiceBusEdiBrs023027Receiver { get; private set; }
+
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
     private AzuriteManager AzuriteManager { get; }
@@ -96,6 +100,12 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         var serviceBusResources = await OrchestrationsAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
 
         ProcessManagerTopicName = serviceBusResources.ProcessManagerTopic.Name;
+
+        var serviceBusClient = new ServiceBusClient(IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace, IntegrationTestConfiguration.Credential);
+
+        ServiceBusEdiBrs023027Receiver = serviceBusClient.CreateReceiver(
+            serviceBusResources.ProcessManagerTopic.Name,
+            serviceBusResources.Brs023027Subscription.SubscriptionName);
 
         await OrchestrationsAppManager.StartAsync(serviceBusResources);
         await ProcessManagerAppManager.StartAsync();

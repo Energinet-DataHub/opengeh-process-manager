@@ -27,9 +27,9 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
         var result = new ActivityOutput(
             new MeteredDataForMeteringPointRejectedV1(
                 Guid.NewGuid().ToString("N"),
-                "BusinessReason",
-                "1111111111111",
-                "DDM",
+                "E23",
+                "5790000282425",
+                "DDQ",
                 activityInput.OrchestrationInstanceId.Value,
                 Guid.NewGuid(),
                 new AcknowledgementV1(

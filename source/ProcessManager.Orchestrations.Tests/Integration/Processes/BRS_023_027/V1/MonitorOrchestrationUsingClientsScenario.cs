@@ -154,7 +154,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             IsInternalCalculation = inputParameter.IsInternalCalculation,
         };
         var orchestrationInstancesCustomSearch = await processManagerClient
-            .SearchOrchestrationInstancesByNameAsync(
+            .SearchOrchestrationInstancesByCustomQueryAsync(
                 customQuery,
                 CancellationToken.None);
 

@@ -52,10 +52,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
                 = _fixture.OrchestrationsProcessManagerTopicName,
         });
         services.AddAzureClients(
-            b =>
-            {
-                b.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
-            });
+            builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
         ServiceProvider = services.BuildServiceProvider();
     }
@@ -98,10 +95,11 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
                 MeteringPointType: null,
                 SettlementMethod: null,
                 SettlementVersion: null),
-            "test-message-id");
+            idempotencyKey: Guid.NewGuid().ToString());
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 
+        // Act
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, default);
 

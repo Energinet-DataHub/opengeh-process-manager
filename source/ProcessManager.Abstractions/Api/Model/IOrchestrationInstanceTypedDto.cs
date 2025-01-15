@@ -17,26 +17,29 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Base class for implementing custom queries for orchestration instances.
-/// Must be JSON serializable.
+/// This interface is necessary, to be able to use "out TInputParameterDto".
 /// </summary>
-/// <typeparam name="TItem">The result type of each item returned in the result list. Must be a JSON serializable type.</typeparam>
-public abstract record SearchOrchestrationInstancesByCustomQuery<TItem>
-    : OrchestrationInstanceRequest<UserIdentityDto>
-        where TItem : class
+/// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
+public interface IOrchestrationInstanceTypedDto<out TInputParameterDto>
+    where TInputParameterDto : class, IInputParameterDto
 {
     /// <summary>
-    /// Construct query.
+    /// The id of the orchestration instance.
     /// </summary>
-    /// <param name="operatingIdentity">Identity of the user executing the query.</param>
-    public SearchOrchestrationInstancesByCustomQuery(
-        UserIdentityDto operatingIdentity)
-            : base(operatingIdentity)
-    {
-    }
+    Guid Id { get; }
 
     /// <summary>
-    /// A query name used to route the underlying request to the correct custom query trigger.
+    /// The life cycle state of the orchestration instance.
     /// </summary>
-    public abstract string QueryRouteName { get; }
+    OrchestrationInstanceLifecycleDto Lifecycle { get; }
+
+    /// <summary>
+    /// The steps of the orchestration instance.
+    /// </summary>
+    IReadOnlyCollection<StepInstanceDto> Steps { get; }
+
+    /// <summary>
+    /// The parameter value.
+    /// </summary>
+    TInputParameterDto ParameterValue { get; }
 }

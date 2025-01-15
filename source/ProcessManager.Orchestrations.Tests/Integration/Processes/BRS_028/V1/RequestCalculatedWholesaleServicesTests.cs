@@ -52,10 +52,7 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
                 = _fixture.OrchestrationsProcessManagerTopicName,
         });
         services.AddAzureClients(
-            b =>
-            {
-                b.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
-            });
+            builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
         ServiceProvider = services.BuildServiceProvider();
     }
@@ -98,10 +95,11 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
                 GridAreas: ["804"],
                 SettlementVersion: null,
                 ChargeTypes: null),
-            "test-message-id");
+            idempotencyKey: Guid.NewGuid().ToString());
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 
+        // Act
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, default);
 

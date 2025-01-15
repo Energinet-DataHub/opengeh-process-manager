@@ -60,17 +60,17 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task NoInputExampleOrchestration_WhenStarted_CanMonitorLifecycle()
+    public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
         var command = new StartNoInputExampleCommandV1(
              operatingIdentity: new UserIdentityDto(
                  Guid.NewGuid(),
                  Guid.NewGuid()));
 
-        using var scheduleRequest = new HttpRequestMessage(
+        using var startRequest = new HttpRequestMessage(
             HttpMethod.Post,
             $"/api/orchestrationinstance/command/start");
-        scheduleRequest.Content = new StringContent(
+        startRequest.Content = new StringContent(
             JsonSerializer.Serialize(command),
             Encoding.UTF8,
             "application/json");
@@ -78,14 +78,14 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
         // Step 1: Start new orchestration instance
         using var response = await Fixture.ProcessManagerAppManager.AppHostManager
             .HttpClient
-            .SendAsync(scheduleRequest);
+            .SendAsync(startRequest);
         response.EnsureSuccessStatusCode();
 
         var orchestrationInstanceId = await response.Content
             .ReadFromJsonAsync<Guid>();
 
         // Step 2: Query until terminated with succeeded
-        var getRequest = new GetOrchestrationInstanceByIdQuery(
+        var query = new GetOrchestrationInstanceByIdQuery(
             new UserIdentityDto(
                 Guid.NewGuid(),
                 Guid.NewGuid()),
@@ -98,7 +98,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
                     HttpMethod.Post,
                     "/api/orchestrationinstance/query/id");
                 queryRequest.Content = new StringContent(
-                    JsonSerializer.Serialize(getRequest),
+                    JsonSerializer.Serialize(query),
                     Encoding.UTF8,
                     "application/json");
 

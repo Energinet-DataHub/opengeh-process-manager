@@ -34,7 +34,7 @@ public class NotifyOrchestrationInstanceOptions
     public string TopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription for NotifyOrchestrationInstance to the ProcessManager Service Bus topic
+    /// Name of the subscription for NotifyOrchestrationInstance on the ProcessManager Service Bus topic
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string NotifyOrchestrationInstanceSubscriptionName { get; set; } = string.Empty;

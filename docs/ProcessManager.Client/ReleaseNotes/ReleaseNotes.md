@@ -2,7 +2,8 @@
 
 ## Version 0.19.0
 
-- Renamed `MessageCommand` property `MessageId` to `IdempotencyKey`
+- Renamed `MessageCommand` property `MessageId` to `IdempotencyKey`.
+    - The Process Manager will use the `IdempotencyKey` to handle idempotency for commands initiated using messages.
 
 ## Version 0.18.0
 

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -25,10 +26,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// </summary>
 internal class EnqueueRejectMessageActivity_Brs_021_V1(
     IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
     [Function(nameof(EnqueueRejectMessageActivity_Brs_021_V1))]
     public async Task Run([ActivityTrigger] ActivityInput input)
@@ -43,14 +46,16 @@ internal class EnqueueRejectMessageActivity_Brs_021_V1(
 
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        await EnqueueRejectMessageAsync(input).ConfigureAwait(false);
+        await EnqueueRejectMessageAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 
-    private async Task EnqueueRejectMessageAsync(ActivityInput input)
-    {
-        // TODO: Enqueue message in EDI instead of delay
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
-    }
+    private Task EnqueueRejectMessageAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input) =>
+        _enqueueActorMessagesClient.Enqueue(
+            Orchestration_Brs_021_ForwardMeteredData_V1.Name,
+            input.InstanceId.Value,
+            orchestrationCreatedBy.ToDto(),
+            "enqueue-" + input.InstanceId.Value,
+            input.RejectMessage);
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,

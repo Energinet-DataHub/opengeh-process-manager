@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
@@ -29,7 +28,7 @@ internal class Orchestration_Brs_028_V1
     public const int AsyncValidationStepSequence = 1;
     public const int EnqueueActorMessagesStepSequence = 2;
 
-    public static readonly Brs_028_V1 Name = new();
+    public static readonly Brs_028_V1 UniqueName = new();
 
     private readonly TaskOptions _defaultRetryOptions;
 

@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -87,17 +88,18 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var startCommand = new StartForwardMeteredDataCommandV1(
             new ActorIdentityDto(input.AuthenticatedActorId),
             input,
-            "test-message-id");
+            idempotencyKey: Guid.NewGuid().ToString());
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-5);
+        // Act
+        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
 
         // Assert
         var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
             orchestrationCreatedAfter,
-            name: "Orchestration_Brs_021_ForwardMeteredData_V1");
+            name: nameof(Orchestration_Brs_021_ForwardMeteredData_V1));
         var inputToken = JToken.FromObject(input);
         orchestration.Input.ToString().Should().BeEquivalentTo(inputToken.ToString(Newtonsoft.Json.Formatting.None));
 

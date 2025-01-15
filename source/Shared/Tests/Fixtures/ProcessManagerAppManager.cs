@@ -256,7 +256,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         public static async Task<ServiceBusResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             // Process Manager topic & subscriptions
-            var processManagerTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
+            var processManagerTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("pm-topic-api");
             var notifyOrchestrationInstanceSubscriptionName = "notify-orchestration-instance-subscription";
 
             processManagerTopicResourceBuilder

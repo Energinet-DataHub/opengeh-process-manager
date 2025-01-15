@@ -390,7 +390,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         public static async Task<ServiceBusResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             // Process Manager topic & subscriptions
-            var processManagerTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
+            var processManagerTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("pm-topic-orchestrations");
             var brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
             var brs026SubscriptionName = "brs-026-subscription";
             var brs028SubscriptionName = "brs-028-subscription";

@@ -51,6 +51,7 @@ public abstract record MessageCommand<TInputParameterDto>
     /// A value used by the Process Manager to ensure idempotency for a message command.
     /// The producer of the <see cref="MessageCommand{TInputParameterDto}"/> should
     /// create a key that is unique per command.
+    /// Max length is 1024 characters.
     /// </summary>
     public string IdempotencyKey { get; }
 }

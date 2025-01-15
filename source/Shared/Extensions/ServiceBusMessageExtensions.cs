@@ -30,7 +30,7 @@ public static class ServiceBusMessageExtensions
 
     public static string GetMajorVersion(this ServiceBusReceivedMessage message)
     {
-        return (string?)message.ApplicationProperties.GetValueOrDefault(MajorVersionKey)
+        return message.TryGetMajorVersion()
                ?? throw new ArgumentNullException(
                    nameof(message.ApplicationProperties),
                    $"{MajorVersionKey} must be present in the ApplicationProperties of the received service bus message (MessageId={message.MessageId}, Subject={message.Subject}).");
@@ -90,7 +90,16 @@ public static class ServiceBusMessageExtensions
             _ => throw new ArgumentOutOfRangeException(
                 nameof(bodyFormat),
                 bodyFormat,
-                $"Unhandled body format in received service bus message (MessageId={message.MessageId})."),
+                $"Unhandled body format in received service bus message.")
+            {
+                Data =
+                {
+                    { nameof(message.MessageId), message.MessageId },
+                    { nameof(message.Subject), message.Subject },
+                    { "MajorVersion", message.TryGetMajorVersion() },
+                    { "TargetType", typeof(TMessage).Name },
+                },
+            },
         };
 
         if (result is null)
@@ -109,10 +118,16 @@ public static class ServiceBusMessageExtensions
                     },
                     { "MessageId", message.MessageId },
                     { "Subject", message.Subject },
+                    { "MajorVersion", message.TryGetMajorVersion() },
                 },
             };
         }
 
         return result;
+    }
+
+    private static string? TryGetMajorVersion(this ServiceBusReceivedMessage message)
+    {
+        return (string?)message.ApplicationProperties.GetValueOrDefault(MajorVersionKey);
     }
 }

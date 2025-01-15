@@ -102,12 +102,13 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         DurableClient = DurableTaskManager.CreateClient(TaskHubName);
 
-        var serviceBusResources = await OrchestrationsAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
+        var orchestrationServiceBusResources = await OrchestrationsAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
+        var processManagerServiceBusResources = await ProcessManagerAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
 
-        ProcessManagerTopicName = serviceBusResources.ProcessManagerTopic.Name;
+        ProcessManagerTopicName = orchestrationServiceBusResources.ProcessManagerTopic.Name;
 
-        await OrchestrationsAppManager.StartAsync(serviceBusResources);
-        await ProcessManagerAppManager.StartAsync();
+        await OrchestrationsAppManager.StartAsync(orchestrationServiceBusResources);
+        await ProcessManagerAppManager.StartAsync(processManagerServiceBusResources);
 
         EventHubListener = new EventHubListenerMock(
             new TestDiagnosticsLogger(),

@@ -70,7 +70,7 @@ public class ProcessManagerAppFixture : IAsyncLifetime
         await DatabaseManager.CreateDatabaseAsync();
 
         await ExampleOrchestrationsAppManager.StartAsync();
-        await ProcessManagerAppManager.StartAsync();
+        await ProcessManagerAppManager.StartAsync(serviceBusResources: null);
     }
 
     public async Task DisposeAsync()

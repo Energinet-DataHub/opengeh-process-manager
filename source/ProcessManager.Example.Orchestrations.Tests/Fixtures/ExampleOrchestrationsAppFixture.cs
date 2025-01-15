@@ -84,7 +84,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         await DatabaseManager.CreateDatabaseAsync();
 
         await ExampleOrchestrationsAppManager.StartAsync();
-        await ProcessManagerAppManager.StartAsync();
+        await ProcessManagerAppManager.StartAsync(serviceBusResources: null);
 
         // Create durable client when TaskHub has been created
         DurableClient = DurableTaskManager.CreateClient(taskHubName: TaskHubName);

@@ -14,11 +14,15 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Azure.Messaging.ServiceBus.Administration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
+using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Extensions.Options;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -72,6 +76,10 @@ public class ProcessManagerAppManager : IAsyncDisposable
 
         IntegrationTestConfiguration = integrationTestConfiguration;
         AzuriteManager = azuriteManager;
+        ServiceBusResourceProvider = new ServiceBusResourceProvider(
+            TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -85,7 +93,13 @@ public class ProcessManagerAppManager : IAsyncDisposable
 
     private AzuriteManager AzuriteManager { get; }
 
-    public async Task StartAsync()
+    private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
+
+    /// <summary>
+    /// Start the app.
+    /// </summary>
+    /// <param name="serviceBusResources">The required service bus resources. If not provided then the method will create them.</param>
+    public async Task StartAsync(ServiceBusResources? serviceBusResources)
     {
         if (_manageAzurite)
         {
@@ -96,8 +110,11 @@ public class ProcessManagerAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
+        if (serviceBusResources is null)
+            serviceBusResources = await ServiceBusResources.Create(ServiceBusResourceProvider);
+
         // Prepare host settings
-        var appHostSettings = CreateAppHostSettings("ProcessManager");
+        var appHostSettings = CreateAppHostSettings("ProcessManager", serviceBusResources);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -162,7 +179,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
 #endif
     }
 
-    private FunctionAppHostSettings CreateAppHostSettings(string csprojName)
+    private FunctionAppHostSettings CreateAppHostSettings(string csprojName, ServiceBusResources serviceBusResources)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -184,6 +201,19 @@ public class ProcessManagerAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             "APPLICATIONINSIGHTS_CONNECTION_STRING",
             IntegrationTestConfiguration.ApplicationInsightsConnectionString);
+
+        // Service Bus
+        // => Service Bus Client
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
+        // => NotifyOrchestrationInstance topic/subscription
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{NotifyOrchestrationInstanceOptions.SectionName}__{nameof(NotifyOrchestrationInstanceOptions.TopicName)}",
+            serviceBusResources.ProcessManagerTopic.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{NotifyOrchestrationInstanceOptions.SectionName}__{nameof(NotifyOrchestrationInstanceOptions.NotifyOrchestrationInstanceSubscriptionName)}",
+            serviceBusResources.NotifyOrchestrationInstanceSubscription.SubscriptionName);
 
         // ProcessManager
         // => Task Hub
@@ -207,5 +237,39 @@ public class ProcessManagerAppManager : IAsyncDisposable
             "true");
 
         return appHostSettings;
+    }
+
+    public class ServiceBusResources
+    {
+        private ServiceBusResources(
+            TopicResource processManagerTopic,
+            SubscriptionProperties notifyOrchestrationInstanceSubscription)
+        {
+            ProcessManagerTopic = processManagerTopic;
+            NotifyOrchestrationInstanceSubscription = notifyOrchestrationInstanceSubscription;
+        }
+
+        public TopicResource ProcessManagerTopic { get; }
+
+        public SubscriptionProperties NotifyOrchestrationInstanceSubscription { get; }
+
+        public static async Task<ServiceBusResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
+        {
+            // Process Manager topic & subscriptions
+            var processManagerTopicResourceBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
+            var notifyOrchestrationInstanceSubscriptionName = "notify-orchestration-instance-subscription";
+
+            processManagerTopicResourceBuilder
+                .AddSubscription(notifyOrchestrationInstanceSubscriptionName)
+                    .AddSubjectFilter("NotifyOrchestration");
+
+            var processManagerTopic = await processManagerTopicResourceBuilder.CreateAsync();
+            var notifyOrchestrationInstanceSubscription = processManagerTopic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(notifyOrchestrationInstanceSubscriptionName));
+
+            return new ServiceBusResources(
+                processManagerTopic,
+                notifyOrchestrationInstanceSubscription);
+        }
     }
 }

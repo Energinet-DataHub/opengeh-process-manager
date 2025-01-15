@@ -31,6 +31,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Wiremock;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.DependencyInjection;
@@ -135,10 +136,14 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
 
         var serviceBusMessage = await Fixture.ServiceBusEdiBrs023027Receiver
-            .ReceiveMessageAsync(TimeSpan.FromSeconds(120), CancellationToken.None);
+            .ReceiveMessageAsync(TimeSpan.FromSeconds(20), CancellationToken.None);
 
         serviceBusMessage.Should().NotBeNull();
-        var calculationCompleted = JsonSerializer.Deserialize<CalculationCompletedV1>(serviceBusMessage.Body);
+        var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessages
+            .Parser.ParseJson(serviceBusMessage.Body.ToString())!;
+        
+        using var assertionScope = new AssertionScope();
+        var calculationCompleted = JsonSerializer.Deserialize<CalculationCompletedV1>(body.JsonData);
         calculationCompleted!.CalculationType.Should().Be(calculationType);
         calculationCompleted!.OrchestrationInstanceId.Should().Be(orchestrationId);
     }

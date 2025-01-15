@@ -104,8 +104,8 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         var serviceBusClient = new ServiceBusClient(IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace, IntegrationTestConfiguration.Credential);
 
         ServiceBusEdiBrs023027Receiver = serviceBusClient.CreateReceiver(
-            serviceBusResources.ProcessManagerTopic.Name,
-            serviceBusResources.Brs023027Subscription.SubscriptionName);
+            serviceBusResources.EdiTopic.Name,
+            serviceBusResources.EdiBrs023027Subscription.SubscriptionName);
 
         await OrchestrationsAppManager.StartAsync(serviceBusResources);
         await ProcessManagerAppManager.StartAsync();

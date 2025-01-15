@@ -306,7 +306,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
-            serviceBusResources.ProcessManagerTopic.Name);
+            serviceBusResources.EdiTopic.Name);
 
         // => Databricks workspaces
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -403,7 +403,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
             ediTopicResourceBuilder
                 .AddSubscription(brs023027SubscriptionName)
-                    .AddSubjectFilter(new Brs_023_027_V1().Name);
+                    .AddSubjectFilter($"Enqueue_{new Brs_023_027_V1().Name.ToLower()}");
 
             var ediTopic = await ediTopicResourceBuilder.CreateAsync();
 

@@ -23,20 +23,22 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1;
 
 public class RequestCalculatedWholesaleServicesHandlerV1(
     ILogger<RequestCalculatedWholesaleServicesHandlerV1> logger,
-    IStartOrchestrationInstanceCommands commands)
+    IStartOrchestrationInstanceMessageCommands commands)
         : StartOrchestrationInstanceFromMessageHandlerBase<RequestCalculatedWholesaleServicesInputV1>(logger)
 {
-    private readonly IStartOrchestrationInstanceCommands _commands = commands;
+    private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 
-    protected override async Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, RequestCalculatedWholesaleServicesInputV1 input)
+    protected override async Task StartOrchestrationInstanceAsync(
+        ActorIdentity actorIdentity,
+        RequestCalculatedWholesaleServicesInputV1 input,
+        string idempotencyKey)
     {
-        var orchestrationName = Orchestration_Brs_028_V1.Name;
-
         await _commands.StartNewOrchestrationInstanceAsync(
-                identity: actorIdentity,
-                uniqueName: OrchestrationDescriptionUniqueName.FromDto(orchestrationName),
+                actorIdentity,
+                OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_028_V1.UniqueName),
                 input,
-                [])
+                skipStepsBySequence: [],
+                new IdempotencyKey(idempotencyKey))
             .ConfigureAwait(false);
     }
 }

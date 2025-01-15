@@ -83,7 +83,7 @@ public class ProcessManagerMessageClient(
 
         var serviceBusMessage = startOrchestration.ToServiceBusMessage(
             subject: command.OrchestrationDescriptionUniqueName.Name,
-            idempotencyKey: command.MessageId);
+            idempotencyKey: command.IdempotencyKey);
 
         return serviceBusMessage;
     }

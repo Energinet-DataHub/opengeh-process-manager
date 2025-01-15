@@ -17,6 +17,7 @@
     <EmbeddedResource Include="Scripts\202410240916 Create OrchestrationInstance table.sql" />
     <EmbeddedResource Include="Scripts\202410240917 Create StepInstance table.sql" />
     <EmbeddedResource Include="Scripts\202412101700 Add RecurringCronExpression.sql" />
+    <EmbeddedResource Include="Scripts\202501131400 Add IdempotencyKey.sql" />
   </ItemGroup>
 
 </Project>

@@ -53,7 +53,7 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
                 = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
-                = Fixture.ProcessManagerTopicName,
+                = Fixture.OrchestrationsProcessManagerTopicName,
         });
         services.AddProcessManagerHttpClients();
         services.AddAzureClients(

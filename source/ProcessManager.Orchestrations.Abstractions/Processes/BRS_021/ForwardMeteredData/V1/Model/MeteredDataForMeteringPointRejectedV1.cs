@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using NodaTime;
-
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+
+public readonly record struct TimeInterval(DateTimeOffset Start, DateTimeOffset End);
 
 public sealed record MeteredDataForMeteringPointRejectedV1(
     string EventId,
@@ -27,7 +27,7 @@ public sealed record MeteredDataForMeteringPointRejectedV1(
 
 public sealed record AcknowledgementV1(
     string TransactionId,
-    Instant? ReceivedMarketDocumentCreatedDateTime,
+    DateTimeOffset? ReceivedMarketDocumentCreatedDateTime,
     string? ReceivedMarketDocumentTransactionId,
     string? ReceivedMarketDocumentProcessProcessType,
     string? ReceivedMarketDocumentRevisionNumber,
@@ -41,7 +41,7 @@ public sealed record AcknowledgementV1(
 
 public sealed record ReasonV1(string Code, string? Text);
 
-public sealed record TimePeriodV1(Interval TimeInterval, IReadOnlyCollection<ReasonV1> Reason);
+public sealed record TimePeriodV1(TimeInterval TimeInterval, IReadOnlyCollection<ReasonV1> Reason);
 
 public sealed record SeriesV1(string MRID, IReadOnlyCollection<ReasonV1> Reason);
 

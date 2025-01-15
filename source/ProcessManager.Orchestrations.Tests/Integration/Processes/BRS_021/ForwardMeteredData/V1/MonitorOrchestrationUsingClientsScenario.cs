@@ -51,7 +51,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
-                = _fixture.ProcessManagerTopicName,
+                = _fixture.OrchestrationsProcessManagerTopicName,
         });
         services.AddAzureClients(
             b =>

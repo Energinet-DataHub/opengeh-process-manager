@@ -83,7 +83,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     public IDurableClient? DurableClient { get; private set; }
 
     [NotNull]
-    public string? ProcessManagerTopicName { get; private set; }
+    public string? OrchestrationsProcessManagerTopicName { get; private set; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -105,7 +105,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         var orchestrationServiceBusResources = await OrchestrationsAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
         var processManagerServiceBusResources = await ProcessManagerAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
 
-        ProcessManagerTopicName = orchestrationServiceBusResources.ProcessManagerTopic.Name;
+        OrchestrationsProcessManagerTopicName = orchestrationServiceBusResources.ProcessManagerTopic.Name;
 
         await OrchestrationsAppManager.StartAsync(orchestrationServiceBusResources);
         await ProcessManagerAppManager.StartAsync(processManagerServiceBusResources);

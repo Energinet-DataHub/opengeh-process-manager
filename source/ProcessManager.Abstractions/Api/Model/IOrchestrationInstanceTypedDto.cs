@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// This interface is nexessary to be able to use "out TInputParameterDto".
+/// This interface is necessary, to be able to use "out TInputParameterDto".
 /// </summary>
 /// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
 public interface IOrchestrationInstanceTypedDto<out TInputParameterDto>

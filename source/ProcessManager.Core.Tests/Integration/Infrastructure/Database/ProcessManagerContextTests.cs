@@ -134,18 +134,18 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance01 = CreateOrchestrationInstance(
+        var newOrchestrationInstance01 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: null);
-        var existingOrchestrationInstance02 = CreateOrchestrationInstance(
+        var newOrchestrationInstance02 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: null);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
-            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance01);
-            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance02);
+            writeDbContext.OrchestrationInstances.Add(newOrchestrationInstance01);
+            writeDbContext.OrchestrationInstances.Add(newOrchestrationInstance02);
             // Act
             await writeDbContext.SaveChangesAsync();
         }
@@ -157,18 +157,18 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         // Arrange
         var idempotencyKey = new IdempotencyKey(Guid.NewGuid().ToString());
         var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance01 = CreateOrchestrationInstance(
+        var newOrchestrationInstance01 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: idempotencyKey);
-        var existingOrchestrationInstance02 = CreateOrchestrationInstance(
+        var newOrchestrationInstance02 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: idempotencyKey);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
-            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance01);
-            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance02);
+            writeDbContext.OrchestrationInstances.Add(newOrchestrationInstance01);
+            writeDbContext.OrchestrationInstances.Add(newOrchestrationInstance02);
             // Act
             var act = () => writeDbContext.SaveChangesAsync();
             // Assert

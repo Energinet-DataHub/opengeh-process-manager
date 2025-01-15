@@ -184,6 +184,7 @@ internal class OrchestrationInstanceManager(
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
     public Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? eventData)
         where TData : class
     {

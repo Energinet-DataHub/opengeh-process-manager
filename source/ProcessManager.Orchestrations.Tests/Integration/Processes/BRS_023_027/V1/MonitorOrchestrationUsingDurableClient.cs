@@ -155,7 +155,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                     var calculationCompleted = JsonSerializer.Deserialize<CalculationCompletedV1>(body.Data);
 
                     var typeMatches = calculationCompleted!.CalculationType == calculationType;
-                    var orchestrationIdMatches = calculationCompleted!.OrchestrationInstanceId == orchestrationId;
+                    var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationId.ToString();
 
                     return typeMatches && orchestrationIdMatches;
                 })

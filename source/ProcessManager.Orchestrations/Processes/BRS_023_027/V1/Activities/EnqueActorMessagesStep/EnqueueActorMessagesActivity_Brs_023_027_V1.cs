@@ -45,7 +45,6 @@ internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
     private Task EnqueueActorMessagesAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
         var data = new CalculationCompletedV1(
-            input.InstanceId.Value,
             input.CalculationId.Id.ToString(),
             input.CalculationType);
 

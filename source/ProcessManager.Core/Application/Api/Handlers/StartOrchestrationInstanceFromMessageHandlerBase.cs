@@ -25,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
 public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputParameterDto>(
     ILogger logger)
-    where TInputParameterDto : IInputParameterDto
+    where TInputParameterDto : class, IInputParameterDto
 {
     private readonly ILogger _logger = logger;
 
@@ -88,30 +88,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
             },
         });
 
-        var inputParameterDto = startOrchestration.InputFormat switch
-        {
-            StartOrchestrationInstanceInputFormatV1.Json => JsonSerializer.Deserialize<TInputParameterDto>(startOrchestration.Input),
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(startOrchestration.InputFormat),
-                startOrchestration.InputFormat,
-                $"Unhandled input format when deserializing the received {nameof(StartOrchestrationInstanceV1)} message (MessageId={message.MessageId}, Subject={message.Subject})"),
-        };
-
-        if (inputParameterDto is null)
-        {
-            var inputTypeName = typeof(TInputParameterDto).Name;
-            throw new ArgumentException($"Unable to deserialize message input to {inputTypeName}")
-            {
-                Data =
-                {
-                    { "TargetType", inputTypeName },
-                    { "InputFormat", startOrchestration.InputFormat },
-                    { "Input", startOrchestration.Input.Truncate(maxLength: 1000) },
-                    { "MessageId", message.MessageId },
-                    { "MessageSubject", message.Subject },
-                },
-            };
-        }
+        var inputParameterDto = startOrchestration.ParseInput<TInputParameterDto>();
 
         if (!Guid.TryParse(startOrchestration.StartedByActorId, out var actorId))
         {

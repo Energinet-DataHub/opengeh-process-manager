@@ -35,6 +35,7 @@ public class EnqueueActorMessagesClient(
         IOperatingIdentityDto orchestrationStartedBy,
         string messageId,
         TInputData data)
+            where TInputData : class
     {
         var (startedByActorId, startedByUserId) = orchestrationStartedBy switch
         {
@@ -51,11 +52,9 @@ public class EnqueueActorMessagesClient(
             OrchestrationName = orchestration.Name,
             OrchestrationVersion = orchestration.Version,
             OrchestrationStartedByActorId = startedByActorId.ToString(),
-            Data = JsonSerializer.Serialize(data),
-            DataType = typeof(TInputData).Name,
-            DataFormat = EnqueueActorMessagesDataFormatV1.Json,
             OrchestrationInstanceId = orchestrationInstanceId.ToString(),
         };
+        enqueueActorMessages.SetData(data);
 
         if (startedByUserId is not null)
             enqueueActorMessages.OrchestrationStartedByUserId = startedByUserId.ToString();

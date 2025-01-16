@@ -24,5 +24,6 @@ public interface IEnqueueActorMessagesClient
         Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
         string messageId,
-        TData data);
+        TData data)
+            where TData : class;
 }

@@ -25,6 +25,7 @@ message StartOrchestrationInstanceV1 {
 
   string input = 3; // The input to the orchestration serialized to string.
   StartOrchestrationInstanceInputFormatV1 input_format = 5; // The format the input field is serialized as.
+  string input_type = 6; // Name of the input type (example: "RequestCalculatedEnergyTimeSeriesInputV1").
 }
 
 enum StartOrchestrationInstanceInputFormatV1 {

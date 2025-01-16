@@ -54,6 +54,7 @@ public partial class NotifyOrchestrationInstanceV1
                 {
                     { nameof(OrchestrationInstanceId), OrchestrationInstanceId },
                     { nameof(EventName), EventName },
+                    { nameof(MajorVersion), MajorVersion },
                     { nameof(Data.DataFormat), Data.DataFormat },
                     { nameof(Data.DataType), Data.DataType },
                     {

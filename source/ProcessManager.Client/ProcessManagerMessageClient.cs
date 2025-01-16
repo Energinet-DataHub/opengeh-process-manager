@@ -36,7 +36,7 @@ public class ProcessManagerMessageClient(
     public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
         StartOrchestrationInstanceMessageCommand<TInputParameterDto> command,
         CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto
+            where TInputParameterDto : class, IInputParameterDto
     {
         var serviceBusMessage = CreateStartOrchestrationInstanceServiceBusMessage(command);
 
@@ -74,16 +74,16 @@ public class ProcessManagerMessageClient(
 
     private ServiceBusMessage CreateStartOrchestrationInstanceServiceBusMessage<TInputParameterDto>(
         StartOrchestrationInstanceMessageCommand<TInputParameterDto> command)
-    where TInputParameterDto : IInputParameterDto
+    where TInputParameterDto : class, IInputParameterDto
     {
         var startOrchestration = new StartOrchestrationInstanceV1
         {
             OrchestrationName = command.OrchestrationDescriptionUniqueName.Name,
             OrchestrationVersion = command.OrchestrationDescriptionUniqueName.Version,
             StartedByActorId = command.OperatingIdentity.ActorId.ToString(),
-            Input = JsonSerializer.Serialize(command.InputParameter),
-            InputFormat = StartOrchestrationInstanceInputFormatV1.Json,
         };
+
+        startOrchestration.SetInput(command.InputParameter);
 
         var serviceBusMessage = startOrchestration.ToServiceBusMessage(
             subject: command.OrchestrationDescriptionUniqueName.Name,

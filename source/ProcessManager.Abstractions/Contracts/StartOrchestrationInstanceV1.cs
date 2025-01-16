@@ -12,9 +12,55 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
+
 namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
 public partial class StartOrchestrationInstanceV1
 {
     public const string MajorVersion = nameof(StartOrchestrationInstanceV1);
+
+    public void SetInput<TInputData>(TInputData data)
+        where TInputData : class
+    {
+        Input = JsonSerializer.Serialize(data);
+        InputFormat = StartOrchestrationInstanceInputFormatV1.Json;
+        InputType = typeof(TInputData).Name;
+    }
+
+    public TInputData ParseInput<TInputData>()
+        where TInputData : class?
+    {
+        var result = InputFormat switch
+        {
+            StartOrchestrationInstanceInputFormatV1.Json => JsonSerializer.Deserialize<TInputData>(Input),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(InputFormat),
+                InputFormat,
+                $"Unhandled input format in received {nameof(StartOrchestrationInstanceV1)} message"),
+        };
+
+        if (result is null)
+        {
+            throw new InvalidOperationException($"Unable to deserialize {nameof(StartOrchestrationInstanceV1)} data")
+            {
+                Data =
+                {
+                    { nameof(OrchestrationName), OrchestrationName },
+                    { nameof(OrchestrationVersion), OrchestrationVersion },
+                    { nameof(MajorVersion), MajorVersion },
+                    { "TargetType", typeof(TInputData).Name },
+                    { nameof(InputFormat), InputFormat },
+                    { nameof(InputType), InputType },
+                    {
+                        nameof(Input), Input.Length < 1000
+                            ? Input
+                            : Input.Substring(0, 1000)
+                    },
+                },
+            };
+        }
+
+        return result;
+    }
 }

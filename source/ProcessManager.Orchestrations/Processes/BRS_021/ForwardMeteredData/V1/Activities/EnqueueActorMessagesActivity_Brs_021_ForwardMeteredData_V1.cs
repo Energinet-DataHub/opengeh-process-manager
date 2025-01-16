@@ -78,7 +78,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
             MarketActorRecipients: [receiver]);
 
         await _enqueueActorMessagesClient.Enqueue(
-            new Brs_021_ForwardedMeteredData_V1(),
+            Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName,
             activityInput.OrchestrationInstanceId.Value,
             orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
             "enqueue-" + activityInput.OrchestrationInstanceId.Value,

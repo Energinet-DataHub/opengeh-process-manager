@@ -23,7 +23,7 @@ public interface IEnqueueActorMessagesClient
         OrchestrationDescriptionUniqueNameDto orchestration,
         Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
-        string messageId,
+        string idempotencyKey,
         TData data)
             where TData : class;
 }

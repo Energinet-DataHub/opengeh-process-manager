@@ -24,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -80,7 +81,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ForwardMeteredData_WhenStartedUsingClient_CanMonitorLifecycle()
+    public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
     {
         // Arrange
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
@@ -103,18 +104,148 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var inputToken = JToken.FromObject(input);
         orchestration.Input.ToString().Should().BeEquivalentTo(inputToken.ToString(Newtonsoft.Json.Formatting.None));
 
-        var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+        var completeOrchestrationStatus = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestration.InstanceId);
-        completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
-        await _fixture.EventHubListener.WhenAny().VerifyOnceAsync();
+
+        // => Assert expected history
+        using var assertionScope = new AssertionScope();
+
+        var activities = completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Select(item => item.ToObject<OrchestrationHistoryItem>())
+            .ToList();
+
+        activities.Should()
+            .NotBeNull()
+            .And.Equal(
+                new OrchestrationHistoryItem(
+                    "ExecutionStarted",
+                    FunctionName: "Orchestration_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "PerformValidationActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "StoringStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "FindReceiversActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem("ExecutionCompleted"));
+
+        // => Verify that the durable function completed successfully
+        var last = completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Last();
+        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
+        last.Value<string>("Result").Should().Be("Success");
     }
 
-    private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1()
+    [Fact]
+    public async Task ForwardMeteredData_WhenStartedWithFaultyInput_ThenExecutedErrorPath()
+    {
+        // Arrange
+        var input = CreateMeteredDataForMeteringPointMessageInputV1(true);
+
+        var startCommand = new StartForwardMeteredDataCommandV1(
+            new ActorIdentityDto(input.AuthenticatedActorId),
+            input,
+            "test-message-id");
+
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+
+        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-5);
+
+        // Act
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
+
+        var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
+            orchestrationCreatedAfter,
+            name: "Orchestration_Brs_021_ForwardMeteredData_V1");
+
+        var inputToken = JToken.FromObject(input);
+        orchestration.Input.ToString().Should().BeEquivalentTo(inputToken.ToString(Newtonsoft.Json.Formatting.None));
+
+        var completeOrchestrationStatus = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+            orchestration.InstanceId);
+
+        // => Assert expected history
+        using var assertionScope = new AssertionScope();
+
+        var activities = completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Select(item => item.ToObject<OrchestrationHistoryItem>())
+            .ToList();
+
+        activities.Should()
+            .NotBeNull()
+            .And.Equal(
+                new OrchestrationHistoryItem(
+                    "ExecutionStarted",
+                    FunctionName: "Orchestration_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "PerformValidationActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "EnqueueRejectMessageActivity_Brs_021_V1"),
+                new OrchestrationHistoryItem("TimerCreated"),
+                new OrchestrationHistoryItem("TimerFired"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem("ExecutionCompleted"));
+
+        // => Verify that the durable function completed successfully
+        var last = completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Last();
+        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
+        last.Value<string>("Result").Should().Be("Success");
+    }
+
+    private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1(
+        bool withError = false)
     {
         var input = new MeteredDataForMeteringPointMessageInputV1(
             Guid.NewGuid(),
             "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
-            "571313101700011887",
+            withError ? "NoMasterData" : "571313101700011887",
             "D20",
             "8716867000047",
             "K3",
@@ -152,4 +283,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             });
         return input;
     }
+
+    public record OrchestrationHistoryItem(
+        string? EventType,
+        string? Name = null,
+        string? FunctionName = null);
 }

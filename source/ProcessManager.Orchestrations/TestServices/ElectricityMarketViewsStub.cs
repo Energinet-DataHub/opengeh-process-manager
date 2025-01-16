@@ -28,6 +28,11 @@ public sealed class ElectricityMarketViewsStub : IElectricityMarketViews
         MeteringPointIdentification meteringPointId,
         Interval period)
     {
+        if (meteringPointId.Value == "NoMasterData")
+        {
+            yield break;
+        }
+
         var meteringPointMasterData =
             (MeteringPointMasterData)Activator.CreateInstance(typeof(MeteringPointMasterData))!;
 

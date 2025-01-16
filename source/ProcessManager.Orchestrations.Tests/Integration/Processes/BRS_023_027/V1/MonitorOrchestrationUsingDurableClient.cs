@@ -92,8 +92,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
+    /// <summary>
+    /// Currently we assert the history and then check the service bus message.
+    /// When the monitor pattern is implemented this behavior should be changed.
+    /// Since we have to inform the orchestration that the job is completed when we receive the service bus message.
+    /// </summary>
     [Fact]
-    public async Task Calculation_WhenRunningAFullOrchestration_HasExceptedHistory()
+    public async Task Calculation_WhenRunningAFullOrchestration_HasExceptedHistoryAndServiceBusMessage()
     {
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             RunLifeCycleState.TERMINATED,
@@ -135,6 +140,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         // => Verify that the durable function completed successfully
         completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
 
+        // When the monitor pattern is implemented this check should happen before the orchestration is completed.
+        // Since we have to "mock" the response from EDI.
         var serviceBusMessage = await Fixture.ServiceBusEdiBrs023027Receiver
             .ReceiveMessageAsync(TimeSpan.FromSeconds(20), CancellationToken.None);
 

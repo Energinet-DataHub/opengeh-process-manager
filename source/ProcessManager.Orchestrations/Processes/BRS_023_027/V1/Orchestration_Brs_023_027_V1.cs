@@ -24,8 +24,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.A
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
-using OrchestrationInstanceTerminationState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceTerminationState;
-using OrchestrationStepTerminationState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationStepTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 

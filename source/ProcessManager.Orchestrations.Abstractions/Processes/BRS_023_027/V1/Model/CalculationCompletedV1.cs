@@ -15,5 +15,5 @@
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 
 public record CalculationCompletedV1(
-    string CalculationId,
+    long CalculationId,
     CalculationType CalculationType);

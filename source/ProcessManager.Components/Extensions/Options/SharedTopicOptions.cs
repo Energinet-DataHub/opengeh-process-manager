@@ -12,22 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Messaging.ServiceBus;
+using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
-/// <summary>
-/// Constants used for naming <see cref="ServiceBusSender"/> instances
-/// </summary>
-public static class ServiceBusSenderNames
+public class SharedTopicOptions
 {
-    /// <summary>
-    /// Service Bus sender for sending messages on the EDI service bus topic
-    /// </summary>
-    public const string EdiTopic = "EdiTopic";
+    public const string SectionName = "SharedTopic";
 
     /// <summary>
-    /// Service Bus sender for sending messages on the shared service bus topic
+    /// Shared Service Bus topic name
     /// </summary>
-    public const string SharedTopic = "SharedTopic";
+    [Required(AllowEmptyStrings = false)]
+    public string Name { get; set; } = string.Empty;
 }

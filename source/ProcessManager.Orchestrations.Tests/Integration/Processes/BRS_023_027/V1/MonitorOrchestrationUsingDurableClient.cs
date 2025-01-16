@@ -139,11 +139,11 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             .ReceiveMessageAsync(TimeSpan.FromSeconds(20), CancellationToken.None);
 
         serviceBusMessage.Should().NotBeNull();
-        var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessages
+        var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
             .Parser.ParseJson(serviceBusMessage.Body.ToString())!;
-        
+
         using var assertionScope = new AssertionScope();
-        var calculationCompleted = JsonSerializer.Deserialize<CalculationCompletedV1>(body.JsonData);
+        var calculationCompleted = JsonSerializer.Deserialize<CalculationCompletedV1>(body.Data);
         calculationCompleted!.CalculationType.Should().Be(calculationType);
         calculationCompleted!.OrchestrationInstanceId.Should().Be(orchestrationId);
     }

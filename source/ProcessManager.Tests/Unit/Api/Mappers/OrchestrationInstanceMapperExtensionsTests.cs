@@ -61,7 +61,8 @@ public class OrchestrationInstanceMapperExtensionsTests
     [Fact]
     public void MapToDto_WhenOrchestrationInstance_CreateOrchestrationInstanceDtoThatCanBeFullySerializedToJson()
     {
-        var orchestrationInstance = CreateOrchestrationInstance();
+        var orchestrationInstance = CreateOrchestrationInstance(
+            idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
 
         // Act
         // => We create and serialize 'OrchestrationInstanceDto'
@@ -71,6 +72,7 @@ public class OrchestrationInstanceMapperExtensionsTests
         // Assert
         // => But we can deserialize to specific 'OrchestrationInstanceTypedDto<TestOrchestrationParameter>'
         var typedDto = JsonSerializer.Deserialize<OrchestrationInstanceTypedDto<TestOrchestrationParameter>>(dtoAsJson);
+        typedDto!.IdempotencyKey.Should().Be(orchestrationInstance.IdempotencyKey!.Value);
         typedDto!.ParameterValue.TestString.Should().NotBeNull();
         typedDto!.ParameterValue.TestInt.Should().NotBeNull();
     }

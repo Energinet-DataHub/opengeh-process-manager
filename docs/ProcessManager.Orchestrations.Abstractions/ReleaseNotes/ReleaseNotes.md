@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.11.0
+
+TODO
+
 ## Version 0.10.0
 
 - Moved types used for custom querying BRS 026 + 028 to a shared namespace:
@@ -15,7 +19,7 @@
 ## Version 0.8.0
 
 - Refactored implementation of custom queries support.
-- Added types for quering data spanning BRS 026 + 028:
+- Added types for querying data spanning BRS 026 + 028:
     - `ActorRequestQuery`
     - `IActorRequestQueryResult`
     - `RequestCalculatedEnergyTimeSeriesResult`

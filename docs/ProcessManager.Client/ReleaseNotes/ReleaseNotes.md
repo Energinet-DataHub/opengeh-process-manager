@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.22.0
+
+TODO
+
 ## Version 0.21.0
 
 - Updated code documenation (XML comments).

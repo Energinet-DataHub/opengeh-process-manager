@@ -48,30 +48,34 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
                 orchestrationInstance)
             .ConfigureAwait(false);
 
+        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+
         var messageInput = activityInput.MeteredDataForMeteringPointMessageInputV1;
+
         var acceptedEnergyObservations = messageInput.EnergyObservations
             .Select(
                 x => new AcceptedEnergyObservation(
                     int.Parse(x.Position!),
                     decimal.Parse(x.EnergyQuantity!),
                     Quality.Adjusted))
-            .OrderBy(x => x.Position)
             .ToList();
+
+        var receiver = activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId.Contains("perf_test")
+            ? new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)
+            : new MarketActorRecipient("5790000282425", ActorRole.EnergySupplier);
 
         var data = new MeteredDataForMeteringPointAcceptedV1(
             MeteringPointId: messageInput.MeteringPointId!,
-            MeteringPointType: (MeteringPointType)Enum.Parse(typeof(MeteringPointType), messageInput.MeteringPointType!),
+            MeteringPointType: MeteringPointType.FromCode(messageInput.MeteringPointType!),
             activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId,
             Product: messageInput.ProductNumber!,
-            MeasureUnit: (MeasurementUnit)Enum.Parse(typeof(MeasurementUnit), messageInput.MeasureUnit!),
+            MeasureUnit: MeasurementUnit.FromCode(messageInput.MeasureUnit!),
             RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.RegistrationDateTime).Value,
-            Resolution: (Resolution)Enum.Parse(typeof(Resolution), messageInput.Resolution!),
+            Resolution: Resolution.FromCode(messageInput.Resolution!),
             StartDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.StartDateTime).Value,
-            EndDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.EndDateTime!).Value, // end always set?
+            EndDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.EndDateTime!).Value,
             AcceptedEnergyObservations: acceptedEnergyObservations,
-            MarketActorRecipients: [new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)]);
-
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+            MarketActorRecipients: [receiver]);
 
         await _enqueueActorMessagesClient.Enqueue(
             new Brs_021_ForwardedMeteredData_V1(),

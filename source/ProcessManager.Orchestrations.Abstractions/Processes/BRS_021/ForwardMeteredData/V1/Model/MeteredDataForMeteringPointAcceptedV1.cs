@@ -24,13 +24,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public record MeteredDataForMeteringPointAcceptedV1(
     string MeteringPointId,
     MeteringPointType MeteringPointType,
-    string OriginalTransactionId, // What term is used in PM to describe this?
-    string Product, // Do we need to pass this along?
+    string OriginalTransactionId,
+    string ProductNumber,
     MeasurementUnit MeasureUnit,
     Instant RegistrationDateTime,
     Resolution Resolution,
     Instant StartDateTime,
     Instant EndDateTime,
     IReadOnlyCollection<AcceptedEnergyObservation> AcceptedEnergyObservations,
-    IReadOnlyCollection<MarketActorRecipient> MarketActorRecipients) // List of market actors who should be informed of the new metered data.
+    IReadOnlyCollection<MarketActorRecipient> MarketActorRecipients)
     : IInputParameterDto;

@@ -68,7 +68,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
             MeteringPointId: messageInput.MeteringPointId!,
             MeteringPointType: MeteringPointType.FromCode(messageInput.MeteringPointType!),
             activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId,
-            Product: messageInput.ProductNumber!,
+            ProductNumber: messageInput.ProductNumber!,
             MeasureUnit: MeasurementUnit.FromCode(messageInput.MeasureUnit!),
             RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.RegistrationDateTime).Value,
             Resolution: Resolution.FromCode(messageInput.Resolution!),

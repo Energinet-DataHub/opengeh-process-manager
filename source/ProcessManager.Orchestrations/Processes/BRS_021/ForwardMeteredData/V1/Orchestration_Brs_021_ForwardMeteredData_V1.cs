@@ -13,8 +13,10 @@
 // limitations under the License.
 
 using Energinet.DataHub.ElectricityMarket.Integration;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 using Microsoft.Azure.Functions.Worker;
@@ -29,7 +31,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     internal const int FindReceiverStep = 3;
     internal const int EnqueueActorMessagesStep = 4;
 
-    public static readonly Brs_021_ForwardedMeteredData_V1 UniqueName = new();
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_021_ForwardedMeteredData.V1;
 
     private readonly TaskOptions _defaultRetryOptions;
 
@@ -70,7 +72,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // If there are errors, we stop the orchestration and inform EDI to pass along the errors
         if (errors.Count != 0)
         {
-            return await HandleAsynchronousValidationErrors(context, instanceId, errors);
+            return await HandleAsynchronousValidationErrors(context, instanceId, input.TransactionId, errors);
         }
 
         // Step: Storing
@@ -128,13 +130,23 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     private async Task<string> HandleAsynchronousValidationErrors(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
+        string inputTransactionId,
         IReadOnlyCollection<string> errors)
     {
+        var rejectMessage =
+            await context.CallActivityAsync<CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
+                nameof(CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1),
+                new CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                    instanceId,
+                    inputTransactionId,
+                    errors),
+                _defaultRetryOptions);
+
         await context.CallActivityAsync(
             nameof(EnqueueRejectMessageActivity_Brs_021_V1),
             new EnqueueRejectMessageActivity_Brs_021_V1.ActivityInput(
                 instanceId,
-                errors),
+                rejectMessage.RejectMessage),
             _defaultRetryOptions);
 
         var messagesEnqueuedSuccessfully = await WaitForEnqueueActorMessagesResponseFromEdiAsync(context, instanceId);

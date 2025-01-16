@@ -38,7 +38,7 @@ public sealed record RequestCalculatedEnergyTimeSeriesCommandV1
         string idempotencyKey)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_026_V1(),
+                orchestrationDescriptionUniqueName: Brs_026.V1,
                 inputParameter,
                 idempotencyKey)
     {

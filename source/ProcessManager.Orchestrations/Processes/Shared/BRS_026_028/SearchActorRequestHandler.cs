@@ -18,17 +18,14 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.Shared.BRS_026_028;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.Shared.BRS_026_028;
 
-// TODO:
-// Should be moved to another namespace because this is shared between BRS 026 + 028.
-// We have talked about combining these BRS's into ne top-folder similar to BRS 023 + 027,
-// and then use subfolders to split them per orchestration OR perhaps even use the same orchestration
-// because their logic is very similar.
 internal class SearchActorRequestHandler(
     IOrchestrationInstanceQueries queries) :
         ISearchOrchestrationInstancesQueryHandler<ActorRequestQuery, IActorRequestQueryResult>
@@ -64,7 +61,7 @@ internal class SearchActorRequestHandler(
 
     private IActorRequestQueryResult MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
     {
-        if (uniqueName.Name == new Brs_026_V1().Name)
+        if (uniqueName.Name == Brs_026.Name)
         {
             var original = instance.MapToTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>();
             return new RequestCalculatedEnergyTimeSeriesResult(
@@ -75,7 +72,7 @@ internal class SearchActorRequestHandler(
                 original.ParameterValue);
         }
 
-        if (uniqueName.Name == new Brs_028_V1().Name)
+        if (uniqueName.Name == Brs_028.Name)
         {
             var original = instance.MapToTypedDto<RequestCalculatedWholesaleServicesInputV1>();
             return new RequestCalculatedWholesaleServicesResult(

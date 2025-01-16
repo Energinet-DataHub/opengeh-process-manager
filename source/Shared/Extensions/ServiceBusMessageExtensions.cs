@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Azure.Messaging.ServiceBus;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Google.Protobuf;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Extensions;

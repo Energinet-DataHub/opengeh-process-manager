@@ -12,17 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel.DataAnnotations;
+using Energinet.DataHub.Core.Messaging.Communication;
 
-namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 
-public class SharedTopicOptions
+public interface IIntegrationEventPublisherClient
 {
-    public const string SectionName = "SharedTopic";
-
-    /// <summary>
-    /// Shared Service Bus topic name
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string Name { get; set; } = string.Empty;
+    public Task PublishAsync<TData>(
+        string idempotencyKey,
+        TData integrationEvent,
+        CancellationToken cancellationToken); 
 }

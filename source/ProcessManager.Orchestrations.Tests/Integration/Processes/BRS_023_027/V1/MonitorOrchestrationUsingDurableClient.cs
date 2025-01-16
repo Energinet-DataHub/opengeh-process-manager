@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using System.Text.Json;
-using Azure.Identity;
-using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
@@ -23,16 +21,14 @@ using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Models;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Wiremock;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
-using FluentAssertions.Execution;
 using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.DependencyInjection;

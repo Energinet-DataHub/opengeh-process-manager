@@ -12,6 +12,7 @@
         <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
         <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
         <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
+        <Compile Include="..\Shared\Tests\Models\OrchestrationHistoryItem.cs" Link="Models\OrchestrationHistoryItem.cs" />
     </ItemGroup>
 
     <ItemGroup>

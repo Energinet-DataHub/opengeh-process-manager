@@ -18,16 +18,13 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Microsoft.Azure.Functions.Worker;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
 
 internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
-    IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
-    private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
@@ -44,7 +41,7 @@ internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
 
     private Task EnqueueActorMessagesAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
-        var data = new CalculationCompletedV1(
+        var calculationCompleted = new CalculationCompletedV1(
             input.CalculationId.Id,
             input.CalculationType);
 
@@ -53,7 +50,7 @@ internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
             input.InstanceId.Value,
             orchestrationCreatedBy.ToDto(),
             "enqueue-" + input.InstanceId,
-            data);
+            calculationCompleted);
     }
 
     public record ActivityInput(

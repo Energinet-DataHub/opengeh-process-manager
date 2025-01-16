@@ -149,6 +149,9 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var verifyServiceBusMessage = Fixture.ServiceBusEdiBrs023027Listener.When(
                 msg =>
                 {
+                    if (msg.Subject != $"Enqueue_{Abstractions.Processes.BRS_023_027.Brs_023_027.Name.ToLower()}")
+                        return false;
+
                     var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
                         .Parser.ParseJson(msg.Body.ToString())!;
 

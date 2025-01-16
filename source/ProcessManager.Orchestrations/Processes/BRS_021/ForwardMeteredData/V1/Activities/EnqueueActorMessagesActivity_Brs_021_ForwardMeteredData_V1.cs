@@ -72,8 +72,8 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
             MeasureUnit: MeasurementUnit.FromCode(messageInput.MeasureUnit!),
             RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.RegistrationDateTime).Value,
             Resolution: Resolution.FromCode(messageInput.Resolution!),
-            StartDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.StartDateTime).Value,
-            EndDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.EndDateTime!).Value,
+            StartDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.StartDateTime).Value.ToDateTimeOffset(),
+            EndDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.EndDateTime!).Value.ToDateTimeOffset(),
             AcceptedEnergyObservations: acceptedEnergyObservations,
             MarketActorRecipients: [receiver]);
 

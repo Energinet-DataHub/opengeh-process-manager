@@ -29,8 +29,8 @@ public record MeteredDataForMeteringPointAcceptedV1(
     MeasurementUnit MeasureUnit,
     Instant RegistrationDateTime,
     Resolution Resolution,
-    Instant StartDateTime,
-    Instant EndDateTime,
+    DateTimeOffset StartDateTime,
+    DateTimeOffset EndDateTime,
     IReadOnlyCollection<AcceptedEnergyObservation> AcceptedEnergyObservations,
     IReadOnlyCollection<MarketActorRecipient> MarketActorRecipients)
     : IInputParameterDto;

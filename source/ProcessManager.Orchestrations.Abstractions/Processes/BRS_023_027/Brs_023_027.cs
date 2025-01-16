@@ -14,7 +14,11 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 
-public record Brs_023_027_V1()
-    : OrchestrationDescriptionUniqueNameDto("Brs_023_027", 1);
+public static class Brs_023_027
+{
+    public const string Name = "Brs_023_027";
+
+    public static OrchestrationDescriptionUniqueNameDto V1 { get; } = new(Name, 1);
+}

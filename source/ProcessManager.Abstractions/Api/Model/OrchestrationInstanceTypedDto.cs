@@ -25,9 +25,9 @@ public record OrchestrationInstanceTypedDto
     /// <summary>
     /// Construct DTO.
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="lifecycle">The high-level lifecycle states that all orchestration instances can go through.</param>
-    /// <param name="steps">Workflow steps the orchestration instance is going through.</param>
+    /// <param name="id">The id of the orchestration instance.</param>
+    /// <param name="lifecycle">The lifecycle state of the orchestration instance.</param>
+    /// <param name="steps">The steps of the orchestration instance.</param>
     /// <param name="customState">Any custom state of the orchestration instance.</param>
     public OrchestrationInstanceTypedDto(
         Guid id,
@@ -41,15 +41,18 @@ public record OrchestrationInstanceTypedDto
         CustomState = customState;
     }
 
+    /// <summary>
+    /// The id of the orchestration instance.
+    /// </summary>
     public Guid Id { get; }
 
     /// <summary>
-    /// The high-level lifecycle that all orchestration instances can go through.
+    /// The lifecycle state of the orchestration instance.
     /// </summary>
     public OrchestrationInstanceLifecycleDto Lifecycle { get; }
 
     /// <summary>
-    /// Workflow steps the orchestration instance is going through.
+    /// The steps of the orchestration instance.
     /// </summary>
     public IReadOnlyCollection<StepInstanceDto> Steps { get; }
 
@@ -65,16 +68,17 @@ public record OrchestrationInstanceTypedDto
 /// Must be JSON serializable.
 /// </summary>
 /// <typeparam name="TInputParameterDto">Must be a JSON serializable type.</typeparam>
-public record OrchestrationInstanceTypedDto<TInputParameterDto>
-    : OrchestrationInstanceTypedDto
-    where TInputParameterDto : IInputParameterDto
+public record OrchestrationInstanceTypedDto<TInputParameterDto> :
+    OrchestrationInstanceTypedDto,
+    IOrchestrationInstanceTypedDto<TInputParameterDto>
+        where TInputParameterDto : class, IInputParameterDto
 {
     /// <summary>
     /// Construct DTO.
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="lifecycle">The high-level lifecycle states that all orchestration instances can go through.</param>
-    /// <param name="steps">Workflow steps the orchestration instance is going through.</param>
+    /// <param name="id">The id of the orchestration instance.</param>
+    /// <param name="lifecycle">The lifecycle state of the orchestration instance.</param>
+    /// <param name="steps">The steps of the orchestration instance.</param>
     /// <param name="customState">Any custom state of the orchestration instance.</param>
     /// <param name="parameterValue">Contains the Durable Functions orchestration input parameter value.</param>
     public OrchestrationInstanceTypedDto(

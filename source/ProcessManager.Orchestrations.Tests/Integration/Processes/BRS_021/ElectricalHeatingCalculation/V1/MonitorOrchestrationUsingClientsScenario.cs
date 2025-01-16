@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
@@ -126,7 +127,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .SearchOrchestrationInstancesByNameAsync(
                 new SearchOrchestrationInstancesByNameQuery(
                     userIdentity,
-                    name: new Brs_021_ElectricalHeatingCalculation_V1().Name,
+                    name: Brs_021_ElectricalHeatingCalculation.Name,
                     version: null,
                     lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
                     terminationState: OrchestrationInstanceTerminationState.Succeeded,

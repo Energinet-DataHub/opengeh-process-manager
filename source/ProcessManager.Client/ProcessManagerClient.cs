@@ -161,7 +161,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     public async Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceByIdAsync<TInputParameterDto>(
         GetOrchestrationInstanceByIdQuery query,
         CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto
+            where TInputParameterDto : class, IInputParameterDto
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
@@ -184,6 +184,7 @@ internal class ProcessManagerClient : IProcessManagerClient
         return orchestrationInstance!;
     }
 
+    /// <inheritdoc/>
     public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchOrchestrationInstancesByNameAsync(
         SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)
@@ -213,7 +214,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     public async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto<TInputParameterDto>>> SearchOrchestrationInstancesByNameAsync<TInputParameterDto>(
         SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)
-            where TInputParameterDto : IInputParameterDto
+            where TInputParameterDto : class, IInputParameterDto
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
@@ -237,15 +238,16 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByNameAsync<TItem>(
+    public async Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByCustomQueryAsync<TItem>(
         SearchOrchestrationInstancesByCustomQuery<TItem> query,
         CancellationToken cancellationToken)
             where TItem : class
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/api/orchestrationinstance/query/custom/{query.Name}");
-        var json = JsonSerializer.Serialize(query);
+            $"/api/orchestrationinstance/query/custom/{query.QueryRouteName}");
+        // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
+        var json = JsonSerializer.Serialize(query, query.GetType());
         request.Content = new StringContent(
             json,
             Encoding.UTF8,

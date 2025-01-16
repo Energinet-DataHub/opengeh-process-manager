@@ -134,7 +134,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .SearchOrchestrationInstancesByNameAsync<CalculationInputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
                     userIdentity,
-                    name: new Brs_023_027_V1().Name,
+                    name: Brs_023_027.Name,
                     version: null,
                     lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
                     terminationState: OrchestrationInstanceTerminationState.Succeeded,
@@ -154,7 +154,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             IsInternalCalculation = inputParameter.IsInternalCalculation,
         };
         var orchestrationInstancesCustomSearch = await processManagerClient
-            .SearchOrchestrationInstancesByNameAsync(
+            .SearchOrchestrationInstancesByCustomQueryAsync(
                 customQuery,
                 CancellationToken.None);
 

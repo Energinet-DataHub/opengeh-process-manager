@@ -84,6 +84,7 @@ public static class ProcessManagerExtensions
         services.TryAddScoped<IOrchestrationRegisterQueries, OrchestrationRegister>();
         services.TryAddScoped<IOrchestrationInstanceRepository, OrchestrationInstanceRepository>();
         services.TryAddScoped<IStartOrchestrationInstanceCommands, OrchestrationInstanceManager>();
+        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands, OrchestrationInstanceManager>();
         // => Public queries
         services.TryAddScoped<IOrchestrationInstanceQueries, OrchestrationInstanceRepository>();
 
@@ -133,6 +134,7 @@ public static class ProcessManagerExtensions
         services.TryAddScoped<IOrchestrationRegisterQueries, OrchestrationRegister>();
         services.TryAddScoped<IOrchestrationInstanceRepository, OrchestrationInstanceRepository>();
         services.TryAddScoped<IStartOrchestrationInstanceCommands, OrchestrationInstanceManager>();
+        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands, OrchestrationInstanceManager>();
         // => Public queries
         services.TryAddScoped<IOrchestrationInstanceQueries, OrchestrationInstanceRepository>();
         // => Public progress repository

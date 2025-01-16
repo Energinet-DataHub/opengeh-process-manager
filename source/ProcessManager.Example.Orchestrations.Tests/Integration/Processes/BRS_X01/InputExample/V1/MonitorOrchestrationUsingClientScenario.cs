@@ -130,12 +130,12 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
 
         // Step 4: Custom search
-        var customQuery = new InputExampleQuery(userIdentity)
-        {
-            SkippedStepTwo = input.ShouldSkipSkippableStep,
-        };
+        var customQuery = new InputExampleQuery(
+            userIdentity,
+            skippedStepTwo: input.ShouldSkipSkippableStep);
+
         var orchestrationInstancesCustomSearch = await processManagerClient
-            .SearchOrchestrationInstancesByNameAsync(
+            .SearchOrchestrationInstancesByCustomQueryAsync(
                 customQuery,
                 CancellationToken.None);
 

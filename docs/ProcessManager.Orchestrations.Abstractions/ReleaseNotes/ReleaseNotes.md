@@ -1,5 +1,34 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.11.0
+
+- Add rejected model (RSM-009) for BRS 21 named `MeteredDataForMeteringPointRejectedV1`
+
+## Version 0.10.0
+
+- Moved types used for custom querying BRS 026 + 028 to a shared namespace:
+    - `ActorRequestQuery`
+    - `IActorRequestQueryResult`
+    - `RequestCalculatedEnergyTimeSeriesResult`
+    - `RequestCalculatedWholesaleServicesResult`
+
+## Version 0.9.0
+
+- Refactored all `OrchestrationDescriptionUniqueNameDto` implementations to use an implementation with a shared const `Name` and a readonly property per version.
+
+## Version 0.8.0
+
+- Refactored implementation of custom queries support.
+- Added types for quering data spanning BRS 026 + 028:
+    - `ActorRequestQuery`
+    - `IActorRequestQueryResult`
+    - `RequestCalculatedEnergyTimeSeriesResult`
+    - `RequestCalculatedWholesaleServicesResult`
+
+## Version 0.7.0
+
+- Dependent NuGet packages updated
+
 ## Version 0.6.3
 
 - No functional changes.

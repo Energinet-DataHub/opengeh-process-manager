@@ -36,7 +36,7 @@ public sealed record ScheduleCalculationCommandV1
         DateTimeOffset runAt)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_023_027_V1(),
+                orchestrationDescriptionUniqueName: Brs_023_027.V1,
                 inputParameter,
                 runAt)
     {

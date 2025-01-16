@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -36,25 +35,20 @@ internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        await EnqueueActorMessagesAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
+        await _enqueueActorMessagesClient.Enqueue(
+            orchestration: Orchestration_Brs_023_027_V1.UniqueName,
+            orchestrationInstanceId: input.InstanceId.Value,
+            orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
+            messageId: CreateIdempotencyKey(input.InstanceId, input.CalculatedData),
+            data: input.CalculatedData).ConfigureAwait(false);
     }
 
-    private Task EnqueueActorMessagesAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
+    private string CreateIdempotencyKey(OrchestrationInstanceId orchestrationInstanceId, CalculatedDataForCalculationTypeV1 calculatedData)
     {
-        var calculationCompleted = new CalculationCompletedV1(
-            input.CalculationId.Id,
-            input.CalculationType);
-
-        return _enqueueActorMessagesClient.Enqueue(
-            Orchestration_Brs_023_027_V1.Name,
-            input.InstanceId.Value,
-            orchestrationCreatedBy.ToDto(),
-            "enqueue-" + input.InstanceId,
-            calculationCompleted);
+        return calculatedData.CalculationId.ToString() + orchestrationInstanceId.Value;
     }
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        CalculationType CalculationType,
-        JobRunId CalculationId);
+        CalculatedDataForCalculationTypeV1 CalculatedData);
 }

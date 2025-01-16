@@ -14,6 +14,6 @@
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 
-public record CalculationCompletedV1(
-    long CalculationId,
+public record CalculatedDataForCalculationTypeV1(
+    Guid CalculationId,
     CalculationType CalculationType);

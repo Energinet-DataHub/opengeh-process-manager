@@ -33,7 +33,7 @@ internal class Orchestration_Brs_023_027_V1
     internal const int CalculationStepSequence = 1;
     internal const int EnqueueActorMessagesStepSequence = 2;
 
-    public static readonly OrchestrationDescriptionUniqueNameDto Name = Brs_023_027.V1;
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_023_027.V1;
 
     private readonly TaskOptions _defaultRetryOptions;
 
@@ -76,7 +76,7 @@ internal class Orchestration_Brs_023_027_V1
         var jobRunId = await context.CallActivityAsync<JobRunId>(
             nameof(CalculationStepStartJobActivity_Brs_023_027_V1),
             new CalculationStepStartJobActivity_Brs_023_027_V1.ActivityInput(
-                instanceId,
+                executionContext.CalculationId,
                 executionContext.UserId,
                 orchestrationInput),
             _defaultRetryOptions);
@@ -108,7 +108,7 @@ internal class Orchestration_Brs_023_027_V1
                     break;
 
                 case JobRunStatus.Completed:
-                    // Suceeded
+                    // Succeeded
                     await context.CallActivityAsync(
                         nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
                         new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
@@ -154,12 +154,15 @@ internal class Orchestration_Brs_023_027_V1
                     EnqueueActorMessagesStepSequence),
                 _defaultRetryOptions);
 
+            var calculationData = new CalculatedDataForCalculationTypeV1(
+                CalculationId: executionContext.CalculationId,
+                CalculationType: orchestrationInput.CalculationType);
+
             await context.CallActivityAsync(
                 nameof(EnqueueActorMessagesActivity_Brs_023_027_V1),
                 new EnqueueActorMessagesActivity_Brs_023_027_V1.ActivityInput(
                     instanceId,
-                    orchestrationInput.CalculationType,
-                    jobRunId),
+                    calculationData),
                 _defaultRetryOptions);
 
             await context.CallActivityAsync(

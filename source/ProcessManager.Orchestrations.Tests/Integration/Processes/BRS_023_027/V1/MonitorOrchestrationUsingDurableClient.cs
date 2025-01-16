@@ -99,7 +99,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     /// Since we have to inform the orchestration that the job is completed when we receive the service bus message.
     /// </summary>
     [Fact]
-    public async Task Calculation_WhenRunningAFullOrchestration_HasExceptedHistoryAndServiceBusMessage()
+    public async Task Calculation_WhenRunningAFullOrchestration_HasExpectedHistoryAndServiceBusMessage()
     {
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             RunLifeCycleState.TERMINATED,
@@ -155,7 +155,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                     var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
                         .Parser.ParseJson(msg.Body.ToString())!;
 
-                    var calculationCompleted = JsonSerializer.Deserialize<CalculationCompletedV1>(body.Data);
+                    var calculationCompleted = JsonSerializer.Deserialize<CalculatedDataForCalculationTypeV1>(body.Data);
 
                     var typeMatches = calculationCompleted!.CalculationType == calculationType;
                     var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationId.ToString();

@@ -36,7 +36,7 @@ internal class CalculationStepStartJobActivity_Brs_023_027_V1(
         var gridAreas = string.Join(", ", input.OrchestrationInput.GridAreaCodes);
         var jobParameters = new List<string>
         {
-            $"--calculation-id={input.InstanceId.Value}",
+            $"--calculation-id={input.CalculationId}",
             $"--grid-areas=[{gridAreas}]",
             $"--period-start-datetime={input.OrchestrationInput.PeriodStartDate.ToInstant()}",
             $"--period-end-datetime={input.OrchestrationInput.PeriodEndDate.ToInstant()}",
@@ -50,7 +50,7 @@ internal class CalculationStepStartJobActivity_Brs_023_027_V1(
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId InstanceId,
+        Guid CalculationId,
         Guid UserId,
         CalculationInputV1 OrchestrationInput);
 }

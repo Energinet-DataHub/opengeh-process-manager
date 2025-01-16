@@ -2,7 +2,7 @@
 
 ## Version 0.11.1
 
-- Add `CalculationCompletedV1`
+- Add `CalculatedDataForCalculationTypeV1`
 
 ## Version 0.11.0
 

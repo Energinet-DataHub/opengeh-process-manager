@@ -13,11 +13,11 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
-using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -67,6 +67,11 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
+
+        ServiceBusEdiBrs023027Listener = new ServiceBusListenerMock(
+            OrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -84,8 +89,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     [NotNull]
     public string? ProcessManagerTopicName { get; private set; }
 
-    [NotNull]
-    public ServiceBusReceiver? ServiceBusEdiBrs023027Receiver { get; private set; }
+    public ServiceBusListenerMock ServiceBusEdiBrs023027Listener { get; private set; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -108,9 +112,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         ProcessManagerTopicName = serviceBusResources.ProcessManagerTopic.Name;
 
-        var serviceBusClient = new ServiceBusClient(IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace, IntegrationTestConfiguration.Credential);
-
-        ServiceBusEdiBrs023027Receiver = serviceBusClient.CreateReceiver(
+        await ServiceBusEdiBrs023027Listener.AddTopicSubscriptionListenerAsync(
             serviceBusResources.EdiTopic.Name,
             serviceBusResources.EdiBrs023027Subscription.SubscriptionName);
 

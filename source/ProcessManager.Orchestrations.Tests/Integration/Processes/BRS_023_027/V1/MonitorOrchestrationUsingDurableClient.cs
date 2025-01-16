@@ -16,6 +16,7 @@ using System.Text.Json;
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
@@ -145,17 +146,24 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         // When the monitor pattern is implemented this check should happen before the orchestration is completed.
         // Since we have to "mock" the response from EDI.
-        var serviceBusMessage = await Fixture.ServiceBusEdiBrs023027Receiver
-            .ReceiveMessageAsync(TimeSpan.FromSeconds(20), CancellationToken.None);
+        var verifyServiceBusMessage = Fixture.ServiceBusEdiBrs023027Listener.When(
+                msg =>
+                {
+                    var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
+                        .Parser.ParseJson(msg.Body.ToString())!;
 
-        serviceBusMessage.Should().NotBeNull();
-        var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
-            .Parser.ParseJson(serviceBusMessage.Body.ToString())!;
+                    var calculationCompleted = JsonSerializer.Deserialize<CalculationCompletedV1>(body.Data);
 
-        using var assertionScope = new AssertionScope();
-        var calculationCompleted = JsonSerializer.Deserialize<CalculationCompletedV1>(body.Data);
-        calculationCompleted!.CalculationType.Should().Be(calculationType);
-        calculationCompleted!.OrchestrationInstanceId.Should().Be(orchestrationId);
+                    var typeMatches = calculationCompleted!.CalculationType == calculationType;
+                    var orchestrationIdMatches = calculationCompleted!.OrchestrationInstanceId == orchestrationId;
+
+                    return typeMatches && orchestrationIdMatches;
+                })
+            .VerifyCountAsync(1);
+
+        var wait = await verifyServiceBusMessage.WaitAsync(TimeSpan.FromSeconds(20));
+        var messageFound = wait.IsSet;
+        messageFound.Should().BeTrue("We did not send the expected message on the ServiceBus");
     }
 
     [Fact]

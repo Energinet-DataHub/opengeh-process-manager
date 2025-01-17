@@ -24,7 +24,7 @@ using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
-public static class PublishIntegrationEventExtensions
+public static class IntegrationEventPublisherExtensions
 {
         public static IServiceCollection AddIntegrationEventPublisher(this IServiceCollection services, TokenCredential azureCredential)
     {

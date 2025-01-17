@@ -18,13 +18,13 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTas
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 
-// TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
 internal class Orchestration_Brs_026_V1
 {
     public const int AsyncValidationStepSequence = 1;
@@ -45,12 +45,16 @@ internal class Orchestration_Brs_026_V1
     {
         var input = context.GetOrchestrationParameterValue<RequestCalculatedEnergyTimeSeriesInputV1>();
 
-        var instanceId = await InitializeOrchestrationAsync(context);
+        var (instanceId, options) = await InitializeOrchestrationAsync(context);
 
         var validationResult = await PerformAsynchronousValidationAsync(context, instanceId, input);
         await EnqueueActorMessagesInEdiAsync(context, instanceId, input, validationResult);
 
-        var wasMessagesEnqueued = await WaitForEnqueueActorMessagesResponseFromEdiAsync(context, instanceId);
+        var wasMessagesEnqueued = await WaitForEnqueueActorMessagesResponseFromEdiAsync(
+            context,
+            options.EnqueueActorMessagesTimeout,
+            instanceId);
+
         return await TerminateOrchestrationAsync(context, instanceId, input, wasMessagesEnqueued);
     }
 
@@ -62,17 +66,17 @@ internal class Orchestration_Brs_026_V1
             backoffCoefficient: 2.0));
     }
 
-    private async Task<OrchestrationInstanceId> InitializeOrchestrationAsync(TaskOrchestrationContext context)
+    private async Task<OrchestrationExecutionContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
-        await context.CallActivityAsync(
+        var orchestrationExecutionContext = await context.CallActivityAsync<OrchestrationExecutionContext>(
             nameof(StartOrchestrationActivity_Brs_026_V1),
             new StartOrchestrationActivity_Brs_026_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
 
-        return instanceId;
+        return orchestrationExecutionContext;
     }
 
     private async Task<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput> PerformAsynchronousValidationAsync(
@@ -80,6 +84,7 @@ internal class Orchestration_Brs_026_V1
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input)
     {
+        context.SetCustomStatus("PerformingAsyncValidation");
         var validationResult = await context.CallActivityAsync<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput>(
             nameof(PerformAsyncValidationActivity_Brs_026_V1),
             new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
@@ -97,6 +102,10 @@ internal class Orchestration_Brs_026_V1
                 AsyncValidationStepSequence,
                 asyncValidationTerminationState),
             _defaultRetryOptions);
+
+        context.SetCustomStatus(validationResult.IsValid
+            ? "AsyncValidationSuccess"
+            : "AsyncValidationFailed");
 
         return validationResult;
     }
@@ -129,23 +138,38 @@ internal class Orchestration_Brs_026_V1
         }
     }
 
+    /// <summary>
+    /// Pattern #5: Human interaction - https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview?tabs=isolated-process#human
+    /// </summary>
     private async Task<bool> WaitForEnqueueActorMessagesResponseFromEdiAsync(
         TaskOrchestrationContext context,
+        TimeSpan actorMessagesEnqueuedTimeout,
         OrchestrationInstanceId instanceId)
     {
-        // TODO: Use monitor pattern to wait for "notify" from EDI
-        var waitForMessagesEnqueued = context.CreateTimer(TimeSpan.FromSeconds(1), CancellationToken.None);
-        await waitForMessagesEnqueued;
+        bool wasMessagesEnqueued;
+        try
+        {
+            context.SetCustomStatus("WaitingForEnqueueActorMessages");
+            await context.WaitForExternalEvent<int?>(
+                eventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted,
+                timeout: actorMessagesEnqueuedTimeout);
+            wasMessagesEnqueued = true;
+        }
+        catch (TaskCanceledException)
+        {
+            var logger = context.CreateReplaySafeLogger<Orchestration_Brs_026_V1>();
+            logger.Log(
+                LogLevel.Error,
+                "Timeout while waiting for enqueue actor messages to complete (InstanceId={OrchestrationInstanceId}, Timeout={Timeout}).",
+                instanceId.Value,
+                actorMessagesEnqueuedTimeout.ToString("g"));
+            wasMessagesEnqueued = false;
+        }
 
-        return true;
-    }
+        context.SetCustomStatus(wasMessagesEnqueued
+            ? "ActorMessagesEnqueued"
+            : "TimeoutForActorMessagesEnqueued");
 
-    private async Task<string> TerminateOrchestrationAsync(
-        TaskOrchestrationContext context,
-        OrchestrationInstanceId instanceId,
-        RequestCalculatedEnergyTimeSeriesInputV1 input,
-        bool wasMessagesEnqueued)
-    {
         var enqueueActorMessagesTerminationState = wasMessagesEnqueued
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
@@ -157,14 +181,17 @@ internal class Orchestration_Brs_026_V1
                 enqueueActorMessagesTerminationState),
             _defaultRetryOptions);
 
+        return wasMessagesEnqueued;
+    }
+
+    private async Task<string> TerminateOrchestrationAsync(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        RequestCalculatedEnergyTimeSeriesInputV1 input,
+        bool wasMessagesEnqueued)
+    {
         if (!wasMessagesEnqueued)
         {
-            var logger = context.CreateReplaySafeLogger<Orchestration_Brs_026_V1>();
-            logger.Log(
-                LogLevel.Warning,
-                "Timeout while waiting for enqueue messages to complete (InstanceId={OrchestrationInstanceId}).",
-                instanceId.Value);
-
             await context.CallActivityAsync(
                 nameof(TerminateOrchestrationActivity_Brs_026_V1),
                 new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
@@ -172,7 +199,7 @@ internal class Orchestration_Brs_026_V1
                     OrchestrationInstanceTerminationState.Failed),
                 _defaultRetryOptions);
 
-            return "Error: Timeout while waiting for enqueue messages";
+            return "Error: Timeout while waiting for enqueue actor messages";
         }
         else
         {

@@ -32,4 +32,8 @@
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Processes\BRS_X02\NotifyOrchestrationInstanceExample\V1\" />
+    </ItemGroup>
 </Project>

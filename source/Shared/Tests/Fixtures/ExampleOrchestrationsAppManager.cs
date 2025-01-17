@@ -14,9 +14,11 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Azure.Messaging.ServiceBus.Administration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Xunit.Abstractions;
@@ -72,6 +74,10 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
 
         IntegrationTestConfiguration = configuration;
         AzuriteManager = azuriteManager;
+        ServiceBusResourceProvider = new ServiceBusResourceProvider(
+            TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -84,6 +90,8 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
     private AzuriteManager AzuriteManager { get; }
+
+    private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     /// <summary>
     /// Start the example orchestration app

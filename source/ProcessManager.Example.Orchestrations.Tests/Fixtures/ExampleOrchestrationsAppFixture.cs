@@ -16,6 +16,7 @@ using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
@@ -59,6 +60,11 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         DurableTaskManager = new DurableTaskManager(
             "AzuriteConnectionString",
             AzuriteManager.FullConnectionString);
+
+        ServiceBusResourceProvider = new ServiceBusResourceProvider(
+            ExampleOrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -70,11 +76,16 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
     [NotNull]
     public IDurableClient? DurableClient { get; private set; }
 
+    [NotNull]
+    public TopicResource? ProcessManagerTopic { get; private set; }
+
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
     private AzuriteManager AzuriteManager { get; }
 
     private DurableTaskManager DurableTaskManager { get; }
+
+    private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     public async Task InitializeAsync()
     {
@@ -84,7 +95,10 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         await DatabaseManager.CreateDatabaseAsync();
 
         await ExampleOrchestrationsAppManager.StartAsync();
-        await ProcessManagerAppManager.StartAsync(serviceBusResources: null);
+
+        var serviceBusResources = await ProcessManagerAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
+        ProcessManagerTopic = serviceBusResources.ProcessManagerTopic;
+        await ProcessManagerAppManager.StartAsync(serviceBusResources);
 
         // Create durable client when TaskHub has been created
         DurableClient = DurableTaskManager.CreateClient(taskHubName: TaskHubName);
@@ -96,6 +110,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         await ProcessManagerAppManager.DisposeAsync();
         await DurableTaskManager.DisposeAsync();
         await DatabaseManager.DeleteDatabaseAsync();
+        await ServiceBusResourceProvider.DisposeAsync();
 
         AzuriteManager.Dispose();
     }

@@ -25,5 +25,5 @@ public interface INotifyOrchestrationInstanceCommands
         OrchestrationInstanceId id,
         string eventName,
         TData? eventData)
-        where TData : class;
+            where TData : class;
 }

@@ -12,20 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
+using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects.MeteringPointType;
+using Resolution = Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects.Resolution;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
 internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IEnqueueActorMessagesClient enqueueActorMessagesClient)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
+    private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+
     [Function(nameof(EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput activityInput)
@@ -39,9 +48,44 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
                 orchestrationInstance)
             .ConfigureAwait(false);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+
+        var messageInput = activityInput.MeteredDataForMeteringPointMessageInputV1;
+
+        var acceptedEnergyObservations = messageInput.EnergyObservations
+            .Select(
+                x => new AcceptedEnergyObservation(
+                    int.Parse(x.Position!),
+                    decimal.Parse(x.EnergyQuantity!),
+                    Quality.FromCode(x.QuantityQuality!)))
+            .ToList();
+
+        var receiver = activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId.Contains("perf_test")
+            ? new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)
+            : new MarketActorRecipient("5790000282425", ActorRole.EnergySupplier);
+
+        var data = new MeteredDataForMeteringPointAcceptedV1(
+            MeteringPointId: messageInput.MeteringPointId!,
+            MeteringPointType: MeteringPointType.FromCode(messageInput.MeteringPointType!),
+            activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId,
+            ProductNumber: messageInput.ProductNumber!,
+            MeasureUnit: MeasurementUnit.FromCode(messageInput.MeasureUnit!),
+            RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.RegistrationDateTime).Value,
+            Resolution: Resolution.FromCode(messageInput.Resolution!),
+            StartDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.StartDateTime).Value.ToDateTimeOffset(),
+            EndDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.EndDateTime!).Value.ToDateTimeOffset(),
+            AcceptedEnergyObservations: acceptedEnergyObservations,
+            MarketActorRecipients: [receiver]);
+
+        await _enqueueActorMessagesClient.Enqueue(
+            Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName,
+            activityInput.OrchestrationInstanceId.Value,
+            orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
+            "enqueue-" + activityInput.OrchestrationInstanceId.Value,
+            data).ConfigureAwait(false);
     }
 
-    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
+    public sealed record ActivityInput(
+        OrchestrationInstanceId OrchestrationInstanceId,
+        MeteredDataForMeteringPointMessageInputV1 MeteredDataForMeteringPointMessageInputV1);
 }

@@ -6,7 +6,7 @@
     - `OrchestrationInstanceDto`
     - `IOrchestrationInstanceTypedDto<out TInputParameterDto>`
     - `OrchestrationInstanceTypedDto`
-    - `OrchestrationInstanceTypedDto<TInputParameterDto>`    
+    - `OrchestrationInstanceTypedDto<TInputParameterDto>`
 
 ## Version 0.21.0
 

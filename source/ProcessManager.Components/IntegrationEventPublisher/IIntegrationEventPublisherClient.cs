@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.Messaging.Communication;
+using Google.Protobuf;
 
 namespace Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 
 public interface IIntegrationEventPublisherClient
 {
-    public Task PublishAsync<TData>(
-        string idempotencyKey,
-        TData integrationEvent,
-        CancellationToken cancellationToken); 
+    public Task PublishAsync(
+        Guid eventIdentification,
+        string eventName,
+        int eventMinorVersion,
+        IMessage message,
+        CancellationToken cancellationToken);
 }

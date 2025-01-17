@@ -14,31 +14,37 @@
 
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication;
+using Energinet.DataHub.Core.Messaging.Communication.Publisher;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 
 public class IntegrationEventPublisherClient(
-    IAzureClientFactory<ServiceBusSender> serviceBusFactory)
+    IAzureClientFactory<ServiceBusSender> serviceBusFactory,
+    IServiceBusMessageFactory serviceBusMessageFactory)
         : IIntegrationEventPublisherClient
 {
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.IntegrationEventTopic);
 
-    public async Task PublishAsync<TData>(
-        string idempotencyKey,
-        TData data,
+    private readonly IServiceBusMessageFactory _serviceBusMessageFactory = serviceBusMessageFactory;
+
+    public async Task PublishAsync(
+        Guid eventIdentification,
+        string eventName,
+        int eventMinorVersion,
+        IMessage message,
         CancellationToken cancellationToken)
     {
         var integrationEvent = new IntegrationEvent(
-            EventIdentification: ,
-            EventName: ,
-            EventMinorVersion: ,
-            Message: );
-        var serviceBusMessage = new ServiceBusMessage()
-        {
-           
-        };
+            EventIdentification: eventIdentification,
+            EventName: eventName,
+            EventMinorVersion: eventMinorVersion,
+            Message: message);
+
+        var serviceBusMessage = _serviceBusMessageFactory.Create(integrationEvent);
+
         await _serviceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken)
             .ConfigureAwait(false);
     }

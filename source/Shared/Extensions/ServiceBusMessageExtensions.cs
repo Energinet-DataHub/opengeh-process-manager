@@ -23,6 +23,17 @@ public static class ServiceBusMessageExtensions
     private const string MajorVersionKey = "MajorVersion";
     private const string BodyFormatKey = "BodyFormat";
 
+    /// <summary>
+    /// Retrieve the idempotency key from the service bus message.
+    /// </summary>
+    /// <remarks>
+    /// This method should handle the retrieval of the idempotency key according to how it is set in <see cref="ToServiceBusMessage(IMessage, string, string)"/>.
+    /// </remarks>
+    public static string GetIdempotencyKey(this ServiceBusReceivedMessage message)
+    {
+        return message.MessageId;
+    }
+
     public static string GetMajorVersion(this ServiceBusReceivedMessage message)
     {
         return (string?)message.ApplicationProperties.GetValueOrDefault(MajorVersionKey)
@@ -49,6 +60,10 @@ public static class ServiceBusMessageExtensions
     /// The idempotency key is sent as <see cref="ServiceBusMessage.MessageId"/> on the
     /// Service Bus message, and is used to check for idempotency.
     /// </param>
+    /// <remarks>
+    /// The method <see cref="GetIdempotencyKey(ServiceBusReceivedMessage)"/> method should handle the retrieval of the idempotency key
+    /// according to how we set it in current method.
+    /// </remarks>
     public static ServiceBusMessage ToServiceBusMessage(this IMessage message, string subject, string idempotencyKey)
     {
         ServiceBusMessage serviceBusMessage = new(JsonFormatter.Default.Format(message))

@@ -27,6 +27,7 @@ using FluentAssertions.Execution;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_026.V1;
@@ -113,9 +114,11 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         orchestration.Input.ToString().Should().Contain(businessReason);
 
         // => Orchestration is waiting for notify event
-        await _fixture.DurableClient.WaitForCustomStatusAsync<string?>(
+        // Using JToken instead of string, since there is a timing where the custom status is not set, so casting to string fails. TODO: Fix by looking at step status instead.
+        await _fixture.DurableClient.WaitForCustomStatusAsync<JToken>(
             orchestration.InstanceId,
-            (customStatus) => customStatus == Orchestration_Brs_026_V1.CustomStatus.WaitingForEnqueueActorMessages);
+            (customStatus) => customStatus.ToString() == Orchestration_Brs_026_V1.CustomStatus.WaitingForEnqueueActorMessages);
+
         // => Send notify event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent(

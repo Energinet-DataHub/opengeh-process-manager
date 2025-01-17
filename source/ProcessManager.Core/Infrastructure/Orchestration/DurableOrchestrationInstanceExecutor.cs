@@ -47,7 +47,7 @@ internal class DurableOrchestrationInstanceExecutor(
         where TData : class
     {
         return _durableClient.RaiseEventAsync(
-            instanceId: id.ToString(),
+            instanceId: id.Value.ToString(),
             eventName: eventName,
             eventData: data);
     }

@@ -23,7 +23,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
-using Grpc.Core;
+using FluentAssertions.Execution;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -127,6 +127,8 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestration.InstanceId,
             waitTimeLimit: TimeSpan.FromMinutes(1));
+
+        using var assertionScope = new AssertionScope();
         completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
         completedOrchestration.Output.ToString().Should().Contain("Success");
     }

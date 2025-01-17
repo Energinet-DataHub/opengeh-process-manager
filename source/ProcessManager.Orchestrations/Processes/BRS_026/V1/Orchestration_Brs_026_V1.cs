@@ -66,17 +66,15 @@ internal class Orchestration_Brs_026_V1
             backoffCoefficient: 2.0));
     }
 
-    private async Task<OrchestrationExecutionContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
+    private Task<OrchestrationExecutionContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
-        var orchestrationExecutionContext = await context.CallActivityAsync<OrchestrationExecutionContext>(
+        return context.CallActivityAsync<OrchestrationExecutionContext>(
             nameof(StartOrchestrationActivity_Brs_026_V1),
             new StartOrchestrationActivity_Brs_026_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
-
-        return orchestrationExecutionContext;
     }
 
     private async Task<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput> PerformAsynchronousValidationAsync(
@@ -201,17 +199,15 @@ internal class Orchestration_Brs_026_V1
 
             return "Error: Timeout while waiting for enqueue actor messages";
         }
-        else
-        {
-            await context.CallActivityAsync(
-                nameof(TerminateOrchestrationActivity_Brs_026_V1),
-                new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
-                    instanceId,
-                    OrchestrationInstanceTerminationState.Succeeded),
-                _defaultRetryOptions);
 
-            return $"Success (BusinessReason={input.BusinessReason})";
-        }
+        await context.CallActivityAsync(
+            nameof(TerminateOrchestrationActivity_Brs_026_V1),
+            new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
+                instanceId,
+                OrchestrationInstanceTerminationState.Succeeded),
+            _defaultRetryOptions);
+
+        return $"Success (BusinessReason={input.BusinessReason})";
     }
 
     public static class CustomStatus
@@ -221,6 +217,6 @@ internal class Orchestration_Brs_026_V1
         public const string AsyncValidationFailed = "AsyncValidationFailed";
         public const string WaitingForEnqueueActorMessages = "WaitingForEnqueueActorMessages";
         public const string ActorMessagesEnqueued = "ActorMessagesEnqueued";
-        public const string TimeoutWaitingForEnqueueActorMessages = "TimeoutForActorMessagesEnqueued";
+        public const string TimeoutWaitingForEnqueueActorMessages = "TimeoutWaitingForEnqueueActorMessages";
     }
 }

@@ -80,7 +80,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
     [Fact]
     public async Task RequestCalculatedEnergyTimeSeries_WhenStarted_OrchestrationCompletesWithSuccess()
     {
-        // Arrange
+        // Given
         var businessReason = "BalanceFixing";
         var energySupplierNumber = "23143245321";
         var startRequestCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
@@ -101,11 +101,11 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 
-        // Act
+        // When
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, CancellationToken.None);
 
-        // Assert
+        // Then
         // => Orchestration is started
         var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
             createdTimeFrom: orchestrationCreatedAfter,
@@ -113,7 +113,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         orchestration.Input.ToString().Should().Contain(businessReason);
 
         // => Orchestration is waiting for notify event
-        await _fixture.DurableClient.WaitForCustomStatusAsync<string>(
+        await _fixture.DurableClient.WaitForCustomStatusAsync<string?>(
             orchestration.InstanceId,
             (customStatus) => customStatus == Orchestration_Brs_026_V1.CustomStatus.WaitingForEnqueueActorMessages);
         // => Send notify event
@@ -125,8 +125,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
 
         // => Orchestration is completed (with success)
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
-            orchestration.InstanceId,
-            waitTimeLimit: TimeSpan.FromMinutes(1));
+            orchestration.InstanceId);
 
         using var assertionScope = new AssertionScope();
         completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);

@@ -44,6 +44,8 @@ internal class Orchestration_Brs_028_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
+        context.SetCustomStatus(CustomStatus.OrchestrationInstanceStarted);
+
         var input = context.GetOrchestrationParameterValue<RequestCalculatedWholesaleServicesInputV1>();
 
         var (instanceId, options) = await InitializeOrchestrationAsync(context);
@@ -193,21 +195,20 @@ internal class Orchestration_Brs_028_V1
 
             return "Error: Timeout while waiting for enqueue messages";
         }
-        else
-        {
-            await context.CallActivityAsync(
-                nameof(TerminateOrchestrationActivity_Brs_028_V1),
-                new TerminateOrchestrationActivity_Brs_028_V1.ActivityInput(
-                    instanceId,
-                    OrchestrationInstanceTerminationState.Succeeded),
-                _defaultRetryOptions);
 
-            return $"Success (BusinessReason={input.BusinessReason})";
-        }
+        await context.CallActivityAsync(
+            nameof(TerminateOrchestrationActivity_Brs_028_V1),
+            new TerminateOrchestrationActivity_Brs_028_V1.ActivityInput(
+                instanceId,
+                OrchestrationInstanceTerminationState.Succeeded),
+            _defaultRetryOptions);
+
+        return $"Success (BusinessReason={input.BusinessReason})";
     }
 
     public static class CustomStatus
     {
+        public const string OrchestrationInstanceStarted = "OrchestrationInstanceStarted";
         public const string PerformingAsyncValidation = "PerformingAsyncValidation";
         public const string AsyncValidationSuccess = "AsyncValidationSuccess";
         public const string AsyncValidationFailed = "AsyncValidationFailed";

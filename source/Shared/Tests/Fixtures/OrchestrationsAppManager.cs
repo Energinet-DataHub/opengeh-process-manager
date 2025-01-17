@@ -28,6 +28,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjec
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Options;
 using WireMock.Server;
 using Xunit.Abstractions;
 
@@ -368,6 +369,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // => BRS-026
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_026_V1.SectionName}__{nameof(OrchestrationOptions_Brs_026_V1.EnqueueActorMessagesTimeout)}",
+            TimeSpan.FromSeconds(60).ToString());
+
+        // => BRS-028
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_028_V1.SectionName}__{nameof(OrchestrationOptions_Brs_028_V1.EnqueueActorMessagesTimeout)}",
             TimeSpan.FromSeconds(60).ToString());
 
         return appHostSettings;

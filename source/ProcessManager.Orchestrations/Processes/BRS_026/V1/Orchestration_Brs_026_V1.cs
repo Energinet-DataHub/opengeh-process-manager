@@ -43,6 +43,8 @@ internal class Orchestration_Brs_026_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
+        context.SetCustomStatus(CustomStatus.OrchestrationInstanceStarted);
+
         var input = context.GetOrchestrationParameterValue<RequestCalculatedEnergyTimeSeriesInputV1>();
 
         var (instanceId, options) = await InitializeOrchestrationAsync(context);
@@ -212,6 +214,7 @@ internal class Orchestration_Brs_026_V1
 
     public static class CustomStatus
     {
+        public const string OrchestrationInstanceStarted = "OrchestrationInstanceStarted";
         public const string PerformingAsyncValidation = "PerformingAsyncValidation";
         public const string AsyncValidationSuccess = "AsyncValidationSuccess";
         public const string AsyncValidationFailed = "AsyncValidationFailed";

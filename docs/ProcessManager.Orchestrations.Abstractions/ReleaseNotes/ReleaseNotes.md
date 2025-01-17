@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.12.2
+
+- Add `RequestCalculatedEnergyTimeSeriesNotifyEventsV1` and `RequestCalculatedWholesaleServicesNotifyEventsV1`
+
 ## Version 0.12.1
 
 - Add `CalculatedDataForCalculationTypeV1`

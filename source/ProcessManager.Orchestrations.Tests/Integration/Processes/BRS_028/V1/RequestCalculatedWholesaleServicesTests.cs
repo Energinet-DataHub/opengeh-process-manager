@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
@@ -50,10 +52,15 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = _fixture.ProcessManagerTopicName,
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
+                = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
+                = _fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
+        services.AddProcessManagerHttpClients();
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -112,5 +119,63 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestration.InstanceId);
         completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
+    }
+
+    /// <summary>
+    /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
+    /// </summary>
+    [Fact]
+    public async Task RequestCalculatedWholesaleServices_WhenStarted_CanMonitorLifecycle()
+    {
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        // Step 1: Start new orchestration instance
+        var businessReason = "WholesaleFixing";
+        var energySupplierNumber = "23143245321";
+        var startRequestCommand = new RequestCalculatedWholesaleServicesCommandV1(
+            new ActorIdentityDto(Guid.NewGuid()),
+            new RequestCalculatedWholesaleServicesInputV1(
+                RequestedForActorNumber: energySupplierNumber,
+                RequestedForActorRole: "EnergySupplier",
+                BusinessReason: businessReason,
+                PeriodStart: "2024-04-01 23:00:00",
+                PeriodEnd: "2024-04-30 23:00:00",
+                Resolution: null,
+                EnergySupplierNumber: energySupplierNumber,
+                ChargeOwnerNumber: null,
+                GridAreas: ["804"],
+                SettlementVersion: null,
+                ChargeTypes: null),
+            idempotencyKey: Guid.NewGuid().ToString());
+
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+            startRequestCommand,
+            CancellationToken.None);
+
+        // Step 2: Query until terminated with succeeded
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
+        var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                var orchestrationInstance = await processManagerClient
+                    .GetOrchestrationInstanceByIdempotencyKeyAsync<RequestCalculatedWholesaleServicesInputV1>(
+                        new GetOrchestrationInstanceByIdempotencyKeyQuery(
+                            userIdentity,
+                            startRequestCommand.IdempotencyKey),
+                        CancellationToken.None);
+
+                return
+                    orchestrationInstance != null
+                    && orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
+            },
+            timeLimit: TimeSpan.FromSeconds(20),
+            delay: TimeSpan.FromSeconds(3));
+
+        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
 }

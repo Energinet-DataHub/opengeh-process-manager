@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.12.0
+
+- Add accept model (RSM-012) for BRS 21 named `MeteredDataForMeteringPointAcceptedV1`
+
 ## Version 0.11.0
 
 - Add rejected model (RSM-009) for BRS 21 named `MeteredDataForMeteringPointRejectedV1`

@@ -4,7 +4,6 @@
 
 - Update `EnqueueActorMessagesV1`, `NotifyOrchestrationInstanceV1` and `StartOrchestrationInstanceV1` with strongly typed formats.
 - Update `EnqueueActorMessagesV1`, `NotifyOrchestrationInstanceV1` and `StartOrchestrationInstanceV1` with methods to set and get data.
-- 
 
 ## Version 0.21.0
 

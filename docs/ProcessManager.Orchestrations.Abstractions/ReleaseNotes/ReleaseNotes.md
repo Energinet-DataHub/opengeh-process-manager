@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.13.0
+
+- Add `DataHubTypes`
+
 ## Version 0.12.1
 
 - Add `CalculatedDataForCalculationTypeV1`

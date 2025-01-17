@@ -21,8 +21,10 @@ public partial class NotifyOrchestrationInstanceV1
     public const string MajorVersion = nameof(NotifyOrchestrationInstanceV1);
 
     public void SetData<TNotifyData>(TNotifyData data)
-        where TNotifyData : class
+        where TNotifyData : class?
     {
+        ArgumentNullException.ThrowIfNull(data);
+
         Data = new NotifyOrchestrationInstanceDataV1
         {
             Data = JsonSerializer.Serialize(data),

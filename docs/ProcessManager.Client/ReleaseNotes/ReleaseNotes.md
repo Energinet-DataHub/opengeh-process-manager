@@ -7,6 +7,7 @@
     - `IOrchestrationInstanceTypedDto<out TInputParameterDto>`
     - `OrchestrationInstanceTypedDto`
     - `OrchestrationInstanceTypedDto<TInputParameterDto>`
+- Implemented `GetOrchestrationInstanceByIdempotencyKeyQuery` and extended `IProcessManagerClient` to support it.
 
 ## Version 0.21.0
 

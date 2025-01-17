@@ -69,7 +69,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
 
-        ServiceBusEdiBrs023027Listener = new ServiceBusListenerMock(
+        EnqueueBrs023027ServiceBusListener = new ServiceBusListenerMock(
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
@@ -90,7 +90,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     [NotNull]
     public string? ProcessManagerTopicName { get; private set; }
 
-    public ServiceBusListenerMock ServiceBusEdiBrs023027Listener { get; private set; }
+    public ServiceBusListenerMock EnqueueBrs023027ServiceBusListener { get; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -125,9 +125,9 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         // Create EDI topic resources
         var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.Create(ServiceBusResourceProvider);
 
-        await ServiceBusEdiBrs023027Listener.AddTopicSubscriptionListenerAsync(
-            ediTopicResources.EdiTopic.Name,
-            ediTopicResources.EdiBrs023027Subscription.SubscriptionName);
+        await EnqueueBrs023027ServiceBusListener.AddTopicSubscriptionListenerAsync(
+            ediTopicResources.EnqueueBrs023027Subscription.TopicName,
+            ediTopicResources.EnqueueBrs023027Subscription.SubscriptionName);
 
         await OrchestrationsAppManager.StartAsync(orchestrationsProcessManagerTopicResources, ediTopicResources);
         await ProcessManagerAppManager.StartAsync(processManagerAppProcessManagerTopicResources);

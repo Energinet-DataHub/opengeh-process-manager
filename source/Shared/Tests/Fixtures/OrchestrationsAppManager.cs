@@ -464,16 +464,18 @@ public class OrchestrationsAppManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Edi topic resources used by the Orchestrations app.
+    /// EDI topic resources.
     /// </summary>
-    /// <param name="EdiTopic"></param>
     public record EdiTopicResources(
         TopicResource EdiTopic,
         SubscriptionProperties EnqueueBrs023027Subscription)
     {
+        private const string EnqueueBrs023027SubscriptionName = "enqueue-brs-023-027-subscription";
+
         public static async Task<EdiTopicResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var ediTopicBuilder = BuildEdiTopic(serviceBusResourceProvider);
+            AddEdiSubscriptions(ediTopicBuilder);
 
             var ediTopic = await ediTopicBuilder.CreateAsync();
 
@@ -489,14 +491,31 @@ public class OrchestrationsAppManager : IAsyncDisposable
         }
 
         /// <summary>
-        /// Get the <see cref="OrchestrationsAppManager.EdiTopicResources"/> used by the Process Manager app.
+        /// Add EDI subscriptions to the EDI topic.
+        /// </summary>
+        public static TopicResourceBuilder AddEdiSubscriptions(TopicResourceBuilder builder)
+        {
+            builder
+                .AddSubscription(EnqueueBrs023027SubscriptionName)
+                    .AddSubjectFilter($"Enqueue_{Brs_023_027.Name.ToLower()}");
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Get the <see cref="OrchestrationsAppManager.EdiTopicResources"/> used by the Orchestrations app.
+        /// <remarks>
+        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddEdiSubscriptions"/>.
+        /// </remarks>
         /// </summary>
         public static EdiTopicResources GetEdiTopicResources(TopicResource topic)
         {
-            // TODO: $"Enqueue_{Brs_023_027.Name.ToLower()}" subscription
+            var enqueueBrs023027Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(EnqueueBrs023027SubscriptionName));
 
             return new EdiTopicResources(
-                topic);
+                topic,
+                enqueueBrs023027Subscription);
         }
     }
 }

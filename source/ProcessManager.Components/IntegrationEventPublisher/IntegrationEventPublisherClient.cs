@@ -13,13 +13,14 @@
 // limitations under the License.
 
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.Messaging.Communication;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 
 public class IntegrationEventPublisherClient(
-    IAzureClientFactory<ServiceBusSender> serviceBusFactory) 
+    IAzureClientFactory<ServiceBusSender> serviceBusFactory)
         : IIntegrationEventPublisherClient
 {
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.IntegrationEventTopic);
@@ -29,6 +30,11 @@ public class IntegrationEventPublisherClient(
         TData data,
         CancellationToken cancellationToken)
     {
+        var integrationEvent = new IntegrationEvent(
+            EventIdentification: ,
+            EventName: ,
+            EventMinorVersion: ,
+            Message: );
         var serviceBusMessage = new ServiceBusMessage()
         {
            

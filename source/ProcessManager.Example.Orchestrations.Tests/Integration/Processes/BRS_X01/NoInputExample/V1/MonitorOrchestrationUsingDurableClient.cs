@@ -76,7 +76,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     /// This is due to a random skip in the orchestration initialization step.
     /// </summary>
     [Fact]
-    public async Task ExampleOrchestration_WhenRanToCompletion_HasExceptedHistory()
+    public async Task ExampleOrchestration_WhenRanToCompletion_HasExpectedHistory()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

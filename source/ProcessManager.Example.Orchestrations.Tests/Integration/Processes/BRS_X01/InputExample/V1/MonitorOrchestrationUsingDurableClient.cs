@@ -71,7 +71,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ExampleOrchestration_WhenRunningEveryActivity_HasExceptedHistory()
+    public async Task ExampleOrchestration_WhenRunningEveryActivity_HasExpectedHistory()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -123,7 +123,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ExampleOrchestration_WhenSkippingActivities_HasExceptedHistory()
+    public async Task ExampleOrchestration_WhenSkippingActivities_HasExpectedHistory()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

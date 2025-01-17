@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
@@ -50,10 +51,15 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = _fixture.ProcessManagerTopicName,
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
+                = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
+                = _fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
+        services.AddProcessManagerHttpClients();
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -79,6 +85,10 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
     public async Task RequestCalculatedEnergyTimeSeries_WhenStarted_OrchestrationCompletesWithSuccess()
     {
         // Arrange
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
         var businessReason = "BalanceFixing";
         var energySupplierNumber = "23143245321";
         var startRequestCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
@@ -98,6 +108,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
             idempotencyKey: Guid.NewGuid().ToString());
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         // Act
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
@@ -112,5 +123,16 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestration.InstanceId);
         completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
+
+        // => We can verify the orchestration instance is as expected by using the client
+        var actualOrchestrationInstance = await processManagerClient
+            .GetOrchestrationInstanceByIdempotencyKeyAsync<RequestCalculatedEnergyTimeSeriesInputV1>(
+                new GetOrchestrationInstanceByIdempotencyKeyQuery(
+                    userIdentity,
+                    startRequestCommand.IdempotencyKey),
+                CancellationToken.None);
+
+        actualOrchestrationInstance.Should().NotBeNull();
+        actualOrchestrationInstance!.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Succeeded);
     }
 }

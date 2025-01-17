@@ -125,7 +125,8 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
 
         // => Orchestration is completed (with success)
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
-            orchestration.InstanceId);
+            orchestration.InstanceId,
+            waitTimeLimit: TimeSpan.FromMinutes(1));
         completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
         completedOrchestration.Output.ToString().Should().Contain("Success");
     }

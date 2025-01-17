@@ -110,8 +110,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        if (processManagerTopicResources is null)
-            processManagerTopicResources = await ProcessManagerTopicResources.Create(ServiceBusResourceProvider);
+        processManagerTopicResources ??= await ProcessManagerTopicResources.Create(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings("ProcessManager", processManagerTopicResources);

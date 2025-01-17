@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
@@ -108,7 +109,6 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
             idempotencyKey: Guid.NewGuid().ToString());
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         // Act
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
@@ -123,16 +123,63 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestration.InstanceId);
         completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
+    }
 
-        // => We can verify the orchestration instance is as expected by using the client
-        var actualOrchestrationInstance = await processManagerClient
-            .GetOrchestrationInstanceByIdempotencyKeyAsync<RequestCalculatedEnergyTimeSeriesInputV1>(
-                new GetOrchestrationInstanceByIdempotencyKeyQuery(
-                    userIdentity,
-                    startRequestCommand.IdempotencyKey),
-                CancellationToken.None);
+    /// <summary>
+    /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
+    /// </summary>
+    [Fact]
+    public async Task RequestCalculatedEnergyTimeSeries_WhenStarted_CanMonitorLifecycle()
+    {
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        actualOrchestrationInstance.Should().NotBeNull();
-        actualOrchestrationInstance!.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Succeeded);
+        // Step 1: Start new orchestration instance
+        var businessReason = "BalanceFixing";
+        var energySupplierNumber = "23143245321";
+        var startRequestCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
+            new ActorIdentityDto(Guid.NewGuid()),
+            new RequestCalculatedEnergyTimeSeriesInputV1(
+                RequestedForActorNumber: energySupplierNumber,
+                RequestedForActorRole: "EnergySupplier",
+                BusinessReason: businessReason,
+                PeriodStart: "2024-04-07 23:00:00",
+                PeriodEnd: "2024-04-08 23:00:00",
+                EnergySupplierNumber: energySupplierNumber,
+                BalanceResponsibleNumber: null,
+                GridAreas: ["804"],
+                MeteringPointType: null,
+                SettlementMethod: null,
+                SettlementVersion: null),
+            idempotencyKey: Guid.NewGuid().ToString());
+
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+            startRequestCommand,
+            CancellationToken.None);
+
+        // Step 2: Query until terminated with succeeded
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
+        var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                var orchestrationInstance = await processManagerClient
+                    .GetOrchestrationInstanceByIdempotencyKeyAsync<RequestCalculatedEnergyTimeSeriesInputV1>(
+                        new GetOrchestrationInstanceByIdempotencyKeyQuery(
+                            userIdentity,
+                            startRequestCommand.IdempotencyKey),
+                        CancellationToken.None);
+
+                return
+                    orchestrationInstance != null
+                    && orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
+            },
+            timeLimit: TimeSpan.FromSeconds(20),
+            delay: TimeSpan.FromSeconds(3));
+
+        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
 }

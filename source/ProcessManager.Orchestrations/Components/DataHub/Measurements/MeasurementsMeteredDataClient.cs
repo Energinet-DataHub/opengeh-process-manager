@@ -16,16 +16,16 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Components.Extensions.Mapper;
-using Energinet.DataHub.ProcessManager.Components.Measurements.Mappers;
-using Energinet.DataHub.ProcessManager.Components.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
 using NodaTime;
 using Point = Energinet.DataHub.Measurements.Contracts.Point;
 
-namespace Energinet.DataHub.ProcessManager.Components.Measurements;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements;
 
 public class MeasurementsMeteredDataClient(
     IAzureClientFactory<EventHubProducerClient> eventHubClientFactory)

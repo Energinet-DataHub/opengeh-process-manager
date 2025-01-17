@@ -53,4 +53,14 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Protobuf Include="**\*.proto">
+      <GrpcServices>None</GrpcServices>
+      <Access>Public</Access>
+      <ProtoCompile>True</ProtoCompile>
+      <CompileOutputs>True</CompileOutputs>
+      <Generator>MSBuild:Compile</Generator>
+    </Protobuf>
+  </ItemGroup>
+
 </Project>

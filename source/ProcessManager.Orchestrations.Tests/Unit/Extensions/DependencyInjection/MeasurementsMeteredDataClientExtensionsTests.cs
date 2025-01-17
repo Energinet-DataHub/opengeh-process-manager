@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Client.Tests.Extensions;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Components.Measurements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using HealthChecks.Azure.Messaging.EventHubs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using Xunit;
 
-namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Extensions.DependencyInjection;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Extensions.DependencyInjection;
 
 public class MeasurementsMeteredDataClientExtensionsTests
 {

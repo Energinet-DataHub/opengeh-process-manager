@@ -18,6 +18,11 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
     <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="14.0.2" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.DurableTask" Version="1.2.2" />
+    <PackageReference Include="Google.Protobuf" Version="3.29.1" />
+    <PackageReference Include="Grpc.Tools" Version="2.68.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Components\ProcessManager.Components.csproj" />
@@ -39,4 +44,18 @@
   <ItemGroup>
     <Compile Include="..\Shared\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Components\DataHub\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="./Components/DataHub/Measurements/Contracts/**/*.proto">
+      <GrpcServices>None</GrpcServices>
+      <Access>Public</Access>
+      <ProtoCompile>True</ProtoCompile>
+      <CompileOutputs>True</CompileOutputs>
+      <Generator>MSBuild:Compile</Generator>
+    </Protobuf>
+  </ItemGroup>
+
 </Project>

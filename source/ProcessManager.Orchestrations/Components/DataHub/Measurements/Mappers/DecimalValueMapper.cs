@@ -12,21 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Text.Json.Serialization;
+using Energinet.DataHub.Measurements.Contracts;
 
-namespace Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
 
-[Serializable]
-public class Resolution : DataHubType<Resolution>
+public static class DecimalValueMapper
 {
-    public static readonly Resolution QuarterHourly = new("QuarterHourly", "PT15M");
-    public static readonly Resolution Hourly = new("Hourly", "PT1H");
-    public static readonly Resolution Daily = new("Daily", "P1D");
-    public static readonly Resolution Monthly = new("Monthly", "P1M");
-
-    [JsonConstructor]
-    private Resolution(string name, string code)
-        : base(name, code)
+    public static DecimalValue Map(decimal value)
     {
+        var units = decimal.ToInt64(value);
+        var nanoFactor = 1_000_000_000;
+        return new DecimalValue() { Units = units, Nanos = decimal.ToInt32((value - units) * nanoFactor), };
     }
 }

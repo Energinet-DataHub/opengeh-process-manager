@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Shared.Tests.Models;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 
 /// <summary>
 /// History item for the orchestration. Which one may use to verify that the orchestration ran the expected activities.

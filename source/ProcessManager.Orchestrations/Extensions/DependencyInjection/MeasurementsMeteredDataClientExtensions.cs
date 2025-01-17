@@ -14,17 +14,18 @@
 
 using Azure.Identity;
 using Azure.Messaging.EventHubs.Producer;
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Components.Measurements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
-namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 
 /// <summary>
-/// Extension methods for <see cref="IServiceCollection"/>
+/// Extension methods for <see cref="IServiceCollection"/>.
 /// </summary>
 public static class MeasurementsMeteredDataClientExtensions
 {

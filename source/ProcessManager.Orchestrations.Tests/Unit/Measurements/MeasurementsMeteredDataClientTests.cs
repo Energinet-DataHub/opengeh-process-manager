@@ -16,17 +16,16 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Components.Measurements;
-using Energinet.DataHub.ProcessManager.Components.Measurements.Mappers;
-using Energinet.DataHub.ProcessManager.Components.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
 using Moq;
-using Xunit;
-using Point = Energinet.DataHub.ProcessManager.Components.Measurements.Model.Point;
+using Point = Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model.Point;
 
-namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Measurements;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Measurements;
 
 public class MeasurementsMeteredDataClientTests
 {
@@ -57,13 +56,13 @@ public class MeasurementsMeteredDataClientTests
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
-            Datahub.ValueObjects.MeteringPointType.Consumption,
+            ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType.Consumption,
             "test-product",
-            Datahub.ValueObjects.MeasurementUnit.KilowattHour,
-            Datahub.ValueObjects.Resolution.QuarterHourly,
+            ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KilowattHour,
+            ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution.QuarterHourly,
             new List<Point>
             {
-                new(1, 100, Datahub.ValueObjects.Quality.AsProvided),
+                new(1, 100, ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Quality.AsProvided),
             });
 
         var expectedData = new PersistSubmittedTransaction

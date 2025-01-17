@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
 
-namespace Energinet.DataHub.ProcessManager.Components.Measurements;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements;
 
 public interface IMeasurementsMeteredDataClient
 {

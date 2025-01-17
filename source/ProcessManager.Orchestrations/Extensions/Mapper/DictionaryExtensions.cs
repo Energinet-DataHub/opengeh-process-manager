@@ -12,11 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-
-public record AcceptedEnergyObservation(
-    int Position,
-    decimal? EnergyQuantity,
-    Quality? QuantityQuality);
+internal static class DictionaryExtensions
+{
+    internal static TTarget Map<TSource, TTarget>(
+        this Dictionary<TSource, TTarget> dictionary,
+        TSource source)
+        where TSource : notnull
+    {
+        return !dictionary.TryGetValue(source, out var result)
+            ? throw new ArgumentOutOfRangeException(nameof(source), source, null)
+            : result;
+    }
+}

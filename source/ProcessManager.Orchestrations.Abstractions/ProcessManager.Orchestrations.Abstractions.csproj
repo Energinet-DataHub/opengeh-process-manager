@@ -60,4 +60,8 @@
     <ProjectReference Include="..\ProcessManager.Components\ProcessManager.Components.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\" />
+  </ItemGroup>
+
 </Project>

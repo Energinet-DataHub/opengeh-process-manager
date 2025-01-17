@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Client.Tests.Extensions;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Diagnostics.HealthChecks;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;

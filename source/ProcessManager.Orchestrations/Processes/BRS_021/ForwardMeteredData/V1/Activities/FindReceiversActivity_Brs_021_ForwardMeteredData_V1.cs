@@ -12,26 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
+using Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
+using NodaTime.Text;
+using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects.MeteringPointType;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
 internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IElectricityMarketViews electricityMarketViews)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
+    private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
+
     [Function(nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run(
+    public async Task<IReadOnlyCollection<Receiver>> Run(
         [ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(activityInput.OrchestrationInstanceId)
+            .GetAsync(activityInput.InstanceId)
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
@@ -39,9 +47,105 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
                 orchestrationInstance)
             .ConfigureAwait(false);
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        var receivers = await FindUniqueReceiversAsync(activityInput).ConfigureAwait(false);
+
+        return receivers.AsReadOnly();
     }
 
-    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
+    private static Receiver NeighborGridAccessProviderReceiver(ActorNumber neighborGridAccessProviderId)
+    {
+        return new Receiver(neighborGridAccessProviderId.Value, ActorRole.GridAccessProvider);
+    }
+
+    private static Receiver TheDanishEnergyAgencyReceiver()
+    {
+        return new Receiver("5798000020016", ActorRole.DanishEnergyAgency);
+    }
+
+    private static Receiver EnergySupplierReceiver(string energySupplierId)
+    {
+        return new Receiver(energySupplierId, ActorRole.EnergySupplier);
+    }
+
+    private async Task<IList<Receiver>> FindUniqueReceiversAsync(
+        ActivityInput activityInput)
+    {
+        var receivers = new List<Receiver>();
+
+        var meteringPointType = MeteringPointType.FromCode(activityInput.MeteringPointType);
+        if (meteringPointType == MeteringPointType.Consumption || meteringPointType == MeteringPointType.Production)
+        {
+            var energySupplierReceivers =
+                await GetEnergySuppliersForMeteringPointAsync(activityInput).ConfigureAwait(false);
+            receivers.AddRange(energySupplierReceivers.Select(x => EnergySupplierReceiver(x.EnergySupplier.Value)));
+            receivers.Add(TheDanishEnergyAgencyReceiver());
+        }
+        else if (meteringPointType == MeteringPointType.Exchange)
+        {
+            receivers.AddRange(activityInput.MeteringPointMasterData.NeighborGridAreaOwners.Select(NeighborGridAccessProviderReceiver));
+        }
+        else if (meteringPointType == MeteringPointType.ElectricalHeating
+                 || meteringPointType == MeteringPointType.NetConsumption
+                 || meteringPointType == MeteringPointType.CapacitySettlement)
+        {
+            // No receivers for these metering point types
+            return receivers;
+        }
+        else if (meteringPointType == MeteringPointType.VeProduction)
+        {
+            var parentEnergySupplierReceivers =
+                await GetEnergySupplierForParentMeteringPointAsync(activityInput).ConfigureAwait(false);
+            receivers.AddRange(
+                parentEnergySupplierReceivers.Select(x => EnergySupplierReceiver(x.EnergySupplier.Value)));
+            receivers.Add(TheDanishEnergyAgencyReceiver());
+        }
+        else
+        {
+            // Child metering points should be sent to the energy supplier from the parent metering point
+            var parentEnergySupplierReceivers2 =
+                await GetEnergySupplierForParentMeteringPointAsync(activityInput).ConfigureAwait(false);
+            receivers.AddRange(
+                parentEnergySupplierReceivers2.Select(x => EnergySupplierReceiver(x.EnergySupplier.Value)));
+        }
+
+        var distinctReceivers = receivers
+            .GroupBy(r => r.ActorId)
+            .Select(g => g.First())
+            .ToList();
+
+        return distinctReceivers;
+    }
+
+    private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySupplierForParentMeteringPointAsync(
+        ActivityInput activityInput)
+    {
+        var startDateTime = InstantPattern.General.Parse(activityInput.StartDateTime);
+        var endDateTime = InstantPattern.General.Parse(activityInput.EndDateTime);
+        return await _electricityMarketViews
+            .GetMeteringPointEnergySuppliersAsync(
+                activityInput.MeteringPointMasterData.ParentIdentification!,
+                new Interval(startDateTime.Value, endDateTime.Value))
+            .ToListAsync()
+            .ConfigureAwait(false);
+    }
+
+    private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySuppliersForMeteringPointAsync(
+        ActivityInput activityInput)
+    {
+        var startDateTime = InstantPattern.General.Parse(activityInput.StartDateTime);
+        var endDateTime = InstantPattern.General.Parse(activityInput.EndDateTime);
+        return await _electricityMarketViews
+            .GetMeteringPointEnergySuppliersAsync(
+                activityInput.MeteringPointMasterData.Identification!,
+                new Interval(startDateTime.Value, endDateTime.Value))
+            .ToListAsync()
+            .ConfigureAwait(false);
+    }
+
+    public sealed record ActivityInput(
+        OrchestrationInstanceId InstanceId,
+        string MeteringPointType,
+        string StartDateTime,
+        string EndDateTime,
+        MeteringPointMasterData MeteringPointMasterData);
 }

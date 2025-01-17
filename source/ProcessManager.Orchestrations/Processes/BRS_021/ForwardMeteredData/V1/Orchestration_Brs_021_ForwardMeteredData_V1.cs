@@ -91,7 +91,12 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // Step: Find Receiver
         await context.CallActivityAsync(
             nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1),
-            new FindReceiversActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+            new FindReceiversActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                instanceId,
+                input.MeteringPointType!,
+                input.StartDateTime,
+                input.EndDateTime!,
+                meteringPointMasterData.MeteringPointMasterData.First()),
             _defaultRetryOptions);
         await context.CallActivityAsync(
             nameof(FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1),

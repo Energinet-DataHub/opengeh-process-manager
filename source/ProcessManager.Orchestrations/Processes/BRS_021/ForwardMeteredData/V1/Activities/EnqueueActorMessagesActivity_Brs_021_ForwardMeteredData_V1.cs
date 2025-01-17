@@ -57,7 +57,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
                 x => new AcceptedEnergyObservation(
                     int.Parse(x.Position!),
                     decimal.Parse(x.EnergyQuantity!),
-                    Quality.Adjusted))
+                    Quality.FromCode(x.QuantityQuality!)))
             .ToList();
 
         var receiver = activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId.Contains("perf_test")

@@ -64,15 +64,6 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
     private async Task HandleV1(ServiceBusReceivedMessage message)
     {
         var startOrchestration = message.ParseMessageBody<StartOrchestrationInstanceV1>();
-        // var startOrchestration = messageBodyFormat switch
-        // {
-        //     ServiceBusMessageBodyFormat.Json => StartOrchestrationInstanceV1.Parser.ParseJson(message.Body.ToString()),
-        //     ServiceBusMessageBodyFormat.Binary => StartOrchestrationInstanceV1.Parser.ParseFrom(message.Body),
-        //     _ => throw new ArgumentOutOfRangeException(
-        //         nameof(messageBodyFormat),
-        //         messageBodyFormat,
-        //         $"Unhandled message body format when deserializing the received {nameof(StartOrchestrationInstanceV1)} message (MessageId={message.MessageId}, Subject={message.Subject})"),
-        // };
 
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
         {

@@ -19,8 +19,8 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Models;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,7 +76,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     /// This is due to a random skip in the orchestration initialization step.
     /// </summary>
     [Fact]
-    public async Task ExampleOrchestration_WhenRanToCompletion_HasExceptedHistory()
+    public async Task ExampleOrchestration_WhenRanToCompletion_HasExpectedHistory()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

@@ -60,6 +60,7 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
 
         return new OrchestrationExecutionContext(
             _orchestrationOptions,
+            CalculationId: input.InstanceId.Value,
             userIdentityDto.UserId,
             userIdentityDto.ActorId,
             stepsSkippedBySequence);

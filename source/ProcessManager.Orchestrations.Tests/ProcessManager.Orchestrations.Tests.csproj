@@ -14,6 +14,7 @@
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\DatabricksApiWireMockExtensions.cs" Link="Fixtures\Extensions\DatabricksApiWireMockExtensions.cs" />
+    <Compile Include="..\Shared\Tests\Models\OrchestrationHistoryItem.cs" Link="Fixtures\Models\OrchestrationHistoryItem.cs" />
   </ItemGroup>
 
   <ItemGroup>

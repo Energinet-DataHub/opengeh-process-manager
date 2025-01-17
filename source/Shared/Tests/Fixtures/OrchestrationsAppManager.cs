@@ -24,6 +24,10 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
@@ -385,10 +389,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public record ProcessManagerTopicResources(
         TopicResource ProcessManagerTopic,
         SubscriptionProperties Brs021ForwardMeteredDataSubscription,
+        SubscriptionProperties Brs023027Subscription,
         SubscriptionProperties Brs026Subscription,
         SubscriptionProperties Brs028Subscription)
     {
         private const string Brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
+        private const string Brs023027SubscriptionName = "brs-023-027-subscription";
         private const string Brs026SubscriptionName = "brs-026-subscription";
         private const string Brs028SubscriptionName = "brs-028-subscription";
 
@@ -417,11 +423,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             builder
                 .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
-                    .AddSubjectFilter("Brs_021_ForwardMeteredData")
+                    .AddSubjectFilter(Brs_021_ForwardedMeteredData.Name)
+                .AddSubscription(Brs023027SubscriptionName)
+                    .AddSubjectFilter(Brs_023_027.Name)
                 .AddSubscription(Brs026SubscriptionName)
-                    .AddSubjectFilter("Brs_026")
+                    .AddSubjectFilter(Brs_026.Name)
                 .AddSubscription(Brs028SubscriptionName)
-                    .AddSubjectFilter("Brs_028");
+                    .AddSubjectFilter(Brs_028.Name);
 
             return builder;
         }
@@ -437,6 +445,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
             var brs021ForwardMeteredDataSubscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs021ForwardMeteredDataSubscriptionName));
 
+            var brs023027Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(Brs023027SubscriptionName));
+
             var brs026Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs026SubscriptionName));
 
@@ -444,10 +455,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 .Single(x => x.SubscriptionName.Equals(Brs028SubscriptionName));
 
             return new ProcessManagerTopicResources(
-                topic,
-                brs021ForwardMeteredDataSubscription,
-                brs026Subscription,
-                brs028Subscription);
+                ProcessManagerTopic: topic,
+                Brs021ForwardMeteredDataSubscription: brs021ForwardMeteredDataSubscription,
+                Brs023027Subscription: brs023027Subscription,
+                Brs026Subscription: brs026Subscription,
+                Brs028Subscription: brs028Subscription);
         }
     }
 
@@ -456,7 +468,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     /// <param name="EdiTopic"></param>
     public record EdiTopicResources(
-        TopicResource EdiTopic)
+        TopicResource EdiTopic,
+        SubscriptionProperties EnqueueBrs023027Subscription)
     {
         public static async Task<EdiTopicResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
         {
@@ -480,6 +493,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// </summary>
         public static EdiTopicResources GetEdiTopicResources(TopicResource topic)
         {
+            // TODO: $"Enqueue_{Brs_023_027.Name.ToLower()}" subscription
+
             return new EdiTopicResources(
                 topic);
         }

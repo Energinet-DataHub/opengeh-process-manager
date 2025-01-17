@@ -58,10 +58,10 @@ public class PersistSubmittedTransactionTests
 
         // Act
         var serializedData = testTransaction.ToByteArray();
-        var exceptedSerializedData = expectedTransaction.ToByteArray();
+        var expectedSerializedData = expectedTransaction.ToByteArray();
 
         // Assert
-        serializedData.Should().BeEquivalentTo(exceptedSerializedData);
+        serializedData.Should().BeEquivalentTo(expectedSerializedData);
     }
 
     [Fact]

@@ -1,8 +1,12 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.12.1
+
+- Add `CalculatedDataForCalculationTypeV1`
+
 ## Version 0.12.0
 
-TODO
+- Add accept model (RSM-012) for BRS 21 named `MeteredDataForMeteringPointAcceptedV1`
 
 ## Version 0.11.0
 

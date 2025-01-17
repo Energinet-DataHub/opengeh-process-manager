@@ -84,7 +84,7 @@ internal class Orchestration_Brs_026_V1
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input)
     {
-        context.SetCustomStatus("PerformingAsyncValidation");
+        context.SetCustomStatus(CustomStatus.PerformingAsyncValidation);
         var validationResult = await context.CallActivityAsync<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput>(
             nameof(PerformAsyncValidationActivity_Brs_026_V1),
             new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
@@ -104,8 +104,8 @@ internal class Orchestration_Brs_026_V1
             _defaultRetryOptions);
 
         context.SetCustomStatus(validationResult.IsValid
-            ? "AsyncValidationSuccess"
-            : "AsyncValidationFailed");
+            ? CustomStatus.AsyncValidationSuccess
+            : CustomStatus.AsyncValidationFailed);
 
         return validationResult;
     }
@@ -149,7 +149,7 @@ internal class Orchestration_Brs_026_V1
         bool wasMessagesEnqueued;
         try
         {
-            context.SetCustomStatus("WaitingForEnqueueActorMessages");
+            context.SetCustomStatus(CustomStatus.WaitingForEnqueueActorMessages);
             await context.WaitForExternalEvent<int?>(
                 eventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted,
                 timeout: actorMessagesEnqueuedTimeout);
@@ -167,8 +167,8 @@ internal class Orchestration_Brs_026_V1
         }
 
         context.SetCustomStatus(wasMessagesEnqueued
-            ? "ActorMessagesEnqueued"
-            : "TimeoutForActorMessagesEnqueued");
+            ? CustomStatus.ActorMessagesEnqueued
+            : CustomStatus.TimeoutWaitingForEnqueueActorMessages);
 
         var enqueueActorMessagesTerminationState = wasMessagesEnqueued
             ? OrchestrationStepTerminationState.Succeeded
@@ -212,5 +212,15 @@ internal class Orchestration_Brs_026_V1
 
             return $"Success (BusinessReason={input.BusinessReason})";
         }
+    }
+
+    public static class CustomStatus
+    {
+        public const string PerformingAsyncValidation = "PerformingAsyncValidation";
+        public const string AsyncValidationSuccess = "AsyncValidationSuccess";
+        public const string AsyncValidationFailed = "AsyncValidationFailed";
+        public const string WaitingForEnqueueActorMessages = "WaitingForEnqueueActorMessages";
+        public const string ActorMessagesEnqueued = "ActorMessagesEnqueued";
+        public const string TimeoutWaitingForEnqueueActorMessages = "TimeoutForActorMessagesEnqueued";
     }
 }

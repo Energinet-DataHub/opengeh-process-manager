@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
@@ -22,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using Grpc.Core;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,7 +51,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
-                = _fixture.OrchestrationsProcessManagerTopicName,
+                = _fixture.ProcessManagerTopicName,
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
@@ -104,11 +106,24 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, CancellationToken.None);
 
         // Assert
+        // => Orchestration is started
         var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
             createdTimeFrom: orchestrationCreatedAfter,
             name: nameof(Orchestration_Brs_026_V1));
         orchestration.Input.ToString().Should().Contain(businessReason);
 
+        // => Orchestration is waiting for notify event
+        await _fixture.DurableClient.WaitForCustomStatusAsync<string>(
+            orchestration.InstanceId,
+            (customStatus) => customStatus == Orchestration_Brs_026_V1.CustomStatus.WaitingForEnqueueActorMessages);
+        // => Send notify event
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new NotifyOrchestrationInstanceEvent(
+                orchestration.InstanceId,
+                RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
+            CancellationToken.None);
+
+        // => Orchestration is completed (with success)
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestration.InstanceId);
         completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);

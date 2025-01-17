@@ -49,7 +49,7 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
-                = _fixture.OrchestrationsProcessManagerTopicName,
+                = _fixture.ProcessManagerTopicName,
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));

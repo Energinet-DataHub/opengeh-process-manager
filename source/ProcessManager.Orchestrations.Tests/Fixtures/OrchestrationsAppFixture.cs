@@ -22,6 +22,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ResourceProvider;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
 
@@ -83,7 +84,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     public IDurableClient? DurableClient { get; private set; }
 
     [NotNull]
-    public string? OrchestrationsProcessManagerTopicName { get; private set; }
+    public string? ProcessManagerTopicName { get; private set; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -102,13 +103,26 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         DurableClient = DurableTaskManager.CreateClient(TaskHubName);
 
-        var orchestrationServiceBusResources = await OrchestrationsAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
-        var processManagerServiceBusResources = await ProcessManagerAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
+        // Create a shared Process Manager topic with subscriptions for both Orchestrations and Process Manager apps.
+        var processManagerTopicResourceBuilder = OrchestrationsAppManager.ProcessManagerTopicResources
+                .BuildProcessManagerTopic(ServiceBusResourceProvider);
+        OrchestrationsAppManager.ProcessManagerTopicResources.AddOrchestrationsAppSubscriptions(processManagerTopicResourceBuilder);
+        ProcessManagerAppManager.ProcessManagerTopicResources.AddProcessManagerAppSubscriptions(processManagerTopicResourceBuilder);
+        var processManagerTopicResource = await processManagerTopicResourceBuilder.CreateAsync();
 
-        OrchestrationsProcessManagerTopicName = orchestrationServiceBusResources.ProcessManagerTopic.Name;
+        // Get resources from the created Process Manager topic for both Orchestrations and Process Manager apps.
+        var orchestrationsProcessManagerTopicResources = OrchestrationsAppManager.ProcessManagerTopicResources
+            .GetProcessManagerTopicResources(processManagerTopicResource);
+        var processManagerAppProcessManagerTopicResources = ProcessManagerAppManager.ProcessManagerTopicResources
+            .GetProcessManagerTopicResources(processManagerTopicResource);
 
-        await OrchestrationsAppManager.StartAsync(orchestrationServiceBusResources);
-        await ProcessManagerAppManager.StartAsync(processManagerServiceBusResources);
+        // Create EDI topic resources
+        var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.Create(ServiceBusResourceProvider);
+
+        await OrchestrationsAppManager.StartAsync(orchestrationsProcessManagerTopicResources, ediTopicResources);
+        await ProcessManagerAppManager.StartAsync(processManagerAppProcessManagerTopicResources);
+
+        ProcessManagerTopicName = orchestrationsProcessManagerTopicResources.ProcessManagerTopic.Name;
 
         EventHubListener = new EventHubListenerMock(
             new TestDiagnosticsLogger(),

@@ -96,7 +96,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
         await ExampleOrchestrationsAppManager.StartAsync();
 
-        var serviceBusResources = await ProcessManagerAppManager.ServiceBusResources.Create(ServiceBusResourceProvider);
+        var serviceBusResources = await ProcessManagerAppManager.ProcessManagerTopicResources.Create(ServiceBusResourceProvider);
         ProcessManagerTopic = serviceBusResources.ProcessManagerTopic;
         await ProcessManagerAppManager.StartAsync(serviceBusResources);
 

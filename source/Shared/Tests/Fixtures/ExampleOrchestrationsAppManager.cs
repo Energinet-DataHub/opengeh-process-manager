@@ -216,7 +216,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             DatabaseManager.ConnectionString);
 
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.SectionName}__{nameof(OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleEventTimeout)}",
+            $"{OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.SectionName}__{nameof(OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleNotifyEventTimeout)}",
             TimeSpan.FromMinutes(1).ToString());
 
         return appHostSettings;

@@ -25,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 
 internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
 {
-    internal const int WaitForExampleEventStepSequence = 1;
+    internal const int WaitForExampleNotifyEventStepSequence = 1;
 
     private readonly TaskOptions _defaultRetryOptions;
 
@@ -43,63 +43,17 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
         // Initialize
         var (instanceId, options) = await InitializeOrchestrationAsync(context);
 
-        // Wait for "ExampleEvent" notify event
-        var hasReceivedExampleEvent = await WaitForExampleEventAsync(
+        // Wait for "ExampleNotifyEvent" notify event
+        var hasReceivedExampleNotifyEvent = await WaitForExampleNotifyEventAsync(
             context,
             instanceId,
-            exampleEventTimeout: options.WaitForExampleEventTimeout);
+            exampleNotifyEventTimeout: options.WaitForExampleNotifyEventTimeout);
 
         return await TerminateOrchestrationAsync(
             context,
             instanceId,
-            hasReceivedExampleEvent,
+            hasReceivedExampleNotifyEvent,
             input);
-    }
-
-    private async Task<bool> WaitForExampleEventAsync(
-        TaskOrchestrationContext context,
-        OrchestrationInstanceId instanceId,
-        TimeSpan exampleEventTimeout)
-    {
-        await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
-            new TransitionStepToRunningActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
-                instanceId,
-                WaitForExampleEventStepSequence),
-            _defaultRetryOptions);
-
-        bool hasReceivedExampleEvent;
-        try
-        {
-            await context.WaitForExternalEvent<int?>(
-                eventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleEvent,
-                timeout: exampleEventTimeout);
-            hasReceivedExampleEvent = true;
-        }
-        catch (TaskCanceledException)
-        {
-            var logger = context.CreateReplaySafeLogger<Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1>();
-            logger.Log(
-                LogLevel.Error,
-                "Timeout while waiting for example event (InstanceId={OrchestrationInstanceId}, Timeout={Timeout}).",
-                instanceId.Value,
-                exampleEventTimeout.ToString("g"));
-            hasReceivedExampleEvent = false;
-        }
-
-        var waitForExampleEventTerminationState = hasReceivedExampleEvent
-            ? OrchestrationStepTerminationState.Succeeded
-            : OrchestrationStepTerminationState.Failed;
-
-        await context.CallActivityAsync(
-            nameof(TransitionStepToTerminatedActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
-            new TransitionStepToTerminatedActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
-                instanceId,
-                WaitForExampleEventStepSequence,
-                waitForExampleEventTerminationState),
-            _defaultRetryOptions);
-
-        return hasReceivedExampleEvent;
     }
 
     private async Task<OrchestrationExecutionPlan> InitializeOrchestrationAsync(TaskOrchestrationContext context)
@@ -115,13 +69,59 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
         return orchestrationExecutionPlan;
     }
 
+    private async Task<bool> WaitForExampleNotifyEventAsync(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        TimeSpan exampleNotifyEventTimeout)
+    {
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
+            new TransitionStepToRunningActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
+                instanceId,
+                WaitForExampleNotifyEventStepSequence),
+            _defaultRetryOptions);
+
+        bool hasReceivedExampleNotifyEvent;
+        try
+        {
+            await context.WaitForExternalEvent<int?>(
+                eventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
+                timeout: exampleNotifyEventTimeout);
+            hasReceivedExampleNotifyEvent = true;
+        }
+        catch (TaskCanceledException)
+        {
+            var logger = context.CreateReplaySafeLogger<Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1>();
+            logger.Log(
+                LogLevel.Error,
+                "Timeout while waiting for example notify event (InstanceId={OrchestrationInstanceId}, Timeout={Timeout}).",
+                instanceId.Value,
+                exampleNotifyEventTimeout.ToString("g"));
+            hasReceivedExampleNotifyEvent = false;
+        }
+
+        var waitForExampleNotifyEventTerminationState = hasReceivedExampleNotifyEvent
+            ? OrchestrationStepTerminationState.Succeeded
+            : OrchestrationStepTerminationState.Failed;
+
+        await context.CallActivityAsync(
+            nameof(TransitionStepToTerminatedActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
+            new TransitionStepToTerminatedActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
+                instanceId,
+                WaitForExampleNotifyEventStepSequence,
+                waitForExampleNotifyEventTerminationState),
+            _defaultRetryOptions);
+
+        return hasReceivedExampleNotifyEvent;
+    }
+
     private async Task<string> TerminateOrchestrationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        bool hasReceivedExampleEvent,
+        bool hasReceivedExampleNotifyEvent,
         NotifyOrchestrationInstanceExampleInputV1 input)
     {
-        var terminationState = hasReceivedExampleEvent
+        var terminationState = hasReceivedExampleNotifyEvent
             ? OrchestrationInstanceTerminationState.Succeeded
             : OrchestrationInstanceTerminationState.Failed;
 
@@ -132,7 +132,7 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
                 terminationState),
             _defaultRetryOptions);
 
-        return hasReceivedExampleEvent
+        return hasReceivedExampleNotifyEvent
             ? $"Success (BusinessReason={input.InputString})"
             : "Error: Timeout while waiting for example event";
     }

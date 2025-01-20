@@ -84,7 +84,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
     /// </summary>
     [Fact]
-    public async Task RequestCalculatedWholesaleServices_WhenStarted_CanMonitorLifecycle()
+    public async Task NotifyOrchestrationInstanceExample_WhenStarted_CanReceiveExampleNotifyEvent()
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
@@ -100,20 +100,20 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             startRequestCommand,
             CancellationToken.None);
 
-        // Step 2: Query until waiting for ExampleEvent notify event
+        // Step 2: Query until waiting for ExampleNotifyEvent
         var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 comparer: (oi) =>
                 {
                     var enqueueActorMessagesStep = oi.Steps
-                        .Single(s => s.Sequence == Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleEventStepSequence);
+                        .Single(s => s.Sequence == Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleNotifyEventStepSequence);
 
                     return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
                 });
 
         isWaitingForNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a ExampleEvent notify event");
+            .BeTrue("because the orchestration instance should wait for a ExampleNotifyEvent");
 
         if (orchestrationInstance is null)
             ArgumentNullException.ThrowIfNull(orchestrationInstance, nameof(orchestrationInstance));
@@ -122,7 +122,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent(
                 OrchestrationInstanceId: orchestrationInstance.Id.ToString(),
-                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleEvent),
+                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent),
             CancellationToken.None);
 
         // Step 4: Query until terminated with succeeded

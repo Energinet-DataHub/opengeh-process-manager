@@ -21,5 +21,5 @@ public class OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1
     public const string SectionName = "Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1";
 
     [Required(AllowEmptyStrings = false)]
-    public TimeSpan WaitForExampleEventTimeout { get; set; } = TimeSpan.FromDays(14);
+    public TimeSpan WaitForExampleNotifyEventTimeout { get; set; }
 }

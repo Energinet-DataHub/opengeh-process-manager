@@ -26,7 +26,7 @@ internal class TerminateOrchestrationActivity_Brs_X02_NotifyOrchestrationInstanc
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
 
-    [Function(nameof(InitializeOrchestrationActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1))]
+    [Function(nameof(TerminateOrchestrationActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {

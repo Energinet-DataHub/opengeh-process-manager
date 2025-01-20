@@ -19,5 +19,5 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// </summary>
 public static class NotifyOrchestrationInstanceExampleNotifyEventsV1
 {
-    public const string ExampleEvent = "ExampleEvent";
+    public const string ExampleNotifyEvent = "ExampleNotifyEvent";
 }

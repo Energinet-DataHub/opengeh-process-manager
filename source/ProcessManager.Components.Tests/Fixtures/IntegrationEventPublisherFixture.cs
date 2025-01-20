@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.ComponentModel.DataAnnotations;
-using System.Configuration.Provider;
 using Azure.Identity;
 using Azure.Messaging.ServiceBus.Administration;
 using Energinet.DataHub.Core.App.WebApp.Extensions.Builder;
@@ -54,7 +53,7 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
 
     public static IntegrationTestConfiguration IntegrationTestConfiguration { get; set; } = null!;
 
-    public ITestDiagnosticsLogger TestLogger { get; set; }
+    public ITestDiagnosticsLogger TestLogger { get; }
 
     public ServiceBusListenerMock ListenerMock { get; }
 

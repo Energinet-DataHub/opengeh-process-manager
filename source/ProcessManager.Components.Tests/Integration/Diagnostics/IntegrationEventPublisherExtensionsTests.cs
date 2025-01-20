@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Net;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 using Energinet.DataHub.ProcessManager.Components.Tests.Fixtures;
@@ -56,6 +57,7 @@ public class IntegrationEventPublisherExtensionsTests
         var integrationEventPublisher = _fixture.Provider!.GetRequiredService<IIntegrationEventPublisherClient>();
         var eventId = Guid.NewGuid();
         var eventName = "EventName";
+        var minorVersion = 1;
         var message = new DecimalValue()
         {
             Nanos = 10,
@@ -66,8 +68,27 @@ public class IntegrationEventPublisherExtensionsTests
         await integrationEventPublisher.PublishAsync(
             eventIdentification: eventId,
             eventName: eventName,
-            eventMinorVersion: 1,
+            eventMinorVersion: minorVersion,
             message: message,
             cancellationToken: CancellationToken.None);
+
+        // Assert
+        var foundMessage = _fixture.ListenerMock.When(
+            serviceBusMessage =>
+            {
+                if (serviceBusMessage.Subject != eventName
+                    || serviceBusMessage.MessageId != eventId.ToString()
+                    || (int)serviceBusMessage.ApplicationProperties["EventMinorVersion"] != minorVersion)
+                {
+                    return false;
+                }
+
+                var body = DecimalValue.Parser.ParseFrom(serviceBusMessage.Body);
+
+                return body.Equals(message);
+            })
+            .VerifyCountAsync(1);
+
+        foundMessage.Should().Be(true, "The message should be published to the integration event topic");
     }
 }

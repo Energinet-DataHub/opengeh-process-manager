@@ -52,7 +52,7 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
     private Task EnqueueRejectMessageAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
         // TODO: Set correct data when async validation is implemented
-        return _enqueueActorMessagesClient.Enqueue(
+        return _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_026_V1.UniqueName,
             input.InstanceId.Value,
             orchestrationCreatedBy.ToDto(),

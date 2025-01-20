@@ -1,0 +1,66 @@
+﻿// Copyright 2020 Energinet DataHub A/S
+//
+// Licensed under the Apache License, Version 2.0 (the "License2");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using System.Text.Json;
+using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Shared.Extensions;
+using Microsoft.Azure.Functions.Worker;
+
+namespace Energinet.DataHub.ProcessManager.Api;
+
+public class NotifyOrchestrationInstanceTrigger(
+    INotifyOrchestrationInstanceCommands notifyOrchestrationCommands)
+{
+    private readonly INotifyOrchestrationInstanceCommands _notifyOrchestrationCommands = notifyOrchestrationCommands;
+
+    [Function(nameof(NotifyOrchestrationInstanceTrigger))]
+    public Task Run(
+        [ServiceBusTrigger(
+            $"%{NotifyOrchestrationInstanceOptions.SectionName}:{nameof(NotifyOrchestrationInstanceOptions.TopicName)}%",
+            $"%{NotifyOrchestrationInstanceOptions.SectionName}:{nameof(NotifyOrchestrationInstanceOptions.NotifyOrchestrationInstanceSubscriptionName)}%",
+            Connection = ServiceBusNamespaceOptions.SectionName)]
+        ServiceBusReceivedMessage message)
+    {
+        var majorVersion = message.GetMajorVersion();
+        var (orchestrationInstanceId, eventName, eventData) = majorVersion switch
+        {
+            NotifyOrchestrationInstanceV1.MajorVersion => HandleV1(message),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(majorVersion),
+                majorVersion,
+                $"Unhandled major version in received notify service bus message (MessageId={message.MessageId})"),
+        };
+
+        return _notifyOrchestrationCommands.NotifyOrchestrationInstanceAsync(
+            new OrchestrationInstanceId(Guid.Parse(orchestrationInstanceId)),
+            eventName,
+            eventData);
+    }
+
+    private (string OrchestrationInstanceId, string EventName, object? EventData) HandleV1(ServiceBusReceivedMessage message)
+    {
+        var notifyOrchestrationInstanceV1 = message.ParseBody<NotifyOrchestrationInstanceV1>();
+
+        var orchestrationInstanceId = notifyOrchestrationInstanceV1.OrchestrationInstanceId;
+        var eventName = notifyOrchestrationInstanceV1.EventName;
+        var eventData = notifyOrchestrationInstanceV1.ParseData<object?>();
+
+        return (orchestrationInstanceId, eventName, eventData);
+    }
+}

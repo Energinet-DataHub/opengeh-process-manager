@@ -142,7 +142,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         // When the monitor pattern is implemented this check should happen before the orchestration is completed.
         // Since we have to "mock" the response from EDI.
-        var verifyServiceBusMessage = Fixture.ServiceBusEdiBrs023027Listener.When(
+        var verifyServiceBusMessage = Fixture.EnqueueBrs023027ServiceBusListener.When(
                 msg =>
                 {
                     if (msg.Subject != $"Enqueue_{Abstractions.Processes.BRS_023_027.Brs_023_027.Name.ToLower()}")

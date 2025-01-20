@@ -37,6 +37,12 @@ internal interface IOrchestrationInstanceRepository
     Task<OrchestrationInstance> GetAsync(OrchestrationInstanceId id);
 
     /// <summary>
+    /// Get existing orchestration instance by id, if it exists.
+    /// To commit changes use <see cref="UnitOfWork"/>.
+    /// </summary>
+    Task<OrchestrationInstance?> GetOrDefaultAsync(OrchestrationInstanceId id);
+
+    /// <summary>
     /// Get existing orchestration instance by idempotency key.
     /// To commit changes use <see cref="UnitOfWork"/>.
     /// </summary>

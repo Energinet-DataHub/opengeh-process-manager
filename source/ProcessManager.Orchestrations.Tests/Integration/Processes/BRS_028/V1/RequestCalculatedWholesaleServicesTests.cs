@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
@@ -24,9 +25,11 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_028.V1;
@@ -85,7 +88,7 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
     [Fact]
     public async Task RequestCalculatedWholesaleServices_WhenStarted_OrchestrationCompletesWithSuccess()
     {
-        // Arrange
+        // Given
         var businessReason = "WholesaleFixing";
         var energySupplierNumber = "23143245321";
         var startRequestCommand = new RequestCalculatedWholesaleServicesCommandV1(
@@ -106,19 +109,37 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
 
-        // Act
+        // When
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, default);
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, CancellationToken.None);
 
-        // Assert
+        // Then
+        // => Orchestration is started
         var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
             createdTimeFrom: orchestrationCreatedAfter,
             name: nameof(Orchestration_Brs_028_V1));
         orchestration.Input.ToString().Should().Contain(businessReason);
 
+        // => Orchestration is waiting for notify event
+        // Using JToken instead of string, since there is a timing where the custom status is not set, so casting to string fails. TODO: Fix by looking at step status instead.
+        await _fixture.DurableClient.WaitForCustomStatusAsync<JToken>(
+            orchestration.InstanceId,
+            customStatus => customStatus.ToString() == Orchestration_Brs_028_V1.CustomStatus.WaitingForEnqueueActorMessages);
+
+        // => Send notify event
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new NotifyOrchestrationInstanceEvent(
+                orchestration.InstanceId,
+                RequestCalculatedWholesaleServicesNotifyEventsV1.EnqueueActorMessagesCompleted),
+            CancellationToken.None);
+
+        // => Orchestration is completed (with success)
         var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestration.InstanceId);
+
+        using var assertionScope = new AssertionScope();
         completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
+        completedOrchestration.Output.ToString().Should().Contain("Success");
     }
 
     /// <summary>

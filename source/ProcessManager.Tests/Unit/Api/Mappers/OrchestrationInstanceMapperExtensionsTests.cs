@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
@@ -19,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Tests.Unit.Api.Mappers;
@@ -34,6 +36,24 @@ public class OrchestrationInstanceMapperExtensionsTests
         };
     }
 
+    [Fact]
+    public void MapToTypedDto_WhenOrchestrationInstance_CreateOrchestrationInstanceTypedDtoThatCanBeFullySerializedToJson()
+    {
+        var orchestrationInstance = CreateOrchestrationInstance(
+            idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
+
+        // Act
+        var actualDto = orchestrationInstance.MapToTypedDto<TestOrchestrationParameter>();
+        var dtoAsJson = JsonSerializer.Serialize(actualDto);
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        var typedDto = JsonSerializer.Deserialize<OrchestrationInstanceTypedDto<TestOrchestrationParameter>>(dtoAsJson);
+        typedDto!.IdempotencyKey.Should().Be(orchestrationInstance.IdempotencyKey!.Value);
+        typedDto!.ParameterValue.TestString.Should().NotBeNull();
+        typedDto!.ParameterValue.TestInt.Should().NotBeNull();
+    }
+
     /// <summary>
     /// Even the 'ParameterValue' is mapped in a way that allows us to serialize the object
     /// and deserialize it to a strongly typed orchestration instance with parmeters.
@@ -41,7 +61,8 @@ public class OrchestrationInstanceMapperExtensionsTests
     [Fact]
     public void MapToDto_WhenOrchestrationInstance_CreateOrchestrationInstanceDtoThatCanBeFullySerializedToJson()
     {
-        var orchestrationInstance = CreateOrchestrationInstance();
+        var orchestrationInstance = CreateOrchestrationInstance(
+            idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
 
         // Act
         // => We create and serialize 'OrchestrationInstanceDto'
@@ -51,6 +72,7 @@ public class OrchestrationInstanceMapperExtensionsTests
         // Assert
         // => But we can deserialize to specific 'OrchestrationInstanceTypedDto<TestOrchestrationParameter>'
         var typedDto = JsonSerializer.Deserialize<OrchestrationInstanceTypedDto<TestOrchestrationParameter>>(dtoAsJson);
+        typedDto!.IdempotencyKey.Should().Be(orchestrationInstance.IdempotencyKey!.Value);
         typedDto!.ParameterValue.TestString.Should().NotBeNull();
         typedDto!.ParameterValue.TestInt.Should().NotBeNull();
     }
@@ -70,7 +92,7 @@ public class OrchestrationInstanceMapperExtensionsTests
         dto!.Lifecycle.CreatedBy.Should().BeOfType(expectedType);
     }
 
-    private static OrchestrationInstance CreateOrchestrationInstance(OperatingIdentity? createdBy = default)
+    private static OrchestrationInstance CreateOrchestrationInstance(OperatingIdentity? createdBy = default, IdempotencyKey? idempotencyKey = default)
     {
         var orchestrationDescription = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName("name", 1),
@@ -92,7 +114,9 @@ public class OrchestrationInstanceMapperExtensionsTests
             userIdentity,
             orchestrationDescription,
             skipStepsBySequence: [],
-            SystemClock.Instance);
+            SystemClock.Instance,
+            runAt: null,
+            idempotencyKey);
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {

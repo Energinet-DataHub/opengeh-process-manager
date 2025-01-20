@@ -51,10 +51,15 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = _fixture.ProcessManagerTopicName,
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
+                = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
+                = _fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
+        services.AddProcessManagerHttpClients();
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -234,6 +239,53 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .Last();
         last.Value<string>("EventType").Should().Be("ExecutionCompleted");
         last.Value<string>("Result").Should().Be("Success");
+    }
+
+    /// <summary>
+    /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
+    /// </summary>
+    [Fact]
+    public async Task ForwardMeteredData_WhenStarted_CanMonitorLifecycle()
+    {
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        // Step 1: Start new orchestration instance
+        var input = CreateMeteredDataForMeteringPointMessageInputV1();
+
+        var startCommand = new StartForwardMeteredDataCommandV1(
+            new ActorIdentityDto(input.AuthenticatedActorId),
+            input,
+            idempotencyKey: Guid.NewGuid().ToString());
+
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+            startCommand,
+            CancellationToken.None);
+
+        // Step 2: Query until terminated with succeeded
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
+        var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                var orchestrationInstance = await processManagerClient
+                    .GetOrchestrationInstanceByIdempotencyKeyAsync<MeteredDataForMeteringPointMessageInputV1>(
+                        new GetOrchestrationInstanceByIdempotencyKeyQuery(
+                            userIdentity,
+                            startCommand.IdempotencyKey),
+                        CancellationToken.None);
+
+                return
+                    orchestrationInstance != null
+                    && orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
+            },
+            timeLimit: TimeSpan.FromSeconds(20),
+            delay: TimeSpan.FromSeconds(3));
+
+        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
 
     private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1(

@@ -1,5 +1,14 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.23.0
+
+- Added `IdempotencyKey` to all orchestration instance DTO types:
+    - `OrchestrationInstanceDto`
+    - `IOrchestrationInstanceTypedDto<out TInputParameterDto>`
+    - `OrchestrationInstanceTypedDto`
+    - `OrchestrationInstanceTypedDto<TInputParameterDto>`
+- Implemented `GetOrchestrationInstanceByIdempotencyKeyQuery` and extended `IProcessManagerClient` to support it.
+
 ## Version 0.22.0
 
 - Update `EnqueueActorMessagesV1`, `NotifyOrchestrationInstanceV1` and `StartOrchestrationInstanceV1` with strongly typed formats.

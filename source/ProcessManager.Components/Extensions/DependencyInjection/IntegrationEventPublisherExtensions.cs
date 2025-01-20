@@ -16,8 +16,8 @@ using Azure.Core;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.Messaging.Communication.Publisher;
-using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -61,8 +61,7 @@ public static class IntegrationEventPublisherExtensions
             });
 
         services.AddScoped<IServiceBusMessageFactory, ServiceBusMessageFactory>();
-        // TODO: Hent noget andet
-        services.AddTransient<IEnqueueActorMessagesClient, EnqueueActorMessagesClient>();
+        services.AddTransient<IIntegrationEventPublisherClient, IntegrationEventPublisherClient>();
 
         return services;
     }

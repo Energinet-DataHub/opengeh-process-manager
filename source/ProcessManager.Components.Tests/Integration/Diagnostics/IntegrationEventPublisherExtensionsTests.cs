@@ -13,12 +13,13 @@
 // limitations under the License.
 
 using System.Net;
-using Azure.Identity;
-using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
+using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 using Energinet.DataHub.ProcessManager.Components.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Integration.Diagnostics;
@@ -37,7 +38,7 @@ public class IntegrationEventPublisherExtensionsTests
     /// Also verifies the response contains JSON in a format that the Health Checks UI supports.
     /// </summary>
     [Fact]
-    public async Task DatabricksJobsHealthCheckRegistered_WhenCallingReadyEndpoint_ReturnOKAndExpectedContent()
+    public async Task IntegrationEventPublisherHealthCheckRegistered_WhenCallingReadyEndpoint_ReturnOKAndExpectedContent()
     {
         // Act
         using var actualResponse = await _fixture.HttpClient!.GetAsync($"/monitor/ready");
@@ -49,25 +50,25 @@ public class IntegrationEventPublisherExtensionsTests
         actualResponse.Content.Headers.ContentType!.MediaType.Should().Be("application/json");
     }
 
-    // [Fact]
-    // public void AddIntegrationEventPublisher_WhenSectionIsFilledOut_RegistrationsArePerformed()
-    // {
-    //     // Arrange
-    //     Services.AddInMemoryConfiguration(
-    //         new Dictionary<string, string?>()
-    //         {
-    //             [$"{IntegrationEventsOptions.SectionName}:{nameof(IntegrationEventsOptions.TopicName)}"] =
-    //                 FakeTopic,
-    //             [$"{IntegrationEventsOptions.SectionName}:{nameof(IntegrationEventsOptions.SubscriptionName)}"] =
-    //                 FakeSubscription,
-    //         });
-    //
-    //     Services.AddIntegrationEventPublisher(new DefaultAzureCredential());
-    //
-    //     // Assert
-    //     var serviceProvider = Services.BuildServiceProvider();
-    //
-    //     var actualClient = serviceProvider.GetRequiredService<IIntegrationEventPublisherClient>();
-    //     actualClient.Should().BeOfType<IIntegrationEventPublisherClient>();
-    // }
+    [Fact]
+    public async Task IntegrationEventPublisher_WhenPublishingAnEvent_MessageIsPublishedToIntegrationEventTopic()
+    {
+        // Arrange
+        var integrationEventPublisher = _fixture.Services!.GetRequiredService<IIntegrationEventPublisherClient>();
+        var eventId = Guid.NewGuid();
+        var eventName = "EventName";
+        var message = new DecimalValue()
+        {
+            Nanos = 10,
+            Units = 20,
+        };
+
+        // Act
+        await integrationEventPublisher.PublishAsync(
+            eventIdentification: eventId,
+            eventName: eventName,
+            eventMinorVersion: 1,
+            message: message,
+            cancellationToken: CancellationToken.None);
+    }
 }

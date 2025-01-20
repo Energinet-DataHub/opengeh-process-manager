@@ -39,6 +39,9 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
     private const string SubscriptionName = "test-subscription";
 
     [Required]
+    public ServiceProvider? Services { get; set; }
+
+    [Required]
     public HttpClient? HttpClient { get; set; }
 
     [NotNull]
@@ -49,6 +52,11 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
         var integrationTestConfiguration = new IntegrationTestConfiguration();
 
         var (topicResource, subscriptionProperties) = await CreateServiceBusTopic(integrationTestConfiguration);
+
+        var services = new ServiceCollection();
+        ConfigureServices(services, topicResource, integrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
+
+        Services = services.BuildServiceProvider();
 
         var webHostBuilder = CreateWebHostBuilder(topicResource, integrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
         Server = new TestServer(webHostBuilder);
@@ -69,18 +77,8 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
         return new WebHostBuilder()
             .ConfigureServices(services =>
             {
-                services.AddInMemoryConfiguration(new Dictionary<string, string?>
-                {
-                    [$"{ServiceBusNamespaceOptions.SectionName}:{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}"]
-                        = serviceBusFullyQualifiedNamespace,
-                    [$"{IntegrationEventTopicOptions.SectionName}:{nameof(IntegrationEventTopicOptions.Name)}"]
-                        = topicResource.Name,
-                });
-
+                ConfigureServices(services, topicResource, serviceBusFullyQualifiedNamespace);
                 services.AddRouting();
-
-                // Register Databricks Jobs with health check
-                services.AddIntegrationEventPublisher(new DefaultAzureCredential());
             })
             .Configure(app =>
             {
@@ -88,13 +86,30 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
 
                 app.UseEndpoints(endpoints =>
                 {
-                    // Databricks Jobs health check is registered for "ready" endpoint
+                    // Health check is registered for "ready" endpoint
                     endpoints.MapReadyHealthChecks();
                 });
             });
     }
 
-    private async Task<(TopicResource TopicResource, SubscriptionProperties SubscriptionProperties)> CreateServiceBusTopic(IntegrationTestConfiguration integrationTestConfiguration)
+    private static void ConfigureServices(
+        IServiceCollection services,
+        TopicResource topicResource,
+        string serviceBusFullyQualifiedNamespace)
+    {
+        services.AddInMemoryConfiguration(new Dictionary<string, string?>
+        {
+            [$"{ServiceBusNamespaceOptions.SectionName}:{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}"]
+                = serviceBusFullyQualifiedNamespace,
+            [$"{IntegrationEventTopicOptions.SectionName}:{nameof(IntegrationEventTopicOptions.Name)}"]
+                = topicResource.Name,
+        });
+
+        services.AddIntegrationEventPublisher(new DefaultAzureCredential());
+    }
+
+    private async Task<(TopicResource TopicResource, SubscriptionProperties SubscriptionProperties)> CreateServiceBusTopic(
+        IntegrationTestConfiguration integrationTestConfiguration)
     {
         var serviceBusResourceProvider = new ServiceBusResourceProvider(
             new TestDiagnosticsLogger(),

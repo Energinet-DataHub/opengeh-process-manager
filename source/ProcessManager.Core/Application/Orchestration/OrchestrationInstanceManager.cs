@@ -31,7 +31,8 @@ internal class OrchestrationInstanceManager(
         IStartOrchestrationInstanceCommands,
         IStartOrchestrationInstanceMessageCommands,
         IStartScheduledOrchestrationInstanceCommand,
-        ICancelScheduledOrchestrationInstanceCommand
+        ICancelScheduledOrchestrationInstanceCommand,
+        INotifyOrchestrationInstanceCommands
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceExecutor _executor = executor;
@@ -181,6 +182,18 @@ internal class OrchestrationInstanceManager(
         // Transition lifecycle
         orchestrationInstance.Lifecycle.TransitionToUserCanceled(_clock, userIdentity);
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? eventData)
+        where TData : class
+    {
+        var orchestrationInstanceToNotify = await _repository.GetOrDefaultAsync(id).ConfigureAwait(false);
+
+        if (orchestrationInstanceToNotify is null)
+            throw new InvalidOperationException($"Orchestration instance (Id={id.Value}) to notify was not found.");
+
+        await _executor.NotifyOrchestrationInstanceAsync(id, eventName, eventData).ConfigureAwait(false);
     }
 
     /// <summary>

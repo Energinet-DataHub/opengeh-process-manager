@@ -50,7 +50,7 @@ internal class EnqueueRejectMessageActivity_Brs_021_V1(
     }
 
     private Task EnqueueRejectMessageAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input) =>
-        _enqueueActorMessagesClient.Enqueue(
+        _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName,
             input.InstanceId.Value,
             orchestrationCreatedBy.ToDto(),

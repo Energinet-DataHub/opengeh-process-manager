@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Core;
+using Azure.Identity;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
@@ -29,6 +31,8 @@ public class MeasurementsMeteredDataClientExtensionsTests
     private const string EventHubName = "event-hub-name";
     private const string EventHubNamespace = "namespace.eventhub.windows.net";
 
+    private static readonly TokenCredential _azureCredential = new DefaultAzureCredential();
+
     private ServiceCollection Services { get; } = new();
 
     [Fact]
@@ -42,7 +46,7 @@ public class MeasurementsMeteredDataClientExtensionsTests
         });
 
         // Act
-        Services.AddMeasurementsMeteredDataClient();
+        Services.AddMeasurementsMeteredDataClient(_azureCredential);
 
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
@@ -58,7 +62,7 @@ public class MeasurementsMeteredDataClientExtensionsTests
         Services.AddInMemoryConfiguration([]);
 
         // Act
-        Services.AddMeasurementsMeteredDataClient();
+        Services.AddMeasurementsMeteredDataClient(_azureCredential);
 
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
@@ -81,7 +85,7 @@ public class MeasurementsMeteredDataClientExtensionsTests
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}"] = EventHubNamespace,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"] = EventHubName,
         });
-        Services.AddMeasurementsMeteredDataClient();
+        Services.AddMeasurementsMeteredDataClient(_azureCredential);
         var serviceProvider = Services.BuildServiceProvider();
 
         // Act

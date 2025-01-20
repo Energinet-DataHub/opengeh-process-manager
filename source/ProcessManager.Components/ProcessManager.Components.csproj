@@ -35,6 +35,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\Shared\Extensions\ServiceBusMessageBodyFormat.cs">
+      <Link>Extensions\ServiceBusMessageBodyFormat.cs</Link>
+    </Compile>
     <Compile Include="..\Shared\Extensions\ServiceBusMessageExtensions.cs">
       <Link>Extensions\ServiceBusMessageExtensions.cs</Link>
     </Compile>

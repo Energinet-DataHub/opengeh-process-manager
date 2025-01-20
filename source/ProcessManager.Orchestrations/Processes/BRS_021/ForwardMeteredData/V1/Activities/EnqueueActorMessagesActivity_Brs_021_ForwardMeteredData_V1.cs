@@ -77,7 +77,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
             AcceptedEnergyObservations: acceptedEnergyObservations,
             MarketActorRecipients: [receiver]);
 
-        await _enqueueActorMessagesClient.Enqueue(
+        await _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName,
             activityInput.OrchestrationInstanceId.Value,
             orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),

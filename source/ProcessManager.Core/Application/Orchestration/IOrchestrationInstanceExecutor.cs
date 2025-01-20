@@ -26,4 +26,10 @@ internal interface IOrchestrationInstanceExecutor
     /// Start a new orchestration instance.
     /// </summary>
     Task StartNewOrchestrationInstanceAsync(OrchestrationDescription orchestrationDescription, OrchestrationInstance orchestrationInstance);
+
+    /// <summary>
+    /// Send a notify event to a running orchestration instance.
+    /// </summary>
+    Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? data)
+        where TData : class;
 }

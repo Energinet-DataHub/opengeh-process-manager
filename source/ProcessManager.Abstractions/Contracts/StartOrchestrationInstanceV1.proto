@@ -24,5 +24,11 @@ message StartOrchestrationInstanceV1 {
   string started_by_actor_id = 4; // The actor id who wants to start the orchestration.
 
   string input = 3; // The input to the orchestration serialized to string.
-  string input_format = 5; // The format the input field is serialized as.
+  StartOrchestrationInstanceInputFormatV1 input_format = 5; // The format the input field is serialized as.
+  string input_type = 6; // Name of the input type (example: "RequestCalculatedEnergyTimeSeriesInputV1").
+}
+
+enum StartOrchestrationInstanceInputFormatV1 {
+  Unspecified = 0;
+  Json = 1;
 }

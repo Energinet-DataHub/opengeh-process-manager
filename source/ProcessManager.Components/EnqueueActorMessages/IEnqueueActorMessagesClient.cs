@@ -19,10 +19,11 @@ namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
 public interface IEnqueueActorMessagesClient
 {
-    public Task Enqueue<TData>(
+    public Task EnqueueAsync<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
         Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
-        string messageId,
-        TData data);
+        string idempotencyKey,
+        TData data)
+            where TData : class;
 }

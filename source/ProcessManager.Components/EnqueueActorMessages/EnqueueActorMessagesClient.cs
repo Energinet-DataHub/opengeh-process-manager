@@ -29,12 +29,13 @@ public class EnqueueActorMessagesClient(
 {
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.EdiTopic);
 
-    public async Task Enqueue<TInputData>(
+    public async Task EnqueueAsync<TInputData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
         Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
-        string messageId,
+        string idempotencyKey,
         TInputData data)
+            where TInputData : class
     {
         var (startedByActorId, startedByUserId) = orchestrationStartedBy switch
         {
@@ -51,18 +52,16 @@ public class EnqueueActorMessagesClient(
             OrchestrationName = orchestration.Name,
             OrchestrationVersion = orchestration.Version,
             OrchestrationStartedByActorId = startedByActorId.ToString(),
-            Data = JsonSerializer.Serialize(data),
-            DataType = typeof(TInputData).Name,
-            DataFormat = "application/json",
             OrchestrationInstanceId = orchestrationInstanceId.ToString(),
         };
+        enqueueActorMessages.SetData(data);
 
         if (startedByUserId is not null)
             enqueueActorMessages.OrchestrationStartedByUserId = startedByUserId.ToString();
 
         var serviceBusMessage = enqueueActorMessages.ToServiceBusMessage(
             subject: "Enqueue_" + orchestration.Name.ToLower(),
-            idempotencyKey: messageId);
+            idempotencyKey: idempotencyKey);
 
         await _serviceBusSender.SendMessageAsync(serviceBusMessage)
             .ConfigureAwait(false);

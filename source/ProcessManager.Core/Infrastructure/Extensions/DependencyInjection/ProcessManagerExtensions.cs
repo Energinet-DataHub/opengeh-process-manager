@@ -85,6 +85,8 @@ public static class ProcessManagerExtensions
         services.TryAddScoped<IOrchestrationInstanceRepository, OrchestrationInstanceRepository>();
         services.TryAddScoped<IStartOrchestrationInstanceCommands, OrchestrationInstanceManager>();
         services.TryAddScoped<IStartOrchestrationInstanceMessageCommands, OrchestrationInstanceManager>();
+        // => Notify instance (manager)
+        services.TryAddScoped<INotifyOrchestrationInstanceCommands, OrchestrationInstanceManager>();
         // => Public queries
         services.TryAddScoped<IOrchestrationInstanceQueries, OrchestrationInstanceRepository>();
 

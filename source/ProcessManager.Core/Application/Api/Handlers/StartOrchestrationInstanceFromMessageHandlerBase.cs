@@ -25,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
 public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputParameterDto>(
     ILogger logger)
-    where TInputParameterDto : IInputParameterDto
+    where TInputParameterDto : class, IInputParameterDto
 {
     private readonly ILogger _logger = logger;
 
@@ -63,16 +63,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
 
     private async Task HandleV1(ServiceBusReceivedMessage message)
     {
-        var messageBodyFormat = message.GetBodyFormat();
-        var startOrchestration = messageBodyFormat switch
-        {
-            "application/json" => StartOrchestrationInstanceV1.Parser.ParseJson(message.Body.ToString()),
-            "application/octet-stream" => StartOrchestrationInstanceV1.Parser.ParseFrom(message.Body),
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(messageBodyFormat),
-                messageBodyFormat,
-                $"Unhandled message body format when deserializing the received {nameof(StartOrchestrationInstanceV1)} message (MessageId={message.MessageId}, Subject={message.Subject})"),
-        };
+        var startOrchestration = message.ParseBody<StartOrchestrationInstanceV1>();
 
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
         {
@@ -88,30 +79,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
             },
         });
 
-        var inputParameterDto = startOrchestration.InputFormat switch
-        {
-            "application/json" => JsonSerializer.Deserialize<TInputParameterDto>(startOrchestration.Input),
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(startOrchestration.InputFormat),
-                startOrchestration.InputFormat,
-                $"Unhandled input format when deserializing the received {nameof(StartOrchestrationInstanceV1)} message (MessageId={message.MessageId}, Subject={message.Subject})"),
-        };
-
-        if (inputParameterDto is null)
-        {
-            var inputTypeName = typeof(TInputParameterDto).Name;
-            throw new ArgumentException($"Unable to deserialize message input to {inputTypeName}")
-            {
-                Data =
-                {
-                    { "TargetType", inputTypeName },
-                    { "InputFormat", startOrchestration.InputFormat },
-                    { "Input", startOrchestration.Input.Truncate(maxLength: 1000) },
-                    { "MessageId", message.MessageId },
-                    { "MessageSubject", message.Subject },
-                },
-            };
-        }
+        var inputParameterDto = startOrchestration.ParseInput<TInputParameterDto>();
 
         if (!Guid.TryParse(startOrchestration.StartedByActorId, out var actorId))
         {

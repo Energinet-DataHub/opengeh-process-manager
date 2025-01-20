@@ -12,11 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements;
 
-public record AcceptedEnergyObservation(
-    int Position,
-    decimal? EnergyQuantity,
-    Quality? QuantityQuality);
+public interface IMeasurementsMeteredDataClient
+{
+    /// <summary>
+    /// Responsible for sending metered data for a measurement point to Measurements.
+    /// </summary>
+    /// <param name="meteredDataForMeteringPoint"></param>
+    /// <param name="cancellationToken"></param>
+    public Task SendAsync(MeteredDataForMeteringPoint meteredDataForMeteringPoint, CancellationToken cancellationToken);
+}

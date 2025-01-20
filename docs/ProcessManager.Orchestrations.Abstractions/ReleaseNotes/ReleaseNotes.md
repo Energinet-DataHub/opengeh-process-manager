@@ -1,9 +1,12 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 0.14.0
+## Version 0.15.0
 
 - Removed `ProcessManager.Components` from `ProcessManager.Orchestrations.Abstractions` dependencies.
 
+## Version 0.14.0
+
+- Add `DataHubTypes` derived types to be shared with consumer.
 
 ## Version 0.13.0
 

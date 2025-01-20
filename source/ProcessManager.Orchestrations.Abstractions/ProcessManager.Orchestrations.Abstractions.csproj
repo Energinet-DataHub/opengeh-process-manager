@@ -59,4 +59,8 @@
     <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\" />
+  </ItemGroup>
+
 </Project>

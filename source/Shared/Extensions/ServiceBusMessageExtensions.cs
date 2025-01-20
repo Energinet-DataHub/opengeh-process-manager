@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Azure.Messaging.ServiceBus;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Google.Protobuf;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Extensions;
@@ -25,18 +24,25 @@ public static class ServiceBusMessageExtensions
 
     public static string GetMajorVersion(this ServiceBusReceivedMessage message)
     {
-        return (string?)message.ApplicationProperties.GetValueOrDefault(MajorVersionKey)
+        return message.TryGetMajorVersion()
                ?? throw new ArgumentNullException(
                    nameof(message.ApplicationProperties),
                    $"{MajorVersionKey} must be present in the ApplicationProperties of the received service bus message (MessageId={message.MessageId}, Subject={message.Subject}).");
     }
 
-    public static string GetBodyFormat(this ServiceBusReceivedMessage message)
+    public static ServiceBusMessageBodyFormat GetBodyFormat(this ServiceBusReceivedMessage message)
     {
-        return (string?)message.ApplicationProperties.GetValueOrDefault(BodyFormatKey)
+        var bodyFormatAsString = (string?)message.ApplicationProperties.GetValueOrDefault(BodyFormatKey)
                ?? throw new ArgumentNullException(
                    nameof(message.ApplicationProperties),
                    $"{BodyFormatKey} must be present in the ApplicationProperties of the received service bus message (MessageId={message.MessageId}, Subject={message.Subject}).");
+
+        return Enum.TryParse(bodyFormatAsString, out ServiceBusMessageBodyFormat bodyFormat)
+            ? bodyFormat
+            : throw new ArgumentOutOfRangeException(
+                BodyFormatKey,
+                bodyFormatAsString,
+                $"Invalid body format value in received service bus message application properties (MessageId={message.MessageId}, Subject={message.Subject}).");
     }
 
     /// <summary>
@@ -59,8 +65,63 @@ public static class ServiceBusMessageExtensions
         };
 
         serviceBusMessage.ApplicationProperties.Add(MajorVersionKey, message.GetType().Name);
-        serviceBusMessage.ApplicationProperties.Add(BodyFormatKey, "application/json");
+        serviceBusMessage.ApplicationProperties.Add(BodyFormatKey, ServiceBusMessageBodyFormat.Json.ToString());
 
         return serviceBusMessage;
+    }
+
+    public static TMessage ParseBody<TMessage>(this ServiceBusReceivedMessage message)
+        where TMessage : IMessage<TMessage>, new()
+    {
+        var bodyFormat = message.GetBodyFormat();
+
+        var parser = new MessageParser<TMessage>(() => new TMessage());
+
+        var result = bodyFormat switch
+        {
+            ServiceBusMessageBodyFormat.Binary => parser.ParseFrom(message.Body),
+            ServiceBusMessageBodyFormat.Json => parser.ParseJson(message.Body.ToString()),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(bodyFormat),
+                bodyFormat,
+                $"Unhandled body format in received service bus message.")
+                {
+                    Data =
+                    {
+                        { nameof(message.MessageId), message.MessageId },
+                        { nameof(message.Subject), message.Subject },
+                        { "MajorVersion", message.TryGetMajorVersion() },
+                        { "TargetType", typeof(TMessage).Name },
+                    },
+                },
+        };
+
+        if (result is null)
+        {
+            var messageBody = message.Body.ToString();
+            throw new ArgumentException("Unable to parse received service bus message body.")
+            {
+                Data =
+                {
+                    { "TargetType", typeof(TMessage) },
+                    { "BodyFormat", bodyFormat.ToString() },
+                    {
+                        "Body", messageBody.Length < 1000
+                            ? messageBody
+                            : messageBody.Substring(0, 1000)
+                    },
+                    { "MessageId", message.MessageId },
+                    { "Subject", message.Subject },
+                    { "MajorVersion", message.TryGetMajorVersion() },
+                },
+            };
+        }
+
+        return result;
+    }
+
+    private static string? TryGetMajorVersion(this ServiceBusReceivedMessage message)
+    {
+        return (string?)message.ApplicationProperties.GetValueOrDefault(MajorVersionKey);
     }
 }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Core;
 using Azure.Identity;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
@@ -31,7 +32,7 @@ public static class MeasurementsMeteredDataClientExtensions
     /// <summary>
     /// Register Measurements metered data client.
     /// </summary>
-    public static IServiceCollection AddMeasurementsMeteredDataClient(this IServiceCollection services)
+    public static IServiceCollection AddMeasurementsMeteredDataClient(this IServiceCollection services, TokenCredential azureCredential)
     {
         services
             .AddOptions<MeasurementsMeteredDataClientOptions>()
@@ -45,7 +46,7 @@ public static class MeasurementsMeteredDataClientExtensions
                         (_, _, provider) =>
                         {
                             var options = provider.GetRequiredService<IOptions<MeasurementsMeteredDataClientOptions>>().Value;
-                            return new EventHubProducerClient($"{options.NamespaceName}.servicebus.windows.net", options.EventHubName, new DefaultAzureCredential());
+                            return new EventHubProducerClient($"{options.NamespaceName}.servicebus.windows.net", options.EventHubName, azureCredential);
                         })
                     .WithName(EventHubProducerClientNames.MeasurementsEventHub);
             });

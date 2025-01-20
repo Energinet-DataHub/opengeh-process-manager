@@ -55,7 +55,7 @@ internal class EnqueueActorMessagesActivity_Brs_028_V1(
         var acceptedData = new RequestCalculatedWholesaleServicesAcceptedV1(
             BusinessReason: input.RequestInput.BusinessReason);
 
-        return _enqueueActorMessagesClient.Enqueue(
+        return _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_028_V1.UniqueName,
             input.InstanceId.Value,
             enqueuedBy.ToDto(),

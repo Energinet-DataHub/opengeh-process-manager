@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using Azure;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Extensions;
@@ -182,6 +184,39 @@ internal class ProcessManagerClient : IProcessManagerClient
             .ConfigureAwait(false);
 
         return orchestrationInstance!;
+    }
+
+    /// <inheritdoc/>
+    public async Task<OrchestrationInstanceTypedDto<TInputParameterDto>?> GetOrchestrationInstanceByIdempotencyKeyAsync<TInputParameterDto>(
+        GetOrchestrationInstanceByIdempotencyKeyQuery query,
+        CancellationToken cancellationToken)
+            where TInputParameterDto : class, IInputParameterDto
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/idempotencykey");
+        var json = JsonSerializer.Serialize(query);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+
+        using var actualResponse = await _generalApiHttpClient
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        actualResponse.EnsureSuccessStatusCode();
+
+        if (actualResponse.Content == null
+            || actualResponse.Content.Headers.ContentLength == 0)
+        {
+            return null;
+        }
+
+        var orchestrationInstance = await actualResponse.Content
+            .ReadFromJsonAsync<OrchestrationInstanceTypedDto<TInputParameterDto>?>(cancellationToken)
+            .ConfigureAwait(false);
+
+        return orchestrationInstance;
     }
 
     /// <inheritdoc/>

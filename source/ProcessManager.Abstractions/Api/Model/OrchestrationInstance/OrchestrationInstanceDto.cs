@@ -25,9 +25,11 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationI
 /// <param name="ParameterValue">Contains the Durable Functions orchestration input parameter value.</param>
 /// <param name="Steps">Workflow steps the orchestration instance is going through.</param>
 /// <param name="CustomState">Any custom state of the orchestration instance.</param>
+/// <param name="IdempotencyKey">A value used by the Process Manager to ensure idempotency for a message command.</param>
 public record OrchestrationInstanceDto(
     Guid Id,
     OrchestrationInstanceLifecycleDto Lifecycle,
     ExpandoObject ParameterValue,
     IReadOnlyCollection<StepInstanceDto> Steps,
-    string CustomState);
+    string CustomState,
+    string? IdempotencyKey = default);

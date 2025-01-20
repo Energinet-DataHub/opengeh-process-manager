@@ -92,7 +92,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         await StartOrchestrationInstanceAsync(
             new ActorIdentity(new ActorId(actorId)),
             inputParameterDto,
-            idempotencyKey: message.MessageId)
+            idempotencyKey: message.GetIdempotencyKey())
             .ConfigureAwait(false);
     }
 }

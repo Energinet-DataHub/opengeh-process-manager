@@ -169,6 +169,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
         // Arrange
         var expectedParentEnergySupplier = (ActorId: "5798000020000", ActorRole: ActorRole.EnergySupplier);
         var expectedDanishEnergyAgency = (ActorId: "5798000020016", ActorRole: ActorRole.DanishEnergyAgency);
+        var expectedSystemOperatorAgency = (ActorId: "5790000432752", ActorRole: ActorRole.SystemOperator);
 
         var meteringPointType = MeteringPointType.VeProduction;
         var startDate = InstantPattern.General.Parse("2025-01-01T00:00:00Z").Value;
@@ -192,7 +193,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 electricityMarketChildMeteringPointMasterData));
 
         // Assert
-        result.MarketActorRecipients.Should().HaveCount(2);
+        result.MarketActorRecipients.Should().HaveCount(3);
         result.MarketActorRecipients.Should()
             .ContainSingle(
                 x => x.ActorId == expectedParentEnergySupplier.ActorId
@@ -201,6 +202,10 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
             .ContainSingle(
                 x => x.ActorId == expectedDanishEnergyAgency.ActorId
                      && x.ActorRole == expectedDanishEnergyAgency.ActorRole);
+        result.MarketActorRecipients.Should()
+            .ContainSingle(
+                x => x.ActorId == expectedSystemOperatorAgency.ActorId
+                     && x.ActorRole == expectedSystemOperatorAgency.ActorRole);
     }
 
     [Theory]

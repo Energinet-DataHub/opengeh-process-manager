@@ -15,6 +15,7 @@
 using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
@@ -60,7 +61,12 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
 
     private static MarketActorRecipient TheDanishEnergyAgencyReceiver()
     {
-        return new MarketActorRecipient("5798000020016", ActorRole.DanishEnergyAgency);
+        return new MarketActorRecipient(DataHubDetails.DanishEnergyAgencyNumber, ActorRole.DanishEnergyAgency);
+    }
+
+    private static MarketActorRecipient TheSystemOperatorReceiver()
+    {
+        return new MarketActorRecipient(DataHubDetails.SystemOperatorNumber, ActorRole.SystemOperator);
     }
 
     private static MarketActorRecipient EnergySupplierReceiver(ActorNumber energySupplierId)
@@ -91,6 +97,7 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
                 await GetEnergySupplierFromParentMeteringPointAsync(activityInput).ConfigureAwait(false);
             receivers.AddRange(parentEnergySuppliers.Select(x => EnergySupplierReceiver(x.EnergySupplier)));
             receivers.Add(TheDanishEnergyAgencyReceiver());
+            receivers.Add(TheSystemOperatorReceiver());
         }
         else if (meteringPointType == MeteringPointType.VeProduction
             || meteringPointType == MeteringPointType.NetProduction

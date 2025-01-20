@@ -13,10 +13,21 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
 
-public record AcceptedEnergyObservation(
-    int Position,
-    decimal? EnergyQuantity,
-    Quality? QuantityQuality);
+public record MeteredDataForMeteringPoint(
+    string OrchestrationId,
+    string MeteringPointId,
+    string TransactionId,
+    Instant CreatedAt,
+    Instant StartDateTime,
+    Instant EndDateTime,
+    MeteringPointType MeteringPointType,
+    string Product,
+    MeasurementUnit Unit,
+    Resolution Resolution,
+    IReadOnlyCollection<Point> Points);
+
+public record Point(int Position, decimal Quantity, Quality Quality);

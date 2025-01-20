@@ -17,12 +17,6 @@ using Google.Protobuf;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Extensions;
 
-public enum ServiceBusMessageBodyFormat
-{
-    Binary = 1,
-    Json = 2,
-}
-
 public static class ServiceBusMessageExtensions
 {
     private const string MajorVersionKey = "MajorVersion";
@@ -76,7 +70,7 @@ public static class ServiceBusMessageExtensions
         return serviceBusMessage;
     }
 
-    public static TMessage ParseMessageBody<TMessage>(this ServiceBusReceivedMessage message)
+    public static TMessage ParseBody<TMessage>(this ServiceBusReceivedMessage message)
         where TMessage : IMessage<TMessage>, new()
     {
         var bodyFormat = message.GetBodyFormat();
@@ -91,15 +85,15 @@ public static class ServiceBusMessageExtensions
                 nameof(bodyFormat),
                 bodyFormat,
                 $"Unhandled body format in received service bus message.")
-            {
-                Data =
                 {
-                    { nameof(message.MessageId), message.MessageId },
-                    { nameof(message.Subject), message.Subject },
-                    { "MajorVersion", message.TryGetMajorVersion() },
-                    { "TargetType", typeof(TMessage).Name },
+                    Data =
+                    {
+                        { nameof(message.MessageId), message.MessageId },
+                        { nameof(message.Subject), message.Subject },
+                        { "MajorVersion", message.TryGetMajorVersion() },
+                        { "TargetType", typeof(TMessage).Name },
+                    },
                 },
-            },
         };
 
         if (result is null)

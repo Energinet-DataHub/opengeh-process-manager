@@ -63,7 +63,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
 
     private async Task HandleV1(ServiceBusReceivedMessage message)
     {
-        var startOrchestration = message.ParseMessageBody<StartOrchestrationInstanceV1>();
+        var startOrchestration = message.ParseBody<StartOrchestrationInstanceV1>();
 
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
         {

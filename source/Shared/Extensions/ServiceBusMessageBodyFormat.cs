@@ -12,18 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Shared.Extensions;
 
-namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
-
-public interface IEnqueueActorMessagesClient
+public enum ServiceBusMessageBodyFormat
 {
-    public Task EnqueueAsync<TData>(
-        OrchestrationDescriptionUniqueNameDto orchestration,
-        Guid orchestrationInstanceId,
-        IOperatingIdentityDto orchestrationStartedBy,
-        string idempotencyKey,
-        TData data)
-            where TData : class;
+    Binary = 1,
+    Json = 2,
 }

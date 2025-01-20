@@ -29,7 +29,7 @@ public class EnqueueActorMessagesClient(
 {
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.EdiTopic);
 
-    public async Task Enqueue<TInputData>(
+    public async Task EnqueueAsync<TInputData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
         Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,

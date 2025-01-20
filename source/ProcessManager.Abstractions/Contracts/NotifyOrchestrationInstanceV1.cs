@@ -33,15 +33,15 @@ public partial class NotifyOrchestrationInstanceV1
         };
     }
 
-    public T? ParseData<T>()
-        where T : class?
+    public TNotifyData? ParseData<TNotifyData>()
+        where TNotifyData : class?
     {
         if (Data is null)
             return null;
 
         var result = Data.DataFormat switch
         {
-            NotifyOrchestrationInstanceDataFormatV1.Json => JsonSerializer.Deserialize<T>(Data.Data),
+            NotifyOrchestrationInstanceDataFormatV1.Json => JsonSerializer.Deserialize<TNotifyData>(Data.Data),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(Data.DataFormat),
                 Data.DataFormat,

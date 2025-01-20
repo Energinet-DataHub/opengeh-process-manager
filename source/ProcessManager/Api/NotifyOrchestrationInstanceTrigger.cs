@@ -29,9 +29,6 @@ public class NotifyOrchestrationInstanceTrigger(
 {
     private readonly INotifyOrchestrationInstanceCommands _notifyOrchestrationCommands = notifyOrchestrationCommands;
 
-    /// <summary>
-    /// Start a BRS-026 request.
-    /// </summary>
     [Function(nameof(NotifyOrchestrationInstanceTrigger))]
     public Task Run(
         [ServiceBusTrigger(
@@ -45,9 +42,9 @@ public class NotifyOrchestrationInstanceTrigger(
         {
             NotifyOrchestrationInstanceV1.MajorVersion => HandleV1(message),
             _ => throw new ArgumentOutOfRangeException(
-                                nameof(majorVersion),
-                                majorVersion,
-                                $"Unhandled major version in received notify service bus message (MessageId={message.MessageId})"),
+                nameof(majorVersion),
+                majorVersion,
+                $"Unhandled major version in received notify service bus message (MessageId={message.MessageId})"),
         };
 
         return _notifyOrchestrationCommands.NotifyOrchestrationInstanceAsync(
@@ -58,7 +55,7 @@ public class NotifyOrchestrationInstanceTrigger(
 
     private (string OrchestrationInstanceId, string EventName, object? EventData) HandleV1(ServiceBusReceivedMessage message)
     {
-        var notifyOrchestrationInstanceV1 = message.ParseMessageBody<NotifyOrchestrationInstanceV1>();
+        var notifyOrchestrationInstanceV1 = message.ParseBody<NotifyOrchestrationInstanceV1>();
 
         var orchestrationInstanceId = notifyOrchestrationInstanceV1.OrchestrationInstanceId;
         var eventName = notifyOrchestrationInstanceV1.EventName;

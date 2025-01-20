@@ -59,6 +59,14 @@ public interface IProcessManagerClient
             where TInputParameterDto : class, IInputParameterDto;
 
     /// <summary>
+    /// Get orchestration instance by idempotency key, and cast orignal input parameter to <see cref="IInputParameterDto"/>.
+    /// </summary>
+    Task<OrchestrationInstanceTypedDto<TInputParameterDto>?> GetOrchestrationInstanceByIdempotencyKeyAsync<TInputParameterDto>(
+        GetOrchestrationInstanceByIdempotencyKeyQuery query,
+        CancellationToken cancellationToken)
+            where TInputParameterDto : class, IInputParameterDto;
+
+    /// <summary>
     /// Get all orchestration instances filtered by their related orchestration definition name and version,
     /// and their lifecycle / termination states.
     /// Returns orchestration instances.

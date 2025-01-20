@@ -29,16 +29,19 @@ public record OrchestrationInstanceTypedDto
     /// <param name="lifecycle">The lifecycle state of the orchestration instance.</param>
     /// <param name="steps">The steps of the orchestration instance.</param>
     /// <param name="customState">Any custom state of the orchestration instance.</param>
+    /// <param name="idempotencyKey">A value used by the Process Manager to ensure idempotency for a message command.</param>
     public OrchestrationInstanceTypedDto(
         Guid id,
         OrchestrationInstanceLifecycleDto lifecycle,
         IReadOnlyCollection<StepInstanceDto> steps,
-        string customState)
+        string customState,
+        string? idempotencyKey = default)
     {
         Id = id;
         Lifecycle = lifecycle;
         Steps = steps;
         CustomState = customState;
+        IdempotencyKey = idempotencyKey;
     }
 
     /// <summary>
@@ -60,6 +63,11 @@ public record OrchestrationInstanceTypedDto
     /// Any custom state of the orchestration instance.
     /// </summary>
     public string CustomState { get; }
+
+    /// <summary>
+    /// A value used by the Process Manager to ensure idempotency for a message command.
+    /// </summary>
+    public string? IdempotencyKey { get; }
 }
 
 /// <summary>
@@ -81,13 +89,15 @@ public record OrchestrationInstanceTypedDto<TInputParameterDto> :
     /// <param name="steps">The steps of the orchestration instance.</param>
     /// <param name="customState">Any custom state of the orchestration instance.</param>
     /// <param name="parameterValue">Contains the Durable Functions orchestration input parameter value.</param>
+    /// <param name="idempotencyKey">A value used by the Process Manager to ensure idempotency for a message command.</param>
     public OrchestrationInstanceTypedDto(
         Guid id,
         OrchestrationInstanceLifecycleDto lifecycle,
         IReadOnlyCollection<StepInstanceDto> steps,
         string customState,
-        TInputParameterDto parameterValue)
-            : base(id, lifecycle, steps, customState)
+        TInputParameterDto parameterValue,
+        string? idempotencyKey = default)
+            : base(id, lifecycle, steps, customState, idempotencyKey)
     {
         ParameterValue = parameterValue;
     }

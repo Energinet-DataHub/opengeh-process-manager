@@ -77,19 +77,18 @@ public class ProcessManagerAppFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        var processManagerTopicBuilder = ProcessManagerAppManager.ProcessManagerTopicResources
-            .BuildProcessManagerTopic(ServiceBusResourceProvider);
+        var processManagerTopicBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
 
-        ExampleOrchestrationsAppManager.ProcessManagerTopicResources.AddExampleOrchestrationsAppSubscriptions(processManagerTopicBuilder);
-        ProcessManagerAppManager.ProcessManagerTopicResources.AddProcessManagerAppSubscriptions(processManagerTopicBuilder);
+        ExampleOrchestrationsAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
+        ProcessManagerAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
 
         var processManagerTopic = await processManagerTopicBuilder.CreateAsync();
 
         await ExampleOrchestrationsAppManager.StartAsync(
-            ExampleOrchestrationsAppManager.ProcessManagerTopicResources.GetProcessManagerTopicResources(processManagerTopic));
+            ExampleOrchestrationsAppManager.ProcessManagerTopicResources.CreateFromTopic(processManagerTopic));
 
         await ProcessManagerAppManager.StartAsync(
-            ProcessManagerAppManager.ProcessManagerTopicResources.GetProcessManagerTopicResources(processManagerTopic));
+            ProcessManagerAppManager.ProcessManagerTopicResources.CreateFromTopic(processManagerTopic));
     }
 
     public async Task DisposeAsync()

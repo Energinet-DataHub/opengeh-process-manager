@@ -94,17 +94,17 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        var processManagerTopicBuilder = ProcessManagerAppManager.ProcessManagerTopicResources.BuildProcessManagerTopic(ServiceBusResourceProvider);
-        ExampleOrchestrationsAppManager.ProcessManagerTopicResources.AddExampleOrchestrationsAppSubscriptions(processManagerTopicBuilder);
-        ProcessManagerAppManager.ProcessManagerTopicResources.AddProcessManagerAppSubscriptions(processManagerTopicBuilder);
+        var processManagerTopicBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
+        ExampleOrchestrationsAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
+        ProcessManagerAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
 
         ProcessManagerTopic = await processManagerTopicBuilder.CreateAsync();
 
         await ExampleOrchestrationsAppManager.StartAsync(
-            ExampleOrchestrationsAppManager.ProcessManagerTopicResources.GetProcessManagerTopicResources(ProcessManagerTopic));
+            ExampleOrchestrationsAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic));
 
         await ProcessManagerAppManager.StartAsync(
-            ProcessManagerAppManager.ProcessManagerTopicResources.GetProcessManagerTopicResources(ProcessManagerTopic));
+            ProcessManagerAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic));
 
         // Create durable client when TaskHub has been created
         DurableClient = DurableTaskManager.CreateClient(taskHubName: TaskHubName);

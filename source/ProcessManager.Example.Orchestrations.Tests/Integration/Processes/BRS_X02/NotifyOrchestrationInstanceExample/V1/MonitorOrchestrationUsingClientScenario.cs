@@ -45,18 +45,25 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
+            // Process Manager HTTP client
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
                 = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+
+            // Process Manager message client
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = Fixture.ProcessManagerTopic.Name,
         });
+
+        // Process Manager HTTP client
         services.AddProcessManagerHttpClients();
 
+        // Process Manager message client
         services.AddAzureClients(b =>
             b.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
+
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -113,7 +120,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 });
 
         isWaitingForNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a ExampleNotifyEvent");
+            .BeTrue("because the orchestration instance should wait for an ExampleNotifyEvent");
 
         if (orchestrationInstance is null)
             ArgumentNullException.ThrowIfNull(orchestrationInstance, nameof(orchestrationInstance));

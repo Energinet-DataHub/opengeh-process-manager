@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Xunit.Abstractions;
 
@@ -50,6 +51,11 @@ public class ProcessManagerAppFixture : IAsyncLifetime
             appPort: 8202,
             manageDatabase: false,
             manageAzurite: false);
+
+        ServiceBusResourceProvider = new ServiceBusResourceProvider(
+            ExampleOrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -62,6 +68,8 @@ public class ProcessManagerAppFixture : IAsyncLifetime
 
     private AzuriteManager AzuriteManager { get; }
 
+    private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
+
     public async Task InitializeAsync()
     {
         AzuriteManager.CleanupAzuriteStorage();
@@ -69,8 +77,19 @@ public class ProcessManagerAppFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        await ExampleOrchestrationsAppManager.StartAsync();
-        await ProcessManagerAppManager.StartAsync(processManagerTopicResources: null);
+        var processManagerTopicBuilder = ProcessManagerAppManager.ProcessManagerTopicResources
+            .BuildProcessManagerTopic(ServiceBusResourceProvider);
+
+        ExampleOrchestrationsAppManager.ProcessManagerTopicResources.AddExampleOrchestrationsAppSubscriptions(processManagerTopicBuilder);
+        ProcessManagerAppManager.ProcessManagerTopicResources.AddProcessManagerAppSubscriptions(processManagerTopicBuilder);
+
+        var processManagerTopic = await processManagerTopicBuilder.CreateAsync();
+
+        await ExampleOrchestrationsAppManager.StartAsync(
+            ExampleOrchestrationsAppManager.ProcessManagerTopicResources.GetProcessManagerTopicResources(processManagerTopic));
+
+        await ProcessManagerAppManager.StartAsync(
+            ProcessManagerAppManager.ProcessManagerTopicResources.GetProcessManagerTopicResources(processManagerTopic));
     }
 
     public async Task DisposeAsync()
@@ -79,6 +98,8 @@ public class ProcessManagerAppFixture : IAsyncLifetime
         await ProcessManagerAppManager.DisposeAsync();
 
         await DatabaseManager.DeleteDatabaseAsync();
+
+        await ServiceBusResourceProvider.DisposeAsync();
 
         AzuriteManager.Dispose();
     }

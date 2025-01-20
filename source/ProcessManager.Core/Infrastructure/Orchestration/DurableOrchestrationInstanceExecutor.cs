@@ -41,4 +41,14 @@ internal class DurableOrchestrationInstanceExecutor(
             orchestrationInstance.Id.Value.ToString(),
             input: orchestrationInstance.ParameterValue.SerializedParameterValue);
     }
+
+    /// <inheritdoc />
+    public Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? data)
+        where TData : class
+    {
+        return _durableClient.RaiseEventAsync(
+            instanceId: id.Value.ToString(),
+            eventName: eventName,
+            eventData: data);
+    }
 }

@@ -1,5 +1,13 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.12.2
+
+- Add `RequestCalculatedEnergyTimeSeriesNotifyEventsV1` and `RequestCalculatedWholesaleServicesNotifyEventsV1`
+
+## Version 0.12.1
+
+- Add `CalculatedDataForCalculationTypeV1`
+
 ## Version 0.12.0
 
 - Add accept model (RSM-012) for BRS 21 named `MeteredDataForMeteringPointAcceptedV1`
@@ -23,7 +31,7 @@
 ## Version 0.8.0
 
 - Refactored implementation of custom queries support.
-- Added types for quering data spanning BRS 026 + 028:
+- Added types for querying data spanning BRS 026 + 028:
     - `ActorRequestQuery`
     - `IActorRequestQueryResult`
     - `RequestCalculatedEnergyTimeSeriesResult`

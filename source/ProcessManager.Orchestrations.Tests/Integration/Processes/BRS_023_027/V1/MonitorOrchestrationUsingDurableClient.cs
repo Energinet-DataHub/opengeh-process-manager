@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
@@ -20,14 +22,15 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Wiremock;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -84,6 +87,82 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         Fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
 
         await ServiceProvider.DisposeAsync();
+    }
+
+    /// <summary>
+    /// Currently we assert the history and then check the service bus message.
+    /// When the monitor pattern is implemented this behavior should be changed.
+    /// Since we have to inform the orchestration that the job is completed when we receive the service bus message.
+    /// </summary>
+    [Fact]
+    public async Task Calculation_WhenRunningAFullOrchestration_HasExpectedHistoryAndServiceBusMessage()
+    {
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
+            RunLifeCycleState.TERMINATED,
+            CalculationJobName);
+
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+        var calculationType = CalculationType.WholesaleFixing;
+
+        var orchestrationId = await StartCalculationAsync(
+            userIdentity,
+            calculationType);
+
+        var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+            orchestrationId.ToString(),
+            TimeSpan.FromSeconds(90));
+
+        var activities = completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Select(item => item.ToObject<OrchestrationHistoryItem>())
+            .ToList();
+
+        activities.Should().NotBeNull().And.Equal(
+        [
+            new OrchestrationHistoryItem("ExecutionStarted", FunctionName: "Orchestration_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_023_027_V1"),
+
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "CalculationStepStartJobActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "CalculationStepGetJobRunStatusActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_023_027_V1"),
+
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "EnqueueActorMessagesActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_023_027_V1"),
+
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationTerminateActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("ExecutionCompleted"),
+        ]);
+
+        // => Verify that the durable function completed successfully
+        completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
+
+        // When the monitor pattern is implemented this check should happen before the orchestration is completed.
+        // Since we have to "mock" the response from EDI.
+        var verifyServiceBusMessage = Fixture.EnqueueBrs023027ServiceBusListener.When(
+                msg =>
+                {
+                    if (msg.Subject != $"Enqueue_{Abstractions.Processes.BRS_023_027.Brs_023_027.Name.ToLower()}")
+                        return false;
+
+                    var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
+                        .Parser.ParseJson(msg.Body.ToString())!;
+
+                    var calculationCompleted = JsonSerializer.Deserialize<CalculatedDataForCalculationTypeV1>(body.Data);
+
+                    var typeMatches = calculationCompleted!.CalculationType == calculationType;
+                    var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationId.ToString();
+
+                    return typeMatches && orchestrationIdMatches;
+                })
+            .VerifyCountAsync(1);
+
+        var wait = await verifyServiceBusMessage.WaitAsync(TimeSpan.FromSeconds(20));
+        var messageFound = wait.IsSet;
+        messageFound.Should().BeTrue("We did not send the expected message on the ServiceBus");
     }
 
     [Fact]
@@ -161,10 +240,12 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         return match != null;
     }
 
-    private async Task<Guid> StartCalculationAsync(UserIdentityDto userIdentity)
+    private async Task<Guid> StartCalculationAsync(
+        UserIdentityDto userIdentity,
+        CalculationType calculationType = CalculationType.WholesaleFixing)
     {
         var inputParameter = new CalculationInputV1(
-            CalculationType.WholesaleFixing,
+            calculationType,
             GridAreaCodes: new[] { "804" },
             PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
             PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),

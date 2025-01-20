@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
@@ -29,6 +32,8 @@ internal class Orchestration_Brs_023_027_V1
 {
     internal const int CalculationStepSequence = 1;
     internal const int EnqueueActorMessagesStepSequence = 2;
+
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_023_027.V1;
 
     private readonly TaskOptions _defaultRetryOptions;
 
@@ -71,7 +76,7 @@ internal class Orchestration_Brs_023_027_V1
         var jobRunId = await context.CallActivityAsync<JobRunId>(
             nameof(CalculationStepStartJobActivity_Brs_023_027_V1),
             new CalculationStepStartJobActivity_Brs_023_027_V1.ActivityInput(
-                instanceId,
+                executionContext.CalculationId,
                 executionContext.UserId,
                 orchestrationInput),
             _defaultRetryOptions);
@@ -103,7 +108,7 @@ internal class Orchestration_Brs_023_027_V1
                     break;
 
                 case JobRunStatus.Completed:
-                    // Suceeded
+                    // Succeeded
                     await context.CallActivityAsync(
                         nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
                         new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
@@ -148,6 +153,18 @@ internal class Orchestration_Brs_023_027_V1
                     instanceId,
                     EnqueueActorMessagesStepSequence),
                 _defaultRetryOptions);
+
+            var calculationData = new CalculatedDataForCalculationTypeV1(
+                CalculationId: executionContext.CalculationId,
+                CalculationType: orchestrationInput.CalculationType);
+
+            await context.CallActivityAsync(
+                nameof(EnqueueActorMessagesActivity_Brs_023_027_V1),
+                new EnqueueActorMessagesActivity_Brs_023_027_V1.ActivityInput(
+                    instanceId,
+                    calculationData),
+                _defaultRetryOptions);
+
             await context.CallActivityAsync(
                 nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
                 new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(

@@ -19,8 +19,8 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Models;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,7 +71,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ExampleOrchestration_WhenRunningEveryActivity_HasExceptedHistory()
+    public async Task ExampleOrchestration_WhenRunningEveryActivity_HasExpectedHistory()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -123,7 +123,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ExampleOrchestration_WhenSkippingActivities_HasExceptedHistory()
+    public async Task ExampleOrchestration_WhenSkippingActivities_HasExpectedHistory()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

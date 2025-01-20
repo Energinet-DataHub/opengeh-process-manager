@@ -66,7 +66,7 @@ var host = new HostBuilder()
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
 
         // Measurements
-        services.AddMeasurementsMeteredDataClient();
+        services.AddMeasurementsMeteredDataClient(azureCredential);
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

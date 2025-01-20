@@ -54,7 +54,7 @@ internal class EnqueueActorMessagesActivity_Brs_026_V1(
         var acceptedData = new RequestCalculatedEnergyTimeSeriesAcceptedV1(
             input.RequestInput.BusinessReason);
 
-        return _enqueueActorMessagesClient.Enqueue(
+        return _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_026_V1.UniqueName,
             input.InstanceId.Value,
             orchestrationCreatedBy.ToDto(),

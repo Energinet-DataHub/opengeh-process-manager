@@ -35,11 +35,11 @@ internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        await _enqueueActorMessagesClient.Enqueue(
+        await _enqueueActorMessagesClient.EnqueueAsync(
             orchestration: Orchestration_Brs_023_027_V1.UniqueName,
             orchestrationInstanceId: input.InstanceId.Value,
             orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
-            messageId: CreateIdempotencyKey(input.InstanceId, input.CalculatedData),
+            idempotencyKey: CreateIdempotencyKey(input.InstanceId, input.CalculatedData),
             data: input.CalculatedData).ConfigureAwait(false);
     }
 

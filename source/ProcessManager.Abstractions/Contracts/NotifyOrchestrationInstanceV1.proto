@@ -26,5 +26,10 @@ message NotifyOrchestrationInstanceV1 {
 message NotifyOrchestrationInstanceDataV1 {
   string data = 1; // Data serialized as string.
   string data_type = 2; // Name of the data type (example: "EnqueueActorMessagesCompletedData").
-  string data_format = 3; // Format the data field is serialized as (example: "application/json" etc.).
+  NotifyOrchestrationInstanceDataFormatV1 data_format = 3; // Format the data field is serialized as.
+}
+
+enum NotifyOrchestrationInstanceDataFormatV1 {
+  Unspecified = 0;
+  Json = 1;
 }

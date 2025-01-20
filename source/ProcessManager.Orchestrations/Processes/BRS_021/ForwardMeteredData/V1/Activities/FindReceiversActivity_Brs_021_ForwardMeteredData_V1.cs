@@ -16,11 +16,10 @@ using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
-using NodaTime.Text;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects.MeteringPointType;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
@@ -36,7 +35,7 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
     [Function(nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task<IReadOnlyCollection<Receiver>> Run(
+    public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
@@ -50,35 +49,36 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
 
         var receivers = await FindUniqueReceiversAsync(activityInput).ConfigureAwait(false);
 
-        return receivers.AsReadOnly();
+        return new ActivityOutput(
+            MarketActorRecipients: receivers.AsReadOnly());
     }
 
-    private static Receiver NeighborGridAccessProviderReceiver(ActorNumber neighborGridAccessProviderId)
+    private static MarketActorRecipient NeighborGridAccessProviderReceiver(ActorNumber neighborGridAccessProviderId)
     {
-        return new Receiver(neighborGridAccessProviderId.Value, ActorRole.GridAccessProvider);
+        return new MarketActorRecipient(neighborGridAccessProviderId.Value, ActorRole.GridAccessProvider);
     }
 
-    private static Receiver TheDanishEnergyAgencyReceiver()
+    private static MarketActorRecipient TheDanishEnergyAgencyReceiver()
     {
-        return new Receiver("5798000020016", ActorRole.DanishEnergyAgency);
+        return new MarketActorRecipient("5798000020016", ActorRole.DanishEnergyAgency);
     }
 
-    private static Receiver EnergySupplierReceiver(string energySupplierId)
+    private static MarketActorRecipient EnergySupplierReceiver(ActorNumber energySupplierId)
     {
-        return new Receiver(energySupplierId, ActorRole.EnergySupplier);
+        return new MarketActorRecipient(energySupplierId.Value, ActorRole.EnergySupplier);
     }
 
-    private async Task<IList<Receiver>> FindUniqueReceiversAsync(
+    private async Task<IList<MarketActorRecipient>> FindUniqueReceiversAsync(
         ActivityInput activityInput)
     {
-        var receivers = new List<Receiver>();
+        var receivers = new List<MarketActorRecipient>();
 
         var meteringPointType = MeteringPointType.FromCode(activityInput.MeteringPointType);
         if (meteringPointType == MeteringPointType.Consumption || meteringPointType == MeteringPointType.Production)
         {
-            var energySupplierReceivers =
+            var energySuppliers =
                 await GetEnergySuppliersForMeteringPointAsync(activityInput).ConfigureAwait(false);
-            receivers.AddRange(energySupplierReceivers.Select(x => EnergySupplierReceiver(x.EnergySupplier.Value)));
+            receivers.AddRange(energySuppliers.Select(x => EnergySupplierReceiver(x.EnergySupplier)));
             receivers.Add(TheDanishEnergyAgencyReceiver());
         }
         else if (meteringPointType == MeteringPointType.Exchange)
@@ -87,10 +87,9 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
         }
         else if (meteringPointType == MeteringPointType.VeProduction)
         {
-            var parentEnergySupplierReceivers =
-                await GetEnergySupplierForParentMeteringPointAsync(activityInput).ConfigureAwait(false);
-            receivers.AddRange(
-                parentEnergySupplierReceivers.Select(x => EnergySupplierReceiver(x.EnergySupplier.Value)));
+            var parentEnergySuppliers =
+                await GetEnergySupplierFromParentMeteringPointAsync(activityInput).ConfigureAwait(false);
+            receivers.AddRange(parentEnergySuppliers.Select(x => EnergySupplierReceiver(x.EnergySupplier)));
             receivers.Add(TheDanishEnergyAgencyReceiver());
         }
         else if (meteringPointType == MeteringPointType.VeProduction
@@ -112,11 +111,9 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
             || meteringPointType == MeteringPointType.CollectiveNetProduction
             || meteringPointType == MeteringPointType.CollectiveNetConsumption)
         {
-            // Child metering points should be sent to the energy supplier from the parent metering point
-            var parentEnergySupplierReceivers2 =
-                await GetEnergySupplierForParentMeteringPointAsync(activityInput).ConfigureAwait(false);
-            receivers.AddRange(
-                parentEnergySupplierReceivers2.Select(x => EnergySupplierReceiver(x.EnergySupplier.Value)));
+            var parentEnergySuppliers =
+                await GetEnergySupplierFromParentMeteringPointAsync(activityInput).ConfigureAwait(false);
+            receivers.AddRange(parentEnergySuppliers.Select(x => EnergySupplierReceiver(x.EnergySupplier)));
         }
 
         var distinctReceivers = receivers
@@ -127,7 +124,7 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
         return distinctReceivers;
     }
 
-    private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySupplierForParentMeteringPointAsync(
+    private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySupplierFromParentMeteringPointAsync(
         ActivityInput activityInput)
     {
         var startDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.StartDateTime);
@@ -159,4 +156,6 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
         string StartDateTime,
         string EndDateTime,
         MeteringPointMasterData MeteringPointMasterData);
+
+    public sealed record ActivityOutput(IReadOnlyCollection<MarketActorRecipient> MarketActorRecipients);
 }

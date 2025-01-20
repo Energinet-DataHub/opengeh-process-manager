@@ -13,25 +13,19 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
-using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Newtonsoft.Json.Linq;
-using NodaTime;
-using NodaTime.Text;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
@@ -61,13 +55,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
-
-        var mockElectricityMarketViews = new Mock<IElectricityMarketViews>();
-        var id = new MeteringPointIdentification("571313101700011887");
-        var startDateTime = InstantPattern.General.Parse("2024-12-01T23:00:00Z");
-        var endDateTime = InstantPattern.General.Parse("2024-12-02T23:00:00Z");
-        mockElectricityMarketViews.Setup(x => x.GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))).Returns(AsyncEnumerable.Empty<MeteringPointMasterData>());
-        services.AddSingleton<IElectricityMarketViews>(mockElectricityMarketViews.Object);
         ServiceProvider = services.BuildServiceProvider();
     }
 

@@ -54,7 +54,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
     private FindReceiversActivity_Brs_021_ForwardMeteredData_V1 Sut { get; }
 
     [Fact]
-    public async Task MeasurementsMeteredData_WhenMeteringPointTypeIsConsumption_ReturnsExpectedReceivers()
+    public async Task FindReceiversActivity_WhenMeteringPointTypeIsConsumption_ReturnsExpectedReceivers()
     {
         // Arrange
         var expectedEnergySupplier = (ActorId: "5798000020000", ActorRole: ActorRole.EnergySupplier);
@@ -80,19 +80,19 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 electricityMarketMeteringPointMasterData));
 
         // Assert
-        result.Should().HaveCount(2);
-        result.Should()
+        result.MarketActorRecipients.Should().HaveCount(2);
+        result.MarketActorRecipients.Should()
             .ContainSingle(
                 x => x.ActorId == expectedEnergySupplier.ActorId
                      && x.ActorRole == expectedEnergySupplier.ActorRole);
-        result.Should()
+        result.MarketActorRecipients.Should()
             .ContainSingle(
                 x => x.ActorId == expectedDanishEnergyAgency.ActorId
                      && x.ActorRole == expectedDanishEnergyAgency.ActorRole);
     }
 
     [Fact]
-    public async Task MeasurementsMeteredData_WhenMeteringPointTypeIsProduction_ReturnsExpectedReceivers()
+    public async Task FindReceiversActivity_WhenMeteringPointTypeIsProduction_ReturnsExpectedReceivers()
     {
         // Arrange
         var expectedEnergySupplier = (ActorId: "5798000020000", ActorRole: ActorRole.EnergySupplier);
@@ -118,19 +118,19 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 electricityMarketMeteringPointMasterData));
 
         // Assert
-        result.Should().HaveCount(2);
-        result.Should()
+        result.MarketActorRecipients.Should().HaveCount(2);
+        result.MarketActorRecipients.Should()
             .ContainSingle(
                 x => x.ActorId == expectedEnergySupplier.ActorId
                      && x.ActorRole == expectedEnergySupplier.ActorRole);
-        result.Should()
+        result.MarketActorRecipients.Should()
             .ContainSingle(
                 x => x.ActorId == expectedDanishEnergyAgency.ActorId
                      && x.ActorRole == expectedDanishEnergyAgency.ActorRole);
     }
 
     [Fact]
-    public async Task MeasurementsMeteredData_WhenMeteringPointTypeIsExchange_ReturnsExpectedReceivers()
+    public async Task FindReceiversActivity_WhenMeteringPointTypeIsExchange_ReturnsExpectedReceivers()
     {
         // Arrange
         var expectedNeighborGridAreaOwner = (ActorId: "5798000020000", ActorRole: ActorRole.GridAccessProvider);
@@ -156,15 +156,15 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 electricityMarketMeteringPointMasterData));
 
         // Assert
-        result.Should().HaveCount(1);
-        result.Should()
+        result.MarketActorRecipients.Should().HaveCount(1);
+        result.MarketActorRecipients.Should()
             .ContainSingle(
                 x => x.ActorId == expectedNeighborGridAreaOwner.ActorId
                      && x.ActorRole == expectedNeighborGridAreaOwner.ActorRole);
     }
 
     [Fact]
-    public async Task MeasurementsMeteredData_WhenMeteringPointTypeIsVeProduction_ReturnsExpectedReceivers()
+    public async Task FindReceiversActivity_WhenMeteringPointTypeIsVeProduction_ReturnsExpectedReceivers()
     {
         // Arrange
         var expectedParentEnergySupplier = (ActorId: "5798000020000", ActorRole: ActorRole.EnergySupplier);
@@ -192,12 +192,12 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 electricityMarketChildMeteringPointMasterData));
 
         // Assert
-        result.Should().HaveCount(2);
-        result.Should()
+        result.MarketActorRecipients.Should().HaveCount(2);
+        result.MarketActorRecipients.Should()
             .ContainSingle(
                 x => x.ActorId == expectedParentEnergySupplier.ActorId
                      && x.ActorRole == expectedParentEnergySupplier.ActorRole);
-        result.Should()
+        result.MarketActorRecipients.Should()
             .ContainSingle(
                 x => x.ActorId == expectedDanishEnergyAgency.ActorId
                      && x.ActorRole == expectedDanishEnergyAgency.ActorRole);
@@ -221,7 +221,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
     [InlineData("D20")]
     [InlineData("D21")]
     [InlineData("D22")]
-    public async Task MeasurementsMeteredData_WhenMeteringPointTypeIsASupportedChildMeteringPoint_ReturnsExpectedReceivers(
+    public async Task FindReceiversActivity_WhenMeteringPointTypeIsASupportedChildMeteringPoint_ReturnsExpectedReceivers(
         string meteringPointCode)
     {
         // Arrange
@@ -247,8 +247,8 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 electricityMarketChildMeteringPointMasterData));
 
         // Assert
-        result.Should().HaveCount(1);
-        result.Should()
+        result.MarketActorRecipients.Should().HaveCount(1);
+        result.MarketActorRecipients.Should()
             .ContainSingle(
                 x => x.ActorId == expectedEnergySupplier.ActorId
                      && x.ActorRole == expectedEnergySupplier.ActorRole);
@@ -258,7 +258,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
     [InlineData("D14")]
     [InlineData("D15")]
     [InlineData("D19")]
-    public async Task MeasurementsMeteredData_WhenMeteringPointTypeIsAUnsupportedChildMeteringPoint_ReturnsNoReceiver(
+    public async Task FindReceiversActivity_WhenMeteringPointTypeIsAUnsupportedChildMeteringPoint_ReturnsNoReceiver(
         string meteringPointCode)
     {
         // Arrange
@@ -284,7 +284,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 electricityMarketChildMeteringPointMasterData));
 
         // Assert
-        result.Should().HaveCount(0);
+        result.MarketActorRecipients.Should().HaveCount(0);
     }
 
     private static OrchestrationInstance CreateOrchestrationInstance()

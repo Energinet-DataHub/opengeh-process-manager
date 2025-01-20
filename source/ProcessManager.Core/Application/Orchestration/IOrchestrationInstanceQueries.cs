@@ -21,9 +21,14 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 public interface IOrchestrationInstanceQueries
 {
     /// <summary>
-    /// Get existing orchestration instance.
+    /// Get existing orchestration instance by id.
     /// </summary>
     Task<OrchestrationInstance> GetAsync(OrchestrationInstanceId id);
+
+    /// <summary>
+    /// Get existing orchestration instance by idempotency key.
+    /// </summary>
+    Task<OrchestrationInstance?> GetOrDefaultAsync(IdempotencyKey idempotencyKey);
 
     /// <summary>
     /// Get all orchestration instances filtered by their related orchestration definition name and version,

@@ -42,4 +42,9 @@ public interface IOrchestrationInstanceTypedDto<out TInputParameterDto>
     /// The parameter value.
     /// </summary>
     TInputParameterDto ParameterValue { get; }
+
+    /// <summary>
+    /// A value used by the Process Manager to ensure idempotency for a message command.
+    /// </summary>
+    string? IdempotencyKey { get; }
 }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using DomainModel = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
@@ -29,7 +30,8 @@ internal static class OrchestrationInstanceMapperExtensions
             entity.Lifecycle.MapToDto(),
             entity.Steps.Select(step => step.MapToDto()).ToList(),
             entity.CustomState.Value,
-            entity.ParameterValue.AsType<TInputParameterDto>());
+            entity.ParameterValue.AsType<TInputParameterDto>(),
+            entity.IdempotencyKey?.Value);
     }
 
     public static ApiModel.OrchestrationInstance.OrchestrationInstanceDto MapToDto(
@@ -40,7 +42,8 @@ internal static class OrchestrationInstanceMapperExtensions
             Lifecycle: entity.Lifecycle.MapToDto(),
             ParameterValue: entity.ParameterValue.AsExpandoObject(),
             Steps: entity.Steps.Select(step => step.MapToDto()).ToList(),
-            CustomState: entity.CustomState.Value);
+            CustomState: entity.CustomState.Value,
+            IdempotencyKey: entity.IdempotencyKey?.Value);
     }
 
     public static ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleDto MapToDto(

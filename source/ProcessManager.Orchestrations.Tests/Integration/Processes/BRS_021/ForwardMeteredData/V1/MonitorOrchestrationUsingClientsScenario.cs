@@ -13,19 +13,18 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
-using Energinet.DataHub.ElectricityMarket.Integration;
+using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -57,17 +56,15 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = _fixture.ProcessManagerTopicName,
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
+                = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
+                = _fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
-
-        var mockElectricityMarketViews = new Mock<IElectricityMarketViews>();
-        var id = new MeteringPointIdentification("571313101700011887");
-        var startDateTime = InstantPattern.General.Parse("2024-12-01T23:00:00Z");
-        var endDateTime = InstantPattern.General.Parse("2024-12-02T23:00:00Z");
-        mockElectricityMarketViews.Setup(x => x.GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))).Returns(AsyncEnumerable.Empty<MeteringPointMasterData>());
-        services.AddSingleton<IElectricityMarketViews>(mockElectricityMarketViews.Object);
+        services.AddProcessManagerHttpClients();
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -247,6 +244,53 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .Last();
         last.Value<string>("EventType").Should().Be("ExecutionCompleted");
         last.Value<string>("Result").Should().Be("Success");
+    }
+
+    /// <summary>
+    /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
+    /// </summary>
+    [Fact]
+    public async Task ForwardMeteredData_WhenStarted_CanMonitorLifecycle()
+    {
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        // Step 1: Start new orchestration instance
+        var input = CreateMeteredDataForMeteringPointMessageInputV1();
+
+        var startCommand = new StartForwardMeteredDataCommandV1(
+            new ActorIdentityDto(input.AuthenticatedActorId),
+            input,
+            idempotencyKey: Guid.NewGuid().ToString());
+
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+            startCommand,
+            CancellationToken.None);
+
+        // Step 2: Query until terminated with succeeded
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
+        var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                var orchestrationInstance = await processManagerClient
+                    .GetOrchestrationInstanceByIdempotencyKeyAsync<MeteredDataForMeteringPointMessageInputV1>(
+                        new GetOrchestrationInstanceByIdempotencyKeyQuery(
+                            userIdentity,
+                            startCommand.IdempotencyKey),
+                        CancellationToken.None);
+
+                return
+                    orchestrationInstance != null
+                    && orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
+            },
+            timeLimit: TimeSpan.FromSeconds(20),
+            delay: TimeSpan.FromSeconds(3));
+
+        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
 
     private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1(

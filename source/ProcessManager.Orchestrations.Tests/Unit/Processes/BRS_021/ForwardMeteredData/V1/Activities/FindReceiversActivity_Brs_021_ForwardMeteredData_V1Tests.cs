@@ -215,9 +215,6 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
     [InlineData("D10")]
     [InlineData("D11")]
     [InlineData("D12")]
-    //[InlineData("D14")]
-    //[InlineData("D15")]
-    //[InlineData("D19")]
     [InlineData("D13")]
     [InlineData("D17")]
     [InlineData("D18")]
@@ -309,8 +306,6 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
             uniqueName: new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
             canBeScheduled: true,
             functionName: "TestOrchestrationFunction");
-
-        //orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
 
         orchestrationDescription.AppendStepDescription("Test step 1");
         orchestrationDescription.AppendStepDescription("Test step 2");

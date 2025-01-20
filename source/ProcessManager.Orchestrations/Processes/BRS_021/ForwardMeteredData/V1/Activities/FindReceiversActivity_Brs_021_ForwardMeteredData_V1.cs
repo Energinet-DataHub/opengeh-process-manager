@@ -16,6 +16,7 @@ using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
@@ -84,13 +85,6 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
         {
             receivers.AddRange(activityInput.MeteringPointMasterData.NeighborGridAreaOwners.Select(NeighborGridAccessProviderReceiver));
         }
-        else if (meteringPointType == MeteringPointType.ElectricalHeating
-                 || meteringPointType == MeteringPointType.NetConsumption
-                 || meteringPointType == MeteringPointType.CapacitySettlement)
-        {
-            // No receivers for these metering point types
-            return receivers;
-        }
         else if (meteringPointType == MeteringPointType.VeProduction)
         {
             var parentEnergySupplierReceivers =
@@ -99,7 +93,24 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
                 parentEnergySupplierReceivers.Select(x => EnergySupplierReceiver(x.EnergySupplier.Value)));
             receivers.Add(TheDanishEnergyAgencyReceiver());
         }
-        else
+        else if (meteringPointType == MeteringPointType.VeProduction
+            || meteringPointType == MeteringPointType.NetProduction
+            || meteringPointType == MeteringPointType.SupplyToGrid
+            || meteringPointType == MeteringPointType.ConsumptionFromGrid
+            || meteringPointType == MeteringPointType.WholesaleServicesInformation
+            || meteringPointType == MeteringPointType.OwnProduction
+            || meteringPointType == MeteringPointType.NetFromGrid
+            || meteringPointType == MeteringPointType.NetToGrid
+            || meteringPointType == MeteringPointType.TotalConsumption
+            || meteringPointType == MeteringPointType.Analysis
+            || meteringPointType == MeteringPointType.NotUsed
+            || meteringPointType == MeteringPointType.SurplusProductionGroup6
+            || meteringPointType == MeteringPointType.NetLossCorrection
+            || meteringPointType == MeteringPointType.OtherConsumption
+            || meteringPointType == MeteringPointType.OtherProduction
+            || meteringPointType == MeteringPointType.ExchangeReactiveEnergy
+            || meteringPointType == MeteringPointType.CollectiveNetProduction
+            || meteringPointType == MeteringPointType.CollectiveNetConsumption)
         {
             // Child metering points should be sent to the energy supplier from the parent metering point
             var parentEnergySupplierReceivers2 =
@@ -119,8 +130,8 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
     private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySupplierForParentMeteringPointAsync(
         ActivityInput activityInput)
     {
-        var startDateTime = InstantPattern.General.Parse(activityInput.StartDateTime);
-        var endDateTime = InstantPattern.General.Parse(activityInput.EndDateTime);
+        var startDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.StartDateTime);
+        var endDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.EndDateTime);
         return await _electricityMarketViews
             .GetMeteringPointEnergySuppliersAsync(
                 activityInput.MeteringPointMasterData.ParentIdentification!,
@@ -132,8 +143,8 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
     private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySuppliersForMeteringPointAsync(
         ActivityInput activityInput)
     {
-        var startDateTime = InstantPattern.General.Parse(activityInput.StartDateTime);
-        var endDateTime = InstantPattern.General.Parse(activityInput.EndDateTime);
+        var startDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.StartDateTime);
+        var endDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.EndDateTime);
         return await _electricityMarketViews
             .GetMeteringPointEnergySuppliersAsync(
                 activityInput.MeteringPointMasterData.Identification!,

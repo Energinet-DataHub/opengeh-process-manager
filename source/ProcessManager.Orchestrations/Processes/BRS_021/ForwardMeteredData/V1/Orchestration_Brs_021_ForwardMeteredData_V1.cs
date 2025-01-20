@@ -107,7 +107,10 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // Step: Enqueueing
         await context.CallActivityAsync(
             nameof(EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1),
-            new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId, input),
+            new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                instanceId,
+                input,
+                findReceiversActivityOutput.MarketActorRecipients),
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("EDI_Notification");
         await context.CallActivityAsync(

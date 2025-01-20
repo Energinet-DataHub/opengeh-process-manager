@@ -14,7 +14,6 @@
 
 using System.Reflection;
 using Energinet.DataHub.ElectricityMarket.Integration;
-using Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -23,7 +22,8 @@ using FluentAssertions;
 using Moq;
 using NodaTime;
 using NodaTime.Text;
-using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Datahub.ValueObjects.MeteringPointType;
+using ActorRole = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.ActorRole;
+using MeteringPointType = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 

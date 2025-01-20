@@ -14,11 +14,12 @@
 
 using System.Net;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
-using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
+using Energinet.DataHub.ProcessManager.Components.Tests.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -58,10 +59,10 @@ public class IntegrationEventPublisherExtensionsTests
         var eventId = Guid.NewGuid();
         var eventName = "EventName";
         var minorVersion = 1;
-        var message = new DecimalValue()
+
+        var message = new IntegrationEventId()
         {
-            Nanos = 10,
-            Units = 20,
+            Id = eventId.ToString(),
         };
 
         // Act
@@ -83,7 +84,7 @@ public class IntegrationEventPublisherExtensionsTests
                     return false;
                 }
 
-                var body = DecimalValue.Parser.ParseFrom(serviceBusMessage.Body);
+                var body = IntegrationEventId.Parser.ParseFrom(serviceBusMessage.Body);
 
                 return body.Equals(message);
             })

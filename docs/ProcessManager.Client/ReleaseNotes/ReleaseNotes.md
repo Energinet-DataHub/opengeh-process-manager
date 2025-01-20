@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.23.1
+
+- No functional changes.
+
 ## Version 0.23.0
 
 - Added `IdempotencyKey` to all orchestration instance DTO types:

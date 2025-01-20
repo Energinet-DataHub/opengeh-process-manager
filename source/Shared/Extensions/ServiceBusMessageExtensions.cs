@@ -15,7 +15,7 @@
 using Azure.Messaging.ServiceBus;
 using Google.Protobuf;
 
-namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+namespace Energinet.DataHub.ProcessManager.Shared.Extensions;
 
 public static class ServiceBusMessageExtensions
 {

@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Text.Json;
 using Azure.Messaging.ServiceBus;
-using DurableTask.Core.Common;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;

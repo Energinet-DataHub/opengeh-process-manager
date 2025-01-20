@@ -16,7 +16,7 @@ using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Client;

@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -88,10 +89,6 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
     public async Task RequestCalculatedEnergyTimeSeries_WhenStarted_OrchestrationCompletesWithSuccess()
     {
         // Given
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         var businessReason = "BalanceFixing";
         var energySupplierNumber = "23143245321";
         var startRequestCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
@@ -177,29 +174,44 @@ public class RequestCalculatedEnergyTimeSeriesTests : IAsyncLifetime
             startRequestCommand,
             CancellationToken.None);
 
-        // Step 2: Query until terminated with succeeded
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
+        // Step 2: Query until waiting for EnqueueActorMessagesCompleted notify event
+        var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
+            .TryWaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
+                idempotencyKey: startRequestCommand.IdempotencyKey,
+                (oi) =>
+                {
+                    var enqueueActorMessagesStep = oi.Steps
+                        .Single(s => s.Sequence == Orchestration_Brs_026_V1.EnqueueActorMessagesStepSequence);
 
-        var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
-            async () =>
-            {
-                var orchestrationInstance = await processManagerClient
-                    .GetOrchestrationInstanceByIdempotencyKeyAsync<RequestCalculatedEnergyTimeSeriesInputV1>(
-                        new GetOrchestrationInstanceByIdempotencyKeyQuery(
-                            userIdentity,
-                            startRequestCommand.IdempotencyKey),
-                        CancellationToken.None);
+                    return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
+                });
 
-                return
-                    orchestrationInstance != null
-                    && orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
-            },
-            timeLimit: TimeSpan.FromSeconds(20),
-            delay: TimeSpan.FromSeconds(3));
+        isWaitingForNotify.Should()
+            .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
 
-        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+        if (orchestrationInstance is null)
+            ArgumentNullException.ThrowIfNull(orchestrationInstance, nameof(orchestrationInstance));
+
+        // Step 3: Send EnqueueActorMessagesCompleted event
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new NotifyOrchestrationInstanceEvent(
+                OrchestrationInstanceId: orchestrationInstance.Id.ToString(),
+                EventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
+            CancellationToken.None);
+
+        // Step 4: Query until terminated with succeeded
+        var (isTerminated, _) = await processManagerClient
+            .TryWaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
+                idempotencyKey: startRequestCommand.IdempotencyKey,
+                (oi) => oi is
+                {
+                    Lifecycle:
+                    {
+                        State: OrchestrationInstanceLifecycleState.Terminated,
+                        TerminationState: OrchestrationInstanceTerminationState.Succeeded,
+                    },
+                });
+
+        isTerminated.Should().BeTrue("because the orchestration instance should complete within given wait time");
     }
 }

@@ -44,6 +44,12 @@ internal class OrchestrationInstanceRepository(
     }
 
     /// <inheritdoc />
+    public Task<OrchestrationInstance?> GetOrDefaultAsync(OrchestrationInstanceId id)
+    {
+        return _context.OrchestrationInstances.FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    /// <inheritdoc />
     public Task<OrchestrationInstance?> GetOrDefaultAsync(IdempotencyKey idempotencyKey)
     {
         return _context.OrchestrationInstances.FirstOrDefaultAsync(x => x.IdempotencyKey == idempotencyKey);

@@ -21,6 +21,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Options;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -213,6 +214,10 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.SectionName}__{nameof(OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleEventTimeout)}",
+            TimeSpan.FromMinutes(1).ToString());
 
         return appHostSettings;
     }

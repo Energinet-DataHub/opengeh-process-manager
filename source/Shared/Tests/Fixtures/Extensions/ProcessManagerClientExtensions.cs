@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Extensions;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 public static class ProcessManagerClientExtensions
 {

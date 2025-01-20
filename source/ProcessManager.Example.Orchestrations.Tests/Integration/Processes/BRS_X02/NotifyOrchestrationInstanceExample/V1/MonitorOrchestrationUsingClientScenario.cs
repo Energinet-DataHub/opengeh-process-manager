@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
-using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -31,8 +29,8 @@ using Xunit.Abstractions;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 
 /// <summary>
-/// Test case where we verify the Process Manager clients can be used to start an
-/// example orchestration (with input parameter) and monitor its status during its lifetime.
+/// Test case where we verify the Process Manager clients can be used to notify an example orchestration
+/// and monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
@@ -82,5 +80,64 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    // TODO: Add tests
+    /// <summary>
+    /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
+    /// </summary>
+    [Fact]
+    public async Task RequestCalculatedWholesaleServices_WhenStarted_CanMonitorLifecycle()
+    {
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        // Step 1: Start new orchestration instance
+        var startRequestCommand = new StartNotifyOrchestrationInstanceExampleCommandV1(
+            new ActorIdentityDto(Guid.NewGuid()),
+            new NotifyOrchestrationInstanceExampleInputV1(
+                InputString: "input-string"),
+            IdempotencyKey: Guid.NewGuid().ToString());
+
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+            startRequestCommand,
+            CancellationToken.None);
+
+        // Step 2: Query until waiting for ExampleEvent notify event
+        var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
+            .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
+                idempotencyKey: startRequestCommand.IdempotencyKey,
+                comparer: (oi) =>
+                {
+                    var enqueueActorMessagesStep = oi.Steps
+                        .Single(s => s.Sequence == Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleEventStepSequence);
+
+                    return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
+                });
+
+        isWaitingForNotify.Should()
+            .BeTrue("because the orchestration instance should wait for a ExampleEvent notify event");
+
+        if (orchestrationInstance is null)
+            ArgumentNullException.ThrowIfNull(orchestrationInstance, nameof(orchestrationInstance));
+
+        // Step 3: Send EnqueueActorMessagesCompleted event
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new NotifyOrchestrationInstanceEvent(
+                OrchestrationInstanceId: orchestrationInstance.Id.ToString(),
+                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleEvent),
+            CancellationToken.None);
+
+        // Step 4: Query until terminated with succeeded
+        var (isTerminated, _) = await processManagerClient
+            .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
+                idempotencyKey: startRequestCommand.IdempotencyKey,
+                (oi) => oi is
+                {
+                    Lifecycle:
+                    {
+                        State: OrchestrationInstanceLifecycleState.Terminated,
+                        TerminationState: OrchestrationInstanceTerminationState.Succeeded,
+                    },
+                });
+
+        isTerminated.Should().BeTrue("because the orchestration instance should complete within given wait time");
+    }
 }

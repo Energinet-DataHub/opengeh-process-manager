@@ -122,7 +122,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        AppHostManager.Dispose();
+        AppHostManager?.Dispose();
 
         if (_manageAzurite)
             AzuriteManager.Dispose();

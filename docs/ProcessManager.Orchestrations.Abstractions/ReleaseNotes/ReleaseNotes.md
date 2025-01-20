@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.13.0
+
+- Dependent NuGet packages updated
+
 ## Version 0.12.2
 
 - Add `RequestCalculatedEnergyTimeSeriesNotifyEventsV1` and `RequestCalculatedWholesaleServicesNotifyEventsV1`

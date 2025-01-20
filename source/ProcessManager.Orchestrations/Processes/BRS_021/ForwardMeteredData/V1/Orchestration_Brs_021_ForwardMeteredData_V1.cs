@@ -89,7 +89,8 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             _defaultRetryOptions);
 
         // Step: Find Receiver
-        await context.CallActivityAsync(
+        var findReceiversActivityOutput =
+        await context.CallActivityAsync<FindReceiversActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
             nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1),
             new FindReceiversActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                 instanceId,

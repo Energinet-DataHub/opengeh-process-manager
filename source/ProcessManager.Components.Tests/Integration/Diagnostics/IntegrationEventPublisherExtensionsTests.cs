@@ -18,7 +18,6 @@ using Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 using Energinet.DataHub.ProcessManager.Components.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -54,7 +53,7 @@ public class IntegrationEventPublisherExtensionsTests
     public async Task IntegrationEventPublisher_WhenPublishingAnEvent_MessageIsPublishedToIntegrationEventTopic()
     {
         // Arrange
-        var integrationEventPublisher = _fixture.Services!.GetRequiredService<IIntegrationEventPublisherClient>();
+        var integrationEventPublisher = _fixture.Provider!.GetRequiredService<IIntegrationEventPublisherClient>();
         var eventId = Guid.NewGuid();
         var eventName = "EventName";
         var message = new DecimalValue()

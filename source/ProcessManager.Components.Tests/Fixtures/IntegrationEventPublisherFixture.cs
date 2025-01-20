@@ -13,19 +13,21 @@
 // limitations under the License.
 
 using System.ComponentModel.DataAnnotations;
+using System.Configuration.Provider;
 using Azure.Identity;
 using Azure.Messaging.ServiceBus.Administration;
 using Energinet.DataHub.Core.App.WebApp.Extensions.Builder;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
+using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NJsonSchema.Annotations;
 using Xunit;
@@ -39,7 +41,7 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
     private const string SubscriptionName = "test-subscription";
 
     [Required]
-    public ServiceProvider? Services { get; set; }
+    public ServiceProvider? Provider { get; set; }
 
     [Required]
     public HttpClient? HttpClient { get; set; }
@@ -56,7 +58,7 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
         var services = new ServiceCollection();
         ConfigureServices(services, topicResource, integrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
 
-        Services = services.BuildServiceProvider();
+        Provider = services.BuildServiceProvider();
 
         var webHostBuilder = CreateWebHostBuilder(topicResource, integrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
         Server = new TestServer(webHostBuilder);
@@ -97,14 +99,20 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
         TopicResource topicResource,
         string serviceBusFullyQualifiedNamespace)
     {
-        services.AddInMemoryConfiguration(new Dictionary<string, string?>
+        var configurations = new Dictionary<string, string?>
         {
             [$"{ServiceBusNamespaceOptions.SectionName}:{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}"]
                 = serviceBusFullyQualifiedNamespace,
             [$"{IntegrationEventTopicOptions.SectionName}:{nameof(IntegrationEventTopicOptions.Name)}"]
                 = topicResource.Name,
-        });
+        };
 
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configurations)
+            .Build();
+
+        services.AddScoped<IConfiguration>(_ => configuration);
+        services.AddServiceBusClientForApplication(configuration);
         services.AddIntegrationEventPublisher(new DefaultAzureCredential());
     }
 

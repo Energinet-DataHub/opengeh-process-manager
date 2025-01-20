@@ -73,7 +73,7 @@ public class IntegrationEventPublisherExtensionsTests
             cancellationToken: CancellationToken.None);
 
         // Assert
-        var foundMessage = _fixture.ListenerMock.When(
+        var waitForMatch = _fixture.ListenerMock.When(
             serviceBusMessage =>
             {
                 if (serviceBusMessage.Subject != eventName
@@ -89,6 +89,7 @@ public class IntegrationEventPublisherExtensionsTests
             })
             .VerifyCountAsync(1);
 
-        foundMessage.Should().Be(true, "The message should be published to the integration event topic");
+        var matchFound = (await waitForMatch.WaitAsync(CancellationToken.None)).IsSet;
+        matchFound.Should().Be(true, "The message should be published to the integration event topic");
     }
 }

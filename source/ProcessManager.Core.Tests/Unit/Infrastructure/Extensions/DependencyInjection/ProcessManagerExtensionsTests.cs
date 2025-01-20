@@ -56,7 +56,7 @@ public class ProcessManagerExtensionsTests
         using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
-        var actualBuilders = serviceProvider.GetServices<IOrchestrationDescriptionBuilder>();
+        var actualBuilders = serviceProvider.GetServices<IOrchestrationDescriptionBuilder>().ToList();
         actualBuilders.Select(x => x.GetType())
             .Should().Contain(expectedBuilderTypes, "because all expected builder types should have been found");
 

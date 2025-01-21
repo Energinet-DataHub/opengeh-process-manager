@@ -32,7 +32,7 @@ public class EnqueueActorMessagesClient(
         OrchestrationDescriptionUniqueNameDto orchestration,
         Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
-        string idempotencyKey,
+        Guid idempotencyKey,
         TInputData data)
             where TInputData : class
     {
@@ -60,7 +60,7 @@ public class EnqueueActorMessagesClient(
 
         var serviceBusMessage = enqueueActorMessages.ToServiceBusMessage(
             subject: "Enqueue_" + orchestration.Name.ToLower(),
-            idempotencyKey: idempotencyKey);
+            idempotencyKey: idempotencyKey.ToString());
 
         await _serviceBusSender.SendMessageAsync(serviceBusMessage)
             .ConfigureAwait(false);

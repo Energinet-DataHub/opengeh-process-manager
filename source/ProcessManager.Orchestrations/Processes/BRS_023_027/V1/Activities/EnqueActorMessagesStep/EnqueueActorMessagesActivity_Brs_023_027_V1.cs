@@ -39,13 +39,8 @@ internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
             orchestration: Orchestration_Brs_023_027_V1.UniqueName,
             orchestrationInstanceId: input.InstanceId.Value,
             orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
-            idempotencyKey: CreateIdempotencyKey(input.InstanceId, input.CalculatedData),
+            idempotencyKey: input.InstanceId.Value,
             data: input.CalculatedData).ConfigureAwait(false);
-    }
-
-    private string CreateIdempotencyKey(OrchestrationInstanceId orchestrationInstanceId, CalculatedDataForCalculationTypeV1 calculatedData)
-    {
-        return calculatedData.CalculationId.ToString() + orchestrationInstanceId.Value;
     }
 
     public record ActivityInput(

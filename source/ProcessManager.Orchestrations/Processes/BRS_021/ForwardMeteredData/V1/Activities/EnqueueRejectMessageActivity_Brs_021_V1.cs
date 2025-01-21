@@ -54,7 +54,7 @@ internal class EnqueueRejectMessageActivity_Brs_021_V1(
             Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName,
             input.InstanceId.Value,
             orchestrationCreatedBy.ToDto(),
-            "enqueue-" + input.InstanceId.Value,
+            input.InstanceId.Value,
             input.RejectMessage);
 
     public record ActivityInput(

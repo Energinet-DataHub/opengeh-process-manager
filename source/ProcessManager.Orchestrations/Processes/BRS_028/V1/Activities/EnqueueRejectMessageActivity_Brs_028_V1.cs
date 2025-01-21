@@ -56,7 +56,7 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
             Orchestration_Brs_028_V1.UniqueName,
             input.InstanceId.Value,
             enqueuedBy.ToDto(),
-            "enqueue-" + input.InstanceId.Value,
+            input.InstanceId.Value,
             input.RejectedData);
     }
 

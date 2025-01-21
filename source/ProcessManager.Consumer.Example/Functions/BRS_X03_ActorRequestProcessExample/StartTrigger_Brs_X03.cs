@@ -14,8 +14,10 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestsProcess.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Energinet.DataHub.ProcessManager.Consumer.Example.Functions.BRS_X03_ActorRequestProcessExample;
 
@@ -29,14 +31,21 @@ public class StartTrigger_Brs_X03(
 
     [Function(nameof(StartTrigger_Brs_X03))]
     public Task Run(
-        [HttpTrigger] HttpRequestMessage req)
+        [HttpTrigger(
+            AuthorizationLevel.Anonymous,
+            "post",
+            Route = "actor-request-process/start")]
+        HttpRequest httpRequest,
+        [FromBody]
+        string idempotencyKey,
+        FunctionContext executionContext)
     {
         return _messageClient.StartNewOrchestrationInstanceAsync(
             new StartActorRequestProcessExampleV1(
                 operatingIdentity: new ActorIdentityDto(Guid.NewGuid()),
                 inputParameter: new ActorRequestProcessExampleInputV1(
                     BusinessReason: "ABC"),
-                idempotencyKey: Guid.NewGuid().ToString()),
+                idempotencyKey: idempotencyKey),
             CancellationToken.None);
     }
 }

@@ -103,7 +103,8 @@ internal class OrchestrationInstanceManager(
                 identity,
                 orchestrationDescription,
                 inputParameter,
-                skipStepsBySequence).ConfigureAwait(false);
+                skipStepsBySequence,
+                idempotencyKey: idempotencyKey).ConfigureAwait(false);
 
         await RequestStartOfOrchestrationInstanceIfPendingAsync(
             orchestrationDescription,
@@ -261,7 +262,8 @@ internal class OrchestrationInstanceManager(
         OrchestrationDescription orchestrationDescription,
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence,
-        Instant? runAt = default)
+        Instant? runAt = default,
+        IdempotencyKey? idempotencyKey = default)
             where TParameter : class
     {
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
@@ -269,7 +271,8 @@ internal class OrchestrationInstanceManager(
             orchestrationDescription,
             skipStepsBySequence,
             _clock,
-            runAt);
+            runAt,
+            idempotencyKey);
 
         orchestrationInstance.ParameterValue.SetFromInstance(inputParameter);
 

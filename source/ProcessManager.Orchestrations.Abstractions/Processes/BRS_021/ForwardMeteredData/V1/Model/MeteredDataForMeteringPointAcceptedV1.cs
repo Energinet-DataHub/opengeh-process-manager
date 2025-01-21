@@ -28,7 +28,7 @@ public record MeteredDataForMeteringPointAcceptedV1(
     string OriginalTransactionId,
     string ProductNumber,
     MeasurementUnit MeasureUnit,
-    Instant RegistrationDateTime,
+    DateTimeOffset RegistrationDateTime,
     Resolution Resolution,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,

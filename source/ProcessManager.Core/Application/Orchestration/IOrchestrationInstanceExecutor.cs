@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
@@ -31,5 +32,5 @@ internal interface IOrchestrationInstanceExecutor
     /// Send a notify event to a running orchestration instance.
     /// </summary>
     Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? data)
-        where TData : class;
+        where TData : INotifyDataDto;
 }

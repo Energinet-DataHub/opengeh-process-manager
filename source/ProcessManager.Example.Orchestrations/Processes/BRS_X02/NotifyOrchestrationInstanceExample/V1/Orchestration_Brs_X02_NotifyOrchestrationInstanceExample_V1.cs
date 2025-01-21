@@ -88,10 +88,19 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
         bool hasReceivedExampleNotifyEvent;
         try
         {
-            await context.WaitForExternalEvent<int?>(
+            var exampleNotifyEventData = await context.WaitForExternalEvent<ExampleNotifyEventDataV1>(
                 eventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
                 timeout: exampleNotifyEventTimeout);
             hasReceivedExampleNotifyEvent = true;
+
+            // Set custom state of the step instance, so we can assert it in tests.
+            await context.CallActivityAsync(
+                nameof(SetStepCustomStateActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
+                new SetStepCustomStateActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
+                    instanceId,
+                    WaitForExampleNotifyEventStepSequence,
+                    exampleNotifyEventData.Message),
+                _defaultRetryOptions);
         }
         catch (TaskCanceledException)
         {

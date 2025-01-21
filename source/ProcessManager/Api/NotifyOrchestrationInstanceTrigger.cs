@@ -15,6 +15,7 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -53,13 +54,13 @@ public class NotifyOrchestrationInstanceTrigger(
             eventData);
     }
 
-    private (string OrchestrationInstanceId, string EventName, object? EventData) HandleV1(ServiceBusReceivedMessage message)
+    private (string OrchestrationInstanceId, string EventName, INotifyDataDto? EventData) HandleV1(ServiceBusReceivedMessage message)
     {
         var notifyOrchestrationInstanceV1 = message.ParseBody<NotifyOrchestrationInstanceV1>();
 
         var orchestrationInstanceId = notifyOrchestrationInstanceV1.OrchestrationInstanceId;
         var eventName = notifyOrchestrationInstanceV1.EventName;
-        var eventData = notifyOrchestrationInstanceV1.ParseData<object?>();
+        var eventData = notifyOrchestrationInstanceV1.ParseData<INotifyDataDto?>();
 
         return (orchestrationInstanceId, eventName, eventData);
     }

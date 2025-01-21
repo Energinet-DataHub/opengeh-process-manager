@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -187,7 +188,7 @@ internal class OrchestrationInstanceManager(
 
     /// <inheritdoc />
     public async Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? eventData)
-        where TData : class
+        where TData : INotifyDataDto
     {
         var orchestrationInstanceToNotify = await _repository.GetOrDefaultAsync(id).ConfigureAwait(false);
 

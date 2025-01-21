@@ -13,18 +13,9 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 
-public interface INotifyOrchestrationInstanceCommands
-{
-    /// <summary>
-    /// Send a notify event to the specified orchestration instance.
-    /// </summary>
-    Task NotifyOrchestrationInstanceAsync<TData>(
-        OrchestrationInstanceId id,
-        string eventName,
-        TData? eventData)
-            where TData : INotifyDataDto;
-}
+public record ExampleNotifyEventDataV1(
+    string Message)
+    : INotifyDataDto;

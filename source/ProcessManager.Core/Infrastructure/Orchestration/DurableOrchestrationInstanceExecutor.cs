@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -44,7 +45,7 @@ internal class DurableOrchestrationInstanceExecutor(
 
     /// <inheritdoc />
     public Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? data)
-        where TData : class
+        where TData : INotifyDataDto
     {
         return _durableClient.RaiseEventAsync(
             instanceId: id.Value.ToString(),

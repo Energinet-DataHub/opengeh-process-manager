@@ -29,7 +29,7 @@ on:
         description: Cache key prefix
         required: false
         type: string
-        default: nuget-pr${{ github.event.pull_request.number }}
+        default: nuget-${{ github.ref }}
       dotnet_version:
         description: The version of dotnet to use
         required: false
@@ -43,9 +43,14 @@ jobs:
     outputs:
       matrix_builds: ${{ steps.set-matrix.outputs.matrix_builds }}
       matrix_tests: ${{ steps.set-matrix.outputs.matrix_tests }}
+      pr_number: ${{ steps.find_pull_request.outputs.pr_number }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Find associated pull request
+        uses: Energinet-DataHub/.github/.github/actions/find-related-pr-number@v14
+        id: find_pull_request
 
       - name: Find testprojects in affected projects
         id: set-matrix
@@ -112,6 +117,6 @@ jobs:
       nuget_cache_key_prefix: ${{ inputs.nuget_cache_key_prefix }}
 
       # Matrix parameters
-      testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ github.event.pull_request.number }}
+      testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ needs.build_matrix.outputs.pr_number }}
       testproject_name: ${{ matrix.project.name }}
       tests_dll_file_path: \source\${{ matrix.project.name}}\bin\Release\${{matrix.project.dotnet_version}}\${{ matrix.project.assembly_name }}

@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Proce
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Activities;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Models;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.Shared.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
@@ -66,9 +67,14 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         var orchestrationExecutionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
-            nameof(InitializeOrchestrationActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
-            new InitializeOrchestrationActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
+            nameof(GetOrchestrationExecutionPlanActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
+            new GetOrchestrationExecutionPlanActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
                 instanceId),
+            _defaultRetryOptions);
+
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToRunningActivity_V1),
+            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
 
         return orchestrationExecutionPlan;
@@ -80,8 +86,8 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
         TimeSpan exampleNotifyEventTimeout)
     {
         await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
-            new TransitionStepToRunningActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
                 instanceId,
                 WaitForExampleNotifyEventStepSequence),
             _defaultRetryOptions);
@@ -119,8 +125,8 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
             : OrchestrationStepTerminationState.Failed;
 
         await context.CallActivityAsync(
-            nameof(TransitionStepToTerminatedActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
-            new TransitionStepToTerminatedActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 WaitForExampleNotifyEventStepSequence,
                 waitForExampleNotifyEventTerminationState),
@@ -140,8 +146,8 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
             : OrchestrationInstanceTerminationState.Failed;
 
         await context.CallActivityAsync(
-            nameof(TerminateOrchestrationActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
-            new TerminateOrchestrationActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
+            nameof(TransitionOrchestrationToTerminatedActivity_V1),
+            new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 terminationState),
             _defaultRetryOptions);

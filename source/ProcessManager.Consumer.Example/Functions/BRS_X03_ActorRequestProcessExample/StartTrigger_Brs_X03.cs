@@ -44,6 +44,8 @@ public class StartTrigger_Brs_X03(
             new StartActorRequestProcessExampleV1(
                 operatingIdentity: new ActorIdentityDto(Guid.NewGuid()),
                 inputParameter: new ActorRequestProcessExampleInputV1(
+                    RequestedByActorNumber: "1234567890123",
+                    RequestedByActorRole: "EnergySupplier",
                     BusinessReason: "ABC"),
                 idempotencyKey: idempotencyKey),
             CancellationToken.None);

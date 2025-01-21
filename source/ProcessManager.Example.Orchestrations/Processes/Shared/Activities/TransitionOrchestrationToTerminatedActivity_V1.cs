@@ -17,16 +17,16 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.Shared.Activities;
 
-internal class TerminateOrchestrationActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1(
+internal class TransitionOrchestrationToTerminatedActivity_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository repository)
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
 
-    [Function(nameof(TerminateOrchestrationActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1))]
+    [Function(nameof(TransitionOrchestrationToTerminatedActivity_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {

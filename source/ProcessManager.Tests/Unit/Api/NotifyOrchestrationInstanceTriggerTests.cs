@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using FluentAssertions;
+using Google.Protobuf;
 using Moq;
 
 namespace Energinet.DataHub.ProcessManager.Tests.Unit.Api;
@@ -42,16 +43,17 @@ public class NotifyOrchestrationInstanceTriggerTests
 
         var expectedNotifyEventData = new NotifyEventData("Test message");
         notifyOrchestration.SetData(expectedNotifyEventData);
-        var serviceBusMessage = notifyOrchestration.ToServiceBusMessage(
-            subject: "Test subject",
-            idempotencyKey: Guid.NewGuid().ToString());
 
         var receivedServiceBusMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
-            subject: serviceBusMessage.Subject,
-            messageId: serviceBusMessage.MessageId,
-            body: serviceBusMessage.Body,
-            contentType: serviceBusMessage.ContentType,
-            properties: serviceBusMessage.ApplicationProperties);
+            subject: "Test subject",
+            messageId: Guid.NewGuid().ToString(),
+            body: new BinaryData(JsonFormatter.Default.Format(notifyOrchestration)),
+            contentType: "application/json",
+            properties: new Dictionary<string, object>
+            {
+                { "MajorVersion", nameof(NotifyOrchestrationInstanceV1) },
+                { "BodyFormat", "Json" },
+            });
 
         var notifyCommandsMock = new Mock<INotifyOrchestrationInstanceCommands>();
         object? raisedNotifyEventData = null;

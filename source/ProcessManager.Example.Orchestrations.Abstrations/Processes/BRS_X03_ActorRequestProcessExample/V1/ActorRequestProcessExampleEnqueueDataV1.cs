@@ -19,4 +19,5 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// </summary>
 public record ActorRequestProcessExampleEnqueueDataV1(
     string ActorNumber,
+    string ActorRole,
     string BusinessReason);

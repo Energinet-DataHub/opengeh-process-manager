@@ -17,6 +17,8 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Activities;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.Shared.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
@@ -49,7 +51,8 @@ internal class Orchestration_Brs_X03_V1
         // Step 1: Enqueue actor messages
         await EnqueueActorMessages(
             context,
-            instanceId);
+            instanceId,
+            input);
 
         // Step 2: Wait for actor messages enqueued event
         var hasReceivedActorMessagesEnqueuedEvent = await WaitForActorMessagesEnqueuedEventAsync(
@@ -67,11 +70,11 @@ internal class Orchestration_Brs_X03_V1
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
-        // await context.CallActivityAsync(
-        //     nameof(InitializeOrchestrationActivity_Brs_X03_V1),
-        //     new InitializeOrchestrationActivity_Brs_X03_V1.ActivityInput(
-        //         instanceId),
-        //     _defaultRetryOptions);
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToRunningActivity_V1),
+            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
+                instanceId),
+            _defaultRetryOptions);
         await Task.CompletedTask;
 
         return instanceId;
@@ -79,27 +82,34 @@ internal class Orchestration_Brs_X03_V1
 
     private async Task EnqueueActorMessages(
         TaskOrchestrationContext context,
-        OrchestrationInstanceId instanceId)
+        OrchestrationInstanceId instanceId,
+        ActorRequestProcessExampleInputV1 input)
     {
-        // await context.CallActivityAsync(
-        //     nameof(TransitionStepToRunningActivity_Brs_X03_V1),
-        //     new TransitionStepToRunningActivity_Brs_X03_V1.ActivityInput(
-        //         instanceId,
-        //         EnqueueActorMessagesStep),
-        //     _defaultRetryOptions);
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
+                instanceId,
+                EnqueueActorMessagesStep),
+            _defaultRetryOptions);
 
-        // await context.CallActivityAsync(
-        //     nameof(EnqueueActorMessagesActivity_Brs_X03_V1),
-        //     new EnqueueActorMessagesActivity_Brs_X03_V1.ActivityInput(instanceId),
-        //     _defaultRetryOptions);
+        var enqueueIdempotencyKey = context.NewGuid();
+        await context.CallActivityAsync(
+            nameof(EnqueueActorMessagesActivity_Brs_X03_V1),
+            new EnqueueActorMessagesActivity_Brs_X03_V1.ActivityInput(
+                instanceId,
+                enqueueIdempotencyKey,
+                input.RequestedByActorNumber,
+                input.RequestedByActorRole,
+                input.BusinessReason),
+            _defaultRetryOptions);
 
-        // await context.CallActivityAsync(
-        //     nameof(TransitionStepToTerminatedActivity_Brs_X03_V1),
-        //     new TransitionStepToTerminatedActivity_Brs_X03_V1.ActivityInput(
-        //         instanceId,
-        //         EnqueueActorMessagesStep,
-        //         Success),
-        //     _defaultRetryOptions);
+        await context.CallActivityAsync(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                instanceId,
+                EnqueueActorMessagesStep,
+                OrchestrationStepTerminationState.Succeeded),
+            _defaultRetryOptions);
 
         await Task.CompletedTask;
     }
@@ -108,12 +118,12 @@ internal class Orchestration_Brs_X03_V1
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId)
     {
-        // await context.CallActivityAsync(
-        //     nameof(TransitionStepToRunningActivity_Brs_X03_V1),
-        //     new TransitionStepToRunningActivity_Brs_X03_V1.ActivityInput(
-        //         instanceId,
-        //         WaitForActorMessagesEnqueuedEventStep),
-        //     _defaultRetryOptions);
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
+                instanceId,
+                WaitForActorMessagesEnqueuedEventStep),
+            _defaultRetryOptions);
 
         var waitTimeout = TimeSpan.FromMinutes(1);
 
@@ -140,13 +150,13 @@ internal class Orchestration_Brs_X03_V1
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
 
-        // await context.CallActivityAsync(
-        //     nameof(TransitionStepToTerminatedActivity_Brs_X03_V1),
-        //     new TransitionStepToTerminatedActivity_Brs_X03_V1.ActivityInput(
-        //         instanceId,
-        //         WaitForActorMessagesEnqueuedEventStep,
-        //         waitForActorMessagesEnqueuedEventTerminationState),
-        //     _defaultRetryOptions);
+        await context.CallActivityAsync(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                instanceId,
+                WaitForActorMessagesEnqueuedEventStep,
+                waitForActorMessagesEnqueuedEventTerminationState),
+            _defaultRetryOptions);
 
         return hasReceivedActorMessagesEnqueuedEvent;
     }
@@ -161,12 +171,12 @@ internal class Orchestration_Brs_X03_V1
             ? OrchestrationInstanceTerminationState.Succeeded
             : OrchestrationInstanceTerminationState.Failed;
 
-        // await context.CallActivityAsync(
-        //     nameof(TerminateOrchestrationActivity_Brs_X03_V1),
-        //     new TerminateOrchestrationActivity_Brs_X03_V1.ActivityInput(
-        //         instanceId,
-        //         terminationState),
-        //     _defaultRetryOptions);
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToTerminatedActivity_V1),
+            new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
+                instanceId,
+                terminationState),
+            _defaultRetryOptions);
         await Task.CompletedTask;
 
         return hasReceivedExampleNotifyEvent

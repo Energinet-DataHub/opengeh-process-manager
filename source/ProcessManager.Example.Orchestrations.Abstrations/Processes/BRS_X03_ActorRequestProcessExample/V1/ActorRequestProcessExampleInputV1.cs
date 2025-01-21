@@ -19,5 +19,8 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// <summary>
 /// Input to BRS-X03
 /// </summary>
-/// <param name="BusinessReason"></param>
-public record ActorRequestProcessExampleInputV1(string BusinessReason) : IInputParameterDto;
+public record ActorRequestProcessExampleInputV1(
+    string RequestedByActorNumber,
+    string RequestedByActorRole,
+    string BusinessReason)
+        : IInputParameterDto;

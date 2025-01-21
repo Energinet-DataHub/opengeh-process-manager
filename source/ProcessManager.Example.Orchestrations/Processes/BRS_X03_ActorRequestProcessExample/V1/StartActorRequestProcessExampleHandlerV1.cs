@@ -35,7 +35,7 @@ internal class StartActorRequestProcessExampleHandlerV1(
     {
         await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
-                OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1.UniqueName),
+                OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_X03_V1.UniqueName),
                 input,
                 skipStepsBySequence: [],
                 new IdempotencyKey(idempotencyKey))

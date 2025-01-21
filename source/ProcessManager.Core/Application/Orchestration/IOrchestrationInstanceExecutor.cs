@@ -32,5 +32,5 @@ internal interface IOrchestrationInstanceExecutor
     /// Send a notify event to a running orchestration instance.
     /// </summary>
     Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? data)
-        where TData : INotifyDataDto;
+        where TData : class;
 }

@@ -45,7 +45,7 @@ internal class DurableOrchestrationInstanceExecutor(
 
     /// <inheritdoc />
     public Task NotifyOrchestrationInstanceAsync<TData>(OrchestrationInstanceId id, string eventName, TData? data)
-        where TData : INotifyDataDto
+        where TData : class
     {
         return _durableClient.RaiseEventAsync(
             instanceId: id.Value.ToString(),

@@ -54,13 +54,13 @@ public class NotifyOrchestrationInstanceTrigger(
             eventData);
     }
 
-    private (string OrchestrationInstanceId, string EventName, INotifyDataDto? EventData) HandleV1(ServiceBusReceivedMessage message)
+    private (string OrchestrationInstanceId, string EventName, object? EventData) HandleV1(ServiceBusReceivedMessage message)
     {
         var notifyOrchestrationInstanceV1 = message.ParseBody<NotifyOrchestrationInstanceV1>();
 
         var orchestrationInstanceId = notifyOrchestrationInstanceV1.OrchestrationInstanceId;
         var eventName = notifyOrchestrationInstanceV1.EventName;
-        var eventData = notifyOrchestrationInstanceV1.ParseData<INotifyDataDto?>();
+        var eventData = notifyOrchestrationInstanceV1.ParseData<object?>();
 
         return (orchestrationInstanceId, eventName, eventData);
     }

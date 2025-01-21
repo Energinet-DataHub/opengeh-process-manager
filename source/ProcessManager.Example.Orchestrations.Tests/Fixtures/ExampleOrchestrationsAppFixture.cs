@@ -101,7 +101,8 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         ProcessManagerTopic = await processManagerTopicBuilder.CreateAsync();
 
         await ExampleOrchestrationsAppManager.StartAsync(
-            ExampleOrchestrationsAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic));
+            ExampleOrchestrationsAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic),
+            ediTopicResources: null);
 
         await ProcessManagerAppManager.StartAsync(
             ProcessManagerAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic));

@@ -21,6 +21,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
@@ -98,9 +99,13 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     /// <summary>
-    /// Start the example orchestration app
+    /// Start the example orchestration app.
     /// </summary>
-    public async Task StartAsync(ProcessManagerTopicResources? processManagerTopicResources)
+    /// <param name="processManagerTopicResources">Process Manager topic resources used by the app. Will be created if not provided.</param>
+    /// <param name="ediTopicResources">EDI topic resources used by the app. Will be created if not provided.</param>
+    public async Task StartAsync(
+        ProcessManagerTopicResources? processManagerTopicResources,
+        EdiTopicResources? ediTopicResources)
     {
         if (_manageAzurite)
         {
@@ -112,9 +117,13 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             await DatabaseManager.CreateDatabaseAsync();
 
         processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
+        ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
 
         // Prepare host settings
-        var appHostSettings = CreateAppHostSettings("ProcessManager.Example.Orchestrations", processManagerTopicResources);
+        var appHostSettings = CreateAppHostSettings(
+            "ProcessManager.Example.Orchestrations",
+            processManagerTopicResources,
+            ediTopicResources);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -179,7 +188,10 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
 #endif
     }
 
-    private FunctionAppHostSettings CreateAppHostSettings(string csprojName, ProcessManagerTopicResources processManagerTopicResources)
+    private FunctionAppHostSettings CreateAppHostSettings(
+        string csprojName,
+        ProcessManagerTopicResources processManagerTopicResources,
+        EdiTopicResources ediTopicResources)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -232,6 +244,11 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.BrsX02SubscriptionName)}",
             processManagerTopicResources.BrsX02Subscription.SubscriptionName);
+
+        // => Edi topic
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
+            ediTopicResources.EdiTopic.Name);
 
         // => BRS-X02
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -286,6 +303,31 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             return new ProcessManagerTopicResources(
                 ProcessManagerTopic: topic,
                 BrsX02Subscription: brsX02Subscription);
+        }
+    }
+
+    /// <summary>
+    /// EDI topic and subscription resources used by the Example Orchestrations app.
+    /// </summary>
+    public record EdiTopicResources(
+        TopicResource EdiTopic)
+    {
+        public static async Task<EdiTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
+        {
+            var ediTopicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
+
+            var ediTopic = await ediTopicBuilder.CreateAsync();
+
+            return CreateFromTopic(ediTopic);
+        }
+
+        /// <summary>
+        /// Get the <see cref="ExampleOrchestrationsAppManager.EdiTopicResources"/> used by the Orchestrations app.
+        /// </summary>
+        public static EdiTopicResources CreateFromTopic(TopicResource topic)
+        {
+            return new EdiTopicResources(
+                EdiTopic: topic);
         }
     }
 }

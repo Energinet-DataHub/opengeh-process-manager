@@ -19,7 +19,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 
-namespace Energinet.DataHub.ProcessManager.Consumer.Example.Functions.BRS_X03_ActorRequestProcessExample;
+namespace Energinet.DataHub.ProcessManager.Example.Consumer.Functions.BRS_X03_ActorRequestProcessExample;
 
 /// <summary>
 /// Http trigger to start a new BRS X03 orchestration.

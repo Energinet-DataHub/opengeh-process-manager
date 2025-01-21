@@ -14,7 +14,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManager.Consumer.Example.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Example.Consumer.Extensions.Options;
 
 public class EdiTopicOptions
 {

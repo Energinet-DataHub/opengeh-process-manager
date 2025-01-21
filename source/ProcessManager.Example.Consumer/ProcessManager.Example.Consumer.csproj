@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <AssemblyName>Energinet.DataHub.ProcessManager.Consumer.Example</AssemblyName>
-        <RootNamespace>Energinet.DataHub.ProcessManager.Consumer.Example</RootNamespace>
+        <AssemblyName>Energinet.DataHub.ProcessManager.Example.Consumer</AssemblyName>
+        <RootNamespace>Energinet.DataHub.ProcessManager.Example.Consumer</RootNamespace>
         <AzureFunctionsVersion>v4</AzureFunctionsVersion>
         <OutputType>Exe</OutputType>
     </PropertyGroup>

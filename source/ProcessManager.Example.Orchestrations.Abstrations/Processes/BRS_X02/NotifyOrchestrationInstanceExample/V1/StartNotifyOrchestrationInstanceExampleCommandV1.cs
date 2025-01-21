@@ -17,6 +17,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 
+/// <summary>
+/// The command starting a BRS_X02_NotifyOrchestrationInstanceExample V1.
+/// </summary>
 public record StartNotifyOrchestrationInstanceExampleCommandV1(
     ActorIdentityDto OperatingIdentity,
     NotifyOrchestrationInstanceExampleInputV1 InputParameter,

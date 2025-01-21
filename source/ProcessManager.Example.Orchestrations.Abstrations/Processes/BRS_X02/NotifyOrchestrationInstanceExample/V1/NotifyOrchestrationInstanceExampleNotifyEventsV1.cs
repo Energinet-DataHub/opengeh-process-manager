@@ -15,7 +15,7 @@
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 
 /// <summary>
-/// An immutable input to start the orchestration instance for BRS_X02_NotifyOrchestrationInstanceExample V1.
+/// The notify event names for BRS_X02_NotifyOrchestrationInstanceExample V1.
 /// </summary>
 public static class NotifyOrchestrationInstanceExampleNotifyEventsV1
 {

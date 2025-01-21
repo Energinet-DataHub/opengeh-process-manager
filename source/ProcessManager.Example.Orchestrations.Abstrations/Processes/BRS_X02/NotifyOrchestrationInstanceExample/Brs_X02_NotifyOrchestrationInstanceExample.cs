@@ -16,6 +16,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescr
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
 
+/// <summary>
+/// Unique names/versions for Brs_X02_NotifyOrchestrationInstanceExample.
+/// </summary>
 public static class Brs_X02_NotifyOrchestrationInstanceExample
 {
     public const string Name = "Brs_X02_NotifyOrchestrationInstanceExample";

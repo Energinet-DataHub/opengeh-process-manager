@@ -38,8 +38,4 @@
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Processes\BRS_X03_ActorRequestProcessExample\" />
-    </ItemGroup>
 </Project>

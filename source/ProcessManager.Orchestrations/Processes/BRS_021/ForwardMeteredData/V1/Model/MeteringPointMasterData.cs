@@ -21,9 +21,9 @@ public record MeteringPointMasterData(
     GridAreaCode GridAreaCode,
     ActorNumber GridAccessProvider,
     ConnectionState ConnectionState,
-    MeteringPointType Type,
-    MeteringPointSubType SubType,
-    MeasurementUnit Unit);
+    MeteringPointType MeteringPointType,
+    MeteringPointSubType MeteringPointSubType,
+    MeasurementUnit MeasurementUnit);
 
 public record MeteringPointId(string Value);
 

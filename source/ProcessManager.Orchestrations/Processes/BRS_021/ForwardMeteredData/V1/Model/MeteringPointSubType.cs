@@ -14,8 +14,7 @@
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-// TODO: Name are being checked!
-public enum MeteringPointSubType
+public enum MeteringPointSubType // Målepunktsart, consider promoting this to a datahub ValueObject
 {
     Physical,
     Virtual,

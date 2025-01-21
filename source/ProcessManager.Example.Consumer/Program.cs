@@ -24,7 +24,7 @@ var host = new HostBuilder()
     .ConfigureServices((context, services) =>
     {
         // Common
-        services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Consumer.Example");
+        services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Example.Consumer");
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
 

@@ -94,7 +94,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Components",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Components.Tests", "ProcessManager.Components.Tests\ProcessManager.Components.Tests.csproj", "{3E011639-3D70-4678-AE4B-DB8AC1A48BED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Consumer.Example", "ProcessManager.Consumer.Example\ProcessManager.Consumer.Example.csproj", "{FE46058F-DA3D-4980-A627-515FCE935B53}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Example.Consumer", "ProcessManager.Example.Consumer\ProcessManager.Example.Consumer.csproj", "{FE46058F-DA3D-4980-A627-515FCE935B53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

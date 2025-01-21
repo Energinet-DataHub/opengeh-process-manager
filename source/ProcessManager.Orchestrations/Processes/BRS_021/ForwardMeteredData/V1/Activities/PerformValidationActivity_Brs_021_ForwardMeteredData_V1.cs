@@ -51,5 +51,5 @@ internal class PerformValidationActivity_Brs_021_ForwardMeteredData_V1(
 
     public sealed record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
+        IReadOnlyCollection<Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData> MeteringPointMasterData);
 }

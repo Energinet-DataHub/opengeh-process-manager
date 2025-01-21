@@ -187,7 +187,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     private async Task<IReadOnlyCollection<string>> PerformValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterData)
+        IReadOnlyCollection<Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData> meteringPointMasterData)
     {
         var errors = await context.CallActivityAsync<IReadOnlyCollection<string>>(
             nameof(PerformValidationActivity_Brs_021_ForwardMeteredData_V1),

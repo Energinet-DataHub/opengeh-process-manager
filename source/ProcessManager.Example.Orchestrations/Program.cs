@@ -16,6 +16,7 @@ using Azure.Identity;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
@@ -37,6 +38,7 @@ var host = new HostBuilder()
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
 
         // => Add EnqueueActorMessages client
+        services.AddServiceBusClientForApplication(context.Configuration);
         services.AddEnqueueActorMessages(azureCredential);
     })
     .ConfigureLogging((hostingContext, logging) =>

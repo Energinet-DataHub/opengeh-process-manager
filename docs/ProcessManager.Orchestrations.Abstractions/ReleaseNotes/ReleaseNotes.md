@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.15.2
+
+- Update dependent NuGet package.
+
 ## Version 0.15.1
 
 - Updated `MeteredDataForMeteringPointRejectedV1` to use DataHubTypes.
@@ -14,7 +18,7 @@
 
 ## Version 0.13.0
 
-- Dependent NuGet packages updated
+- Update dependent NuGet package.
 
 ## Version 0.12.2
 

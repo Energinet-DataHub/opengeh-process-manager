@@ -109,20 +109,19 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         DurableClient = DurableTaskManager.CreateClient(TaskHubName);
 
         // Create a shared Process Manager topic with subscriptions for both Orchestrations and Process Manager apps.
-        var processManagerTopicResourceBuilder = OrchestrationsAppManager.ProcessManagerTopicResources
-                .BuildProcessManagerTopic(ServiceBusResourceProvider);
+        var processManagerTopicResourceBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
         OrchestrationsAppManager.ProcessManagerTopicResources.AddOrchestrationsAppSubscriptions(processManagerTopicResourceBuilder);
-        ProcessManagerAppManager.ProcessManagerTopicResources.AddProcessManagerAppSubscriptions(processManagerTopicResourceBuilder);
+        ProcessManagerAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicResourceBuilder);
         var processManagerTopicResource = await processManagerTopicResourceBuilder.CreateAsync();
 
         // Get resources from the created Process Manager topic for both Orchestrations and Process Manager apps.
         var orchestrationsProcessManagerTopicResources = OrchestrationsAppManager.ProcessManagerTopicResources
-            .GetProcessManagerTopicResources(processManagerTopicResource);
+            .CreateFromTopic(processManagerTopicResource);
         var processManagerAppProcessManagerTopicResources = ProcessManagerAppManager.ProcessManagerTopicResources
-            .GetProcessManagerTopicResources(processManagerTopicResource);
+            .CreateFromTopic(processManagerTopicResource);
 
         // Create EDI topic resources
-        var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.Create(ServiceBusResourceProvider);
+        var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.CreateNew(ServiceBusResourceProvider);
 
         await EnqueueBrs023027ServiceBusListener.AddTopicSubscriptionListenerAsync(
             ediTopicResources.EnqueueBrs023027Subscription.TopicName,

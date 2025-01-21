@@ -12,39 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Text.Json;
-using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
-using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1;
-using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
-using FluentAssertions.Execution;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Linq;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_028.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_026.V1;
 
 /// <summary>
 /// Test collection that verifies the Process Manager clients can be used to start a
 /// request calculated energy time series orchestration and monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(OrchestrationsAppCollection))]
-public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
+public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
     private readonly OrchestrationsAppFixture _fixture;
 
-    public RequestCalculatedWholesaleServicesTests(
+    public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
@@ -86,89 +79,32 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact]
-    public async Task RequestCalculatedWholesaleServices_WhenStarted_OrchestrationCompletesWithSuccess()
-    {
-        // Given
-        var businessReason = "WholesaleFixing";
-        var energySupplierNumber = "23143245321";
-        var startRequestCommand = new RequestCalculatedWholesaleServicesCommandV1(
-            new ActorIdentityDto(Guid.NewGuid()),
-            new RequestCalculatedWholesaleServicesInputV1(
-                RequestedForActorNumber: energySupplierNumber,
-                RequestedForActorRole: "EnergySupplier",
-                BusinessReason: businessReason,
-                PeriodStart: "2024-04-01 23:00:00",
-                PeriodEnd: "2024-04-30 23:00:00",
-                Resolution: null,
-                EnergySupplierNumber: energySupplierNumber,
-                ChargeOwnerNumber: null,
-                GridAreas: ["804"],
-                SettlementVersion: null,
-                ChargeTypes: null),
-            idempotencyKey: Guid.NewGuid().ToString());
-
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-
-        // When
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startRequestCommand, CancellationToken.None);
-
-        // Then
-        // => Orchestration is started
-        var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
-            createdTimeFrom: orchestrationCreatedAfter,
-            name: nameof(Orchestration_Brs_028_V1));
-        orchestration.Input.ToString().Should().Contain(businessReason);
-
-        // => Orchestration is waiting for notify event
-        // Using JToken instead of string, since there is a timing where the custom status is not set, so casting to string fails. TODO: Fix by looking at step status instead.
-        await _fixture.DurableClient.WaitForCustomStatusAsync<JToken>(
-            orchestration.InstanceId,
-            customStatus => customStatus.ToString() == Orchestration_Brs_028_V1.CustomStatus.WaitingForEnqueueActorMessages);
-
-        // => Send notify event
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent(
-                orchestration.InstanceId,
-                RequestCalculatedWholesaleServicesNotifyEventsV1.EnqueueActorMessagesCompleted),
-            CancellationToken.None);
-
-        // => Orchestration is completed (with success)
-        var completedOrchestration = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
-            orchestration.InstanceId);
-
-        using var assertionScope = new AssertionScope();
-        completedOrchestration.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
-        completedOrchestration.Output.ToString().Should().Contain("Success");
-    }
-
     /// <summary>
     /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
     /// </summary>
     [Fact]
-    public async Task RequestCalculatedWholesaleServices_WhenStarted_CanMonitorLifecycle()
+    public async Task RequestCalculatedEnergyTimeSeries_WhenStarted_CanMonitorLifecycle()
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         // Step 1: Start new orchestration instance
-        var businessReason = "WholesaleFixing";
+        var businessReason = "BalanceFixing";
         var energySupplierNumber = "23143245321";
-        var startRequestCommand = new RequestCalculatedWholesaleServicesCommandV1(
+        var startRequestCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
-            new RequestCalculatedWholesaleServicesInputV1(
+            new RequestCalculatedEnergyTimeSeriesInputV1(
                 RequestedForActorNumber: energySupplierNumber,
                 RequestedForActorRole: "EnergySupplier",
                 BusinessReason: businessReason,
-                PeriodStart: "2024-04-01 23:00:00",
-                PeriodEnd: "2024-04-30 23:00:00",
-                Resolution: null,
+                PeriodStart: "2024-04-07 23:00:00",
+                PeriodEnd: "2024-04-08 23:00:00",
                 EnergySupplierNumber: energySupplierNumber,
-                ChargeOwnerNumber: null,
+                BalanceResponsibleNumber: null,
                 GridAreas: ["804"],
-                SettlementVersion: null,
-                ChargeTypes: null),
+                MeteringPointType: null,
+                SettlementMethod: null,
+                SettlementVersion: null),
             idempotencyKey: Guid.NewGuid().ToString());
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
@@ -177,12 +113,12 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
 
         // Step 2: Query until waiting for EnqueueActorMessagesCompleted notify event
         var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
-            .TryWaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
+            .TryWaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
-                comparer: (oi) =>
+                (oi) =>
                 {
                     var enqueueActorMessagesStep = oi.Steps
-                        .Single(s => s.Sequence == Orchestration_Brs_028_V1.EnqueueActorMessagesStepSequence);
+                        .Single(s => s.Sequence == Orchestration_Brs_026_V1.EnqueueActorMessagesStepSequence);
 
                     return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
                 });
@@ -197,12 +133,12 @@ public class RequestCalculatedWholesaleServicesTests : IAsyncLifetime
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent(
                 OrchestrationInstanceId: orchestrationInstance.Id.ToString(),
-                EventName: RequestCalculatedWholesaleServicesNotifyEventsV1.EnqueueActorMessagesCompleted),
+                EventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
             CancellationToken.None);
 
         // Step 4: Query until terminated with succeeded
         var (isTerminated, _) = await processManagerClient
-            .TryWaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
+            .TryWaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 (oi) => oi is
                 {

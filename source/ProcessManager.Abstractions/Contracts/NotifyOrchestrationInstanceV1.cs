@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Text.Json;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
@@ -21,7 +22,7 @@ public partial class NotifyOrchestrationInstanceV1
     public const string MajorVersion = nameof(NotifyOrchestrationInstanceV1);
 
     public void SetData<TNotifyData>(TNotifyData data)
-        where TNotifyData : class?
+        where TNotifyData : class?, INotifyDataDto
     {
         ArgumentNullException.ThrowIfNull(data);
 

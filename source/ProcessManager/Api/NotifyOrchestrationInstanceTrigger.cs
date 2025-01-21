@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Dynamic;
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
@@ -22,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Azure.Functions.Worker;
+using Newtonsoft.Json.Linq;
 
 namespace Energinet.DataHub.ProcessManager.Api;
 
@@ -54,13 +56,13 @@ public class NotifyOrchestrationInstanceTrigger(
             eventData);
     }
 
-    private (string OrchestrationInstanceId, string EventName, object? EventData) HandleV1(ServiceBusReceivedMessage message)
+    private (string OrchestrationInstanceId, string EventName, ExpandoObject? EventData) HandleV1(ServiceBusReceivedMessage message)
     {
         var notifyOrchestrationInstanceV1 = message.ParseBody<NotifyOrchestrationInstanceV1>();
 
         var orchestrationInstanceId = notifyOrchestrationInstanceV1.OrchestrationInstanceId;
         var eventName = notifyOrchestrationInstanceV1.EventName;
-        var eventData = notifyOrchestrationInstanceV1.ParseData<object?>();
+        var eventData = notifyOrchestrationInstanceV1.ParseData<ExpandoObject>();
 
         return (orchestrationInstanceId, eventName, eventData);
     }

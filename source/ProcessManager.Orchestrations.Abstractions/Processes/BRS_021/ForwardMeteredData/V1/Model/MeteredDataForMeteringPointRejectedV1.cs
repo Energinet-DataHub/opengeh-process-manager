@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 public readonly record struct TimeInterval(DateTimeOffset Start, DateTimeOffset End);
 
 public sealed record MeteredDataForMeteringPointRejectedV1(
     string EventId,
-    string BusinessReason,
-    string ReceiverId,
-    string ReceiverRole,
+    BusinessReason BusinessReason,
+    MarketActorRecipient MarketActorRecipient,
     Guid ProcessId,
     Guid ExternalId,
     AcknowledgementV1 AcknowledgementV1);

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
@@ -88,10 +89,20 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
         bool hasReceivedExampleNotifyEvent;
         try
         {
-            var exampleNotifyEventData = await context.WaitForExternalEvent<ExampleNotifyEventDataV1>(
+            var notifyOrchestrationInstanceV1 = await context.WaitForExternalEvent<NotifyOrchestrationInstanceV1>(
                 eventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
                 timeout: exampleNotifyEventTimeout);
             hasReceivedExampleNotifyEvent = true;
+
+            var notifyData = notifyOrchestrationInstanceV1.ParseData<ExampleNotifyEventDataV1>()
+                 ?? throw new InvalidOperationException("NotifyOrchestrationInstanceV1 data was null.")
+                 {
+                     Data =
+                     {
+                         { nameof(notifyOrchestrationInstanceV1.EventName), notifyOrchestrationInstanceV1.EventName },
+                         { nameof(notifyOrchestrationInstanceV1.OrchestrationInstanceId), notifyOrchestrationInstanceV1.OrchestrationInstanceId },
+                     },
+                 };
 
             // Set custom state of the step instance, so we can assert it in tests.
             await context.CallActivityAsync(
@@ -99,7 +110,7 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
                 new SetStepCustomStateActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
                     instanceId,
                     WaitForExampleNotifyEventStepSequence,
-                    exampleNotifyEventData.Message),
+                    notifyData.Message),
                 _defaultRetryOptions);
         }
         catch (TaskCanceledException)

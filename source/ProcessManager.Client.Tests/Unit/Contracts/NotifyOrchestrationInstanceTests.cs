@@ -12,26 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Dynamic;
+using DurableTask.Core.Serializing;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using FluentAssertions;
 using Newtonsoft.Json;
-using Xunit.Abstractions;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Unit.Contracts;
 
 public class NotifyOrchestrationInstanceTests
 {
-    private readonly ITestOutputHelper _output;
-
-    public NotifyOrchestrationInstanceTests(ITestOutputHelper output)
-    {
-        _output = output;
-    }
-
     [Fact]
-    public void Given_ObjectContainsData_When_DeserializingToAbstractType_Then_DeserializedDataIsCorrect()
+    public void Given_ObjectContainsData_When_DeserializingToAbstractType_Then_DurableFunctionSerializerCanHandleData()
     {
         // Given object with data
         var notifyOrchestrationInstance = new NotifyOrchestrationInstanceV1
@@ -44,19 +36,21 @@ public class NotifyOrchestrationInstanceTests
         notifyOrchestrationInstance.SetData(expectedData);
 
         // When deserializing to abstract type
-        var test = JsonSerializer.Deserialize<ExpandoObject>(notifyOrchestrationInstance.Data.Data);
-        _output.WriteLine("Type of deserialized object: " + test?.GetType());
-        _output.WriteLine("Deserialized object: " + test);
-
-        var genericData = notifyOrchestrationInstance.ParseData<ExpandoObject>();
+        // => We must use Newtonsoft.Json JsonConverter to deserialize to abstract type, else the Durable Function
+        // JSON converter doesn't work :(.
+        var genericData = JsonConvert.DeserializeObject(notifyOrchestrationInstance.Data.Data);
         ArgumentNullException.ThrowIfNull(genericData);
 
-        // Then data is correct
-        Assert.Equal(((dynamic)genericData).Message.ToString(), expectedData.Message);
+        // Then Durable Function serializer can serialize and deserialize abstract data correctly
+        var durableFunctionJsonConverter = new JsonDataConverter();
 
-        var serializedAgain = JsonSerializer.Serialize(genericData);
-        serializedAgain.Should().Be(notifyOrchestrationInstance.Data.Data);
+        // => Serialize generic data to JSON string using Durable Function serializer
+        var serializedGenericData = durableFunctionJsonConverter.Serialize(genericData);
+
+        // => When the serialized data is deserialized it is equal to the expected data
+        var deserializedTestData = durableFunctionJsonConverter.Deserialize<TestData>(serializedGenericData);
+        deserializedTestData.Should().BeEquivalentTo(expectedData);
     }
 
-    private record TestData(string Message);
+    private record TestData(string Message) : INotifyDataDto;
 }

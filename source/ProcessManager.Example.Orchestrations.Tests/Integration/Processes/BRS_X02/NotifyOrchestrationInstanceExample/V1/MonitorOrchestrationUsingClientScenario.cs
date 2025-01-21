@@ -222,7 +222,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         isTerminated.Should().BeTrue("because the orchestration instance should complete within given wait time");
         succeededOrchestrationInstance.Should().NotBeNull();
 
-        // Assert that custom status is the expected notify event data
+        // Assert that custom status is the expected notify event data (and not the ignored notify event)
         succeededOrchestrationInstance!.Steps.Should()
             .HaveCount(1)
             .And.ContainSingle(s => s.CustomState == expectedEventDataMessage)

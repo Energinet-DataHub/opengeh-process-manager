@@ -89,20 +89,10 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
         bool hasReceivedExampleNotifyEvent;
         try
         {
-            var notifyOrchestrationInstanceV1 = await context.WaitForExternalEvent<NotifyOrchestrationInstanceV1>(
+            var notifyData = await context.WaitForExternalEvent<ExampleNotifyEventDataV1>(
                 eventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
                 timeout: exampleNotifyEventTimeout);
             hasReceivedExampleNotifyEvent = true;
-
-            var notifyData = notifyOrchestrationInstanceV1.ParseData<ExampleNotifyEventDataV1>()
-                 ?? throw new InvalidOperationException("NotifyOrchestrationInstanceV1 data was null.")
-                 {
-                     Data =
-                     {
-                         { nameof(notifyOrchestrationInstanceV1.EventName), notifyOrchestrationInstanceV1.EventName },
-                         { nameof(notifyOrchestrationInstanceV1.OrchestrationInstanceId), notifyOrchestrationInstanceV1.OrchestrationInstanceId },
-                     },
-                 };
 
             // Set custom state of the step instance, so we can assert it in tests.
             await context.CallActivityAsync(

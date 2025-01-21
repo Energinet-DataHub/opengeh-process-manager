@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.24.0
+
+- Add `INotifyDataDto` type constraint to `NotifyOrchestrationInstanceV1`
+
 ## Version 0.23.0
 
 - Added `IdempotencyKey` to all orchestration instance DTO types:

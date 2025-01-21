@@ -109,7 +109,7 @@ internal class Orchestration_Brs_X03_V1
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId)
     {
-        var waitTimeout = TimeSpan.FromMinutes(1);
+        var waitTimeout = TimeSpan.FromMinutes(2);
 
         bool hasReceivedActorMessagesEnqueuedEvent;
         try

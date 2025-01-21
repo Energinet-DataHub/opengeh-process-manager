@@ -88,7 +88,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     }
 
     /// <summary>
-    /// Tests / shows that we can send a notify event using the <see cref="IProcessManagerMessageClient"/>.
+    /// Tests that we can send a notify event using the <see cref="IProcessManagerMessageClient"/>.
     /// </summary>
     [Fact]
     public async Task NotifyOrchestrationInstanceExample_WhenStarted_CanReceiveExampleNotifyEventWithData()
@@ -122,7 +122,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         isWaitingForNotify.Should().BeTrue("because the orchestration instance should wait for an ExampleNotifyEvent");
         orchestrationInstanceWaitingForEvent.Should().NotBeNull();
 
-        // Step 3: Send EnqueueActorMessagesCompleted event
+        // Step 3: Send ExampleNotifyEvent event
         var expectedEventDataMessage = "This is a notification data example";
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
@@ -151,5 +151,81 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         succeededOrchestrationInstance!.Steps.Should()
             .HaveCount(1)
             .And.ContainSingle(s => s.CustomState == expectedEventDataMessage);
+    }
+
+    /// <summary>
+    /// Tests that when receiving multiple notify events, only the first one is used (idempotency).
+    /// </summary>
+    [Fact]
+    public async Task NotifyOrchestrationInstanceExample_WhenReceivedMultipleNotifyEvents_OnlyFirstNotifyEventIsUsed()
+    {
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        // Step 1: Start new orchestration instance
+        var startRequestCommand = new StartNotifyOrchestrationInstanceExampleCommandV1(
+            new ActorIdentityDto(Guid.NewGuid()),
+            new NotifyOrchestrationInstanceExampleInputV1(
+                InputString: "input-string"),
+            IdempotencyKey: Guid.NewGuid().ToString());
+
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+            startRequestCommand,
+            CancellationToken.None);
+
+        // Step 2: Query until waiting for ExampleNotifyEvent
+        var (isWaitingForNotify, orchestrationInstanceWaitingForEvent) = await processManagerClient
+            .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
+                idempotencyKey: startRequestCommand.IdempotencyKey,
+                comparer: (oi) =>
+                {
+                    var enqueueActorMessagesStep = oi.Steps
+                        .Single(s => s.Sequence == Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleNotifyEventStepSequence);
+
+                    return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
+                });
+
+        isWaitingForNotify.Should().BeTrue("because the orchestration instance should wait for an ExampleNotifyEvent");
+        orchestrationInstanceWaitingForEvent.Should().NotBeNull();
+
+        // Step 3a: Send first ExampleNotifyEvent event
+        var expectedEventDataMessage = "The expected data message";
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
+                OrchestrationInstanceId: orchestrationInstanceWaitingForEvent!.Id.ToString(),
+                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
+                Data: new ExampleNotifyEventDataV1(expectedEventDataMessage)),
+            CancellationToken.None);
+
+        // Step 3b: Send another ExampleNotifyEvent event
+        var ignoredEventDataMessage = "An incorrect data message";
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
+                OrchestrationInstanceId: orchestrationInstanceWaitingForEvent.Id.ToString(),
+                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
+                Data: new ExampleNotifyEventDataV1(ignoredEventDataMessage)),
+            CancellationToken.None);
+
+        // Step 4: Query until terminated with succeeded
+        var (isTerminated, succeededOrchestrationInstance) = await processManagerClient
+            .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
+                idempotencyKey: startRequestCommand.IdempotencyKey,
+                (oi) => oi is
+                {
+                    Lifecycle:
+                    {
+                        State: OrchestrationInstanceLifecycleState.Terminated,
+                        TerminationState: OrchestrationInstanceTerminationState.Succeeded,
+                    },
+                });
+
+        isTerminated.Should().BeTrue("because the orchestration instance should complete within given wait time");
+        succeededOrchestrationInstance.Should().NotBeNull();
+
+        // Assert that custom status is the expected notify event data
+        succeededOrchestrationInstance!.Steps.Should()
+            .HaveCount(1)
+            .And.ContainSingle(s => s.CustomState == expectedEventDataMessage)
+            .And.NotContain(s => s.CustomState == ignoredEventDataMessage);
     }
 }

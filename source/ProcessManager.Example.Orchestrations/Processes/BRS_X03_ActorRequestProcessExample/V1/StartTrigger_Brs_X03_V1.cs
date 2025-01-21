@@ -32,7 +32,7 @@ internal class StartTrigger_Brs_X03_V1(
     public async Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.BrsX02SubscriptionName)}%",
+            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.BrsX03SubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {

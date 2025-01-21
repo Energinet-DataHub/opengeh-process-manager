@@ -15,78 +15,47 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
+using Azure.ResourceManager.Resources;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
-using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
+using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Example.Consumer.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Options;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
-/// Support testing Example Orchestrations app and specifying configuration using inheritance.
+/// Support running Example Consumer app and specifying configuration using inheritance.
 /// This allows us to use multiple fixtures and coordinate their configuration.
 /// </summary>
-public class ExampleOrchestrationsAppManager : IAsyncDisposable
+public class ExampleConsumerAppManager : IAsyncDisposable
 {
-    /// <summary>
-    /// Durable Functions Task Hub Name
-    /// See naming constraints: https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-task-hubs?tabs=csharp#task-hub-names
-    /// </summary>
-    private readonly string _taskHubName;
-
     private readonly int _appPort;
-    private readonly bool _manageDatabase;
-    private readonly bool _manageAzurite;
 
-    public ExampleOrchestrationsAppManager()
+    public ExampleConsumerAppManager()
         : this(
-            new ProcessManagerDatabaseManager("ExampleOrchestrationsTest"),
             new IntegrationTestConfiguration(),
-            new AzuriteManager(useOAuth: true),
-            taskHubName: "ExampleOrchestrationsTest01",
-            appPort: 8003,
-            manageDatabase: true,
-            manageAzurite: true)
+            appPort: 8003)
     {
     }
 
-    public ExampleOrchestrationsAppManager(
-        ProcessManagerDatabaseManager databaseManager,
+    public ExampleConsumerAppManager(
         IntegrationTestConfiguration configuration,
-        AzuriteManager azuriteManager,
-        string taskHubName,
-        int appPort,
-        bool manageDatabase,
-        bool manageAzurite)
+        int appPort)
     {
-        _taskHubName = string.IsNullOrWhiteSpace(taskHubName)
-            ? throw new ArgumentException("Cannot be null or whitespace.", nameof(taskHubName))
-            : taskHubName;
         _appPort = appPort;
-        _manageDatabase = manageDatabase;
-        _manageAzurite = manageAzurite;
-
-        DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();
 
         IntegrationTestConfiguration = configuration;
-        AzuriteManager = azuriteManager;
         ServiceBusResourceProvider = new ServiceBusResourceProvider(
             TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
     }
-
-    public ProcessManagerDatabaseManager DatabaseManager { get; }
 
     public ITestDiagnosticsLogger TestLogger { get; }
 
@@ -95,8 +64,6 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
 
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
-    private AzuriteManager AzuriteManager { get; }
-
     private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     /// <summary>
@@ -104,27 +71,24 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     /// <param name="processManagerTopicResources">Process Manager topic resources used by the app. Will be created if not provided.</param>
     /// <param name="ediTopicResources">EDI topic resources used by the app. Will be created if not provided.</param>
+    /// <param name="processManagerApiUrl">Base URL of the Process Manager general API.</param>
+    /// <param name="orchestrationsApiUrl">Base URL of the Orchestrations API.</param>
     public async Task StartAsync(
         ProcessManagerTopicResources? processManagerTopicResources,
-        EdiTopicResources? ediTopicResources)
+        EdiTopicResources? ediTopicResources,
+        string processManagerApiUrl,
+        string orchestrationsApiUrl)
     {
-        if (_manageAzurite)
-        {
-            AzuriteManager.CleanupAzuriteStorage();
-            AzuriteManager.StartAzurite();
-        }
-
-        if (_manageDatabase)
-            await DatabaseManager.CreateDatabaseAsync();
-
         processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
-            "ProcessManager.Example.Orchestrations",
+            "ProcessManager.Example.Consumer",
             processManagerTopicResources,
-            ediTopicResources);
+            ediTopicResources,
+            processManagerApiUrl,
+            orchestrationsApiUrl);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -134,13 +98,6 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         AppHostManager.Dispose();
-
-        if (_manageAzurite)
-            AzuriteManager.Dispose();
-
-        if (_manageDatabase)
-            await DatabaseManager.DeleteDatabaseAsync();
-
         await ServiceBusResourceProvider.DisposeAsync();
     }
 
@@ -194,7 +151,9 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
         ProcessManagerTopicResources processManagerTopicResources,
-        EdiTopicResources ediTopicResources)
+        EdiTopicResources ediTopicResources,
+        string processManagerGeneralApiBaseUrl,
+        string orchestrationApiBaseUrl)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -214,55 +173,35 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             "AZURE_LOG_LEVEL",
             "warning");
         appHostSettings.ProcessEnvironmentVariables.Add(
-            "AzureWebJobsStorage",
-            AzuriteManager.FullConnectionString);
-        appHostSettings.ProcessEnvironmentVariables.Add(
             "APPLICATIONINSIGHTS_CONNECTION_STRING",
             IntegrationTestConfiguration.ApplicationInsightsConnectionString);
-        // Make Orchestrator poll for updates every second (default is every 30 seconds) by overriding maxQueuePollingInterval
-        // (ref: https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-bindings?tabs=python-v2%2Cisolated-process%2C2x-durable-functions&pivots=programming-language-csharp#hostjson-settings)
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            "AzureFunctionsJobHost__extensions__durableTask__storageProvider__maxQueuePollingInterval",
-            "00:00:01");
 
         // ProcessManager
-        // => Task Hub
+        // => Process Manager HTTP client
         appHostSettings.ProcessEnvironmentVariables.Add(
-            nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString),
-            AzuriteManager.FullConnectionString);
+            $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}",
+            processManagerGeneralApiBaseUrl);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName),
-            _taskHubName);
-        // => Database
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
-            DatabaseManager.ConnectionString);
+            $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}",
+            orchestrationApiBaseUrl);
 
         // => Process Manager topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.TopicName)}",
+            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.TopicName)}",
             processManagerTopicResources.ProcessManagerTopic.Name);
-
-        // => Process Manager topic subscriptions
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.BrsX02SubscriptionName)}",
-            processManagerTopicResources.BrsX02Subscription.SubscriptionName);
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.BrsX03SubscriptionName)}",
-            processManagerTopicResources.BrsX03Subscription.SubscriptionName);
 
         // => Edi topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
             ediTopicResources.EdiTopic.Name);
 
-        // => BRS-X02
+        // => Enqueue BRS-X03
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.SectionName}__{nameof(OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleNotifyEventTimeout)}",
-            TimeSpan.FromMinutes(10).ToString());
+            $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.EnqueueBrsX03SubscriptionName)}",
+            ediTopicResources.EnqueueBrsX03Subscription.SubscriptionName);
 
         return appHostSettings;
     }
@@ -271,17 +210,11 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     /// Process Manager topic and subscription resources used by the Example Orchestrations app.
     /// </summary>
     public record ProcessManagerTopicResources(
-        TopicResource ProcessManagerTopic,
-        SubscriptionProperties BrsX02Subscription,
-        SubscriptionProperties BrsX03Subscription)
+        TopicResource ProcessManagerTopic)
     {
-        private const string BrsX02SubscriptionName = "brs-x02-subscription";
-        private const string BrsX03SubscriptionName = "brs-x03-subscription";
-
         public static async Task<ProcessManagerTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
-            AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
 
             var processManagerTopic = await processManagerTopicBuilder.CreateAsync();
 
@@ -289,39 +222,12 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         }
 
         /// <summary>
-        /// Add the subscriptions used by the Example Orchestrations app to the topic builder.
-        /// </summary>
-        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
-        {
-            builder
-                .AddSubscription(BrsX02SubscriptionName)
-                    .AddSubjectFilter(Brs_X02_NotifyOrchestrationInstanceExample.Name);
-
-            builder
-                .AddSubscription(BrsX03SubscriptionName)
-                    .AddSubjectFilter(Brs_X03.Name);
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Get the <see cref="ExampleOrchestrationsAppManager.ProcessManagerTopicResources"/> used by the Orchestrations app.
-        /// <remarks>
-        /// This requires the Example Orchestrations app subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
-        /// </remarks>
+        /// Get the <see cref="ExampleConsumerAppManager.ProcessManagerTopicResources"/> used by the Orchestrations app.
         /// </summary>
         public static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
         {
-            var brsX02Subscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(BrsX02SubscriptionName));
-
-            var brsX03Subscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(BrsX03SubscriptionName));
-
             return new ProcessManagerTopicResources(
-                ProcessManagerTopic: topic,
-                BrsX02Subscription: brsX02Subscription,
-                BrsX03Subscription: brsX03Subscription);
+                ProcessManagerTopic: topic);
         }
     }
 
@@ -329,24 +235,46 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     /// EDI topic and subscription resources used by the Example Orchestrations app.
     /// </summary>
     public record EdiTopicResources(
-        TopicResource EdiTopic)
+        TopicResource EdiTopic,
+        SubscriptionProperties EnqueueBrsX03Subscription)
     {
+        private const string EnqueueBrsX03SubscriptionName = $"enqueue-brs-x03-subscription";
+
         public static async Task<EdiTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var ediTopicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
-
+            AddSubscriptionsToTopicBuilder(ediTopicBuilder);
             var ediTopic = await ediTopicBuilder.CreateAsync();
 
             return CreateFromTopic(ediTopic);
         }
 
         /// <summary>
-        /// Get the <see cref="ExampleOrchestrationsAppManager.EdiTopicResources"/> used by the Orchestrations app.
+        /// Add the subscriptions used by the Example Consumer app to the topic builder.
+        /// </summary>
+        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
+        {
+            builder
+                .AddSubscription(EnqueueBrsX03SubscriptionName)
+                    .AddSubjectFilter($"Enqueue_{Brs_X03.Name.ToLower()}");
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Get the <see cref="ExampleConsumerAppManager.EdiTopicResources"/> used by the Orchestrations app.
+        /// <remarks>
+        /// The required subscriptions must be added to the topic by calling <see cref="AddSubscriptionsToTopicBuilder"/>.
+        /// </remarks>
         /// </summary>
         public static EdiTopicResources CreateFromTopic(TopicResource topic)
         {
+            var enqueueBrsX03Subscription = topic.Subscriptions
+                .Single(s => s.SubscriptionName == EnqueueBrsX03SubscriptionName);
+
             return new EdiTopicResources(
-                EdiTopic: topic);
+                EdiTopic: topic,
+                EnqueueBrsX03Subscription: enqueueBrsX03Subscription);
         }
     }
 }

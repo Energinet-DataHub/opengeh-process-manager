@@ -57,6 +57,10 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
             manageDatabase: false,
             manageAzurite: false);
 
+        ExampleConsumerAppManager = new ExampleConsumerAppManager(
+            IntegrationTestConfiguration,
+            appPort: 8303);
+
         DurableTaskManager = new DurableTaskManager(
             "AzuriteConnectionString",
             AzuriteManager.FullConnectionString);
@@ -73,11 +77,16 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
     public ProcessManagerAppManager ProcessManagerAppManager { get; }
 
+    public ExampleConsumerAppManager ExampleConsumerAppManager { get; }
+
     [NotNull]
     public IDurableClient? DurableClient { get; private set; }
 
     [NotNull]
     public TopicResource? ProcessManagerTopic { get; private set; }
+
+    [NotNull]
+    public TopicResource? EdiTopic { get; private set; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -97,15 +106,24 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         var processManagerTopicBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
         ExampleOrchestrationsAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
         ProcessManagerAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
-
         ProcessManagerTopic = await processManagerTopicBuilder.CreateAsync();
+
+        var ediTopicBuilder = ServiceBusResourceProvider.BuildTopic("edi-topic");
+        ExampleConsumerAppManager.EdiTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
+        EdiTopic = await ediTopicBuilder.CreateAsync();
 
         await ExampleOrchestrationsAppManager.StartAsync(
             ExampleOrchestrationsAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic),
-            ediTopicResources: null);
+            ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(EdiTopic));
 
         await ProcessManagerAppManager.StartAsync(
             ProcessManagerAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic));
+
+        await ExampleConsumerAppManager.StartAsync(
+            ExampleConsumerAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic),
+            ExampleConsumerAppManager.EdiTopicResources.CreateFromTopic(EdiTopic),
+            processManagerApiUrl: ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri,
+            orchestrationsApiUrl: ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri);
 
         // Create durable client when TaskHub has been created
         DurableClient = DurableTaskManager.CreateClient(taskHubName: TaskHubName);
@@ -113,6 +131,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
+        await ExampleConsumerAppManager.DisposeAsync();
         await ExampleOrchestrationsAppManager.DisposeAsync();
         await ProcessManagerAppManager.DisposeAsync();
         await DurableTaskManager.DisposeAsync();
@@ -126,5 +145,6 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
     {
         ExampleOrchestrationsAppManager.SetTestOutputHelper(testOutputHelper);
         ProcessManagerAppManager.SetTestOutputHelper(testOutputHelper);
+        ExampleConsumerAppManager.SetTestOutputHelper(testOutputHelper);
     }
 }

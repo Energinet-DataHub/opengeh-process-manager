@@ -28,7 +28,6 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 internal class Orchestration_Brs_X03_V1
 {
     internal const int EnqueueActorMessagesStep = 1;
-    internal const int WaitForActorMessagesEnqueuedEventStep = 1;
 
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_X03.V1;
 
@@ -48,13 +47,13 @@ internal class Orchestration_Brs_X03_V1
         // Initialize
         var instanceId = await InitializeOrchestrationAsync(context);
 
-        // Step 1: Enqueue actor messages
+        // Step 1a: Enqueue actor messages
         await EnqueueActorMessages(
             context,
             instanceId,
             input);
 
-        // Step 2: Wait for actor messages enqueued event
+        // Step 1b: Wait for actor messages enqueued event
         var hasReceivedActorMessagesEnqueuedEvent = await WaitForActorMessagesEnqueuedEventAsync(
             context,
             instanceId);
@@ -103,14 +102,6 @@ internal class Orchestration_Brs_X03_V1
                 input.BusinessReason),
             _defaultRetryOptions);
 
-        await context.CallActivityAsync(
-            nameof(TransitionStepToTerminatedActivity_V1),
-            new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                instanceId,
-                EnqueueActorMessagesStep,
-                OrchestrationStepTerminationState.Succeeded),
-            _defaultRetryOptions);
-
         await Task.CompletedTask;
     }
 
@@ -118,13 +109,6 @@ internal class Orchestration_Brs_X03_V1
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId)
     {
-        await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_V1),
-            new TransitionStepToRunningActivity_V1.ActivityInput(
-                instanceId,
-                WaitForActorMessagesEnqueuedEventStep),
-            _defaultRetryOptions);
-
         var waitTimeout = TimeSpan.FromMinutes(1);
 
         bool hasReceivedActorMessagesEnqueuedEvent;
@@ -154,7 +138,7 @@ internal class Orchestration_Brs_X03_V1
             nameof(TransitionStepToTerminatedActivity_V1),
             new TransitionStepToTerminatedActivity_V1.ActivityInput(
                 instanceId,
-                WaitForActorMessagesEnqueuedEventStep,
+                EnqueueActorMessagesStep,
                 waitForActorMessagesEnqueuedEventTerminationState),
             _defaultRetryOptions);
 

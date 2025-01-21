@@ -35,8 +35,14 @@ public class ProcessManagerTopicOptions
     public string TopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription for BRSX02 to the ProcessManager Service Bus topic
+    /// Name of the subscription for BRS-X02 to the ProcessManager Service Bus topic
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string BrsX02SubscriptionName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name of the subscription for BRS-X03 to the ProcessManager Service Bus topic
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string BrsX03SubscriptionName { get; set; } = string.Empty;
 }

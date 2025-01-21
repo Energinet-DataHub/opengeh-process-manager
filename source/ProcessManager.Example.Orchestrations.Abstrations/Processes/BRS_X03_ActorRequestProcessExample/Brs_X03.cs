@@ -18,7 +18,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 
 public static class Brs_X03
 {
-    public const string Name = "BRS_X03";
+    public const string Name = "Brs_X03";
 
     public static OrchestrationDescriptionUniqueNameDto V1 => new(Name, 1);
 }

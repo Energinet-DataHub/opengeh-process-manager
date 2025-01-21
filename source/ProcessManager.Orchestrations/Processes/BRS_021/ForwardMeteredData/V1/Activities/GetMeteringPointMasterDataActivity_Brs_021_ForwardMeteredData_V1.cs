@@ -15,9 +15,12 @@
 using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
+using MeteringPointType = Energinet.DataHub.ElectricityMarket.Integration.MeteringPointType;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
@@ -65,73 +68,10 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
             new Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointId(arg.Identification.Value),
             new Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode(arg.GridAreaCode.Value),
             new Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ActorNumber(arg.GridAccessProvider.Value),
-            MapConnectionState(arg.ConnectionState),
-            Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType.FromName(nameof(arg.Type)),
-            MapSubType(arg.SubType),
-            MapUnit(arg.Unit));
-    }
-
-    private static MeasurementUnit MapUnit(MeasureUnit measureUnit)
-    {
-        switch (measureUnit)
-        {
-            case MeasureUnit.Ampere:
-                return MeasurementUnit.Ampere;
-            case MeasureUnit.STK:
-                return MeasurementUnit.Pieces;
-            case MeasureUnit.kVArh:
-                return MeasurementUnit.KiloVoltAmpereReactiveHour;
-            case MeasureUnit.kWh:
-                return MeasurementUnit.KilowattHour;
-            case MeasureUnit.kW:
-                return MeasurementUnit.Kilowatt;
-            case MeasureUnit.MW:
-                return MeasurementUnit.Megawatt;
-            case MeasureUnit.MWh:
-                return MeasurementUnit.MegawattHour;
-            case MeasureUnit.Tonne:
-                return MeasurementUnit.MetricTon;
-            case MeasureUnit.MVAr:
-                return MeasurementUnit.MegaVoltAmpereReactivePower;
-            case MeasureUnit.DanishTariffCode:
-                return MeasurementUnit.DanishTariffCode;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(measureUnit), measureUnit, null);
-        }
-    }
-
-    private static Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType MapSubType(MeteringPointSubType meteringPointSubType)
-    {
-        switch (meteringPointSubType)
-        {
-            case MeteringPointSubType.Physical:
-                return Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType.Physical;
-            case MeteringPointSubType.Virtual:
-                return Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType.Virtual;
-            case MeteringPointSubType.Calculated:
-                return Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType.Calculated;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(meteringPointSubType), meteringPointSubType, null);
-        }
-    }
-
-    private static Model.ConnectionState MapConnectionState(ConnectionState connectionState)
-    {
-        switch (connectionState)
-        {
-            case ConnectionState.NotUsed:
-                return Model.ConnectionState.NotUsed;
-            case ConnectionState.ClosedDown:
-                return Model.ConnectionState.ClosedDown;
-            case ConnectionState.New:
-                return Model.ConnectionState.New;
-            case ConnectionState.Connected:
-                return Model.ConnectionState.Connected;
-            case ConnectionState.Disconnected:
-                return Model.ConnectionState.Disconnected;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(connectionState), connectionState, null);
-        }
+            MeteringPointMasterDataMapper.ConnectionStateMap.Map(arg.ConnectionState),
+            MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(arg.Type),
+            MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(arg.SubType),
+            MeteringPointMasterDataMapper.MeasureUnitMap.Map(arg.Unit));
     }
 
     public sealed record ActivityInput(string? MeteringPointIdentification, string StartDateTime, string? EndDateTime);

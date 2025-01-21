@@ -21,9 +21,9 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1;
 
 internal class StartTrigger_Brs_X03_V1(
-    StartNotifyOrchestrationInstanceExampleHandlerV1 handler)
+    StartActorRequestProcessExampleHandlerV1 handler)
 {
-    private readonly StartNotifyOrchestrationInstanceExampleHandlerV1 _handler = handler;
+    private readonly StartActorRequestProcessExampleHandlerV1 _handler = handler;
 
     /// <summary>
     /// Start a BRS-028 request.

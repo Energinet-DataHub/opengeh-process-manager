@@ -136,9 +136,13 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
     {
         var startDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.StartDateTime);
         var endDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.EndDateTime);
+
+        if (activityInput.MeteringPointMasterData.ParentIdentification == null)
+            return new List<MeteringPointEnergySupplier>();
+
         return await _electricityMarketViews
             .GetMeteringPointEnergySuppliersAsync(
-                activityInput.MeteringPointMasterData.ParentIdentification!,
+                activityInput.MeteringPointMasterData.ParentIdentification,
                 new Interval(startDateTime.Value, endDateTime.Value))
             .ToListAsync()
             .ConfigureAwait(false);
@@ -149,6 +153,7 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
     {
         var startDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.StartDateTime);
         var endDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.EndDateTime);
+
         return await _electricityMarketViews
             .GetMeteringPointEnergySuppliersAsync(
                 activityInput.MeteringPointMasterData.Identification!,

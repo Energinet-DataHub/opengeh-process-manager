@@ -104,7 +104,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             new FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
 
-        // Step: Enqueueing
+        // Step: Enqueueing // TODO: Skip if no receivers found
         await context.CallActivityAsync(
             nameof(EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1),
             new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(

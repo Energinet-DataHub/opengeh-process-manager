@@ -35,6 +35,13 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
+    /// <summary>
+    /// Responsible for finding the unique receivers based on the metering point type.
+    /// </summary>
+    /// <returns>
+    /// Returns a ActivityOutput with read-only list of MarketActorRecipients.
+    /// Returns empty list if no receivers are found.
+    /// </returns>
     [Function(nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput activityInput)

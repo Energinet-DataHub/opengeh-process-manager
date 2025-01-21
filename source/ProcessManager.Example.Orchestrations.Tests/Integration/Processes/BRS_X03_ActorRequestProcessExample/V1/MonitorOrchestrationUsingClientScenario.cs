@@ -80,9 +80,15 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
     /// <summary>
     /// Tests that we can send a notify event using the <see cref="IProcessManagerMessageClient"/>.
+    /// The test performs the following orchestration, by running both an Orchestrations app and a Consumer app:
+    /// 1. Start BRX-X03 (ActorRequestProcessExample) from consumer app.
+    /// 2. Receive start orchestration service bus message and start the orchestration in Orchestrations app.
+    /// 3. Send EnqueueActorMessages event from orchestration to the Consumer app, and wait for ActorMessagesEnqueued notify.
+    /// 4. Receive EnqueueActorMessages event in Consumer app, and send ActorMessagesEnqueued notify event back.
+    /// 5. Terminate orchestration (with TerminationState=Succeeded) in Orchestrations app, if ActorMessagesEnqueued event is received before timeout.
     /// </summary>
     [Fact]
-    public async Task Given_ActorRequestProcessExample_When_StartedByConsumer_Then_OrchestrationTerminatesSuccessfully()
+    public async Task Given_ActorRequestProcessExampleOrchestration_AndGiven_Consumer_When_StartedByConsumer_Then_OrchestrationTerminatesSuccessfully()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

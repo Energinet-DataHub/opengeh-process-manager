@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.15.1
+
+- Updated `MeteredDataForMeteringPointRejectedV1` to use DataHubTypes.
+
 ## Version 0.15.0
 
 - Removed `ProcessManager.Components` from `ProcessManager.Orchestrations.Abstractions` dependencies.

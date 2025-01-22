@@ -67,8 +67,8 @@ internal class Orchestration_Brs_023_027_V1
 
         // Step: Calculation
         await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_Brs_023_027_V1),
-            new TransitionStepToRunningActivity_Brs_023_027_V1.ActivityInput(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
                 instanceId,
                 CalculationStepSequence),
             _defaultRetryOptions);
@@ -149,8 +149,8 @@ internal class Orchestration_Brs_023_027_V1
         if (!executionContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStepSequence))
         {
             await context.CallActivityAsync(
-                nameof(TransitionStepToRunningActivity_Brs_023_027_V1),
-                new TransitionStepToRunningActivity_Brs_023_027_V1.ActivityInput(
+                nameof(TransitionStepToRunningActivity_V1),
+                new TransitionStepToRunningActivity_V1.ActivityInput(
                     instanceId,
                     EnqueueActorMessagesStepSequence),
                 _defaultRetryOptions);

@@ -124,12 +124,12 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: "Orchestration_Brs_023_027_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_023_027_V1"),
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "CalculationStepStartJobActivity_Brs_023_027_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "CalculationStepGetJobRunStatusActivity_Brs_023_027_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_023_027_V1"),
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "EnqueueActorMessagesActivity_Brs_023_027_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_023_027_V1"),
 

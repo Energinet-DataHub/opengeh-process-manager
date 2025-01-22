@@ -23,7 +23,9 @@ public record MeteringPointMasterData(
     ConnectionState ConnectionState,
     MeteringPointType MeteringPointType,
     MeteringPointSubType MeteringPointSubType,
-    MeasurementUnit MeasurementUnit);
+    MeasurementUnit MeasurementUnit,
+    MeteringPointId? ParentMeteringPointId,
+    IReadOnlyCollection<ActorNumber> NeighborGridAreaOwners);
 
 public record MeteringPointId(string Value);
 

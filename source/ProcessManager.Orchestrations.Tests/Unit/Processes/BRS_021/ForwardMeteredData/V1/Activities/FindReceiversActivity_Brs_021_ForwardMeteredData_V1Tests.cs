@@ -17,12 +17,19 @@ using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using FluentAssertions;
 using Moq;
 using NodaTime;
 using NodaTime.Text;
+using ActorNumber = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ActorNumber;
 using ActorRole = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.ActorRole;
+using ConnectionState = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ConnectionState;
+using GridAreaCode = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode;
+using MeteringPointMasterData = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData;
+using MeteringPointSubType = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.Activities;
@@ -64,8 +71,8 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
         var startDate = InstantPattern.General.Parse("2025-01-01T00:00:00Z").Value;
         var endDate = InstantPattern.General.Parse("2025-01-02T00:00:00Z").Value;
 
-        var electricityMarketMeteringPointMasterData =
-            MockElectricityMarketMeteringPointMasterDataToReturnActorId(
+        var meteringPointMasterData =
+            SetupMeteringPointMasterData(
                 expectedEnergySupplier.ActorId,
                 startDate,
                 endDate);
@@ -77,7 +84,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 meteringPointType.Code,
                 startDate.ToString(),
                 endDate.ToString(),
-                electricityMarketMeteringPointMasterData));
+                meteringPointMasterData));
 
         // Assert
         result.MarketActorRecipients.Should().HaveCount(2);
@@ -102,8 +109,8 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
         var startDate = InstantPattern.General.Parse("2025-01-01T00:00:00Z").Value;
         var endDate = InstantPattern.General.Parse("2025-01-02T00:00:00Z").Value;
 
-        var electricityMarketMeteringPointMasterData =
-            MockElectricityMarketMeteringPointMasterDataToReturnActorId(
+        var meteringPointMasterData =
+            SetupMeteringPointMasterData(
                 expectedEnergySupplier.ActorId,
                 startDate,
                 endDate);
@@ -115,7 +122,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 meteringPointType.Code,
                 startDate.ToString(),
                 endDate.ToString(),
-                electricityMarketMeteringPointMasterData));
+                meteringPointMasterData));
 
         // Assert
         result.MarketActorRecipients.Should().HaveCount(2);
@@ -139,8 +146,8 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
         var startDate = InstantPattern.General.Parse("2025-01-01T00:00:00Z").Value;
         var endDate = InstantPattern.General.Parse("2025-01-02T00:00:00Z").Value;
 
-        var electricityMarketMeteringPointMasterData =
-            MockElectricityMarketMeteringPointMasterDataToReturnActorId(
+        var meteringPointMasterData =
+            SetupMeteringPointMasterData(
                 "5798000020050",
                 startDate,
                 endDate,
@@ -153,7 +160,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 meteringPointType.Code,
                 startDate.ToString(),
                 endDate.ToString(),
-                electricityMarketMeteringPointMasterData));
+                meteringPointMasterData));
 
         // Assert
         result.MarketActorRecipients.Should().HaveCount(1);
@@ -167,8 +174,6 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
     public async Task FindReceiversActivity_WhenMeteringPointTypeIsVeProduction_ReturnsExpectedReceivers()
     {
         // Arrange
-        var expectedParentEnergySupplier = (ActorId: "5798000020000", ActorRole: ActorRole.EnergySupplier);
-        var expectedDanishEnergyAgency = (ActorId: "5798000020016", ActorRole: ActorRole.DanishEnergyAgency);
         var expectedSystemOperatorAgency = (ActorId: "5790000432752", ActorRole: ActorRole.SystemOperator);
 
         var meteringPointType = MeteringPointType.VeProduction;
@@ -177,11 +182,10 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
         var childEnergySupplier = (ActorId: "6798000020100", ActorRole: ActorRole.EnergySupplier);
 
         var electricityMarketChildMeteringPointMasterData =
-            MockElectricityMarketMeteringPointMasterDataToReturnActorId(
+            SetupMeteringPointMasterData(
                 energySupplierId: childEnergySupplier.ActorId,
                 startDate: startDate,
-                endDate: endDate,
-                parentEnergySupplierId: expectedParentEnergySupplier.ActorId);
+                endDate: endDate);
 
         // Act
         var result = await Sut.Run(
@@ -193,15 +197,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
                 electricityMarketChildMeteringPointMasterData));
 
         // Assert
-        result.MarketActorRecipients.Should().HaveCount(3);
-        result.MarketActorRecipients.Should()
-            .ContainSingle(
-                x => x.ActorId == expectedParentEnergySupplier.ActorId
-                     && x.ActorRole == expectedParentEnergySupplier.ActorRole);
-        result.MarketActorRecipients.Should()
-            .ContainSingle(
-                x => x.ActorId == expectedDanishEnergyAgency.ActorId
-                     && x.ActorRole == expectedDanishEnergyAgency.ActorRole);
+        result.MarketActorRecipients.Should().HaveCount(1);
         result.MarketActorRecipients.Should()
             .ContainSingle(
                 x => x.ActorId == expectedSystemOperatorAgency.ActorId
@@ -238,7 +234,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
         var childEnergySupplier = (ActorId: "6798000020100", ActorRole: ActorRole.EnergySupplier);
 
         var electricityMarketChildMeteringPointMasterData =
-            MockElectricityMarketMeteringPointMasterDataToReturnActorId(
+            SetupMeteringPointMasterData(
                 energySupplierId: childEnergySupplier.ActorId,
                 startDate: startDate,
                 endDate: endDate,
@@ -271,7 +267,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
         var energySupplier = (ActorId: "6798000020100", ActorRole: ActorRole.EnergySupplier);
 
         var electricityMarketChildMeteringPointMasterData =
-            MockElectricityMarketMeteringPointMasterDataToReturnActorId(
+            SetupMeteringPointMasterData(
                 energySupplierId: energySupplier.ActorId,
                 startDate: startDate,
                 endDate: endDate);
@@ -304,7 +300,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
         var endDate = InstantPattern.General.Parse("2025-01-02T00:00:00Z").Value;
 
         var electricityMarketChildMeteringPointMasterData =
-            MockElectricityMarketMeteringPointMasterDataToReturnActorId(
+            SetupMeteringPointMasterData(
                 energySupplierId: expectedEnergySupplier.ActorId,
                 startDate: startDate,
                 endDate: endDate);
@@ -360,126 +356,53 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
         }
     }
 
-    private MeteringPointMasterData MockElectricityMarketMeteringPointMasterDataToReturnActorId2(
+    private MeteringPointMasterData SetupMeteringPointMasterData(
         string energySupplierId,
         Instant startDate,
         Instant endDate,
         string? neighborGridAreaOwnerActorId = null,
         string? parentEnergySupplierId = null)
     {
-        var electricityMarketMeteringPointMasterData = new MeteringPointMasterData();
-        var electricityMarketMeteringPointEnergySupplier = new MeteringPointEnergySupplier();
-        var electricityMarketActorNumberMock = new Mock<ActorNumber>(energySupplierId);
-        // Reflection is used to set the private property of sealed MeteringPointEnergySupplier
-        var energySupplierProperty = typeof(MeteringPointEnergySupplier).GetProperty(
-            "EnergySupplier",
-            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-        energySupplierProperty!.SetValue(
-            electricityMarketMeteringPointEnergySupplier,
-            electricityMarketActorNumberMock.Object);
-
-        if (neighborGridAreaOwnerActorId is not null)
-        {
-            var neighborGridAreaOwnerActorNumberMock = new Mock<ActorNumber>(neighborGridAreaOwnerActorId);
-
-            // Use reflection to set the internal property
-            var neighborGridAreaOwnersProperty = typeof(MeteringPointMasterData).GetProperty(
-                "NeighborGridAreaOwners",
-                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-
-            neighborGridAreaOwnersProperty!.SetValue(
-                electricityMarketMeteringPointMasterData,
-                new List<ActorNumber>() { neighborGridAreaOwnerActorNumberMock.Object, });
-        }
-
-        ElectricityMarketViewsMock
-            .Setup(
-                x => x.GetMeteringPointEnergySuppliersAsync(
-                    electricityMarketMeteringPointMasterData.Identification,
-                    new Interval(startDate, endDate)))
-            .Returns(
-                new List<MeteringPointEnergySupplier> { electricityMarketMeteringPointEnergySupplier }
-                    .ToAsyncEnumerable());
-
-        if (parentEnergySupplierId is not null)
-        {
-            var electricityMarketMeteringPointParentEnergySupplier = new MeteringPointEnergySupplier();
-            var electricityMarketParentEnergySupplierActorNumberMock = new Mock<ActorNumber>(parentEnergySupplierId);
-            // Reflection is used to set the private property of sealed MeteringPointEnergySupplier
-            var parentEnergySupplierProperty = typeof(MeteringPointEnergySupplier).GetProperty(
-                "EnergySupplier",
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            parentEnergySupplierProperty!.SetValue(
-                electricityMarketMeteringPointParentEnergySupplier,
-                electricityMarketParentEnergySupplierActorNumberMock.Object);
-
-            var parentIdentification = typeof(MeteringPointMasterData).GetProperty(
-                "ParentIdentification",
-                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-            parentIdentification!.SetValue(
-                electricityMarketMeteringPointMasterData,
-                new MeteringPointIdentification("Parent-id"));
-
-            ElectricityMarketViewsMock
-                .Setup(
-                    x => x.GetMeteringPointEnergySuppliersAsync(
-                        electricityMarketMeteringPointMasterData.ParentIdentification!,
-                        new Interval(startDate, endDate)))
-                .Returns(
-                    new List<MeteringPointEnergySupplier> { electricityMarketMeteringPointParentEnergySupplier }
-                        .ToAsyncEnumerable());
-        }
-
-        return electricityMarketMeteringPointMasterData;
-    }
-
-    private MeteringPointMasterData MockElectricityMarketMeteringPointMasterDataToReturnActorId(
-        string energySupplierId,
-        Instant startDate,
-        Instant endDate,
-        string? neighborGridAreaOwnerActorId = null,
-        string? parentEnergySupplierId = null)
-    {
-        var electricityMarketMeteringPointMasterData = new MeteringPointMasterData();
-        SetProperty(electricityMarketMeteringPointMasterData, "Identification", new MeteringPointIdentification("StubId"));
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId("StubId"),
+            GridAreaCode: new GridAreaCode("StubGridAreaCode"),
+            GridAccessProvider: new ActorNumber("StubGridAccessProvider"),
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: MeteringPointType.Production,
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            MeasurementUnit: MeasurementUnit.Kilowatt,
+            ParentMeteringPointId: parentEnergySupplierId == null ? null : new MeteringPointId("Parent_StubId"),
+            NeighborGridAreaOwners: neighborGridAreaOwnerActorId == null ? new List<ActorNumber>() : new List<ActorNumber> { new(neighborGridAreaOwnerActorId) });
 
         var electricityMarketMeteringPointEnergySupplier = new MeteringPointEnergySupplier();
-        var electricityMarketActorNumberMock = new Mock<ActorNumber>(energySupplierId);
+        var electricityMarketActorNumberMock = new Mock<Energinet.DataHub.ElectricityMarket.Integration.ActorNumber>(energySupplierId);
         SetProperty(electricityMarketMeteringPointEnergySupplier, "EnergySupplier", electricityMarketActorNumberMock.Object);
 
         ElectricityMarketViewsMock
             .Setup(
                 x => x.GetMeteringPointEnergySuppliersAsync(
-                    electricityMarketMeteringPointMasterData.Identification,
+                    new MeteringPointIdentification(meteringPointMasterData.MeteringPointId.Value),
                     new Interval(startDate, endDate)))
             .Returns(
                 new List<MeteringPointEnergySupplier> { electricityMarketMeteringPointEnergySupplier }
                     .ToAsyncEnumerable());
 
-        if (neighborGridAreaOwnerActorId is not null)
-        {
-            var neighborGridAreaOwnerActorNumberMock = new Mock<ActorNumber>(neighborGridAreaOwnerActorId);
-            SetProperty(electricityMarketMeteringPointMasterData, "NeighborGridAreaOwners", new List<ActorNumber>() { neighborGridAreaOwnerActorNumberMock.Object });
-        }
-
         if (parentEnergySupplierId is not null)
         {
             var electricityMarketMeteringPointParentEnergySupplier = new MeteringPointEnergySupplier();
-            var electricityMarketParentEnergySupplierActorNumberMock = new Mock<ActorNumber>(parentEnergySupplierId);
+            var electricityMarketParentEnergySupplierActorNumberMock = new Mock<Energinet.DataHub.ElectricityMarket.Integration.ActorNumber>(parentEnergySupplierId);
             SetProperty(electricityMarketMeteringPointParentEnergySupplier, "EnergySupplier", electricityMarketParentEnergySupplierActorNumberMock.Object);
-
-            SetProperty(electricityMarketMeteringPointMasterData, "ParentIdentification", new MeteringPointIdentification("Parent_StubId"));
 
             ElectricityMarketViewsMock
                 .Setup(
                     x => x.GetMeteringPointEnergySuppliersAsync(
-                        electricityMarketMeteringPointMasterData.ParentIdentification!,
+                        new MeteringPointIdentification(meteringPointMasterData.ParentMeteringPointId!.Value),
                         new Interval(startDate, endDate)))
                 .Returns(
                     new List<MeteringPointEnergySupplier> { electricityMarketMeteringPointParentEnergySupplier }
                         .ToAsyncEnumerable());
         }
 
-        return electricityMarketMeteringPointMasterData;
+        return meteringPointMasterData;
     }
 }

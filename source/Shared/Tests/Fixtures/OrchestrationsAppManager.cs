@@ -156,8 +156,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         var eventHubResource = await EventHubResourceProvider.BuildEventHub(_eventHubName).CreateAsync();
         EventHubName = eventHubResource.Name;
 
-        processManagerTopicResources ??= await ProcessManagerTopicResources.Create(ServiceBusResourceProvider);
-        ediTopicResources ??= await EdiTopicResources.Create(ServiceBusResourceProvider);
+        processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
+        ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
@@ -398,22 +398,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
         private const string Brs026SubscriptionName = "brs-026-subscription";
         private const string Brs028SubscriptionName = "brs-028-subscription";
 
-        public static async Task<ProcessManagerTopicResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
+        public static async Task<ProcessManagerTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
         {
-            var processManagerTopicBuilder = BuildProcessManagerTopic(serviceBusResourceProvider);
+            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
             AddOrchestrationsAppSubscriptions(processManagerTopicBuilder);
 
             var processManagerTopic = await processManagerTopicBuilder.CreateAsync();
 
-            return GetProcessManagerTopicResources(processManagerTopic);
-        }
-
-        /// <summary>
-        /// Start building a Process Manager topic.
-        /// </summary>
-        public static TopicResourceBuilder BuildProcessManagerTopic(ServiceBusResourceProvider provider)
-        {
-            return provider.BuildTopic("pm-topic");
+            return CreateFromTopic(processManagerTopic);
         }
 
         /// <summary>
@@ -440,7 +432,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddOrchestrationsAppSubscriptions"/>.
         /// </remarks>
         /// </summary>
-        public static ProcessManagerTopicResources GetProcessManagerTopicResources(TopicResource topic)
+        public static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
         {
             var brs021ForwardMeteredDataSubscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs021ForwardMeteredDataSubscriptionName));
@@ -472,28 +464,20 @@ public class OrchestrationsAppManager : IAsyncDisposable
     {
         private const string EnqueueBrs023027SubscriptionName = "enqueue-brs-023-027-subscription";
 
-        public static async Task<EdiTopicResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
+        public static async Task<EdiTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
         {
-            var ediTopicBuilder = BuildEdiTopic(serviceBusResourceProvider);
-            AddEdiSubscriptions(ediTopicBuilder);
+            var ediTopicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
+            AddSubscriptionsToTopicBuilder(ediTopicBuilder);
 
             var ediTopic = await ediTopicBuilder.CreateAsync();
 
-            return GetEdiTopicResources(ediTopic);
-        }
-
-        /// <summary>
-        /// Start building a EDI topic.
-        /// </summary>
-        public static TopicResourceBuilder BuildEdiTopic(ServiceBusResourceProvider provider)
-        {
-            return provider.BuildTopic("edi-topic");
+            return CreateFromTopic(ediTopic);
         }
 
         /// <summary>
         /// Add EDI subscriptions to the EDI topic.
         /// </summary>
-        public static TopicResourceBuilder AddEdiSubscriptions(TopicResourceBuilder builder)
+        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
                 .AddSubscription(EnqueueBrs023027SubscriptionName)
@@ -505,10 +489,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// <summary>
         /// Get the <see cref="OrchestrationsAppManager.EdiTopicResources"/> used by the Orchestrations app.
         /// <remarks>
-        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddEdiSubscriptions"/>.
+        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
         /// </remarks>
         /// </summary>
-        public static EdiTopicResources GetEdiTopicResources(TopicResource topic)
+        public static EdiTopicResources CreateFromTopic(TopicResource topic)
         {
             var enqueueBrs023027Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(EnqueueBrs023027SubscriptionName));

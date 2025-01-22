@@ -29,7 +29,7 @@ on:
         description: Cache key prefix
         required: false
         type: string
-        default: nuget-pr${{ github.event.pull_request.number }}
+        default: nuget-${{ github.ref }}
 
 jobs:
   build_artifact:
@@ -37,7 +37,6 @@ jobs:
     runs-on: ubuntu-24.04  # Build on pinned version of ubuntu
     env:
       RELEASE_FOLDER_PATH: ${{ github.workspace }}/output
-      RELEASE_VERSION: ${{ inputs.release_name }}_${{ github.event.pull_request.number }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,29 +46,39 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ inputs.nuget_cache_key_prefix }}-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
 
+      - name: Find associated pull request
+        uses: Energinet-DataHub/.github/.github/actions/find-related-pr-number@v14
+        id: find_pull_request
+
       - name: Build ${{ inputs.release_name }}
         run: |
           dotnet publish \
             '${{ inputs.project_file }}' \
             --configuration Release \
-            -p:SourceRevisionId=PR_${{ github.event.number }}+SHA_${{ github.sha }} \
+            -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
             --output '${{ env.RELEASE_FOLDER_PATH }}'
 
+      - name: Get release strings
+        uses: Energinet-Datahub/.github/.github/actions/github-get-releaseversion-strings@v14
+        id: get_release_version
+        with:
+          release_name_prefix: ${{ inputs.release_name }}
+
       - name: Zip files for prerelease
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request'  || github.event_name == 'merge_group' }}
         uses: thedoctor0/zip-release@0.6.2
         with:
           type: zip
-          filename: ${{ env.RELEASE_VERSION }}.zip
+          filename: ${{ steps.get_release_version.outputs.release_zip_filename }}
           directory: ${{ env.RELEASE_FOLDER_PATH }}
 
       - name: Create pre-release
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
         uses: Energinet-Datahub/.github/.github/actions/github-create-release@v14
         with:
           repo_token: ${{ github.token }}
-          automatic_release_tag: ${{ env.RELEASE_VERSION }}
+          automatic_release_tag: ${{ steps.get_release_version.outputs.release_version }}
           prerelease: true
-          title: ${{ env.RELEASE_VERSION }}
+          title: ${{ steps.get_release_version.outputs.release_version }}
           files: |
-            ${{ env.RELEASE_FOLDER_PATH }}/${{ env.RELEASE_VERSION }}.zip
+            ${{ env.RELEASE_FOLDER_PATH }}/${{ steps.get_release_version.outputs.release_zip_filename }}

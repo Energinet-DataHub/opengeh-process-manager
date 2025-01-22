@@ -43,8 +43,6 @@ internal class Orchestration_Brs_026_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        context.SetCustomStatus(CustomStatus.OrchestrationInstanceStarted);
-
         var input = context.GetOrchestrationParameterValue<RequestCalculatedEnergyTimeSeriesInputV1>();
 
         var (instanceId, options) = await InitializeOrchestrationAsync(context);
@@ -84,7 +82,6 @@ internal class Orchestration_Brs_026_V1
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input)
     {
-        context.SetCustomStatus(CustomStatus.PerformingAsyncValidation);
         var validationResult = await context.CallActivityAsync<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput>(
             nameof(PerformAsyncValidationActivity_Brs_026_V1),
             new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
@@ -103,10 +100,6 @@ internal class Orchestration_Brs_026_V1
                 asyncValidationTerminationState),
             _defaultRetryOptions);
 
-        context.SetCustomStatus(validationResult.IsValid
-            ? CustomStatus.AsyncValidationSuccess
-            : CustomStatus.AsyncValidationFailed);
-
         return validationResult;
     }
 
@@ -116,13 +109,15 @@ internal class Orchestration_Brs_026_V1
         RequestCalculatedEnergyTimeSeriesInputV1 input,
         PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput validationResult)
     {
+        var idempotencyKey = context.NewGuid();
         if (validationResult.IsValid)
         {
             await context.CallActivityAsync(
                 nameof(EnqueueActorMessagesActivity_Brs_026_V1),
                 new EnqueueActorMessagesActivity_Brs_026_V1.ActivityInput(
                     instanceId,
-                    input),
+                    input,
+                    idempotencyKey),
                 _defaultRetryOptions);
         }
         else
@@ -133,7 +128,8 @@ internal class Orchestration_Brs_026_V1
                 nameof(EnqueueRejectMessageActivity_Brs_026_V1),
                 new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
                     instanceId,
-                    validationResult.ValidationError),
+                    validationResult.ValidationError,
+                    idempotencyKey),
                 _defaultRetryOptions);
         }
     }
@@ -149,7 +145,6 @@ internal class Orchestration_Brs_026_V1
         bool wasMessagesEnqueued;
         try
         {
-            context.SetCustomStatus(CustomStatus.WaitingForEnqueueActorMessages);
             await context.WaitForExternalEvent<int?>(
                 eventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted,
                 timeout: actorMessagesEnqueuedTimeout);
@@ -165,10 +160,6 @@ internal class Orchestration_Brs_026_V1
                 actorMessagesEnqueuedTimeout.ToString("g"));
             wasMessagesEnqueued = false;
         }
-
-        context.SetCustomStatus(wasMessagesEnqueued
-            ? CustomStatus.ActorMessagesEnqueued
-            : CustomStatus.TimeoutWaitingForEnqueueActorMessages);
 
         var enqueueActorMessagesTerminationState = wasMessagesEnqueued
             ? OrchestrationStepTerminationState.Succeeded
@@ -190,36 +181,19 @@ internal class Orchestration_Brs_026_V1
         RequestCalculatedEnergyTimeSeriesInputV1 input,
         bool wasMessagesEnqueued)
     {
-        if (!wasMessagesEnqueued)
-        {
-            await context.CallActivityAsync(
-                nameof(TerminateOrchestrationActivity_Brs_026_V1),
-                new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
-                    instanceId,
-                    OrchestrationInstanceTerminationState.Failed),
-                _defaultRetryOptions);
-
-            return "Error: Timeout while waiting for enqueue actor messages";
-        }
+        var orchestrationTerminationState = wasMessagesEnqueued
+            ? OrchestrationInstanceTerminationState.Succeeded
+            : OrchestrationInstanceTerminationState.Failed;
 
         await context.CallActivityAsync(
             nameof(TerminateOrchestrationActivity_Brs_026_V1),
             new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
                 instanceId,
-                OrchestrationInstanceTerminationState.Succeeded),
+                orchestrationTerminationState),
             _defaultRetryOptions);
 
-        return $"Success (BusinessReason={input.BusinessReason})";
-    }
-
-    public static class CustomStatus
-    {
-        public const string OrchestrationInstanceStarted = "OrchestrationInstanceStarted";
-        public const string PerformingAsyncValidation = "PerformingAsyncValidation";
-        public const string AsyncValidationSuccess = "AsyncValidationSuccess";
-        public const string AsyncValidationFailed = "AsyncValidationFailed";
-        public const string WaitingForEnqueueActorMessages = "WaitingForEnqueueActorMessages";
-        public const string ActorMessagesEnqueued = "ActorMessagesEnqueued";
-        public const string TimeoutWaitingForEnqueueActorMessages = "TimeoutWaitingForEnqueueActorMessages";
+        return wasMessagesEnqueued
+            ? $"Success (BusinessReason={input.BusinessReason})"
+            : "Error: Timeout while waiting for enqueue actor messages";
     }
 }

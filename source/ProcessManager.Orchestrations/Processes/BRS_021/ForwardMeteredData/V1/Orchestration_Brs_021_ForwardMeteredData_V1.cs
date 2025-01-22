@@ -105,11 +105,13 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             _defaultRetryOptions);
 
         // Step: Enqueueing // TODO: Skip if no receivers found
+        var idempotencyKey = context.NewGuid();
         await context.CallActivityAsync(
             nameof(EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1),
             new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                 instanceId,
                 input,
+                idempotencyKey,
                 findReceiversActivityOutput.MarketActorRecipients),
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("EDI_Notification");
@@ -151,11 +153,14 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                     errors),
                 _defaultRetryOptions);
 
+        var idempotencyKey = context.NewGuid();
+
         await context.CallActivityAsync(
             nameof(EnqueueRejectMessageActivity_Brs_021_V1),
             new EnqueueRejectMessageActivity_Brs_021_V1.ActivityInput(
                 instanceId,
-                rejectMessage.RejectMessage),
+                rejectMessage.RejectMessage,
+                idempotencyKey),
             _defaultRetryOptions);
 
         var messagesEnqueuedSuccessfully = await WaitForEnqueueActorMessagesResponseFromEdiAsync(context, instanceId);
@@ -196,7 +201,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     private async Task<IReadOnlyCollection<string>> PerformValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterData)
+        IReadOnlyCollection<Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData> meteringPointMasterData)
     {
         var errors = await context.CallActivityAsync<IReadOnlyCollection<string>>(
             nameof(PerformValidationActivity_Brs_021_ForwardMeteredData_V1),

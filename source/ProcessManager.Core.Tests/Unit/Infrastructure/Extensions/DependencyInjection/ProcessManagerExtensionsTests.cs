@@ -46,6 +46,7 @@ public class ProcessManagerExtensionsTests
         {
             typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.V1.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.OrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.OrchestrationDescriptionBuilder),
         };
 
         // Act
@@ -55,7 +56,7 @@ public class ProcessManagerExtensionsTests
         using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
 
-        var actualBuilders = serviceProvider.GetServices<IOrchestrationDescriptionBuilder>();
+        var actualBuilders = serviceProvider.GetServices<IOrchestrationDescriptionBuilder>().ToList();
         actualBuilders.Select(x => x.GetType())
             .Should().Contain(expectedBuilderTypes, "because all expected builder types should have been found");
 

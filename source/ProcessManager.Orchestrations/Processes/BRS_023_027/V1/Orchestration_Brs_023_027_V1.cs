@@ -22,6 +22,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.A
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
@@ -131,8 +132,8 @@ internal class Orchestration_Brs_023_027_V1
                             OrchestrationStepTerminationState.Failed),
                         _defaultRetryOptions);
                     await context.CallActivityAsync(
-                        nameof(OrchestrationTerminateActivity_Brs_023_027_V1),
-                        new OrchestrationTerminateActivity_Brs_023_027_V1.ActivityInput(
+                        nameof(TransitionOrchestrationToTerminatedActivity_V1),
+                        new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                             instanceId,
                             OrchestrationInstanceTerminationState.Failed),
                         _defaultRetryOptions);
@@ -176,8 +177,8 @@ internal class Orchestration_Brs_023_027_V1
 
         // Terminate
         await context.CallActivityAsync(
-            nameof(OrchestrationTerminateActivity_Brs_023_027_V1),
-            new OrchestrationTerminateActivity_Brs_023_027_V1.ActivityInput(
+            nameof(TransitionOrchestrationToTerminatedActivity_V1),
+            new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 OrchestrationInstanceTerminationState.Succeeded),
             _defaultRetryOptions);

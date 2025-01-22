@@ -133,7 +133,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "EnqueueActorMessagesActivity_Brs_023_027_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_023_027_V1"),
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationTerminateActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
             new OrchestrationHistoryItem("ExecutionCompleted"),
         ]);
 

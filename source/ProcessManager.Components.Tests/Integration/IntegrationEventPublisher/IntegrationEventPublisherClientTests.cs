@@ -63,7 +63,7 @@ public class IntegrationEventPublisherClientTests
 
         var content = await actualResponse.Content.ReadAsStringAsync();
         content.Should().StartWith("{\"status\":\"Healthy\"");
-        content.Should().Contain("Integration Event topics");
+        content.Should().Contain("Integration Event topic");
     }
 
     [Fact]

@@ -158,11 +158,14 @@ internal class Orchestration_Brs_023_027_V1
                 CalculationId: executionContext.CalculationId,
                 CalculationType: orchestrationInput.CalculationType);
 
+            var idempotencyKey = Guid.NewGuid();
+
             await context.CallActivityAsync(
                 nameof(EnqueueActorMessagesActivity_Brs_023_027_V1),
                 new EnqueueActorMessagesActivity_Brs_023_027_V1.ActivityInput(
                     instanceId,
-                    calculationData),
+                    calculationData,
+                    idempotencyKey),
                 _defaultRetryOptions);
 
             await context.CallActivityAsync(

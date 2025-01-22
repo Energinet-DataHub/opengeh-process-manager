@@ -89,6 +89,14 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             _defaultRetryOptions);
 
         // Step: Find Receiver
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_Brs_021_ForwardMeteredData_V1),
+            new TransitionStepToRunningActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                instanceId,
+                FindReceiverStep),
+            _defaultRetryOptions);
+
+        // Find Receivers
         var findReceiversActivityOutput =
         await context.CallActivityAsync<FindReceiversActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
             nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1),
@@ -99,9 +107,14 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                 input.EndDateTime!,
                 meteringPointMasterData.MeteringPointMasterData.First()),
             _defaultRetryOptions);
+
+        // Terminate Step: Find Receiver
         await context.CallActivityAsync(
-            nameof(FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            new FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+            nameof(TransitionStepToTerminatedActivity_Brs_021_ForwardMeteredData_V1),
+            new TransitionStepToTerminatedActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                instanceId,
+                FindReceiverStep,
+                OrchestrationStepTerminationState.Succeeded),
             _defaultRetryOptions);
 
         // Step: Enqueueing // TODO: Skip if no receivers found

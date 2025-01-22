@@ -19,29 +19,28 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1(
+internal class TransitionStepToTerminatedActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
+    : BRS_023_027.V1.Activities.ProgressActivityBase(
         clock,
         progressRepository)
 {
-    [Function(nameof(FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(TransitionStepToTerminatedActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
-        [ActivityTrigger] ActivityInput activityInput)
+        [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(activityInput.OrchestrationInstanceId)
+            .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        await CompleteStepAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.FindReceiverStep,
-                orchestrationInstance)
-            .ConfigureAwait(false);
-
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        var step = orchestrationInstance.Steps.Single(step => step.Sequence == input.StepSequence);
+        step.Lifecycle.TransitionToTerminated(Clock, input.TerminationState);
+        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
-    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
+    public record ActivityInput(
+        OrchestrationInstanceId InstanceId,
+        int StepSequence,
+        OrchestrationStepTerminationState TerminationState);
 }

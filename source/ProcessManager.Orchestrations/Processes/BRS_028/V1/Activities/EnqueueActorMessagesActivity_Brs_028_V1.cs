@@ -59,11 +59,12 @@ internal class EnqueueActorMessagesActivity_Brs_028_V1(
             Orchestration_Brs_028_V1.UniqueName,
             input.InstanceId.Value,
             enqueuedBy.ToDto(),
-            "enqueue-" + input.InstanceId.Value,
+            input.IdempotencyKey,
             acceptedData);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        RequestCalculatedWholesaleServicesInputV1 RequestInput);
+        RequestCalculatedWholesaleServicesInputV1 RequestInput,
+        Guid IdempotencyKey);
 }

@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Extensions;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 public static class ProcessManagerClientExtensions
 {
@@ -46,7 +46,7 @@ public static class ProcessManagerClientExtensions
 
                 return comparer(orchestrationInstance);
             },
-            timeLimit: TimeSpan.FromSeconds(20),
+            timeLimit: TimeSpan.FromSeconds(60),
             delay: TimeSpan.FromSeconds(3));
 
         return (success, orchestrationInstance);

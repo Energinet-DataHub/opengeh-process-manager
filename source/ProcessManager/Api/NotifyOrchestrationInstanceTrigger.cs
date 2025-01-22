@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
@@ -21,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Azure.Functions.Worker;
+using Newtonsoft.Json;
 
 namespace Energinet.DataHub.ProcessManager.Api;
 
@@ -59,7 +59,12 @@ public class NotifyOrchestrationInstanceTrigger(
 
         var orchestrationInstanceId = notifyOrchestrationInstanceV1.OrchestrationInstanceId;
         var eventName = notifyOrchestrationInstanceV1.EventName;
-        var eventData = notifyOrchestrationInstanceV1.ParseData<object?>();
+
+        // Durable function uses Newtonsoft.Json to serialize the object, so we must deserialize
+        // the notify data using Newtonsoft.Json as well, else serialization/deserialization of ExpandoObject doesn't work
+        object? eventData = null;
+        if (notifyOrchestrationInstanceV1.Data is not null)
+            eventData = JsonConvert.DeserializeObject(notifyOrchestrationInstanceV1.Data.Data);
 
         return (orchestrationInstanceId, eventName, eventData);
     }

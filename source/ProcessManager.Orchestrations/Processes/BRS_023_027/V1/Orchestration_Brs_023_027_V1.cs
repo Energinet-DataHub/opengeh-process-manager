@@ -165,12 +165,17 @@ internal class Orchestration_Brs_023_027_V1
                 CalculationId: executionContext.CalculationId,
                 CalculationType: orchestrationInput.CalculationType);
 
+            var idempotencyKey = context.NewGuid();
+
             await context.CallActivityAsync(
                 nameof(EnqueueActorMessagesActivity_Brs_023_027_V1),
                 new EnqueueActorMessagesActivity_Brs_023_027_V1.ActivityInput(
                     instanceId,
-                    calculationData),
+                    calculationData,
+                    idempotencyKey),
                 _defaultRetryOptions);
+
+            // TODO: Wait for actor messages enqueued notify event
 
             await context.CallActivityAsync(
                 nameof(TransitionStepToTerminatedActivity_V1),
@@ -180,6 +185,8 @@ internal class Orchestration_Brs_023_027_V1
                     OrchestrationStepTerminationState.Succeeded),
                 _defaultRetryOptions);
         }
+
+        // TODO: Publish CalculationCompleted integration event (should this also be published if enqueue messages is skipped?)
 
         // Terminate
         await context.CallActivityAsync(

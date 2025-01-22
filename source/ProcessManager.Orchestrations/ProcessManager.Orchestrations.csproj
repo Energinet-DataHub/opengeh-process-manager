@@ -43,6 +43,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
+    <Compile Include="..\Shared\Processes\Activities\TransitionOrchestrationToRunningActivity_V1.cs" Link="Processes\Shared\Activities\TransitionOrchestrationToRunningActivity_V1.cs" />
+    <Compile Include="..\Shared\Processes\Activities\TransitionOrchestrationToTerminatedActivity_V1.cs" Link="Processes\Shared\Activities\TransitionOrchestrationToTerminatedActivity_V1.cs" />
+    <Compile Include="..\Shared\Processes\Activities\TransitionStepToRunningActivity_V1.cs" Link="Processes\Shared\Activities\TransitionStepToRunningActivity_V1.cs" />
+    <Compile Include="..\Shared\Processes\Activities\TransitionStepToTerminatedActivity_V1.cs" Link="Processes\Shared\Activities\TransitionStepToTerminatedActivity_V1.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Components\DataHub\" />

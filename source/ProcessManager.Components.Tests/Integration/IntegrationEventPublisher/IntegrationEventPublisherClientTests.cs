@@ -24,12 +24,12 @@ using Xunit;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Integration.IntegrationEventPublisher;
 
-public class IntegrationEventPublisherExtensionsTests
+public class IntegrationEventPublisherClientTests
     : IClassFixture<IntegrationEventPublisherFixture>, IAsyncLifetime
 {
     private readonly IntegrationEventPublisherFixture _fixture;
 
-    public IntegrationEventPublisherExtensionsTests(IntegrationEventPublisherFixture fixture)
+    public IntegrationEventPublisherClientTests(IntegrationEventPublisherFixture fixture)
     {
         _fixture = fixture;
     }

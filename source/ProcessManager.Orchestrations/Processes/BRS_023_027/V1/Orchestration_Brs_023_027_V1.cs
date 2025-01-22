@@ -168,6 +168,8 @@ internal class Orchestration_Brs_023_027_V1
                     idempotencyKey),
                 _defaultRetryOptions);
 
+            // TODO: Wait for actor messages enqueued notify event
+
             await context.CallActivityAsync(
                 nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
                 new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
@@ -176,6 +178,8 @@ internal class Orchestration_Brs_023_027_V1
                     OrchestrationStepTerminationState.Succeeded),
                 _defaultRetryOptions);
         }
+
+        // TODO: Publish CalculationCompleted integration event (should this also be published if enqueue messages is skipped?)
 
         // Terminate
         await context.CallActivityAsync(

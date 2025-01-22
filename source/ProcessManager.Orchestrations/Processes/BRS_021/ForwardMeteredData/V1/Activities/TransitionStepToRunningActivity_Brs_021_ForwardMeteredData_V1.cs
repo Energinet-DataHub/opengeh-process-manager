@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -27,7 +26,7 @@ internal class TransitionStepToRunningActivity_Brs_021_ForwardMeteredData_V1(
         clock,
         progressRepository)
 {
-    [Function(nameof(TransitionStepToRunningActivity_Brs_023_027_V1))]
+    [Function(nameof(TransitionStepToRunningActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {

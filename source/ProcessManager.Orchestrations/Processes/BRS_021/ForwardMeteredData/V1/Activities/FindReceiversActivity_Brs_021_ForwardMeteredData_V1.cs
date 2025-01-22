@@ -48,44 +48,6 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
     public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput activityInput)
     {
-        var orchestrationInstance = await ProgressRepository
-            .GetAsync(activityInput.OrchestrationInstanceId)
-            .ConfigureAwait(false);
-
-        await TransitionStepToRunningAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.FindReceiverStep,
-                orchestrationInstance)
-            .ConfigureAwait(false);
-
-        var receivers = await FindUniqueReceiversAsync(activityInput).ConfigureAwait(false);
-
-        return new ActivityOutput(
-            MarketActorRecipients: receivers.AsReadOnly());
-    }
-
-    private static MarketActorRecipient NeighborGridAccessProviderReceiver(ActorNumber neighborGridAccessProviderId)
-    {
-        return new MarketActorRecipient(neighborGridAccessProviderId.Value, ActorRole.GridAccessProvider);
-    }
-
-    private static MarketActorRecipient TheDanishEnergyAgencyReceiver()
-    {
-        return new MarketActorRecipient(DataHubDetails.DanishEnergyAgencyNumber, ActorRole.DanishEnergyAgency);
-    }
-
-    private static MarketActorRecipient TheSystemOperatorReceiver()
-    {
-        return new MarketActorRecipient(DataHubDetails.SystemOperatorNumber, ActorRole.SystemOperator);
-    }
-
-    private static MarketActorRecipient EnergySupplierReceiver(Energinet.DataHub.ElectricityMarket.Integration.ActorNumber energySupplierId)
-    {
-        return new MarketActorRecipient(energySupplierId.Value, ActorRole.EnergySupplier);
-    }
-
-    private async Task<IList<MarketActorRecipient>> FindUniqueReceiversAsync(
-        ActivityInput activityInput)
-    {
         var receivers = new List<MarketActorRecipient>();
 
         var meteringPointType = MeteringPointType.FromCode(activityInput.MeteringPointType);
@@ -133,7 +95,28 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
             .Select(g => g.First())
             .ToList();
 
-        return distinctReceivers;
+        return new ActivityOutput(
+            MarketActorRecipients: distinctReceivers.AsReadOnly());
+    }
+
+    private static MarketActorRecipient NeighborGridAccessProviderReceiver(ActorNumber neighborGridAccessProviderId)
+    {
+        return new MarketActorRecipient(neighborGridAccessProviderId.Value, ActorRole.GridAccessProvider);
+    }
+
+    private static MarketActorRecipient TheDanishEnergyAgencyReceiver()
+    {
+        return new MarketActorRecipient(DataHubDetails.DanishEnergyAgencyNumber, ActorRole.DanishEnergyAgency);
+    }
+
+    private static MarketActorRecipient TheSystemOperatorReceiver()
+    {
+        return new MarketActorRecipient(DataHubDetails.SystemOperatorNumber, ActorRole.SystemOperator);
+    }
+
+    private static MarketActorRecipient EnergySupplierReceiver(Energinet.DataHub.ElectricityMarket.Integration.ActorNumber energySupplierId)
+    {
+        return new MarketActorRecipient(energySupplierId.Value, ActorRole.EnergySupplier);
     }
 
     private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySupplierFromParentMeteringPointAsync(

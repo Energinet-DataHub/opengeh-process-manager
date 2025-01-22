@@ -20,11 +20,11 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 
 public class TransitionStepToRunningActivity_V1(
-    IOrchestrationInstanceProgressRepository repository,
-    IClock clock)
+    IClock clock,
+    IOrchestrationInstanceProgressRepository repository)
 {
-    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly IClock _clock = clock;
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
 
     [Function(nameof(TransitionStepToRunningActivity_V1))]
     public async Task Run(

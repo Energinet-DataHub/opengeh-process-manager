@@ -37,7 +37,7 @@ public class EnqueueActorMessagesActivity_Brs_X03_V1(
             Orchestration_Brs_X03_V1.UniqueName,
             orchestrationInstance.Id.Value,
             orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
-            input.IdempotencyKey.ToString(),
+            input.IdempotencyKey,
             new ActorRequestProcessExampleEnqueueDataV1(
                 input.RequestedByActorNumber,
                 input.RequestedByActorRole,

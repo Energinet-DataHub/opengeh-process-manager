@@ -1,8 +1,12 @@
 # ProcessManager.Client Release Notes
 
-## Version 0.24.0
+## Version 0.25.0
 
 - Updated `EnqueueActorMessages`.
+
+## Version 0.24.0
+
+- Add `INotifyDataDto` type constraint to `NotifyOrchestrationInstanceV1`
 
 ## Version 0.23.0
 

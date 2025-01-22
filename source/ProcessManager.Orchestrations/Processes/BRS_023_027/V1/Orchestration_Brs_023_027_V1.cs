@@ -111,8 +111,8 @@ internal class Orchestration_Brs_023_027_V1
                 case JobRunStatus.Completed:
                     // Succeeded
                     await context.CallActivityAsync(
-                        nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
-                        new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
+                        nameof(TransitionStepToTerminatedActivity_V1),
+                        new TransitionStepToTerminatedActivity_V1.ActivityInput(
                             instanceId,
                             CalculationStepSequence,
                             OrchestrationStepTerminationState.Succeeded),
@@ -125,8 +125,8 @@ internal class Orchestration_Brs_023_027_V1
                 case JobRunStatus.Canceled:
                     // Failed
                     await context.CallActivityAsync(
-                        nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
-                        new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
+                        nameof(TransitionStepToTerminatedActivity_V1),
+                        new TransitionStepToTerminatedActivity_V1.ActivityInput(
                             instanceId,
                             CalculationStepSequence,
                             OrchestrationStepTerminationState.Failed),
@@ -167,8 +167,8 @@ internal class Orchestration_Brs_023_027_V1
                 _defaultRetryOptions);
 
             await context.CallActivityAsync(
-                nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
-                new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
+                nameof(TransitionStepToTerminatedActivity_V1),
+                new TransitionStepToTerminatedActivity_V1.ActivityInput(
                     instanceId,
                     EnqueueActorMessagesStepSequence,
                     OrchestrationStepTerminationState.Succeeded),

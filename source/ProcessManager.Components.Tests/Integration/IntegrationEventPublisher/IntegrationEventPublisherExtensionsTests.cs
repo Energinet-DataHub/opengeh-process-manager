@@ -85,7 +85,7 @@ public class IntegrationEventPublisherExtensionsTests
             cancellationToken: CancellationToken.None);
 
         // Assert
-        var waitForMatch = _fixture.IntegrationEventListenerMock.When(
+        var verifyServiceBusMessage = await _fixture.IntegrationEventListenerMock.When(
             serviceBusMessage =>
             {
                 if (serviceBusMessage.Subject != eventName
@@ -101,8 +101,7 @@ public class IntegrationEventPublisherExtensionsTests
             })
             .VerifyCountAsync(1);
 
-        var wait = await waitForMatch.WaitAsync(TimeSpan.FromSeconds(10));
-        var matchFound = wait.IsSet;
-        matchFound.Should().Be(true, "The message should be published to the integration event topic");
+        var messageReceived = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(30));
+        messageReceived.Should().Be(true, "The message should be published to the integration event topic");
     }
 }

@@ -144,7 +144,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         // When the monitor pattern is implemented this check should happen before the orchestration is completed.
         // Since we have to "mock" the response from EDI.
-        var verifyServiceBusMessage = Fixture.EnqueueBrs023027ServiceBusListener.When(
+        var verifyServiceBusMessage = await Fixture.EnqueueBrs023027ServiceBusListener.When(
                 msg =>
                 {
                     if (msg.Subject != $"Enqueue_{Abstractions.Processes.BRS_023_027.Brs_023_027.Name.ToLower()}")
@@ -162,9 +162,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 })
             .VerifyCountAsync(1);
 
-        var wait = await verifyServiceBusMessage.WaitAsync(TimeSpan.FromSeconds(20));
-        var messageFound = wait.IsSet;
-        messageFound.Should().BeTrue("We did not send the expected message on the ServiceBus");
+        var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(20));
+        messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
     }
 
     [Fact]

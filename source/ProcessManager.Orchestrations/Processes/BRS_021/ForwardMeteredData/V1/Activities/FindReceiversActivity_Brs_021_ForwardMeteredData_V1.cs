@@ -49,7 +49,7 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
         [ActivityTrigger] ActivityInput activityInput)
     {
         var orchestrationInstance = await ProgressRepository
-            .GetAsync(activityInput.InstanceId)
+            .GetAsync(activityInput.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
@@ -168,7 +168,7 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
     }
 
     public sealed record ActivityInput(
-        OrchestrationInstanceId InstanceId,
+        OrchestrationInstanceId OrchestrationInstanceId,
         string MeteringPointType,
         string StartDateTime,
         string EndDateTime,

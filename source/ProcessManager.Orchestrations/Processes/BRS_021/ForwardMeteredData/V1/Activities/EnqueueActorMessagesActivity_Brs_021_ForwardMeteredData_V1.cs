@@ -60,7 +60,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
                     Quality.FromCode(x.QuantityQuality!)))
             .ToList();
 
-        // TODO: This is a temporary solution to Electricity Market has refactored the Energinet.DataHub.ElectricityMarket.Integration nuget package
+        // TODO: This is a temporary solution until Electricity Market has refactored the Energinet.DataHub.ElectricityMarket.Integration nuget package
         var receiver = activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId.Contains("perf_test")
             ? new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)
             : new MarketActorRecipient("5790000282425", ActorRole.EnergySupplier);

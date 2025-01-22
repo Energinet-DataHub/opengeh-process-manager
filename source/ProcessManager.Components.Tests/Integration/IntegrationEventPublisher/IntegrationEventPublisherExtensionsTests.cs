@@ -15,15 +15,14 @@
 using System.Net;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
-using Energinet.DataHub.ProcessManager.Components.Tests.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Components.Tests.IntegrationEventPublisher.Contracts;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Energinet.DataHub.ProcessManager.Components.Tests.Integration.Diagnostics;
+namespace Energinet.DataHub.ProcessManager.Components.Tests.Integration.IntegrationEventPublisher;
 
 public class IntegrationEventPublisherExtensionsTests
     : IClassFixture<IntegrationEventPublisherFixture>

@@ -24,7 +24,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.Sha
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.Shared.BRS_026_028;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.Composite.BRS_026_028;
 
 internal class SearchActorRequestHandler(
     IOrchestrationInstanceQueries queries) :

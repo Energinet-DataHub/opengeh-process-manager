@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Activities;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
@@ -40,6 +41,12 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         // Initialize
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToRunningActivity_V1),
+            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
+                instanceId),
+            _defaultRetryOptions);
+
         var executionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
             nameof(OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1),
             new OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1.ActivityInput(
@@ -48,14 +55,14 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
 
         // First Step
         await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_Brs_X01_NoInputExample_V1),
-            new TransitionStepToRunningActivity_Brs_X01_NoInputExample_V1.ActivityInput(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
                 instanceId,
                 FirstStepSequence),
             _defaultRetryOptions);
         await context.CallActivityAsync(
-            nameof(TransitionStepToTerminatedActivity_Brs_X01_NoInputExample_V1),
-            new TransitionStepToTerminatedActivity_Brs_X01_NoInputExample_V1.ActivityInput(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 FirstStepSequence,
                 OrchestrationStepTerminationState.Succeeded),
@@ -65,14 +72,14 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
         if (!executionPlan.SkippedStepsBySequence.Contains(SkippableStepSequence))
         {
             await context.CallActivityAsync(
-                nameof(TransitionStepToRunningActivity_Brs_X01_NoInputExample_V1),
-                new TransitionStepToRunningActivity_Brs_X01_NoInputExample_V1.ActivityInput(
+                nameof(TransitionStepToRunningActivity_V1),
+                new TransitionStepToRunningActivity_V1.ActivityInput(
                     instanceId,
                     SkippableStepSequence),
                 _defaultRetryOptions);
             await context.CallActivityAsync(
-                nameof(TransitionStepToTerminatedActivity_Brs_X01_NoInputExample_V1),
-                new TransitionStepToTerminatedActivity_Brs_X01_NoInputExample_V1.ActivityInput(
+                nameof(TransitionStepToTerminatedActivity_V1),
+                new TransitionStepToTerminatedActivity_V1.ActivityInput(
                     instanceId,
                     SkippableStepSequence,
                     OrchestrationStepTerminationState.Succeeded),
@@ -81,8 +88,8 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
 
         // Terminate
         await context.CallActivityAsync(
-            nameof(OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1),
-            new OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1.ActivityInput(
+            nameof(TransitionOrchestrationToTerminatedActivity_V1),
+            new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 OrchestrationInstanceTerminationState.Succeeded),
             _defaultRetryOptions);

@@ -17,23 +17,20 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 
-internal class OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1(
+internal class TransitionOrchestrationToTerminatedActivity_V1(
     IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
+    IOrchestrationInstanceProgressRepository repository)
 {
     private readonly IClock _clock = clock;
-    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
 
-    [Function(nameof(OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1))]
+    [Function(nameof(TransitionOrchestrationToTerminatedActivity_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await ProgressRepository
+        var orchestrationInstance = await _repository
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
@@ -52,9 +49,7 @@ internal class OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1(
                 throw new ArgumentOutOfRangeException(nameof(input.TerminationState), input.TerminationState, "Invalid termination state");
         }
 
-        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+        await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
     public record ActivityInput(

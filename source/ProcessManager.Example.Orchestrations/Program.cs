@@ -20,7 +20,6 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInject
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
@@ -30,7 +29,7 @@ var host = new HostBuilder()
         var azureCredential = new DefaultAzureCredential();
 
         // Common
-        services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
+        services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Example");
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
 

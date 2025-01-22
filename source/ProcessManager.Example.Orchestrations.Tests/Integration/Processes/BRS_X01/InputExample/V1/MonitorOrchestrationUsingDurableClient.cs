@@ -105,12 +105,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         activities.Should().NotBeNull().And.Equal(
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_InputExample_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_X01_InputExample_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_X01_InputExample_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationTerminateActivity_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
             new OrchestrationHistoryItem("ExecutionCompleted"),
         ]);
 
@@ -157,10 +158,11 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         activities.Should().NotBeNull().And.Equal(
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_InputExample_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_X01_InputExample_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_X01_InputExample_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationTerminateActivity_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
             new OrchestrationHistoryItem("ExecutionCompleted"),
         ]);
 

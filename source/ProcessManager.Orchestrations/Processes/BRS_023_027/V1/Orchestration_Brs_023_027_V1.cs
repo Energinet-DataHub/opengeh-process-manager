@@ -22,6 +22,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.A
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
@@ -58,6 +59,12 @@ internal class Orchestration_Brs_023_027_V1
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         // Initialize
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToRunningActivity_V1),
+            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
+                instanceId),
+            _defaultRetryOptions);
+
         var executionContext = await context.CallActivityAsync<OrchestrationExecutionContext>(
             nameof(OrchestrationInitializeActivity_Brs_023_027_V1),
             new OrchestrationInitializeActivity_Brs_023_027_V1.ActivityInput(
@@ -66,8 +73,8 @@ internal class Orchestration_Brs_023_027_V1
 
         // Step: Calculation
         await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_Brs_023_027_V1),
-            new TransitionStepToRunningActivity_Brs_023_027_V1.ActivityInput(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
                 instanceId,
                 CalculationStepSequence),
             _defaultRetryOptions);
@@ -110,8 +117,8 @@ internal class Orchestration_Brs_023_027_V1
                 case JobRunStatus.Completed:
                     // Succeeded
                     await context.CallActivityAsync(
-                        nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
-                        new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
+                        nameof(TransitionStepToTerminatedActivity_V1),
+                        new TransitionStepToTerminatedActivity_V1.ActivityInput(
                             instanceId,
                             CalculationStepSequence,
                             OrchestrationStepTerminationState.Succeeded),
@@ -124,15 +131,15 @@ internal class Orchestration_Brs_023_027_V1
                 case JobRunStatus.Canceled:
                     // Failed
                     await context.CallActivityAsync(
-                        nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
-                        new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
+                        nameof(TransitionStepToTerminatedActivity_V1),
+                        new TransitionStepToTerminatedActivity_V1.ActivityInput(
                             instanceId,
                             CalculationStepSequence,
                             OrchestrationStepTerminationState.Failed),
                         _defaultRetryOptions);
                     await context.CallActivityAsync(
-                        nameof(OrchestrationTerminateActivity_Brs_023_027_V1),
-                        new OrchestrationTerminateActivity_Brs_023_027_V1.ActivityInput(
+                        nameof(TransitionOrchestrationToTerminatedActivity_V1),
+                        new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                             instanceId,
                             OrchestrationInstanceTerminationState.Failed),
                         _defaultRetryOptions);
@@ -148,8 +155,8 @@ internal class Orchestration_Brs_023_027_V1
         if (!executionContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStepSequence))
         {
             await context.CallActivityAsync(
-                nameof(TransitionStepToRunningActivity_Brs_023_027_V1),
-                new TransitionStepToRunningActivity_Brs_023_027_V1.ActivityInput(
+                nameof(TransitionStepToRunningActivity_V1),
+                new TransitionStepToRunningActivity_V1.ActivityInput(
                     instanceId,
                     EnqueueActorMessagesStepSequence),
                 _defaultRetryOptions);
@@ -171,8 +178,8 @@ internal class Orchestration_Brs_023_027_V1
             // TODO: Wait for actor messages enqueued notify event
 
             await context.CallActivityAsync(
-                nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1),
-                new TransitionStepToTerminatedActivity_Brs_023_027_V1.ActivityInput(
+                nameof(TransitionStepToTerminatedActivity_V1),
+                new TransitionStepToTerminatedActivity_V1.ActivityInput(
                     instanceId,
                     EnqueueActorMessagesStepSequence,
                     OrchestrationStepTerminationState.Succeeded),
@@ -183,8 +190,8 @@ internal class Orchestration_Brs_023_027_V1
 
         // Terminate
         await context.CallActivityAsync(
-            nameof(OrchestrationTerminateActivity_Brs_023_027_V1),
-            new OrchestrationTerminateActivity_Brs_023_027_V1.ActivityInput(
+            nameof(TransitionOrchestrationToTerminatedActivity_V1),
+            new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 OrchestrationInstanceTerminationState.Succeeded),
             _defaultRetryOptions);

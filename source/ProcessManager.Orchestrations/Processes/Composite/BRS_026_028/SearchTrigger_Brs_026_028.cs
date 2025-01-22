@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.Shared.BRS_026_028;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.Composite.BRS_026_028;
 
 internal class SearchTrigger_Brs_026_028(
     SearchActorRequestHandler handler)

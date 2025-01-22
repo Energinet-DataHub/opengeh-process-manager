@@ -17,7 +17,6 @@ using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
@@ -25,7 +24,7 @@ var host = new HostBuilder()
     .ConfigureServices((context, services) =>
     {
         // Common
-        services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
+        services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Example");
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
 

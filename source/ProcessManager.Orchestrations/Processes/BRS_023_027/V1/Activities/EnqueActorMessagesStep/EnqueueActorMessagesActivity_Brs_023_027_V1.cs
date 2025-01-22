@@ -21,17 +21,17 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
 
 internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
-    IOrchestrationInstanceProgressRepository progressRepository,
+    IOrchestrationInstanceProgressRepository repository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
-    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
     [Function(nameof(EnqueueActorMessagesActivity_Brs_023_027_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await _progressRepository
+        var orchestrationInstance = await _repository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 

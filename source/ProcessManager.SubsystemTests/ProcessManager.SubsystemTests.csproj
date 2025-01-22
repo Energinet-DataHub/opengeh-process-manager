@@ -43,4 +43,10 @@
     <Folder Include="Fixtures\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs">
+      <Link>FluentAssertionsVersionGuard.cs</Link>
+    </Compile>
+  </ItemGroup>
+
 </Project>

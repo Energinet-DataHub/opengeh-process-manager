@@ -22,17 +22,17 @@ using Microsoft.Extensions.Options;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
 
 internal class OrchestrationInitializeActivity_Brs_X01_InputExample_V1(
-    IOrchestrationInstanceProgressRepository progressRepository,
+    IOrchestrationInstanceProgressRepository repository,
     IOptions<OrchestrationOptions_Brs_X01_InputExample_V1> orchestrationOptions)
 {
-    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly OrchestrationOptions_Brs_X01_InputExample_V1 _orchestrationOptions = orchestrationOptions.Value;
 
     [Function(nameof(OrchestrationInitializeActivity_Brs_X01_InputExample_V1))]
     public async Task<OrchestrationExecutionPlan> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await _progressRepository
+        var orchestrationInstance = await _repository
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 

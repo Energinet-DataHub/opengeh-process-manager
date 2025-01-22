@@ -29,17 +29,17 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 /// key information needed to configure, plan and handle the orchestration execution.
 /// </summary>
 internal class OrchestrationInitializeActivity_Brs_023_027_V1(
-    IOrchestrationInstanceProgressRepository progressRepository,
+    IOrchestrationInstanceProgressRepository repository,
     IOptions<OrchestrationOptions_Brs_023_027_V1> orchestrationOptions)
 {
-    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly OrchestrationOptions_Brs_023_027_V1 _orchestrationOptions = orchestrationOptions.Value;
 
     [Function(nameof(OrchestrationInitializeActivity_Brs_023_027_V1))]
     public async Task<OrchestrationExecutionContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await _progressRepository
+        var orchestrationInstance = await _repository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 

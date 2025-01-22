@@ -56,11 +56,12 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
             Orchestration_Brs_028_V1.UniqueName,
             input.InstanceId.Value,
             enqueuedBy.ToDto(),
-            input.InstanceId.Value,
+            input.IdempotencyKey,
             input.RejectedData);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        RequestCalculatedWholesaleServicesRejectedV1 RejectedData);
+        RequestCalculatedWholesaleServicesRejectedV1 RejectedData,
+        Guid IdempotencyKey);
 }

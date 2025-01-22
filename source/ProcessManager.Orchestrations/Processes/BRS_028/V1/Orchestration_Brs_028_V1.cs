@@ -113,13 +113,15 @@ internal class Orchestration_Brs_028_V1
         RequestCalculatedWholesaleServicesInputV1 input,
         PerformAsyncValidationActivity_Brs_028_V1.ActivityOutput validationResult)
     {
+        var idempotencyKey = Guid.NewGuid();
         if (validationResult.IsValid)
         {
             await context.CallActivityAsync(
                 nameof(EnqueueActorMessagesActivity_Brs_028_V1),
                 new EnqueueActorMessagesActivity_Brs_028_V1.ActivityInput(
                     instanceId,
-                    input),
+                    input,
+                    idempotencyKey),
                 _defaultRetryOptions);
         }
         else
@@ -130,7 +132,8 @@ internal class Orchestration_Brs_028_V1
                 nameof(EnqueueRejectMessageActivity_Brs_028_V1),
                 new EnqueueRejectMessageActivity_Brs_028_V1.ActivityInput(
                     instanceId,
-                    validationResult.ValidationError),
+                    validationResult.ValidationError,
+                    idempotencyKey),
                 _defaultRetryOptions);
         }
     }

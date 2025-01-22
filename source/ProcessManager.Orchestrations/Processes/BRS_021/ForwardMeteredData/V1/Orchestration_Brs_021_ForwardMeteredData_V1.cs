@@ -99,9 +99,10 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             _defaultRetryOptions);
 
         // Step: Enqueueing
+        var idempotencyKey = Guid.NewGuid();
         await context.CallActivityAsync(
             nameof(EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1),
-            new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId, input),
+            new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId, input, idempotencyKey),
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("EDI_Notification");
         await context.CallActivityAsync(
@@ -142,11 +143,14 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                     errors),
                 _defaultRetryOptions);
 
+        var idempotencyKey = Guid.NewGuid();
+
         await context.CallActivityAsync(
             nameof(EnqueueRejectMessageActivity_Brs_021_V1),
             new EnqueueRejectMessageActivity_Brs_021_V1.ActivityInput(
                 instanceId,
-                rejectMessage.RejectMessage),
+                rejectMessage.RejectMessage,
+                idempotencyKey),
             _defaultRetryOptions);
 
         var messagesEnqueuedSuccessfully = await WaitForEnqueueActorMessagesResponseFromEdiAsync(context, instanceId);

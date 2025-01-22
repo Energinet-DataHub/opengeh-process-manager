@@ -54,10 +54,11 @@ internal class EnqueueRejectMessageActivity_Brs_021_V1(
             Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName,
             input.InstanceId.Value,
             orchestrationCreatedBy.ToDto(),
-            input.InstanceId.Value,
+            input.IdempotencyKey,
             input.RejectMessage);
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        MeteredDataForMeteringPointRejectedV1 RejectMessage);
+        MeteredDataForMeteringPointRejectedV1 RejectMessage,
+        Guid IdempotencyKey);
 }

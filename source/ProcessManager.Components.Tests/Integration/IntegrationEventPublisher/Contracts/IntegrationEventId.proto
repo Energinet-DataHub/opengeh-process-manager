@@ -3,6 +3,6 @@ syntax = "proto3";
 option csharp_namespace = "Energinet.DataHub.ProcessManager.Components.Tests.IntegrationEventPublisher.Contracts";
 
 // A protobuf contract used to test the integration event publisher
-message IntegrationEventId {
-  string id = 1; // The id of the integration event
+message IntegrationEventTestMessage {
+  string message = 1;
 }

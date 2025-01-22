@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel.DataAnnotations;
-using Azure.Identity;
+using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
 using Energinet.DataHub.Core.App.WebApp.Extensions.Builder;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
@@ -29,7 +28,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NJsonSchema.Annotations;
 using Xunit;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Fixtures;
@@ -37,7 +35,6 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Fixtures;
 public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
 {
     private const string TopicName = "test-topic";
-
     private const string SubscriptionName = "test-subscription";
 
     public IntegrationEventPublisherFixture()
@@ -45,58 +42,76 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
         TestLogger = new TestDiagnosticsLogger();
         IntegrationTestConfiguration = new IntegrationTestConfiguration();
 
-        ListenerMock = new ServiceBusListenerMock(
+        IntegrationEventListenerMock = new ServiceBusListenerMock(
+            TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
+
+        ServiceBusResourceProvider = new ServiceBusResourceProvider(
             TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
     }
 
-    public static IntegrationTestConfiguration IntegrationTestConfiguration { get; set; } = null!;
+    public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
     public ITestDiagnosticsLogger TestLogger { get; }
 
-    public ServiceBusListenerMock ListenerMock { get; }
+    public ServiceBusListenerMock IntegrationEventListenerMock { get; }
 
-    [Required]
+    [NotNull]
     public ServiceProvider? Provider { get; set; }
 
-    [Required]
+    [NotNull]
     public HttpClient? HttpClient { get; set; }
+
+    private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     [NotNull]
     private TestServer? Server { get; set; }
 
+    [NotNull]
+    private TopicResource? IntegrationEventTopic { get; set; }
+
+    [NotNull]
+    private SubscriptionProperties? IntegrationEventSubscription { get; set; }
+
     public async Task InitializeAsync()
     {
         var (topicResource, subscriptionProperties) = await CreateServiceBusTopic();
+        IntegrationEventTopic = topicResource;
+        IntegrationEventSubscription = subscriptionProperties;
 
-        await ListenerMock.AddTopicSubscriptionListenerAsync(
-            topicResource.Name,
-            subscriptionProperties.SubscriptionName);
+        await IntegrationEventListenerMock.AddTopicSubscriptionListenerAsync(
+            IntegrationEventTopic.Name,
+            IntegrationEventSubscription.SubscriptionName);
 
         var services = new ServiceCollection();
-        ConfigureServices(services, topicResource);
+        ConfigureServices(services);
 
         Provider = services.BuildServiceProvider();
 
-        var webHostBuilder = CreateWebHostBuilder(topicResource);
+        var webHostBuilder = CreateWebHostBuilder();
         Server = new TestServer(webHostBuilder);
 
         HttpClient = Server.CreateClient();
     }
 
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
         Server?.Dispose();
-        return Task.CompletedTask;
+        HttpClient?.Dispose();
+
+        await ServiceBusResourceProvider.DisposeAsync();
+        await IntegrationEventListenerMock.DisposeAsync();
     }
 
-    private IWebHostBuilder CreateWebHostBuilder(TopicResource topicResource)
+    private IWebHostBuilder CreateWebHostBuilder()
     {
         return new WebHostBuilder()
             .ConfigureServices(services =>
             {
-                ConfigureServices(services, topicResource);
+                ConfigureServices(services);
                 services.AddRouting();
             })
             .Configure(app =>
@@ -111,16 +126,14 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
             });
     }
 
-    private void ConfigureServices(
-        IServiceCollection services,
-        TopicResource topicResource)
+    private void ConfigureServices(IServiceCollection services)
     {
         var configurations = new Dictionary<string, string?>
         {
             [$"{ServiceBusNamespaceOptions.SectionName}:{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}"]
                 = IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             [$"{IntegrationEventTopicOptions.SectionName}:{nameof(IntegrationEventTopicOptions.Name)}"]
-                = topicResource.Name,
+                = IntegrationEventTopic.Name,
         };
 
         var configuration = new ConfigurationBuilder()
@@ -129,17 +142,12 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
 
         services.AddScoped<IConfiguration>(_ => configuration);
         services.AddServiceBusClientForApplication(configuration);
-        services.AddIntegrationEventPublisher(new DefaultAzureCredential());
+        services.AddIntegrationEventPublisher(IntegrationTestConfiguration.Credential);
     }
 
     private async Task<(TopicResource TopicResource, SubscriptionProperties SubscriptionProperties)> CreateServiceBusTopic()
     {
-        var serviceBusResourceProvider = new ServiceBusResourceProvider(
-            new TestDiagnosticsLogger(),
-            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
-            IntegrationTestConfiguration.Credential);
-
-        var topicBuilder = serviceBusResourceProvider
+        var topicBuilder = ServiceBusResourceProvider
             .BuildTopic(TopicName);
 
         topicBuilder.AddSubscription(SubscriptionName);

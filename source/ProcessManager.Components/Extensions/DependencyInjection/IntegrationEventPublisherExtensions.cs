@@ -42,21 +42,21 @@ public static class IntegrationEventPublisherExtensions
                 sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 sp => sp.GetRequiredService<IOptions<IntegrationEventTopicOptions>>().Value.Name,
                 tokenCredentialFactory: _ => azureCredential,
-                name: "Shared topic");
+                name: "Integration Event topic");
 
         services.AddAzureClients(
             builder =>
             {
                 builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
-                        (_, _, provider) =>
-                        {
-                            var serviceBusOptions = provider.GetRequiredService<IOptions<IntegrationEventTopicOptions>>().Value;
-                            var serviceBusSender = provider
-                                .GetRequiredService<ServiceBusClient>()
-                                .CreateSender(serviceBusOptions.Name);
+                    (_, _, provider) =>
+                    {
+                        var integrationEventTopicOptions = provider.GetRequiredService<IOptions<IntegrationEventTopicOptions>>().Value;
+                        var serviceBusSender = provider
+                            .GetRequiredService<ServiceBusClient>()
+                            .CreateSender(integrationEventTopicOptions.Name);
 
-                            return serviceBusSender;
-                        })
+                        return serviceBusSender;
+                    })
                     .WithName(ServiceBusSenderNames.IntegrationEventTopic);
             });
 

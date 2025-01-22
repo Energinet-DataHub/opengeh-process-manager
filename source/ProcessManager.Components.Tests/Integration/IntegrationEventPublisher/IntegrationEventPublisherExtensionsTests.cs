@@ -25,13 +25,25 @@ using Xunit;
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Integration.IntegrationEventPublisher;
 
 public class IntegrationEventPublisherExtensionsTests
-    : IClassFixture<IntegrationEventPublisherFixture>
+    : IClassFixture<IntegrationEventPublisherFixture>, IAsyncLifetime
 {
     private readonly IntegrationEventPublisherFixture _fixture;
 
     public IntegrationEventPublisherExtensionsTests(IntegrationEventPublisherFixture fixture)
     {
         _fixture = fixture;
+    }
+
+    public async Task InitializeAsync()
+    {
+        _fixture.IntegrationEventListenerMock.ResetMessageHandlersAndReceivedMessages();
+
+        await Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
+    {
+        await Task.CompletedTask;
     }
 
     /// <summary>
@@ -54,14 +66,14 @@ public class IntegrationEventPublisherExtensionsTests
     public async Task IntegrationEventPublisher_WhenPublishingAnEvent_MessageIsPublishedToIntegrationEventTopic()
     {
         // Arrange
-        var integrationEventPublisher = _fixture.Provider!.GetRequiredService<IIntegrationEventPublisherClient>();
+        var integrationEventPublisher = _fixture.Provider.GetRequiredService<IIntegrationEventPublisherClient>();
         var eventId = Guid.NewGuid();
         var eventName = "EventName";
         var minorVersion = 1;
 
-        var message = new IntegrationEventId()
+        var expectedMessage = new IntegrationEventTestMessage
         {
-            Id = eventId.ToString(),
+            Message = "Test message",
         };
 
         // Act
@@ -69,11 +81,11 @@ public class IntegrationEventPublisherExtensionsTests
             eventIdentification: eventId,
             eventName: eventName,
             eventMinorVersion: minorVersion,
-            message: message,
+            message: expectedMessage,
             cancellationToken: CancellationToken.None);
 
         // Assert
-        var waitForMatch = _fixture.ListenerMock.When(
+        var waitForMatch = _fixture.IntegrationEventListenerMock.When(
             serviceBusMessage =>
             {
                 if (serviceBusMessage.Subject != eventName
@@ -83,13 +95,14 @@ public class IntegrationEventPublisherExtensionsTests
                     return false;
                 }
 
-                var body = IntegrationEventId.Parser.ParseFrom(serviceBusMessage.Body);
+                var actualMessage = IntegrationEventTestMessage.Parser.ParseFrom(serviceBusMessage.Body);
 
-                return body.Equals(message);
+                return actualMessage.Message == expectedMessage.Message;
             })
             .VerifyCountAsync(1);
 
-        var matchFound = (await waitForMatch.WaitAsync(CancellationToken.None)).IsSet;
+        var wait = await waitForMatch.WaitAsync(TimeSpan.FromSeconds(10));
+        var matchFound = wait.IsSet;
         matchFound.Should().Be(true, "The message should be published to the integration event topic");
     }
 }

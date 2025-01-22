@@ -16,7 +16,7 @@ using System.Net;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 using Energinet.DataHub.ProcessManager.Components.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Components.Tests.IntegrationEventPublisher.Contracts;
+using Energinet.DataHub.ProcessManager.Components.Tests.Integration.IntegrationEventPublisher.Contracts;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;

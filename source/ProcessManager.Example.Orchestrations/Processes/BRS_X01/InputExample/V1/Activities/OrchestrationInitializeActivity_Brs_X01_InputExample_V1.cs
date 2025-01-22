@@ -15,14 +15,18 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
 
 internal class OrchestrationInitializeActivity_Brs_X01_InputExample_V1(
-    IOrchestrationInstanceProgressRepository progressRepository)
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IOptions<OrchestrationOptions_Brs_X01_InputExample_V1> orchestrationOptions)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly OrchestrationOptions_Brs_X01_InputExample_V1 _orchestrationOptions = orchestrationOptions.Value;
 
     [Function(nameof(OrchestrationInitializeActivity_Brs_X01_InputExample_V1))]
     public async Task<OrchestrationExecutionPlan> Run(
@@ -40,7 +44,9 @@ internal class OrchestrationInitializeActivity_Brs_X01_InputExample_V1(
             .Select(step => step.Sequence)
             .ToList();
 
-        return new OrchestrationExecutionPlan(stepsSkippedBySequence);
+        return new OrchestrationExecutionPlan(
+            _orchestrationOptions,
+            stepsSkippedBySequence);
     }
 
     public record ActivityInput(

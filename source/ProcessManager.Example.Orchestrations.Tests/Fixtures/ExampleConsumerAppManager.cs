@@ -170,9 +170,6 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             "FUNCTIONS_WORKER_RUNTIME",
             "dotnet-isolated");
         appHostSettings.ProcessEnvironmentVariables.Add(
-            "AZURE_LOG_LEVEL",
-            "warning");
-        appHostSettings.ProcessEnvironmentVariables.Add(
             "APPLICATIONINSIGHTS_CONNECTION_STRING",
             IntegrationTestConfiguration.ApplicationInsightsConnectionString);
 

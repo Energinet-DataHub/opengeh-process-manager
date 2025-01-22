@@ -195,9 +195,6 @@ public class ProcessManagerAppManager : IAsyncDisposable
             "FUNCTIONS_WORKER_RUNTIME",
             "dotnet-isolated");
         appHostSettings.ProcessEnvironmentVariables.Add(
-            "AZURE_LOG_LEVEL",
-            "warning");
-        appHostSettings.ProcessEnvironmentVariables.Add(
             "AzureWebJobsStorage",
             AzuriteManager.FullConnectionString);
         appHostSettings.ProcessEnvironmentVariables.Add(

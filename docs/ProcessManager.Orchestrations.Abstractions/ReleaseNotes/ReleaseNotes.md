@@ -3,7 +3,7 @@
 ## Version 0.15.2
 
 - No functional changes.
- 
+
 ## Version 0.15.1
 
 - Updated `MeteredDataForMeteringPointRejectedV1` to use DataHubTypes.

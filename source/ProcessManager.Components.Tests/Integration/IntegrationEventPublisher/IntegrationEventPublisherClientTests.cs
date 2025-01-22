@@ -53,7 +53,7 @@ public class IntegrationEventPublisherClientTests
     public async Task Given_IntegrationEventPublisherHealthCheckRegistered_When_CallingReadyEndpoint_Then_ReturnsOkWithExpectedContent()
     {
         // Act
-        using var actualResponse = await _fixture.HealthChecksHttpClient!.GetAsync($"/monitor/ready");
+        using var actualResponse = await _fixture.HealthChecksHttpClient.GetAsync($"/monitor/ready");
 
         // Assert
         using var assertionScope = new AssertionScope();

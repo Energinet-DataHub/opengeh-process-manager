@@ -8,7 +8,7 @@
     "ProcessManagerHttpClients__GeneralApiBaseAddress": "<ProcessManager API base address>",
     "ProcessManagerHttpClients__OrchestrationsApiBaseAddress": "<ProcessManager.Orchestrations API base address>",
 
-    // Process Manager service bus clien
+    // Process Manager service bus client
     "ServiceBus__FullyQualifiedNamespace": "<service bus fully qualified namespace>",
     "ProcessManagerServiceBusClient__TopicName": "<process manager topic name>",
 

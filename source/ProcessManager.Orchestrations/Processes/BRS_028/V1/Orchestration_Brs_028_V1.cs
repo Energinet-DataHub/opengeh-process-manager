@@ -106,7 +106,7 @@ internal class Orchestration_Brs_028_V1
         RequestCalculatedWholesaleServicesInputV1 input,
         PerformAsyncValidationActivity_Brs_028_V1.ActivityOutput validationResult)
     {
-        var idempotencyKey = Guid.NewGuid();
+        var idempotencyKey = context.NewGuid();
         if (validationResult.IsValid)
         {
             await context.CallActivityAsync(

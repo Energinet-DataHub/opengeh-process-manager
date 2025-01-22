@@ -63,12 +63,12 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
     public ServiceProvider? Provider { get; set; }
 
     [NotNull]
-    public HttpClient? HttpClient { get; set; }
+    public HttpClient? HealthChecksHttpClient { get; set; }
 
     private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     [NotNull]
-    private TestServer? Server { get; set; }
+    private TestServer? HealthChecksWebServer { get; set; }
 
     [NotNull]
     private TopicResource? IntegrationEventTopic { get; set; }
@@ -91,24 +91,22 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
 
         Provider = services.BuildServiceProvider();
 
-        var webHostBuilder = CreateWebHostBuilder();
-        Server = new TestServer(webHostBuilder);
-
-        HttpClient = Server.CreateClient();
+        HealthChecksWebServer = CreateHealthChecksServer();
+        HealthChecksHttpClient = HealthChecksWebServer.CreateClient();
     }
 
     public async Task DisposeAsync()
     {
-        Server?.Dispose();
-        HttpClient?.Dispose();
+        HealthChecksWebServer?.Dispose();
+        HealthChecksHttpClient?.Dispose();
 
         await ServiceBusResourceProvider.DisposeAsync();
         await IntegrationEventListenerMock.DisposeAsync();
     }
 
-    private IWebHostBuilder CreateWebHostBuilder()
+    private TestServer CreateHealthChecksServer()
     {
-        return new WebHostBuilder()
+        var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services =>
             {
                 ConfigureServices(services);
@@ -124,6 +122,8 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
                     endpoints.MapReadyHealthChecks();
                 });
             });
+
+        return new TestServer(webHostBuilder);
     }
 
     private void ConfigureServices(IServiceCollection services)

@@ -66,7 +66,6 @@ public class IntegrationEventPublisherClientTests
     public async Task IntegrationEventPublisher_WhenPublishingAnEvent_MessageIsPublishedToIntegrationEventTopic()
     {
         // Arrange
-        var integrationEventPublisher = _fixture.Provider.GetRequiredService<IIntegrationEventPublisherClient>();
         var eventId = Guid.NewGuid();
         var eventName = "EventName";
         var minorVersion = 1;
@@ -77,6 +76,7 @@ public class IntegrationEventPublisherClientTests
         };
 
         // Act
+        var integrationEventPublisher = _fixture.Provider.GetRequiredService<IIntegrationEventPublisherClient>();
         await integrationEventPublisher.PublishAsync(
             eventIdentification: eventId,
             eventName: eventName,
@@ -88,20 +88,19 @@ public class IntegrationEventPublisherClientTests
         var verifyServiceBusMessage = await _fixture.IntegrationEventListenerMock.When(
             serviceBusMessage =>
             {
-                if (serviceBusMessage.Subject != eventName
-                    || serviceBusMessage.MessageId != eventId.ToString()
-                    || (int)serviceBusMessage.ApplicationProperties["EventMinorVersion"] != minorVersion)
+                if (serviceBusMessage.Subject == eventName
+                    && serviceBusMessage.MessageId == eventId.ToString()
+                    && (int)serviceBusMessage.ApplicationProperties["EventMinorVersion"] == minorVersion)
                 {
-                    return false;
+                    var integrationEvent = IntegrationEventTestMessage.Parser.ParseFrom(serviceBusMessage.Body);
+                    return integrationEvent.Message == expectedMessage.Message;
                 }
 
-                var actualMessage = IntegrationEventTestMessage.Parser.ParseFrom(serviceBusMessage.Body);
-
-                return actualMessage.Message == expectedMessage.Message;
+                return false;
             })
             .VerifyCountAsync(1);
 
         var messageReceived = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(30));
-        messageReceived.Should().Be(true, "The message should be published to the integration event topic");
+        messageReceived.Should().Be(true, "The integration event message should be published to the integration event topic");
     }
 }

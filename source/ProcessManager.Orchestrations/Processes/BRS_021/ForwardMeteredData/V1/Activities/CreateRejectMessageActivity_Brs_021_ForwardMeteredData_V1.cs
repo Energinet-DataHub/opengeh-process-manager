@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 
@@ -27,9 +28,8 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
         var result = new ActivityOutput(
             new MeteredDataForMeteringPointRejectedV1(
                 Guid.NewGuid().ToString("N"),
-                "E23",
-                "5790000282425",
-                "DDQ",
+                BusinessReason.PeriodicMetering,
+                new MarketActorRecipient("5790000282425", ActorRole.EnergySupplier),
                 activityInput.OrchestrationInstanceId.Value,
                 Guid.NewGuid(),
                 new AcknowledgementV1(

@@ -49,7 +49,7 @@ public class ProcessManagerMessageClient(
         NotifyOrchestrationInstanceEvent notifyEvent,
         CancellationToken cancellationToken)
     {
-        var serviceBusMessage = CreateNotifyOrchestrationInstanceServiceBusMessage<object?>(
+        var serviceBusMessage = CreateNotifyOrchestrationInstanceServiceBusMessage<INotifyDataDto>(
             notifyEvent,
             data: null);
 
@@ -95,7 +95,7 @@ public class ProcessManagerMessageClient(
     private ServiceBusMessage CreateNotifyOrchestrationInstanceServiceBusMessage<TNotifyData>(
         NotifyOrchestrationInstanceEvent notifyEvent,
         TNotifyData? data)
-            where TNotifyData : class?
+            where TNotifyData : class, INotifyDataDto
     {
         var notifyOrchestration = new NotifyOrchestrationInstanceV1
         {

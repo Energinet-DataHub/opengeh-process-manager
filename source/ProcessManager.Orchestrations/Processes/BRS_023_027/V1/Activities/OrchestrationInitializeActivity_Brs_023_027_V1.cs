@@ -20,7 +20,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.O
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Options;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 
@@ -30,25 +29,19 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 /// key information needed to configure, plan and handle the orchestration execution.
 /// </summary>
 internal class OrchestrationInitializeActivity_Brs_023_027_V1(
-    IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
     IOptions<OrchestrationOptions_Brs_023_027_V1> orchestrationOptions)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
 {
+    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly OrchestrationOptions_Brs_023_027_V1 _orchestrationOptions = orchestrationOptions.Value;
 
     [Function(nameof(OrchestrationInitializeActivity_Brs_023_027_V1))]
     public async Task<OrchestrationExecutionContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await ProgressRepository
+        var orchestrationInstance = await _progressRepository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
-
-        orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         // Calculation must have been started by a User identity, so we know we can cast to it here
         var userIdentityDto = (UserIdentityDto)orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto();

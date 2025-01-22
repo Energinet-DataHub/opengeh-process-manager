@@ -59,6 +59,12 @@ internal class Orchestration_Brs_023_027_V1
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         // Initialize
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToRunningActivity_V1),
+            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
+                instanceId),
+            _defaultRetryOptions);
+
         var executionContext = await context.CallActivityAsync<OrchestrationExecutionContext>(
             nameof(OrchestrationInitializeActivity_Brs_023_027_V1),
             new OrchestrationInitializeActivity_Brs_023_027_V1.ActivityInput(

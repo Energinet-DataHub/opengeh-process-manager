@@ -122,6 +122,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         activities.Should().NotBeNull().And.Equal(
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: "Orchestration_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_023_027_V1"),
 
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),

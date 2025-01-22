@@ -151,6 +151,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await DatabaseManager.DeleteDatabaseAsync();
         AzuriteManager.Dispose();
         await ServiceBusResourceProvider.DisposeAsync();
+        await EnqueueBrs023027ServiceBusListener.DisposeAsync();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)

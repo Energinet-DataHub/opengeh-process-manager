@@ -50,7 +50,7 @@ public class IntegrationEventPublisherClientTests
     /// Also verifies the response contains JSON in a format that the Health Checks UI supports.
     /// </summary>
     [Fact]
-    public async Task IntegrationEventPublisherHealthCheckRegistered_WhenCallingReadyEndpoint_ReturnOKAndExpectedContent()
+    public async Task Given_IntegrationEventPublisherHealthCheckRegistered_When_CallingReadyEndpoint_Then_ReturnsOkWithExpectedContent()
     {
         // Act
         using var actualResponse = await _fixture.HttpClient!.GetAsync($"/monitor/ready");
@@ -60,10 +60,14 @@ public class IntegrationEventPublisherClientTests
 
         actualResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         actualResponse.Content.Headers.ContentType!.MediaType.Should().Be("application/json");
+
+        var content = await actualResponse.Content.ReadAsStringAsync();
+        content.Should().StartWith("{\"status\":\"Healthy\"");
+        content.Should().Contain("Integration Event topics");
     }
 
     [Fact]
-    public async Task IntegrationEventPublisher_WhenPublishingAnEvent_MessageIsPublishedToIntegrationEventTopic()
+    public async Task Given_IntegrationEventMessage_When_PublishingIntegrationEvent_Then_MessageIsPublishedToIntegrationEventTopic()
     {
         // Arrange
         var eventId = Guid.NewGuid();

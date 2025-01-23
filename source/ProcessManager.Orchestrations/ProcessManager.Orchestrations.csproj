@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Components\DataHub\" />
+    <Folder Include="Processes\BRS_026\V1\AsyncValidation\" />
   </ItemGroup>
 
   <ItemGroup>

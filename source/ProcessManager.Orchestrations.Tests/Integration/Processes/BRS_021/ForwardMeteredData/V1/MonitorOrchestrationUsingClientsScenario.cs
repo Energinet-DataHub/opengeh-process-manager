@@ -145,13 +145,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     FunctionName: "StoringStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
-                    FunctionName: "TransitionStepToRunningActivity_Brs_021_ForwardMeteredData_V1"),
+                    FunctionName: "TransitionStepToRunningActivity_V1"),
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
                     FunctionName: "FindReceiversActivity_Brs_021_ForwardMeteredData_V1"),
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
-                    FunctionName: "TransitionStepToTerminatedActivity_Brs_021_ForwardMeteredData_V1"),
+                    FunctionName: "TransitionStepToTerminatedActivity_V1"),
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
                     FunctionName: "EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1"),

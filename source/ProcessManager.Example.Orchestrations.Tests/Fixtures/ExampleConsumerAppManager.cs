@@ -97,7 +97,7 @@ public class ExampleConsumerAppManager : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        AppHostManager.Dispose();
+        AppHostManager?.Dispose();
         await ServiceBusResourceProvider.DisposeAsync();
     }
 

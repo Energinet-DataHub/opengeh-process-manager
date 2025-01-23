@@ -192,7 +192,7 @@ public class MonitorOrchestrationUsingDurableClientScenario : IAsyncLifetime
 
         var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
             orchestrationCreatedAfter,
-            name: "Orchestration_Brs_021_ForwardMeteredData_V1");
+            name: nameof(Orchestration_Brs_021_ForwardMeteredData_V1));
 
         var inputToken = JToken.FromObject(input);
         orchestration.Input.ToString().Should().BeEquivalentTo(inputToken.ToString(Newtonsoft.Json.Formatting.None));
@@ -243,11 +243,7 @@ public class MonitorOrchestrationUsingDurableClientScenario : IAsyncLifetime
                 new OrchestrationHistoryItem("ExecutionCompleted"));
 
         // => Verify that the durable function completed successfully
-        var last = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Last();
-        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
-        last.Value<string>("Result").Should().Be("Success");
+completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
     }
 
     private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1(

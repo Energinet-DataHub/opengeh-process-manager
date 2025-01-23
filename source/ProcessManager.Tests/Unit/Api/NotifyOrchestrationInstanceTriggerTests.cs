@@ -30,7 +30,7 @@ public class NotifyOrchestrationInstanceTriggerTests
 {
     [Fact]
     public async Task
-        Given_NotifyOrchestrationInstanceV1Message_When_Triggered_CanHandleEventDataWithDurableFunctionJsonConverter()
+        Given_NotifyOrchestrationInstanceV1Message_When_Triggered_Then_CanHandleEventDataWithDurableFunctionJsonConverter()
     {
         // Given NotifyOrchestrationInstanceV1 service bus message
         var expectedInstanceId = new OrchestrationInstanceId(Guid.NewGuid());

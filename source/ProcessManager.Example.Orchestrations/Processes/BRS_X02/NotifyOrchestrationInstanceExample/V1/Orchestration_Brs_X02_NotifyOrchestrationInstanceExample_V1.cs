@@ -65,15 +65,15 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToRunningActivity_V1),
+            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(instanceId),
+            _defaultRetryOptions);
+
         var orchestrationExecutionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
             nameof(GetOrchestrationExecutionPlanActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
             new GetOrchestrationExecutionPlanActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
                 instanceId),
-            _defaultRetryOptions);
-
-        await context.CallActivityAsync(
-            nameof(TransitionOrchestrationToRunningActivity_V1),
-            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
 
         return orchestrationExecutionPlan;

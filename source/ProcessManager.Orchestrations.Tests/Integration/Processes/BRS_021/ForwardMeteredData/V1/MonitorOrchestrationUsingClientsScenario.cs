@@ -233,6 +233,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
                     FunctionName: "EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1"),
                 new OrchestrationHistoryItem("ExecutionCompleted"));
 
         // => Verify that the durable function completed successfully

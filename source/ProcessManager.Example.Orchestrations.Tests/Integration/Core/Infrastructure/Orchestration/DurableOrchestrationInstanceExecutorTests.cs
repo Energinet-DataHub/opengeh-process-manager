@@ -14,20 +14,13 @@
 
 using DurableTask.Core.Exceptions;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using Xunit.Abstractions;
@@ -37,43 +30,30 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
 {
+    private readonly ExampleOrchestrationsAppFixture _fixture;
+
     public DurableOrchestrationInstanceExecutorTests(
         ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
-        Fixture = fixture;
-        Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services.AddInMemoryConfiguration(new Dictionary<string, string?>
-        {
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-        });
-        services.AddProcessManagerHttpClients();
-        ServiceProvider = services.BuildServiceProvider();
+        _fixture = fixture;
+        _fixture.SetTestOutputHelper(testOutputHelper);
     }
-
-    private ExampleOrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
-        Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
-        Fixture.ExampleOrchestrationsAppManager.AppHostManager.ClearHostLog();
+        _fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
+        _fixture.ExampleOrchestrationsAppManager.AppHostManager.ClearHostLog();
 
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
-        Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
-        Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
+        _fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
+        _fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -90,10 +70,10 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
         var orchestrationInstance = await SeedDatabaseAsync(brsX01NoInputDescription);
 
         // => Start
-        await Fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
+        await _fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
 
         // Act
-        var act = () => Fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
+        var act = () => _fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
 
         // Assert
         await act.Should().ThrowAsync<OrchestrationAlreadyExistsException>();
@@ -113,19 +93,19 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
         var orchestrationInstance = await SeedDatabaseAsync(brsX01NoInputDescription);
 
         // => Start
-        await Fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
-        var originalStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        await _fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
+        var originalStatus = await _fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
 
         // => Wait for completion
-        await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+        await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestrationInstance.Id.Value.ToString(),
             TimeSpan.FromSeconds(20));
 
         // Act
-        await Fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
+        await _fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
 
         // Assert
-        var actualStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        var actualStatus = await _fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
         actualStatus.CreatedTime.Should().NotBe(originalStatus.CreatedTime);
     }
 
@@ -135,7 +115,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
         // Arrange
         var executor = new DurableOrchestrationInstanceExecutor(
             new LoggerStub(),
-            Fixture.DurableClient);
+            _fixture.DurableClient);
 
         var brsX01NoInputDescription = new OrchestrationDescriptionBuilder().Build();
         var orchestrationInstance = await SeedDatabaseAsync(brsX01NoInputDescription);
@@ -147,7 +127,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
         using var assertionScope = new AssertionScope();
         actual.Should().BeTrue();
 
-        var actualStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        var actualStatus = await _fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
         actualStatus.Should().NotBeNull();
     }
 
@@ -157,14 +137,14 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
         // Arrange
         var executor = new DurableOrchestrationInstanceExecutor(
             new LoggerStub(),
-            Fixture.DurableClient);
+            _fixture.DurableClient);
 
         var brsX01NoInputDescription = new OrchestrationDescriptionBuilder().Build();
         var orchestrationInstance = await SeedDatabaseAsync(brsX01NoInputDescription);
 
         // => Start
         await executor.StartNewOrchestrationInstanceAsync(brsX01NoInputDescription, orchestrationInstance);
-        var originalStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        var originalStatus = await _fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
 
         // Act
         var actual = await executor.StartNewOrchestrationInstanceAsync(brsX01NoInputDescription, orchestrationInstance);
@@ -173,7 +153,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
         using var assertionScope = new AssertionScope();
         actual.Should().BeFalse();
 
-        var actualStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        var actualStatus = await _fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
         actualStatus.CreatedTime.Should().Be(originalStatus.CreatedTime);
     }
 
@@ -183,17 +163,17 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
         // Arrange
         var executor = new DurableOrchestrationInstanceExecutor(
             new LoggerStub(),
-            Fixture.DurableClient);
+            _fixture.DurableClient);
 
         var brsX01NoInputDescription = new OrchestrationDescriptionBuilder().Build();
         var orchestrationInstance = await SeedDatabaseAsync(brsX01NoInputDescription);
 
         // => Start
         await executor.StartNewOrchestrationInstanceAsync(brsX01NoInputDescription, orchestrationInstance);
-        var originalStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        var originalStatus = await _fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
 
         // => Wait for completion
-        await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+        await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestrationInstance.Id.Value.ToString(),
             TimeSpan.FromSeconds(20));
 
@@ -204,7 +184,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
         using var assertionScope = new AssertionScope();
         actual.Should().BeFalse();
 
-        var actualStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        var actualStatus = await _fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
         actualStatus.CreatedTime.Should().Be(originalStatus.CreatedTime);
     }
 
@@ -223,7 +203,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
         // Ensure orchestration instance can be set to Running later
         orchestrationInstance.Lifecycle.TransitionToQueued(SystemClock.Instance);
 
-        await using (var writeDbContext = Fixture.ExampleOrchestrationsAppManager.DatabaseManager.CreateDbContext())
+        await using (var writeDbContext = _fixture.ExampleOrchestrationsAppManager.DatabaseManager.CreateDbContext())
         {
             writeDbContext.OrchestrationDescriptions.Add(brsX01NoInputDescription);
             writeDbContext.OrchestrationInstances.Add(orchestrationInstance);

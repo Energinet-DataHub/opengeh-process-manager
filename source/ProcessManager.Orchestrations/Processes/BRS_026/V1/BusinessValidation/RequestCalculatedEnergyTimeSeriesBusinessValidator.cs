@@ -12,18 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Helpers;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation;
 
-public class EnergySupplierValidationRule : IValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
+/// <summary>
+/// Perform all validation rules for the given <see cref="RequestCalculatedEnergyTimeSeriesInputV1"/>.
+/// </summary>
+public class RequestCalculatedEnergyTimeSeriesBusinessValidator(
+    IEnumerable<IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>> validationRules)
+        : BusinessValidatorBase<RequestCalculatedEnergyTimeSeriesInputV1>
 {
-    public Task<IList<ValidationError>> ValidateAsync(RequestCalculatedEnergyTimeSeriesInputV1 subject)
+    protected override IReadOnlyList<IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>> GetBusinessValidationRules()
     {
-        return EnergySupplierIsOnlyAllowedToRequestOwnDataHelper.ValidateAsync(
-            subject.RequestedForActorRole,
-            subject.RequestedForActorNumber,
-            subject.EnergySupplierNumber);
+        return validationRules.ToList();
     }
 }

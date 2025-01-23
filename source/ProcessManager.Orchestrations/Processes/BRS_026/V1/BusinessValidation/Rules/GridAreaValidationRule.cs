@@ -12,22 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation.Helpers;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation.Rules;
 
-public class GridAreaValidationRule : IValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
+public class GridAreaValidationRule : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
 {
     private static readonly ValidationError _missingGridAreaCode = new("Netområde er obligatorisk for rollen MDR / Grid area is mandatory for the role MDR.", "D64");
     private static readonly ValidationError _invalidGridArea = new("Ugyldig netområde / Invalid gridarea", "E86");
 
-    private readonly IGridAreaOwnerRepository _gridAreaOwnerRepository;
+    private readonly IGridAreaOwnerClient _gridAreaOwnerClient;
 
-    public GridAreaValidationRule(IGridAreaOwnerRepository gridAreaOwnerRepository)
+    public GridAreaValidationRule(IGridAreaOwnerClient gridAreaOwnerClient)
     {
-        _gridAreaOwnerRepository = gridAreaOwnerRepository;
+        _gridAreaOwnerClient = gridAreaOwnerClient;
     }
 
     private static IList<ValidationError> NoError => [];
@@ -45,7 +47,7 @@ public class GridAreaValidationRule : IValidationRule<RequestCalculatedEnergyTim
 
         foreach (var gridAreaCode in subject.GridAreas)
         {
-            if (!await GridAreaValidationHelper.IsGridAreaOwnerAsync(_gridAreaOwnerRepository, gridAreaCode, subject.RequestedForActorNumber).ConfigureAwait(false))
+            if (!await GridAreaValidationHelper.IsGridAreaOwnerAsync(_gridAreaOwnerClient, gridAreaCode, subject.RequestedForActorNumber).ConfigureAwait(false))
                 return InvalidGridAreaError;
         }
 

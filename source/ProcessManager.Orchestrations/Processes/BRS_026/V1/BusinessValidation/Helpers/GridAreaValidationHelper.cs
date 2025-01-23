@@ -12,17 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
+
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation.Helpers;
 
 public static class GridAreaValidationHelper
 {
     public static async Task<bool> IsGridAreaOwnerAsync(
-        IGridAreaOwnerRepository gridAreaOwnerRepository,
+        IGridAreaOwnerClient gridAreaOwnerClient,
         string gridAreaCode,
         string actorId)
     {
-        var gridAreaOwner = await gridAreaOwnerRepository
-            .GetCurrentOwnerAsync(gridAreaCode, CancellationToken.None).ConfigureAwait(false);
-        return gridAreaOwner != null && gridAreaOwner.OwnerActorNumber.Equals(actorId, StringComparison.OrdinalIgnoreCase);
+        var isGridAreaOwner = await gridAreaOwnerClient.IsCurrentOwnerAsync(gridAreaCode, actorId, CancellationToken.None)
+            .ConfigureAwait(false);
+
+        return isGridAreaOwner;
+
+        // Old implementation:
+        // var gridAreaOwner = await gridAreaOwnerRepository
+        //     .GetCurrentOwnerAsync(gridAreaCode, CancellationToken.None).ConfigureAwait(false);
+        // return gridAreaOwner != null && gridAreaOwner.OwnerActorNumber.Equals(actorId, StringComparison.OrdinalIgnoreCase);
     }
 }

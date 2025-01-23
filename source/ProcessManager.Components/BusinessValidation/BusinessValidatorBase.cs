@@ -12,23 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation;
+namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 
-public interface IValidator<T>
+public abstract class BusinessValidatorBase<TInput>
 {
-    public IReadOnlyList<IValidationRule<T>> Rules { get; }
-
-    public async Task<IList<ValidationError>> ValidateAsync(T subject)
+    /// <summary>
+    /// Perform all validation rules for the given input.
+    /// </summary>
+    public async Task<IReadOnlyCollection<ValidationError>> ValidateAsync(TInput subject)
     {
         if (subject == null)
             throw new ArgumentNullException(nameof(subject));
 
         var errors = new List<ValidationError>();
-        foreach (var rule in Rules)
+        foreach (var rule in GetBusinessValidationRules())
         {
             errors.AddRange(await rule.ValidateAsync(subject).ConfigureAwait(false));
         }
 
         return errors;
     }
+
+    protected abstract IReadOnlyList<IBusinessValidationRule<TInput>> GetBusinessValidationRules();
 }

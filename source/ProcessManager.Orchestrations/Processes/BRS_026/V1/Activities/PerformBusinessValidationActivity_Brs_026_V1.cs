@@ -12,42 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation;
 using Microsoft.Azure.Functions.Worker;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
 
 /// <summary>
 /// Perform async validation (and set step to running)
 /// </summary>
-internal class PerformAsyncValidationActivity_Brs_026_V1
+internal class PerformBusinessValidationActivity_Brs_026_V1(
+    RequestCalculatedEnergyTimeSeriesBusinessValidator validator)
 {
-    [Function(nameof(PerformAsyncValidationActivity_Brs_026_V1))]
+    private readonly RequestCalculatedEnergyTimeSeriesBusinessValidator _validator = validator;
+
+    [Function(nameof(PerformBusinessValidationActivity_Brs_026_V1))]
     public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var isValid = await PerformAsyncValidationAsync(input.RequestInput).ConfigureAwait(false);
+        var validationErrors = await _validator.ValidateAsync(input.RequestInput)
+            .ConfigureAwait(false);
 
-        return isValid;
-    }
-
-    private async Task<ActivityOutput> PerformAsyncValidationAsync(RequestCalculatedEnergyTimeSeriesInputV1 requestInput)
-    {
-        // TODO: Perform async validation instead of delay
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
         return new ActivityOutput(
-            IsValid: true,
-            ValidationError: null);
+            IsValid: validationErrors.Count == 0,
+            ValidationErrors: validationErrors);
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId InstanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 RequestInput);
 
     public record ActivityOutput(
         bool IsValid,
-        RequestCalculatedEnergyTimeSeriesRejectedV1? ValidationError);
+        IReadOnlyCollection<ValidationError> ValidationErrors);
 }

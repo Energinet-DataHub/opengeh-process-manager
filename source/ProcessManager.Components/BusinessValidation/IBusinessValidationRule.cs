@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation;
+namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 
-public sealed record ValidationError(string Message, string ErrorCode)
+/// <summary>
+/// Contains the business logic for validating a specific type of entity.
+/// </summary>
+public interface IBusinessValidationRule<in TInput>
 {
-    public ValidationError WithPropertyName(string propertyName)
-    {
-        return new ValidationError(Message.Replace("{PropertyName}", propertyName), ErrorCode);
-    }
+    Task<IList<ValidationError>> ValidateAsync(TInput subject);
 }

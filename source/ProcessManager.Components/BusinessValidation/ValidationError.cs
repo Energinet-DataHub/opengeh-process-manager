@@ -12,17 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation;
+namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 
-public static class ActorNumberValidationHelper
+public sealed record ValidationError(string Message, string ErrorCode)
 {
-    public static bool IsValidGlnNumber(string actorNumber)
+    public ValidationError WithPropertyName(string propertyName)
     {
-        return actorNumber.Length == 13;
-    }
-
-    public static bool IsValidEicNumber(string actorNumber)
-    {
-        return actorNumber.Length == 16;
+        return new ValidationError(Message.Replace("{PropertyName}", propertyName), ErrorCode);
     }
 }

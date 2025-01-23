@@ -13,15 +13,17 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation.Helpers;
 using NodaTime;
 using NodaTime.Text;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation.Rules;
 
 public class PeriodValidationRule(PeriodValidationHelper periodValidationHelper)
-    : IValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
+    : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
 {
     private const int MaxAllowedPeriodSizeInMonths = 1;
     private const int AllowedTimeFrameYearsFromNow = 3;

@@ -25,11 +25,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.A
 /// Enqueue messages in EDI (and set step to running)
 /// </summary>
 internal class EnqueueActorMessagesActivity_Brs_026_V1(
-    IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
-    private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 

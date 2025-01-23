@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation.Rules;
 
-public class MeteringPointTypeValidationRule : IValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
+public class MeteringPointTypeValidationRule : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
 {
     private static readonly IReadOnlyList<string> _validMeteringPointTypes =
     [

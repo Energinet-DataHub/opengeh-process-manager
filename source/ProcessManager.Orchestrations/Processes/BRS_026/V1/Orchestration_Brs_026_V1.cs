@@ -86,7 +86,7 @@ internal class Orchestration_Brs_026_V1
         return orchestrationInstanceContext;
     }
 
-    private async Task<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput> PerformAsynchronousValidationAsync(
+    private async Task<PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput> PerformAsynchronousValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input)
@@ -98,10 +98,9 @@ internal class Orchestration_Brs_026_V1
                 AsyncValidationStepSequence),
             _defaultRetryOptions);
 
-        var validationResult = await context.CallActivityAsync<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput>(
-            nameof(PerformAsyncValidationActivity_Brs_026_V1),
-            new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
-                instanceId,
+        var validationResult = await context.CallActivityAsync<PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput>(
+            nameof(PerformBusinessValidationActivity_Brs_026_V1),
+            new PerformBusinessValidationActivity_Brs_026_V1.ActivityInput(
                 input),
             _defaultRetryOptions);
 
@@ -123,7 +122,7 @@ internal class Orchestration_Brs_026_V1
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input,
-        PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput validationResult)
+        PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput validationResult)
     {
         await context.CallActivityAsync(
             nameof(TransitionStepToRunningActivity_V1),
@@ -145,13 +144,13 @@ internal class Orchestration_Brs_026_V1
         }
         else
         {
-            ArgumentNullException.ThrowIfNull(validationResult.ValidationError);
+            ArgumentNullException.ThrowIfNull(validationResult.ValidationErrors);
 
             await context.CallActivityAsync(
                 nameof(EnqueueRejectMessageActivity_Brs_026_V1),
                 new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
                     instanceId,
-                    validationResult.ValidationError,
+                    validationResult.ValidationErrors,
                     idempotencyKey),
                 _defaultRetryOptions);
         }

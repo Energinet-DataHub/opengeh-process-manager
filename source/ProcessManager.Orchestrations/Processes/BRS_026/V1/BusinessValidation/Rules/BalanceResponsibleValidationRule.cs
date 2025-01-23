@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation.Rules;
 
-public class BalanceResponsibleValidationRule : IValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
+public class BalanceResponsibleValidationRule : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
 {
     private static readonly string _propertyName = "BalanceResponsibleParty";
     private static readonly ValidationError _invalidBalanceResponsible = new($"Feltet {_propertyName} skal være udfyldt med et valid GLN/EIC når en balanceansvarlig anmoder om data / {_propertyName} must be submitted with a valid GLN/EIC when a balance responsible requests data", "E18");

@@ -60,6 +60,9 @@ var host = new HostBuilder()
         // Enqueue Messages in EDI
         services.AddEnqueueActorMessages(azureCredential);
 
+        // Business validation
+        services.AddBusinessValidation(typeof(Program).Assembly);
+
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers

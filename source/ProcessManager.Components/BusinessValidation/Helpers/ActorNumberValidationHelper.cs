@@ -12,22 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using NodaTime;
+namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Helpers;
-
-/// <summary>
-/// Placeholder / mock until we can get grid area owners from Market Participant.
-/// TODO: Replace with market participant client.
-/// </summary>
-public interface IGridAreaOwnerRepository
+public static class ActorNumberValidationHelper
 {
-    Task<GridAreaOwner?> GetCurrentOwnerAsync(string gridArea, CancellationToken cancellationToken);
+    public static bool IsValidGlnNumber(string actorNumber)
+    {
+        return actorNumber.Length == 13;
+    }
 
-    public record GridAreaOwner(
-        Guid Id,
-        string GridAreaCode,
-        string OwnerActorNumber,
-        Instant ValidFrom,
-        int SequenceNumber);
+    public static bool IsValidEicNumber(string actorNumber)
+    {
+        return actorNumber.Length == 16;
+    }
 }

@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation.Rules;
 
-public sealed class RequestedByActorRoleValidationRule : IValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
+public sealed class RequestedByActorRoleValidationRule : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
 {
     private static IList<ValidationError> NoError => [];
 

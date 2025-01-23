@@ -83,7 +83,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
     /// </summary>
     [Fact]
-    public async Task RequestCalculatedEnergyTimeSeries_WhenStarted_CanMonitorLifecycle()
+    public async Task RequestCalculatedEnergyTimeSeries_WhenStarted_OrchestrationInstanceTerminatesWithSuccess()
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
@@ -137,7 +137,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             CancellationToken.None);
 
         // Step 4: Query until terminated with succeeded
-        var (isTerminated, _) = await processManagerClient
+        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
             .TryWaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 (oi) => oi is
@@ -149,6 +149,21 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     },
                 });
 
-        isTerminated.Should().BeTrue("because the orchestration instance should complete within given wait time");
+        orchestrationTerminatedWithSucceeded.Should().BeTrue(
+            "because the orchestration instance should be succeeded within the given wait time");
+
+        // If isTerminated is true then terminatedOrchestrationInstance should never be null
+        ArgumentNullException.ThrowIfNull(terminatedOrchestrationInstance);
+
+        // => All steps should be Succeeded
+        terminatedOrchestrationInstance.Steps.Should()
+            .AllSatisfy(
+                s =>
+                {
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                });
     }
 }

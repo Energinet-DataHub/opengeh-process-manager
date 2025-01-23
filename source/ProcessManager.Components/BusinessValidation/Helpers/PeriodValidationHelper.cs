@@ -14,7 +14,7 @@
 
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.AsyncValidation.Helpers;
+namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
 
 public class PeriodValidationHelper(DateTimeZone dateTimeZone, IClock clock)
 {

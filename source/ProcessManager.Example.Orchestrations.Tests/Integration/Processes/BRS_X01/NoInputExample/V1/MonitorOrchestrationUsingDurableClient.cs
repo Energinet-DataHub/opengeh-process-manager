@@ -106,18 +106,19 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var expectedHistory = new List<OrchestrationHistoryItem>()
         {
             new("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_NoInputExample_V1"),
+            new("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
             new("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1"),
-            new("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_X01_NoInputExample_V1"),
-            new("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_X01_NoInputExample_V1"),
-            new("TaskCompleted", FunctionName: "OrchestrationTerminateActivity_Brs_X01_NoInputExample_V1"),
+            new("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
+            new("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
+            new("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
             new("ExecutionCompleted"),
         };
 
         // We did not skip the skippable step, hence we add these steps to the expected history
         if (activities.Count == 8)
         {
-            expectedHistory.Insert(4, new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_X01_NoInputExample_V1"));
-            expectedHistory.Insert(5, new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_X01_NoInputExample_V1"));
+            expectedHistory.Insert(4, new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"));
+            expectedHistory.Insert(5, new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"));
         }
 
         activities.Should().NotBeNull().And.Equal(expectedHistory);

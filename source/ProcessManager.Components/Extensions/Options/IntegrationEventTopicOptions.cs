@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using NodaTime;
+using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
-internal abstract class ProgressActivityBase(
-    IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+public class IntegrationEventTopicOptions
 {
-    protected IClock Clock { get; } = clock;
+    public const string SectionName = "IntegrationEventTopic";
 
-    protected IOrchestrationInstanceProgressRepository ProgressRepository { get; } = progressRepository;
+    /// <summary>
+    /// Integration event Service Bus topic name
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string Name { get; set; } = string.Empty;
 }

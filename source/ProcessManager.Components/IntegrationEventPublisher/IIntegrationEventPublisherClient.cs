@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using NodaTime;
+using Google.Protobuf;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 
-internal abstract class ProgressActivityBase(
-    IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+public interface IIntegrationEventPublisherClient
 {
-    protected IClock Clock { get; } = clock;
-
-    protected IOrchestrationInstanceProgressRepository ProgressRepository { get; } = progressRepository;
+    public Task PublishAsync(
+        Guid eventIdentification,
+        string eventName,
+        int eventMinorVersion,
+        IMessage message,
+        CancellationToken cancellationToken);
 }

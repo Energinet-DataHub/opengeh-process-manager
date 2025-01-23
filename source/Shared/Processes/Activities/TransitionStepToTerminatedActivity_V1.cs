@@ -17,30 +17,33 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 
-internal class TransitionStepToTerminatedActivity_Brs_023_027_V1(
+public class TransitionStepToTerminatedActivity_V1(
     IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
+    IOrchestrationInstanceProgressRepository repository)
 {
-    [Function(nameof(TransitionStepToTerminatedActivity_Brs_023_027_V1))]
+    private readonly IClock _clock = clock;
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
+
+    [Function(nameof(TransitionStepToTerminatedActivity_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await ProgressRepository
-            .GetAsync(input.InstanceId)
+        var orchestrationInstance = await _repository
+            .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        var step = orchestrationInstance.Steps.Single(step => step.Sequence == input.StepSequence);
-        step.Lifecycle.TransitionToTerminated(Clock, input.TerminationState);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        orchestrationInstance.TransitionStepToTerminated(
+            input.StepSequence,
+            input.TerminationState,
+            _clock);
+
+        await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId InstanceId,
+        OrchestrationInstanceId OrchestrationInstanceId,
         int StepSequence,
         OrchestrationStepTerminationState TerminationState);
 }

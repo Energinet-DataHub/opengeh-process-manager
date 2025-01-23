@@ -16,27 +16,21 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Model;
 using Microsoft.Azure.Functions.Worker;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Activities;
 
 internal class OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1(
-    IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
+    IOrchestrationInstanceProgressRepository repository)
 {
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
+
     [Function(nameof(OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1))]
     public async Task<OrchestrationExecutionPlan> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await ProgressRepository
+        var orchestrationInstance = await _repository
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
-
-        orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         // Orchestrations that have input have a custom start handler in which they can
         // transition steps to skipped before starting the orchestration.
@@ -48,6 +42,7 @@ internal class OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1(
             .Where(step => step.Lifecycle.CanBeSkipped && shouldSkip)
             .Select(step => step.Sequence)
             .ToList();
+
         return new OrchestrationExecutionPlan(stepsSkippedBySequence);
     }
 

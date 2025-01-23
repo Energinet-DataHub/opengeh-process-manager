@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Mappers;

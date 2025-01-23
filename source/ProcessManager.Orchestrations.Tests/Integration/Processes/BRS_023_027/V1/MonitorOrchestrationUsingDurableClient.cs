@@ -78,6 +78,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
 
+        Fixture.EnqueueBrs023027ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+
         return Task.CompletedTask;
     }
 
@@ -122,18 +124,19 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         activities.Should().NotBeNull().And.Equal(
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: "Orchestration_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_023_027_V1"),
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "CalculationStepStartJobActivity_Brs_023_027_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "CalculationStepGetJobRunStatusActivity_Brs_023_027_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "EnqueueActorMessagesActivity_Brs_023_027_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationTerminateActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
             new OrchestrationHistoryItem("ExecutionCompleted"),
         ]);
 
@@ -142,7 +145,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         // When the monitor pattern is implemented this check should happen before the orchestration is completed.
         // Since we have to "mock" the response from EDI.
-        var verifyServiceBusMessage = Fixture.EnqueueBrs023027ServiceBusListener.When(
+        var verifyServiceBusMessage = await Fixture.EnqueueBrs023027ServiceBusListener.When(
                 msg =>
                 {
                     if (msg.Subject != $"Enqueue_{Abstractions.Processes.BRS_023_027.Brs_023_027.Name.ToLower()}")
@@ -160,9 +163,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 })
             .VerifyCountAsync(1);
 
-        var wait = await verifyServiceBusMessage.WaitAsync(TimeSpan.FromSeconds(20));
-        var messageFound = wait.IsSet;
-        messageFound.Should().BeTrue("We did not send the expected message on the ServiceBus");
+        var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(20));
+        messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
     }
 
     [Fact]

@@ -76,7 +76,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
     /// We used this knowledge to design idempotency in the DurableOrchestrationInstanceExecutor.
     /// </summary>
     [Fact]
-    public async Task StartNewAsync_WhenReusingIdOfRunningInstance_ThrowsExpectedException()
+    public async Task Given_StartNewAsync_When_ReusingIdOfRunningInstance_Then_ThrowsExpectedException()
     {
         var instanceId = Guid.NewGuid().ToString();
         var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
@@ -93,7 +93,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
     /// We used this knowledge to design idempotency in the DurableOrchestrationInstanceExecutor.
     /// </summary>
     [Fact]
-    public async Task StartNewAsync_WhenUsingIdOfAlreadyCompletedOrchestration_OrchestrationIsStarted()
+    public async Task Given_StartNewAsync_When_UsingIdOfAlreadyCompletedOrchestration_Then_OrchestrationIsStarted()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -102,7 +102,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
             ActorId: Guid.NewGuid());
 
         // Start new orchestration instance
-        // Must be done using Process Manager to get the database correct and allow the orchestration to actually complete
+        // => Must be done using Process Manager to get the database correct and allow the orchestration to actually complete
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartNoInputExampleCommandV1(userIdentity),

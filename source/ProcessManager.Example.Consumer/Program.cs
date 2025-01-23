@@ -12,33 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Identity;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
+using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
     .ConfigureServices((context, services) =>
     {
-        var azureCredential = new DefaultAzureCredential();
-
         // Common
-        services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Example");
+        services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Example.Consumer");
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
 
-        // => Auto register Orchestration Descriptions builders and custom handlers
-        services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
+        // => Add Process Manager HTTP clients
+        services.AddProcessManagerHttpClients();
 
-        // => Add EnqueueActorMessages client
+        // => Add Process Manager message client
         services.AddServiceBusClientForApplication(context.Configuration);
-        services.AddEnqueueActorMessages(azureCredential);
+        services.AddProcessManagerMessageClient();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {
@@ -46,7 +41,6 @@ var host = new HostBuilder()
     })
     .Build();
 
-await host.SynchronizeWithOrchestrationRegisterAsync("ProcessManager.Example.Orchestrations").ConfigureAwait(false);
 await host.RunAsync().ConfigureAwait(false);
 
 public partial class Program

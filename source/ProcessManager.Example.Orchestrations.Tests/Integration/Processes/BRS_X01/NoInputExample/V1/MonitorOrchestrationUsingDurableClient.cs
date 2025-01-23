@@ -115,7 +115,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         };
 
         // We did not skip the skippable step, hence we add these steps to the expected history
-        if (activities.Count == 8)
+        if (activities.Count == 9)
         {
             expectedHistory.Insert(4, new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"));
             expectedHistory.Insert(5, new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"));

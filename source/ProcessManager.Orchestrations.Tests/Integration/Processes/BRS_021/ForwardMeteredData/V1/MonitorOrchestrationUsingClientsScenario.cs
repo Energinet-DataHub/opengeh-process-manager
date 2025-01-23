@@ -84,7 +84,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact]
+    [Fact(Skip = "Because Electricity Market is not enabled.")]
     public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
     {
         // Arrange
@@ -213,9 +213,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
                     FunctionName: "OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1"),
+                // new OrchestrationHistoryItem(
+                //     "TaskCompleted",
+                //     FunctionName: "GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1"),
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
                     FunctionName: "PerformValidationActivity_Brs_021_ForwardMeteredData_V1"),

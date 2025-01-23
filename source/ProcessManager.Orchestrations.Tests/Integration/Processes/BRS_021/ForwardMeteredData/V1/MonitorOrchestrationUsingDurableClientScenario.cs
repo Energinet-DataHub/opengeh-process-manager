@@ -191,7 +191,7 @@ public class MonitorOrchestrationUsingDurableClientScenario : IAsyncLifetime
 
         var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
             orchestrationCreatedAfter,
-            name: "Orchestration_Brs_021_ForwardMeteredData_V1");
+            name: nameof(Orchestration_Brs_021_ForwardMeteredData_V1));
 
         var inputToken = JToken.FromObject(input);
         orchestration.Input.ToString().Should().BeEquivalentTo(inputToken.ToString(Newtonsoft.Json.Formatting.None));

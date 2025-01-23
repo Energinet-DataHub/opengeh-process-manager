@@ -46,17 +46,17 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
         var input = context.GetOrchestrationParameterValue<NotifyOrchestrationInstanceExampleInputV1>();
 
         // Initialize
-        var (instanceId, options) = await InitializeOrchestrationAsync(context);
+        var executionPlan = await InitializeOrchestrationAsync(context);
 
         // Wait for "ExampleNotifyEvent" notify event
         var hasReceivedExampleNotifyEvent = await WaitForExampleNotifyEventAsync(
             context,
-            instanceId,
-            exampleNotifyEventTimeout: options.WaitForExampleNotifyEventTimeout);
+            executionPlan.OrchestrationInstanceId,
+            exampleNotifyEventTimeout: executionPlan.Options.WaitForExampleNotifyEventTimeout);
 
         return await TerminateOrchestrationAsync(
             context,
-            instanceId,
+            executionPlan.OrchestrationInstanceId,
             hasReceivedExampleNotifyEvent,
             input);
     }

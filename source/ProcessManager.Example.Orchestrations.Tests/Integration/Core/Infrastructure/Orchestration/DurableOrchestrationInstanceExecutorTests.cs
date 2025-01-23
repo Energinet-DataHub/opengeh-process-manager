@@ -18,7 +18,10 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -71,12 +74,12 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
 
     /// <summary>
     /// A test to prove that Durable Client throws an exception if we try to start
-    /// an orchestration reusing an instance ID of an already running orchestration.
+    /// an orchestration using an instance ID of an already running orchestration.
     ///
     /// We used this knowledge to design idempotency in the DurableOrchestrationInstanceExecutor.
     /// </summary>
     [Fact]
-    public async Task Given_StartNewAsync_When_ReusingIdOfRunningInstance_Then_ThrowsExpectedException()
+    public async Task Given_StartNewAsync_When_UsingIdOfRunningInstance_Then_ThrowsExpectedException()
     {
         var instanceId = Guid.NewGuid().ToString();
         var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
@@ -88,12 +91,12 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
 
     /// <summary>
     /// A test to prove that Durable Client can start an orchestration if we start
-    /// it using an instance ID of an already completed orchestration.
+    /// it using an instance ID of an completed orchestration.
     ///
     /// We used this knowledge to design idempotency in the DurableOrchestrationInstanceExecutor.
     /// </summary>
     [Fact]
-    public async Task Given_StartNewAsync_When_UsingIdOfAlreadyCompletedOrchestration_Then_OrchestrationIsStarted()
+    public async Task Given_StartNewAsync_When_UsingIdOfCompletedOrchestration_Then_OrchestrationIsStarted()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -117,5 +120,51 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
         await Fixture.DurableClient.StartNewAsync(
             "Orchestration_Brs_X01_NoInputExample_V1",
             orchestrationInstanceId.ToString());
+    }
+
+    [Fact]
+    public async Task Given_StartNewOrchestrationInstanceAsync_When_UsingNewId_Then_ReturnsTrueAndOrchestrationInstanceIsStarted()
+    {
+        ////// Arrange
+        ////var executor = ServiceProvider.GetRequiredService<IOrchestrationInstanceExecutor>();
+
+        ////var description = new OrchestrationDescription(
+        ////    uniqueName: new OrchestrationDescriptionUniqueName(
+        ////        orchestrationDescriptionUniqueName.Name,
+        ////        orchestrationDescriptionUniqueName.Version),
+        ////    canBeScheduled: true,
+        ////    functionName: nameof(Orchestration_Brs_X01_NoInputExample_V1));
+
+        ////var instanceId = Guid.NewGuid().ToString();
+        ////var actual = await executor.StartNewOrchestrationInstanceAsync();
+
+        var instanceId = Guid.NewGuid().ToString();
+        var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
+
+        await act();
+
+        await act.Should().ThrowAsync<OrchestrationAlreadyExistsException>();
+    }
+
+    [Fact]
+    public async Task Given_StartNewOrchestrationInstanceAsync_When_UsingIdOfRunningInstance_Then_ReturnsFalse()
+    {
+        var instanceId = Guid.NewGuid().ToString();
+        var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
+
+        await act();
+
+        await act.Should().ThrowAsync<OrchestrationAlreadyExistsException>();
+    }
+
+    [Fact]
+    public async Task Given_StartNewOrchestrationInstanceAsync_When_UsingIdOfCompletedOrchestration_Then_ReturnsFalse()
+    {
+        var instanceId = Guid.NewGuid().ToString();
+        var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
+
+        await act();
+
+        await act.Should().ThrowAsync<OrchestrationAlreadyExistsException>();
     }
 }

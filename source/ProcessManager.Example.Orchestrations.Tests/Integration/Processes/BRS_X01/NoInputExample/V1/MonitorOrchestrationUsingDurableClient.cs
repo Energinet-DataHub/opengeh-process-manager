@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using DurableTask.Core.Exceptions;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
@@ -129,5 +130,54 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             .Last();
         last.Value<string>("EventType").Should().Be("ExecutionCompleted");
         last.Value<string>("Result").Should().Be("Success");
+    }
+
+    /// <summary>
+    /// A test to prove that Durable Client throws an exception if we try to start
+    /// an orchestration reusing an instance ID of an already running orchestration.
+    ///
+    /// We used this knowledge to design idempotency in the DurableOrchestrationInstanceExecutor.
+    /// </summary>
+    [Fact]
+    public async Task StartNewAsync_WhenReusingIdOfRunningInstance_ThrowsExpectedException()
+    {
+        var instanceId = Guid.NewGuid().ToString();
+        var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
+
+        await act();
+
+        await act.Should().ThrowAsync<OrchestrationAlreadyExistsException>();
+    }
+
+    /// <summary>
+    /// A test to prove that Durable Client can start an orchestration if we start
+    /// it using an instance ID of an already completed orchestration.
+    ///
+    /// We used this knowledge to design idempotency in the DurableOrchestrationInstanceExecutor.
+    /// </summary>
+    [Fact]
+    public async Task StartNewAsync_WhenUsingIdOfAlreadyCompletedOrchestration_OrchestrationIsStarted()
+    {
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
+        // Start new orchestration instance
+        var orchestrationInstanceId = await processManagerClient
+            .StartNewOrchestrationInstanceAsync(
+                new StartNoInputExampleCommandV1(userIdentity),
+                CancellationToken.None);
+
+        // => Wait for completion
+        var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+            orchestrationInstanceId.ToString(),
+            TimeSpan.FromSeconds(20));
+
+        // Start using Durable Client and already used instance ID
+        await Fixture.DurableClient.StartNewAsync(
+            "Orchestration_Brs_X01_NoInputExample_V1",
+            orchestrationInstanceId.ToString());
     }
 }

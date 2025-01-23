@@ -288,8 +288,11 @@ internal class OrchestrationInstanceManager(
     {
         if (orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Pending)
         {
-            // TODO: Should try/catch on exception that will be thrown IF instance exists in Durable Task Hub
-            await _executor.StartNewOrchestrationInstanceAsync(orchestrationDescription, orchestrationInstance).ConfigureAwait(false);
+            await _executor
+                .StartNewOrchestrationInstanceAsync(
+                    orchestrationDescription,
+                    orchestrationInstance)
+                .ConfigureAwait(false);
 
             orchestrationInstance.Lifecycle.TransitionToQueued(_clock);
             await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);

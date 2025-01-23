@@ -32,10 +32,6 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
             functionName: nameof(Orchestration_Brs_X01_NoInputExample_V1));
 
         description.AppendStepDescription("Example step 1");
-        description.AppendStepDescription(
-            "Example step 2, can be skipped",
-            canBeSkipped: true,
-            skipReason: "Can be skipped during orchestration (dynamic); determined in initialization");
 
         return description;
     }

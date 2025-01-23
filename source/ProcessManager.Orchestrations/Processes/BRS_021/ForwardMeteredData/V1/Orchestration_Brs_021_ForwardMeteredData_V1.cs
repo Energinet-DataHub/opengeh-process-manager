@@ -72,7 +72,15 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // If there are errors, we stop the orchestration and inform EDI to pass along the errors
         if (errors.Count != 0)
         {
-            return await HandleAsynchronousValidationErrors(context, instanceId, input.TransactionId, errors);
+            var asyncValidationErrors = await HandleAsynchronousValidationErrors(context, instanceId, input.TransactionId, errors);
+
+            // Terminate orchestration
+            await context.CallActivityAsync(
+                nameof(OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1),
+                new OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+                _defaultRetryOptions);
+
+            return asyncValidationErrors;
         }
 
         // Step: Storing

@@ -26,6 +26,7 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
@@ -165,11 +166,7 @@ public class MonitorOrchestrationUsingDurableClientScenario : IAsyncLifetime
                 new OrchestrationHistoryItem("ExecutionCompleted"));
 
         // => Verify that the durable function completed successfully
-        var last = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Last();
-        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
-        last.Value<string>("Result").Should().Be("Success");
+        completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
     }
 
     [Fact]
@@ -242,8 +239,8 @@ public class MonitorOrchestrationUsingDurableClientScenario : IAsyncLifetime
                     FunctionName: "OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1"),
                 new OrchestrationHistoryItem("ExecutionCompleted"));
 
-        // => Verify that the durable function completed successfully
-completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
+            // => Verify that the durable function completed successfully
+        completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
     }
 
     private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1(

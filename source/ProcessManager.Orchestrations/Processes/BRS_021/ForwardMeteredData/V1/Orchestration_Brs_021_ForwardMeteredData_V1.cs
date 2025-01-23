@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
+using MeteringPointMasterData = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 
@@ -72,7 +73,15 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // If there are errors, we stop the orchestration and inform EDI to pass along the errors
         if (errors.Count != 0)
         {
-            return await HandleAsynchronousValidationErrors(context, instanceId, input.TransactionId, errors);
+            var asyncValidationErrors = await HandleAsynchronousValidationErrors(context, instanceId, input.TransactionId, errors);
+
+            // Terminate orchestration
+            await context.CallActivityAsync(
+                nameof(OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1),
+                new OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+                _defaultRetryOptions);
+
+            return asyncValidationErrors;
         }
 
         // Step: Storing

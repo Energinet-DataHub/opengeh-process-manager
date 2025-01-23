@@ -25,7 +25,6 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 internal class Orchestration_Brs_X01_NoInputExample_V1
 {
     internal const int FirstStepSequence = 1;
-    internal const int SkippableStepSequence = 2;
 
     private readonly TaskOptions _defaultRetryOptions;
 
@@ -67,24 +66,6 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
                 FirstStepSequence,
                 OrchestrationStepTerminationState.Succeeded),
             _defaultRetryOptions);
-
-        // Skippable step
-        if (!executionPlan.SkippedStepsBySequence.Contains(SkippableStepSequence))
-        {
-            await context.CallActivityAsync(
-                nameof(TransitionStepToRunningActivity_V1),
-                new TransitionStepToRunningActivity_V1.ActivityInput(
-                    instanceId,
-                    SkippableStepSequence),
-                _defaultRetryOptions);
-            await context.CallActivityAsync(
-                nameof(TransitionStepToTerminatedActivity_V1),
-                new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                    instanceId,
-                    SkippableStepSequence,
-                    OrchestrationStepTerminationState.Succeeded),
-                _defaultRetryOptions);
-        }
 
         // Terminate
         await context.CallActivityAsync(

@@ -1,0 +1,19 @@
+﻿{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+
+    // Process Manager HTTP client
+    "ProcessManagerHttpClients__GeneralApiBaseAddress": "<ProcessManager API base address>",
+    "ProcessManagerHttpClients__OrchestrationsApiBaseAddress": "<ProcessManager.Orchestrations API base address>",
+
+    // Process Manager service bus client
+    "ServiceBus__FullyQualifiedNamespace": "<service bus fully qualified namespace>",
+    "ProcessManagerServiceBusClient__TopicName": "<process manager topic name>",
+
+    // EDI enqueue actor messages topic (required for listening to Enqueue Actor Messages from the Process Manager)
+    "EdiTopic__Name": "<EDI topic name>",
+    "EdiTopic__EnqueueBrsX03SubscriptionName": "<EDI enqueue BRS-X03 subscription name, usually constructed like 'Enqueue_brs_x03'>"
+  }
+}

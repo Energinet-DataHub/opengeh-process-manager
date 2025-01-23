@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
+using MeteringPointMasterData = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 
@@ -53,26 +54,34 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         var instanceId = await InitializeOrchestrationAsync(context);
 
         // Fetch Metering Point Master Data
-        var meteringPointMasterData =
-            await context
-                .CallActivityAsync<GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
-            nameof(GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1),
-            new GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
-                input.MeteringPointId,
-                input.StartDateTime,
-                input.EndDateTime),
-            _defaultRetryOptions);
+        // var meteringPointMasterData =
+        //     await context
+        //         .CallActivityAsync<GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
+        //     nameof(GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1),
+        //     new GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+        //         input.MeteringPointId,
+        //         input.StartDateTime,
+        //         input.EndDateTime),
+        //     _defaultRetryOptions);
 
         // Step: Validating
         var errors = await PerformValidationAsync(
             context,
             instanceId,
-            meteringPointMasterData.MeteringPointMasterData);
+            new List<MeteringPointMasterData>());
 
         // If there are errors, we stop the orchestration and inform EDI to pass along the errors
         if (errors.Count != 0)
         {
-            return await HandleAsynchronousValidationErrors(context, instanceId, input.TransactionId, errors);
+            var asyncValidationErrors = await HandleAsynchronousValidationErrors(context, instanceId, input.TransactionId, errors);
+
+            // Terminate orchestration
+            await context.CallActivityAsync(
+                nameof(OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1),
+                new OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+                _defaultRetryOptions);
+
+            return asyncValidationErrors;
         }
 
         // Step: Storing

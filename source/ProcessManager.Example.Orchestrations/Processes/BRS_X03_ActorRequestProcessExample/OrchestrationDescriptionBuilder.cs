@@ -14,24 +14,24 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample;
 
 internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
 {
     public OrchestrationDescription Build()
     {
-        var orchestrationDescriptionUniqueName = new Brs_X01_NoInputExample_V1();
-
         var description = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName(
-                orchestrationDescriptionUniqueName.Name,
-                orchestrationDescriptionUniqueName.Version),
-            canBeScheduled: true,
-            functionName: nameof(Orchestration_Brs_X01_NoInputExample_V1));
+            uniqueName: OrchestrationDescriptionUniqueName.FromDto(Brs_X03.V1),
+            canBeScheduled: false,
+            functionName: nameof(Orchestration_Brs_X03_V1));
 
-        description.AppendStepDescription("Example step 1");
+        description.ParameterDefinition.SetFromType<ActorRequestProcessExampleInputV1>();
+
+        description.AppendStepDescription("Enqueue actor messages");
 
         return description;
     }

@@ -8,7 +8,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Core.Tests" />
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Tests" />
-    <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Orchestrations.Tests" />
   </ItemGroup>
 
   <ItemGroup>

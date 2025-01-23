@@ -23,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.Azure;
@@ -293,9 +294,4 @@ public class MonitorOrchestrationUsingDurableClientScenario : IAsyncLifetime
             });
         return input;
     }
-
-    public record OrchestrationHistoryItem(
-        string? EventType,
-        string? Name = null,
-        string? FunctionName = null);
 }

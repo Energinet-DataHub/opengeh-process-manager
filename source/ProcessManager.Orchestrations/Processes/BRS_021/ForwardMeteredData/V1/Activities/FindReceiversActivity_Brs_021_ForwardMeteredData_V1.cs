@@ -54,7 +54,10 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
         if (meteringPointType == MeteringPointType.Consumption || meteringPointType == MeteringPointType.Production)
         {
             var energySuppliers =
-                await GetEnergySuppliersForMeteringPointAsync(activityInput).ConfigureAwait(false);
+                await GetEnergySupplierForMeteringPointAsync(
+                    activityInput.MeteringPointMasterData.MeteringPointId,
+                    activityInput.StartDateTime,
+                    activityInput.EndDateTime).ConfigureAwait(false);
             receivers.AddRange(energySuppliers.Select(x => EnergySupplierReceiver(x.EnergySupplier)));
             receivers.Add(TheDanishEnergyAgencyReceiver());
         }
@@ -90,7 +93,7 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
             if (activityInput.MeteringPointMasterData.ParentMeteringPointId != null)
             {
                 var parentEnergySuppliers =
-                    await GetEnergySupplierFromParentMeteringPointAsync(
+                    await GetEnergySupplierForMeteringPointAsync(
                         activityInput.MeteringPointMasterData.ParentMeteringPointId,
                         activityInput.StartDateTime,
                         activityInput.EndDateTime).ConfigureAwait(false);
@@ -127,7 +130,7 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
         return new MarketActorRecipient(energySupplierId.Value, ActorRole.EnergySupplier);
     }
 
-    private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySupplierFromParentMeteringPointAsync(
+    private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySupplierForMeteringPointAsync(
         MeteringPointId parentMeteringPointId,
         string startDateTime,
         string endDateTime)
@@ -139,20 +142,6 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
             .GetMeteringPointEnergySuppliersAsync(
                 new MeteringPointIdentification(parentMeteringPointId.Value),
                 new Interval(startDateTimeInstant, endDateTimeInstant))
-            .ToListAsync()
-            .ConfigureAwait(false);
-    }
-
-    private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySuppliersForMeteringPointAsync(
-        ActivityInput activityInput)
-    {
-        var startDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.StartDateTime);
-        var endDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.EndDateTime);
-
-        return await _electricityMarketViews
-            .GetMeteringPointEnergySuppliersAsync(
-                new MeteringPointIdentification(activityInput.MeteringPointMasterData.MeteringPointId.Value),
-                new Interval(startDateTime.Value, endDateTime.Value))
             .ToListAsync()
             .ConfigureAwait(false);
     }

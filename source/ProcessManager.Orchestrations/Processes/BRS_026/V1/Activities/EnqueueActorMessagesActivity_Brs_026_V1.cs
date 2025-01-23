@@ -41,10 +41,6 @@ internal class EnqueueActorMessagesActivity_Brs_026_V1(
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.TransitionStepToRunning(
-            Orchestration_Brs_026_V1.EnqueueActorMessagesStepSequence,
-            _clock);
-        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         await EnqueueActorMessagesAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 

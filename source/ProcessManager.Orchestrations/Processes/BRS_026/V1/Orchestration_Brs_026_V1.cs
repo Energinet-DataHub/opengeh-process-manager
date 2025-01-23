@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Models;
+using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
@@ -45,17 +46,17 @@ internal class Orchestration_Brs_026_V1
     {
         var input = context.GetOrchestrationParameterValue<RequestCalculatedEnergyTimeSeriesInputV1>();
 
-        var (instanceId, options) = await InitializeOrchestrationAsync(context);
+        var orchestrationInstanceContext = await InitializeOrchestrationAsync(context);
 
-        var validationResult = await PerformAsynchronousValidationAsync(context, instanceId, input);
-        await EnqueueActorMessagesInEdiAsync(context, instanceId, input, validationResult);
+        var validationResult = await PerformAsynchronousValidationAsync(context, orchestrationInstanceContext.Id, input);
+        await EnqueueActorMessagesInEdiAsync(context, orchestrationInstanceContext.Id, input, validationResult);
 
         var wasMessagesEnqueued = await WaitForEnqueueActorMessagesResponseFromEdiAsync(
             context,
-            options.EnqueueActorMessagesTimeout,
-            instanceId);
+            orchestrationInstanceContext.Options.EnqueueActorMessagesTimeout,
+            orchestrationInstanceContext.Id);
 
-        return await TerminateOrchestrationAsync(context, instanceId, input, wasMessagesEnqueued);
+        return await TerminateOrchestrationAsync(context, orchestrationInstanceContext.Id, input, wasMessagesEnqueued);
     }
 
     private static TaskOptions CreateDefaultRetryOptions()
@@ -66,15 +67,23 @@ internal class Orchestration_Brs_026_V1
             backoffCoefficient: 2.0));
     }
 
-    private Task<OrchestrationExecutionContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
+    private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
-        return context.CallActivityAsync<OrchestrationExecutionContext>(
-            nameof(StartOrchestrationActivity_Brs_026_V1),
-            new StartOrchestrationActivity_Brs_026_V1.ActivityInput(
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToRunningActivity_V1),
+            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
+
+        var orchestrationInstanceContext = await context.CallActivityAsync<OrchestrationInstanceContext>(
+            nameof(GetOrchestrationInstanceContextActivity_Brs_026_V1),
+            new GetOrchestrationInstanceContextActivity_Brs_026_V1.ActivityInput(
+                instanceId),
+            _defaultRetryOptions);
+
+        return orchestrationInstanceContext;
     }
 
     private async Task<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput> PerformAsynchronousValidationAsync(
@@ -82,6 +91,13 @@ internal class Orchestration_Brs_026_V1
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input)
     {
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
+                instanceId,
+                AsyncValidationStepSequence),
+            _defaultRetryOptions);
+
         var validationResult = await context.CallActivityAsync<PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput>(
             nameof(PerformAsyncValidationActivity_Brs_026_V1),
             new PerformAsyncValidationActivity_Brs_026_V1.ActivityInput(
@@ -93,8 +109,8 @@ internal class Orchestration_Brs_026_V1
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
         await context.CallActivityAsync(
-            nameof(TerminateStepActivity_Brs_026_V1),
-            new TerminateStepActivity_Brs_026_V1.ActivityInput(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 AsyncValidationStepSequence,
                 asyncValidationTerminationState),
@@ -109,6 +125,13 @@ internal class Orchestration_Brs_026_V1
         RequestCalculatedEnergyTimeSeriesInputV1 input,
         PerformAsyncValidationActivity_Brs_026_V1.ActivityOutput validationResult)
     {
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
+                instanceId,
+                EnqueueActorMessagesStepSequence),
+            _defaultRetryOptions);
+
         var idempotencyKey = context.NewGuid();
         if (validationResult.IsValid)
         {
@@ -165,8 +188,8 @@ internal class Orchestration_Brs_026_V1
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
         await context.CallActivityAsync(
-            nameof(TerminateStepActivity_Brs_026_V1),
-            new TerminateStepActivity_Brs_026_V1.ActivityInput(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 EnqueueActorMessagesStepSequence,
                 enqueueActorMessagesTerminationState),
@@ -186,8 +209,8 @@ internal class Orchestration_Brs_026_V1
             : OrchestrationInstanceTerminationState.Failed;
 
         await context.CallActivityAsync(
-            nameof(TerminateOrchestrationActivity_Brs_026_V1),
-            new TerminateOrchestrationActivity_Brs_026_V1.ActivityInput(
+            nameof(TransitionOrchestrationToTerminatedActivity_V1),
+            new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 orchestrationTerminationState),
             _defaultRetryOptions);

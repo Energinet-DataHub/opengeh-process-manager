@@ -17,6 +17,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Optio
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Models;
 
-public record OrchestrationExecutionContext(
+public record OrchestrationInstanceContext(
     OrchestrationInstanceId Id,
     OrchestrationOptions_Brs_026_V1 Options);

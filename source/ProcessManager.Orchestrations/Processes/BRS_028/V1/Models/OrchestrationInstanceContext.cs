@@ -13,14 +13,10 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Options;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Models;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Models;
 
-/// <summary>
-/// The purpose of this record is to give the orchestration information specific about orchestration specific
-/// options from app settings.
-/// </summary>
-public record OrchestrationExecutionPlan(
-    OrchestrationInstanceId OrchestrationInstanceId,
-    OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1 Options);
+public record OrchestrationInstanceContext(
+    OrchestrationInstanceId Id,
+    OrchestrationOptions_Brs_028_V1 Options);

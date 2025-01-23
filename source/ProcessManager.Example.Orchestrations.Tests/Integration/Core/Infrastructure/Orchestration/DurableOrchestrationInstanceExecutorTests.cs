@@ -21,18 +21,16 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
-using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.NoInputExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Core.Infrastructure.Orchestration;
 
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
-public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
+public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
 {
-    public MonitorOrchestrationUsingDurableClient(
+    public DurableOrchestrationInstanceExecutorTests(
         ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
@@ -72,12 +70,30 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     }
 
     /// <summary>
-    /// A test to verify that the orchestration runs to completion and has the expected history.
-    /// Note that the expected history is dependent of the orchestration's history.
-    /// This is due to a random skip in the orchestration initialization step.
+    /// A test to prove that Durable Client throws an exception if we try to start
+    /// an orchestration reusing an instance ID of an already running orchestration.
+    ///
+    /// We used this knowledge to design idempotency in the DurableOrchestrationInstanceExecutor.
     /// </summary>
     [Fact]
-    public async Task ExampleOrchestration_WhenRanToCompletion_HasExpectedHistory()
+    public async Task StartNewAsync_WhenReusingIdOfRunningInstance_ThrowsExpectedException()
+    {
+        var instanceId = Guid.NewGuid().ToString();
+        var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
+
+        await act();
+
+        await act.Should().ThrowAsync<OrchestrationAlreadyExistsException>();
+    }
+
+    /// <summary>
+    /// A test to prove that Durable Client can start an orchestration if we start
+    /// it using an instance ID of an already completed orchestration.
+    ///
+    /// We used this knowledge to design idempotency in the DurableOrchestrationInstanceExecutor.
+    /// </summary>
+    [Fact]
+    public async Task StartNewAsync_WhenUsingIdOfAlreadyCompletedOrchestration_OrchestrationIsStarted()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -86,6 +102,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             ActorId: Guid.NewGuid());
 
         // Start new orchestration instance
+        // Must be done using Process Manager to get the database correct and allow the orchestration to actually complete
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartNoInputExampleCommandV1(userIdentity),
@@ -96,39 +113,9 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             orchestrationInstanceId.ToString(),
             TimeSpan.FromSeconds(20));
 
-        // => Expect history
-        using var assertionScope = new AssertionScope();
-
-        var activities = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Select(item => item.ToObject<OrchestrationHistoryItem>())
-            .ToList();
-
-        var expectedHistory = new List<OrchestrationHistoryItem>()
-        {
-            new("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_NoInputExample_V1"),
-            new("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
-            new("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1"),
-            new("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
-            new("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
-            new("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
-            new("ExecutionCompleted"),
-        };
-
-        // We did not skip the skippable step, hence we add these steps to the expected history
-        if (activities.Count == 8)
-        {
-            expectedHistory.Insert(4, new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"));
-            expectedHistory.Insert(5, new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"));
-        }
-
-        activities.Should().NotBeNull().And.Equal(expectedHistory);
-
-        // => Verify that the durable function completed successfully
-        var last = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Last();
-        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
-        last.Value<string>("Result").Should().Be("Success");
+        // Start using Durable Client and already used instance ID
+        await Fixture.DurableClient.StartNewAsync(
+            "Orchestration_Brs_X01_NoInputExample_V1",
+            orchestrationInstanceId.ToString());
     }
 }

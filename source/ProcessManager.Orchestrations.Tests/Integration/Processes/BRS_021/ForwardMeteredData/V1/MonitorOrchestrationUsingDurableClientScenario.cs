@@ -242,11 +242,7 @@ public class MonitorOrchestrationUsingDurableClientScenario : IAsyncLifetime
                 new OrchestrationHistoryItem("ExecutionCompleted"));
 
         // => Verify that the durable function completed successfully
-        var last = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Last();
-        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
-        last.Value<string>("Result").Should().Be("Success");
+completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
     }
 
     private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1(

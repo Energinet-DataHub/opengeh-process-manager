@@ -40,19 +40,8 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
 
     public FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests()
     {
-        var clock = new Mock<IClock>();
-        var orchestrationInstance = CreateOrchestrationInstance();
-        var orchestrationInstanceProgressRepositoryMock = new Mock<IOrchestrationInstanceProgressRepository>();
-        orchestrationInstanceProgressRepositoryMock
-            .Setup(x => x.GetAsync(_orchestrationInstanceId))
-            .ReturnsAsync(orchestrationInstance);
-        orchestrationInstanceProgressRepositoryMock
-            .Setup(x => x.UnitOfWork.CommitAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
         ElectricityMarketViewsMock = new Mock<IElectricityMarketViews>();
         Sut = new FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
-            clock.Object,
-            orchestrationInstanceProgressRepositoryMock.Object,
             ElectricityMarketViewsMock.Object);
     }
 
@@ -293,7 +282,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
         string meteringPointCode)
     {
         // Arrange
-        var expectedEnergySupplier = (ActorId: "5798000020000", ActorRole: ActorRole.EnergySupplier);
+        var energySupplier = (ActorId: "5798000020000", ActorRole: ActorRole.EnergySupplier);
 
         var meteringPointType = MeteringPointType.FromCode(meteringPointCode);
         var startDate = InstantPattern.General.Parse("2025-01-01T00:00:00Z").Value;
@@ -301,7 +290,7 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
 
         var electricityMarketChildMeteringPointMasterData =
             SetupMeteringPointMasterData(
-                energySupplierId: expectedEnergySupplier.ActorId,
+                energySupplierId: energySupplier.ActorId,
                 startDate: startDate,
                 endDate: endDate);
 
@@ -316,33 +305,6 @@ public class FindReceiversActivity_Brs_021_ForwardMeteredData_V1Tests
 
         // Assert
         result.MarketActorRecipients.Should().HaveCount(0);
-    }
-
-    private static OrchestrationInstance CreateOrchestrationInstance()
-    {
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
-        var orchestrationDescription = CreateOrchestrationDescription();
-        return OrchestrationInstance.CreateFromDescription(
-            userIdentity,
-            orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-    }
-
-    private static OrchestrationDescription CreateOrchestrationDescription()
-    {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
-            canBeScheduled: true,
-            functionName: "TestOrchestrationFunction");
-
-        orchestrationDescription.AppendStepDescription("Test step 1");
-        orchestrationDescription.AppendStepDescription("Test step 2");
-        orchestrationDescription.AppendStepDescription("Test step 3");
-
-        return orchestrationDescription;
     }
 
     private static void SetProperty(object obj, string propertyName, object value)

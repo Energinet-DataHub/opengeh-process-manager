@@ -19,21 +19,21 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Da
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
-using ActorNumber = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ActorNumber;
-using MeteringPointMasterData = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData;
-using MeteringPointType = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType;
+using ActorNumber =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ActorNumber;
+using MeteringPointMasterData =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.
+    MeteringPointMasterData;
+using MeteringPointType =
+    Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
 internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
-    IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository,
     IElectricityMarketViews electricityMarketViews)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
@@ -60,39 +60,46 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
         }
         else if (meteringPointType == MeteringPointType.Exchange)
         {
-            receivers.AddRange(activityInput.MeteringPointMasterData.NeighborGridAreaOwners.Select(NeighborGridAccessProviderReceiver));
+            receivers.AddRange(
+                activityInput.MeteringPointMasterData.NeighborGridAreaOwners.Select(
+                    NeighborGridAccessProviderReceiver));
         }
         else if (meteringPointType == MeteringPointType.VeProduction)
         {
             receivers.Add(TheSystemOperatorReceiver());
         }
         else if (meteringPointType == MeteringPointType.VeProduction
-            || meteringPointType == MeteringPointType.NetProduction
-            || meteringPointType == MeteringPointType.SupplyToGrid
-            || meteringPointType == MeteringPointType.ConsumptionFromGrid
-            || meteringPointType == MeteringPointType.WholesaleServicesInformation
-            || meteringPointType == MeteringPointType.OwnProduction
-            || meteringPointType == MeteringPointType.NetFromGrid
-            || meteringPointType == MeteringPointType.NetToGrid
-            || meteringPointType == MeteringPointType.TotalConsumption
-            || meteringPointType == MeteringPointType.Analysis
-            || meteringPointType == MeteringPointType.NotUsed
-            || meteringPointType == MeteringPointType.SurplusProductionGroup6
-            || meteringPointType == MeteringPointType.NetLossCorrection
-            || meteringPointType == MeteringPointType.OtherConsumption
-            || meteringPointType == MeteringPointType.OtherProduction
-            || meteringPointType == MeteringPointType.ExchangeReactiveEnergy
-            || meteringPointType == MeteringPointType.CollectiveNetProduction
-            || meteringPointType == MeteringPointType.CollectiveNetConsumption)
+                 || meteringPointType == MeteringPointType.NetProduction
+                 || meteringPointType == MeteringPointType.SupplyToGrid
+                 || meteringPointType == MeteringPointType.ConsumptionFromGrid
+                 || meteringPointType == MeteringPointType.WholesaleServicesInformation
+                 || meteringPointType == MeteringPointType.OwnProduction
+                 || meteringPointType == MeteringPointType.NetFromGrid
+                 || meteringPointType == MeteringPointType.NetToGrid
+                 || meteringPointType == MeteringPointType.TotalConsumption
+                 || meteringPointType == MeteringPointType.Analysis
+                 || meteringPointType == MeteringPointType.NotUsed
+                 || meteringPointType == MeteringPointType.SurplusProductionGroup6
+                 || meteringPointType == MeteringPointType.NetLossCorrection
+                 || meteringPointType == MeteringPointType.OtherConsumption
+                 || meteringPointType == MeteringPointType.OtherProduction
+                 || meteringPointType == MeteringPointType.ExchangeReactiveEnergy
+                 || meteringPointType == MeteringPointType.CollectiveNetProduction
+                 || meteringPointType == MeteringPointType.CollectiveNetConsumption)
         {
-            var parentEnergySuppliers =
-                await GetEnergySupplierFromParentMeteringPointAsync(activityInput).ConfigureAwait(false);
-            receivers.AddRange(parentEnergySuppliers.Select(x => EnergySupplierReceiver(x.EnergySupplier)));
+            if (activityInput.MeteringPointMasterData.ParentMeteringPointId != null)
+            {
+                var parentEnergySuppliers =
+                    await GetEnergySupplierFromParentMeteringPointAsync(
+                        activityInput.MeteringPointMasterData.ParentMeteringPointId,
+                        activityInput.StartDateTime,
+                        activityInput.EndDateTime).ConfigureAwait(false);
+                receivers.AddRange(parentEnergySuppliers.Select(x => EnergySupplierReceiver(x.EnergySupplier)));
+            }
         }
 
         var distinctReceivers = receivers
-            .GroupBy(r => r.ActorId)
-            .Select(g => g.First())
+            .DistinctBy(r => r.ActorId)
             .ToList();
 
         return new ActivityOutput(
@@ -114,24 +121,24 @@ internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
         return new MarketActorRecipient(DataHubDetails.SystemOperatorNumber, ActorRole.SystemOperator);
     }
 
-    private static MarketActorRecipient EnergySupplierReceiver(Energinet.DataHub.ElectricityMarket.Integration.ActorNumber energySupplierId)
+    private static MarketActorRecipient EnergySupplierReceiver(
+        Energinet.DataHub.ElectricityMarket.Integration.ActorNumber energySupplierId)
     {
         return new MarketActorRecipient(energySupplierId.Value, ActorRole.EnergySupplier);
     }
 
     private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySupplierFromParentMeteringPointAsync(
-        ActivityInput activityInput)
+        MeteringPointId parentMeteringPointId,
+        string startDateTime,
+        string endDateTime)
     {
-        var startDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.StartDateTime);
-        var endDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.EndDateTime);
-
-        if (activityInput.MeteringPointMasterData.ParentMeteringPointId == null)
-            return new List<MeteringPointEnergySupplier>();
+        var startDateTimeInstant = InstantPatternWithOptionalSeconds.Parse(startDateTime).Value;
+        var endDateTimeInstant = InstantPatternWithOptionalSeconds.Parse(endDateTime).Value;
 
         return await _electricityMarketViews
             .GetMeteringPointEnergySuppliersAsync(
-                new MeteringPointIdentification(activityInput.MeteringPointMasterData.ParentMeteringPointId.Value),
-                new Interval(startDateTime.Value, endDateTime.Value))
+                new MeteringPointIdentification(parentMeteringPointId.Value),
+                new Interval(startDateTimeInstant, endDateTimeInstant))
             .ToListAsync()
             .ConfigureAwait(false);
     }

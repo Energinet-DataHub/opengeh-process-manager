@@ -18,14 +18,18 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using NodaTime;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Core.Infrastructure.Orchestration;
@@ -79,13 +83,19 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
     /// We used this knowledge to design idempotency in the DurableOrchestrationInstanceExecutor.
     /// </summary>
     [Fact]
-    public async Task Given_StartNewAsync_When_UsingIdOfRunningInstance_Then_ThrowsExpectedException()
+    public async Task Given_StartNewAsync_When_UsingIdOfRunningOrchestrationInstance_Then_ThrowsExpectedException()
     {
-        var instanceId = Guid.NewGuid().ToString();
-        var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
+        // Arrange
+        var brsX01NoInputDescription = new OrchestrationDescriptionBuilder().Build();
+        var orchestrationInstance = await SeedDatabaseAsync(brsX01NoInputDescription);
 
-        await act();
+        // => Start
+        await Fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
 
+        // Act
+        var act = () => Fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
+
+        // Assert
         await act.Should().ThrowAsync<OrchestrationAlreadyExistsException>();
     }
 
@@ -96,75 +106,154 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
     /// We used this knowledge to design idempotency in the DurableOrchestrationInstanceExecutor.
     /// </summary>
     [Fact]
-    public async Task Given_StartNewAsync_When_UsingIdOfCompletedOrchestration_Then_OrchestrationIsStarted()
+    public async Task Given_StartNewAsync_When_UsingIdOfCompletedOrchestrationInstance_Then_OrchestrationIsStarted()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        // Arrange
+        var brsX01NoInputDescription = new OrchestrationDescriptionBuilder().Build();
+        var orchestrationInstance = await SeedDatabaseAsync(brsX01NoInputDescription);
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
-        // Start new orchestration instance
-        // => Must be done using Process Manager to get the database correct and allow the orchestration to actually complete
-        var orchestrationInstanceId = await processManagerClient
-            .StartNewOrchestrationInstanceAsync(
-                new StartNoInputExampleCommandV1(userIdentity),
-                CancellationToken.None);
+        // => Start
+        await Fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
+        var originalStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
 
         // => Wait for completion
-        var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
-            orchestrationInstanceId.ToString(),
+        await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+            orchestrationInstance.Id.Value.ToString(),
             TimeSpan.FromSeconds(20));
 
-        // Start using Durable Client and already used instance ID
-        await Fixture.DurableClient.StartNewAsync(
-            "Orchestration_Brs_X01_NoInputExample_V1",
-            orchestrationInstanceId.ToString());
+        // Act
+        await Fixture.DurableClient.StartNewAsync(brsX01NoInputDescription.FunctionName, orchestrationInstance.Id.Value.ToString());
+
+        // Assert
+        var actualStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        actualStatus.CreatedTime.Should().NotBe(originalStatus.CreatedTime);
     }
 
     [Fact]
     public async Task Given_StartNewOrchestrationInstanceAsync_When_UsingNewId_Then_ReturnsTrueAndOrchestrationInstanceIsStarted()
     {
-        ////// Arrange
-        ////var executor = ServiceProvider.GetRequiredService<IOrchestrationInstanceExecutor>();
+        // Arrange
+        var executor = new DurableOrchestrationInstanceExecutor(
+            new LoggerStub(),
+            Fixture.DurableClient);
 
-        ////var description = new OrchestrationDescription(
-        ////    uniqueName: new OrchestrationDescriptionUniqueName(
-        ////        orchestrationDescriptionUniqueName.Name,
-        ////        orchestrationDescriptionUniqueName.Version),
-        ////    canBeScheduled: true,
-        ////    functionName: nameof(Orchestration_Brs_X01_NoInputExample_V1));
+        var brsX01NoInputDescription = new OrchestrationDescriptionBuilder().Build();
+        var orchestrationInstance = await SeedDatabaseAsync(brsX01NoInputDescription);
 
-        ////var instanceId = Guid.NewGuid().ToString();
-        ////var actual = await executor.StartNewOrchestrationInstanceAsync();
+        // Act
+        var actual = await executor.StartNewOrchestrationInstanceAsync(brsX01NoInputDescription, orchestrationInstance);
 
-        var instanceId = Guid.NewGuid().ToString();
-        var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
+        // Assert
+        using var assertionScope = new AssertionScope();
+        actual.Should().BeTrue();
 
-        await act();
-
-        await act.Should().ThrowAsync<OrchestrationAlreadyExistsException>();
+        var actualStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        actualStatus.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task Given_StartNewOrchestrationInstanceAsync_When_UsingIdOfRunningInstance_Then_ReturnsFalse()
+    public async Task Given_StartNewOrchestrationInstanceAsync_When_UsingIdOfRunningOrchestrationInstance_Then_ReturnsFalseAndNoOrchestrationInstanceIsStarted()
     {
-        var instanceId = Guid.NewGuid().ToString();
-        var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
+        // Arrange
+        var executor = new DurableOrchestrationInstanceExecutor(
+            new LoggerStub(),
+            Fixture.DurableClient);
 
-        await act();
+        var brsX01NoInputDescription = new OrchestrationDescriptionBuilder().Build();
+        var orchestrationInstance = await SeedDatabaseAsync(brsX01NoInputDescription);
 
-        await act.Should().ThrowAsync<OrchestrationAlreadyExistsException>();
+        // => Start
+        await executor.StartNewOrchestrationInstanceAsync(brsX01NoInputDescription, orchestrationInstance);
+        var originalStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+
+        // Act
+        var actual = await executor.StartNewOrchestrationInstanceAsync(brsX01NoInputDescription, orchestrationInstance);
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        actual.Should().BeFalse();
+
+        var actualStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        actualStatus.CreatedTime.Should().Be(originalStatus.CreatedTime);
     }
 
     [Fact]
-    public async Task Given_StartNewOrchestrationInstanceAsync_When_UsingIdOfCompletedOrchestration_Then_ReturnsFalse()
+    public async Task Given_StartNewOrchestrationInstanceAsync_When_UsingIdOfCompletedOrchestrationInstance_Then_ReturnsFalseAndNoOrchestrationInstanceIsStarted()
     {
-        var instanceId = Guid.NewGuid().ToString();
-        var act = () => Fixture.DurableClient.StartNewAsync("Orchestration_Brs_X01_NoInputExample_V1", instanceId);
+        // Arrange
+        var executor = new DurableOrchestrationInstanceExecutor(
+            new LoggerStub(),
+            Fixture.DurableClient);
 
-        await act();
+        var brsX01NoInputDescription = new OrchestrationDescriptionBuilder().Build();
+        var orchestrationInstance = await SeedDatabaseAsync(brsX01NoInputDescription);
 
-        await act.Should().ThrowAsync<OrchestrationAlreadyExistsException>();
+        // => Start
+        await executor.StartNewOrchestrationInstanceAsync(brsX01NoInputDescription, orchestrationInstance);
+        var originalStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+
+        // => Wait for completion
+        await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+            orchestrationInstance.Id.Value.ToString(),
+            TimeSpan.FromSeconds(20));
+
+        // Act
+        var actual = await executor.StartNewOrchestrationInstanceAsync(brsX01NoInputDescription, orchestrationInstance);
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        actual.Should().BeFalse();
+
+        var actualStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstance.Id.Value.ToString());
+        actualStatus.CreatedTime.Should().Be(originalStatus.CreatedTime);
+    }
+
+    private async Task<OrchestrationInstance> SeedDatabaseAsync(OrchestrationDescription brsX01NoInputDescription)
+    {
+        var operatingIdentity = new UserIdentity(
+            new UserId(Guid.NewGuid()),
+            new ActorId(Guid.NewGuid()));
+
+        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
+            operatingIdentity,
+            brsX01NoInputDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+
+        // Ensure orchestration instance can be set to Running later
+        orchestrationInstance.Lifecycle.TransitionToQueued(SystemClock.Instance);
+
+        await using (var writeDbContext = Fixture.ExampleOrchestrationsAppManager.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(brsX01NoInputDescription);
+            writeDbContext.OrchestrationInstances.Add(orchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        return orchestrationInstance;
+    }
+
+    private class LoggerStub : ILogger<DurableOrchestrationInstanceExecutor>
+    {
+        /// <summary>
+        /// Number of times Log method is called.
+        /// </summary>
+        public int LogCount { get; private set; }
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull
+        {
+            return null;
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return false;
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            LogCount++;
+        }
     }
 }

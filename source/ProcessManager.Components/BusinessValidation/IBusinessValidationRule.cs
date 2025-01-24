@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Components;
 using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
 
 namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation;

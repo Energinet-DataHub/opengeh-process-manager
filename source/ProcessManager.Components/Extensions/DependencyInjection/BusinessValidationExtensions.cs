@@ -16,6 +16,7 @@ using System.Reflection;
 using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
@@ -40,10 +41,10 @@ public static class BusinessValidationExtensions
         services.AddBusinessValidatorImplementations(assembliesToScan);
         services.AddBusinessValidationRuleImplementations(assembliesToScan);
 
+        services.AddTransient<PeriodValidationHelper>();
+
         // TODO: Replace GridAreaOwnerMockClient with actual client
         services.AddTransient<IGridAreaOwnerClient, GridAreaOwnerMockClient>();
-
-        // services.AddTransient<BusinessValidator<>>()
 
         return services;
     }

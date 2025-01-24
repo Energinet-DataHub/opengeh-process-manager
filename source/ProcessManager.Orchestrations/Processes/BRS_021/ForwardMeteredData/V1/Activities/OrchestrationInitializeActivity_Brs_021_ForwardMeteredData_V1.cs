@@ -40,9 +40,6 @@ internal class OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1(
 
         orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 
     public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);

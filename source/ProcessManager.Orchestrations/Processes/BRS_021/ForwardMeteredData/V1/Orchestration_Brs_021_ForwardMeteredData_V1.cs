@@ -66,12 +66,6 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                 FindReceiverStep),
             _defaultRetryOptions);
 
-        // Find Receivers
-        await context.CallActivityAsync(
-            nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1),
-            new FindReceiversActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
-            _defaultRetryOptions);
-
         // Terminate Step: Find Receiver
         await context.CallActivityAsync(
             nameof(TransitionStepToTerminatedActivity_V1),

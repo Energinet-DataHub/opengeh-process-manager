@@ -25,6 +25,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.M
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
+using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
@@ -175,18 +176,39 @@ internal class Orchestration_Brs_023_027_V1
                     idempotencyKey),
                 _defaultRetryOptions);
 
-            // TODO: Wait for actor messages enqueued notify event
+            OrchestrationStepTerminationState enqueueActorMessagesTerminationState;
 
+            var timeout = TimeSpan.FromSeconds(
+                executionContext.OrchestrationOptions.MessagesEnqueuingExpiryTimeInSeconds);
+            try
+            {
+                var enqueueEvent = await context.WaitForExternalEvent<NotifyEnqueueFinishedV1?>(
+                    eventName: NotifyEnqueueFinishedV1.EventName,
+                    timeout: timeout);
+                enqueueActorMessagesTerminationState = enqueueEvent != null && enqueueEvent.Success
+                    ? OrchestrationStepTerminationState.Succeeded
+                    : OrchestrationStepTerminationState.Failed;
+            }
+            catch (TaskCanceledException)
+            {
+                var logger = context.CreateReplaySafeLogger<Orchestration_Brs_023_027_V1>();
+                logger.Log(
+                    LogLevel.Error,
+                    "Timeout while waiting for enqueue actor messages to complete (InstanceId={OrchestrationInstanceId}, Timeout={Timeout}).",
+                    instanceId.Value,
+                    timeout.ToString("g"));
+                enqueueActorMessagesTerminationState = OrchestrationStepTerminationState.Failed;
+            }
+
+            // TODO: Publish CalculationCompleted integration event when messages are enqueued and only if enqueue!
             await context.CallActivityAsync(
                 nameof(TransitionStepToTerminatedActivity_V1),
                 new TransitionStepToTerminatedActivity_V1.ActivityInput(
                     instanceId,
                     EnqueueActorMessagesStepSequence,
-                    OrchestrationStepTerminationState.Succeeded),
+                    enqueueActorMessagesTerminationState),
                 _defaultRetryOptions);
         }
-
-        // TODO: Publish CalculationCompleted integration event (should this also be published if enqueue messages is skipped?)
 
         // Terminate
         await context.CallActivityAsync(

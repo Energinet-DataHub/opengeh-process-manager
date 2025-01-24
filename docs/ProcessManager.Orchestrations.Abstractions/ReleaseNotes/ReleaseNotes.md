@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.15.3
+
+- Add `NotifyEnqueueFinishedV1`.
+
 ## Version 0.15.2
 
 - Update dependent NuGet package.

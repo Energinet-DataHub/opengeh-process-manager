@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.16.0
+
+- Extend `MeteredDataForMeteringPointMessageInputV1` with `MarketActorRecipient Senderg` which represents the sender of the RSM-012 message.
+
 ## Version 0.15.2
 
 - Update dependent NuGet package.

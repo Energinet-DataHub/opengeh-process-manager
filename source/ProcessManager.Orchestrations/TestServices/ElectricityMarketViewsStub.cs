@@ -54,9 +54,20 @@ public sealed class ElectricityMarketViewsStub : IElectricityMarketViews
         yield return meteringPointMasterData;
     }
 
-    public IAsyncEnumerable<MeteringPointEnergySupplier> GetMeteringPointEnergySuppliersAsync(
+    public async IAsyncEnumerable<MeteringPointEnergySupplier> GetMeteringPointEnergySuppliersAsync(
         MeteringPointIdentification meteringPointId,
-        Interval period) => throw new NotImplementedException();
+        Interval period)
+    {
+        var meteringPointEnergySupplier =
+            (MeteringPointEnergySupplier)Activator.CreateInstance(typeof(MeteringPointEnergySupplier))!;
+
+        SetProperty(meteringPointEnergySupplier, "Identification", meteringPointId);
+        SetProperty(meteringPointEnergySupplier, "EnergySupplier", new StubActorNumber("1111111111111"));
+        SetProperty(meteringPointEnergySupplier, "StartDate", period.Start);
+        SetProperty(meteringPointEnergySupplier, "EndDate", period.End);
+
+        yield return meteringPointEnergySupplier;
+    }
 
     private static void SetProperty(object obj, string propertyName, object value)
     {

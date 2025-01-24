@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
+using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using MeteringPointMasterData = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData;
@@ -54,21 +54,21 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         var instanceId = await InitializeOrchestrationAsync(context);
 
         // Fetch Metering Point Master Data
-        // var meteringPointMasterData =
-        //     await context
-        //         .CallActivityAsync<GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
-        //     nameof(GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1),
-        //     new GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
-        //         input.MeteringPointId,
-        //         input.StartDateTime,
-        //         input.EndDateTime),
-        //     _defaultRetryOptions);
+        var meteringPointMasterData =
+            await context
+                .CallActivityAsync<GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
+            nameof(GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1),
+            new GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                input.MeteringPointId,
+                input.StartDateTime,
+                input.EndDateTime),
+            _defaultRetryOptions);
 
         // Step: Validating
         var errors = await PerformValidationAsync(
             context,
             instanceId,
-            new List<MeteringPointMasterData>());
+            meteringPointMasterData.MeteringPointMasterData);
 
         // If there are errors, we stop the orchestration and inform EDI to pass along the errors
         if (errors.Count != 0)
@@ -99,19 +99,42 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
 
         // Step: Find Receiver
         await context.CallActivityAsync(
-            nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1),
-            new FindReceiversActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
-            _defaultRetryOptions);
-        await context.CallActivityAsync(
-            nameof(FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            new FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
+                instanceId,
+                FindReceiverStep),
             _defaultRetryOptions);
 
-        // Step: Enqueueing
+        // Find Receivers
+        var findReceiversActivityOutput =
+        await context.CallActivityAsync<FindReceiversActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
+            nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1),
+            new FindReceiversActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                instanceId,
+                input.MeteringPointType!,
+                input.StartDateTime,
+                input.EndDateTime!,
+                meteringPointMasterData.MeteringPointMasterData.First()),
+            _defaultRetryOptions);
+
+        // Terminate Step: Find Receiver
+        await context.CallActivityAsync(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                instanceId,
+                FindReceiverStep,
+                OrchestrationStepTerminationState.Succeeded),
+            _defaultRetryOptions);
+
+        // Step: Enqueueing // TODO: Skip if no receivers found
         var idempotencyKey = context.NewGuid();
         await context.CallActivityAsync(
             nameof(EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1),
-            new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId, input, idempotencyKey),
+            new EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                instanceId,
+                input,
+                idempotencyKey,
+                findReceiversActivityOutput.MarketActorRecipients),
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("EDI_Notification");
         await context.CallActivityAsync(

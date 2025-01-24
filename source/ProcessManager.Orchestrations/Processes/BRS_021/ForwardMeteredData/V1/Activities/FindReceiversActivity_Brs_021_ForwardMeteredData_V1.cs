@@ -12,36 +12,146 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
+using ActorNumber =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ActorNumber;
+using MeteringPointMasterData =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.
+    MeteringPointMasterData;
+using MeteringPointType =
+    Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
 internal class FindReceiversActivity_Brs_021_ForwardMeteredData_V1(
-    IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
+    IElectricityMarketViews electricityMarketViews)
 {
+    private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
+
+    /// <summary>
+    /// Responsible for finding the unique receivers based on the metering point type.
+    /// </summary>
+    /// <returns>
+    /// Returns a ActivityOutput with read-only list of MarketActorRecipients.
+    /// Returns empty list if no receivers are found.
+    /// </returns>
     [Function(nameof(FindReceiversActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run(
+    public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput activityInput)
     {
-        var orchestrationInstance = await ProgressRepository
-            .GetAsync(activityInput.OrchestrationInstanceId)
-            .ConfigureAwait(false);
+        var receivers = new List<MarketActorRecipient>();
 
-        await TransitionStepToRunningAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.FindReceiverStep,
-                orchestrationInstance)
-            .ConfigureAwait(false);
+        var meteringPointType = MeteringPointType.FromCode(activityInput.MeteringPointType);
+        if (meteringPointType == MeteringPointType.Consumption || meteringPointType == MeteringPointType.Production)
+        {
+            var energySuppliers =
+                await GetEnergySupplierForMeteringPointAsync(
+                    activityInput.MeteringPointMasterData.MeteringPointId,
+                    activityInput.StartDateTime,
+                    activityInput.EndDateTime).ConfigureAwait(false);
+            receivers.AddRange(energySuppliers.Select(x => EnergySupplierReceiver(x.EnergySupplier)));
+            receivers.Add(TheDanishEnergyAgencyReceiver());
+        }
+        else if (meteringPointType == MeteringPointType.Exchange)
+        {
+            receivers.AddRange(
+                activityInput.MeteringPointMasterData.NeighborGridAreaOwners.Select(
+                    NeighborGridAccessProviderReceiver));
+        }
+        else if (meteringPointType == MeteringPointType.VeProduction)
+        {
+            receivers.Add(TheSystemOperatorReceiver());
+        }
+        else if (meteringPointType == MeteringPointType.VeProduction
+                 || meteringPointType == MeteringPointType.NetProduction
+                 || meteringPointType == MeteringPointType.SupplyToGrid
+                 || meteringPointType == MeteringPointType.ConsumptionFromGrid
+                 || meteringPointType == MeteringPointType.WholesaleServicesInformation
+                 || meteringPointType == MeteringPointType.OwnProduction
+                 || meteringPointType == MeteringPointType.NetFromGrid
+                 || meteringPointType == MeteringPointType.NetToGrid
+                 || meteringPointType == MeteringPointType.TotalConsumption
+                 || meteringPointType == MeteringPointType.Analysis
+                 || meteringPointType == MeteringPointType.NotUsed
+                 || meteringPointType == MeteringPointType.SurplusProductionGroup6
+                 || meteringPointType == MeteringPointType.NetLossCorrection
+                 || meteringPointType == MeteringPointType.OtherConsumption
+                 || meteringPointType == MeteringPointType.OtherProduction
+                 || meteringPointType == MeteringPointType.ExchangeReactiveEnergy
+                 || meteringPointType == MeteringPointType.CollectiveNetProduction
+                 || meteringPointType == MeteringPointType.CollectiveNetConsumption)
+        {
+            if (activityInput.MeteringPointMasterData.ParentMeteringPointId != null)
+            {
+                var parentEnergySuppliers =
+                    await GetEnergySupplierForMeteringPointAsync(
+                        activityInput.MeteringPointMasterData.ParentMeteringPointId,
+                        activityInput.StartDateTime,
+                        activityInput.EndDateTime).ConfigureAwait(false);
+                receivers.AddRange(parentEnergySuppliers.Select(x => EnergySupplierReceiver(x.EnergySupplier)));
+            }
+        }
 
-        // TODO: For demo purposes; remove when done
-        await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        var distinctReceivers = receivers
+            .DistinctBy(r => r.ActorId)
+            .ToList();
+
+        return new ActivityOutput(
+            MarketActorRecipients: distinctReceivers.AsReadOnly());
     }
 
-    public sealed record ActivityInput(OrchestrationInstanceId OrchestrationInstanceId);
+    private static MarketActorRecipient NeighborGridAccessProviderReceiver(ActorNumber neighborGridAccessProviderId)
+    {
+        return new MarketActorRecipient(neighborGridAccessProviderId.Value, ActorRole.GridAccessProvider);
+    }
+
+    private static MarketActorRecipient TheDanishEnergyAgencyReceiver()
+    {
+        return new MarketActorRecipient(DataHubDetails.DanishEnergyAgencyNumber, ActorRole.DanishEnergyAgency);
+    }
+
+    private static MarketActorRecipient TheSystemOperatorReceiver()
+    {
+        return new MarketActorRecipient(DataHubDetails.SystemOperatorNumber, ActorRole.SystemOperator);
+    }
+
+    private static MarketActorRecipient EnergySupplierReceiver(
+        Energinet.DataHub.ElectricityMarket.Integration.ActorNumber energySupplierId)
+    {
+        return new MarketActorRecipient(energySupplierId.Value, ActorRole.EnergySupplier);
+    }
+
+    private async Task<IReadOnlyCollection<MeteringPointEnergySupplier>> GetEnergySupplierForMeteringPointAsync(
+        MeteringPointId parentMeteringPointId,
+        string startDateTime,
+        string endDateTime)
+    {
+        var startDateTimeInstant = InstantPatternWithOptionalSeconds.Parse(startDateTime).Value;
+        var endDateTimeInstant = InstantPatternWithOptionalSeconds.Parse(endDateTime).Value;
+
+        return await _electricityMarketViews
+            .GetMeteringPointEnergySuppliersAsync(
+                new MeteringPointIdentification(parentMeteringPointId.Value),
+                new Interval(startDateTimeInstant, endDateTimeInstant))
+            .ToListAsync()
+            .ConfigureAwait(false);
+    }
+
+    public sealed record ActivityInput(
+        OrchestrationInstanceId OrchestrationInstanceId,
+        string MeteringPointType,
+        string StartDateTime,
+        string EndDateTime,
+        MeteringPointMasterData MeteringPointMasterData);
+
+    public sealed record ActivityOutput(IReadOnlyCollection<MarketActorRecipient> MarketActorRecipients);
 }

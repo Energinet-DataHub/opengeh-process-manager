@@ -12,26 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Components;
+using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
+
 namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 
-public abstract class BusinessValidatorBase<TInput>
-{
-    /// <summary>
-    /// Perform all validation rules for the given input.
-    /// </summary>
-    public async Task<IReadOnlyCollection<ValidationError>> ValidateAsync(TInput subject)
-    {
-        if (subject == null)
-            throw new ArgumentNullException(nameof(subject));
-
-        var errors = new List<ValidationError>();
-        foreach (var rule in GetBusinessValidationRules())
-        {
-            errors.AddRange(await rule.ValidateAsync(subject).ConfigureAwait(false));
-        }
-
-        return errors;
-    }
-
-    protected abstract IReadOnlyList<IBusinessValidationRule<TInput>> GetBusinessValidationRules();
-}
+// public abstract class BusinessValidatorBase<TInput>
+//     where TInput : IBusinessValidatedDto
+// {
+//     /// <summary>
+//     /// Perform all validation rules for the given input.
+//     /// </summary>
+//     public async Task<IReadOnlyCollection<ValidationError>> ValidateAsync(TInput subject)
+//     {
+//         if (subject == null)
+//             throw new ArgumentNullException(nameof(subject));
+//
+//         var errors = new List<ValidationError>();
+//         foreach (var rule in GetBusinessValidationRules())
+//         {
+//             errors.AddRange(await rule.ValidateAsync(subject).ConfigureAwait(false));
+//         }
+//
+//         return errors;
+//     }
+//
+//     protected abstract IReadOnlyList<IBusinessValidationRule<TInput>> GetBusinessValidationRules();
+// }

@@ -113,5 +113,15 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         isTerminated.Should().BeTrue("because the BRS-X03 orchestration instance should complete within given wait time");
         succeededOrchestrationInstance.Should().NotBeNull();
+
+        succeededOrchestrationInstance!.Steps.Should()
+            .AllSatisfy(
+                s =>
+                {
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                });
     }
 }

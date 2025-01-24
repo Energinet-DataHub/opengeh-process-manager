@@ -17,15 +17,15 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation;
 
-/// <summary>
-/// Perform all validation rules for the given <see cref="RequestCalculatedEnergyTimeSeriesInputV1"/>.
-/// </summary>
-public class RequestCalculatedEnergyTimeSeriesBusinessValidator(
-    IEnumerable<IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>> validationRules)
-        : BusinessValidatorBase<RequestCalculatedEnergyTimeSeriesInputV1>
-{
-    protected override IReadOnlyList<IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>> GetBusinessValidationRules()
-    {
-        return validationRules.ToList();
-    }
-}
+// /// <summary>
+// /// Perform all validation rules for the given <see cref="RequestCalculatedEnergyTimeSeriesInputV1"/>.
+// /// </summary>
+// public class RequestCalculatedEnergyTimeSeriesBusinessValidator(
+//     IEnumerable<IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>> validationRules)
+//         : BusinessValidatorBase<RequestCalculatedEnergyTimeSeriesInputV1>
+// {
+//     protected override IReadOnlyList<IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>> GetBusinessValidationRules()
+//     {
+//         return validationRules.ToList();
+//     }
+// }

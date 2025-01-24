@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
@@ -47,7 +48,7 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
         // TODO: Set correct data when async validation is implemented
         var rejectedMessage = new RequestCalculatedEnergyTimeSeriesRejectedV1(
             ValidationErrors: input.ValidationErrors
-                .Select(e => new RequestCalculatedEnergyTimeSeriesRejectedV1.ValidationError(
+                .Select(e => new ValidationErrorDto(
                     Message: e.Message,
                     ErrorCode: e.ErrorCode))
                 .ToList());

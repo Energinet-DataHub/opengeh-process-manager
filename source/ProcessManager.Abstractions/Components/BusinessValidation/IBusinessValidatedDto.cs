@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
-
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
 
 /// <summary>
-/// A model containing the validation errors if an energy time series request is rejected.
+/// Marker interface to add to types for which a BusinessValidator{T} should be registered
 /// </summary>
-public record RequestCalculatedEnergyTimeSeriesRejectedV1(
-    List<ValidationErrorDto> ValidationErrors);
+public interface IBusinessValidatedDto;

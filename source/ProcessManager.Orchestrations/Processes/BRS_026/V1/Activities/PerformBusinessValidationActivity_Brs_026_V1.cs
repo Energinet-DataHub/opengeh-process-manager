@@ -23,9 +23,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.A
 /// Perform async validation (and set step to running)
 /// </summary>
 internal class PerformBusinessValidationActivity_Brs_026_V1(
-    RequestCalculatedEnergyTimeSeriesBusinessValidator validator)
+    BusinessValidator<RequestCalculatedEnergyTimeSeriesInputV1> validator)
 {
-    private readonly RequestCalculatedEnergyTimeSeriesBusinessValidator _validator = validator;
+    private readonly BusinessValidator<RequestCalculatedEnergyTimeSeriesInputV1> _validator = validator;
 
     [Function(nameof(PerformBusinessValidationActivity_Brs_026_V1))]
     public async Task<ActivityOutput> Run(

@@ -14,10 +14,10 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
 
 /// <summary>
-/// A model containing the validation errors if an energy time series request is rejected.
+/// Data when enqueueing BRS-X03 actor messages.
 /// </summary>
-public record RequestCalculatedEnergyTimeSeriesRejectedV1(
+public record ActorRequestProcessExampleEnqueueRejectedDataV1(
     List<ValidationErrorDto> ValidationErrors);

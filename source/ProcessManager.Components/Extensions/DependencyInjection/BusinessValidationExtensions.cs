@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Reflection;
+using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,59 +23,75 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 public static class BusinessValidationExtensions
 {
     /// <summary>
-    /// Add required services for business validation. Registers implementations of <see cref="BusinessValidatorBase{TInput}"/>
-    /// and <see cref="IBusinessValidationRule{TInput}"/> found in the given <paramref name="assemblyToScan"/>.
+    /// Add required services for business validation. Registers implementations of <see cref="BusinessValidator{TInput}"/>
+    /// and <see cref="IBusinessValidationRule{TInput}"/> from the given <paramref name="assembliesToScan"/>.
+    /// <remarks>
+    /// <see cref="BusinessValidator{TInput}"/> implementations are registered by finding <see cref="IBusinessValidatedDto"/>
+    /// types in the given <paramref name="assembliesToScan"/>, and registering a <see cref="BusinessValidator{TInput}"/>
+    /// for each type found. This means the given <paramref name="assembliesToScan"/> must also include the assembly that
+    /// contains the types that implement <see cref="IBusinessValidatedDto"/>
+    /// (example: ProcessManager.Orchestrations and ProcessManager.Orchestrations.Abstractions assemblies).
+    /// </remarks>
     /// </summary>
-    public static IServiceCollection AddBusinessValidation(this IServiceCollection services, Assembly assemblyToScan)
+    public static IServiceCollection AddBusinessValidation(
+        this IServiceCollection services,
+        IReadOnlyCollection<Assembly> assembliesToScan)
     {
-        services.AddBusinessValidatorImplementations(assemblyToScan);
-        services.AddBusinessValidationRuleImplementations(assemblyToScan);
+        services.AddBusinessValidatorImplementations(assembliesToScan);
+        services.AddBusinessValidationRuleImplementations(assembliesToScan);
 
         // TODO: Replace GridAreaOwnerMockClient with actual client
         services.AddTransient<IGridAreaOwnerClient, GridAreaOwnerMockClient>();
+
+        // services.AddTransient<BusinessValidator<>>()
 
         return services;
     }
 
     /// <summary>
-    /// Register implementations of <see cref="BusinessValidatorBase{TInput}"/> found in <paramref name="assemblyToScan"/>.
+    /// Register implementations of <see cref="BusinessValidator{TInput}"/> for
+    /// each <see cref="IBusinessValidatedDto"/> type found in <paramref name="assemblies"/>.
     /// </summary>
-    private static IServiceCollection AddBusinessValidatorImplementations(this IServiceCollection services, Assembly assemblyToScan)
+    private static IServiceCollection AddBusinessValidatorImplementations(
+        this IServiceCollection services,
+        IReadOnlyCollection<Assembly> assemblies)
     {
-        var baseType = typeof(BusinessValidatorBase<>);
+        var businessValidatedDtoTypes = assemblies
+            .SelectMany(a => a.DefinedTypes).Distinct()
+            .Where(t =>
+                t is { IsClass: true, IsAbstract: false, IsGenericType: false }
+                && t.IsAssignableTo(typeof(IBusinessValidatedDto)));
 
-        var implementingTypes = assemblyToScan
-            .DefinedTypes
-            .Where(typeInfo =>
-                typeInfo is { IsClass: true, IsAbstract: false }
-                && baseType.IsAssignableFrom(typeInfo))
-            .ToList();
-
-        foreach (var implementingType in implementingTypes)
+        foreach (var businessValidatedDtoType in businessValidatedDtoTypes)
         {
-            services.AddTransient(implementingType);
+            var businessValidatorTypeForDtoType = typeof(BusinessValidator<>).MakeGenericType(businessValidatedDtoType);
+            services.AddTransient(businessValidatorTypeForDtoType);
         }
 
         return services;
     }
 
     /// <summary>
-    /// Register implementations of <see cref="IBusinessValidationRule{TInput}"/> found in <paramref name="assemblyToScan"/>.
+    /// Register implementations of <see cref="IBusinessValidationRule{TInput}"/> found in <paramref name="assemblies"/>.
     /// </summary>
-    private static IServiceCollection AddBusinessValidationRuleImplementations(this IServiceCollection services, Assembly assemblyToScan)
+    private static IServiceCollection AddBusinessValidationRuleImplementations(
+        this IServiceCollection services,
+        IReadOnlyCollection<Assembly> assemblies)
     {
-        var interfaceType = typeof(IBusinessValidationRule<>);
+        var validationRuleInterfaceType = typeof(IBusinessValidationRule<>);
 
-        var implementingTypes = assemblyToScan
-            .DefinedTypes
+        var validationRuleImplementationTypes = assemblies
+            .SelectMany(a => a.DefinedTypes).Distinct()
             .Where(typeInfo =>
                 typeInfo is { IsClass: true, IsAbstract: false }
-                && interfaceType.IsAssignableFrom(typeInfo))
+                && typeInfo.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == validationRuleInterfaceType))
             .ToList();
 
-        foreach (var implementingType in implementingTypes)
+        foreach (var validationRuleType in validationRuleImplementationTypes)
         {
-            services.AddTransient(interfaceType, implementingType);
+            var interfaceTypeForValidationRule = validationRuleType.GetInterfaces()
+                .Single(i => i.IsGenericType && i.GetGenericTypeDefinition() == validationRuleInterfaceType);
+            services.AddTransient(interfaceTypeForValidationRule, validationRuleType);
         }
 
         return services;

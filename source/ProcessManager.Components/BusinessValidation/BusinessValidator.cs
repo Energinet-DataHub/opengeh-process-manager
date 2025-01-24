@@ -17,11 +17,26 @@ using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidatio
 
 namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 
-/// <summary>
-/// Contains the business logic for validating a specific type of entity.
-/// </summary>
-public interface IBusinessValidationRule<in TInput>
-    where TInput : IBusinessValidatedDto
+public class BusinessValidator<TInput>(
+    IEnumerable<IBusinessValidationRule<TInput>> validationRules)
+        where TInput : IBusinessValidatedDto
 {
-    Task<IList<ValidationError>> ValidateAsync(TInput subject);
+    private readonly IReadOnlyCollection<IBusinessValidationRule<TInput>> _validationRules = validationRules.ToList();
+
+    /// <summary>
+    /// Perform all validation rules for the given input.
+    /// </summary>
+    public async Task<IReadOnlyCollection<ValidationError>> ValidateAsync(TInput subject)
+    {
+        if (subject == null)
+            throw new ArgumentNullException(nameof(subject));
+
+        var errors = new List<ValidationError>();
+        foreach (var rule in _validationRules)
+        {
+            errors.AddRange(await rule.ValidateAsync(subject).ConfigureAwait(false));
+        }
+
+        return errors;
+    }
 }

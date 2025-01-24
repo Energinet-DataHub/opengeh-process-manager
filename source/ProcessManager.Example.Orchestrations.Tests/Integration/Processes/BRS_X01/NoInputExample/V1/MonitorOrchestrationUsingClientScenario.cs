@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -114,7 +115,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             .SearchOrchestrationInstancesByNameAsync(
                 new SearchOrchestrationInstancesByNameQuery(
                     userIdentity,
-                    name: new Brs_X01_NoInputExample_V1().Name,
+                    name: Brs_X01_NoInputExample.Name,
                     version: null,
                     lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
                     terminationState: OrchestrationInstanceTerminationState.Succeeded,

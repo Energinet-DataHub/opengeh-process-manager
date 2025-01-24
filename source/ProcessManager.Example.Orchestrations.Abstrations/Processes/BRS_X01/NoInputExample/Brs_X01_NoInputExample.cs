@@ -14,11 +14,11 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample;
 
-public static class Brs_X03
+public static class Brs_X01_NoInputExample
 {
-    public const string Name = "Brs_X03";
+    public const string Name = "Brs_X01_NoInputExample";
 
     public static OrchestrationDescriptionUniqueNameDto V1 { get; } = new(Name, 1);
 }

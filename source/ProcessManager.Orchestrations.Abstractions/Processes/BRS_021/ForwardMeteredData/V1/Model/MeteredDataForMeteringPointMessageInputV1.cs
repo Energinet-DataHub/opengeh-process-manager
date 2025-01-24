@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
@@ -21,6 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// </summary>
 public record MeteredDataForMeteringPointMessageInputV1(
     Guid AuthenticatedActorId,
+    MarketActorRecipient Sender,
     string TransactionId,
     string? MeteringPointId,
     string? MeteringPointType,

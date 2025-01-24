@@ -12,44 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class PerformValidationActivity_Brs_021_ForwardMeteredData_V1(
-    IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
+internal class PerformValidationActivity_Brs_021_ForwardMeteredData_V1
 {
     [Function(nameof(PerformValidationActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task<IReadOnlyCollection<string>> Run([ActivityTrigger] ActivityInput activityInput)
+    public async Task<ActivityOutput> Run([ActivityTrigger] ActivityInput activityInput)
     {
-        var orchestrationInstance = await ProgressRepository
-            .GetAsync(activityInput.OrchestrationInstanceId)
-            .ConfigureAwait(false);
-
-        await TransitionStepToRunningAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.ValidatingStep,
-                orchestrationInstance)
-            .ConfigureAwait(false);
-
-        var errors = new List<string>();
+        var errors = new List<ValidationError>();
 
         if (activityInput.MeteringPointMasterData.Count == 0)
         {
-            errors.Add("Error: No metering point master data found.");
+            errors.Add(new("E10", "Målepunktet findes ikke / Metering point does not exist"));
         }
 
-        return errors;
+        return new(errors);
     }
 
-    public sealed record ActivityInput(
-        OrchestrationInstanceId OrchestrationInstanceId,
-        IReadOnlyCollection<Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData> MeteringPointMasterData);
+    public sealed record ActivityInput(IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
+
+    public sealed record ActivityOutput(IReadOnlyCollection<ValidationError> Errors);
 }

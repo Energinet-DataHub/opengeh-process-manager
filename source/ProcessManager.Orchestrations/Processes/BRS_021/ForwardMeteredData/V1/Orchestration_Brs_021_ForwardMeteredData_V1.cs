@@ -96,8 +96,8 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                 context,
                 instanceId,
                 input.TransactionId,
-                input.MarketActorRecipient.ActorId,
-                input.MarketActorRecipient.ActorRole,
+                input.Sender.ActorId,
+                input.Sender.ActorRole,
                 errors);
 
             // Terminate orchestration

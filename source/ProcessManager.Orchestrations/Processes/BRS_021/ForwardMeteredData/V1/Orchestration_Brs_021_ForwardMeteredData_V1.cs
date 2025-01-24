@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Da
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
@@ -95,8 +96,8 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                 context,
                 instanceId,
                 input.TransactionId,
-                input.ActorNumber,
-                input.ActorRole,
+                input.MarketActorRecipient.ActorId,
+                input.MarketActorRecipient.ActorRole,
                 errors);
 
             // Terminate orchestration
@@ -168,7 +169,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         string inputTransactionId,
         string actorNumber,
         ActorRole actorRole,
-        IReadOnlyCollection<string> errors)
+        IReadOnlyCollection<ValidationError> errors)
     {
         var rejectMessage =
             await context.CallActivityAsync<CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
@@ -235,7 +236,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         return true;
     }
 
-    private async Task<IReadOnlyCollection<string>> PerformValidationAsync(
+    private async Task<IReadOnlyCollection<ValidationError>> PerformValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterData)
@@ -247,7 +248,8 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                 ValidatingStep),
             _defaultRetryOptions);
 
-        var errors = await context.CallActivityAsync<IReadOnlyCollection<string>>(
+        var errors =
+            await context.CallActivityAsync<PerformValidationActivity_Brs_021_ForwardMeteredData_V1.ActivityOutput>(
             nameof(PerformValidationActivity_Brs_021_ForwardMeteredData_V1),
             new PerformValidationActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(meteringPointMasterData),
             _defaultRetryOptions);
@@ -260,7 +262,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                 OrchestrationStepTerminationState.Succeeded),
             _defaultRetryOptions);
 
-        return errors;
+        return errors.Errors;
     }
 
     private async Task<OrchestrationInstanceId> InitializeOrchestrationAsync(TaskOrchestrationContext context)

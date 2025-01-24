@@ -15,11 +15,12 @@
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
+internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
 {
     [Function(nameof(CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1))]
     public Task<ActivityOutput> Run(
@@ -39,7 +40,7 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
                     null,
                     null,
                     null,
-                    activityInput.Errors.Select(err => new ReasonV1("A22", err)).ToList(),
+                    activityInput.Errors.Select(err => new ReasonV1(err.Code, err.Text)).ToList(),
                     [],
                     [],
                     [],
@@ -53,7 +54,7 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
         string InputTransactionId,
         string ActorNumber,
         ActorRole ActorRole,
-        IReadOnlyCollection<string> Errors);
+        IReadOnlyCollection<ValidationError> Errors);
 
     public sealed record ActivityOutput(MeteredDataForMeteringPointRejectedV1 RejectMessage);
 }

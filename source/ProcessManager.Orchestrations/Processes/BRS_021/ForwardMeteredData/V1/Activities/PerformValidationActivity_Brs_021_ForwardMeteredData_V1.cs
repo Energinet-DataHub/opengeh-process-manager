@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -20,27 +21,22 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class PerformValidationActivity_Brs_021_ForwardMeteredData_V1(
-    IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
+internal class PerformValidationActivity_Brs_021_ForwardMeteredData_V1
 {
     [Function(nameof(PerformValidationActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task<ActivityOutput> Run([ActivityTrigger] ActivityInput activityInput)
     {
-        var errors = new List<(string Code, string Error)>();
+        var errors = new List<ValidationError>();
 
         if (activityInput.MeteringPointMasterData.Count == 0)
         {
-            errors.Add(("E10", "Målepunktet findes ikke / Metering point does not exist"));
+            errors.Add(new("E10", "Målepunktet findes ikke / Metering point does not exist"));
         }
 
         return new(errors);
     }
 
-    public sealed record ActivityInput(IReadOnlyCollection<Model.MeteringPointMasterData> MeteringPointMasterData);
+    public sealed record ActivityInput(IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
 
-    public sealed record ActivityOutput(IReadOnlyCollection<(string Code, string Error)> Errors);
+    public sealed record ActivityOutput(IReadOnlyCollection<ValidationError> Errors);
 }

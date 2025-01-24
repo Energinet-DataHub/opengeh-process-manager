@@ -19,11 +19,19 @@ namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
 public interface IEnqueueActorMessagesClient
 {
+    /// <summary>
+    /// Enqueue a message to an actor
+    /// </summary>
+    /// <param name="orchestration">The unique name of the orchestration that initiated the enqueue</param>
+    /// <param name="orchestrationInstanceId">The unique ID for the orchestration</param>
+    /// <param name="orchestrationStartedBy">The identity that initiated the orchestration</param>
+    /// <param name="idempotencyKey">A unique key that MUST not change if the same ´data´ is being supplied</param>
+    /// <param name="data">Is the payload from witch the message to the actor is generated.</param>
     public Task EnqueueAsync<TData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
         Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
-        string idempotencyKey,
+        Guid idempotencyKey,
         TData data)
             where TData : class;
 }

@@ -25,4 +25,9 @@ public static class ServiceBusSenderNames
     /// Service Bus sender for sending messages on the EDI service bus topic
     /// </summary>
     public const string EdiTopic = "EdiTopic";
+
+    /// <summary>
+    /// Service Bus sender for sending messages on the integration event service bus topic
+    /// </summary>
+    public const string IntegrationEventTopic = "IntegrationEventTopic";
 }

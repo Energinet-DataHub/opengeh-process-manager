@@ -224,7 +224,17 @@ internal class OrchestrationInstanceManager(
 
         var isValidParameterValue = await orchestrationDescription.ParameterDefinition.IsValidParameterValueAsync(inputParameter).ConfigureAwait(false);
         if (isValidParameterValue == false)
-            throw new InvalidOperationException("Paramater value is not valid compared to registered parameter definition.");
+        {
+            throw new InvalidOperationException("Paramater value is not valid compared to registered parameter definition.")
+            {
+                Data =
+                {
+                    { "UniqueName", uniqueName },
+                    { "InputParameter", inputParameter },
+                    { "SerializedParameterDefinition", orchestrationDescription.ParameterDefinition.SerializedParameterDefinition },
+                },
+            };
+        }
 
         foreach (var stepSequence in skipStepsBySequence)
         {

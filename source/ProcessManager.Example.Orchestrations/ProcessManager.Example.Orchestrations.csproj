@@ -11,18 +11,29 @@
   </ItemGroup>
   <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="6.1.2" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
         <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="14.0.2" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\ProcessManager.Components\ProcessManager.Components.csproj" />
         <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />
         <ProjectReference Include="..\ProcessManager.Example.Orchestrations.Abstrations\ProcessManager.Example.Orchestrations.Abstrations.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <Compile Include="..\Shared\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
+        <Compile Include="..\Shared\Processes\Activities\TransitionOrchestrationToRunningActivity_V1.cs" Link="Processes\Shared\Activities\TransitionOrchestrationToRunningActivity_V1.cs" />
+        <Compile Include="..\Shared\Processes\Activities\TransitionOrchestrationToTerminatedActivity_V1.cs" Link="Processes\Shared\Activities\TransitionOrchestrationToTerminatedActivity_V1.cs" />
+        <Compile Include="..\Shared\Processes\Activities\TransitionStepToRunningActivity_V1.cs" Link="Processes\Shared\Activities\TransitionStepToRunningActivity_V1.cs" />
+        <Compile Include="..\Shared\Processes\Activities\TransitionStepToTerminatedActivity_V1.cs" Link="Processes\Shared\Activities\TransitionStepToTerminatedActivity_V1.cs" />
     </ItemGroup>
 
+    <ItemGroup>
+        <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests" />
+    </ItemGroup>
+    
     <ItemGroup>
         <None Update="host.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

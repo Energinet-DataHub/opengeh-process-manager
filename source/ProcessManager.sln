@@ -94,6 +94,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Components",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Components.Tests", "ProcessManager.Components.Tests\ProcessManager.Components.Tests.csproj", "{3E011639-3D70-4678-AE4B-DB8AC1A48BED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Example.Consumer", "ProcessManager.Example.Consumer\ProcessManager.Example.Consumer.csproj", "{FE46058F-DA3D-4980-A627-515FCE935B53}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -168,6 +170,10 @@ Global
 		{3E011639-3D70-4678-AE4B-DB8AC1A48BED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E011639-3D70-4678-AE4B-DB8AC1A48BED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E011639-3D70-4678-AE4B-DB8AC1A48BED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE46058F-DA3D-4980-A627-515FCE935B53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE46058F-DA3D-4980-A627-515FCE935B53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE46058F-DA3D-4980-A627-515FCE935B53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE46058F-DA3D-4980-A627-515FCE935B53}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -200,6 +206,7 @@ Global
 		{E394B655-B32A-416C-A3C9-BE6E475C60A8} = {1F5C05E6-047F-42A6-8D1F-A272D8EE8E2E}
 		{D5F460EA-B843-465D-BD38-602CDD717936} = {641A26DF-B668-45F4-B4C3-B4852EA3F069}
 		{3E011639-3D70-4678-AE4B-DB8AC1A48BED} = {4CC648EE-E738-4C07-80D7-3728C5E91A23}
+		{FE46058F-DA3D-4980-A627-515FCE935B53} = {518B5469-388B-48C2-83CE-CF89B16F9C9C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A09D89DF-3110-4624-B419-236E001E0ABF}

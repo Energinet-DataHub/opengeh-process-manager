@@ -15,28 +15,26 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
 using Microsoft.Azure.Functions.Worker;
-using NodaTime;
+using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
 
 internal class OrchestrationInitializeActivity_Brs_X01_InputExample_V1(
-    IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
-    : ProgressActivityBase(
-        clock,
-        progressRepository)
+    IOrchestrationInstanceProgressRepository repository,
+    IOptions<OrchestrationOptions_Brs_X01_InputExample_V1> orchestrationOptions)
 {
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
+    private readonly OrchestrationOptions_Brs_X01_InputExample_V1 _orchestrationOptions = orchestrationOptions.Value;
+
     [Function(nameof(OrchestrationInitializeActivity_Brs_X01_InputExample_V1))]
     public async Task<OrchestrationExecutionPlan> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await ProgressRepository
+        var orchestrationInstance = await _repository
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
-
-        orchestrationInstance.Lifecycle.TransitionToRunning(Clock);
-        await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         // Orchestrations that have input have a custom start handler in which they can
         // transition steps to skipped before starting the orchestration.
@@ -45,7 +43,10 @@ internal class OrchestrationInitializeActivity_Brs_X01_InputExample_V1(
             .Where(step => step.IsSkipped())
             .Select(step => step.Sequence)
             .ToList();
-        return new OrchestrationExecutionPlan(stepsSkippedBySequence);
+
+        return new OrchestrationExecutionPlan(
+            _orchestrationOptions,
+            stepsSkippedBySequence);
     }
 
     public record ActivityInput(

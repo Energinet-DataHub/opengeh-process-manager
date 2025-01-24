@@ -21,17 +21,17 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
 
 internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
-    IOrchestrationInstanceProgressRepository progressRepository,
+    IOrchestrationInstanceProgressRepository repository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
-    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
     [Function(nameof(EnqueueActorMessagesActivity_Brs_023_027_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await _progressRepository
+        var orchestrationInstance = await _repository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
@@ -39,16 +39,12 @@ internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
             orchestration: Orchestration_Brs_023_027_V1.UniqueName,
             orchestrationInstanceId: input.InstanceId.Value,
             orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
-            idempotencyKey: CreateIdempotencyKey(input.InstanceId, input.CalculatedData),
+            idempotencyKey: input.IdempotencyKey,
             data: input.CalculatedData).ConfigureAwait(false);
-    }
-
-    private string CreateIdempotencyKey(OrchestrationInstanceId orchestrationInstanceId, CalculatedDataForCalculationTypeV1 calculatedData)
-    {
-        return calculatedData.CalculationId.ToString() + orchestrationInstanceId.Value;
     }
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        CalculatedDataForCalculationTypeV1 CalculatedData);
+        CalculatedDataForCalculationTypeV1 CalculatedData,
+        Guid IdempotencyKey);
 }

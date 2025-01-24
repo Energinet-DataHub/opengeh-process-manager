@@ -64,7 +64,7 @@ public class StepInstance
     /// <summary>
     /// Any custom state of the step.
     /// </summary>
-    public StepInstanceCustomState CustomState { get; }
+    public StepInstanceCustomState CustomState { get; private set; }
 
     /// <summary>
     /// The orchestration instance which this step is part of.
@@ -74,5 +74,10 @@ public class StepInstance
     public bool IsSkipped()
     {
         return Lifecycle.TerminationState == OrchestrationStepTerminationState.Skipped;
+    }
+
+    public void SetCustomState(string customState)
+    {
+        CustomState = new StepInstanceCustomState(customState);
     }
 }

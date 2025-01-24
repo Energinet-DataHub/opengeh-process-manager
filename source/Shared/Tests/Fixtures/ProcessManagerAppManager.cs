@@ -110,7 +110,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        processManagerTopicResources ??= await ProcessManagerTopicResources.Create(ServiceBusResourceProvider);
+        processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings("ProcessManager", processManagerTopicResources);
@@ -122,7 +122,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        AppHostManager.Dispose();
+        AppHostManager?.Dispose();
 
         if (_manageAzurite)
             AzuriteManager.Dispose();
@@ -244,29 +244,21 @@ public class ProcessManagerAppManager : IAsyncDisposable
     {
         private const string NotifyOrchestrationInstanceSubscriptionName = "notify-orchestration-instance-subscription";
 
-        public static async Task<ProcessManagerTopicResources> Create(ServiceBusResourceProvider serviceBusResourceProvider)
+        public static async Task<ProcessManagerTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             // Process Manager topic & subscriptions
-            var processManagerTopicBuilder = BuildProcessManagerTopic(serviceBusResourceProvider);
-            AddProcessManagerAppSubscriptions(processManagerTopicBuilder);
+            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
+            AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
 
             var processManagerTopic = await processManagerTopicBuilder.CreateAsync();
 
-            return GetProcessManagerTopicResources(processManagerTopic);
-        }
-
-        /// <summary>
-        /// Start building a Process Manager topic.
-        /// </summary>
-        public static TopicResourceBuilder BuildProcessManagerTopic(ServiceBusResourceProvider provider)
-        {
-            return provider.BuildTopic("pm-topic");
+            return CreateFromTopic(processManagerTopic);
         }
 
         /// <summary>
         /// Add the subscriptions used by the Process Manager app to the topic builder.
         /// </summary>
-        public static TopicSubscriptionBuilder AddProcessManagerAppSubscriptions(TopicResourceBuilder builder)
+        public static TopicSubscriptionBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             return builder
                 .AddSubscription(NotifyOrchestrationInstanceSubscriptionName)
@@ -276,10 +268,10 @@ public class ProcessManagerAppManager : IAsyncDisposable
         /// <summary>
         /// Get the <see cref="ProcessManagerAppManager.ProcessManagerTopicResources"/> used by the Process Manager app.
         /// <remarks>
-        /// This requires the Process Manager subscriptions to be created on the topic, using <see cref="AddProcessManagerAppSubscriptions"/>.
+        /// This requires the Process Manager subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
         /// </remarks>
         /// </summary>
-        public static ProcessManagerTopicResources GetProcessManagerTopicResources(TopicResource topic)
+        public static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
         {
             var notifyOrchestrationInstanceSubscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(NotifyOrchestrationInstanceSubscriptionName));

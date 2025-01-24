@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <AssemblyName>Energinet.DataHub.ProcessManager.Example.Consumer</AssemblyName>
+        <RootNamespace>Energinet.DataHub.ProcessManager.Example.Consumer</RootNamespace>
+        <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Energinet.DataHub.Example.Orchestrations.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="6.1.2" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
+        <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="14.0.2" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\ProcessManager.Client\ProcessManager.Client.csproj" />
+        <ProjectReference Include="..\ProcessManager.Example.Orchestrations.Abstrations\ProcessManager.Example.Orchestrations.Abstrations.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="host.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="local.settings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        </None>
+    </ItemGroup>
+</Project>

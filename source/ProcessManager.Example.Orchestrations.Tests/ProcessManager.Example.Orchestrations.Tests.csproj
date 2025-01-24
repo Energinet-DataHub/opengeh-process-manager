@@ -9,9 +9,15 @@
 
     <ItemGroup>
         <Compile Include="..\Shared\Tests\Fixtures\ExampleOrchestrationsAppManager.cs" Link="Fixtures\ExampleOrchestrationsAppManager.cs" />
+        <Compile Include="..\Shared\Tests\Fixtures\Extensions\ProcessManagerClientExtensions.cs">
+          <Link>Fixtures\Extensions\ProcessManagerClientExtensions.cs</Link>
+        </Compile>
         <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
         <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
         <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
+        <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs">
+          <Link>FluentAssertionsVersionGuard.cs</Link>
+        </Compile>
         <Compile Include="..\Shared\Tests\Models\OrchestrationHistoryItem.cs" Link="Fixtures\Models\OrchestrationHistoryItem.cs" />
     </ItemGroup>
 
@@ -33,6 +39,7 @@
     <ItemGroup>
         <ProjectReference Include="..\ProcessManager.Client\ProcessManager.Client.csproj" />
         <ProjectReference Include="..\ProcessManager.DatabaseMigration\ProcessManager.DatabaseMigration.csproj" />
+        <ProjectReference Include="..\ProcessManager.Example.Consumer\ProcessManager.Example.Consumer.csproj" />
         <ProjectReference Include="..\ProcessManager.Example.Orchestrations\ProcessManager.Example.Orchestrations.csproj" />
         <ProjectReference Include="..\ProcessManager\ProcessManager.csproj" />
     </ItemGroup>

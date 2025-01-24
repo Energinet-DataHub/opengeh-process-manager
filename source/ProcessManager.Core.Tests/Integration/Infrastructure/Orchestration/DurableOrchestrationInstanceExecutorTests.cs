@@ -17,23 +17,23 @@ using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Core.Infrastructure.Orchestration;
+namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
 
-[Collection(nameof(ExampleOrchestrationsAppCollection))]
+[Collection(nameof(ProcessManagerCoreAppCollection))]
 public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
 {
-    private readonly ExampleOrchestrationsAppFixture _fixture;
+    private readonly ProcessManagerCoreAppFixture _fixture;
 
     public DurableOrchestrationInstanceExecutorTests(
-        ExampleOrchestrationsAppFixture fixture,
+        ProcessManagerCoreAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;

@@ -213,9 +213,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
                     FunctionName: "OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1"),
-                // new OrchestrationHistoryItem(
-                //     "TaskCompleted",
-                //     FunctionName: "GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1"),
+                new OrchestrationHistoryItem(
+                    "TaskCompleted",
+                    FunctionName: "GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1"),
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
                     FunctionName: "PerformValidationActivity_Brs_021_ForwardMeteredData_V1"),

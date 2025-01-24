@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
@@ -56,6 +58,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         });
         services.AddProcessManagerHttpClients();
+        services.AddProcessManagerMessageClient();
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -69,6 +72,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
 
         Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
+
+        Fixture.EnqueueBrs023027ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         return Task.CompletedTask;
     }
@@ -109,7 +114,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     inputParameter),
                 CancellationToken.None);
 
-        // Step 2: Query until terminated with succeeded
+        // Step 2: Wait service bus message to EDI and mock a response
+        await WaitAndMockServiceBusMessageToAndFromEdi(orchestrationInstanceId);
+
+        // Step 3: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
@@ -196,7 +204,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await Fixture.ProcessManagerAppManager.AppHostManager
             .TriggerFunctionAsync("StartScheduledOrchestrationInstances");
 
-        // Step 3: Query until terminated with succeeded
+        // Step 3: Wait service bus message to EDI and mock a response
+        await WaitAndMockServiceBusMessageToAndFromEdi(orchestrationInstanceId);
+
+        // Step 4: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
@@ -267,5 +278,40 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             delay: TimeSpan.FromSeconds(3));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+    }
+
+    private async Task WaitAndMockServiceBusMessageToAndFromEdi(
+        Guid orchestrationInstanceId,
+        CalculationType calculationType = CalculationType.WholesaleFixing)
+    {
+        var verifyServiceBusMessage = await Fixture.EnqueueBrs023027ServiceBusListener
+            .When(
+                message =>
+                {
+                    if (message.Subject != $"Enqueue_{Brs_023_027.Name.ToLower()}")
+                        return false;
+
+                    var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
+                        .Parser.ParseJson(message.Body.ToString())!;
+
+                    var calculationCompleted = JsonSerializer.Deserialize<CalculatedDataForCalculationTypeV1>(body.Data);
+
+                    var typeMatches = calculationCompleted!.CalculationType == calculationType;
+                    var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationInstanceId.ToString();
+
+                    return typeMatches && orchestrationIdMatches;
+                })
+            .VerifyCountAsync(1);
+        var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(80));
+        messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
+
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new NotifyOrchestrationInstanceEvent<NotifyEnqueueFinishedV1>(
+                OrchestrationInstanceId: orchestrationInstanceId.ToString(),
+                EventName: NotifyEnqueueFinishedV1.EventName,
+                Data: new NotifyEnqueueFinishedV1 { Success = true }),
+            CancellationToken.None);
     }
 }

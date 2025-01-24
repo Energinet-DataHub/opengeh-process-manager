@@ -60,6 +60,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
         });
         services.AddProcessManagerHttpClients();
+        services.AddProcessManagerMessageClient();
         ServiceProvider = services.BuildServiceProvider();
 
         ProcessManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();

@@ -29,7 +29,7 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
             new MeteredDataForMeteringPointRejectedV1(
                 Guid.NewGuid().ToString("N"),
                 BusinessReason.PeriodicMetering,
-                new MarketActorRecipient("5790000282425", ActorRole.EnergySupplier),
+                new MarketActorRecipient(activityInput.ActorNumber, activityInput.ActorRole),
                 activityInput.OrchestrationInstanceId.Value,
                 Guid.NewGuid(),
                 new AcknowledgementV1(
@@ -51,6 +51,8 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
     public sealed record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
         string InputTransactionId,
+        string ActorNumber,
+        ActorRole ActorRole,
         IReadOnlyCollection<string> Errors);
 
     public sealed record ActivityOutput(MeteredDataForMeteringPointRejectedV1 RejectMessage);

@@ -25,11 +25,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// Enqueue reject message in EDI (and set step to running)
 /// </summary>
 internal class EnqueueRejectMessageActivity_Brs_021_V1(
-    IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
-    private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
@@ -39,12 +37,6 @@ internal class EnqueueRejectMessageActivity_Brs_021_V1(
         var orchestrationInstance = await _progressRepository
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
-
-        orchestrationInstance.TransitionStepToRunning(
-            Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueActorMessagesStep,
-            _clock);
-
-        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         await EnqueueRejectMessageAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }

@@ -16,9 +16,11 @@ using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
+using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using MeteringPointMasterData = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData;
@@ -73,7 +75,29 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         // If there are errors, we stop the orchestration and inform EDI to pass along the errors
         if (errors.Count != 0)
         {
-            var asyncValidationErrors = await HandleAsynchronousValidationErrors(context, instanceId, input.TransactionId, errors);
+            await context.CallActivityAsync(
+                nameof(TransitionStepToTerminatedActivity_V1),
+                new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                    instanceId,
+                    StoringMeteredDataStep,
+                    OrchestrationStepTerminationState.Skipped),
+                _defaultRetryOptions);
+
+            await context.CallActivityAsync(
+                nameof(TransitionStepToTerminatedActivity_V1),
+                new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                    instanceId,
+                    FindReceiverStep,
+                    OrchestrationStepTerminationState.Skipped),
+                _defaultRetryOptions);
+
+            var orchestrationResult = await HandleAsynchronousValidationErrors(
+                context,
+                instanceId,
+                input.TransactionId,
+                input.ActorNumber,
+                input.ActorRole,
+                errors);
 
             // Terminate orchestration
             await context.CallActivityAsync(
@@ -81,7 +105,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                 new OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
                 _defaultRetryOptions);
 
-            return asyncValidationErrors;
+            return orchestrationResult;
         }
 
         // Step: Storing
@@ -115,9 +139,10 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
             _defaultRetryOptions);
         //await context.WaitForExternalEvent<string>("EDI_Notification");
         await context.CallActivityAsync(
-            nameof(EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            new EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
                 instanceId,
+                EnqueueActorMessagesStep,
                 OrchestrationStepTerminationState.Succeeded),
             _defaultRetryOptions);
 
@@ -141,6 +166,8 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         string inputTransactionId,
+        string actorNumber,
+        ActorRole actorRole,
         IReadOnlyCollection<string> errors)
     {
         var rejectMessage =
@@ -149,10 +176,19 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
                 new CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
                     instanceId,
                     inputTransactionId,
+                    actorNumber,
+                    actorRole,
                     errors),
                 _defaultRetryOptions);
 
         var idempotencyKey = context.NewGuid();
+
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
+                instanceId,
+                EnqueueActorMessagesStep),
+            _defaultRetryOptions);
 
         await context.CallActivityAsync(
             nameof(EnqueueRejectMessageActivity_Brs_021_V1),
@@ -167,9 +203,10 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         if (!messagesEnqueuedSuccessfully)
         {
             await context.CallActivityAsync(
-                nameof(EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-                new EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+                nameof(TransitionStepToTerminatedActivity_V1),
+                new TransitionStepToTerminatedActivity_V1.ActivityInput(
                     instanceId,
+                    EnqueueActorMessagesStep,
                     OrchestrationStepTerminationState.Failed),
                 _defaultRetryOptions);
 
@@ -177,9 +214,10 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
         }
 
         await context.CallActivityAsync(
-            nameof(EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            new EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
                 instanceId,
+                EnqueueActorMessagesStep,
                 OrchestrationStepTerminationState.Succeeded),
             _defaultRetryOptions);
 
@@ -200,18 +238,26 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     private async Task<IReadOnlyCollection<string>> PerformValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        IReadOnlyCollection<Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData> meteringPointMasterData)
+        IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterData)
     {
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
+                instanceId,
+                ValidatingStep),
+            _defaultRetryOptions);
+
         var errors = await context.CallActivityAsync<IReadOnlyCollection<string>>(
             nameof(PerformValidationActivity_Brs_021_ForwardMeteredData_V1),
-            new PerformValidationActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(
-                instanceId,
-                meteringPointMasterData),
+            new PerformValidationActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(meteringPointMasterData),
             _defaultRetryOptions);
 
         await context.CallActivityAsync(
-            nameof(ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            new ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                instanceId,
+                ValidatingStep,
+                OrchestrationStepTerminationState.Succeeded),
             _defaultRetryOptions);
 
         return errors;

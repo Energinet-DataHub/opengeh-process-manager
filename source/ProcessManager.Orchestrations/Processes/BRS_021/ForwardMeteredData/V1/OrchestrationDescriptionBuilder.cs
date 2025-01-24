@@ -34,9 +34,9 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.ParameterDefinition.SetFromType<MeteredDataForMeteringPointMessageInputV1>();
         description.AppendStepDescription("Asynkron validering", true, "not ready yet");
-        description.AppendStepDescription("Gemmer");
+        description.AppendStepDescription("Gemmer", true, "not ready yet");
         description.AppendStepDescription("Finder modtagere");
-        description.AppendStepDescription("Udsend beskeder");
+        description.AppendStepDescription("Udsend beskeder", true, "not ready yet");
 
         return description;
     }

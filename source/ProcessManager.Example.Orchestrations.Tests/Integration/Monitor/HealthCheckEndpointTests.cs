@@ -13,9 +13,11 @@
 // limitations under the License.
 
 using System.Net;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.EntityFrameworkCore;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Monitor;
@@ -26,10 +28,13 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class HealthCheckEndpointTests : IAsyncLifetime
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
     public HealthCheckEndpointTests(ExampleOrchestrationsAppFixture fixture, ITestOutputHelper testOutputHelper)
     {
+        _testOutputHelper = testOutputHelper;
         Fixture = fixture;
-        Fixture.SetTestOutputHelper(testOutputHelper);
+        Fixture.SetTestOutputHelper(_testOutputHelper);
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
@@ -68,5 +73,35 @@ public class HealthCheckEndpointTests : IAsyncLifetime
 
         var content = await actualResponse.Content.ReadAsStringAsync();
         content.Should().StartWith("{\"status\":\"Healthy\"");
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationDescriptionBreakingChanges_When_CallingHealthCheck_Then_IsUnhealthy()
+    {
+        var uniqueName = BreakingChangesOrchestrationDescriptionBuilder.UniqueName;
+        await using (var dbContext = Fixture.ProcessManagerAppManager.DatabaseManager.CreateDbContext())
+        {
+            // Add breaking change to existing orchestration description
+            var orchestrationDescription = await dbContext
+                .OrchestrationDescriptions
+                .FirstAsync(od => od.UniqueName == uniqueName);
+            orchestrationDescription.FunctionName = "Breaking change!";
+            orchestrationDescription.AppendStepDescription("Breaking change!");
+            await dbContext.SaveChangesAsync();
+        }
+
+        // Restart app to perform synchronization again
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.RestartHost();
+
+        using var actualResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/ready");
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+
+        actualResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var content = await actualResponse.Content.ReadAsStringAsync();
+        content.Should().StartWith("{\"status\":\"Unhealthy\"");
+        content.Should().Contain("Orchestration register");
     }
 }

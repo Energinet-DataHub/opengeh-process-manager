@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -40,6 +41,19 @@ public static class HostExtensions
                 .Select(c => c.Build())
                 .ToList();
 
+            logger.LogInformation(
+                "Synchronizing {OrchestrationDescriptionsCount} orchestration descriptions with the orchestration register. Orchestration descriptions: {OrchestrationDescriptions}",
+                orchestrationDescriptions.Count,
+                orchestrationDescriptions.Select(od => new
+                {
+                    od.Id,
+                    od.UniqueName,
+                    od.IsRecurring,
+                    od.CanBeScheduled,
+                    od.ParameterDefinition.SerializedParameterDefinition,
+                    od.Steps,
+                }));
+
             var register = host.Services.GetRequiredService<IOrchestrationRegister>();
             await register
                 .SynchronizeAsync(
@@ -50,6 +64,11 @@ public static class HostExtensions
         catch (Exception ex)
         {
             logger.LogError(ex, "Could not register orchestrations during startup.");
+
+            // Set exception in the orchestration register context singleton, to enable reporting the exception in
+            // the orchestration register healthcheck.
+            var orchestrationRegisterContext = host.Services.GetRequiredService<OrchestrationRegisterContext>();
+            orchestrationRegisterContext.SetSynchronizeException(ex);
         }
     }
 }

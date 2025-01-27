@@ -29,11 +29,11 @@ internal class GetOrchestrationInstanceContextActivity_Brs_X02_NotifyOrchestrati
     public Task<OrchestrationInstanceContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var plan = new OrchestrationInstanceContext(
+        var orchestrationInstanceContext = new OrchestrationInstanceContext(
             OrchestrationInstanceId: input.OrchestrationInstanceId,
             Options: _options);
 
-        return Task.FromResult(plan);
+        return Task.FromResult(orchestrationInstanceContext);
     }
 
     public record ActivityInput(

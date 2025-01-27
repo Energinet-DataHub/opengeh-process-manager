@@ -23,7 +23,7 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Activities;
 
 /// <summary>
-/// Set the orchestration instance lifecycle to running
+/// Get the <see cref="OrchestrationInstanceContext"/> for the orchestration instance.
 /// </summary>
 internal class GetOrchestrationInstanceContextActivity_Brs_028_V1(
     IOptions<OrchestrationOptions_Brs_028_V1> options)

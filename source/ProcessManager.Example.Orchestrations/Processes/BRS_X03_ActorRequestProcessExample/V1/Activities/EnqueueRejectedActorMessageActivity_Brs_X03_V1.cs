@@ -30,7 +30,7 @@ public class EnqueueRejectedActorMessageActivity_Brs_X03_V1(
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
     [Function(nameof(EnqueueRejectedActorMessageActivity_Brs_X03_V1))]
-    public async Task<string> Run(
+    public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _repository.GetAsync(input.OrchestrationInstanceId).ConfigureAwait(false);
@@ -49,8 +49,6 @@ public class EnqueueRejectedActorMessageActivity_Brs_X03_V1(
                 input.IdempotencyKey,
                 rejectedMessage)
             .ConfigureAwait(false);
-
-        return "Success";
     }
 
     public record ActivityInput(

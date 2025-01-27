@@ -19,10 +19,8 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 
-internal class OrchestrationDescriptionBuilder(IFeatureFlagManager featureFlagManager) : IOrchestrationDescriptionBuilder
+internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
 {
-    private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
-
     public OrchestrationDescription Build()
     {
         var description = new OrchestrationDescription(

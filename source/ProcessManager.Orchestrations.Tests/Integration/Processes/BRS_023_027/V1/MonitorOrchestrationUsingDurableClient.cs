@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
@@ -112,7 +113,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         var calculationType = CalculationType.WholesaleFixing;
 
-        var orchestrationId = await ProcessManagerClient.StartCalculationAsync(
+        var orchestrationId = await StartCalculationAsync(
             calculationType: calculationType);
 
         // Wait service bus message to EDI and mock a response
@@ -166,7 +167,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             jobStatusCallback.GetValue,
             CalculationJobName);
 
-        var orchestrationInstanceId = await ProcessManagerClient.StartCalculationAsync();
+        var orchestrationInstanceId = await StartCalculationAsync();
 
         await Fixture.DurableClient.WaitForOrchestrationRunningAsync(orchestrationInstanceId.ToString());
 
@@ -227,5 +228,27 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                     && Enum.Parse<JobRunStatus>(item["Result"]!.ToString()) == runStatus);
 
         return match != null;
+    }
+
+    private async Task<Guid> StartCalculationAsync(
+        UserIdentityDto? userIdentity = null,
+        CalculationType calculationType = CalculationType.WholesaleFixing)
+    {
+        var inputParameter = new CalculationInputV1(
+            calculationType,
+            GridAreaCodes: new[] { "804" },
+            PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
+            PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
+            IsInternalCalculation: false);
+        var orchestrationInstanceId = await ProcessManagerClient
+            .StartNewOrchestrationInstanceAsync(
+                new StartCalculationCommandV1(
+                    userIdentity ?? new UserIdentityDto(
+                        UserId: Guid.NewGuid(),
+                        ActorId: Guid.NewGuid()),
+                    inputParameter),
+                CancellationToken.None);
+
+        return orchestrationInstanceId;
     }
 }

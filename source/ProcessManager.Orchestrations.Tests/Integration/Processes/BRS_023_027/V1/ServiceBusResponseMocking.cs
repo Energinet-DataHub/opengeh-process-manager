@@ -15,7 +15,6 @@
 using System.Text.Json;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
@@ -23,31 +22,8 @@ using FluentAssertions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1;
 
-public static class StartersAndMockers
+public static class ServiceBusResponseMocking
 {
-    public static async Task<Guid> StartCalculationAsync(
-        this IProcessManagerClient processManagerClient,
-        UserIdentityDto? userIdentity = null,
-        CalculationType calculationType = CalculationType.WholesaleFixing)
-    {
-        var inputParameter = new CalculationInputV1(
-            calculationType,
-            GridAreaCodes: new[] { "804" },
-            PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
-            PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
-            IsInternalCalculation: false);
-        var orchestrationInstanceId = await processManagerClient
-            .StartNewOrchestrationInstanceAsync(
-                new StartCalculationCommandV1(
-                    userIdentity ?? new UserIdentityDto(
-                        UserId: Guid.NewGuid(),
-                        ActorId: Guid.NewGuid()),
-                    inputParameter),
-                CancellationToken.None);
-
-        return orchestrationInstanceId;
-    }
-
     public static async Task WaitAndMockServiceBusMessageToAndFromEdi(
         this ServiceBusListenerMock serviceBusListenerMock,
         IProcessManagerMessageClient processManagerMessageClient,

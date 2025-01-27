@@ -65,7 +65,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         services.AddProcessManagerHttpClients();
         services.AddProcessManagerMessageClient();
         ServiceProvider = services.BuildServiceProvider();
+
+        ProcessManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
     }
+
+    private IProcessManagerClient ProcessManagerClient { get;  }
 
     private OrchestrationsAppFixture Fixture { get; }
 
@@ -99,8 +103,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         var calculationType = CalculationType.WholesaleFixing;
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
@@ -113,7 +115,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
             PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
             IsInternalCalculation: false);
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartCalculationCommandV1(
                     userIdentity,
@@ -130,7 +132,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
+                var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
@@ -147,7 +149,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
 
         // Step 3: General search using name and termination state
-        var orchestrationInstancesGeneralSearch = await processManagerClient
+        var orchestrationInstancesGeneralSearch = await ProcessManagerClient
             .SearchOrchestrationInstancesByNameAsync<CalculationInputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
                     userIdentity,
@@ -170,7 +172,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             PeriodEndDate = inputParameter.PeriodEndDate,
             IsInternalCalculation = inputParameter.IsInternalCalculation,
         };
-        var orchestrationInstancesCustomSearch = await processManagerClient
+        var orchestrationInstancesCustomSearch = await ProcessManagerClient
             .SearchOrchestrationInstancesByCustomQueryAsync(
                 customQuery,
                 CancellationToken.None);
@@ -189,15 +191,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         var calculationType = CalculationType.BalanceFixing;
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
         // Step 1: Schedule new calculation orchestration instance
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await ProcessManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleCalculationCommandV1(
                     userIdentity,
@@ -224,7 +224,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
+                var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
@@ -244,14 +244,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task CalculationScheduledToRunInTheFuture_WhenCanceled_CanMonitorLifecycle()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
         // Step 1: Schedule new calculation orchestration instance
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await ProcessManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleCalculationCommandV1(
                     userIdentity,
@@ -265,7 +263,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 CancellationToken.None);
 
         // Step 2: Cancel the calculation orchestration instance
-        await processManagerClient
+        await ProcessManagerClient
             .CancelScheduledOrchestrationInstanceAsync(
                 new CancelScheduledOrchestrationInstanceCommand(
                     userIdentity,
@@ -276,7 +274,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
+                var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
@@ -288,6 +286,54 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.UserCanceled;
             },
             timeLimit: TimeSpan.FromSeconds(60),
+            delay: TimeSpan.FromSeconds(3));
+
+        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+    }
+
+    [Fact]
+    public async Task Calculation_WhenEdiDoesNotRespond_ThenOrchestrationTimesOutAndHasStatusFailed()
+    {
+        // Mocking the databricks api. Forcing it to return a terminated successful job status
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
+            RunLifeCycleState.TERMINATED,
+            CalculationJobName);
+
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
+        // Step 1: Start new calculation orchestration instance
+        var inputParameter = new CalculationInputV1(
+            CalculationType.WholesaleFixing,
+            GridAreaCodes: new[] { "804" },
+            PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
+            PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
+            IsInternalCalculation: false);
+
+        var orchestrationInstanceId = await ProcessManagerClient
+            .StartNewOrchestrationInstanceAsync(
+                new StartCalculationCommandV1(
+                    userIdentity,
+                    inputParameter),
+                CancellationToken.None);
+
+        // Step 3: Query until terminated with succeeded
+        var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                var orchestrationInstance = await ProcessManagerClient
+                    .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
+                        new GetOrchestrationInstanceByIdQuery(
+                            userIdentity,
+                            orchestrationInstanceId),
+                        CancellationToken.None);
+
+                return
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Failed;
+            },
+            timeLimit: TimeSpan.FromSeconds(30),
             delay: TimeSpan.FromSeconds(3));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");

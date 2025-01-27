@@ -152,71 +152,23 @@ internal class Orchestration_Brs_023_027_V1
             }
         }
 
+        var enqueuedMessages = true;
         // Step: Enqueue messages
         if (!executionContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStepSequence))
         {
-            await context.CallActivityAsync(
-                nameof(TransitionStepToRunningActivity_V1),
-                new TransitionStepToRunningActivity_V1.ActivityInput(
-                    instanceId,
-                    EnqueueActorMessagesStepSequence),
-                _defaultRetryOptions);
-
-            var calculationData = new CalculatedDataForCalculationTypeV1(
-                CalculationId: executionContext.CalculationId,
-                CalculationType: orchestrationInput.CalculationType);
-
-            var idempotencyKey = context.NewGuid();
-
-            await context.CallActivityAsync(
-                nameof(EnqueueActorMessagesActivity_Brs_023_027_V1),
-                new EnqueueActorMessagesActivity_Brs_023_027_V1.ActivityInput(
-                    instanceId,
-                    calculationData,
-                    idempotencyKey),
-                _defaultRetryOptions);
-
-            OrchestrationStepTerminationState enqueueActorMessagesTerminationState;
-
-            var timeout = TimeSpan.FromSeconds(
-                executionContext.OrchestrationOptions.MessagesEnqueuingExpiryTimeInSeconds);
-            try
-            {
-                var enqueueEvent = await context.WaitForExternalEvent<NotifyEnqueueFinishedV1?>(
-                    eventName: NotifyEnqueueFinishedV1.EventName,
-                    timeout: timeout);
-
-                enqueueActorMessagesTerminationState = enqueueEvent != null && enqueueEvent.Success
-                    ? OrchestrationStepTerminationState.Succeeded
-                    : OrchestrationStepTerminationState.Failed;
-            }
-            catch (TaskCanceledException)
-            {
-                var logger = context.CreateReplaySafeLogger<Orchestration_Brs_023_027_V1>();
-                logger.Log(
-                    LogLevel.Error,
-                    "Timeout while waiting for enqueue actor messages to complete (InstanceId={OrchestrationInstanceId}, Timeout={Timeout}).",
-                    instanceId.Value,
-                    timeout.ToString("g"));
-                enqueueActorMessagesTerminationState = OrchestrationStepTerminationState.Failed;
-            }
-
-            // TODO: Publish CalculationCompleted integration event when messages are enqueued and only if enqueued!
-            await context.CallActivityAsync(
-                nameof(TransitionStepToTerminatedActivity_V1),
-                new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                    instanceId,
-                    EnqueueActorMessagesStepSequence,
-                    enqueueActorMessagesTerminationState),
-                _defaultRetryOptions);
+            enqueuedMessages = await EnqueueMessagesAsync(context, instanceId, executionContext, orchestrationInput);
         }
+
+        var terminationState = enqueuedMessages
+            ? OrchestrationInstanceTerminationState.Succeeded
+            : OrchestrationInstanceTerminationState.Failed;
 
         // Terminate
         await context.CallActivityAsync(
             nameof(TransitionOrchestrationToTerminatedActivity_V1),
             new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                 instanceId,
-                OrchestrationInstanceTerminationState.Succeeded),
+                terminationState),
             _defaultRetryOptions);
 
         return "Success";
@@ -228,5 +180,71 @@ internal class Orchestration_Brs_023_027_V1
             maxNumberOfAttempts: 5,
             firstRetryInterval: TimeSpan.FromSeconds(30),
             backoffCoefficient: 2.0));
+    }
+
+    private async Task<bool> EnqueueMessagesAsync(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        OrchestrationExecutionContext executionContext,
+        CalculationInputV1 orchestrationInput)
+    {
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
+                instanceId,
+                EnqueueActorMessagesStepSequence),
+            _defaultRetryOptions);
+
+        var calculationData = new CalculatedDataForCalculationTypeV1(
+            CalculationId: executionContext.CalculationId,
+            CalculationType: orchestrationInput.CalculationType);
+
+        var idempotencyKey = context.NewGuid();
+
+        await context.CallActivityAsync(
+            nameof(EnqueueActorMessagesActivity_Brs_023_027_V1),
+            new EnqueueActorMessagesActivity_Brs_023_027_V1.ActivityInput(
+                instanceId,
+                calculationData,
+                idempotencyKey),
+            _defaultRetryOptions);
+
+        OrchestrationStepTerminationState enqueueActorMessagesTerminationState;
+
+        var success = false;
+        var timeout = TimeSpan.FromSeconds(
+            executionContext.OrchestrationOptions.MessagesEnqueuingExpiryTimeInSeconds);
+        try
+        {
+            var enqueueEvent = await context.WaitForExternalEvent<NotifyEnqueueFinishedV1?>(
+                eventName: NotifyEnqueueFinishedV1.EventName,
+                timeout: timeout);
+
+            success = enqueueEvent is { Success: true };
+            enqueueActorMessagesTerminationState = success
+                ? OrchestrationStepTerminationState.Succeeded
+                : OrchestrationStepTerminationState.Failed;
+        }
+        catch (TaskCanceledException)
+        {
+            var logger = context.CreateReplaySafeLogger<Orchestration_Brs_023_027_V1>();
+            logger.Log(
+                LogLevel.Error,
+                "Timeout while waiting for enqueue actor messages to complete (InstanceId={OrchestrationInstanceId}, Timeout={Timeout}).",
+                instanceId.Value,
+                timeout.ToString("g"));
+            enqueueActorMessagesTerminationState = OrchestrationStepTerminationState.Failed;
+        }
+
+        // TODO: Publish CalculationCompleted integration event when messages are enqueued and only if enqueued!
+        await context.CallActivityAsync(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                instanceId,
+                EnqueueActorMessagesStepSequence,
+                enqueueActorMessagesTerminationState),
+            _defaultRetryOptions);
+
+        return success;
     }
 }

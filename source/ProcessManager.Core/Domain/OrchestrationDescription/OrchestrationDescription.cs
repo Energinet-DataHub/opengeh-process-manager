@@ -23,7 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 /// </summary>
 public class OrchestrationDescription
 {
-    private readonly List<StepDescription> _steps;
+    private List<StepDescription> _steps;
 
     private string _recurringCronExpression;
 
@@ -41,7 +41,6 @@ public class OrchestrationDescription
         IsEnabled = true;
 
         _steps = [];
-        Steps = _steps.AsReadOnly();
 
         _recurringCronExpression = string.Empty;
     }
@@ -111,7 +110,7 @@ public class OrchestrationDescription
     /// Defines the steps the orchestration is going through, and which should be
     /// visible to the users (e.g. shown in the UI).
     /// </summary>
-    public IReadOnlyCollection<StepDescription> Steps { get; private set; }
+    public IReadOnlyCollection<StepDescription> Steps => _steps;
 
     /// <summary>
     /// This is set by the framework when synchronizing with the orchestration register during startup.
@@ -152,12 +151,12 @@ public class OrchestrationDescription
     /// <param name="newDescriptionSteps"></param>
     internal void OverwriteSteps(List<StepDescription> newDescriptionSteps)
     {
-        Steps = newDescriptionSteps;
+        _steps = newDescriptionSteps;
     }
 
     /// <summary>
     /// Generate next sequence number for a new step.
     /// </summary>
     private int GetNextSequence()
-        => _steps.Count + 1;
+        => Steps.Count + 1;
 }

@@ -56,6 +56,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
                 = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
+                = Fixture.ProcessManagerTopicName,
         });
         services.AddProcessManagerHttpClients();
         services.AddProcessManagerMessageClient();
@@ -297,9 +299,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     var calculationCompleted = JsonSerializer.Deserialize<CalculatedDataForCalculationTypeV1>(body.Data);
 
                     var typeMatches = calculationCompleted!.CalculationType == calculationType;
+                    var calculationIdMatches = calculationCompleted!.CalculationId == orchestrationInstanceId;
                     var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationInstanceId.ToString();
 
-                    return typeMatches && orchestrationIdMatches;
+                    return typeMatches && calculationIdMatches && orchestrationIdMatches;
                 })
             .VerifyCountAsync(1);
         var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(80));

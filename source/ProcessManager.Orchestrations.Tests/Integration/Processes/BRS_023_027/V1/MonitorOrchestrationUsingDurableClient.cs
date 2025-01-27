@@ -183,7 +183,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var isTerminated = await AwaitJobStatusAsync(JobRunStatus.Completed, orchestrationInstanceId);
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within the given wait time");
 
-        // Let the durable function run to completion
+        // Lets the durable function run to completion
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
             processManagerMessageClient: ServiceProvider.GetRequiredService<IProcessManagerMessageClient>(),
             orchestrationInstanceId: orchestrationInstanceId);

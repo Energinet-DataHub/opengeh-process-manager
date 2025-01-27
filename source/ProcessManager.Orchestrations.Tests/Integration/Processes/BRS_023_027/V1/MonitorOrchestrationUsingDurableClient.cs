@@ -152,7 +152,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(EnqueueActorMessagesActivity_Brs_023_027_V1)),
             new OrchestrationHistoryItem("TimerCreated",  FunctionName: null),
-            new OrchestrationHistoryItem("EventRaised",   Name: nameof(NotifyEnqueueFinishedV1)),
+            new OrchestrationHistoryItem("EventRaised",   Name: NotifyEnqueueFinishedV1.EventName),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
 
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToTerminatedActivity_V1)),
@@ -193,6 +193,9 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         jobStatusCallback.SetValue(RunLifeCycleState.TERMINATED);
         var isTerminated = await AwaitJobStatusAsync(JobRunStatus.Completed, orchestrationInstanceId);
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within the given wait time");
+
+        // Let the durable function run to completion
+        await WaitAndMockServiceBusMessageToAndFromEdi(orchestrationInstanceId);
 
         var status = await Fixture.DurableClient.GetStatusAsync(
             instanceId: orchestrationInstanceId.ToString(),

@@ -120,7 +120,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 CancellationToken.None);
 
         // Step 2: Wait service bus message to EDI and mock a response
-        await WaitAndMockServiceBusMessageToAndFromEdi(orchestrationInstanceId);
+        await WaitAndMockServiceBusMessageToAndFromEdi(
+            orchestrationInstanceId,
+            CalculationType.BalanceFixing);
 
         // Step 3: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
@@ -210,7 +212,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .TriggerFunctionAsync("StartScheduledOrchestrationInstances");
 
         // Step 3: Wait service bus message to EDI and mock a response
-        await WaitAndMockServiceBusMessageToAndFromEdi(orchestrationInstanceId);
+        await WaitAndMockServiceBusMessageToAndFromEdi(
+            orchestrationInstanceId,
+            CalculationType.BalanceFixing);
 
         // Step 4: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
@@ -287,7 +291,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
     private async Task WaitAndMockServiceBusMessageToAndFromEdi(
         Guid orchestrationInstanceId,
-        CalculationType calculationType = CalculationType.WholesaleFixing)
+        CalculationType calculationType)
     {
         var verifyServiceBusMessage = await Fixture.EnqueueBrs023027ServiceBusListener
             .When(
@@ -308,7 +312,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     return typeMatches && calculationIdMatches && orchestrationIdMatches;
                 })
             .VerifyCountAsync(1);
-        var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(80));
+        var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(30));
         messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();

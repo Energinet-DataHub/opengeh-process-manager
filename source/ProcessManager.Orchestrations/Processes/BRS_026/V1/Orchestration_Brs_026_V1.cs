@@ -101,6 +101,8 @@ internal class Orchestration_Brs_026_V1
         var validationResult = await context.CallActivityAsync<PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput>(
             nameof(PerformBusinessValidationActivity_Brs_026_V1),
             new PerformBusinessValidationActivity_Brs_026_V1.ActivityInput(
+                instanceId,
+                AsyncValidationStepSequence,
                 input),
             _defaultRetryOptions);
 

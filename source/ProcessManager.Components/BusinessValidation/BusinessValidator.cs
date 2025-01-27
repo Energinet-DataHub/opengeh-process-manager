@@ -14,13 +14,16 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Components;
 using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
+using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 
 public class BusinessValidator<TInput>(
+    ILogger<BusinessValidator<TInput>> logger,
     IEnumerable<IBusinessValidationRule<TInput>> validationRules)
         where TInput : IBusinessValidatedDto
 {
+    private readonly ILogger _logger = logger;
     private readonly IReadOnlyCollection<IBusinessValidationRule<TInput>> _validationRules = validationRules.ToList();
 
     /// <summary>
@@ -35,6 +38,14 @@ public class BusinessValidator<TInput>(
         foreach (var rule in _validationRules)
         {
             errors.AddRange(await rule.ValidateAsync(subject).ConfigureAwait(false));
+        }
+
+        if (errors.Count > 0)
+        {
+            _logger.LogWarning(
+                "Validation failed for {SubjectType} type. Validation errors: {Errors}",
+                subject.GetType().Name,
+                errors);
         }
 
         return errors;

@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -89,16 +90,16 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         // Step 1: Start new orchestration instance
-        var businessReason = "BalanceFixing";
-        var energySupplierNumber = "23143245321";
+        var businessReason = BusinessReason.BalanceFixing.Name;
+        var energySupplierNumber = "1234567891234";
         var startRequestCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedEnergyTimeSeriesInputV1(
                 RequestedForActorNumber: energySupplierNumber,
-                RequestedForActorRole: "EnergySupplier",
+                RequestedForActorRole: ActorRole.EnergySupplier.Name,
                 BusinessReason: businessReason,
-                PeriodStart: "2024-04-07 23:00:00",
-                PeriodEnd: "2024-04-08 23:00:00",
+                PeriodStart: "2024-04-07T22:00:00Z",
+                PeriodEnd: "2024-04-08T22:00:00Z",
                 EnergySupplierNumber: energySupplierNumber,
                 BalanceResponsibleNumber: null,
                 GridAreas: ["804"],

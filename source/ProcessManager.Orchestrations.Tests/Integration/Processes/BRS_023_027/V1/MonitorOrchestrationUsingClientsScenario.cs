@@ -101,13 +101,14 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
+        var calculationType = CalculationType.WholesaleFixing;
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
         // Step 1: Start new calculation orchestration instance
         var inputParameter = new CalculationInputV1(
-            CalculationType.WholesaleFixing,
+            calculationType,
             GridAreaCodes: new[] { "804" },
             PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
             PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
@@ -122,7 +123,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 2: Wait service bus message to EDI and mock a response
         await WaitAndMockServiceBusMessageToAndFromEdi(
             orchestrationInstanceId,
-            CalculationType.BalanceFixing);
+            calculationType);
 
         // Step 3: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
@@ -189,6 +190,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
+        var calculationType = CalculationType.BalanceFixing;
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
@@ -200,7 +202,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
                     inputParameter: new CalculationInputV1(
-                        CalculationType.BalanceFixing,
+                        calculationType,
                         GridAreaCodes: new[] { "543" },
                         PeriodStartDate: new DateTimeOffset(2022, 1, 11, 23, 0, 0, TimeSpan.Zero),
                         PeriodEndDate: new DateTimeOffset(2022, 1, 12, 23, 0, 0, TimeSpan.Zero),
@@ -214,7 +216,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 3: Wait service bus message to EDI and mock a response
         await WaitAndMockServiceBusMessageToAndFromEdi(
             orchestrationInstanceId,
-            CalculationType.BalanceFixing);
+            calculationType);
 
         // Step 4: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(

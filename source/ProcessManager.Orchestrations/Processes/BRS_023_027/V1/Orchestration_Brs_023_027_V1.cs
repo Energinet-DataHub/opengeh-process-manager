@@ -185,6 +185,7 @@ internal class Orchestration_Brs_023_027_V1
                 var enqueueEvent = await context.WaitForExternalEvent<NotifyEnqueueFinishedV1?>(
                     eventName: NotifyEnqueueFinishedV1.EventName,
                     timeout: timeout);
+
                 enqueueActorMessagesTerminationState = enqueueEvent != null && enqueueEvent.Success
                     ? OrchestrationStepTerminationState.Succeeded
                     : OrchestrationStepTerminationState.Failed;
@@ -200,7 +201,7 @@ internal class Orchestration_Brs_023_027_V1
                 enqueueActorMessagesTerminationState = OrchestrationStepTerminationState.Failed;
             }
 
-            // TODO: Publish CalculationCompleted integration event when messages are enqueued and only if enqueue!
+            // TODO: Publish CalculationCompleted integration event when messages are enqueued and only if enqueued!
             await context.CallActivityAsync(
                 nameof(TransitionStepToTerminatedActivity_V1),
                 new TransitionStepToTerminatedActivity_V1.ActivityInput(

@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.24.1
+
+- No functional changes.
+
 ## Version 0.24.0
 
 - Add `INotifyDataDto` type constraint to `NotifyOrchestrationInstanceV1`

@@ -69,7 +69,7 @@ public class OrchestrationDescription
     /// If <see langword="false"/> then the orchestration can only
     /// be started directly (on-demand) and doesn't support scheduling.
     /// </summary>
-    public bool CanBeScheduled { get; }
+    public bool CanBeScheduled { get; set; }
 
     /// <summary>
     /// A five-part cron format that expresses how this orchestration should
@@ -111,7 +111,7 @@ public class OrchestrationDescription
     /// Defines the steps the orchestration is going through, and which should be
     /// visible to the users (e.g. shown in the UI).
     /// </summary>
-    public IReadOnlyCollection<StepDescription> Steps { get; }
+    public IReadOnlyCollection<StepDescription> Steps { get; private set; }
 
     /// <summary>
     /// This is set by the framework when synchronizing with the orchestration register during startup.
@@ -144,6 +144,15 @@ public class OrchestrationDescription
             skipReason);
 
         _steps.Add(step);
+    }
+
+    /// <summary>
+    /// Overwrite the current steps with a new set of steps.
+    /// </summary>
+    /// <param name="newDescriptionSteps"></param>
+    internal void OverwriteSteps(List<StepDescription> newDescriptionSteps)
+    {
+        Steps = newDescriptionSteps;
     }
 
     /// <summary>

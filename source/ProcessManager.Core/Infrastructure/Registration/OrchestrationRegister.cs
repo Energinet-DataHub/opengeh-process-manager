@@ -16,7 +16,9 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 
@@ -26,10 +28,12 @@ namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 /// to communicate with Durable Functions and start a new orchestration instance.
 /// </summary>
 internal class OrchestrationRegister(
+    IOptions<ProcessManagerOptions> options,
     ProcessManagerContext context) :
         IOrchestrationRegister,
         IOrchestrationRegisterQueries
 {
+    private readonly ProcessManagerOptions _options = options.Value;
     private readonly ProcessManagerContext _context = context;
 
     /// <inheritdoc />
@@ -54,6 +58,8 @@ internal class OrchestrationRegister(
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(hostName);
 
+        var test123 = await _context.OrchestrationDescriptions.ToListAsync().ConfigureAwait(false);
+
         var query = _context.OrchestrationDescriptions
             .Where(x => x.HostName == hostName);
 
@@ -61,32 +67,32 @@ internal class OrchestrationRegister(
     }
 
     /// <inheritdoc />
-    public bool ShouldRegisterOrUpdate(OrchestrationDescription? registerDescription, OrchestrationDescription hostDescription)
+    public bool ShouldRegisterOrUpdate(OrchestrationDescription? existingDescription, OrchestrationDescription newDescription)
     {
         return
-            registerDescription == null
-            || registerDescription.IsEnabled == false
-            || AnyRefreshablePropertyHasChanged(registerDescription, hostDescription);
+            existingDescription == null
+            || existingDescription.IsEnabled == false
+            || AnyRefreshablePropertyHasChanged(existingDescription, newDescription);
     }
 
     /// <inheritdoc />
-    public async Task RegisterOrUpdateAsync(OrchestrationDescription hostDescription, string hostName)
+    public async Task RegisterOrUpdateAsync(OrchestrationDescription newDescription, string hostName)
     {
-        ArgumentNullException.ThrowIfNull(hostDescription);
+        ArgumentNullException.ThrowIfNull(newDescription);
         ArgumentException.ThrowIfNullOrWhiteSpace(hostName);
 
-        var existingDescription = await GetOrDefaultAsync(hostDescription.UniqueName, isEnabled: null).ConfigureAwait(false);
+        var existingDescription = await GetOrDefaultAsync(newDescription.UniqueName, isEnabled: null).ConfigureAwait(false);
         if (existingDescription == null)
         {
             // Enforce certain values
-            hostDescription.HostName = hostName;
-            hostDescription.IsEnabled = true;
-            _context.Add(hostDescription);
+            newDescription.HostName = hostName;
+            newDescription.IsEnabled = true;
+            _context.OrchestrationDescriptions.Add(newDescription);
         }
         else
         {
             existingDescription.IsEnabled = true;
-            UpdateRefreshableProperties(existingDescription, hostDescription);
+            UpdateRefreshableProperties(existingDescription, newDescription);
         }
 
         await _context.SaveChangesAsync().ConfigureAwait(false);
@@ -106,24 +112,89 @@ internal class OrchestrationRegister(
         await _context.SaveChangesAsync().ConfigureAwait(false);
     }
 
-    private static bool AnyRefreshablePropertyHasChanged(
-        OrchestrationDescription registerDescription,
-        OrchestrationDescription hostDescription)
+    private bool AnyRefreshablePropertyHasChanged(
+        OrchestrationDescription existingDescription,
+        OrchestrationDescription newDescription)
     {
-        return
-            registerDescription.RecurringCronExpression != hostDescription.RecurringCronExpression
-            || registerDescription.FunctionName != hostDescription.FunctionName;
+        // Breaking changes for the orchestration description (should only be allowed in dev/test):
+        var propertiesWithBreakingChanges = GetPropertiesWithBreakingChanges(existingDescription, newDescription);
+
+        if (propertiesWithBreakingChanges.Any() && _options.AllowOrchestrationDescriptionBreakingChanges)
+        {
+            return true;
+        }
+        else if (propertiesWithBreakingChanges.Any())
+        {
+            throw new InvalidOperationException(
+                $"Breaking changes to orchestration description are not allowed"
+                + $" (Id={existingDescription.IsEnabled}, UniqueName={existingDescription.UniqueName.Name}, Version={existingDescription.UniqueName.Version},"
+                + $" ChangedProperties={string.Join(", ", propertiesWithBreakingChanges)}).");
+        }
+
+        return existingDescription.RecurringCronExpression != newDescription.RecurringCronExpression;
     }
 
     /// <summary>
-    /// Properties that can change the behaviour of the orchestation history should not be allowed to
+    /// Get a list of properties (which are breaking changes) that have changed between the existing and new orchestration description.
+    /// </summary>
+    private IReadOnlyCollection<string> GetPropertiesWithBreakingChanges(
+        OrchestrationDescription existingDescription,
+        OrchestrationDescription newDescription)
+    {
+        List<string> changedProperties = [];
+        if (existingDescription.Steps.Count != newDescription.Steps.Count)
+        {
+            changedProperties.Add(nameof(existingDescription.Steps.Count));
+        }
+        else
+        {
+            for (var stepIndex = 0; stepIndex < newDescription.Steps.Count; stepIndex++)
+            {
+                var newStep = newDescription.Steps.OrderBy(s => s.Sequence).ElementAt(stepIndex);
+                var existingStep = newDescription.Steps.OrderBy(s => s.Sequence).ElementAtOrDefault(stepIndex);
+
+                var stepChanged = existingStep == null
+                                  || existingStep.CanBeSkipped != newStep.CanBeSkipped
+                                  || existingStep.Description != newStep.Description
+                                  || existingStep.SkipReason != newStep.SkipReason
+                                  || existingStep.Sequence != newStep.Sequence;
+
+                if (stepChanged)
+                    changedProperties.Add($"{nameof(existingDescription.Steps)}[{stepIndex}]");
+            }
+        }
+
+        if (existingDescription.FunctionName != newDescription.FunctionName)
+            changedProperties.Add(nameof(existingDescription.FunctionName));
+
+        if (existingDescription.ParameterDefinition.SerializedParameterDefinition != newDescription.ParameterDefinition.SerializedParameterDefinition)
+            changedProperties.Add(nameof(existingDescription.ParameterDefinition));
+
+        if (existingDescription.CanBeScheduled != newDescription.CanBeScheduled)
+            changedProperties.Add(nameof(existingDescription.CanBeScheduled));
+
+        return changedProperties;
+    }
+
+    /// <summary>
+    /// Properties that can change the behaviour of the orchestration history should not be allowed to
     /// change without bumping the version of the orchestration description.
     /// </summary>
-    private static void UpdateRefreshableProperties(
-        OrchestrationDescription registerDescription,
-        OrchestrationDescription hostDescription)
+    private void UpdateRefreshableProperties(
+        OrchestrationDescription existingDescription,
+        OrchestrationDescription newDescription)
     {
-        registerDescription.RecurringCronExpression = hostDescription.RecurringCronExpression;
-        registerDescription.FunctionName = hostDescription.FunctionName;
+        existingDescription.RecurringCronExpression = newDescription.RecurringCronExpression;
+
+        // Breaking changes for the orchestration description (should only be allowed in dev/test):
+        if (_options.AllowOrchestrationDescriptionBreakingChanges)
+        {
+            existingDescription.FunctionName = newDescription.FunctionName;
+            existingDescription.CanBeScheduled = newDescription.CanBeScheduled;
+            existingDescription.ParameterDefinition.SetSerializedParameterDefinition(
+                newDescription.ParameterDefinition.SerializedParameterDefinition);
+
+            existingDescription.OverwriteSteps(newDescription.Steps.ToList());
+        }
     }
 }

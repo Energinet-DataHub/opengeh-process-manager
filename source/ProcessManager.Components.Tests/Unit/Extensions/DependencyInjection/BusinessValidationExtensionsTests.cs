@@ -38,6 +38,11 @@ public class BusinessValidationExtensionsTests
         typeof(BusinessValidator<ActorRequestProcessExampleInputV1>),
     ];
 
+    public BusinessValidationExtensionsTests()
+    {
+        _serviceCollection.AddLogging();
+    }
+
     [Fact]
     public void Given_BusinessValidatorTypes_When_GettingBusinessValidatedDtoTypesFromAssembly_Then_EachBusinessValidatedDtoTypeShouldHaveABusinessValidatorType()
     {

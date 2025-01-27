@@ -31,7 +31,7 @@ internal interface IOrchestrationRegister
     /// <param name="existingDescription">Orchestration description as described in the register.</param>
     /// <param name="newDescription">Orchestration description as described by the application host.</param>
     /// <returns><see langword="true"/> if the orchestration description should be registered or updated; otherwise <see langword="false"/>.</returns>
-    bool ShouldRegisterOrUpdate(OrchestrationDescription? existingDescription, OrchestrationDescription newDescription);
+    bool ShouldRegisterOrUpdate(OrchestrationDescription existingDescription, OrchestrationDescription newDescription);
 
     /// <summary>
     /// Durable Functions orchestration host's can use this method to register or update the orchestrations

@@ -51,8 +51,11 @@ internal static class OrchestrationRegisterExtensions
                 .SingleOrDefault(x =>
                     x.UniqueName == newDescription.UniqueName);
 
-            if (register.ShouldRegisterOrUpdate(existingDescription, newDescription))
+            if (existingDescription == null
+                || register.ShouldRegisterOrUpdate(existingDescription, newDescription))
+            {
                 await register.RegisterOrUpdateAsync(newDescription, hostName).ConfigureAwait(false);
+            }
         }
     }
 

@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
@@ -29,11 +30,13 @@ namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 /// </summary>
 internal class OrchestrationRegister(
     IOptions<ProcessManagerOptions> options,
+    ILogger<OrchestrationRegister> logger,
     ProcessManagerContext context) :
         IOrchestrationRegister,
         IOrchestrationRegisterQueries
 {
     private readonly ProcessManagerOptions _options = options.Value;
+    private readonly ILogger<OrchestrationRegister> _logger = logger;
     private readonly ProcessManagerContext _context = context;
 
     /// <inheritdoc />
@@ -57,8 +60,6 @@ internal class OrchestrationRegister(
     public async Task<IReadOnlyCollection<OrchestrationDescription>> GetAllByHostNameAsync(string hostName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(hostName);
-
-        var test123 = await _context.OrchestrationDescriptions.ToListAsync().ConfigureAwait(false);
 
         var query = _context.OrchestrationDescriptions
             .Where(x => x.HostName == hostName);
@@ -121,6 +122,9 @@ internal class OrchestrationRegister(
 
         if (propertiesWithBreakingChanges.Any() && _options.AllowOrchestrationDescriptionBreakingChanges)
         {
+            _logger.LogInformation("Updating orchestration description with breaking changes"
+                + $" (Id={existingDescription.IsEnabled}, UniqueName={existingDescription.UniqueName.Name}, Version={existingDescription.UniqueName.Version},"
+                + $" ChangedProperties={string.Join(", ", propertiesWithBreakingChanges)}).");
             return true;
         }
         else if (propertiesWithBreakingChanges.Any())

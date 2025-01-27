@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NodaTime;
 
@@ -33,7 +34,6 @@ public class RequestCalculatedEnergyTimeSeriesInputV1ValidatorTests
     private readonly BusinessValidator<RequestCalculatedEnergyTimeSeriesInputV1> _sut;
     private readonly Mock<IClock> _clockMock;
     private readonly DateTimeZone _timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
-    private readonly Mock<IGridAreaOwnerClient> _gridAreaOwnerClientMock;
 
     public RequestCalculatedEnergyTimeSeriesInputV1ValidatorTests()
     {
@@ -42,12 +42,13 @@ public class RequestCalculatedEnergyTimeSeriesInputV1ValidatorTests
 
         IServiceCollection services = new ServiceCollection();
 
+        services.AddLogging();
         services.AddTransient<DateTimeZone>(s => _timeZone);
         services.AddTransient<IClock>(s => _clockMock.Object);
         services.AddTransient<PeriodValidationHelper>();
 
-        _gridAreaOwnerClientMock = new Mock<IGridAreaOwnerClient>();
-        services.AddScoped<IGridAreaOwnerClient>(_ => _gridAreaOwnerClientMock.Object);
+        var gridAreaOwnerClientMock = new Mock<IGridAreaOwnerClient>();
+        services.AddScoped<IGridAreaOwnerClient>(_ => gridAreaOwnerClientMock.Object);
 
         var orchestrationsAssembly = typeof(Orchestration_Brs_026_V1).Assembly;
         var orchestrationsAbstractionsAssembly = typeof(RequestCalculatedEnergyTimeSeriesInputV1).Assembly;

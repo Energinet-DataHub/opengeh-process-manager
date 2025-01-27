@@ -20,6 +20,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 
 public class RequestCalculatedEnergyTimeSeriesInputV1Builder
 {
+    private const string ValidGlnNumber = "1111111111111";
+
     private string _requestedForActorNumber;
     private string _requestedForActorRole;
     private string _businessReason;
@@ -37,7 +39,7 @@ public class RequestCalculatedEnergyTimeSeriesInputV1Builder
     /// </summary>
     public RequestCalculatedEnergyTimeSeriesInputV1Builder(ActorRole forActorRole)
     {
-        _requestedForActorNumber = "1111111111111";
+        _requestedForActorNumber = ValidGlnNumber;
         _requestedForActorRole = forActorRole.Name;
         _businessReason = BusinessReason.BalanceFixing.Name;
 
@@ -80,6 +82,19 @@ public class RequestCalculatedEnergyTimeSeriesInputV1Builder
         return this;
     }
 
+    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithPeriod(string periodStart, string? periodEnd)
+    {
+        _periodStart = periodStart;
+        _periodEnd = periodEnd;
+        return this;
+    }
+
+    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithPeriodEnd(Instant? periodEnd)
+    {
+        _periodEnd = periodEnd?.ToString();
+        return this;
+    }
+
     public RequestCalculatedEnergyTimeSeriesInputV1Builder WithEnergySupplierNumber(string? energySupplierNumber)
     {
         _energySupplierNumber = energySupplierNumber;
@@ -89,6 +104,15 @@ public class RequestCalculatedEnergyTimeSeriesInputV1Builder
     public RequestCalculatedEnergyTimeSeriesInputV1Builder WithBalanceResponsibleNumber(string? balanceResponsibleNumber)
     {
         _balanceResponsibleNumber = balanceResponsibleNumber;
+        return this;
+    }
+
+    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithGridArea(string? gridArea)
+    {
+        _gridAreas = !string.IsNullOrEmpty(gridArea)
+            ? [gridArea]
+            : [];
+
         return this;
     }
 

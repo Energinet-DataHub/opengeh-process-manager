@@ -47,7 +47,13 @@ public class GridAreaValidationRule : IBusinessValidationRule<RequestCalculatedE
 
         foreach (var gridAreaCode in subject.GridAreas)
         {
-            if (!await GridAreaValidationHelper.IsGridAreaOwnerAsync(_gridAreaOwnerClient, gridAreaCode, subject.RequestedForActorNumber).ConfigureAwait(false))
+            var isGridAreaOwner = await GridAreaValidationHelper.IsGridAreaOwnerAsync(
+                    _gridAreaOwnerClient,
+                    gridAreaCode,
+                    subject.RequestedForActorNumber)
+                .ConfigureAwait(false);
+
+            if (!isGridAreaOwner)
                 return InvalidGridAreaError;
         }
 

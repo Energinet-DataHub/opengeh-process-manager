@@ -30,13 +30,13 @@ namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 /// </summary>
 internal class OrchestrationRegister(
     IOptions<ProcessManagerOptions> options,
-    ILogger<OrchestrationRegister> logger,
+    ILogger<IOrchestrationRegister> logger,
     ProcessManagerContext context) :
         IOrchestrationRegister,
         IOrchestrationRegisterQueries
 {
     private readonly ProcessManagerOptions _options = options.Value;
-    private readonly ILogger<OrchestrationRegister> _logger = logger;
+    private readonly ILogger<IOrchestrationRegister> _logger = logger;
     private readonly ProcessManagerContext _context = context;
 
     /// <inheritdoc />

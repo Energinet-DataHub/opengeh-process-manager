@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NJsonSchema;
@@ -46,10 +47,82 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
+    public async Task Given_NewOrchestrationDescription_When_OrchestrationDescriptionsSynchronized_Then_IsAddedToDatabase()
+    {
+        // Given new orchestration description
+        var loggerMock = new Mock<ILogger<IOrchestrationRegister>>();
+        var optionsMock = new Mock<IOptions<ProcessManagerOptions>>();
+        var hostName = "test-host";
+
+        optionsMock
+            .Setup(o => o.Value)
+            .Returns(new ProcessManagerOptions
+            {
+                AllowOrchestrationDescriptionBreakingChanges = true,
+            });
+
+        var uniqueName = new OrchestrationDescriptionUniqueName("TestOrchestration", 1);
+        var functionName = "TestFunctionV1";
+        var newOrchestrationDescription = new OrchestrationDescription(
+            uniqueName,
+            functionName: functionName,
+            canBeScheduled: true);
+
+        newOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefitionString>();
+
+        var step1Description = "Step 1";
+        var step2Description = "Step 2";
+        newOrchestrationDescription.AppendStepDescription(step1Description);
+        newOrchestrationDescription.AppendStepDescription(step2Description);
+
+        // When syncronized
+        using (var updateContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            var orchestrationRegister = new OrchestrationRegister(
+                optionsMock.Object,
+                loggerMock.Object,
+                updateContext);
+
+            // Save changes is called inside SynchronizeAsync()
+            await orchestrationRegister.SynchronizeAsync(
+                hostName,
+                newDescriptions: [newOrchestrationDescription]);
+        }
+
+        // Then is added to database
+        using var queryContext = _fixture.DatabaseManager.CreateDbContext();
+        var actualOrchestrationDescription = queryContext.OrchestrationDescriptions.Single();
+
+        Assert.Equal(expected: uniqueName, actual: actualOrchestrationDescription.UniqueName);
+        Assert.Equal(expected: newOrchestrationDescription.Id, actual: actualOrchestrationDescription.Id);
+        Assert.Equal(expected: functionName, actual: actualOrchestrationDescription.FunctionName);
+        Assert.True(actualOrchestrationDescription.CanBeScheduled);
+        Assert.Equal(
+            expected: JsonSchema.FromType<ParameterDefitionString>().ToJson(),
+            actual: actualOrchestrationDescription.ParameterDefinition.SerializedParameterDefinition);
+        Assert.Collection(
+            collection: actualOrchestrationDescription.Steps.OrderBy(s => s.Sequence),
+            elementInspectors:
+            [
+                step =>
+                {
+                    Assert.Equal(1, step.Sequence);
+                    Assert.Equal(step1Description, step.Description);
+                },
+                step =>
+                {
+                    Assert.Equal(2, step.Sequence);
+                    Assert.Equal(step2Description, step.Description);
+                },
+            ]);
+    }
+
+    [Fact]
     public async Task
-        Given_ExistingOrchestrationDescription_AndGiven_AllowBreakingChanges_When_OrchestrationDescriptionsSynchronized_PropertiesAreUpdated()
+        Given_ExistingOrchestrationDescription_AndGiven_AllowBreakingChanges_When_OrchestrationDescriptionsSynchronized_Then_PropertiesAreUpdated()
     {
         // Given existing orchestration description & allow breaking changes
+        var loggerMock = new Mock<ILogger<IOrchestrationRegister>>();
         var optionsMock = new Mock<IOptions<ProcessManagerOptions>>();
         var hostName = "test-host";
 
@@ -82,6 +155,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         {
             var orchestrationRegister = new OrchestrationRegister(
                 optionsMock.Object,
+                loggerMock.Object,
                 updateContext);
 
             var orchestrationDescriptionWithBreakingChanges = new OrchestrationDescription(
@@ -94,11 +168,10 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             orchestrationDescriptionWithBreakingChanges.AppendStepDescription("Step 2b");
             orchestrationDescriptionWithBreakingChanges.AppendStepDescription("Step 3b");
 
+            // Save changes is called inside SynchronizeAsync()
             await orchestrationRegister.SynchronizeAsync(
                 hostName,
                 newDescriptions: [orchestrationDescriptionWithBreakingChanges]);
-
-            await updateContext.SaveChangesAsync();
         }
 
         // Then existing orchestration description is updated
@@ -135,9 +208,10 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
 
     [Fact]
     public async Task
-        Given_ExistingOrchestrationDescription_AndGiven_DisallowBreakingChanges_When_OrchestrationDescriptionsSynchronized_ExceptionIsThrown()
+        Given_ExistingOrchestrationDescription_AndGiven_DisallowBreakingChanges_When_OrchestrationDescriptionsSynchronized_Then_ExceptionIsThrown()
     {
         // Given existing orchestration description & allow breaking changes
+        var loggerMock = new Mock<ILogger<IOrchestrationRegister>>();
         var optionsMock = new Mock<IOptions<ProcessManagerOptions>>();
         var hostName = "test-host";
 
@@ -170,6 +244,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         {
             var orchestrationRegister = new OrchestrationRegister(
                 optionsMock.Object,
+                loggerMock.Object,
                 updateContext);
 
             var orchestrationDescriptionWithBreakingChanges = new OrchestrationDescription(

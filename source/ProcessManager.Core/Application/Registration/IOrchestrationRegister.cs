@@ -19,7 +19,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Registration;
 /// <summary>
 /// Read/write access to the orchestration register.
 /// </summary>
-internal interface IOrchestrationRegister
+public interface IOrchestrationRegister
 {
     Task<IReadOnlyCollection<OrchestrationDescription>> GetAllByHostNameAsync(string hostName);
 

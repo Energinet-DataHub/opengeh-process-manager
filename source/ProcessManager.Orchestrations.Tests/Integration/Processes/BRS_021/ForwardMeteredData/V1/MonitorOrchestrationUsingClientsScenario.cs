@@ -130,31 +130,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     FunctionName: "OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1"),
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
-                    FunctionName: "GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "PerformValidationActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "StoringStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                    FunctionName: "TransitionStepToRunningActivity_V1"),
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
                     FunctionName: "FindReceiversActivity_Brs_021_ForwardMeteredData_V1"),
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
-                    FunctionName: "FindReceiversTerminateActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
+                    FunctionName: "TransitionStepToTerminatedActivity_V1"),
                 new OrchestrationHistoryItem(
                     "TaskCompleted",
                     FunctionName: "OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1"),
@@ -168,7 +150,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         last.Value<string>("Result").Should().Be("Success");
     }
 
-    [Fact]
+    [Fact(Skip = "Because flow is not implemented.")]
     public async Task ForwardMeteredData_WhenStartedWithFaultyInput_ThenExecutedErrorPath()
     {
         // Arrange

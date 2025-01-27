@@ -163,8 +163,13 @@ internal class OrchestrationRegister(
                                   || existingStep.SkipReason != newStep.SkipReason
                                   || existingStep.Sequence != newStep.Sequence;
 
-                if (stepChanged)
-                    changedProperties.Add($"{nameof(existingDescription.Steps)}[{stepIndex}]");
+                if (!stepChanged)
+                    continue;
+
+                if (!changedProperties.Contains(nameof(existingDescription.Steps)))
+                    changedProperties.Add(nameof(existingDescription.Steps));
+
+                changedProperties.Add($"{nameof(existingDescription.Steps)}[{stepIndex}]");
             }
         }
 
@@ -193,12 +198,22 @@ internal class OrchestrationRegister(
         // Breaking changes for the orchestration description (should only be allowed in dev/test):
         if (_options.AllowOrchestrationDescriptionBreakingChanges)
         {
-            existingDescription.FunctionName = newDescription.FunctionName;
-            existingDescription.CanBeScheduled = newDescription.CanBeScheduled;
-            existingDescription.ParameterDefinition.SetSerializedParameterDefinition(
-                newDescription.ParameterDefinition.SerializedParameterDefinition);
+            var changedProperties = GetPropertiesWithBreakingChanges(existingDescription, newDescription);
 
-            existingDescription.OverwriteSteps(newDescription.Steps.ToList());
+            if (changedProperties.Contains(nameof(existingDescription.FunctionName)))
+                existingDescription.FunctionName = newDescription.FunctionName;
+
+            if (changedProperties.Contains(nameof(existingDescription.CanBeScheduled)))
+                existingDescription.CanBeScheduled = newDescription.CanBeScheduled;
+
+            if (changedProperties.Contains(nameof(existingDescription.ParameterDefinition)))
+            {
+                existingDescription.ParameterDefinition
+                    .SetSerializedParameterDefinition(newDescription.ParameterDefinition.SerializedParameterDefinition);
+            }
+
+            if (changedProperties.Contains(nameof(existingDescription.Steps)))
+                existingDescription.OverwriteSteps(newDescription.Steps.ToList());
         }
     }
 }

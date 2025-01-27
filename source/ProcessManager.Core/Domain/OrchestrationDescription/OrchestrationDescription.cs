@@ -23,6 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 /// </summary>
 public class OrchestrationDescription
 {
+    internal const string StepsPrivatePropertyName = nameof(_steps);
     private List<StepDescription> _steps;
 
     private string _recurringCronExpression;
@@ -110,7 +111,7 @@ public class OrchestrationDescription
     /// Defines the steps the orchestration is going through, and which should be
     /// visible to the users (e.g. shown in the UI).
     /// </summary>
-    public IReadOnlyCollection<StepDescription> Steps => _steps;
+    public IReadOnlyCollection<StepDescription> Steps => _steps.AsReadOnly();
 
     /// <summary>
     /// This is set by the framework when synchronizing with the orchestration register during startup.

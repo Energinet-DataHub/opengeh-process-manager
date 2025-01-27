@@ -57,7 +57,7 @@ internal class OrchestrationDescriptionEntityConfiguration : IEntityTypeConfigur
         builder.Property(o => o.IsEnabled);
 
         builder.OwnsMany<StepDescription>(
-            "_steps",
+            OrchestrationDescription.StepsPrivatePropertyName,
             b =>
             {
                 b.ToTable("StepDescription");

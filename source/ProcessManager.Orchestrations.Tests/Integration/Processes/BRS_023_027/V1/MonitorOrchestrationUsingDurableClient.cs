@@ -12,17 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Text.Json;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
@@ -116,16 +111,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             CalculationJobName);
 
         var calculationType = CalculationType.WholesaleFixing;
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
 
-        var orchestrationId = await StartCalculationAsync(
-            userIdentity,
-            calculationType);
+        var orchestrationId = await ProcessManagerClient.StartCalculationAsync(
+            calculationType: calculationType);
 
         // Wait service bus message to EDI and mock a response
-        await WaitAndMockServiceBusMessageToAndFromEdi(
+        await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
+            processManagerMessageClient: ServiceProvider.GetRequiredService<IProcessManagerMessageClient>(),
             orchestrationInstanceId: orchestrationId,
             calculationType: calculationType);
 
@@ -174,11 +166,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             jobStatusCallback.GetValue,
             CalculationJobName);
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
-        var orchestrationInstanceId = await StartCalculationAsync(userIdentity);
+        var orchestrationInstanceId = await ProcessManagerClient.StartCalculationAsync();
 
         await Fixture.DurableClient.WaitForOrchestrationRunningAsync(orchestrationInstanceId.ToString());
 
@@ -195,7 +183,9 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within the given wait time");
 
         // Let the durable function run to completion
-        await WaitAndMockServiceBusMessageToAndFromEdi(orchestrationInstanceId);
+        await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
+            processManagerMessageClient: ServiceProvider.GetRequiredService<IProcessManagerMessageClient>(),
+            orchestrationInstanceId: orchestrationInstanceId);
 
         var status = await Fixture.DurableClient.GetStatusAsync(
             instanceId: orchestrationInstanceId.ToString(),
@@ -237,61 +227,5 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                     && Enum.Parse<JobRunStatus>(item["Result"]!.ToString()) == runStatus);
 
         return match != null;
-    }
-
-    private async Task<Guid> StartCalculationAsync(
-        UserIdentityDto userIdentity,
-        CalculationType calculationType = CalculationType.WholesaleFixing)
-    {
-        var inputParameter = new CalculationInputV1(
-            calculationType,
-            GridAreaCodes: new[] { "804" },
-            PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
-            PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
-            IsInternalCalculation: false);
-        var orchestrationInstanceId = await ProcessManagerClient
-            .StartNewOrchestrationInstanceAsync(
-                new StartCalculationCommandV1(
-                    userIdentity,
-                    inputParameter),
-                CancellationToken.None);
-
-        return orchestrationInstanceId;
-    }
-
-    private async Task WaitAndMockServiceBusMessageToAndFromEdi(
-        Guid orchestrationInstanceId,
-        CalculationType calculationType = CalculationType.WholesaleFixing)
-    {
-        var verifyServiceBusMessage = await Fixture.EnqueueBrs023027ServiceBusListener
-            .When(
-                message =>
-                {
-                    if (message.Subject != $"Enqueue_{Brs_023_027.Name.ToLower()}")
-                        return false;
-
-                    var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
-                        .Parser.ParseJson(message.Body.ToString())!;
-
-                    var calculationCompleted = JsonSerializer.Deserialize<CalculatedDataForCalculationTypeV1>(body.Data);
-
-                    var typeMatches = calculationCompleted!.CalculationType == calculationType;
-                    var calculationIdMatches = calculationCompleted!.CalculationId == orchestrationInstanceId;
-                    var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationInstanceId.ToString();
-
-                    return typeMatches && calculationIdMatches && orchestrationIdMatches;
-                })
-            .VerifyCountAsync(1);
-        var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(30));
-        messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
-
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent<NotifyEnqueueFinishedV1>(
-                OrchestrationInstanceId: orchestrationInstanceId.ToString(),
-                EventName: NotifyEnqueueFinishedV1.EventName,
-                Data: new NotifyEnqueueFinishedV1 { Success = true }),
-            CancellationToken.None);
     }
 }

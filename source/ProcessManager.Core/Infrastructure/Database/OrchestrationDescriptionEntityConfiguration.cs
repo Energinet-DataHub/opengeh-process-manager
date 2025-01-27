@@ -83,5 +83,6 @@ internal class OrchestrationDescriptionEntityConfiguration : IEntityTypeConfigur
 
                 b.WithOwner().HasForeignKey(s => s.OrchestrationDescriptionId);
             });
+        builder.Ignore(o => o.Steps); // Steps is a get-only property for the private _steps collection.
     }
 }

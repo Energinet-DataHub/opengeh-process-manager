@@ -28,6 +28,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -59,6 +60,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = Fixture.ProcessManagerTopicName,
         });
+        services.AddAzureClients(
+            builder => builder.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerHttpClients();
         services.AddProcessManagerMessageClient();
         ServiceProvider = services.BuildServiceProvider();

@@ -152,14 +152,14 @@ internal class Orchestration_Brs_023_027_V1
             }
         }
 
-        var enqueuedMessages = true;
+        var messagesSuccessfulEnqueued = true;
         // Step: Enqueue messages
         if (!executionContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStepSequence))
         {
-            enqueuedMessages = await EnqueueMessagesAsync(context, instanceId, executionContext, orchestrationInput);
+            messagesSuccessfulEnqueued = await EnqueueMessagesAsync(context, instanceId, executionContext, orchestrationInput);
         }
 
-        var terminationState = enqueuedMessages
+        var terminationState = messagesSuccessfulEnqueued
             ? OrchestrationInstanceTerminationState.Succeeded
             : OrchestrationInstanceTerminationState.Failed;
 

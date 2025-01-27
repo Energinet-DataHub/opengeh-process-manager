@@ -18,6 +18,7 @@ using System.Text.Json;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
@@ -67,7 +68,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
-        var orchestration = new Brs_X01_InputExample_V1();
+        var orchestration = Brs_X01_InputExample.V1;
         var input = new InputV1(
             ShouldSkipSkippableStep: false);
 
@@ -137,7 +138,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             ActorId: Guid.NewGuid());
 
         var now = DateTimeOffset.UtcNow;
-        var orchestration = new Brs_X01_InputExample_V1();
+        var orchestration = Brs_X01_InputExample.V1;
         var input = new InputV1(
             ShouldSkipSkippableStep: false);
 

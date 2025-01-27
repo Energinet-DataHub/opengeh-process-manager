@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
 
@@ -37,7 +36,7 @@ public record InputExampleQuery
         bool skippedStepTwo = default)
             : base(operatingIdentity)
     {
-        OrchestrationDescriptionName = new Brs_X01_InputExample_V1().Name;
+        OrchestrationDescriptionName = Brs_X01_InputExample.Name;
         SkippedStepTwo = skippedStepTwo;
     }
 

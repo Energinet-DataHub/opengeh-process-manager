@@ -39,7 +39,7 @@ public class ExampleConsumerAppManager : IAsyncDisposable
     public ExampleConsumerAppManager()
         : this(
             new IntegrationTestConfiguration(),
-            appPort: 8003)
+            appPort: 8004)
     {
     }
 

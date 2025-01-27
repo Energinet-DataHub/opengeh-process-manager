@@ -12,9 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
-
-public record Brs_X01_NoInputExample_V1()
-    : OrchestrationDescriptionUniqueNameDto("Brs_X01_NoInputExample_V1", 1);
+/// <summary>
+/// A xUnit collection fixture for ensuring tests don't run in parallel.
+///
+/// xUnit documentation of collection fixtures:
+///  * https://xunit.net/docs/shared-context#collection-fixture
+/// </summary>
+[CollectionDefinition(nameof(ProcessManagerCoreAppCollection))]
+public class ProcessManagerCoreAppCollection : ICollectionFixture<ProcessManagerCoreAppFixture>
+{
+}

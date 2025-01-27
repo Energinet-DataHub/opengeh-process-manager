@@ -32,7 +32,7 @@ public sealed record StartNoInputExampleCommandV1
         UserIdentityDto operatingIdentity)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_X01_NoInputExample_V1())
+                orchestrationDescriptionUniqueName: Brs_X01_NoInputExample.V1)
     {
     }
 }

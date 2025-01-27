@@ -36,7 +36,7 @@ public record ScheduleInputExampleCommandV1
         DateTimeOffset runAt)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: new Brs_X01_InputExample_V1(),
+                orchestrationDescriptionUniqueName: Brs_X01_InputExample.V1,
                 inputParameter,
                 runAt)
     {

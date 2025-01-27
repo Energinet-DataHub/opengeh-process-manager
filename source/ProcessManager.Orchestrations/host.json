@@ -4,7 +4,8 @@
     "durableTask": {
       "hubName": "%ProcessManagerTaskHubName%",
       "storageProvider": {
-        "connectionName": "ProcessManagerStorageConnectionString"
+        "connectionName": "ProcessManagerStorageConnectionString",
+        "partitionCount": 16
       }
     }
   },

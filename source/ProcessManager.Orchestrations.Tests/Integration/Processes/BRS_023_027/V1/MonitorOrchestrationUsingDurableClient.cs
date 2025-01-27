@@ -16,21 +16,28 @@ using System.Text.Json;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Wiremock;
+using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -58,7 +65,11 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
                 = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
+                = Fixture.ProcessManagerTopicName,
         });
+        services.AddAzureClients(
+            builder => builder.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerHttpClients();
         services.AddProcessManagerMessageClient();
         ServiceProvider = services.BuildServiceProvider();
@@ -104,18 +115,23 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
+        var calculationType = CalculationType.WholesaleFixing;
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
-        var calculationType = CalculationType.WholesaleFixing;
 
         var orchestrationId = await StartCalculationAsync(
             userIdentity,
             calculationType);
 
+        // Wait service bus message to EDI and mock a response
+        await WaitAndMockServiceBusMessageToAndFromEdi(
+            orchestrationInstanceId: orchestrationId,
+            calculationType: calculationType);
+
         var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestrationId.ToString(),
-            TimeSpan.FromSeconds(90));
+            TimeSpan.FromSeconds(30));
 
         var activities = completeOrchestrationStatus.History
             .OrderBy(item => item["Timestamp"])
@@ -124,48 +140,27 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         activities.Should().NotBeNull().And.Equal(
         [
-            new OrchestrationHistoryItem("ExecutionStarted", FunctionName: "Orchestration_Brs_023_027_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_023_027_V1"),
+            new OrchestrationHistoryItem("ExecutionStarted", FunctionName: nameof(Orchestration_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToRunningActivity_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(OrchestrationInitializeActivity_Brs_023_027_V1)),
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "CalculationStepStartJobActivity_Brs_023_027_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "CalculationStepGetJobRunStatusActivity_Brs_023_027_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(CalculationStepStartJobActivity_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(CalculationStepGetJobRunStatusActivity_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "EnqueueActorMessagesActivity_Brs_023_027_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(EnqueueActorMessagesActivity_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TimerCreated",  FunctionName: null),
+            new OrchestrationHistoryItem("EventRaised",   Name: nameof(NotifyEnqueueFinishedV1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToTerminatedActivity_V1)),
             new OrchestrationHistoryItem("ExecutionCompleted"),
         ]);
 
         // => Verify that the durable function completed successfully
         completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
-
-        // When the monitor pattern is implemented this check should happen before the orchestration is completed.
-        // Since we have to "mock" the response from EDI.
-        var verifyServiceBusMessage = await Fixture.EnqueueBrs023027ServiceBusListener.When(
-                msg =>
-                {
-                    if (msg.Subject != $"Enqueue_{Abstractions.Processes.BRS_023_027.Brs_023_027.Name.ToLower()}")
-                        return false;
-
-                    var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
-                        .Parser.ParseJson(msg.Body.ToString())!;
-
-                    var calculationCompleted = JsonSerializer.Deserialize<CalculatedDataForCalculationTypeV1>(body.Data);
-
-                    var typeMatches = calculationCompleted!.CalculationType == calculationType;
-                    var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationId.ToString();
-
-                    return typeMatches && orchestrationIdMatches;
-                })
-            .VerifyCountAsync(1);
-
-        var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(20));
-        messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
     }
 
     [Fact]
@@ -182,8 +177,6 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
-
-        var beforeStartingOrchestration = DateTime.UtcNow.AddSeconds(-5);
 
         var orchestrationInstanceId = await StartCalculationAsync(userIdentity);
 
@@ -261,5 +254,41 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 CancellationToken.None);
 
         return orchestrationInstanceId;
+    }
+
+    private async Task WaitAndMockServiceBusMessageToAndFromEdi(
+        Guid orchestrationInstanceId,
+        CalculationType calculationType = CalculationType.WholesaleFixing)
+    {
+        var verifyServiceBusMessage = await Fixture.EnqueueBrs023027ServiceBusListener
+            .When(
+                message =>
+                {
+                    if (message.Subject != $"Enqueue_{Brs_023_027.Name.ToLower()}")
+                        return false;
+
+                    var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
+                        .Parser.ParseJson(message.Body.ToString())!;
+
+                    var calculationCompleted = JsonSerializer.Deserialize<CalculatedDataForCalculationTypeV1>(body.Data);
+
+                    var typeMatches = calculationCompleted!.CalculationType == calculationType;
+                    var calculationIdMatches = calculationCompleted!.CalculationId == orchestrationInstanceId;
+                    var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationInstanceId.ToString();
+
+                    return typeMatches && calculationIdMatches && orchestrationIdMatches;
+                })
+            .VerifyCountAsync(1);
+        var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(30));
+        messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
+
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new NotifyOrchestrationInstanceEvent<NotifyEnqueueFinishedV1>(
+                OrchestrationInstanceId: orchestrationInstanceId.ToString(),
+                EventName: NotifyEnqueueFinishedV1.EventName,
+                Data: new NotifyEnqueueFinishedV1 { Success = true }),
+            CancellationToken.None);
     }
 }

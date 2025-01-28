@@ -1,6 +1,6 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 0.17.2
+## Version 0.17.1
 
 - Update `RequestCalculatedEnergyTimeSeriesInputV1` with the required input.
 - Update `RequestCalculatedEnergyTimeSeriesAcceptedV1` with the correct properties.

@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -36,6 +35,7 @@ public static class HostExtensions
         var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger(nameof(SynchronizeWithOrchestrationRegisterAsync));
         var orchestrationRegisterContext = host.Services.GetRequiredService<OrchestrationRegisterContext>();
+        var clock = host.Services.GetRequiredService<IClock>();
 
         try
         {
@@ -80,6 +80,6 @@ public static class HostExtensions
             orchestrationRegisterContext.SynchronizeException = ex;
         }
 
-        orchestrationRegisterContext.SynchronizedAt = SystemClock.Instance.GetCurrentInstant();
+        orchestrationRegisterContext.SynchronizedAt = clock.GetCurrentInstant();
     }
 }

@@ -58,7 +58,7 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [InlineData("live")]
     [InlineData("ready")]
     [InlineData("status")]
-    public async Task FunctionApp_WhenCallingHealthCheck_ReturnOKAndExpectedContent(string healthCheckEndpoint)
+    public async Task Given_RunningExampleOrchestrationsApp_When_CallingHealthCheck_Then_ReturnsOKAndExpectedContent(string healthCheckEndpoint)
     {
         // Act
         using var actualResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/{healthCheckEndpoint}");

@@ -101,14 +101,17 @@ public class HealthCheckEndpointTests : IAsyncLifetime
         using var assertionScope = new AssertionScope();
 
         var hostLogs = Fixture.ExampleOrchestrationsAppManager.AppHostManager.GetHostLogSnapshot();
-        hostLogs.Should().ContainMatch("*Breaking changes to orchestration description are not allowed*");
-        hostLogs.Should().ContainMatch("*ChangedProperties=Steps,FunctionName*");
+
+        const string breakingChangesNotAllowedString = "Breaking changes to orchestration description are not allowed";
+        const string changedPropertiesString = "ChangedProperties=Steps,FunctionName";
+        hostLogs.Should().ContainMatch($"*{breakingChangesNotAllowedString}*");
+        hostLogs.Should().ContainMatch($"*{changedPropertiesString}*");
 
         healthCheckResponse.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
 
         var healthCheckContent = await healthCheckResponse.Content.ReadAsStringAsync();
         healthCheckContent.Should().StartWith("{\"status\":\"Unhealthy\"");
-        healthCheckContent.Should().Contain("Breaking changes to orchestration description are not allowed");
-        healthCheckContent.Should().Contain("ChangedProperties=Steps,FunctionName");
+        healthCheckContent.Should().Contain(breakingChangesNotAllowedString);
+        healthCheckContent.Should().Contain(changedPropertiesString);
     }
 }

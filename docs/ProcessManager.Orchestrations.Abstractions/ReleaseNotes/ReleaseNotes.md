@@ -1,5 +1,11 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.17.1
+
+- Update `RequestCalculatedWholesaleServicesInputV1` model with `IBusinessValidatedDto` interface.
+- Rename `RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1` to `RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput`.
+- Update `RequestCalculatedWholesaleServicesRejectedV1` properties to be a list of validation errors.
+
 ## Version 0.17.0
 
 - Add shared namespace for `BRS_026`/`BRS_028` types, so they now live in `BRS_026_028.BRS_026` and `BRS_026_028.BRS_028` namespaces.
@@ -11,7 +17,7 @@
 ## Version 0.16.0
 
 - Add `SettlementMethod` and `SettlementVersion` DataHub types.
-- Update `RequestCalculatedEnergyTimeSeries` model with `IBusinessValidatedDto` interface.
+- Update `RequestCalculatedEnergyTimeSeriesInputV1` model with `IBusinessValidatedDto` interface.
 - Update `RequestCalculatedEnergyTimeSeriesRejectedV1` properties to be a list of validation errors.
 
 ## Version 0.15.2

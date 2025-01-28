@@ -15,7 +15,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.BusinessValidation.Rules;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation.Rules;
 using FluentAssertions;
 using FluentAssertions.Execution;
 

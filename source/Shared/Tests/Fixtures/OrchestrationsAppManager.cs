@@ -31,8 +31,8 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Options;
 using WireMock.Server;
 using Xunit.Abstractions;
 

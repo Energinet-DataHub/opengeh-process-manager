@@ -14,6 +14,7 @@
 
 using System.Net;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
@@ -76,6 +77,8 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [Fact]
     public async Task Given_OrchestrationDescriptionBreakingChanges_When_CallingHealthCheck_Then_IsUnhealthy()
     {
+        UseDisallowOrchestrationDescriptionBreakingChanges();
+
         var uniqueName = BreakingChangesOrchestrationDescriptionBuilder.UniqueName;
         await using (var dbContext = Fixture.ProcessManagerAppManager.DatabaseManager.CreateDbContext())
         {
@@ -112,5 +115,16 @@ public class HealthCheckEndpointTests : IAsyncLifetime
         healthCheckContent.Should().StartWith("{\"status\":\"Unhealthy\"");
         healthCheckContent.Should().Contain(breakingChangesNotAllowedString);
         healthCheckContent.Should().Contain(changedPropertiesString);
+    }
+
+    private void UseDisallowOrchestrationDescriptionBreakingChanges()
+    {
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.RestartHostIfChanges(new Dictionary<string, string>
+        {
+            {
+                $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.AllowOrchestrationDescriptionBreakingChanges)}",
+                "false"
+            },
+        });
     }
 }

@@ -13,24 +13,18 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.Shared.BusinessValidation;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 
-public sealed class RequestedByActorRoleValidationRule : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
+public class EnergySupplierValidationRule : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
 {
-    private static IList<ValidationError> NoError => [];
-
-    private static IList<ValidationError> UseMeteredDataResponsibleInsteadOfGridAreaOperatorError => [new(
-        "Rollen skal være MDR når der anmodes om beregnede energitidsserier / Role must be MDR when requesting aggregated measure data",
-        "D02")];
-
     public Task<IList<ValidationError>> ValidateAsync(RequestCalculatedEnergyTimeSeriesInputV1 subject)
     {
-        if (subject.RequestedForActorRole == ActorRole.GridAccessProvider.Name)
-            return Task.FromResult(UseMeteredDataResponsibleInsteadOfGridAreaOperatorError);
-
-        return Task.FromResult(NoError);
+        return EnergySupplierIsOnlyAllowedToRequestOwnDataHelper.ValidateAsync(
+            subject.RequestedForActorRole,
+            subject.RequestedForActorNumber,
+            subject.EnergySupplierNumber);
     }
 }

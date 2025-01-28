@@ -82,8 +82,8 @@ public class HealthCheckEndpointTests : IAsyncLifetime
         var uniqueName = BreakingChangesOrchestrationDescriptionBuilder.UniqueName;
         await using (var dbContext = Fixture.ProcessManagerAppManager.DatabaseManager.CreateDbContext())
         {
-            // Change to existing orchestration description so there is breaking changes next time synchronization is ran
-            // (orchestration register synchronization runs at application startup)
+            // Change existing orchestration description so there is breaking changes next time the
+            // synchronization is run (orchestration register synchronization runs at application startup).
             var orchestrationDescription = await dbContext
                 .OrchestrationDescriptions
                 .FirstAsync(od => od.UniqueName == uniqueName);
@@ -103,13 +103,14 @@ public class HealthCheckEndpointTests : IAsyncLifetime
 
         var hostLogs = Fixture.ExampleOrchestrationsAppManager.AppHostManager.GetHostLogSnapshot();
 
+        // Assert that breaking changes are logged at the host
         const string breakingChangesNotAllowedString = "Breaking changes to orchestration description are not allowed";
         const string changedPropertiesString = $"ChangedProperties={nameof(OrchestrationDescription.Steps)},{nameof(OrchestrationDescription.FunctionName)}";
         hostLogs.Should().ContainMatch($"*{breakingChangesNotAllowedString}*");
         hostLogs.Should().ContainMatch($"*{changedPropertiesString}*");
 
+        // Assert that the healthcheck fails and the healthcheck content contains the breaking changes
         healthCheckResponse.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
-
         var healthCheckContent = await healthCheckResponse.Content.ReadAsStringAsync();
         healthCheckContent.Should().StartWith("{\"status\":\"Unhealthy\"");
         healthCheckContent.Should().Contain(breakingChangesNotAllowedString);

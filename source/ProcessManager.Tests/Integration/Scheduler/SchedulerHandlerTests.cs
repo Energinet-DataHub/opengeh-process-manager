@@ -49,7 +49,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
         services.AddScoped<IClock>(_ => _fixture.ClockMock.Object);
         services.AddNodaTimeForApplication();
 
-        // Service we want to mock MUST be registered before we call Process Manager DI extensions because we always use "TryAdd" within those
+        // Services we want to mock MUST be registered before we call Process Manager DI extensions because we always use "TryAdd" within those
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
         services.AddScoped<IOrchestrationInstanceExecutor>(_ => _executorMock.Object);
 
@@ -97,32 +97,27 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
             new UserId(Guid.NewGuid()),
             new ActorId(Guid.NewGuid()));
 
-        OrchestrationInstanceId scheduledInstanceId01;
-        OrchestrationInstanceId scheduledInstanceId02;
+        var register = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
+        var commands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
 
-        using (var arrangeScope = _serviceProvider.CreateScope())
-        {
-            var register = arrangeScope.ServiceProvider.GetRequiredService<IOrchestrationRegister>();
-            var commands = arrangeScope.ServiceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
+        var orchestrationDescription = CreateOrchestrationDescription();
+        await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
-            var orchestrationDescription = CreateOrchestrationDescription();
-            await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
-
-            scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
-                userIdentity,
-                orchestrationDescription.UniqueName,
-                runAt: now.PlusMinutes(-10));
-            scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
-                userIdentity,
-                orchestrationDescription.UniqueName,
-                runAt: now.PlusMinutes(-5));
-        }
+        var scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
+            userIdentity,
+            orchestrationDescription.UniqueName,
+            runAt: now.PlusMinutes(-10));
+        var scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
+            userIdentity,
+            orchestrationDescription.UniqueName,
+            runAt: now.PlusMinutes(-5));
 
         // Act
         var sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
         await sut.StartScheduledOrchestrationInstancesAsync();
 
         // Assert
+        // => Must use a new scope, otherwise we won't see database changes
         using (var assertScope = _serviceProvider.CreateScope())
         {
             var queries = assertScope.ServiceProvider.GetRequiredService<IOrchestrationInstanceQueries>();
@@ -144,40 +139,35 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
             new UserId(Guid.NewGuid()),
             new ActorId(Guid.NewGuid()));
 
-        OrchestrationInstanceId scheduledInstanceId01;
-        OrchestrationInstanceId scheduledInstanceId02;
+        var register = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
+        var commands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
 
-        using (var arrangeScope = _serviceProvider.CreateScope())
-        {
-            var register = arrangeScope.ServiceProvider.GetRequiredService<IOrchestrationRegister>();
-            var commands = arrangeScope.ServiceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
+        var orchestrationDescription = CreateOrchestrationDescription();
+        await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
-            var orchestrationDescription = CreateOrchestrationDescription();
-            await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
+        var scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
+            userIdentity,
+            orchestrationDescription.UniqueName,
+            runAt: now.PlusMinutes(-10));
+        var scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
+            userIdentity,
+            orchestrationDescription.UniqueName,
+            runAt: now.PlusMinutes(-5));
 
-            scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
-                userIdentity,
-                orchestrationDescription.UniqueName,
-                runAt: now.PlusMinutes(-10));
-            scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
-                userIdentity,
-                orchestrationDescription.UniqueName,
-                runAt: now.PlusMinutes(-5));
-
-            // Fail execution of "01"
-            _executorMock
-                .Setup(mock => mock
-                    .StartNewOrchestrationInstanceAsync(
-                        It.IsAny<OrchestrationDescription>(),
-                        It.Is<OrchestrationInstance>(oi => oi.Id == scheduledInstanceId01)))
-                .ThrowsAsync(new Exception());
-        }
+        // => Fail execution of "01"
+        _executorMock
+            .Setup(mock => mock
+                .StartNewOrchestrationInstanceAsync(
+                    It.IsAny<OrchestrationDescription>(),
+                    It.Is<OrchestrationInstance>(oi => oi.Id == scheduledInstanceId01)))
+            .ThrowsAsync(new Exception());
 
         // Act
         var sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
         await sut.StartScheduledOrchestrationInstancesAsync();
 
         // Assert
+        // => Must use a new scope, otherwise we won't see database changes
         using (var assertScope = _serviceProvider.CreateScope())
         {
             var queries = assertScope.ServiceProvider.GetRequiredService<IOrchestrationInstanceQueries>();
@@ -203,58 +193,45 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
             new UserId(Guid.NewGuid()),
             new ActorId(Guid.NewGuid()));
 
+        var register = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
+        var commands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
+
         var orchestrationDescription = CreateOrchestrationDescription();
+        await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
-        OrchestrationInstanceId scheduledInstanceId01;
-        OrchestrationInstanceId scheduledInstanceId02;
-        OrchestrationInstanceId scheduledInstanceId03;
+        var scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
+            userIdentity,
+            orchestrationDescription.UniqueName,
+            runAt: now.PlusMinutes(-10));
+        var scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
+            userIdentity,
+            orchestrationDescription.UniqueName,
+            runAt: now.PlusMinutes(-5));
 
-        using (var arrangeScope = _serviceProvider.CreateScope())
-        {
-            var register = arrangeScope.ServiceProvider.GetRequiredService<IOrchestrationRegister>();
-            var commands = arrangeScope.ServiceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
+        // => Fail execution of "01"
+        _executorMock
+            .Setup(mock => mock
+                .StartNewOrchestrationInstanceAsync(
+                    It.IsAny<OrchestrationDescription>(),
+                    It.Is<OrchestrationInstance>(oi => oi.Id == scheduledInstanceId01)))
+            .ThrowsAsync(new Exception());
 
-            await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
+        // => First execution of scheduler
+        var handler = _serviceProvider.GetRequiredService<SchedulerHandler>();
+        await handler.StartScheduledOrchestrationInstancesAsync();
 
-            scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
-                userIdentity,
-                orchestrationDescription.UniqueName,
-                runAt: now.PlusMinutes(-10));
-            scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
-                userIdentity,
-                orchestrationDescription.UniqueName,
-                runAt: now.PlusMinutes(-5));
-
-            // Fail execution of "01"
-            _executorMock
-                .Setup(mock => mock
-                    .StartNewOrchestrationInstanceAsync(
-                        It.IsAny<OrchestrationDescription>(),
-                        It.Is<OrchestrationInstance>(oi => oi.Id == scheduledInstanceId01)))
-                .ThrowsAsync(new Exception());
-        }
-
-        using (var firstExecutionScope = _serviceProvider.CreateScope())
-        {
-            var handler = firstExecutionScope.ServiceProvider.GetRequiredService<SchedulerHandler>();
-            await handler.StartScheduledOrchestrationInstancesAsync();
-        }
-
-        using (var arrangeScope = _serviceProvider.CreateScope())
-        {
-            var commands = arrangeScope.ServiceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
-
-            scheduledInstanceId03 = await commands.ScheduleNewOrchestrationInstanceAsync(
-                userIdentity,
-                orchestrationDescription.UniqueName,
-                runAt: now.PlusMinutes(-1));
-        }
+        // => Schedule an additional orchestration instance
+        var scheduledInstanceId03 = await commands.ScheduleNewOrchestrationInstanceAsync(
+            userIdentity,
+            orchestrationDescription.UniqueName,
+            runAt: now.PlusMinutes(-1));
 
         // Act
         var sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
         await sut.StartScheduledOrchestrationInstancesAsync();
 
         // Assert
+        // => Must use a new scope, otherwise we won't see database changes
         using (var assertScope = _serviceProvider.CreateScope())
         {
             var queries = assertScope.ServiceProvider.GetRequiredService<IOrchestrationInstanceQueries>();

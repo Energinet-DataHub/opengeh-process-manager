@@ -91,7 +91,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 1: Start new orchestration instance
         var businessReason = BusinessReason.BalanceFixing.Name;
-        var energySupplierNumber = "1234567891234";
+        const string energySupplierNumber = "1234567891234";
         var startRequestCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedEnergyTimeSeriesInputV1(

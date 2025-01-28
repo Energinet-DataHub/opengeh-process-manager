@@ -155,7 +155,7 @@ internal class OrchestrationRegister(
             for (var stepIndex = 0; stepIndex < newDescription.Steps.Count; stepIndex++)
             {
                 var newStep = newDescription.Steps.OrderBy(s => s.Sequence).ElementAt(stepIndex);
-                var existingStep = newDescription.Steps.OrderBy(s => s.Sequence).ElementAtOrDefault(stepIndex);
+                var existingStep = existingDescription.Steps.OrderBy(s => s.Sequence).ElementAtOrDefault(stepIndex);
 
                 var stepChanged = existingStep == null
                                   || existingStep.CanBeSkipped != newStep.CanBeSkipped

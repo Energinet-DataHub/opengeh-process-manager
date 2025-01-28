@@ -165,7 +165,6 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             orchestrationDescriptionWithBreakingChanges.ParameterDefinition.SetFromType<ParameterDefitionInt>();
             orchestrationDescriptionWithBreakingChanges.AppendStepDescription("Step 1b");
             orchestrationDescriptionWithBreakingChanges.AppendStepDescription("Step 2b");
-            orchestrationDescriptionWithBreakingChanges.AppendStepDescription("Step 3b");
 
             // Save changes is called inside SynchronizeAsync()
             await orchestrationRegister.SynchronizeAsync(
@@ -196,11 +195,6 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
                 {
                     Assert.Equal(2, step.Sequence);
                     Assert.Equal("Step 2b", step.Description);
-                },
-                step =>
-                {
-                    Assert.Equal(3, step.Sequence);
-                    Assert.Equal("Step 3b", step.Description);
                 },
             ]);
     }

@@ -156,7 +156,7 @@ public class OrchestrationDescription
     }
 
     /// <summary>
-    /// Generate next sequen ce number for a new step.
+    /// Generate next sequence number for a new step.
     /// </summary>
     private int GetNextSequence()
         => Steps.Count + 1;

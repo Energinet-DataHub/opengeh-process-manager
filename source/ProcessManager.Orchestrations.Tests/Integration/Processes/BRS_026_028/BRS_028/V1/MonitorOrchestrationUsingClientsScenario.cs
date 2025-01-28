@@ -91,7 +91,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 1: Start new orchestration instance
         var businessReason = BusinessReason.WholesaleFixing.Name;
-        const string energySupplierNumber = "23143245321";
+        const string energySupplierNumber = "1111111111111";
         var startRequestCommand = new RequestCalculatedWholesaleServicesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedWholesaleServicesInputV1(

@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Components;
+using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
@@ -45,4 +47,4 @@ public record RequestCalculatedEnergyTimeSeriesInputV1(
     string? MeteringPointType,
     string? SettlementMethod,
     string? SettlementVersion)
-    : IInputParameterDto;
+    : IInputParameterDto, IBusinessValidatedDto;

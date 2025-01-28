@@ -45,6 +45,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Components\ProcessManager.Components.csproj" />
+    <ProjectReference Include="..\ProcessManager.Example.Orchestrations\ProcessManager.Example.Orchestrations.csproj" />
   </ItemGroup>
 
   <ItemGroup>

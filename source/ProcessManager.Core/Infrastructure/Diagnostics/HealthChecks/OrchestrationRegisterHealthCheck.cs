@@ -44,16 +44,15 @@ public class OrchestrationRegisterHealthCheck(
                 },
             };
 
-            if (synchronizeException is null)
-                return Task.FromResult(HealthCheckResult.Healthy(data: healthCheckData));
+            var healthCheckResult = synchronizeException is null
+                ? HealthCheckResult.Healthy(data: healthCheckData)
+                : new HealthCheckResult(
+                    status: context.Registration.FailureStatus,
+                    description: $"Exception during register synchronization: {synchronizeException.Message}",
+                    exception: synchronizeException,
+                    data: healthCheckData);
 
-            var unhealthyResult = new HealthCheckResult(
-                status: context.Registration.FailureStatus,
-                description: $"Exception during register synchronization: {synchronizeException.Message}",
-                exception: synchronizeException,
-                data: healthCheckData);
-
-            return Task.FromResult(unhealthyResult);
+            return Task.FromResult(healthCheckResult);
         }
         catch (Exception e)
         {

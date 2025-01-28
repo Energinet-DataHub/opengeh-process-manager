@@ -32,7 +32,7 @@ public class RequestCalculatedWholesaleServicesInputV1Builder
     private string? _chargeOwnerNumber;
     private IReadOnlyCollection<string> _gridAreas;
     private string? _settlementVersion;
-    private IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1>? _chargeTypes;
+    private IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput>? _chargeTypes;
 
     /// <summary>
     /// Creates a new RequestCalculatedEnergyTimeSeriesInputV1Builder with default values
@@ -61,9 +61,21 @@ public class RequestCalculatedWholesaleServicesInputV1Builder
         return this;
     }
 
+    public RequestCalculatedWholesaleServicesInputV1Builder WithRequestedForActorRole(ActorRole requestedForActorRole)
+    {
+        _requestedForActorRole = requestedForActorRole.Name;
+        return this;
+    }
+
     public RequestCalculatedWholesaleServicesInputV1Builder WithRequestedForActorRole(string requestedForActorRole)
     {
         _requestedForActorRole = requestedForActorRole;
+        return this;
+    }
+
+    public RequestCalculatedWholesaleServicesInputV1Builder WithBusinessReason(BusinessReason businessReason)
+    {
+        _businessReason = businessReason.Name;
         return this;
     }
 
@@ -133,9 +145,19 @@ public class RequestCalculatedWholesaleServicesInputV1Builder
     }
 
     public RequestCalculatedWholesaleServicesInputV1Builder WithChargeTypes(
-        IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1>? chargeTypes)
+        IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput>? chargeTypes)
     {
         _chargeTypes = chargeTypes;
+        return this;
+    }
+
+    public RequestCalculatedWholesaleServicesInputV1Builder WithChargeType(
+        RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput? chargeType)
+    {
+        _chargeTypes = chargeType is not null
+            ? [chargeType]
+            : null;
+
         return this;
     }
 

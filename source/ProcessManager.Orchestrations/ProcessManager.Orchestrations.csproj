@@ -59,8 +59,4 @@
     </Protobuf>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Processes\BRS_026_028\BRS_028\V1\BusinessValidation\Rules\" />
-  </ItemGroup>
-
 </Project>

@@ -45,10 +45,10 @@ public record RequestCalculatedWholesaleServicesInputV1(
     string? ChargeOwnerNumber,
     IReadOnlyCollection<string> GridAreas,
     string? SettlementVersion,
-    IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1>? ChargeTypes)
+    IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput>? ChargeTypes)
     : IInputParameterDto, IBusinessValidatedDto
 {
-    public record ChargeTypeInputV1(
+    public record ChargeTypeInput(
         string? ChargeType,
         string? ChargeCode);
 }

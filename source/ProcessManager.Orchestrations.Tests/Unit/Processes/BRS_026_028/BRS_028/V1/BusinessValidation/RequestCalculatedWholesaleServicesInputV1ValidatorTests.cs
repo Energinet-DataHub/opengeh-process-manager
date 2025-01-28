@@ -133,7 +133,7 @@ public class RequestCalculatedWholesaleServicesInputV1ValidatorTests
     public async Task Validate_WhenChargeTypeIsToLong_ReturnsUnsuccessfulValidation()
     {
         // Arrange
-        var chargeTypeInRequest = new RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1(
+        var chargeTypeInRequest = new RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput(
             ChargeType: "123",
             ChargeCode: "ThisIsMoreThan10CharsLong");
 

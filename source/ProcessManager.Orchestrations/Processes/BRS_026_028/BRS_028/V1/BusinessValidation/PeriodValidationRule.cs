@@ -66,11 +66,7 @@ public sealed class PeriodValidationRule(
         ArgumentNullException.ThrowIfNull(subject);
 
         var periodStart = subject.PeriodStart;
-        var periodEnd = subject.PeriodEnd;
-
-        // This should not be possible, but we need to check for null due to the nullable type
-        ArgumentNullException.ThrowIfNull(periodStart);
-        ArgumentNullException.ThrowIfNull(periodEnd);
+        var periodEnd = subject.PeriodEnd ?? string.Empty;
 
         var errors = new List<ValidationError>();
 

@@ -21,6 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// </summary>
 public record MeteredDataForMeteringPointMessageInputV1(
     Guid AuthenticatedActorId,
+    MarketActorRecipient Sender,
     string TransactionId,
     string? MeteringPointId,
     string? MeteringPointType,

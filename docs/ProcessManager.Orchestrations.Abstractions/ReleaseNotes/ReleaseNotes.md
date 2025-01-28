@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.17.0
+
+- Add `Sender` to `MeteredDataForMeteringPointMessageInputV1`.
+
 ## Version 0.16.0
 
 - Add `SettlementMethod` and `SettlementVersion` DataHub types.

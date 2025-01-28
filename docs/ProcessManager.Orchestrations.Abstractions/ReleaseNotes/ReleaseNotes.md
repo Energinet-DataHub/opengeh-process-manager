@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.17.0
+
+- Add shared namespace for `BRS_026`/`BRS_028` types, so they now live in `BRS_026_028.BRS_026` and `BRS_026_028.BRS_028` namespaces.
+
 ## Version 0.16.1
 
 - Add `NotifyEnqueueFinishedV1`.

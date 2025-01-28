@@ -68,7 +68,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             functionName: functionName,
             canBeScheduled: true);
 
-        newOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefitionString>();
+        newOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefinitionString>();
 
         const string step1Description = "Step 1";
         const string step2Description = "Step 2";
@@ -98,7 +98,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         Assert.Equal(expected: functionName, actual: actualOrchestrationDescription.FunctionName);
         Assert.True(actualOrchestrationDescription.CanBeScheduled);
         Assert.Equal(
-            expected: JsonSchema.FromType<ParameterDefitionString>().ToJson(),
+            expected: JsonSchema.FromType<ParameterDefinitionString>().ToJson(),
             actual: actualOrchestrationDescription.ParameterDefinition.SerializedParameterDefinition);
         Assert.Collection(
             collection: actualOrchestrationDescription.Steps.OrderBy(s => s.Sequence),
@@ -139,7 +139,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             functionName: "TestFunctionV1",
             canBeScheduled: true) { HostName = hostName };
 
-        existingOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefitionString>();
+        existingOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefinitionString>();
         existingOrchestrationDescription.AppendStepDescription("Step 1a");
         existingOrchestrationDescription.AppendStepDescription("Step 2a");
 
@@ -162,7 +162,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
                 functionName: "TestFunctionV2",
                 canBeScheduled: false);
 
-            orchestrationDescriptionWithBreakingChanges.ParameterDefinition.SetFromType<ParameterDefitionInt>();
+            orchestrationDescriptionWithBreakingChanges.ParameterDefinition.SetFromType<ParameterDefinitionInt>();
             orchestrationDescriptionWithBreakingChanges.AppendStepDescription("Step 1b");
             orchestrationDescriptionWithBreakingChanges.AppendStepDescription("Step 2b");
 
@@ -180,7 +180,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         Assert.Equal(expected: "TestFunctionV2", actual: actualOrchestrationDescription.FunctionName);
         Assert.False(actualOrchestrationDescription.CanBeScheduled);
         Assert.Equal(
-            expected: JsonSchema.FromType<ParameterDefitionInt>().ToJson(),
+            expected: JsonSchema.FromType<ParameterDefinitionInt>().ToJson(),
             actual: actualOrchestrationDescription.ParameterDefinition.SerializedParameterDefinition);
         Assert.Collection(
             collection: actualOrchestrationDescription.Steps.OrderBy(s => s.Sequence),
@@ -221,7 +221,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             functionName: "TestFunctionV1",
             canBeScheduled: true) { HostName = hostName };
 
-        existingOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefitionString>();
+        existingOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefinitionString>();
         existingOrchestrationDescription.AppendStepDescription("Step 1a");
         existingOrchestrationDescription.AppendStepDescription("Step 2a");
 
@@ -244,7 +244,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
                 functionName: "TestFunctionV2",
                 canBeScheduled: false);
 
-            orchestrationDescriptionWithBreakingChanges.ParameterDefinition.SetFromType<ParameterDefitionInt>();
+            orchestrationDescriptionWithBreakingChanges.ParameterDefinition.SetFromType<ParameterDefinitionInt>();
             orchestrationDescriptionWithBreakingChanges.AppendStepDescription("Step 1b");
             orchestrationDescriptionWithBreakingChanges.AppendStepDescription("Step 2b");
             orchestrationDescriptionWithBreakingChanges.AppendStepDescription("Step 3b");
@@ -265,7 +265,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         Assert.Equal(expected: "TestFunctionV1", actual: actualOrchestrationDescription.FunctionName);
         Assert.True(actualOrchestrationDescription.CanBeScheduled);
         Assert.Equal(
-            expected: JsonSchema.FromType<ParameterDefitionString>().ToJson(),
+            expected: JsonSchema.FromType<ParameterDefinitionString>().ToJson(),
             actual: actualOrchestrationDescription.ParameterDefinition.SerializedParameterDefinition);
         Assert.Collection(
             collection: actualOrchestrationDescription.Steps.OrderBy(s => s.Sequence),

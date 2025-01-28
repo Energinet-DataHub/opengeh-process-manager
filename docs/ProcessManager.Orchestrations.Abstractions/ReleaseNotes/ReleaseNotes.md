@@ -1,8 +1,14 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 0.15.3
+## Version 0.16.1
 
 - Add `NotifyEnqueueFinishedV1`.
+
+## Version 0.16.0
+
+- Add `SettlementMethod` and `SettlementVersion` DataHub types.
+- Update `RequestCalculatedEnergyTimeSeries` model with `IBusinessValidatedDto` interface.
+- Update `RequestCalculatedEnergyTimeSeriesRejectedV1` properties to be a list of validation errors.
 
 ## Version 0.15.2
 

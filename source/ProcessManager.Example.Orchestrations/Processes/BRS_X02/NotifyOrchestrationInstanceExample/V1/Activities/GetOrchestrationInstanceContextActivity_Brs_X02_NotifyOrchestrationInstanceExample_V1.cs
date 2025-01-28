@@ -20,20 +20,20 @@ using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Activities;
 
-internal class GetOrchestrationExecutionPlanActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1(
+internal class GetOrchestrationInstanceContextActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1(
     IOptions<OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1> options)
 {
     private readonly OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1 _options = options.Value;
 
-    [Function(nameof(GetOrchestrationExecutionPlanActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1))]
-    public Task<OrchestrationExecutionPlan> Run(
+    [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1))]
+    public Task<OrchestrationInstanceContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var plan = new OrchestrationExecutionPlan(
+        var orchestrationInstanceContext = new OrchestrationInstanceContext(
             OrchestrationInstanceId: input.OrchestrationInstanceId,
             Options: _options);
 
-        return Task.FromResult(plan);
+        return Task.FromResult(orchestrationInstanceContext);
     }
 
     public record ActivityInput(

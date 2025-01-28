@@ -23,26 +23,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.A
 /// <summary>
 /// Perform async validation (and set step to running)
 /// </summary>
-internal class PerformAsyncValidationActivity_Brs_028_V1(
-    IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+internal class PerformAsyncValidationActivity_Brs_028_V1
 {
-    private readonly IClock _clock = clock;
-    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
-
     [Function(nameof(PerformAsyncValidationActivity_Brs_028_V1))]
     public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await _progressRepository
-            .GetAsync(input.InstanceId)
-            .ConfigureAwait(false);
-
-        orchestrationInstance.TransitionStepToRunning(
-            Orchestration_Brs_028_V1.AsyncValidationStepSequence,
-            _clock);
-        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-
         var isValid = await PerformAsyncValidationAsync(input.RequestInput).ConfigureAwait(false);
 
         return isValid;

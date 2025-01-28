@@ -27,7 +27,8 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 
 internal class Orchestration_Brs_X03_V1
 {
-    internal const int EnqueueActorMessagesStep = 1;
+    internal const int BusinessValidationStep = 1;
+    internal const int EnqueueActorMessagesStep = 2;
 
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_X03.V1;
 
@@ -44,20 +45,26 @@ internal class Orchestration_Brs_X03_V1
     {
         var input = context.GetOrchestrationParameterValue<ActorRequestProcessExampleInputV1>();
 
-        // Initialize
+        // Initialize orchestration instance
         var instanceId = await InitializeOrchestrationAsync(context);
 
-        // Step 1a: Enqueue actor messages
+        // Step: Business validation
+        var validationResult = await PerformBusinessValidation(
+            context,
+            instanceId,
+            input);
+
+        // Step: Enqueue actor messages
         await EnqueueActorMessages(
             context,
             instanceId,
             input);
 
-        // Step 1b: Wait for actor messages enqueued event
         var hasReceivedActorMessagesEnqueuedEvent = await WaitForActorMessagesEnqueuedEventAsync(
             context,
             instanceId);
 
+        // Terminate orchestration instance
         return await TerminateOrchestrationAsync(
             context,
             instanceId,
@@ -77,6 +84,39 @@ internal class Orchestration_Brs_X03_V1
         await Task.CompletedTask;
 
         return instanceId;
+    }
+
+    private async Task<PerformBusinessValidationActivity_Brs_X03_V1.ActivityOutput> PerformBusinessValidation(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        ActorRequestProcessExampleInputV1 input)
+    {
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
+                instanceId,
+                BusinessValidationStep),
+            _defaultRetryOptions);
+
+        var businessValidationResult = await context.CallActivityAsync<PerformBusinessValidationActivity_Brs_X03_V1.ActivityOutput>(
+            nameof(PerformBusinessValidationActivity_Brs_X03_V1),
+            new PerformBusinessValidationActivity_Brs_X03_V1.ActivityInput(
+                input),
+            _defaultRetryOptions);
+
+        var businessValidationStepTerminationState = businessValidationResult.ValidationErrors.Count == 0
+            ? OrchestrationStepTerminationState.Succeeded
+            : OrchestrationStepTerminationState.Failed;
+
+        await context.CallActivityAsync(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                instanceId,
+                BusinessValidationStep,
+                businessValidationStepTerminationState),
+            _defaultRetryOptions);
+
+        return businessValidationResult;
     }
 
     private async Task EnqueueActorMessages(

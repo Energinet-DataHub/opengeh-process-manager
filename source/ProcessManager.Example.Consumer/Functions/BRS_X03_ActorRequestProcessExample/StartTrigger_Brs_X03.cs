@@ -37,7 +37,7 @@ public class StartTrigger_Brs_X03(
             Route = "actor-request-process/start")]
         HttpRequest httpRequest,
         [FromBody]
-        string idempotencyKey,
+        StartTriggerInput input,
         FunctionContext executionContext)
     {
         return _messageClient.StartNewOrchestrationInstanceAsync(
@@ -46,8 +46,12 @@ public class StartTrigger_Brs_X03(
                 inputParameter: new ActorRequestProcessExampleInputV1(
                     RequestedByActorNumber: "1234567890123",
                     RequestedByActorRole: "EnergySupplier",
-                    BusinessReason: "ABC"),
-                idempotencyKey: idempotencyKey),
+                    BusinessReason: input.BusinessReason),
+                idempotencyKey: input.IdempotencyKey),
             CancellationToken.None);
     }
+
+    public record StartTriggerInput(
+        string IdempotencyKey,
+        string BusinessReason);
 }

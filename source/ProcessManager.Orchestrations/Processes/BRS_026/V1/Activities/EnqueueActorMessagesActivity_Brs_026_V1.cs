@@ -17,7 +17,6 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Microsoft.Azure.Functions.Worker;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Activities;
 
@@ -25,11 +24,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.A
 /// Enqueue messages in EDI (and set step to running)
 /// </summary>
 internal class EnqueueActorMessagesActivity_Brs_026_V1(
-    IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
-    private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
@@ -41,10 +38,6 @@ internal class EnqueueActorMessagesActivity_Brs_026_V1(
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.TransitionStepToRunning(
-            Orchestration_Brs_026_V1.EnqueueActorMessagesStepSequence,
-            _clock);
-        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         await EnqueueActorMessagesAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 

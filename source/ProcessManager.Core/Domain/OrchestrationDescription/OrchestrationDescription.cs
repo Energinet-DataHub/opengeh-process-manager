@@ -23,7 +23,8 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 /// </summary>
 public class OrchestrationDescription
 {
-    private readonly List<StepDescription> _steps;
+    internal const string StepsPrivatePropertyName = nameof(_steps);
+    private List<StepDescription> _steps;
 
     private string _recurringCronExpression;
 
@@ -41,7 +42,6 @@ public class OrchestrationDescription
         IsEnabled = true;
 
         _steps = [];
-        Steps = _steps.AsReadOnly();
 
         _recurringCronExpression = string.Empty;
     }
@@ -69,7 +69,7 @@ public class OrchestrationDescription
     /// If <see langword="false"/> then the orchestration can only
     /// be started directly (on-demand) and doesn't support scheduling.
     /// </summary>
-    public bool CanBeScheduled { get; }
+    public bool CanBeScheduled { get; set; }
 
     /// <summary>
     /// A five-part cron format that expresses how this orchestration should
@@ -111,7 +111,7 @@ public class OrchestrationDescription
     /// Defines the steps the orchestration is going through, and which should be
     /// visible to the users (e.g. shown in the UI).
     /// </summary>
-    public IReadOnlyCollection<StepDescription> Steps { get; }
+    public IReadOnlyCollection<StepDescription> Steps => _steps.AsReadOnly();
 
     /// <summary>
     /// This is set by the framework when synchronizing with the orchestration register during startup.
@@ -147,8 +147,17 @@ public class OrchestrationDescription
     }
 
     /// <summary>
+    /// Overwrite the current steps with a new set of steps.
+    /// </summary>
+    /// <param name="newDescriptionSteps"></param>
+    internal void OverwriteSteps(List<StepDescription> newDescriptionSteps)
+    {
+        _steps = newDescriptionSteps;
+    }
+
+    /// <summary>
     /// Generate next sequence number for a new step.
     /// </summary>
     private int GetNextSequence()
-        => _steps.Count + 1;
+        => Steps.Count + 1;
 }

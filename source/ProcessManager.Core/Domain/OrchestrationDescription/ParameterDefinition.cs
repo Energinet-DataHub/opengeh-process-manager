@@ -67,4 +67,9 @@ public class ParameterDefinition
 
         return errors.Count == 0;
     }
+
+    internal void SetSerializedParameterDefinition(string serializedParameterDefinition)
+    {
+        SerializedParameterDefinition = serializedParameterDefinition;
+    }
 }

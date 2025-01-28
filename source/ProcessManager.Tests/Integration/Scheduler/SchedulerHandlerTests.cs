@@ -17,7 +17,6 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
@@ -28,7 +27,6 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Writers;
 using Moq;
 using NodaTime;
 
@@ -91,7 +89,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstancesScheduledToRun_When_SchedulerHandlerIsExecuted_Then_ExpectedOrchestrationInstancesAreQueued()
+    public async Task Given_OrchestrationInstancesScheduledToRun_When_SchedulerHandlerIsExecuted_Then_BothAreQueued()
     {
         // Arrange
         var now = _fixture.ClockMock.Object.GetCurrentInstant();
@@ -138,13 +136,138 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
     }
 
     [Fact]
-    public void Given_OrchestrationInstancesScheduledToRun_When_SchedulerHandlerIsExecuted_Then_ValidOrchestrationInstancesAreStartedEvenIfOthersAreFailing()
+    public async Task Given_OrchestrationInstancesScheduledToRunButExecutorFailsOnOne_When_SchedulerHandlerIsExecuted_Then_OneIsPendingAndOneIsQueued()
     {
-        // 2 skedulered, 1 fejl behæftet => måske fejl i durable client
-        // kør skeduler!
-        // => bevis 1 af dem bliver skedulered
-        // tilføj 1 skeduleret til databasen
-        // kør skeduler igen!, den gamle fejler stadig, den nye bliver skeduleret
+        // Arrange
+        var now = _fixture.ClockMock.Object.GetCurrentInstant();
+        var userIdentity = new UserIdentity(
+            new UserId(Guid.NewGuid()),
+            new ActorId(Guid.NewGuid()));
+
+        OrchestrationInstanceId scheduledInstanceId01;
+        OrchestrationInstanceId scheduledInstanceId02;
+
+        using (var arrangeScope = _serviceProvider.CreateScope())
+        {
+            var register = arrangeScope.ServiceProvider.GetRequiredService<IOrchestrationRegister>();
+            var commands = arrangeScope.ServiceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
+
+            var orchestrationDescription = CreateOrchestrationDescription();
+            await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
+
+            scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
+                userIdentity,
+                orchestrationDescription.UniqueName,
+                runAt: now.PlusMinutes(-10));
+            scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
+                userIdentity,
+                orchestrationDescription.UniqueName,
+                runAt: now.PlusMinutes(-5));
+
+            // Fail execution of "01"
+            _executorMock
+                .Setup(mock => mock
+                    .StartNewOrchestrationInstanceAsync(
+                        It.IsAny<OrchestrationDescription>(),
+                        It.Is<OrchestrationInstance>(oi => oi.Id == scheduledInstanceId01)))
+                .ThrowsAsync(new Exception());
+        }
+
+        // Act
+        var sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
+        await sut.StartScheduledOrchestrationInstancesAsync();
+
+        // Assert
+        using (var assertScope = _serviceProvider.CreateScope())
+        {
+            var queries = assertScope.ServiceProvider.GetRequiredService<IOrchestrationInstanceQueries>();
+
+            var scheduledInstance01 = await queries.GetAsync(scheduledInstanceId01);
+            scheduledInstance01.Lifecycle.State.Should().Be(OrchestrationInstanceLifecycleState.Pending);
+
+            var scheduledInstance02 = await queries.GetAsync(scheduledInstanceId02);
+            scheduledInstance02.Lifecycle.State.Should().Be(OrchestrationInstanceLifecycleState.Queued);
+        }
+    }
+
+    /// <summary>
+    /// The intention of this test is to prove that one failing orchestration instance won't keep the scheduler from
+    /// beeing able to keep scheduling others non-failing orchestration instances.
+    /// </summary>
+    [Fact]
+    public async Task Given_OrchestrationInstancesScheduledToRunButExecutorKeepsFailingOnOne_When_SchedulerHandlerIsExecutedRecurringly_Then_OnlyTheFailingOneIsPendingOthersCanBeQueued()
+    {
+        // Arrange
+        var now = _fixture.ClockMock.Object.GetCurrentInstant();
+        var userIdentity = new UserIdentity(
+            new UserId(Guid.NewGuid()),
+            new ActorId(Guid.NewGuid()));
+
+        var orchestrationDescription = CreateOrchestrationDescription();
+
+        OrchestrationInstanceId scheduledInstanceId01;
+        OrchestrationInstanceId scheduledInstanceId02;
+        OrchestrationInstanceId scheduledInstanceId03;
+
+        using (var arrangeScope = _serviceProvider.CreateScope())
+        {
+            var register = arrangeScope.ServiceProvider.GetRequiredService<IOrchestrationRegister>();
+            var commands = arrangeScope.ServiceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
+
+            await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
+
+            scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
+                userIdentity,
+                orchestrationDescription.UniqueName,
+                runAt: now.PlusMinutes(-10));
+            scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
+                userIdentity,
+                orchestrationDescription.UniqueName,
+                runAt: now.PlusMinutes(-5));
+
+            // Fail execution of "01"
+            _executorMock
+                .Setup(mock => mock
+                    .StartNewOrchestrationInstanceAsync(
+                        It.IsAny<OrchestrationDescription>(),
+                        It.Is<OrchestrationInstance>(oi => oi.Id == scheduledInstanceId01)))
+                .ThrowsAsync(new Exception());
+        }
+
+        using (var firstExecutionScope = _serviceProvider.CreateScope())
+        {
+            var handler = firstExecutionScope.ServiceProvider.GetRequiredService<SchedulerHandler>();
+            await handler.StartScheduledOrchestrationInstancesAsync();
+        }
+
+        using (var arrangeScope = _serviceProvider.CreateScope())
+        {
+            var commands = arrangeScope.ServiceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
+
+            scheduledInstanceId03 = await commands.ScheduleNewOrchestrationInstanceAsync(
+                userIdentity,
+                orchestrationDescription.UniqueName,
+                runAt: now.PlusMinutes(-1));
+        }
+
+        // Act
+        var sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
+        await sut.StartScheduledOrchestrationInstancesAsync();
+
+        // Assert
+        using (var assertScope = _serviceProvider.CreateScope())
+        {
+            var queries = assertScope.ServiceProvider.GetRequiredService<IOrchestrationInstanceQueries>();
+
+            var scheduledInstance01 = await queries.GetAsync(scheduledInstanceId01);
+            scheduledInstance01.Lifecycle.State.Should().Be(OrchestrationInstanceLifecycleState.Pending);
+
+            var scheduledInstance02 = await queries.GetAsync(scheduledInstanceId02);
+            scheduledInstance02.Lifecycle.State.Should().Be(OrchestrationInstanceLifecycleState.Queued);
+
+            var scheduledInstance03 = await queries.GetAsync(scheduledInstanceId03);
+            scheduledInstance03.Lifecycle.State.Should().Be(OrchestrationInstanceLifecycleState.Queued);
+        }
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription()

@@ -13,101 +13,105 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_026.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_028.V1;
 
-public class RequestCalculatedEnergyTimeSeriesInputV1Builder
+public class RequestCalculatedWholesaleServicesInputV1Builder
 {
     private const string ValidGlnNumber = "1111111111111";
 
     private string _requestedForActorNumber;
     private string _requestedForActorRole;
     private string _businessReason;
+    private string? _resolution;
     private string _periodStart;
     private string? _periodEnd;
     private string? _energySupplierNumber;
-    private string? _balanceResponsibleNumber;
+    private string? _chargeOwnerNumber;
     private IReadOnlyCollection<string> _gridAreas;
-    private string? _meteringPointType;
-    private string? _settlementMethod;
     private string? _settlementVersion;
+    private IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1>? _chargeTypes;
 
     /// <summary>
     /// Creates a new RequestCalculatedEnergyTimeSeriesInputV1Builder with default values
     /// </summary>
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder(ActorRole forActorRole)
+    public RequestCalculatedWholesaleServicesInputV1Builder(ActorRole forActorRole)
     {
         _requestedForActorNumber = ValidGlnNumber;
         _requestedForActorRole = forActorRole.Name;
         _businessReason = BusinessReason.BalanceFixing.Name;
 
-        // Period from 1/2/2024 to 5/2/2024
+        // Period from 1/2/2024 to 28/2/2024
         _periodStart = "2024-01-31T23:00:00Z";
-        _periodEnd = "2024-02-04T23:00:00Z";
+        _periodEnd = "2024-02-29T23:00:00Z";
 
         _gridAreas = [];
 
         if (forActorRole == ActorRole.EnergySupplier)
             _energySupplierNumber = _requestedForActorNumber;
-        else if (forActorRole == ActorRole.BalanceResponsibleParty)
-            _balanceResponsibleNumber = _requestedForActorNumber;
         else if (forActorRole == ActorRole.GridAccessProvider)
             _gridAreas = ["804"];
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithRequestedForActorNumber(string requestedForActorNumber)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithRequestedForActorNumber(string requestedForActorNumber)
     {
         _requestedForActorNumber = requestedForActorNumber;
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithRequestedForActorRole(string requestedForActorRole)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithRequestedForActorRole(string requestedForActorRole)
     {
         _requestedForActorRole = requestedForActorRole;
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithBusinessReason(string businessReason)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithBusinessReason(string businessReason)
     {
         _businessReason = businessReason;
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithPeriod(Instant periodStart, Instant? periodEnd)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithResolution(string? resolution)
+    {
+        _resolution = resolution;
+        return this;
+    }
+
+    public RequestCalculatedWholesaleServicesInputV1Builder WithPeriod(Instant periodStart, Instant? periodEnd)
     {
         _periodStart = periodStart.ToString();
         _periodEnd = periodEnd?.ToString();
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithPeriod(string periodStart, string? periodEnd)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithPeriod(string periodStart, string? periodEnd)
     {
         _periodStart = periodStart;
         _periodEnd = periodEnd;
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithPeriodEnd(Instant? periodEnd)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithPeriodEnd(Instant? periodEnd)
     {
         _periodEnd = periodEnd?.ToString();
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithEnergySupplierNumber(string? energySupplierNumber)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithEnergySupplierNumber(string? energySupplierNumber)
     {
         _energySupplierNumber = energySupplierNumber;
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithBalanceResponsibleNumber(string? balanceResponsibleNumber)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithBalanceResponsibleNumber(string? chargeOwnerNumber)
     {
-        _balanceResponsibleNumber = balanceResponsibleNumber;
+        _chargeOwnerNumber = chargeOwnerNumber;
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithGridArea(string? gridArea)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithGridArea(string? gridArea)
     {
         _gridAreas = !string.IsNullOrEmpty(gridArea)
             ? [gridArea]
@@ -116,43 +120,38 @@ public class RequestCalculatedEnergyTimeSeriesInputV1Builder
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithGridAreas(IReadOnlyCollection<string> gridAreas)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithGridAreas(IReadOnlyCollection<string> gridAreas)
     {
         _gridAreas = gridAreas;
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithMeteringPointType(string? meteringPointType)
-    {
-        _meteringPointType = meteringPointType;
-        return this;
-    }
-
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithSettlementMethod(string? settlementMethod)
-    {
-        _settlementMethod = settlementMethod;
-        return this;
-    }
-
-    public RequestCalculatedEnergyTimeSeriesInputV1Builder WithSettlementVersion(string? settlementVersion)
+    public RequestCalculatedWholesaleServicesInputV1Builder WithSettlementVersion(string? settlementVersion)
     {
         _settlementVersion = settlementVersion;
         return this;
     }
 
-    public RequestCalculatedEnergyTimeSeriesInputV1 Build()
+    public RequestCalculatedWholesaleServicesInputV1Builder WithChargeTypes(
+        IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1>? chargeTypes)
     {
-        return new RequestCalculatedEnergyTimeSeriesInputV1(
+        _chargeTypes = chargeTypes;
+        return this;
+    }
+
+    public RequestCalculatedWholesaleServicesInputV1 Build()
+    {
+        return new RequestCalculatedWholesaleServicesInputV1(
             RequestedForActorNumber: _requestedForActorNumber,
             RequestedForActorRole: _requestedForActorRole,
             BusinessReason: _businessReason,
+            Resolution: _resolution,
             PeriodStart: _periodStart,
             PeriodEnd: _periodEnd,
             EnergySupplierNumber: _energySupplierNumber,
-            BalanceResponsibleNumber: _balanceResponsibleNumber,
+            ChargeOwnerNumber: _chargeOwnerNumber,
             GridAreas: _gridAreas,
-            MeteringPointType: _meteringPointType,
-            SettlementMethod: _settlementMethod,
-            SettlementVersion: _settlementVersion);
+            SettlementVersion: _settlementVersion,
+            ChargeTypes: _chargeTypes);
     }
 }

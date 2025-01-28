@@ -8,6 +8,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Energinet.DataHub.Example.Orchestrations.Tests" />
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Core.Tests" />
+    <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Components.Tests" />
   </ItemGroup>
   <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />

@@ -12,11 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Options;
+using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Models;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 
-public record OrchestrationExecutionContext(
-    OrchestrationInstanceId Id,
-    OrchestrationOptions_Brs_028_V1 Options);
+[Serializable]
+public class SettlementMethod : DataHubType<SettlementMethod>
+{
+    // Customer with more than ~100.000 kwH per year
+    public static readonly SettlementMethod NonProfiled = new("NonProfiled", "E02");
+
+    // Customer with less than ~100.000 kwH per year
+    public static readonly SettlementMethod Flex = new("Flex", "D01");
+
+    [JsonConstructor]
+    private SettlementMethod(string name, string code)
+        : base(name, code)
+    {
+    }
+}

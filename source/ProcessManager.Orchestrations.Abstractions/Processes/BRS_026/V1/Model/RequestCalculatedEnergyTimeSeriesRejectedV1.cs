@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 
 /// <summary>
-/// A model containing the validation errors if a energy time series request is rejected.
+/// A model containing the validation errors if an energy time series request is rejected.
 /// </summary>
-public record RequestCalculatedEnergyTimeSeriesRejectedV1(List<string> ValidationErrors);
+public record RequestCalculatedEnergyTimeSeriesRejectedV1(
+    List<ValidationErrorDto> ValidationErrors);

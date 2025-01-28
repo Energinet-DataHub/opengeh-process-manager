@@ -48,7 +48,7 @@ public class OrchestrationRegisterHealthCheck(
                 ? HealthCheckResult.Healthy(data: healthCheckData)
                 : new HealthCheckResult(
                     status: context.Registration.FailureStatus,
-                    description: $"Exception during register synchronization: {synchronizeException.Message}",
+                    description: $"Exception during orchestration register synchronization: {synchronizeException.Message}",
                     exception: synchronizeException,
                     data: healthCheckData);
 

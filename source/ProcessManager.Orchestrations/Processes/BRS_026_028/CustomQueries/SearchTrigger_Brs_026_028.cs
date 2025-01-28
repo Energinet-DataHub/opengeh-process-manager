@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.Shared;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.CustomQueries;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.Shared.SearchActorRequest;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.CustomQueries;
 
 internal class SearchTrigger_Brs_026_028(
     SearchActorRequestHandler handler)

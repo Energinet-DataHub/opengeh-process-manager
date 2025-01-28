@@ -14,20 +14,20 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.Shared;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.CustomQueries;
 
-public record RequestCalculatedEnergyTimeSeriesResult :
-    OrchestrationInstanceTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>,
+public record RequestCalculatedWholesaleServicesResult :
+    OrchestrationInstanceTypedDto<RequestCalculatedWholesaleServicesInputV1>,
     IActorRequestQueryResult
 {
-    public RequestCalculatedEnergyTimeSeriesResult(
+    public RequestCalculatedWholesaleServicesResult(
         Guid id,
         OrchestrationInstanceLifecycleDto lifecycle,
         IReadOnlyCollection<StepInstanceDto> steps,
         string customState,
-        RequestCalculatedEnergyTimeSeriesInputV1 parameterValue)
+        RequestCalculatedWholesaleServicesInputV1 parameterValue)
             : base(
                 id,
                 lifecycle,

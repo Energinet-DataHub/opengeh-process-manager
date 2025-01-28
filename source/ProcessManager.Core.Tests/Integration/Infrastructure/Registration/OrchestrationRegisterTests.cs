@@ -150,6 +150,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         }
 
         // When synchronized
+        const string functionNameBreakingChange = "TestFunctionBreakingChangeV1";
         await using (var updateContext = _fixture.DatabaseManager.CreateDbContext())
         {
             var orchestrationRegister = new OrchestrationRegister(
@@ -159,7 +160,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
 
             var orchestrationDescriptionWithBreakingChanges = new OrchestrationDescription(
                 uniqueName,
-                functionName: "TestFunctionV2",
+                functionName: functionNameBreakingChange,
                 canBeScheduled: false);
 
             orchestrationDescriptionWithBreakingChanges.ParameterDefinition.SetFromType<ParameterDefinitionInt>();
@@ -177,7 +178,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         var actualOrchestrationDescription = queryContext.OrchestrationDescriptions.Single(od => od.UniqueName == uniqueName);
 
         Assert.Equal(expected: existingOrchestrationDescription.Id, actual: actualOrchestrationDescription.Id);
-        Assert.Equal(expected: "TestFunctionV2", actual: actualOrchestrationDescription.FunctionName);
+        Assert.Equal(expected: functionNameBreakingChange, actual: actualOrchestrationDescription.FunctionName);
         Assert.False(actualOrchestrationDescription.CanBeScheduled);
         Assert.Equal(
             expected: JsonSchema.FromType<ParameterDefinitionInt>().ToJson(),
@@ -216,9 +217,10 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             });
 
         var uniqueName = new OrchestrationDescriptionUniqueName("TestOrchestration", 1);
+        const string functionName = "TestFunctionV1";
         var existingOrchestrationDescription = new OrchestrationDescription(
             uniqueName,
-            functionName: "TestFunctionV1",
+            functionName: functionName,
             canBeScheduled: true) { HostName = hostName };
 
         existingOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefinitionString>();
@@ -241,7 +243,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
 
             var orchestrationDescriptionWithBreakingChanges = new OrchestrationDescription(
                 uniqueName,
-                functionName: "TestFunctionV2",
+                functionName: "TestFunctionBreakingChangeV1",
                 canBeScheduled: false);
 
             orchestrationDescriptionWithBreakingChanges.ParameterDefinition.SetFromType<ParameterDefinitionInt>();
@@ -257,12 +259,12 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             await updateContext.SaveChangesAsync();
         }
 
-        // Then existing orchestration description is updated
+        // Then existing orchestration description is NOT updated
         await using var queryContext = _fixture.DatabaseManager.CreateDbContext();
         var actualOrchestrationDescription = queryContext.OrchestrationDescriptions.Single(od => od.UniqueName == uniqueName);
 
         Assert.Equal(expected: existingOrchestrationDescription.Id, actual: actualOrchestrationDescription.Id);
-        Assert.Equal(expected: "TestFunctionV1", actual: actualOrchestrationDescription.FunctionName);
+        Assert.Equal(expected: functionName, actual: actualOrchestrationDescription.FunctionName);
         Assert.True(actualOrchestrationDescription.CanBeScheduled);
         Assert.Equal(
             expected: JsonSchema.FromType<ParameterDefinitionString>().ToJson(),

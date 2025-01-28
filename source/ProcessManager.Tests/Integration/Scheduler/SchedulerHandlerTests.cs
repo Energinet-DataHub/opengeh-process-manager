@@ -43,6 +43,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
     private readonly ServiceProvider _serviceProvider;
     private readonly IOrchestrationRegister _orchestrationRegister;
     private readonly IStartOrchestrationInstanceCommands _startCommands;
+    private readonly SchedulerHandler _sut;
 
     public SchedulerHandlerTests(SchedulerHandlerFixture fixture)
     {
@@ -60,6 +61,8 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
 
         _orchestrationRegister = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
         _startCommands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
+
+        _sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
     }
 
     public Task InitializeAsync()
@@ -94,8 +97,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
             runAt: _now.PlusMinutes(-5));
 
         // Act
-        var sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
-        await sut.StartScheduledOrchestrationInstancesAsync();
+        await _sut.StartScheduledOrchestrationInstancesAsync();
 
         // Assert
         // => Must use a new scope, otherwise we won't see database changes
@@ -136,8 +138,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
             .ThrowsAsync(new Exception());
 
         // Act
-        var sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
-        await sut.StartScheduledOrchestrationInstancesAsync();
+        await _sut.StartScheduledOrchestrationInstancesAsync();
 
         // Assert
         // => Must use a new scope, otherwise we won't see database changes
@@ -182,8 +183,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
             .ThrowsAsync(new Exception());
 
         // => First execution of scheduler
-        var handler = _serviceProvider.GetRequiredService<SchedulerHandler>();
-        await handler.StartScheduledOrchestrationInstancesAsync();
+        await _sut.StartScheduledOrchestrationInstancesAsync();
 
         // => Schedule an additional orchestration instance
         var scheduledInstanceId03 = await _startCommands.ScheduleNewOrchestrationInstanceAsync(
@@ -192,8 +192,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
             runAt: _now.PlusMinutes(-1));
 
         // Act
-        var sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
-        await sut.StartScheduledOrchestrationInstancesAsync();
+        await _sut.StartScheduledOrchestrationInstancesAsync();
 
         // Assert
         // => Must use a new scope, otherwise we won't see database changes

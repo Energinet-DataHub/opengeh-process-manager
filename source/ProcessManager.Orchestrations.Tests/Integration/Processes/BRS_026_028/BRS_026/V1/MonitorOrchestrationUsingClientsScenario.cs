@@ -156,7 +156,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // If isTerminated is true then terminatedOrchestrationInstance should never be null
         ArgumentNullException.ThrowIfNull(terminatedOrchestrationInstance);
 
-        // => All steps should be Succeeded
+        // All steps should be Succeeded
         terminatedOrchestrationInstance.Steps.Should()
             .AllSatisfy(
                 s =>

@@ -18,7 +18,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Diagnostics.HealthChecks;
 
 /// <summary>
-/// A health check to verify the health of the orchestration register. Returns <see cref="HealthStatus.Unhealthy"/> if
+/// A health check to verify the health of the orchestration register. Returns "FailureStatus" if
 /// an exception occurred during orchestration register synchronization at application startup.
 /// </summary>
 /// <param name="orchestrationRegisterContext"></param>

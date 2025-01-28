@@ -41,6 +41,8 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
 
     private readonly Mock<IOrchestrationInstanceExecutor> _executorMock;
     private readonly ServiceProvider _serviceProvider;
+    private readonly IOrchestrationRegister _orchestrationRegister;
+    private readonly IStartOrchestrationInstanceCommands _startCommands;
 
     public SchedulerHandlerTests(SchedulerHandlerFixture fixture)
     {
@@ -55,6 +57,9 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
 
         var services = ConfigureServices(_fixture, _executorMock);
         _serviceProvider = services.BuildServiceProvider();
+
+        _orchestrationRegister = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
+        _startCommands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
     }
 
     public Task InitializeAsync()
@@ -76,17 +81,14 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
     public async Task Given_OrchestrationInstancesScheduledToRun_When_SchedulerHandlerIsExecuted_Then_BothAreQueued()
     {
         // Arrange
-        var register = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
-        var commands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
-
         var orchestrationDescription = CreateOrchestrationDescription();
-        await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
+        await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
-        var scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
+        var scheduledInstanceId01 = await _startCommands.ScheduleNewOrchestrationInstanceAsync(
             _userIdentity,
             orchestrationDescription.UniqueName,
             runAt: _now.PlusMinutes(-10));
-        var scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
+        var scheduledInstanceId02 = await _startCommands.ScheduleNewOrchestrationInstanceAsync(
             _userIdentity,
             orchestrationDescription.UniqueName,
             runAt: _now.PlusMinutes(-5));
@@ -113,17 +115,14 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
     public async Task Given_OrchestrationInstancesScheduledToRunButExecutorFailsOnOne_When_SchedulerHandlerIsExecuted_Then_OneIsPendingAndOneIsQueued()
     {
         // Arrange
-        var register = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
-        var commands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
-
         var orchestrationDescription = CreateOrchestrationDescription();
-        await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
+        await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
-        var scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
+        var scheduledInstanceId01 = await _startCommands.ScheduleNewOrchestrationInstanceAsync(
             _userIdentity,
             orchestrationDescription.UniqueName,
             runAt: _now.PlusMinutes(-10));
-        var scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
+        var scheduledInstanceId02 = await _startCommands.ScheduleNewOrchestrationInstanceAsync(
             _userIdentity,
             orchestrationDescription.UniqueName,
             runAt: _now.PlusMinutes(-5));
@@ -162,17 +161,14 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
     public async Task Given_OrchestrationInstancesScheduledToRunButExecutorKeepsFailingOnOne_When_SchedulerHandlerIsExecutedRecurringly_Then_OnlyTheFailingOneIsPendingOthersCanBeQueued()
     {
         // Arrange
-        var register = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
-        var commands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
-
         var orchestrationDescription = CreateOrchestrationDescription();
-        await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
+        await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
-        var scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
+        var scheduledInstanceId01 = await _startCommands.ScheduleNewOrchestrationInstanceAsync(
             _userIdentity,
             orchestrationDescription.UniqueName,
             runAt: _now.PlusMinutes(-10));
-        var scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
+        var scheduledInstanceId02 = await _startCommands.ScheduleNewOrchestrationInstanceAsync(
             _userIdentity,
             orchestrationDescription.UniqueName,
             runAt: _now.PlusMinutes(-5));
@@ -190,7 +186,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
         await handler.StartScheduledOrchestrationInstancesAsync();
 
         // => Schedule an additional orchestration instance
-        var scheduledInstanceId03 = await commands.ScheduleNewOrchestrationInstanceAsync(
+        var scheduledInstanceId03 = await _startCommands.ScheduleNewOrchestrationInstanceAsync(
             _userIdentity,
             orchestrationDescription.UniqueName,
             runAt: _now.PlusMinutes(-1));

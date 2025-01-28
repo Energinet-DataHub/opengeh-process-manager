@@ -13,9 +13,13 @@
 // limitations under the License.
 
 using System.Net;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.EntityFrameworkCore;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Monitor;
@@ -55,7 +59,7 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [InlineData("live")]
     [InlineData("ready")]
     [InlineData("status")]
-    public async Task FunctionApp_WhenCallingHealthCheck_ReturnOKAndExpectedContent(string healthCheckEndpoint)
+    public async Task Given_RunningExampleOrchestrationsApp_When_CallingHealthCheck_Then_ReturnsOKAndExpectedContent(string healthCheckEndpoint)
     {
         // Act
         using var actualResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/{healthCheckEndpoint}");
@@ -68,5 +72,59 @@ public class HealthCheckEndpointTests : IAsyncLifetime
 
         var content = await actualResponse.Content.ReadAsStringAsync();
         content.Should().StartWith("{\"status\":\"Healthy\"");
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationDescriptionBreakingChanges_When_CallingHealthCheck_Then_IsUnhealthy()
+    {
+        UseDisallowOrchestrationDescriptionBreakingChanges();
+
+        var uniqueName = BreakingChangesOrchestrationDescriptionBuilder.UniqueName;
+        await using (var dbContext = Fixture.ProcessManagerAppManager.DatabaseManager.CreateDbContext())
+        {
+            // Change existing orchestration description so there is breaking changes next time the
+            // synchronization is run (orchestration register synchronization runs at application startup).
+            var orchestrationDescription = await dbContext
+                .OrchestrationDescriptions
+                .FirstAsync(od => od.UniqueName == uniqueName);
+            orchestrationDescription.FunctionName = "Breaking change!";
+            orchestrationDescription.AppendStepDescription("Breaking change!");
+            await dbContext.SaveChangesAsync();
+        }
+
+        // Restart app to perform synchronization again
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.RestartHost();
+
+        using var healthCheckResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient
+            .GetAsync($"api/monitor/ready");
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+
+        var hostLogs = Fixture.ExampleOrchestrationsAppManager.AppHostManager.GetHostLogSnapshot();
+
+        // Assert that breaking changes are logged at the host
+        const string breakingChangesNotAllowedString = "Breaking changes to orchestration description are not allowed";
+        const string changedPropertiesString = $"ChangedProperties={nameof(OrchestrationDescription.Steps)},{nameof(OrchestrationDescription.FunctionName)}";
+        hostLogs.Should().ContainMatch($"*{breakingChangesNotAllowedString}*");
+        hostLogs.Should().ContainMatch($"*{changedPropertiesString}*");
+
+        // Assert that the healthcheck fails and the healthcheck content contains the breaking changes
+        healthCheckResponse.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        var healthCheckContent = await healthCheckResponse.Content.ReadAsStringAsync();
+        healthCheckContent.Should().StartWith("{\"status\":\"Unhealthy\"");
+        healthCheckContent.Should().Contain(breakingChangesNotAllowedString);
+        healthCheckContent.Should().Contain(changedPropertiesString);
+    }
+
+    private void UseDisallowOrchestrationDescriptionBreakingChanges()
+    {
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.RestartHostIfChanges(new Dictionary<string, string>
+        {
+            {
+                $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.AllowOrchestrationDescriptionBreakingChanges)}",
+                "false"
+            },
+        });
     }
 }

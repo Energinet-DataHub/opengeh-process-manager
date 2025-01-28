@@ -284,7 +284,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             ]);
     }
 
-    private record ParameterDefitionString(string StringProperty);
+    private record ParameterDefinitionString(string StringProperty);
 
-    private record ParameterDefitionInt(int IntProperty);
+    private record ParameterDefinitionInt(int IntProperty);
 }

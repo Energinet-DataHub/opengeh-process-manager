@@ -17,14 +17,12 @@ using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
-using Energinet.DataHub.ElectricityMarket.Integration;
-using Energinet.DataHub.ElectricityMarket.Integration.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Orchestrations.TestServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -59,6 +57,11 @@ var host = new HostBuilder()
 
         // Enqueue Messages in EDI
         services.AddEnqueueActorMessages(azureCredential);
+
+        // Business validation
+        var orchestrationsAssembly = typeof(Program).Assembly;
+        var orchestrationsAbstractionsAssembly = typeof(RequestCalculatedEnergyTimeSeriesInputV1).Assembly;
+        services.AddBusinessValidation([orchestrationsAssembly, orchestrationsAbstractionsAssembly]);
 
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);

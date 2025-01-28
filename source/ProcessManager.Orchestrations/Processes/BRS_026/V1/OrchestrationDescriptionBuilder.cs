@@ -29,7 +29,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.ParameterDefinition.SetFromType<RequestCalculatedEnergyTimeSeriesInputV1>();
 
-        description.AppendStepDescription("Asynkron validering");
+        description.AppendStepDescription("Forretningsvalidering");
         description.AppendStepDescription("Udsend beskeder");
 
         return description;

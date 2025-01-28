@@ -21,6 +21,6 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 /// The purpose of this record is to give the orchestration information specific about orchestration specific
 /// options from app settings.
 /// </summary>
-public record OrchestrationExecutionPlan(
+public record OrchestrationInstanceContext(
     OrchestrationInstanceId OrchestrationInstanceId,
     OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1 Options);

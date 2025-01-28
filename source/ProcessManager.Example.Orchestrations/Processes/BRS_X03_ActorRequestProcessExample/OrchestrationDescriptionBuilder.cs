@@ -31,6 +31,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.ParameterDefinition.SetFromType<ActorRequestProcessExampleInputV1>();
 
+        description.AppendStepDescription("Business validation");
         description.AppendStepDescription("Enqueue actor messages");
 
         return description;

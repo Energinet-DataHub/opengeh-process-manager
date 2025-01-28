@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Net;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
@@ -103,7 +104,7 @@ public class HealthCheckEndpointTests : IAsyncLifetime
         var hostLogs = Fixture.ExampleOrchestrationsAppManager.AppHostManager.GetHostLogSnapshot();
 
         const string breakingChangesNotAllowedString = "Breaking changes to orchestration description are not allowed";
-        const string changedPropertiesString = "ChangedProperties=Steps,FunctionName";
+        const string changedPropertiesString = $"ChangedProperties={nameof(OrchestrationDescription.Steps)},{nameof(OrchestrationDescription.FunctionName)}";
         hostLogs.Should().ContainMatch($"*{breakingChangesNotAllowedString}*");
         hostLogs.Should().ContainMatch($"*{changedPropertiesString}*");
 

@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.16.1
+
+- Add `NotifyEnqueueFinishedV1`.
+
 ## Version 0.16.0
 
 - Add `SettlementMethod` and `SettlementVersion` DataHub types.

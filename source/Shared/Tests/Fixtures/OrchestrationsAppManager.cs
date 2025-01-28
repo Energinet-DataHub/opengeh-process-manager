@@ -361,7 +361,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             "20");
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
-            "20");
+            "15");
         // Measurements Metered Data Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}",

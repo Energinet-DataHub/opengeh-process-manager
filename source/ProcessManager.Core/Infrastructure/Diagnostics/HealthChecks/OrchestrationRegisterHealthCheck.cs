@@ -35,30 +35,23 @@ public class OrchestrationRegisterHealthCheck(
         try
         {
             var synchronizeException = _orchestrationRegisterContext.SynchronizeException;
-            if (synchronizeException is null)
+
+            var healthCheckData = new Dictionary<string, object>
             {
-                return Task.FromResult(
-                    HealthCheckResult.Healthy(
-                        data: new Dictionary<string, object>
-                        {
-                            {
-                                nameof(_orchestrationRegisterContext.SynchronizedAt),
-                                _orchestrationRegisterContext.SynchronizedAt.ToString()
-                            },
-                        }));
-            }
+                {
+                    nameof(_orchestrationRegisterContext.SynchronizedAt),
+                    _orchestrationRegisterContext.SynchronizedAt.ToString()
+                },
+            };
+
+            if (synchronizeException is null)
+                return Task.FromResult(HealthCheckResult.Healthy(data: healthCheckData));
 
             var unhealthyResult = new HealthCheckResult(
                 status: context.Registration.FailureStatus,
-                description: synchronizeException.Message,
+                description: $"Exception during register synchronization: {synchronizeException.Message}",
                 exception: synchronizeException,
-                data: new Dictionary<string, object>
-                {
-                    {
-                        nameof(_orchestrationRegisterContext.SynchronizedAt),
-                        _orchestrationRegisterContext.SynchronizedAt.ToString()
-                    },
-                });
+                data: healthCheckData);
 
             return Task.FromResult(unhealthyResult);
         }

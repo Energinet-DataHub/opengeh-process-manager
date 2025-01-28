@@ -28,4 +28,10 @@ public class ProcessManagerOptions
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string SqlDatabaseConnectionString { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Allow the orchestration register to update the orchestration description with breaking changes.
+    /// </summary>
+    [Required]
+    public bool AllowOrchestrationDescriptionBreakingChanges { get; set; } = true; // TODO: Change to false before using in production
 }

@@ -50,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Components\DataHub\" />
-    <Folder Include="Processes\BRS_026\V1\BusinessValidation\" />
+    <Folder Include="Processes\BRS_026_028\BRS_026\V1\BusinessValidation\Helpers\" />
   </ItemGroup>
 
   <ItemGroup>

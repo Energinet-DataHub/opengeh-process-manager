@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.25.1
+
+- No functional changes.
+
 ## Version 0.25.0
 
 - Add `IBusinessValidatedDto` and `ValidationErrorDto` used to support business validation.

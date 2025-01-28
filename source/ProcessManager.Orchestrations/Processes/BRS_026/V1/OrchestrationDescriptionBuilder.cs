@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026.V1.Model;
@@ -30,7 +29,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.ParameterDefinition.SetFromType<RequestCalculatedEnergyTimeSeriesInputV1>();
 
-        description.AppendStepDescription("Asynkron validering");
+        description.AppendStepDescription("Forretningsvalidering");
         description.AppendStepDescription("Udsend beskeder");
 
         return description;

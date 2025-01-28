@@ -61,7 +61,7 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
             input);
     }
 
-    private async Task<OrchestrationExecutionPlan> InitializeOrchestrationAsync(TaskOrchestrationContext context)
+    private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
@@ -70,9 +70,9 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
             new TransitionOrchestrationToRunningActivity_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
 
-        var orchestrationExecutionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
-            nameof(GetOrchestrationExecutionPlanActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
-            new GetOrchestrationExecutionPlanActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
+        var orchestrationExecutionPlan = await context.CallActivityAsync<OrchestrationInstanceContext>(
+            nameof(GetOrchestrationInstanceContextActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
+            new GetOrchestrationInstanceContextActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
 

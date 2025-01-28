@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -25,11 +27,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.
 /// Enqueue reject message in EDI (and set step to running)
 /// </summary>
 internal class EnqueueRejectMessageActivity_Brs_028_V1(
-    IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
-    private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
@@ -44,19 +44,25 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
         await EnqueueRejectMessageAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
     }
 
-    private Task EnqueueRejectMessageAsync(OperatingIdentity enqueuedBy, ActivityInput input)
+    private Task EnqueueRejectMessageAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
-        // TODO: Set correct data when async validation is implemented
+        var rejectedMessage = new RequestCalculatedWholesaleServicesRejectedV1(
+            ValidationErrors: input.ValidationErrors
+                .Select(e => new ValidationErrorDto(
+                    Message: e.Message,
+                    ErrorCode: e.ErrorCode))
+                .ToList());
+
         return _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_028_V1.UniqueName,
             input.InstanceId.Value,
-            enqueuedBy.ToDto(),
+            orchestrationCreatedBy.ToDto(),
             input.IdempotencyKey,
-            input.RejectedData);
+            rejectedMessage);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        RequestCalculatedWholesaleServicesRejectedV1 RejectedData,
+        IReadOnlyCollection<ValidationError> ValidationErrors,
         Guid IdempotencyKey);
 }

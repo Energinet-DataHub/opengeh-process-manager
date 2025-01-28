@@ -67,13 +67,16 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         ServiceProvider = services.BuildServiceProvider();
 
         ProcessManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        ProcessManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
     }
-
-    private IProcessManagerClient ProcessManagerClient { get;  }
 
     private OrchestrationsAppFixture Fixture { get; }
 
     private ServiceProvider ServiceProvider { get; }
+
+    private IProcessManagerClient ProcessManagerClient { get;  }
+
+    private IProcessManagerMessageClient ProcessManagerMessageClient { get; }
 
     public Task InitializeAsync()
     {
@@ -122,9 +125,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     inputParameter),
                 CancellationToken.None);
 
-        // Step 2: Wait service bus message to EDI and mock a response
+        // Step 2: Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
-            ServiceProvider.GetRequiredService<IProcessManagerMessageClient>(),
+            ProcessManagerMessageClient,
             orchestrationInstanceId,
             calculationType);
 
@@ -148,7 +151,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
 
-        // Step 3: General search using name and termination state
+        // Step 4: General search using name and termination state
         var orchestrationInstancesGeneralSearch = await ProcessManagerClient
             .SearchOrchestrationInstancesByNameAsync<CalculationInputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
@@ -163,7 +166,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
 
-        // Step 4: Custom search
+        // Step 5: Custom search
         var customQuery = new CalculationQuery(userIdentity)
         {
             CalculationTypes = new[] { inputParameter.CalculationType },
@@ -214,9 +217,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await Fixture.ProcessManagerAppManager.AppHostManager
             .TriggerFunctionAsync("StartScheduledOrchestrationInstances");
 
-        // Step 3: Wait service bus message to EDI and mock a response
+        // Step 3: Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
-            ServiceProvider.GetRequiredService<IProcessManagerMessageClient>(),
+            ProcessManagerMessageClient,
             orchestrationInstanceId,
             calculationType);
 
@@ -318,8 +321,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     inputParameter),
                 CancellationToken.None);
 
-        // Step 3: Query until terminated with succeeded
-        var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
+        // Step 2: Query until terminated with failed
+        var isTerminatedWithFailed = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
                 var orchestrationInstance = await ProcessManagerClient
@@ -336,6 +339,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             timeLimit: TimeSpan.FromSeconds(30),
             delay: TimeSpan.FromSeconds(3));
 
-        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+        isTerminatedWithFailed.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
 }

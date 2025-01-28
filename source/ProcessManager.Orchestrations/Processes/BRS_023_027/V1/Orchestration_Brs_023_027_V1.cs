@@ -152,14 +152,30 @@ internal class Orchestration_Brs_023_027_V1
             }
         }
 
-        var messagesSuccessfulEnqueued = true;
+        var messagesSuccessfullyEnqueued = true;
+
         // Step: Enqueue messages
         if (!executionContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStepSequence))
         {
-            messagesSuccessfulEnqueued = await EnqueueMessagesAsync(context, instanceId, executionContext, orchestrationInput);
+            var calculationData = new CalculatedDataForCalculationTypeV1(
+                CalculationId: executionContext.CalculationId,
+                CalculationType: orchestrationInput.CalculationType);
+
+            messagesSuccessfullyEnqueued = await EnqueueMessagesAsync(
+                context: context,
+                instanceId: instanceId,
+                timeout: TimeSpan.FromSeconds(executionContext.OrchestrationOptions.MessagesEnqueuingExpiryTimeInSeconds),
+                calculationData: calculationData);
+
+            if (messagesSuccessfullyEnqueued)
+            {
+                // TODO: Publish CalculationCompleted integration event when messages are enqueued and only if enqueued!
+                // It should not be seen as a part of enqueueing messages step and it is not a separate step itself.
+                // But it should happen before we transition the orchestration to terminated.
+            }
         }
 
-        var terminationState = messagesSuccessfulEnqueued
+        var terminationState = messagesSuccessfullyEnqueued
             ? OrchestrationInstanceTerminationState.Succeeded
             : OrchestrationInstanceTerminationState.Failed;
 
@@ -185,8 +201,8 @@ internal class Orchestration_Brs_023_027_V1
     private async Task<bool> EnqueueMessagesAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        OrchestrationExecutionContext executionContext,
-        CalculationInputV1 orchestrationInput)
+        TimeSpan timeout,
+        CalculatedDataForCalculationTypeV1 calculationData)
     {
         await context.CallActivityAsync(
             nameof(TransitionStepToRunningActivity_V1),
@@ -194,10 +210,6 @@ internal class Orchestration_Brs_023_027_V1
                 instanceId,
                 EnqueueActorMessagesStepSequence),
             _defaultRetryOptions);
-
-        var calculationData = new CalculatedDataForCalculationTypeV1(
-            CalculationId: executionContext.CalculationId,
-            CalculationType: orchestrationInput.CalculationType);
 
         var idempotencyKey = context.NewGuid();
 
@@ -209,11 +221,7 @@ internal class Orchestration_Brs_023_027_V1
                 idempotencyKey),
             _defaultRetryOptions);
 
-        OrchestrationStepTerminationState enqueueActorMessagesTerminationState;
-
         var success = false;
-        var timeout = TimeSpan.FromSeconds(
-            executionContext.OrchestrationOptions.MessagesEnqueuingExpiryTimeInSeconds);
         try
         {
             var enqueueEvent = await context.WaitForExternalEvent<NotifyEnqueueFinishedV1?>(
@@ -221,9 +229,6 @@ internal class Orchestration_Brs_023_027_V1
                 timeout: timeout);
 
             success = enqueueEvent is { Success: true };
-            enqueueActorMessagesTerminationState = success
-                ? OrchestrationStepTerminationState.Succeeded
-                : OrchestrationStepTerminationState.Failed;
         }
         catch (TaskCanceledException)
         {
@@ -233,10 +238,12 @@ internal class Orchestration_Brs_023_027_V1
                 "Timeout while waiting for enqueue actor messages to complete (InstanceId={OrchestrationInstanceId}, Timeout={Timeout}).",
                 instanceId.Value,
                 timeout.ToString("g"));
-            enqueueActorMessagesTerminationState = OrchestrationStepTerminationState.Failed;
         }
 
-        // TODO: Publish CalculationCompleted integration event when messages are enqueued and only if enqueued!
+        var enqueueActorMessagesTerminationState = success
+            ? OrchestrationStepTerminationState.Succeeded
+            : OrchestrationStepTerminationState.Failed;
+
         await context.CallActivityAsync(
             nameof(TransitionStepToTerminatedActivity_V1),
             new TransitionStepToTerminatedActivity_V1.ActivityInput(

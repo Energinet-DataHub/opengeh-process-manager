@@ -71,6 +71,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         ServiceProvider = services.BuildServiceProvider();
 
         ProcessManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        ProcessManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
     }
 
     private OrchestrationsAppFixture Fixture { get; }
@@ -78,6 +79,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     private ServiceProvider ServiceProvider { get; }
 
     private IProcessManagerClient ProcessManagerClient { get; }
+
+    private IProcessManagerMessageClient ProcessManagerMessageClient { get; }
 
     public Task InitializeAsync()
     {
@@ -116,9 +119,9 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var orchestrationId = await StartCalculationAsync(
             calculationType: calculationType);
 
-        // Wait service bus message to EDI and mock a response
+        // Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
-            processManagerMessageClient: ServiceProvider.GetRequiredService<IProcessManagerMessageClient>(),
+            processManagerMessageClient: ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationId,
             calculationType: calculationType);
 
@@ -185,7 +188,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         // Lets the durable function run to completion
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
-            processManagerMessageClient: ServiceProvider.GetRequiredService<IProcessManagerMessageClient>(),
+            processManagerMessageClient: ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationInstanceId);
 
         var status = await Fixture.DurableClient.GetStatusAsync(

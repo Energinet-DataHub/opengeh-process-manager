@@ -36,7 +36,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
 
     public async Task InitializeAsync()
     {
-        using var context = _fixture.DatabaseManager.CreateDbContext();
+        await using var context = _fixture.DatabaseManager.CreateDbContext();
         await context.Database.ExecuteSqlAsync($"DELETE FROM [pm].[StepDescription]");
         await context.Database.ExecuteSqlAsync($"DELETE FROM [pm].[OrchestrationDescription]");
     }
@@ -52,7 +52,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         // Given new orchestration description
         var loggerMock = new Mock<ILogger<IOrchestrationRegister>>();
         var optionsMock = new Mock<IOptions<ProcessManagerOptions>>();
-        var hostName = "test-host";
+        const string hostName = "test-host";
 
         optionsMock
             .Setup(o => o.Value)
@@ -62,7 +62,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             });
 
         var uniqueName = new OrchestrationDescriptionUniqueName("TestOrchestration", 1);
-        var functionName = "TestFunctionV1";
+        const string functionName = "TestFunctionV1";
         var newOrchestrationDescription = new OrchestrationDescription(
             uniqueName,
             functionName: functionName,
@@ -70,13 +70,13 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
 
         newOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefitionString>();
 
-        var step1Description = "Step 1";
-        var step2Description = "Step 2";
+        const string step1Description = "Step 1";
+        const string step2Description = "Step 2";
         newOrchestrationDescription.AppendStepDescription(step1Description);
         newOrchestrationDescription.AppendStepDescription(step2Description);
 
-        // When syncronized
-        using (var updateContext = _fixture.DatabaseManager.CreateDbContext())
+        // When synchronized
+        await using (var updateContext = _fixture.DatabaseManager.CreateDbContext())
         {
             var orchestrationRegister = new OrchestrationRegister(
                 optionsMock.Object,
@@ -90,7 +90,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         }
 
         // Then is added to database
-        using var queryContext = _fixture.DatabaseManager.CreateDbContext();
+        await using var queryContext = _fixture.DatabaseManager.CreateDbContext();
         var actualOrchestrationDescription = queryContext.OrchestrationDescriptions.Single();
 
         Assert.Equal(expected: uniqueName, actual: actualOrchestrationDescription.UniqueName);
@@ -124,7 +124,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         // Given existing orchestration description & allow breaking changes
         var loggerMock = new Mock<ILogger<IOrchestrationRegister>>();
         var optionsMock = new Mock<IOptions<ProcessManagerOptions>>();
-        var hostName = "test-host";
+        const string hostName = "test-host";
 
         optionsMock
             .Setup(o => o.Value)
@@ -137,21 +137,20 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         var existingOrchestrationDescription = new OrchestrationDescription(
             uniqueName,
             functionName: "TestFunctionV1",
-            canBeScheduled: true);
+            canBeScheduled: true) { HostName = hostName };
 
-        existingOrchestrationDescription.HostName = hostName;
         existingOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefitionString>();
         existingOrchestrationDescription.AppendStepDescription("Step 1a");
         existingOrchestrationDescription.AppendStepDescription("Step 2a");
 
-        using (var createContext = _fixture.DatabaseManager.CreateDbContext())
+        await using (var createContext = _fixture.DatabaseManager.CreateDbContext())
         {
             createContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
             await createContext.SaveChangesAsync();
         }
 
-        // When syncronized
-        using (var updateContext = _fixture.DatabaseManager.CreateDbContext())
+        // When synchronized
+        await using (var updateContext = _fixture.DatabaseManager.CreateDbContext())
         {
             var orchestrationRegister = new OrchestrationRegister(
                 optionsMock.Object,
@@ -175,7 +174,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         }
 
         // Then existing orchestration description is updated
-        using var queryContext = _fixture.DatabaseManager.CreateDbContext();
+        await using var queryContext = _fixture.DatabaseManager.CreateDbContext();
         var actualOrchestrationDescription = queryContext.OrchestrationDescriptions.Single(od => od.UniqueName == uniqueName);
 
         Assert.Equal(expected: existingOrchestrationDescription.Id, actual: actualOrchestrationDescription.Id);
@@ -213,7 +212,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         // Given existing orchestration description & allow breaking changes
         var loggerMock = new Mock<ILogger<IOrchestrationRegister>>();
         var optionsMock = new Mock<IOptions<ProcessManagerOptions>>();
-        var hostName = "test-host";
+        const string hostName = "test-host";
 
         optionsMock
             .Setup(o => o.Value)
@@ -226,21 +225,20 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         var existingOrchestrationDescription = new OrchestrationDescription(
             uniqueName,
             functionName: "TestFunctionV1",
-            canBeScheduled: true);
+            canBeScheduled: true) { HostName = hostName };
 
-        existingOrchestrationDescription.HostName = hostName;
         existingOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefitionString>();
         existingOrchestrationDescription.AppendStepDescription("Step 1a");
         existingOrchestrationDescription.AppendStepDescription("Step 2a");
 
-        using (var createContext = _fixture.DatabaseManager.CreateDbContext())
+        await using (var createContext = _fixture.DatabaseManager.CreateDbContext())
         {
             createContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
             await createContext.SaveChangesAsync();
         }
 
-        // When syncronized
-        using (var updateContext = _fixture.DatabaseManager.CreateDbContext())
+        // When synchronized
+        await using (var updateContext = _fixture.DatabaseManager.CreateDbContext())
         {
             var orchestrationRegister = new OrchestrationRegister(
                 optionsMock.Object,
@@ -266,7 +264,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         }
 
         // Then existing orchestration description is updated
-        using var queryContext = _fixture.DatabaseManager.CreateDbContext();
+        await using var queryContext = _fixture.DatabaseManager.CreateDbContext();
         var actualOrchestrationDescription = queryContext.OrchestrationDescriptions.Single(od => od.UniqueName == uniqueName);
 
         Assert.Equal(expected: existingOrchestrationDescription.Id, actual: actualOrchestrationDescription.Id);

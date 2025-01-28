@@ -148,7 +148,7 @@ internal class OrchestrationRegister(
         List<string> changedProperties = [];
         if (existingDescription.Steps.Count != newDescription.Steps.Count)
         {
-            changedProperties.Add(nameof(existingDescription.Steps.Count));
+            changedProperties.Add(nameof(existingDescription.Steps));
         }
         else
         {

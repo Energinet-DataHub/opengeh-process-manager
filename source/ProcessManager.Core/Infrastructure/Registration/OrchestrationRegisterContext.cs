@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using NodaTime;
+
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 
 /// <summary>
@@ -20,10 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 /// </summary>
 public class OrchestrationRegisterContext
 {
-    public Exception? SynchronizeException { get; private set; }
+    public Exception? SynchronizeException { get; set; }
 
-    public void SetSynchronizeException(Exception exception)
-    {
-        SynchronizeException = exception;
-    }
+    public Instant SynchronizedAt { get; set; }
 }

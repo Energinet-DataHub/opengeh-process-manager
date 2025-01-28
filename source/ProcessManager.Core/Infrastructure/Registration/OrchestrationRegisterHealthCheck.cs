@@ -30,17 +30,31 @@ public class OrchestrationRegisterHealthCheck(OrchestrationRegisterContext orche
         CancellationToken cancellationToken = default)
     {
         var synchronizeException = _orchestrationRegisterContext.SynchronizeException;
-        if (synchronizeException is not null)
+        if (synchronizeException is null)
         {
             return Task.FromResult(
                 new HealthCheckResult(
-                    HealthStatus.Healthy));
+                    status: HealthStatus.Healthy,
+                    data: new Dictionary<string, object>
+                    {
+                        {
+                            nameof(_orchestrationRegisterContext.SynchronizedAt),
+                            _orchestrationRegisterContext.SynchronizedAt.ToString()
+                        },
+                    }));
         }
 
         var unhealthyResult = new HealthCheckResult(
             status: HealthStatus.Unhealthy,
             description: synchronizeException!.Message,
-            exception: synchronizeException);
+            exception: synchronizeException,
+            data: new Dictionary<string, object>
+            {
+                {
+                    nameof(_orchestrationRegisterContext.SynchronizedAt),
+                    _orchestrationRegisterContext.SynchronizedAt.ToString()
+                },
+            });
 
         return Task.FromResult(unhealthyResult);
     }

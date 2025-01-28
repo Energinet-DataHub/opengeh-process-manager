@@ -81,7 +81,8 @@ public class HealthCheckEndpointTests : IAsyncLifetime
         var uniqueName = BreakingChangesOrchestrationDescriptionBuilder.UniqueName;
         await using (var dbContext = Fixture.ProcessManagerAppManager.DatabaseManager.CreateDbContext())
         {
-            // Add breaking change to existing orchestration description
+            // Change to existing orchestration description so there is breaking changes next time synchronization is ran
+            // (orchestration register synchronization runs at application startup)
             var orchestrationDescription = await dbContext
                 .OrchestrationDescriptions
                 .FirstAsync(od => od.UniqueName == uniqueName);
@@ -93,15 +94,21 @@ public class HealthCheckEndpointTests : IAsyncLifetime
         // Restart app to perform synchronization again
         Fixture.ExampleOrchestrationsAppManager.AppHostManager.RestartHost();
 
-        using var actualResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/ready");
+        using var healthCheckResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient
+            .GetAsync($"api/monitor/ready");
 
         // Assert
         using var assertionScope = new AssertionScope();
 
-        actualResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var hostLogs = Fixture.ExampleOrchestrationsAppManager.AppHostManager.GetHostLogSnapshot();
+        hostLogs.Should().ContainMatch("*Breaking changes to orchestration description are not allowed*");
+        hostLogs.Should().ContainMatch("*ChangedProperties=Steps,FunctionName*");
 
-        var content = await actualResponse.Content.ReadAsStringAsync();
-        content.Should().StartWith("{\"status\":\"Unhealthy\"");
-        content.Should().Contain("Orchestration register");
+        healthCheckResponse.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+
+        var healthCheckContent = await healthCheckResponse.Content.ReadAsStringAsync();
+        healthCheckContent.Should().StartWith("{\"status\":\"Unhealthy\"");
+        healthCheckContent.Should().Contain("Breaking changes to orchestration description are not allowed");
+        healthCheckContent.Should().Contain("ChangedProperties=Steps,FunctionName");
     }
 }

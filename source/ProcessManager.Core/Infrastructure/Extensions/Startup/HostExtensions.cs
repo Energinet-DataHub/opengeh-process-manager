@@ -14,9 +14,11 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 
@@ -33,6 +35,7 @@ public static class HostExtensions
     {
         var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger(nameof(SynchronizeWithOrchestrationRegisterAsync));
+        var orchestrationRegisterContext = host.Services.GetRequiredService<OrchestrationRegisterContext>();
 
         try
         {
@@ -65,10 +68,18 @@ public static class HostExtensions
         {
             logger.LogError(ex, "Could not register orchestrations during startup.");
 
+            #if DEBUG
+            // Test logger isn't available this early in the application lifecycle, so we log to console as well.
+            Console.WriteLine(
+                "Could not register orchestrations during startup. Exception:\n{0}",
+                ex);
+            #endif
+
             // Set exception in the orchestration register context singleton, to enable reporting the exception in
             // the orchestration register healthcheck.
-            var orchestrationRegisterContext = host.Services.GetRequiredService<OrchestrationRegisterContext>();
-            orchestrationRegisterContext.SetSynchronizeException(ex);
+            orchestrationRegisterContext.SynchronizeException = ex;
         }
+
+        orchestrationRegisterContext.SynchronizedAt = SystemClock.Instance.GetCurrentInstant();
     }
 }

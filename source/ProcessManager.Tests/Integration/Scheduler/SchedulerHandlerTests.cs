@@ -35,6 +35,10 @@ namespace Energinet.DataHub.ProcessManager.Tests.Integration.Scheduler;
 public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAsyncLifetime
 {
     private readonly SchedulerHandlerFixture _fixture;
+
+    private readonly Instant _now;
+    private readonly UserIdentity _userIdentity;
+
     private readonly Mock<IOrchestrationInstanceExecutor> _executorMock;
     private readonly ServiceProvider _serviceProvider;
 
@@ -42,34 +46,14 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
     {
         _fixture = fixture;
 
-        var services = new ServiceCollection();
+        _now = _fixture.ClockMock.Object.GetCurrentInstant();
+        _userIdentity = new UserIdentity(
+            new UserId(Guid.NewGuid()),
+            new ActorId(Guid.NewGuid()));
 
-        services.AddLogging();
-
-        services.AddScoped<IClock>(_ => _fixture.ClockMock.Object);
-        services.AddNodaTimeForApplication();
-
-        // Services we want to mock MUST be registered before we call Process Manager DI extensions because we always use "TryAdd" within those
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
-        services.AddScoped<IOrchestrationInstanceExecutor>(_ => _executorMock.Object);
 
-        services.AddInMemoryConfiguration(new Dictionary<string, string?>
-        {
-            [$"{ProcessManagerOptions.SectionName}:{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}"]
-                = _fixture.DatabaseManager.ConnectionString,
-            [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString)}"]
-                = "Not used, but cannot be empty",
-            [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName)}"]
-                = "Not used, but cannot be empty",
-        });
-        services.AddProcessManagerCore();
-
-        // Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
-        services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();
-
-        // Register SUT
-        services.AddScoped<SchedulerHandler>();
-
+        var services = ConfigureServices(_fixture, _executorMock);
         _serviceProvider = services.BuildServiceProvider();
     }
 
@@ -92,11 +76,6 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
     public async Task Given_OrchestrationInstancesScheduledToRun_When_SchedulerHandlerIsExecuted_Then_BothAreQueued()
     {
         // Arrange
-        var now = _fixture.ClockMock.Object.GetCurrentInstant();
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
-
         var register = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
         var commands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
 
@@ -104,13 +83,13 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
         await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
-            userIdentity,
+            _userIdentity,
             orchestrationDescription.UniqueName,
-            runAt: now.PlusMinutes(-10));
+            runAt: _now.PlusMinutes(-10));
         var scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
-            userIdentity,
+            _userIdentity,
             orchestrationDescription.UniqueName,
-            runAt: now.PlusMinutes(-5));
+            runAt: _now.PlusMinutes(-5));
 
         // Act
         var sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
@@ -134,11 +113,6 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
     public async Task Given_OrchestrationInstancesScheduledToRunButExecutorFailsOnOne_When_SchedulerHandlerIsExecuted_Then_OneIsPendingAndOneIsQueued()
     {
         // Arrange
-        var now = _fixture.ClockMock.Object.GetCurrentInstant();
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
-
         var register = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
         var commands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
 
@@ -146,13 +120,13 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
         await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
-            userIdentity,
+            _userIdentity,
             orchestrationDescription.UniqueName,
-            runAt: now.PlusMinutes(-10));
+            runAt: _now.PlusMinutes(-10));
         var scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
-            userIdentity,
+            _userIdentity,
             orchestrationDescription.UniqueName,
-            runAt: now.PlusMinutes(-5));
+            runAt: _now.PlusMinutes(-5));
 
         // => Fail execution of "01"
         _executorMock
@@ -188,11 +162,6 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
     public async Task Given_OrchestrationInstancesScheduledToRunButExecutorKeepsFailingOnOne_When_SchedulerHandlerIsExecutedRecurringly_Then_OnlyTheFailingOneIsPendingOthersCanBeQueued()
     {
         // Arrange
-        var now = _fixture.ClockMock.Object.GetCurrentInstant();
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
-
         var register = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
         var commands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
 
@@ -200,13 +169,13 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
         await register.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var scheduledInstanceId01 = await commands.ScheduleNewOrchestrationInstanceAsync(
-            userIdentity,
+            _userIdentity,
             orchestrationDescription.UniqueName,
-            runAt: now.PlusMinutes(-10));
+            runAt: _now.PlusMinutes(-10));
         var scheduledInstanceId02 = await commands.ScheduleNewOrchestrationInstanceAsync(
-            userIdentity,
+            _userIdentity,
             orchestrationDescription.UniqueName,
-            runAt: now.PlusMinutes(-5));
+            runAt: _now.PlusMinutes(-5));
 
         // => Fail execution of "01"
         _executorMock
@@ -222,9 +191,9 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
 
         // => Schedule an additional orchestration instance
         var scheduledInstanceId03 = await commands.ScheduleNewOrchestrationInstanceAsync(
-            userIdentity,
+            _userIdentity,
             orchestrationDescription.UniqueName,
-            runAt: now.PlusMinutes(-1));
+            runAt: _now.PlusMinutes(-1));
 
         // Act
         var sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
@@ -245,6 +214,38 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
             var scheduledInstance03 = await queries.GetAsync(scheduledInstanceId03);
             scheduledInstance03.Lifecycle.State.Should().Be(OrchestrationInstanceLifecycleState.Queued);
         }
+    }
+
+    private static ServiceCollection ConfigureServices(SchedulerHandlerFixture fixture, Mock<IOrchestrationInstanceExecutor> executorMock)
+    {
+        var services = new ServiceCollection();
+
+        services.AddLogging();
+
+        services.AddScoped<IClock>(_ => fixture.ClockMock.Object);
+        services.AddNodaTimeForApplication();
+
+        // Services we want to mock MUST be registered before we call Process Manager DI extensions because we always use "TryAdd" within those
+        services.AddScoped<IOrchestrationInstanceExecutor>(_ => executorMock.Object);
+
+        services.AddInMemoryConfiguration(new Dictionary<string, string?>
+        {
+            [$"{ProcessManagerOptions.SectionName}:{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}"]
+                = fixture.DatabaseManager.ConnectionString,
+            [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString)}"]
+                = "Not used, but cannot be empty",
+            [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName)}"]
+                = "Not used, but cannot be empty",
+        });
+        services.AddProcessManagerCore();
+
+        // Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
+        services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();
+
+        // Register SUT
+        services.AddScoped<SchedulerHandler>();
+
+        return services;
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription()

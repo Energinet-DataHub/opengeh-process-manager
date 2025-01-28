@@ -12,20 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel.DataAnnotations;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-namespace Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 
-/// <summary>
-/// Options for configuration of Process Manager Service Bus clients using the Process Manager.
-/// </summary>
-public class ProcessManagerServiceBusClientOptions
+public class NotifyEnqueueFinishedV1 : INotifyDataDto
 {
-    public const string SectionName = "ProcessManagerServiceBusClient";
+    public const string EventName = "EnqueueActorMessagesCompletedV1";
 
-    /// <summary>
-    /// Name of the topic which the Process Manager receives service bus messages on
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string TopicName { get; set; } = string.Empty;
+    public bool Success { get; set; }
 }

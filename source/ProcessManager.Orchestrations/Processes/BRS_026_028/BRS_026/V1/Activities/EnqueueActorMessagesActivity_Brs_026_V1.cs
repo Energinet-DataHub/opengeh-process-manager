@@ -15,8 +15,10 @@
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Microsoft.Azure.Functions.Worker;
+using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Activities;
 
@@ -43,16 +45,45 @@ internal class EnqueueActorMessagesActivity_Brs_026_V1(
 
     private Task EnqueueActorMessagesAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
-        // TODO: Set correct data when async validation is implemented
+        var requestInput = input.RequestInput;
+
+        var energySupplierNumber = requestInput.EnergySupplierNumber != null
+            ? ActorNumber.Create(requestInput.EnergySupplierNumber)
+            : null;
+        var balanceResponsibleNumber = requestInput.BalanceResponsibleNumber != null
+            ? ActorNumber.Create(requestInput.BalanceResponsibleNumber)
+            : null;
+        var meteringPointType = requestInput.MeteringPointType != null
+            ? MeteringPointType.FromName(requestInput.MeteringPointType)
+            : null;
+        var settlementMethod = requestInput.SettlementMethod != null
+            ? SettlementMethod.FromName(requestInput.SettlementMethod)
+            : null;
+        var settlementVersion = requestInput.SettlementVersion != null
+            ? SettlementVersion.FromName(requestInput.SettlementVersion)
+            : null;
+
         var acceptedData = new RequestCalculatedEnergyTimeSeriesAcceptedV1(
-            input.RequestInput.BusinessReason);
+            OriginalTransactionId: requestInput.TransactionId,
+            OriginalMessageId: requestInput.ActorMessageId,
+            RequestedForActorNumber: ActorNumber.Create(requestInput.RequestedForActorNumber),
+            RequestedForActorRole: ActorRole.FromName(requestInput.RequestedForActorRole),
+            BusinessReason: BusinessReason.FromName(requestInput.BusinessReason),
+            PeriodStart: InstantPattern.General.Parse(requestInput.PeriodStart).GetValueOrThrow(),
+            PeriodEnd: InstantPattern.General.Parse(requestInput.PeriodEnd!).GetValueOrThrow(),
+            GridAreas: requestInput.GridAreas,
+            EnergySupplierNumber: energySupplierNumber,
+            BalanceResponsibleNumber: balanceResponsibleNumber,
+            MeteringPointType: meteringPointType,
+            SettlementMethod: settlementMethod,
+            SettlementVersion: settlementVersion);
 
         return _enqueueActorMessagesClient.EnqueueAsync(
-            Orchestration_Brs_026_V1.UniqueName,
-            input.InstanceId.Value,
-            orchestrationCreatedBy.ToDto(),
-            input.IdempotencyKey,
-            acceptedData);
+            orchestration: Orchestration_Brs_026_V1.UniqueName,
+            orchestrationInstanceId: input.InstanceId.Value,
+            orchestrationStartedBy: orchestrationCreatedBy.ToDto(),
+            idempotencyKey: input.IdempotencyKey,
+            data: acceptedData);
     }
 
     public record ActivityInput(

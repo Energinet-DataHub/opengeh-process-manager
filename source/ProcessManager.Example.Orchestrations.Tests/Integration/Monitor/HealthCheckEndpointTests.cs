@@ -29,13 +29,10 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class HealthCheckEndpointTests : IAsyncLifetime
 {
-    private readonly ITestOutputHelper _testOutputHelper;
-
     public HealthCheckEndpointTests(ExampleOrchestrationsAppFixture fixture, ITestOutputHelper testOutputHelper)
     {
-        _testOutputHelper = testOutputHelper;
         Fixture = fixture;
-        Fixture.SetTestOutputHelper(_testOutputHelper);
+        Fixture.SetTestOutputHelper(testOutputHelper);
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }

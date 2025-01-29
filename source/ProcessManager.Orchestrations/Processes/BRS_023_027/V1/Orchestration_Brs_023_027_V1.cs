@@ -157,9 +157,8 @@ internal class Orchestration_Brs_023_027_V1
         // Step: Enqueue messages
         if (!executionContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStepSequence))
         {
-            var calculationData = new CalculatedDataForCalculationTypeV1(
-                CalculationId: executionContext.CalculationId,
-                CalculationType: orchestrationInput.CalculationType);
+            var calculationData = new CalculationEnqueueActorMessagesV1(
+                CalculationId: executionContext.CalculationId);
 
             messagesSuccessfullyEnqueued = await EnqueueMessagesAsync(
                 context: context,
@@ -202,7 +201,7 @@ internal class Orchestration_Brs_023_027_V1
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         TimeSpan timeout,
-        CalculatedDataForCalculationTypeV1 calculationData)
+        CalculationEnqueueActorMessagesV1 calculationData)
     {
         await context.CallActivityAsync(
             nameof(TransitionStepToRunningActivity_V1),
@@ -224,8 +223,8 @@ internal class Orchestration_Brs_023_027_V1
         var success = false;
         try
         {
-            var enqueueEvent = await context.WaitForExternalEvent<NotifyEnqueueFinishedV1?>(
-                eventName: NotifyEnqueueFinishedV1.EventName,
+            var enqueueEvent = await context.WaitForExternalEvent<CalculationEnqueueActorMessagesCompletedNotifyEventV1?>(
+                eventName: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName,
                 timeout: timeout);
 
             success = enqueueEvent is { Success: true };

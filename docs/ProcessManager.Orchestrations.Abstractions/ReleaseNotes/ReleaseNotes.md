@@ -4,6 +4,17 @@
 
 - Add `ActorNumber` and `ActorRole` to `MeteredDataForMeteringPointMessageInputV1`.
 
+## Version 0.17.3
+
+- Updated `MeteredDataForMeteringPointAcceptedV1`
+- Add `MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1`
+
+## Version 0.17.2
+
+- Update `RequestCalculatedWholesaleServicesInputV1` model with `IBusinessValidatedDto` interface.
+- Rename `RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1` to `RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput`.
+- Update `RequestCalculatedWholesaleServicesRejectedV1` properties to be a list of validation errors.
+
 ## Version 0.17.1
 
 - Update `RequestCalculatedEnergyTimeSeriesInputV1` with the required input.
@@ -20,7 +31,7 @@
 ## Version 0.16.0
 
 - Add `SettlementMethod` and `SettlementVersion` DataHub types.
-- Update `RequestCalculatedEnergyTimeSeries` model with `IBusinessValidatedDto` interface.
+- Update `RequestCalculatedEnergyTimeSeriesInputV1` model with `IBusinessValidatedDto` interface.
 - Update `RequestCalculatedEnergyTimeSeriesRejectedV1` properties to be a list of validation errors.
 
 ## Version 0.15.2

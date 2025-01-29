@@ -15,16 +15,16 @@
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 using FluentAssertions;
 using FluentAssertions.Execution;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_026.V1.BusinessValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_028.V1.BusinessValidation.Rules;
 
 [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Async suffix is not needed for test methods")]
 public class EnergySupplierValidatorTest
 {
-    public const string ValidGlnNumber = "qwertyuiopasd"; // Must be 13 characters to be a valid GLN
+    private const string ValidGlnNumber = "qwertyuiopasd"; // Must be 13 characters to be a valid GLN
     private const string ValidEicNumber = "qwertyuiopasdfgh"; // Must be 16 characters to be a valid GLN
 
     private static readonly ValidationError _invalidEnergySupplier = new("Feltet EnergySupplier skal være udfyldt med et valid GLN/EIC nummer når en elleverandør anmoder om data / EnergySupplier must be submitted with a valid GLN/EIC number when an energy supplier requests data", "E16");
@@ -33,13 +33,10 @@ public class EnergySupplierValidatorTest
     private readonly EnergySupplierValidationRule _sut = new();
 
     [Fact]
-    public async Task Validate_WhenEnergySupplierAndEnergySupplierIsValidGlnNumber_ReturnsNoValidationErrors()
+    public async Task Validate_WhenEnergySupplierWithValidGlnNumber_ReturnsNoValidationErrors()
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.EnergySupplier)
-            .WithRequestedForActorNumber(ValidGlnNumber)
-            .WithEnergySupplierNumber(ValidGlnNumber)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.EnergySupplier)
             .Build();
 
         // Act
@@ -50,13 +47,10 @@ public class EnergySupplierValidatorTest
     }
 
     [Fact]
-    public async Task Validate_WhenEnergySupplierAndEnergySupplierIsValidEicNumber_ReturnsNoValidationErrors()
+    public async Task Validate_WhenEnergySupplierWithValidEicNumber_ReturnsNoValidationErrors()
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.EnergySupplier)
-            .WithRequestedForActorNumber(ValidEicNumber)
-            .WithEnergySupplierNumber(ValidEicNumber)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.EnergySupplier)
             .Build();
 
         // Act
@@ -70,8 +64,7 @@ public class EnergySupplierValidatorTest
     public async Task Validate_WhenEnergySupplierAndMissingEnergySupplier_ReturnsExpectedValidationError()
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.EnergySupplier)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.EnergySupplier)
             .WithEnergySupplierNumber(null)
             .Build();
 
@@ -91,8 +84,7 @@ public class EnergySupplierValidatorTest
     public async Task Validate_WhenEnergySupplierAndEnergySupplierNotEqualRequestedById_ReturnsExpectedValidationError()
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.EnergySupplier)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.EnergySupplier)
             .WithRequestedForActorNumber(ValidGlnNumber)
             .WithEnergySupplierNumber(ValidEicNumber)
             .Build();
@@ -113,8 +105,7 @@ public class EnergySupplierValidatorTest
     public async Task Validate_WhenEnergySupplierAndInvalidFormatEnergySupplier_ReturnsExpectedValidationError()
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.EnergySupplier)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.EnergySupplier)
             .WithEnergySupplierNumber("invalid-format")
             .Build();
 
@@ -134,8 +125,7 @@ public class EnergySupplierValidatorTest
     public async Task Validate_WhenNotEnergySupplierAndMissingEnergySupplier_ReturnsNoValidationError()
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.BalanceResponsibleParty)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.BalanceResponsibleParty)
             .WithEnergySupplierNumber(null)
             .Build();
 
@@ -150,8 +140,7 @@ public class EnergySupplierValidatorTest
     public async Task Validate_WhenNotEnergySupplierAndInvalidEnergySupplierFormat_ReturnsNoValidationError()
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.BalanceResponsibleParty)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.BalanceResponsibleParty)
             .WithEnergySupplierNumber("invalid-format")
             .Build();
 
@@ -163,11 +152,10 @@ public class EnergySupplierValidatorTest
     }
 
     [Fact]
-    public async Task Validate_IsNotEnergySupplierAndEnergySupplierNotEqualRequestedById_ReturnsNoValidationError()
+    public async Task Validate_WhenNotEnergySupplierAndEnergySupplierNotEqualRequestedById_ReturnsNoValidationError()
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.BalanceResponsibleParty)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.BalanceResponsibleParty)
             .WithRequestedForActorNumber(ValidGlnNumber)
             .WithEnergySupplierNumber(ValidEicNumber)
             .Build();

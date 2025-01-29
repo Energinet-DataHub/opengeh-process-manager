@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
-
-/// <summary>
-/// A model containing the validation errors if a wholesale services request is rejected.
-/// </summary>
-public record RequestCalculatedWholesaleServicesRejectedV1(
-    List<ValidationErrorDto> ValidationErrors);
+public static class MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1
+{
+    public const string MeteredDataForMeteringPointMessagesEnqueuedCompleted = "MeteredDataForMeteringPointMessagesEnqueuedCompleted";
+}

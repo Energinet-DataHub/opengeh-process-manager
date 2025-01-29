@@ -44,7 +44,6 @@ public class RequestCalculatedEnergyTimeSeriesInputV1ValidatorTests
         services.AddLogging();
         services.AddTransient<DateTimeZone>(s => _timeZone);
         services.AddTransient<IClock>(s => _clockMock.Object);
-        services.AddTransient<PeriodValidationHelper>();
 
         var gridAreaOwnerClientMock = new Mock<IGridAreaOwnerClient>();
         services.AddScoped<IGridAreaOwnerClient>(_ => gridAreaOwnerClientMock.Object);

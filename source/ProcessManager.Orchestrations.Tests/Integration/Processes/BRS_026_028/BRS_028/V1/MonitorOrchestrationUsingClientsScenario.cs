@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -89,16 +90,16 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         // Step 1: Start new orchestration instance
-        var businessReason = "WholesaleFixing";
-        var energySupplierNumber = "23143245321";
+        var businessReason = BusinessReason.WholesaleFixing.Name;
+        const string energySupplierNumber = "1111111111111";
         var startRequestCommand = new RequestCalculatedWholesaleServicesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedWholesaleServicesInputV1(
                 RequestedForActorNumber: energySupplierNumber,
-                RequestedForActorRole: "EnergySupplier",
+                RequestedForActorRole: ActorRole.EnergySupplier.Name,
                 BusinessReason: businessReason,
-                PeriodStart: "2024-04-01 23:00:00",
-                PeriodEnd: "2024-04-30 23:00:00",
+                PeriodStart: "2024-12-31T23:00:00Z",
+                PeriodEnd: "2025-01-31T23:00:00Z",
                 Resolution: null,
                 EnergySupplierNumber: energySupplierNumber,
                 ChargeOwnerNumber: null,
@@ -137,7 +138,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             CancellationToken.None);
 
         // Step 4: Query until terminated with succeeded
-        var (isTerminated, _) = await processManagerClient
+        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
             .TryWaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 (oi) => oi is
@@ -149,6 +150,20 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     },
                 });
 
-        isTerminated.Should().BeTrue("because the orchestration instance should complete within given wait time");
+        orchestrationTerminatedWithSucceeded.Should().BeTrue("because the orchestration instance should complete within given wait time");
+
+        // If isTerminated is true then terminatedOrchestrationInstance should never be null
+        ArgumentNullException.ThrowIfNull(terminatedOrchestrationInstance);
+
+        // All steps should be Succeeded
+        terminatedOrchestrationInstance.Steps.Should()
+            .AllSatisfy(
+                s =>
+                {
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                });
     }
 }

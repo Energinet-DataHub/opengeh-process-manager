@@ -280,6 +280,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         bool withError = false)
     {
         var input = new MeteredDataForMeteringPointMessageInputV1(
+            "MessageId",
             Guid.NewGuid(),
             "1111111111111",
             ActorRole.GridAccessProvider.Code,

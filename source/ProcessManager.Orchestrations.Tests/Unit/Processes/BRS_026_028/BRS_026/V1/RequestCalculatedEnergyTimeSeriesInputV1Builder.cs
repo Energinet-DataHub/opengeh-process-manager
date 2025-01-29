@@ -22,6 +22,8 @@ public class RequestCalculatedEnergyTimeSeriesInputV1Builder
 {
     private const string ValidGlnNumber = "1111111111111";
 
+    private readonly string _actorMessageId;
+    private readonly string _transactionId;
     private string _requestedForActorNumber;
     private string _requestedForActorRole;
     private string _businessReason;
@@ -39,6 +41,9 @@ public class RequestCalculatedEnergyTimeSeriesInputV1Builder
     /// </summary>
     public RequestCalculatedEnergyTimeSeriesInputV1Builder(ActorRole forActorRole)
     {
+        _actorMessageId = Guid.NewGuid().ToString();
+        _transactionId = Guid.NewGuid().ToString();
+
         _requestedForActorNumber = ValidGlnNumber;
         _requestedForActorRole = forActorRole.Name;
         _businessReason = BusinessReason.BalanceFixing.Name;
@@ -143,6 +148,8 @@ public class RequestCalculatedEnergyTimeSeriesInputV1Builder
     public RequestCalculatedEnergyTimeSeriesInputV1 Build()
     {
         return new RequestCalculatedEnergyTimeSeriesInputV1(
+            ActorMessageId: _actorMessageId,
+            TransactionId: _transactionId,
             RequestedForActorNumber: _requestedForActorNumber,
             RequestedForActorRole: _requestedForActorRole,
             BusinessReason: _businessReason,

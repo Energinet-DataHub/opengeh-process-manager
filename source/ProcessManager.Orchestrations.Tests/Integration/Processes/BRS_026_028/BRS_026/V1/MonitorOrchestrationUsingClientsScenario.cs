@@ -95,6 +95,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var startRequestCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedEnergyTimeSeriesInputV1(
+                ActorMessageId: Guid.NewGuid().ToString(),
+                TransactionId: Guid.NewGuid().ToString(),
                 RequestedForActorNumber: energySupplierNumber,
                 RequestedForActorRole: ActorRole.EnergySupplier.Name,
                 BusinessReason: businessReason,

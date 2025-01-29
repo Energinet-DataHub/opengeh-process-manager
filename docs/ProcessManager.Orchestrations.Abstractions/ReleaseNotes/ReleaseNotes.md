@@ -1,10 +1,15 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 0.17.1
+## Version 0.17.2
 
 - Update `RequestCalculatedWholesaleServicesInputV1` model with `IBusinessValidatedDto` interface.
 - Rename `RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1` to `RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput`.
 - Update `RequestCalculatedWholesaleServicesRejectedV1` properties to be a list of validation errors.
+
+## Version 0.17.1
+
+- Update `RequestCalculatedEnergyTimeSeriesInputV1` with the required input.
+- Update `RequestCalculatedEnergyTimeSeriesAcceptedV1` with the correct properties.
 
 ## Version 0.17.0
 

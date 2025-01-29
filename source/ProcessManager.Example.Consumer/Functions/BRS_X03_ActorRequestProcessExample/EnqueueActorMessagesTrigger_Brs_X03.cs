@@ -91,9 +91,10 @@ public class EnqueueActorMessagesTrigger_Brs_X03(
         });
 
         _logger.LogInformation(
-            "Received {Subject} message with message id: {MessageId}",
+            "Received {Subject} message with message id {MessageId}. Data: {Data}",
             message.Subject,
-            message.MessageId);
+            message.MessageId,
+            enqueueData);
 
         await _messageClient.NotifyOrchestrationInstanceAsync(
                 new NotifyOrchestrationInstanceEvent(

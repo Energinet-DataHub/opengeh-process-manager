@@ -2,7 +2,8 @@
 
 ## Version 0.17.2
 
-- Updated `MeteredDataForMeteringPointRejectedV1` 
+- Updated `MeteredDataForMeteringPointAcceptedV1` 
+- Add `MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1`
 
 ## Version 0.17.1
 

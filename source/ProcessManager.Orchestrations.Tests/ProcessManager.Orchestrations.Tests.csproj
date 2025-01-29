@@ -75,7 +75,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Unit\Processes\BRS_026\V1\BusinessValidation\Rules\" />
+    <Folder Include="Unit\Processes\BRS_026_028\" />
   </ItemGroup>
 
 </Project>

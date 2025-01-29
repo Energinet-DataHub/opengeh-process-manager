@@ -13,13 +13,13 @@
 // limitations under the License.
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Energinet.DataHub.ProcessManager.Core.Application;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Diagnostics.HealthChecks;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
@@ -30,6 +30,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
@@ -146,6 +147,11 @@ public static class ProcessManagerExtensions
         services.AddCustomHandlersForServiceBusTriggers(assemblyToScan);
         // => Add custom dependencies
         services.AddCustomOptions(assemblyToScan);
+
+        // => Orchestration register healthcheck
+        services.AddSingleton<OrchestrationRegisterContext>();
+        services.AddHealthChecks()
+            .AddTypeActivatedCheck<OrchestrationRegisterHealthCheck>("Orchestration register", HealthStatus.Unhealthy);
 
         return services;
     }
@@ -299,7 +305,7 @@ public static class ProcessManagerExtensions
 
         services
             .AddHealthChecks()
-            .AddDbContextCheck<ProcessManagerContext>(name: "ProcesManagerDatabase");
+            .AddDbContextCheck<ProcessManagerContext>(name: "ProcessManagerDatabase");
 
         return services;
     }

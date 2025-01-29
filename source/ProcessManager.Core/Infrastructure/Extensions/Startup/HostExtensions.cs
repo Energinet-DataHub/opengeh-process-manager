@@ -13,9 +13,11 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 
@@ -32,6 +34,8 @@ public static class HostExtensions
     {
         var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger(nameof(SynchronizeWithOrchestrationRegisterAsync));
+        var orchestrationRegisterContext = host.Services.GetRequiredService<OrchestrationRegisterContext>();
+        var clock = host.Services.GetRequiredService<IClock>();
 
         try
         {
@@ -39,6 +43,19 @@ public static class HostExtensions
             var orchestrationDescriptions = builders
                 .Select(c => c.Build())
                 .ToList();
+
+            logger.LogInformation(
+                "Synchronizing {OrchestrationDescriptionsCount} orchestration descriptions with the orchestration register. Orchestration descriptions: {OrchestrationDescriptions}",
+                orchestrationDescriptions.Count,
+                orchestrationDescriptions.Select(od => new
+                {
+                    od.Id,
+                    od.UniqueName,
+                    od.IsRecurring,
+                    od.CanBeScheduled,
+                    od.ParameterDefinition.SerializedParameterDefinition,
+                    od.Steps,
+                }));
 
             var register = host.Services.GetRequiredService<IOrchestrationRegister>();
             await register
@@ -50,6 +67,19 @@ public static class HostExtensions
         catch (Exception ex)
         {
             logger.LogError(ex, "Could not register orchestrations during startup.");
+
+            #if DEBUG
+            // Test logger isn't available this early in the application lifecycle, so we log to console as well.
+            Console.WriteLine(
+                "Could not register orchestrations during startup. Exception:\n{0}",
+                ex);
+            #endif
+
+            // Set exception in the orchestration register context singleton, to enable reporting the exception in
+            // the orchestration register healthcheck.
+            orchestrationRegisterContext.SynchronizeException = ex;
         }
+
+        orchestrationRegisterContext.SynchronizedAt = clock.GetCurrentInstant();
     }
 }

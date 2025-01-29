@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Core.Tests" />
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Tests" />
   </ItemGroup>

@@ -124,7 +124,7 @@ internal class OrchestrationRegister(
         {
             _logger.LogInformation("Updating orchestration description with breaking changes"
                 + $" (Id={existingDescription.IsEnabled}, UniqueName={existingDescription.UniqueName.Name}, Version={existingDescription.UniqueName.Version},"
-                + $" ChangedProperties={string.Join(", ", propertiesWithBreakingChanges)}).");
+                + $" ChangedProperties={string.Join(",", propertiesWithBreakingChanges)}).");
             return true;
         }
         else if (propertiesWithBreakingChanges.Any())
@@ -132,7 +132,7 @@ internal class OrchestrationRegister(
             throw new InvalidOperationException(
                 $"Breaking changes to orchestration description are not allowed"
                 + $" (Id={existingDescription.IsEnabled}, UniqueName={existingDescription.UniqueName.Name}, Version={existingDescription.UniqueName.Version},"
-                + $" ChangedProperties={string.Join(", ", propertiesWithBreakingChanges)}).");
+                + $" ChangedProperties={string.Join(",", propertiesWithBreakingChanges)}).");
         }
 
         return existingDescription.RecurringCronExpression != newDescription.RecurringCronExpression;

@@ -1,5 +1,6 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
-## Version 0.15.3
+
+## Version 0.17.2
 
 - Updated `MeteredDataForMeteringPointRejectedV1` 
 

@@ -1,5 +1,10 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.17.3
+
+- Updated `MeteredDataForMeteringPointAcceptedV1`
+- Add `MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1`
+
 ## Version 0.17.2
 
 - Update `RequestCalculatedWholesaleServicesInputV1` model with `IBusinessValidatedDto` interface.

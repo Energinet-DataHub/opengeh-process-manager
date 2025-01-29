@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
@@ -22,12 +21,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// A model containing the data required for notifying market actors when new metered data has been accepted.
 /// </summary>
 public record MeteredDataForMeteringPointAcceptedV1(
+    string MessageId,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
     string OriginalTransactionId,
     string ProductNumber,
     MeasurementUnit MeasureUnit,
-    Instant RegistrationDateTime,
+    DateTimeOffset RegistrationDateTime,
     Resolution Resolution,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,

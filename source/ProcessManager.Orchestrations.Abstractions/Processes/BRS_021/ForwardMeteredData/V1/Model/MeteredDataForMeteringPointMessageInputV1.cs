@@ -20,6 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// An immutable input to start the orchestration instance for "BRS_021_ForwardMeteredData" V1.
 /// </summary>
 public record MeteredDataForMeteringPointMessageInputV1(
+    string MessageId,
     Guid AuthenticatedActorId,
     string TransactionId,
     string? MeteringPointId,

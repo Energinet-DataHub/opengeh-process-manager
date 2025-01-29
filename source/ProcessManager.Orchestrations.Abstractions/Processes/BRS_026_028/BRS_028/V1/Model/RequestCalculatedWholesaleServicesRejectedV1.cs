@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 
 /// <summary>
 /// A model containing the validation errors if a wholesale services request is rejected.
 /// </summary>
-public record RequestCalculatedWholesaleServicesRejectedV1(List<string> ValidationErrors);
+public record RequestCalculatedWholesaleServicesRejectedV1(
+    List<ValidationErrorDto> ValidationErrors);

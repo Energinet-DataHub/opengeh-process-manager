@@ -29,7 +29,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.
 // TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
 internal class Orchestration_Brs_028_V1
 {
-    public const int AsyncValidationStepSequence = 1;
+    public const int BusinessValidationStepSequence = 1;
     public const int EnqueueActorMessagesStepSequence = 2;
 
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_028.V1;
@@ -52,7 +52,11 @@ internal class Orchestration_Brs_028_V1
         var validationResult = await PerformAsynchronousValidationAsync(context, instanceId, input);
         await EnqueueActorMessagesInEdiAsync(context, instanceId, input, validationResult);
 
-        var wasMessagesEnqueued = await WaitForEnqueueActorMessagesResponseFromEdiAsync(context, options.EnqueueActorMessagesTimeout, instanceId);
+        var wasMessagesEnqueued = await WaitForEnqueueActorMessagesResponseFromEdiAsync(
+            context,
+            options.EnqueueActorMessagesTimeout,
+            instanceId);
+
         return await TerminateOrchestrationAsync(context, instanceId, input, wasMessagesEnqueued);
     }
 
@@ -83,7 +87,7 @@ internal class Orchestration_Brs_028_V1
         return orchestrationInstanceContext;
     }
 
-    private async Task<PerformAsyncValidationActivity_Brs_028_V1.ActivityOutput> PerformAsynchronousValidationAsync(
+    private async Task<PerformBusinessValidationActivity_Brs_028_V1.ActivityOutput> PerformAsynchronousValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedWholesaleServicesInputV1 input)
@@ -92,13 +96,14 @@ internal class Orchestration_Brs_028_V1
             nameof(TransitionStepToRunningActivity_V1),
             new TransitionStepToRunningActivity_V1.ActivityInput(
                 instanceId,
-                AsyncValidationStepSequence),
+                BusinessValidationStepSequence),
             _defaultRetryOptions);
 
-        var validationResult = await context.CallActivityAsync<PerformAsyncValidationActivity_Brs_028_V1.ActivityOutput>(
-            nameof(PerformAsyncValidationActivity_Brs_028_V1),
-            new PerformAsyncValidationActivity_Brs_028_V1.ActivityInput(
+        var validationResult = await context.CallActivityAsync<PerformBusinessValidationActivity_Brs_028_V1.ActivityOutput>(
+            nameof(PerformBusinessValidationActivity_Brs_028_V1),
+            new PerformBusinessValidationActivity_Brs_028_V1.ActivityInput(
                 instanceId,
+                BusinessValidationStepSequence,
                 input),
             _defaultRetryOptions);
 
@@ -109,7 +114,7 @@ internal class Orchestration_Brs_028_V1
             nameof(TransitionStepToTerminatedActivity_V1),
             new TransitionStepToTerminatedActivity_V1.ActivityInput(
                 instanceId,
-                AsyncValidationStepSequence,
+                BusinessValidationStepSequence,
                 asyncValidationTerminationState),
             _defaultRetryOptions);
 
@@ -120,7 +125,7 @@ internal class Orchestration_Brs_028_V1
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedWholesaleServicesInputV1 input,
-        PerformAsyncValidationActivity_Brs_028_V1.ActivityOutput validationResult)
+        PerformBusinessValidationActivity_Brs_028_V1.ActivityOutput validationResult)
     {
         await context.CallActivityAsync(
             nameof(TransitionStepToRunningActivity_V1),
@@ -142,18 +147,21 @@ internal class Orchestration_Brs_028_V1
         }
         else
         {
-            ArgumentNullException.ThrowIfNull(validationResult.ValidationError);
+            ArgumentNullException.ThrowIfNull(validationResult.ValidationErrors);
 
             await context.CallActivityAsync(
                 nameof(EnqueueRejectMessageActivity_Brs_028_V1),
                 new EnqueueRejectMessageActivity_Brs_028_V1.ActivityInput(
                     instanceId,
-                    validationResult.ValidationError,
+                    validationResult.ValidationErrors,
                     idempotencyKey),
                 _defaultRetryOptions);
         }
     }
 
+    /// <summary>
+    /// Pattern #5: Human interaction - https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview?tabs=isolated-process#human
+    /// </summary>
     private async Task<bool> WaitForEnqueueActorMessagesResponseFromEdiAsync(
         TaskOrchestrationContext context,
         TimeSpan actorMessagesEnqueuedTimeout,

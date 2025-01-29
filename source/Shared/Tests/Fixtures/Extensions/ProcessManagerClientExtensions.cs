@@ -47,7 +47,7 @@ public static class ProcessManagerClientExtensions
                 return comparer(orchestrationInstance);
             },
             timeLimit: TimeSpan.FromSeconds(60),
-            delay: TimeSpan.FromSeconds(3));
+            delay: TimeSpan.FromSeconds(1));
 
         return (success, orchestrationInstance);
     }

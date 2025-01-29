@@ -16,21 +16,17 @@ using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.Shared.BusinessValidation;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 
-public class GridAreaValidationRule : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
+public class GridAreaValidationRule(
+    IGridAreaOwnerClient gridAreaOwnerClient)
+        : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
 {
     private static readonly ValidationError _missingGridAreaCode = new("Netområde er obligatorisk for rollen MDR / Grid area is mandatory for the role MDR.", "D64");
     private static readonly ValidationError _invalidGridArea = new("Ugyldig netområde / Invalid gridarea", "E86");
 
-    private readonly IGridAreaOwnerClient _gridAreaOwnerClient;
-
-    public GridAreaValidationRule(IGridAreaOwnerClient gridAreaOwnerClient)
-    {
-        _gridAreaOwnerClient = gridAreaOwnerClient;
-    }
+    private readonly IGridAreaOwnerClient _gridAreaOwnerClient = gridAreaOwnerClient;
 
     private static IList<ValidationError> NoError => [];
 
@@ -40,17 +36,18 @@ public class GridAreaValidationRule : IBusinessValidationRule<RequestCalculatedE
 
     public async Task<IList<ValidationError>> ValidateAsync(RequestCalculatedEnergyTimeSeriesInputV1 subject)
     {
-        if (subject.RequestedForActorRole != ActorRole.MeteredDataResponsible.Name) return NoError;
+        if (subject.RequestedForActorRole != ActorRole.MeteredDataResponsible.Name)
+            return NoError;
 
         if (subject.GridAreas.Count == 0)
             return MissingGridAreaCodeError;
 
-        foreach (var gridAreaCode in subject.GridAreas)
+        foreach (var gridArea in subject.GridAreas)
         {
-            var isGridAreaOwner = await GridAreaValidationHelper.IsGridAreaOwnerAsync(
-                    _gridAreaOwnerClient,
-                    gridAreaCode,
-                    subject.RequestedForActorNumber)
+            var isGridAreaOwner = await _gridAreaOwnerClient.IsCurrentOwnerAsync(
+                    gridArea,
+                    subject.RequestedForActorNumber,
+                    CancellationToken.None)
                 .ConfigureAwait(false);
 
             if (!isGridAreaOwner)

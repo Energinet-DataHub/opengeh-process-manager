@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using NodaTime;
 using NodaTime.Text;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 
 public class PeriodValidationRule(PeriodValidationHelper periodValidationHelper)
     : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>

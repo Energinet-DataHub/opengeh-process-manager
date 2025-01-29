@@ -40,6 +40,27 @@ public partial class NotifyOrchestrationInstanceV1
         if (Data is null)
             return null;
 
+        if (Data.DataType != typeof(TNotifyData).Name)
+        {
+            throw new InvalidOperationException($"Incorrect data type in received NotifyOrchestrationInstanceV1 message (TargetType={typeof(TNotifyData).Name}, DataType={Data.DataType})")
+            {
+                Data =
+                {
+                    { "TargetType", typeof(TNotifyData).Name },
+                    { nameof(OrchestrationInstanceId), OrchestrationInstanceId },
+                    { nameof(EventName), EventName },
+                    { nameof(MajorVersion), MajorVersion },
+                    { nameof(Data.DataFormat), Data.DataFormat },
+                    { nameof(Data.DataType), Data.DataType },
+                    {
+                        nameof(Data.Data), Data.Data.Length < 1000
+                            ? Data.Data
+                            : Data.Data.Substring(0, 1000)
+                    },
+                },
+            };
+        }
+
         var result = Data.DataFormat switch
         {
             NotifyOrchestrationInstanceDataFormatV1.Json => JsonSerializer.Deserialize<TNotifyData>(Data.Data),

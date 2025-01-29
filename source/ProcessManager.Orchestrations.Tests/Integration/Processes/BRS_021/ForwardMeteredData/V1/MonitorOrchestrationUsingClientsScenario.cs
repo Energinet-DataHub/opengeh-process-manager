@@ -281,7 +281,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         var input = new MeteredDataForMeteringPointMessageInputV1(
             Guid.NewGuid(),
-            new MarketActorRecipient("1111111111111", ActorRole.GridAccessProvider),
+            "1111111111111",
+            ActorRole.GridAccessProvider.Code,
             "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
             withError ? "NoMasterData" : "571313101700011887",
             "D20",

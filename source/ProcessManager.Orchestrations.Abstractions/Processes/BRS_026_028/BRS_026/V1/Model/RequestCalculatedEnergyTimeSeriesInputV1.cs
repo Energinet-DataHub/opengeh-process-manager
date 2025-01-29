@@ -41,6 +41,8 @@ public record RequestCalculatedEnergyTimeSeriesInputV1(
     string TransactionId,
     string RequestedForActorNumber,
     string RequestedForActorRole,
+    string RequestedByActorNumber,
+    string RequestedByActorRole,
     string BusinessReason,
     string PeriodStart,
     string? PeriodEnd,

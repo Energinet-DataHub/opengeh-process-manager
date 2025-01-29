@@ -12,10 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+using NodaTime;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 
 /// <summary>
 /// A model containing the data for an accepted request for calculated energy time series
 /// </summary>
 public record RequestCalculatedWholesaleServicesAcceptedV1(
-    string BusinessReason);
+    string OriginalTransactionId,
+    string OriginalMessageId,
+    ActorNumber RequestedForActorNumber,
+    ActorRole RequestedForActorRole,
+    BusinessReason BusinessReason,
+    DateTimeOffset PeriodStart,
+    DateTimeOffset PeriodEnd,
+    IReadOnlyCollection<string> GridAreas,
+    ActorNumber? EnergySupplierNumber,
+    ActorNumber? ChargeOwnerNumber,
+    SettlementVersion? SettlementVersion,
+    IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1> ChargeTypes);

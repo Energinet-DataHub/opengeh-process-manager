@@ -460,9 +460,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     public record EdiTopicResources(
         TopicResource EdiTopic,
-        SubscriptionProperties EnqueueBrs023027Subscription)
+        SubscriptionProperties EnqueueBrs023027Subscription,
+        SubscriptionProperties EnqueueBrs026Subscription,
+        SubscriptionProperties EnqueueBrs028Subscription)
     {
         private const string EnqueueBrs023027SubscriptionName = "enqueue-brs-023-027-subscription";
+        private const string EnqueueBrs026SubscriptionName = "enqueue-brs-026-subscription";
+        private const string EnqueueBrs028SubscriptionName = "enqueue-brs-028-subscription";
 
         public static async Task<EdiTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
         {
@@ -481,7 +485,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             builder
                 .AddSubscription(EnqueueBrs023027SubscriptionName)
-                    .AddSubjectFilter($"Enqueue_{Brs_023_027.Name.ToLower()}");
+                    .AddSubjectFilter($"Enqueue_{Brs_023_027.Name.ToLower()}")
+                .AddSubscription(EnqueueBrs026SubscriptionName)
+                    .AddSubjectFilter($"Enqueue_{Brs_026.Name.ToLower()}")
+                .AddSubscription(EnqueueBrs028SubscriptionName)
+                    .AddSubjectFilter($"Enqueue_{Brs_028.Name.ToLower()}");
 
             return builder;
         }
@@ -496,10 +504,16 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             var enqueueBrs023027Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(EnqueueBrs023027SubscriptionName));
+            var enqueueBrs026Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(EnqueueBrs026SubscriptionName));
+            var enqueueBrs028Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(EnqueueBrs028SubscriptionName));
 
             return new EdiTopicResources(
-                topic,
-                enqueueBrs023027Subscription);
+                EdiTopic: topic,
+                EnqueueBrs023027Subscription: enqueueBrs023027Subscription,
+                EnqueueBrs026Subscription: enqueueBrs026Subscription,
+                EnqueueBrs028Subscription: enqueueBrs028Subscription);
         }
     }
 }

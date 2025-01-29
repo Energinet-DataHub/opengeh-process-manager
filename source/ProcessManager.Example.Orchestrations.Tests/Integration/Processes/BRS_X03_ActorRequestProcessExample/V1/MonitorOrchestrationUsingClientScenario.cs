@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Example.Consumer.Functions.BRS_X03_ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
@@ -88,15 +89,18 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     /// 5. Terminate orchestration (with TerminationState=Succeeded) in Orchestrations app, if ActorMessagesEnqueued event is received before timeout.
     /// </summary>
     [Fact]
-    public async Task Given_ActorRequestProcessExampleOrchestration_AndGiven_Consumer_When_StartedByConsumer_Then_OrchestrationTerminatesSuccessfully()
+    public async Task Given_ConsumerApp_When_BRS_X03_OrchestrationInstanceStartedByConsumer_Then_OrchestrationTerminatesSuccessfully()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         // Step 1: Start new BRS-X03 using the Example.Consumer app
         var idempotencyKey = Guid.NewGuid().ToString();
+        var startTriggerInput = new StartTrigger_Brs_X03.StartTriggerInput(
+            IdempotencyKey: idempotencyKey,
+            BusinessReason: "B01");
         await Fixture.ExampleConsumerAppManager.AppHostManager.HttpClient.PostAsJsonAsync(
             requestUri: "/api/actor-request-process/start",
-            value: idempotencyKey);
+            value: startTriggerInput);
 
         // Step 2: Query until terminated with succeeded
         var (isTerminated, succeededOrchestrationInstance) = await processManagerClient
@@ -113,5 +117,15 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         isTerminated.Should().BeTrue("because the BRS-X03 orchestration instance should complete within given wait time");
         succeededOrchestrationInstance.Should().NotBeNull();
+
+        succeededOrchestrationInstance!.Steps.Should()
+            .AllSatisfy(
+                s =>
+                {
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                });
     }
 }

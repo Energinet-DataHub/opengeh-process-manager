@@ -20,6 +20,7 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInject
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
@@ -39,6 +40,11 @@ var host = new HostBuilder()
         // => Add EnqueueActorMessages client
         services.AddServiceBusClientForApplication(context.Configuration);
         services.AddEnqueueActorMessages(azureCredential);
+
+        // Add BusinessValidation
+        var orchestrationsExampleAssembly = typeof(Program).Assembly;
+        var orchestrationsExampleAbstractionsAssembly = typeof(ActorRequestProcessExampleInputV1).Assembly;
+        services.AddBusinessValidation([orchestrationsExampleAssembly, orchestrationsExampleAbstractionsAssembly]);
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 
@@ -22,12 +23,12 @@ public class SchedulerHandler(
     ILogger<SchedulerHandler> logger,
     IClock clock,
     IScheduledOrchestrationInstancesByInstantQuery query,
-    IStartScheduledOrchestrationInstanceCommand command)
+    IServiceScopeFactory serviceScopeFactory)
 {
     private readonly ILogger _logger = logger;
     private readonly IClock _clock = clock;
     private readonly IScheduledOrchestrationInstancesByInstantQuery _query = query;
-    private readonly IStartScheduledOrchestrationInstanceCommand _command = command;
+    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
 
     public async Task StartScheduledOrchestrationInstancesAsync()
     {
@@ -40,7 +41,11 @@ public class SchedulerHandler(
         {
             try
             {
-                await _command
+                // Use a separate scope per command to avoid that data for one command (in the database context)
+                // impacts the ability to commit the data for another command.
+                using var scope = _serviceScopeFactory.CreateScope();
+                var command = scope.ServiceProvider.GetRequiredService<IStartScheduledOrchestrationInstanceCommand>();
+                await command
                     .StartScheduledOrchestrationInstanceAsync(orchestrationInstance.Id)
                     .ConfigureAwait(false);
             }

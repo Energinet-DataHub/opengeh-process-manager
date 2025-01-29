@@ -23,9 +23,16 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 internal interface IOrchestrationInstanceExecutor
 {
     /// <summary>
-    /// Start a new orchestration instance.
+    /// Start a new orchestration instance using the orchestration instance ID.
     /// </summary>
-    Task StartNewOrchestrationInstanceAsync(OrchestrationDescription orchestrationDescription, OrchestrationInstance orchestrationInstance);
+    /// <remarks>
+    /// This operation doesn't start a new orchestration instance if one with
+    /// the given orchestration instance ID already exists.
+    /// </remarks>
+    /// <param name="orchestrationDescription"></param>
+    /// <param name="orchestrationInstance"></param>
+    /// <returns>True if a new orchestration instance was started; false if an orchestration instance with the ID already exists.</returns>
+    Task<bool> StartNewOrchestrationInstanceAsync(OrchestrationDescription orchestrationDescription, OrchestrationInstance orchestrationInstance);
 
     /// <summary>
     /// Send a notify event to a running orchestration instance.

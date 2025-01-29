@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.ComponentModel.DataAnnotations;
-using Microsoft.Extensions.Configuration;
 
 namespace Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 

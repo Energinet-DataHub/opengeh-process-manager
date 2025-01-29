@@ -27,8 +27,7 @@ public static class ServiceBusResponseMocking
     public static async Task WaitAndMockServiceBusMessageToAndFromEdi(
         this ServiceBusListenerMock serviceBusListenerMock,
         IProcessManagerMessageClient processManagerMessageClient,
-        Guid orchestrationInstanceId,
-        CalculationType calculationType = CalculationType.WholesaleFixing)
+        Guid orchestrationInstanceId)
     {
         var verifyServiceBusMessage = await serviceBusListenerMock
             .When(
@@ -40,23 +39,22 @@ public static class ServiceBusResponseMocking
                     var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
                         .Parser.ParseJson(message.Body.ToString())!;
 
-                    var calculationCompleted = JsonSerializer.Deserialize<CalculatedDataForCalculationTypeV1>(body.Data);
+                    var calculationCompleted = JsonSerializer.Deserialize<CalculationEnqueueActorMessagesV1>(body.Data);
 
-                    var typeMatches = calculationCompleted!.CalculationType == calculationType;
                     var calculationIdMatches = calculationCompleted!.CalculationId == orchestrationInstanceId;
                     var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationInstanceId.ToString();
 
-                    return typeMatches && calculationIdMatches && orchestrationIdMatches;
+                    return calculationIdMatches && orchestrationIdMatches;
                 })
             .VerifyCountAsync(1);
         var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(30));
         messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
 
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent<NotifyEnqueueFinishedV1>(
+            new NotifyOrchestrationInstanceEvent<CalculationEnqueueActorMessagesCompletedNotifyEventV1>(
                 OrchestrationInstanceId: orchestrationInstanceId.ToString(),
-                EventName: NotifyEnqueueFinishedV1.EventName,
-                Data: new NotifyEnqueueFinishedV1 { Success = true }),
+                EventName: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName,
+                Data: new CalculationEnqueueActorMessagesCompletedNotifyEventV1 { Success = true }),
             CancellationToken.None);
     }
 }

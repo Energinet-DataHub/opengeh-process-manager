@@ -40,12 +40,14 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
     private readonly OrchestrationsAppFixture _fixture;
+    private readonly ITestOutputHelper _testOutputHelper;
 
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;
+        _testOutputHelper = testOutputHelper;
         _fixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
@@ -71,6 +73,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         _fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
         _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
+        _fixture.EnqueueBrs028ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         return Task.CompletedTask;
     }
@@ -79,6 +82,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         _fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         _fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
+        _fixture.EnqueueBrs028ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         await ServiceProvider.DisposeAsync();
     }
@@ -147,10 +151,18 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
                     var majorVersion = message.ApplicationProperties["MajorVersion"].ToString();
                     if (majorVersion != nameof(EnqueueActorMessagesV1))
-                        throw new InvalidOperationException($"Unexpected major version: {majorVersion}");
+                    {
+                        _testOutputHelper.WriteLine("Unexpected major version: {0}", majorVersion);
+                        return false;
+                    }
 
-                    var enqueueActorMessagesV1 = EnqueueActorMessagesV1.Parser.ParseJson(message.Body.ToString());
-                    ArgumentNullException.ThrowIfNull(enqueueActorMessagesV1);
+                    var messageBody = message.Body.ToString();
+                    var enqueueActorMessagesV1 = EnqueueActorMessagesV1.Parser.ParseJson(messageBody);
+                    if (enqueueActorMessagesV1 == null)
+                    {
+                        _testOutputHelper.WriteLine("Unable to parse EnqueueActorMessagesV1 body: {0}", messageBody);
+                        return false;
+                    }
 
                     var requestAcceptedV1 = enqueueActorMessagesV1.ParseData<RequestCalculatedWholesaleServicesAcceptedV1>();
 
@@ -159,7 +171,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .VerifyCountAsync(1);
 
         var enqueueMessageFound = verifyEnqueueActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
-        enqueueMessageFound.Should().BeTrue();
+        enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestCalculatedWholesaleServicesAcceptedV1)} service bus message should have been sent");
 
         // Step 3: Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(

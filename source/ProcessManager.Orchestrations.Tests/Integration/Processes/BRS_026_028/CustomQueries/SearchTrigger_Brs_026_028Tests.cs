@@ -105,6 +105,8 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
 
         // => Brs 026
         var brs026Input = new RequestCalculatedEnergyTimeSeriesInputV1(
+            ActorMessageId: Guid.NewGuid().ToString(),
+            TransactionId: Guid.NewGuid().ToString(),
             RequestedForActorNumber: energySupplierNumber,
             RequestedForActorRole: "EnergySupplier",
             BusinessReason: "BalanceFixing",

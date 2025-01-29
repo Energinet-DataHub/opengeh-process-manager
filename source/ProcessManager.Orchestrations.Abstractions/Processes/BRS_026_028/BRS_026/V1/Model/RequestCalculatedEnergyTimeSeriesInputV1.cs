@@ -20,6 +20,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <summary>
 /// The input required to start a BRS-026 RequestCalculatedEnergyTimeSeries process.
 /// </summary>
+/// <param name="ActorMessageId">The message id from the actor document that started the process.</param>
+/// <param name="TransactionId">The transaction id that started the process, typically found in the actor message.</param>
 /// <param name="RequestedForActorNumber">GLN or EIC of the Actor for whom to retrieve data. Typically 13 og 16 numbers.</param>
 /// <param name="RequestedForActorRole">The actor role of the Actor for whom to retrieve data. Eg: GridOperator, EnergySupplier etc.</param>
 /// <param name="BusinessReason">The requested business reason. Eg: BalanceFixing, Correction etc.</param>
@@ -35,6 +37,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Should only be set if BusinessReason is a Correction. Will find the latest correction if not provided.
 /// </param>
 public record RequestCalculatedEnergyTimeSeriesInputV1(
+    string ActorMessageId,
+    string TransactionId,
     string RequestedForActorNumber,
     string RequestedForActorRole,
     string BusinessReason,

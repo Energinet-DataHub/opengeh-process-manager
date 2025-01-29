@@ -64,10 +64,12 @@ internal class EnqueueActorMessagesActivity_Brs_026_V1(
             : null;
 
         var acceptedData = new RequestCalculatedEnergyTimeSeriesAcceptedV1(
-            OriginalTransactionId: requestInput.TransactionId,
             OriginalMessageId: requestInput.ActorMessageId,
+            OriginalTransactionId: requestInput.TransactionId,
             RequestedForActorNumber: ActorNumber.Create(requestInput.RequestedForActorNumber),
             RequestedForActorRole: ActorRole.FromName(requestInput.RequestedForActorRole),
+            RequestedByActorNumber: ActorNumber.Create(requestInput.RequestedByActorNumber),
+            RequestedByActorRole: ActorRole.FromName(requestInput.RequestedByActorRole),
             BusinessReason: BusinessReason.FromName(requestInput.BusinessReason),
             PeriodStart: InstantPattern.General.Parse(requestInput.PeriodStart).GetValueOrThrow().ToDateTimeOffset(),
             PeriodEnd: InstantPattern.General.Parse(requestInput.PeriodEnd!).GetValueOrThrow().ToDateTimeOffset(),

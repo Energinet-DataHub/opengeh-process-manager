@@ -24,6 +24,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <param name="TransactionId">The transaction id that started the process, typically found in the actor message.</param>
 /// <param name="RequestedForActorNumber">GLN or EIC of the Actor for whom to retrieve data. Typically 13 og 16 numbers.</param>
 /// <param name="RequestedForActorRole">The actor role of the Actor for whom to retrieve data. Eg: GridOperator, EnergySupplier etc.</param>
+/// <param name="RequestedByActorNumber">GLN or EIC of the Actor who made the request. Can differ from <paramref name="RequestedForActorNumber"/> in case of delegation.</param>
+/// <param name="RequestedByActorRole">The actor role of the Actor who made the request. Can differ from <paramref name="RequestedForActorRole"/> in case of delegation.</param>
 /// <param name="BusinessReason">The requested business reason. Eg: BalanceFixing, Correction etc.</param>
 /// <param name="PeriodStart">The start of the requested period.</param>
 /// <param name="PeriodEnd">Optional end of the requested period.</param>

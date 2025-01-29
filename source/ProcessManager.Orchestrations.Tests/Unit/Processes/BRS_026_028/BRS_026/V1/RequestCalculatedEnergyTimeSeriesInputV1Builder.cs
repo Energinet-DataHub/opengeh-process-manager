@@ -46,6 +46,7 @@ public class RequestCalculatedEnergyTimeSeriesInputV1Builder
 
         _requestedForActorNumber = ValidGlnNumber;
         _requestedForActorRole = forActorRole.Name;
+
         _businessReason = BusinessReason.BalanceFixing.Name;
 
         // Period from 1/2/2024 to 5/2/2024
@@ -152,6 +153,8 @@ public class RequestCalculatedEnergyTimeSeriesInputV1Builder
             TransactionId: _transactionId,
             RequestedForActorNumber: _requestedForActorNumber,
             RequestedForActorRole: _requestedForActorRole,
+            RequestedByActorNumber: _requestedForActorNumber,
+            RequestedByActorRole: _requestedForActorRole,
             BusinessReason: _businessReason,
             PeriodStart: _periodStart,
             PeriodEnd: _periodEnd,

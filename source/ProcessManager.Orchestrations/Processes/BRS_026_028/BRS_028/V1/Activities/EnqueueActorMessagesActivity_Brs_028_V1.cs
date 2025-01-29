@@ -15,9 +15,11 @@
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
+using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Activities;
 
@@ -46,9 +48,33 @@ internal class EnqueueActorMessagesActivity_Brs_028_V1(
 
     private Task EnqueueActorMessagesAsync(OperatingIdentity enqueuedBy, ActivityInput input)
     {
-        // TODO: Set correct data when async validation is implemented
+        var requestInput = input.RequestInput;
+
+        var energySupplierNumber = requestInput.EnergySupplierNumber != null
+            ? ActorNumber.Create(requestInput.EnergySupplierNumber)
+            : null;
+        var chargeOwnerNumber = requestInput.ChargeOwnerNumber != null
+            ? ActorNumber.Create(requestInput.ChargeOwnerNumber)
+            : null;
+        var settlementVersion = requestInput.SettlementVersion != null
+            ? SettlementVersion.FromName(requestInput.SettlementVersion)
+            : null;
+
         var acceptedData = new RequestCalculatedWholesaleServicesAcceptedV1(
-            BusinessReason: input.RequestInput.BusinessReason);
+            OriginalTransactionId: requestInput.TransactionId,
+            OriginalMessageId: requestInput.ActorMessageId,
+            RequestedForActorNumber: ActorNumber.Create(requestInput.RequestedForActorNumber),
+            RequestedForActorRole: ActorRole.FromName(requestInput.RequestedForActorRole),
+            RequestedByActorNumber: ActorNumber.Create(requestInput.RequestedByActorNumber),
+            RequestedByActorRole: ActorRole.FromName(requestInput.RequestedByActorRole),
+            BusinessReason: BusinessReason.FromName(requestInput.BusinessReason),
+            PeriodStart: InstantPattern.General.Parse(requestInput.PeriodStart).GetValueOrThrow().ToDateTimeOffset(),
+            PeriodEnd: InstantPattern.General.Parse(requestInput.PeriodEnd!).GetValueOrThrow().ToDateTimeOffset(),
+            GridAreas: requestInput.GridAreas,
+            EnergySupplierNumber: energySupplierNumber,
+            ChargeOwnerNumber: chargeOwnerNumber,
+            SettlementVersion: settlementVersion,
+            ChargeTypes: requestInput.ChargeTypes ?? []);
 
         return _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_028_V1.UniqueName,

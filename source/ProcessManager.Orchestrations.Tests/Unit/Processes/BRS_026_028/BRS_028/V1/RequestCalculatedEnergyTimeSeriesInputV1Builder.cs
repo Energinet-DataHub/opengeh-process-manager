@@ -22,6 +22,8 @@ public class RequestCalculatedWholesaleServicesInputV1Builder
 {
     private const string ValidGlnNumber = "1111111111111";
 
+    private readonly string _actorMessageId;
+    private readonly string _transactionId;
     private string _requestedForActorNumber;
     private string _requestedForActorRole;
     private string _businessReason;
@@ -39,6 +41,9 @@ public class RequestCalculatedWholesaleServicesInputV1Builder
     /// </summary>
     public RequestCalculatedWholesaleServicesInputV1Builder(ActorRole forActorRole)
     {
+        _actorMessageId = Guid.NewGuid().ToString();
+        _transactionId = Guid.NewGuid().ToString();
+
         _requestedForActorNumber = ValidGlnNumber;
         _requestedForActorRole = forActorRole.Name;
         _businessReason = BusinessReason.BalanceFixing.Name;
@@ -164,8 +169,12 @@ public class RequestCalculatedWholesaleServicesInputV1Builder
     public RequestCalculatedWholesaleServicesInputV1 Build()
     {
         return new RequestCalculatedWholesaleServicesInputV1(
+            ActorMessageId: _actorMessageId,
+            TransactionId: _transactionId,
             RequestedForActorNumber: _requestedForActorNumber,
             RequestedForActorRole: _requestedForActorRole,
+            RequestedByActorNumber: _requestedForActorNumber,
+            RequestedByActorRole: _requestedForActorRole,
             BusinessReason: _businessReason,
             Resolution: _resolution,
             PeriodStart: _periodStart,

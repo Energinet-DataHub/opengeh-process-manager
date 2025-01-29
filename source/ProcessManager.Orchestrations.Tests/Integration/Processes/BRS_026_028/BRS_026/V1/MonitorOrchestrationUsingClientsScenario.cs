@@ -99,6 +99,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 TransactionId: Guid.NewGuid().ToString(),
                 RequestedForActorNumber: energySupplierNumber,
                 RequestedForActorRole: ActorRole.EnergySupplier.Name,
+                RequestedByActorNumber: energySupplierNumber,
+                RequestedByActorRole: ActorRole.EnergySupplier.Name,
                 BusinessReason: businessReason,
                 PeriodStart: "2024-04-07T22:00:00Z",
                 PeriodEnd: "2024-04-08T22:00:00Z",

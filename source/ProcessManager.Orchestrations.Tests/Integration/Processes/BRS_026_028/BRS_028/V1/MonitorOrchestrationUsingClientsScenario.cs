@@ -95,8 +95,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var startRequestCommand = new RequestCalculatedWholesaleServicesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedWholesaleServicesInputV1(
+                ActorMessageId: Guid.NewGuid().ToString(),
+                TransactionId: Guid.NewGuid().ToString(),
                 RequestedForActorNumber: energySupplierNumber,
                 RequestedForActorRole: ActorRole.EnergySupplier.Name,
+                RequestedByActorNumber: energySupplierNumber,
+                RequestedByActorRole: ActorRole.EnergySupplier.Name,
                 BusinessReason: businessReason,
                 PeriodStart: "2024-12-31T23:00:00Z",
                 PeriodEnd: "2025-01-31T23:00:00Z",

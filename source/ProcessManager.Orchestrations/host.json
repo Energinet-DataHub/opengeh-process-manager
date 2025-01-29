@@ -7,7 +7,7 @@
         "connectionName": "ProcessManagerStorageConnectionString",
         "partitionCount": 16
       },
-      "maxConcurrentOrchestratorFunctions": 50
+      "maxConcurrentOrchestratorFunctions": 30
     }
   },
   "logging": {

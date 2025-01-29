@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 
@@ -48,10 +49,10 @@ public record RequestCalculatedWholesaleServicesInputV1(
     string? ChargeOwnerNumber,
     IReadOnlyCollection<string> GridAreas,
     string? SettlementVersion,
-    IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1>? ChargeTypes)
-    : IInputParameterDto
+    IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput>? ChargeTypes)
+    : IInputParameterDto, IBusinessValidatedDto
 {
-    public record ChargeTypeInputV1(
+    public record ChargeTypeInput(
         string? ChargeType,
         string? ChargeCode);
 }

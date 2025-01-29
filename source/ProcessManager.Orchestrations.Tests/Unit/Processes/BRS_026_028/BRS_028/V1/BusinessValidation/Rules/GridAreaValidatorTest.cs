@@ -18,18 +18,17 @@ using Energinet.DataHub.Core.TestCommon.AutoFixture.Attributes;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Moq;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_026.V1.BusinessValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_028.V1.BusinessValidation.Rules;
 
 [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Async suffix is not needed for test methods")]
 public class GridAreaValidatorTest
 {
-    private const string ValidGlnNumber = "qwertyuiopasd"; // Must be 13 characters to be a valid GLN
-    private static readonly ValidationError _missingGridAreaCode = new("Netområde er obligatorisk for rollen MDR / Grid area is mandatory for the role MDR.", "D64");
+    private static readonly ValidationError _missingGridAreaCode = new("Netområde er obligatorisk for rollen DDM / Grid area is mandatory for the role DDM.", "D64");
     private static readonly ValidationError _invalidGridArea = new("Ugyldig netområde / Invalid gridarea", "E86");
 
     [Theory]
@@ -39,14 +38,14 @@ public class GridAreaValidatorTest
         GridAreaValidationRule sut)
     {
         // Arrange
-        var gridAreaCode = "123";
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.MeteredDataResponsible)
-            .WithGridArea(gridAreaCode)
+        const string gridArea = "123";
+
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.GridAccessProvider)
+            .WithGridArea(gridArea)
             .Build();
 
         gridAreaOwnerClient.Setup(repo => repo.IsCurrentOwnerAsync(
-                gridAreaCode,
+                gridArea,
                 message.RequestedForActorNumber,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
@@ -65,15 +64,14 @@ public class GridAreaValidatorTest
         GridAreaValidationRule sut)
     {
         // Arrange
-        var gridAreaCode = "123";
+        const string gridArea = "123";
 
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.MeteredDataResponsible)
-            .WithGridArea(gridAreaCode)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.GridAccessProvider)
+            .WithGridArea(gridArea)
             .Build();
 
         gridAreaOwnerClient.Setup(repo => repo.IsCurrentOwnerAsync(
-                gridAreaCode,
+                gridArea,
                 message.RequestedForActorNumber,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
@@ -96,8 +94,7 @@ public class GridAreaValidatorTest
         GridAreaValidationRule sut)
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                ActorRole.MeteredDataResponsible)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.GridAccessProvider)
             .WithGridArea(null)
             .Build();
 

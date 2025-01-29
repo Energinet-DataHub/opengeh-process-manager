@@ -14,10 +14,10 @@
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 using FluentAssertions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_026.V1.BusinessValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_028.V1.BusinessValidation.Rules;
 
 public class SettlementVersionValidatorTest
 {
@@ -32,9 +32,8 @@ public class SettlementVersionValidatorTest
     public async Task Validate_WhenCorrectionAndInvalidSeriesVersion_ReturnsValidationErrorsAsync(string invalidSettlementVersion)
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                forActorRole: ActorRole.EnergySupplier)
-            .WithBusinessReason(BusinessReason.Correction.Name)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.EnergySupplier)
+            .WithBusinessReason(BusinessReason.Correction)
             .WithSettlementVersion(invalidSettlementVersion)
             .Build();
 
@@ -56,9 +55,8 @@ public class SettlementVersionValidatorTest
     public async Task Validate_WhenNotCorrectionAndSettlementVersionExists_ReturnsValidationErrorsAsync(string settlementVersion)
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                forActorRole: ActorRole.EnergySupplier)
-            .WithBusinessReason(BusinessReason.WholesaleFixing.Name)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.EnergySupplier)
+            .WithBusinessReason(BusinessReason.WholesaleFixing)
             .WithSettlementVersion(settlementVersion)
             .Build();
 
@@ -77,9 +75,8 @@ public class SettlementVersionValidatorTest
     public async Task Validate_WhenCorrectionAndValidSettlementVersion_ReturnsNoValidationErrorsAsync(string validSettlementVersion)
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                forActorRole: ActorRole.EnergySupplier)
-            .WithBusinessReason(BusinessReason.Correction.Name)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.EnergySupplier)
+            .WithBusinessReason(BusinessReason.Correction)
             .WithSettlementVersion(validSettlementVersion)
             .Build();
 
@@ -94,9 +91,8 @@ public class SettlementVersionValidatorTest
     public async Task Validate_WhenCorrectionAndNoSettlementVersion_ReturnsNoValidationErrorsAsync()
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                forActorRole: ActorRole.EnergySupplier)
-            .WithBusinessReason(BusinessReason.Correction.Name)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.EnergySupplier)
+            .WithBusinessReason(BusinessReason.Correction)
             .WithSettlementVersion(null)
             .Build();
 
@@ -111,9 +107,8 @@ public class SettlementVersionValidatorTest
     public async Task Validate_WhenNotCorrectionAndNoSettlementVersion_ReturnsNoValidationErrorsAsync()
     {
         // Arrange
-        var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(
-                forActorRole: ActorRole.EnergySupplier)
-            .WithBusinessReason(BusinessReason.WholesaleFixing.Name)
+        var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.EnergySupplier)
+            .WithBusinessReason(BusinessReason.WholesaleFixing)
             .WithSettlementVersion(null)
             .Build();
 

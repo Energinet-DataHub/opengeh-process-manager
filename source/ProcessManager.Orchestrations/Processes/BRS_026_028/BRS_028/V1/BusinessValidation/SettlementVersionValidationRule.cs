@@ -13,22 +13,20 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.Shared.BusinessValidation;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 
-public class SettlementVersionValidationRule : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
+public class SettlementVersionValidationRule : IBusinessValidationRule<RequestCalculatedWholesaleServicesInputV1>
 {
-    private static readonly ValidationError _invalidSettlementVersionError = new(
-        "SettlementSeriesVersion kan kun benyttes i kombination med D32 og skal være enten D01, D02 eller D03 / SettlementSeriesVersion can only be used in combination with D32 and must be either D01, D02 or D03",
-        "E86");
+    private static readonly ValidationError _invalidSettlementVersionError = new("SettlementSeriesVersion kan kun benyttes i kombination med D32 og skal være enten D01, D02 eller D03 / SettlementSeriesVersion can only be used in combination with D32 and must be either D01, D02 or D03", "E86");
 
-    private static IList<ValidationError> NoError => new List<ValidationError>();
+    private static IList<ValidationError> NoError => [];
 
-    private static IList<ValidationError> InvalidSettlementVersionError => new List<ValidationError> { _invalidSettlementVersionError };
+    private static IList<ValidationError> InvalidSettlementVersionError => [_invalidSettlementVersionError];
 
-    public Task<IList<ValidationError>> ValidateAsync(RequestCalculatedEnergyTimeSeriesInputV1 subject)
+    public Task<IList<ValidationError>> ValidateAsync(RequestCalculatedWholesaleServicesInputV1 subject)
     {
         var validSettlementVersion = SettlementVersionValidationHelper.IsSettlementVersionValid(
             subject.BusinessReason,

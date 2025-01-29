@@ -4,6 +4,11 @@
 
 - Add `ActorNumber` and `ActorRole` to `MeteredDataForMeteringPointMessageInputV1`.
 
+## Version 0.17.1
+
+- Update `RequestCalculatedEnergyTimeSeriesInputV1` with the required input.
+- Update `RequestCalculatedEnergyTimeSeriesAcceptedV1` with the correct properties.
+
 ## Version 0.17.0
 
 - Add shared namespace for `BRS_026`/`BRS_028` types, so they now live in `BRS_026_028.BRS_026` and `BRS_026_028.BRS_028` namespaces.

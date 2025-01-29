@@ -16,22 +16,22 @@ using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Activities;
 
 /// <summary>
 /// Perform business validation.
 /// </summary>
-internal class PerformBusinessValidationActivity_Brs_026_V1(
+internal class PerformBusinessValidationActivity_Brs_028_V1(
     IOrchestrationInstanceProgressRepository repository,
-    BusinessValidator<RequestCalculatedEnergyTimeSeriesInputV1> validator)
+    BusinessValidator<RequestCalculatedWholesaleServicesInputV1> validator)
 {
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
-    private readonly BusinessValidator<RequestCalculatedEnergyTimeSeriesInputV1> _validator = validator;
+    private readonly BusinessValidator<RequestCalculatedWholesaleServicesInputV1> _validator = validator;
 
-    [Function(nameof(PerformBusinessValidationActivity_Brs_026_V1))]
+    [Function(nameof(PerformBusinessValidationActivity_Brs_028_V1))]
     public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -56,7 +56,7 @@ internal class PerformBusinessValidationActivity_Brs_026_V1(
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
         int StepSequence,
-        RequestCalculatedEnergyTimeSeriesInputV1 RequestInput);
+        RequestCalculatedWholesaleServicesInputV1 RequestInput);
 
     public record ActivityOutput(
         bool IsValid,

@@ -45,7 +45,6 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
 
     private Task EnqueueRejectMessageAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
-        // TODO: Set correct data when async validation is implemented
         var rejectedMessage = new RequestCalculatedEnergyTimeSeriesRejectedV1(
             ValidationErrors: input.ValidationErrors
                 .Select(e => new ValidationErrorDto(

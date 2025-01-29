@@ -28,7 +28,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.
 
 internal class Orchestration_Brs_026_V1
 {
-    public const int AsyncValidationStepSequence = 1;
+    public const int BusinessValidationStepSequence = 1;
     public const int EnqueueActorMessagesStepSequence = 2;
 
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_026.V1;
@@ -95,14 +95,14 @@ internal class Orchestration_Brs_026_V1
             nameof(TransitionStepToRunningActivity_V1),
             new TransitionStepToRunningActivity_V1.ActivityInput(
                 instanceId,
-                AsyncValidationStepSequence),
+                BusinessValidationStepSequence),
             _defaultRetryOptions);
 
         var validationResult = await context.CallActivityAsync<PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput>(
             nameof(PerformBusinessValidationActivity_Brs_026_V1),
             new PerformBusinessValidationActivity_Brs_026_V1.ActivityInput(
                 instanceId,
-                AsyncValidationStepSequence,
+                BusinessValidationStepSequence,
                 input),
             _defaultRetryOptions);
 
@@ -113,7 +113,7 @@ internal class Orchestration_Brs_026_V1
             nameof(TransitionStepToTerminatedActivity_V1),
             new TransitionStepToTerminatedActivity_V1.ActivityInput(
                 instanceId,
-                AsyncValidationStepSequence,
+                BusinessValidationStepSequence,
                 asyncValidationTerminationState),
             _defaultRetryOptions);
 

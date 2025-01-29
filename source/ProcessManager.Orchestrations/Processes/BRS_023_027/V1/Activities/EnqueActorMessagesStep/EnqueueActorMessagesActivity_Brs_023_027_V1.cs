@@ -45,6 +45,6 @@ internal class EnqueueActorMessagesActivity_Brs_023_027_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        CalculatedDataForCalculationTypeV1 CalculatedData,
+        CalculationEnqueueActorMessagesV1 CalculatedData,
         Guid IdempotencyKey);
 }

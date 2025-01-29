@@ -114,16 +114,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
-        var calculationType = CalculationType.WholesaleFixing;
-
         var orchestrationId = await StartCalculationAsync(
-            calculationType: calculationType);
+            calculationType: CalculationType.WholesaleFixing);
 
         // Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
             processManagerMessageClient: ProcessManagerMessageClient,
-            orchestrationInstanceId: orchestrationId,
-            calculationType: calculationType);
+            orchestrationInstanceId: orchestrationId);
 
         var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestrationId.ToString(),
@@ -148,7 +145,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(EnqueueActorMessagesActivity_Brs_023_027_V1)),
             new OrchestrationHistoryItem("TimerCreated"),
-            new OrchestrationHistoryItem("EventRaised",   Name: NotifyEnqueueFinishedV1.EventName),
+            new OrchestrationHistoryItem("EventRaised",   Name: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
 
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToTerminatedActivity_V1)),

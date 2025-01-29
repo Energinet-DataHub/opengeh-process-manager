@@ -128,8 +128,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 2: Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
             ProcessManagerMessageClient,
-            orchestrationInstanceId,
-            calculationType);
+            orchestrationInstanceId);
 
         // Step 3: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
@@ -194,7 +193,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
-        var calculationType = CalculationType.BalanceFixing;
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
@@ -206,7 +204,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     userIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
                     inputParameter: new CalculationInputV1(
-                        calculationType,
+                        CalculationType.BalanceFixing,
                         GridAreaCodes: new[] { "543" },
                         PeriodStartDate: new DateTimeOffset(2022, 1, 11, 23, 0, 0, TimeSpan.Zero),
                         PeriodEndDate: new DateTimeOffset(2022, 1, 12, 23, 0, 0, TimeSpan.Zero),
@@ -220,8 +218,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 3: Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
             ProcessManagerMessageClient,
-            orchestrationInstanceId,
-            calculationType);
+            orchestrationInstanceId);
 
         // Step 4: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(

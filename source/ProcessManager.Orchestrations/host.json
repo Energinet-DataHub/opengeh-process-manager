@@ -10,7 +10,7 @@
       "maxConcurrentOrchestratorFunctions": 50
     },
     "serviceBus": {
-      "maxConcurrentCalls": 32
+      "maxConcurrentCalls": 80
     }
   },
   "logging": {

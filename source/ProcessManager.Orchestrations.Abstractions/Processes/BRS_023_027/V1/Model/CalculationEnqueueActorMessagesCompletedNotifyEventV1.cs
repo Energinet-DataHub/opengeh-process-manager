@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 
-public record CalculatedDataForCalculationTypeV1(
-    Guid CalculationId,
-    CalculationType CalculationType);
+public class CalculationEnqueueActorMessagesCompletedNotifyEventV1 : INotifyDataDto
+{
+    public const string EventName = "CalculationEnqueueActorMessagesCompletedNotifyEventV1";
+
+    public bool Success { get; set; }
+}

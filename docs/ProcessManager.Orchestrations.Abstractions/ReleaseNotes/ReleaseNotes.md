@@ -4,6 +4,11 @@
 
 - Add `ActorNumber` and `ActorRole` to `MeteredDataForMeteringPointMessageInputV1`.
 
+## Version 0.17.4
+
+- Rename `NotifyEnqueueFinishedV1` to `CalculationEnqueueActorMessagesCompletedNotifyEventV1`.
+- Rename `CalculatedDataForCalculationTypeV1` to `CalculationEnqueueActorMessagesV1`.
+
 ## Version 0.17.3
 
 - Updated `MeteredDataForMeteringPointAcceptedV1`

@@ -8,6 +8,9 @@
         "partitionCount": 16
       },
       "maxConcurrentOrchestratorFunctions": 50
+    },
+    "serviceBus": {
+      "maxConcurrentCalls": 32
     }
   },
   "logging": {

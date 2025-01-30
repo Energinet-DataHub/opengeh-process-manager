@@ -76,6 +76,7 @@ public partial class NotifyOrchestrationInstanceV1
             {
                 Data =
                 {
+                    { "TargetType", typeof(TNotifyData).Name },
                     { nameof(OrchestrationInstanceId), OrchestrationInstanceId },
                     { nameof(EventName), EventName },
                     { nameof(MajorVersion), MajorVersion },

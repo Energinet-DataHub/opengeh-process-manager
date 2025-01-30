@@ -1,5 +1,12 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.18.1
+
+- Update `RequestCalculatedEnergyTimeSeriesInputV1` with "requested by actor" properties.
+- Update `RequestCalculatedEnergyTimeSeriesAcceptedV1` with "requested by actor" properties.
+- Update `RequestCalculatedWholesaleServicesInputV1` with "requested by actor" and message/transaction id properties.
+- Implement `RequestCalculatedWholesaleServicesAcceptedV1` with correct properties.
+
 ## Version 0.18.0
 
 - Add `ActorNumber` and `ActorRole` to `MeteredDataForMeteringPointMessageInputV1`.

@@ -109,6 +109,8 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
             TransactionId: Guid.NewGuid().ToString(),
             RequestedForActorNumber: energySupplierNumber,
             RequestedForActorRole: "EnergySupplier",
+            RequestedByActorNumber: energySupplierNumber,
+            RequestedByActorRole: "EnergySupplier",
             BusinessReason: "BalanceFixing",
             PeriodStart: "2024-04-07 23:00:00",
             PeriodEnd: "2024-04-08 23:00:00",
@@ -134,8 +136,12 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
 
         // => Brs 028
         var brs028Input = new RequestCalculatedWholesaleServicesInputV1(
+            ActorMessageId: Guid.NewGuid().ToString(),
+            TransactionId: Guid.NewGuid().ToString(),
             RequestedForActorNumber: energySupplierNumber,
             RequestedForActorRole: "EnergySupplier",
+            RequestedByActorNumber: energySupplierNumber,
+            RequestedByActorRole: "EnergySupplier",
             BusinessReason: "WholesaleFixing",
             PeriodStart: "2024-04-01 23:00:00",
             PeriodEnd: "2024-04-30 23:00:00",

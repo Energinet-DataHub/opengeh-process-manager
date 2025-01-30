@@ -1,5 +1,11 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.26.0
+
+- Throw exception in `EnqueueActorMessagesV1.ParseData<TData>()` if parsing incorrect `DataType`.
+- Throw exception in `NotifyOrchestrationInstanceV1.ParseData<TNotifyData>()` if parsing incorrect `DataType`.
+- Throw exception in `StartOrchestrationInstanceV1.ParseInput<TInputData>()` if parsing incorrect `InputType`.
+
 ## Version 0.25.1
 
 - No functional changes.

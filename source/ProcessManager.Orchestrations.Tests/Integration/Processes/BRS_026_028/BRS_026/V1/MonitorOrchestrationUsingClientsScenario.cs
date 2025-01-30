@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -37,12 +40,14 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
     private readonly OrchestrationsAppFixture _fixture;
+    private readonly ITestOutputHelper _testOutputHelper;
 
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;
+        _testOutputHelper = testOutputHelper;
         _fixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
@@ -68,6 +73,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         _fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
         _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
+        _fixture.EnqueueBrs026ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         return Task.CompletedTask;
     }
@@ -76,6 +82,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         _fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         _fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
+        _fixture.EnqueueBrs026ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         await ServiceProvider.DisposeAsync();
     }
@@ -92,13 +99,16 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 1: Start new orchestration instance
         var businessReason = BusinessReason.BalanceFixing.Name;
         const string energySupplierNumber = "1234567891234";
+        var transactionId = Guid.NewGuid().ToString();
         var startRequestCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedEnergyTimeSeriesInputV1(
                 ActorMessageId: Guid.NewGuid().ToString(),
-                TransactionId: Guid.NewGuid().ToString(),
+                TransactionId: transactionId,
                 RequestedForActorNumber: energySupplierNumber,
                 RequestedForActorRole: ActorRole.EnergySupplier.Name,
+                RequestedByActorNumber: energySupplierNumber,
+                RequestedByActorRole: ActorRole.EnergySupplier.Name,
                 BusinessReason: businessReason,
                 PeriodStart: "2024-04-07T22:00:00Z",
                 PeriodEnd: "2024-04-08T22:00:00Z",
@@ -114,7 +124,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             startRequestCommand,
             CancellationToken.None);
 
-        // Step 2: Query until waiting for EnqueueActorMessagesCompleted notify event
+        // Step 2a: Query until waiting for EnqueueActorMessagesCompleted notify event
         var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
             .TryWaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
@@ -131,6 +141,37 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         if (orchestrationInstance is null)
             ArgumentNullException.ThrowIfNull(orchestrationInstance, nameof(orchestrationInstance));
+
+        // Step 2b: Verify an enqueue actor messages event is sent on the service bus
+        var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs026ServiceBusListener.When(
+                (message) =>
+                {
+                    if (message.Subject != $"Enqueue_{Brs_026.Name.ToLower()}")
+                        return false;
+
+                    var majorVersion = message.ApplicationProperties["MajorVersion"].ToString();
+                    if (majorVersion != nameof(EnqueueActorMessagesV1))
+                    {
+                        _testOutputHelper.WriteLine("Unexpected major version: {0}", majorVersion);
+                        return false;
+                    }
+
+                    var messageBody = message.Body.ToString();
+                    var enqueueActorMessagesV1 = EnqueueActorMessagesV1.Parser.ParseJson(messageBody);
+                    if (enqueueActorMessagesV1 == null)
+                    {
+                        _testOutputHelper.WriteLine("Unable to parse EnqueueActorMessagesV1 body: {0}", messageBody);
+                        return false;
+                    }
+
+                    var requestAcceptedV1 = enqueueActorMessagesV1.ParseData<RequestCalculatedEnergyTimeSeriesAcceptedV1>();
+
+                    return requestAcceptedV1.OriginalTransactionId == transactionId;
+                })
+            .VerifyCountAsync(1);
+
+        var enqueueMessageFound = verifyEnqueueActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
+        enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestCalculatedEnergyTimeSeriesAcceptedV1)} service bus message should have been sent");
 
         // Step 3: Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(

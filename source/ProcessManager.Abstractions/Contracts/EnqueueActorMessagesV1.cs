@@ -31,6 +31,26 @@ public partial class EnqueueActorMessagesV1
     public TData ParseData<TData>()
         where TData : class
     {
+        if (DataType != typeof(TData).Name)
+        {
+            throw new InvalidOperationException($"Incorrect data type in received EnqueueActorMessagesV1 message (TargetType={typeof(TData).Name}, DataType={DataType})")
+            {
+                Data =
+                {
+                    { "TargetType", typeof(TData).Name },
+                    { nameof(OrchestrationInstanceId), OrchestrationInstanceId },
+                    { nameof(MajorVersion), MajorVersion },
+                    { nameof(DataFormat), DataFormat },
+                    { nameof(DataType), DataType },
+                    {
+                        nameof(Data), Data.Length < 1000
+                            ? Data
+                            : Data.Substring(0, 1000)
+                    },
+                },
+            };
+        }
+
         var result = DataFormat switch
         {
             EnqueueActorMessagesDataFormatV1.Json => JsonSerializer.Deserialize<TData>(Data),
@@ -46,6 +66,7 @@ public partial class EnqueueActorMessagesV1
             {
                 Data =
                 {
+                    { "TargetType", typeof(TData).Name },
                     { nameof(OrchestrationInstanceId), OrchestrationInstanceId },
                     { nameof(MajorVersion), MajorVersion },
                     { nameof(DataFormat), DataFormat },

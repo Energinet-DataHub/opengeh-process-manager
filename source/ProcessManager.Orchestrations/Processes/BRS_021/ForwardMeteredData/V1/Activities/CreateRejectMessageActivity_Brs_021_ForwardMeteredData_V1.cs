@@ -19,7 +19,7 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
+internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
 {
     [Function(nameof(CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1))]
     public Task<ActivityOutput> Run(
@@ -29,7 +29,7 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
             new MeteredDataForMeteringPointRejectedV1(
                 Guid.NewGuid().ToString("N"),
                 BusinessReason.PeriodicMetering,
-                new MarketActorRecipient("5790000282425", ActorRole.EnergySupplier),
+                activityInput.Recipient,
                 activityInput.OrchestrationInstanceId.Value,
                 Guid.NewGuid(),
                 new AcknowledgementV1(
@@ -51,6 +51,7 @@ public class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
     public sealed record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
         string InputTransactionId,
+        MarketActorRecipient Recipient,
         IReadOnlyCollection<string> Errors);
 
     public sealed record ActivityOutput(MeteredDataForMeteringPointRejectedV1 RejectMessage);

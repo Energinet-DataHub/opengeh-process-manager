@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.18.0
+
+- Add `ActorNumber` and `ActorRole` to `MeteredDataForMeteringPointMessageInputV1`.
+
 ## Version 0.17.4
 
 - Rename `NotifyEnqueueFinishedV1` to `CalculationEnqueueActorMessagesCompletedNotifyEventV1`.

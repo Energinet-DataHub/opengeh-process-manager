@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
@@ -43,14 +41,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
     private readonly OrchestrationsAppFixture _fixture;
-    private readonly ITestOutputHelper _testOutputHelper;
 
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;
-        _testOutputHelper = testOutputHelper;
         _fixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
@@ -123,7 +119,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         return false;
 
                     var requestAcceptedV1 = enqueueActorMessagesV1.ParseData<RequestCalculatedWholesaleServicesAcceptedV1>();
-                    return requestAcceptedV1.OriginalTransactionId == requestCommand.IdempotencyKey;
+                    return requestAcceptedV1.OriginalTransactionId == requestCommand.InputParameter.TransactionId;
                 })
             .VerifyCountAsync(1);
 
@@ -188,7 +184,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
 
         // Step 2b: Verify an enqueue actor messages event is sent on the service bus
-        var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs026ServiceBusListener.When(
+        var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs028ServiceBusListener.When(
                 (message) =>
                 {
                     if (!message.TryParseAsEnqueueActorMessages(Brs_028.Name, out var enqueueActorMessagesV1))
@@ -253,20 +249,19 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     private static RequestCalculatedWholesaleServicesCommandV1 GivenRequestCalculatedWholesaleServices(
         bool shouldFailBusinessValidation = false)
     {
-        var businessReason = BusinessReason.WholesaleFixing.Name;
         const string energySupplierNumber = "1111111111111";
-        var transactionId = Guid.NewGuid().ToString();
+        var energySupplierRole = ActorRole.EnergySupplier.Name;
 
         return new RequestCalculatedWholesaleServicesCommandV1(
             new ActorIdentityDto(Guid.NewGuid()),
             new RequestCalculatedWholesaleServicesInputV1(
                 ActorMessageId: Guid.NewGuid().ToString(),
-                TransactionId: transactionId,
+                TransactionId: Guid.NewGuid().ToString(),
                 RequestedForActorNumber: energySupplierNumber,
-                RequestedForActorRole: ActorRole.EnergySupplier.Name,
+                RequestedForActorRole: energySupplierRole,
                 RequestedByActorNumber: energySupplierNumber,
-                RequestedByActorRole: ActorRole.EnergySupplier.Name,
-                BusinessReason: businessReason,
+                RequestedByActorRole: energySupplierRole,
+                BusinessReason: BusinessReason.WholesaleFixing.Name,
                 PeriodStart: "2024-12-31T23:00:00Z",
                 PeriodEnd: "2025-01-31T23:00:00Z",
                 Resolution: null,

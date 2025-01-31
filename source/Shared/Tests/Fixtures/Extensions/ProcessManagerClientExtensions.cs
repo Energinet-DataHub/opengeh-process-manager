@@ -51,4 +51,34 @@ public static class ProcessManagerClientExtensions
 
         return (success, orchestrationInstance);
     }
+
+    public static Task<(bool Succes, OrchestrationInstanceTypedDto<TInput>? OrchestrationInstance)> WaitForOrchestrationInstanceTerminated<TInput>(
+        this IProcessManagerClient client,
+        string idempotencyKey,
+        OrchestrationInstanceTerminationState terminationState)
+        where TInput : class, IInputParameterDto
+    {
+        return client.TryWaitForOrchestrationInstance<TInput>(
+            idempotencyKey,
+            (orchestrationInstance) =>
+                orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                && orchestrationInstance.Lifecycle.TerminationState == terminationState);
+    }
+
+    public static Task<(bool Succes, OrchestrationInstanceTypedDto<TInput>? OrchestrationInstance)> WaitForStepToBeRunning<TInput>(
+        this IProcessManagerClient client,
+        string idempotencyKey,
+        int stepSequence)
+            where TInput : class, IInputParameterDto
+    {
+        return client.TryWaitForOrchestrationInstance<TInput>(
+            idempotencyKey,
+            (orchestrationInstance) =>
+            {
+                var enqueueActorMessagesStep = orchestrationInstance.Steps
+                    .Single(s => s.Sequence == stepSequence);
+
+                return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
+            });
+    }
 }

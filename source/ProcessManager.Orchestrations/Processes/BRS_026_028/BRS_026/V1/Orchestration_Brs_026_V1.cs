@@ -152,6 +152,7 @@ internal class Orchestration_Brs_026_V1
                 nameof(EnqueueRejectMessageActivity_Brs_026_V1),
                 new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
                     instanceId,
+                    input,
                     validationResult.ValidationErrors,
                     idempotencyKey),
                 _defaultRetryOptions);

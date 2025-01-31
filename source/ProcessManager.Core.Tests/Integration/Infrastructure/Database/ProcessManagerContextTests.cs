@@ -237,6 +237,32 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             .BeEquivalentTo(existingOrchestrationInstance);
     }
 
+    [Fact]
+    public async Task Given_OrchestrationDescriptionChangedFromMultipleConsumer_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        var orchestrationDescriptionFromContext01 = await ReadOrchestrationDescriptionAsync(existingOrchestrationDescription.Id);
+        orchestrationDescriptionFromContext01.FunctionName = "First";
+
+        var orchestrationDescriptionFromContext02 = await ReadOrchestrationDescriptionAsync(existingOrchestrationDescription.Id);
+        orchestrationDescriptionFromContext02.FunctionName = "Second";
+
+        await UpdateOrchestrationDescriptionAsync(orchestrationDescriptionFromContext01);
+
+        // Act
+        var act = () => UpdateOrchestrationDescriptionAsync(orchestrationDescriptionFromContext02);
+
+        // Assert
+        await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
+    }
+
     private static OrchestrationDescription CreateOrchestrationDescription(string? recurringCronExpression = default)
     {
         var orchestrationDescription = new OrchestrationDescription(
@@ -283,6 +309,34 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         });
 
         return orchestrationInstance;
+    }
+
+    /// <summary>
+    /// Read data in separate database context.
+    /// </summary>
+    private async Task<OrchestrationDescription> ReadOrchestrationDescriptionAsync(OrchestrationDescriptionId id)
+    {
+        OrchestrationDescription orchestrationDescription;
+
+        await using (var dbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            orchestrationDescription = await dbContext.OrchestrationDescriptions.FindAsync(id)
+                ?? throw new Exception("Test must arrange data in database before calling this method.");
+        }
+
+        return orchestrationDescription;
+    }
+
+    /// <summary>
+    /// Update data in separate database context.
+    /// </summary>
+    private async Task UpdateOrchestrationDescriptionAsync(OrchestrationDescription orchestrationDescription)
+    {
+        await using (var dbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            dbContext.OrchestrationDescriptions.Update(orchestrationDescription);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     private class TestOrchestrationParameter

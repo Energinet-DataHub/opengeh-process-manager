@@ -62,7 +62,7 @@ public static class ProcessManagerClientExtensions
     }
 
     /// <summary>
-    /// Wait for an orchestration instance to be terminated with the given <see cref="terminationState"/>.
+    /// Wait for an orchestration instance to be terminated with the given <paramref name="terminationState"/>.
     /// <remarks>Returns false if not resolved in <see cref="TimeLimitInSeconds"/> seconds.</remarks>
     /// </summary>
     /// <param name="client"></param>

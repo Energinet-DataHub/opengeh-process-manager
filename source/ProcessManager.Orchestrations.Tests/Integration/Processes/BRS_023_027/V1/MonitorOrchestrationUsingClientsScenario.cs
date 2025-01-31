@@ -130,6 +130,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ProcessManagerMessageClient,
             orchestrationInstanceId);
 
+        // step 2.1: Wait for the integration event to be published
+        await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
+            orchestrationInstanceId: orchestrationInstanceId,
+            calculationType: Brs023027.Contracts.CalculationType.WholesaleFixing);
+
         // Step 3: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
@@ -219,6 +224,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
             ProcessManagerMessageClient,
             orchestrationInstanceId);
+
+        // step 3.1: Wait for the integration event to be published
+        await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
+            orchestrationInstanceId: orchestrationInstanceId,
+            calculationType: Brs023027.Contracts.CalculationType.WholesaleFixing);
 
         // Step 4: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(

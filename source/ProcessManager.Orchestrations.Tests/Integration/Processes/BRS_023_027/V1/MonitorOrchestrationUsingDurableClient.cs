@@ -122,6 +122,11 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             processManagerMessageClient: ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationId);
 
+        // step 2.1: Wait for the integration event to be published
+        await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
+            orchestrationInstanceId: orchestrationId,
+            calculationType: Brs023027.Contracts.CalculationType.WholesaleFixing);
+
         var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestrationId.ToString(),
             TimeSpan.FromSeconds(30));
@@ -147,6 +152,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             new OrchestrationHistoryItem("TimerCreated"),
             new OrchestrationHistoryItem("EventRaised",   Name: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
+
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(PublishCalculationEnqueueCompletedActivity_brs_023_027_V1)),
 
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToTerminatedActivity_V1)),
             new OrchestrationHistoryItem("ExecutionCompleted"),

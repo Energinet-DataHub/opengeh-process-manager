@@ -13,12 +13,14 @@
 // limitations under the License.
 
 using System.Text.Json;
+using Energinet.DataHub.Brs023027.Contracts;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using FluentAssertions;
+using CalculationType = Energinet.DataHub.Brs023027.Contracts.CalculationType;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1;
 
@@ -56,5 +58,29 @@ public static class ServiceBusResponseMocking
                 EventName: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName,
                 Data: new CalculationEnqueueActorMessagesCompletedNotifyEventV1 { Success = true }),
             CancellationToken.None);
+    }
+
+    public static async Task WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
+        this ServiceBusListenerMock serviceBusListenerMock,
+        Guid orchestrationInstanceId,
+        CalculationType calculationType)
+    {
+        var verifyIntegrationEvent = await serviceBusListenerMock
+            .When(
+                message =>
+                {
+                    if (message.Subject != nameof(CalculationEnqueueCompletedV1))
+                        return false;
+
+                    var calculationEnqueueCompletedV1 = CalculationEnqueueCompletedV1.Parser.ParseFrom(message.Body)!;
+
+                    var calculationIdMatches = calculationEnqueueCompletedV1!.CalculationId == orchestrationInstanceId.ToString();
+                    var calculationTypeMatches = calculationEnqueueCompletedV1.CalculationType == calculationType;
+
+                    return calculationIdMatches && calculationTypeMatches;
+                })
+            .VerifyCountAsync(1);
+        var messageFound = verifyIntegrationEvent.Wait(TimeSpan.FromSeconds(30));
+        messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
     }
 }

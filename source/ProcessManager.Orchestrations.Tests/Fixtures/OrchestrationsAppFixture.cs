@@ -80,6 +80,11 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
+
+        IntegrationEventServiceBusListener = new ServiceBusListenerMock(
+            OrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -102,6 +107,8 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     public ServiceBusListenerMock EnqueueBrs026ServiceBusListener { get; }
 
     public ServiceBusListenerMock EnqueueBrs028ServiceBusListener { get; }
+
+    public ServiceBusListenerMock IntegrationEventServiceBusListener { get; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -145,6 +152,12 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             ediTopicResources.EnqueueBrs028Subscription.TopicName,
             ediTopicResources.EnqueueBrs028Subscription.SubscriptionName);
 
+        // Create Integration Event topic resources
+        var integrationEventTopicResource = await OrchestrationsAppManager.IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
+        await IntegrationEventServiceBusListener.AddTopicSubscriptionListenerAsync(
+            integrationEventTopicResource.SharedTopic.Name,
+            integrationEventTopicResource.Subscription.SubscriptionName);
+
         await OrchestrationsAppManager.StartAsync(orchestrationsProcessManagerTopicResources, ediTopicResources);
         await ProcessManagerAppManager.StartAsync(processManagerAppProcessManagerTopicResources);
 
@@ -172,6 +185,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await EnqueueBrs023027ServiceBusListener.DisposeAsync();
         await EnqueueBrs026ServiceBusListener.DisposeAsync();
         await EnqueueBrs028ServiceBusListener.DisposeAsync();
+        await IntegrationEventServiceBusListener.DisposeAsync();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)

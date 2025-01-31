@@ -516,4 +516,49 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 EnqueueBrs028Subscription: enqueueBrs028Subscription);
         }
     }
+
+    public record IntegrationEventTopicResources(
+        TopicResource SharedTopic,
+        SubscriptionProperties Subscription)
+    {
+        private const string SubscriptionName = "integration-event-subscription";
+
+        public static async Task<IntegrationEventTopicResources> CreateNew(
+            ServiceBusResourceProvider serviceBusResourceProvider)
+        {
+            var integrationEventTopicBuilder = serviceBusResourceProvider.BuildTopic("integration-event-topic");
+            AddSubscriptionsToTopicBuilder(integrationEventTopicBuilder);
+
+            var integrationEventTopic = await integrationEventTopicBuilder.CreateAsync();
+
+            return CreateFromTopic(integrationEventTopic);
+        }
+
+        /// <summary>
+        /// Add integration event subscription to the integration event topic.
+        /// </summary>
+        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
+        {
+            builder
+                .AddSubscription(SubscriptionName);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Get the <see cref="IntegrationEventTopicResources"/> used by the Orchestrations app.
+        /// <remarks>
+        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
+        /// </remarks>
+        /// </summary>
+        public static IntegrationEventTopicResources CreateFromTopic(TopicResource topic)
+        {
+            var integrationEventSubscriptionName = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(SubscriptionName));
+
+            return new IntegrationEventTopicResources(
+                SharedTopic: topic,
+                Subscription: integrationEventSubscriptionName);
+        }
+    }
 }

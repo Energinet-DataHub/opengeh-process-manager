@@ -16,6 +16,7 @@ using System.Text.Json;
 using Energinet.DataHub.Brs023027.Contracts;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
@@ -35,10 +36,10 @@ public static class ServiceBusResponseMocking
             .When(
                 message =>
                 {
-                    if (message.Subject != $"Enqueue_{Brs_023_027.Name.ToLower()}")
+                    if (message.Subject != EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
                         return false;
 
-                    var body = Energinet.DataHub.ProcessManager.Abstractions.Contracts.EnqueueActorMessagesV1
+                    var body = EnqueueActorMessagesV1
                         .Parser.ParseJson(message.Body.ToString())!;
 
                     var calculationCompleted = JsonSerializer.Deserialize<CalculationEnqueueActorMessagesV1>(body.Data);

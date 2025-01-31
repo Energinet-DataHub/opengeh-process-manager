@@ -59,7 +59,7 @@ public class EnqueueActorMessagesClient(
             enqueueActorMessages.OrchestrationStartedByUserId = startedByUserId.ToString();
 
         var serviceBusMessage = enqueueActorMessages.ToServiceBusMessage(
-            subject: "Enqueue_" + orchestration.Name.ToLower(),
+            subject: EnqueueActorMessagesV1.BuildServiceBusMessageSubject(orchestration.Name),
             idempotencyKey: idempotencyKey.ToString());
 
         await _serviceBusSender.SendMessageAsync(serviceBusMessage)

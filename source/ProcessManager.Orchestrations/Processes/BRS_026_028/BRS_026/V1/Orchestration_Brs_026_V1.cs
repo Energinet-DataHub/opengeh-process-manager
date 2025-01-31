@@ -48,7 +48,7 @@ internal class Orchestration_Brs_026_V1
 
         var orchestrationInstanceContext = await InitializeOrchestrationAsync(context);
 
-        var validationResult = await PerformAsynchronousValidationAsync(context, orchestrationInstanceContext.Id, input);
+        var validationResult = await PerformBusinessValidationAsync(context, orchestrationInstanceContext.Id, input);
         await EnqueueActorMessagesInEdiAsync(context, orchestrationInstanceContext.Id, input, validationResult);
 
         var wasMessagesEnqueued = await WaitForEnqueueActorMessagesResponseFromEdiAsync(
@@ -56,7 +56,12 @@ internal class Orchestration_Brs_026_V1
             orchestrationInstanceContext.Options.EnqueueActorMessagesTimeout,
             orchestrationInstanceContext.Id);
 
-        return await TerminateOrchestrationAsync(context, orchestrationInstanceContext.Id, input, wasMessagesEnqueued);
+        return await TerminateOrchestrationAsync(
+            context: context,
+            instanceId: orchestrationInstanceContext.Id,
+            input: input,
+            wasMessagesEnqueued: wasMessagesEnqueued,
+            failedBusinessValidation: !validationResult.IsValid);
     }
 
     private static TaskOptions CreateDefaultRetryOptions()
@@ -86,7 +91,7 @@ internal class Orchestration_Brs_026_V1
         return orchestrationInstanceContext;
     }
 
-    private async Task<PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput> PerformAsynchronousValidationAsync(
+    private async Task<PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput> PerformBusinessValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input)
@@ -152,6 +157,7 @@ internal class Orchestration_Brs_026_V1
                 nameof(EnqueueRejectMessageActivity_Brs_026_V1),
                 new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
                     instanceId,
+                    input,
                     validationResult.ValidationErrors,
                     idempotencyKey),
                 _defaultRetryOptions);
@@ -203,9 +209,10 @@ internal class Orchestration_Brs_026_V1
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedEnergyTimeSeriesInputV1 input,
-        bool wasMessagesEnqueued)
+        bool wasMessagesEnqueued,
+        bool failedBusinessValidation)
     {
-        var orchestrationTerminationState = wasMessagesEnqueued
+        var orchestrationTerminationState = wasMessagesEnqueued && !failedBusinessValidation
             ? OrchestrationInstanceTerminationState.Succeeded
             : OrchestrationInstanceTerminationState.Failed;
 

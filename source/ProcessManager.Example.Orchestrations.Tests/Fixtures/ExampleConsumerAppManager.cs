@@ -21,6 +21,8 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
@@ -253,7 +255,7 @@ public class ExampleConsumerAppManager : IAsyncDisposable
         {
             builder
                 .AddSubscription(EnqueueBrsX03SubscriptionName)
-                    .AddSubjectFilter($"Enqueue_{Brs_X03.Name.ToLower()}");
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_X03.V1));
 
             return builder;
         }

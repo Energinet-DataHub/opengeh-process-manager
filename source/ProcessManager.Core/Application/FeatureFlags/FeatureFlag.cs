@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 /// The current feature flags in the Process Manager. If using <see cref="MicrosoftFeatureFlagManager"/>
 /// then the feature flags are managed through the app configuration, and the name
 /// of a feature flag configuration is the enum value's name, prefixed with "FeatureManagement__",
-/// ie. "FeatureManagement__EnableOrchestrationDescriptionBreakingChanges".
+/// i.e. "FeatureManagement__EnableOrchestrationDescriptionBreakingChanges".
 /// </summary>
 public enum FeatureFlag
 {

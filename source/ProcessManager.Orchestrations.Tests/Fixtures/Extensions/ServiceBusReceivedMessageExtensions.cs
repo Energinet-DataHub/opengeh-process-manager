@@ -19,6 +19,16 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensi
 
 public static class ServiceBusReceivedMessageExtensions
 {
+    /// <summary>
+    /// Try to parse the received service bus message as a EnqueueActorMessagesV1 message.
+    /// <remarks>
+    /// If the major version isn't correct then the method will return false.
+    /// </remarks>
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="orchestrationUniqueName">The name of the orchestration that is enqueued for, used to verify the message subject.</param>
+    /// <param name="enqueueActorMessagesV1">The parsed <see cref="EnqueueActorMessagesV1"/>. Will have default value if parsing fails (and false will be returned).</param>
+    /// <returns>Returns true if succeeded, else false.</returns>
     public static bool TryParseAsEnqueueActorMessages(
         this ServiceBusReceivedMessage message,
         string orchestrationUniqueName,

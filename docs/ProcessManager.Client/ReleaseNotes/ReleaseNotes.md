@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.26.1
+
+- Update `EnqueueActorMessagesV1` with `BuildServiceBusMessageSubject()` method.
+
 ## Version 0.26.0
 
 - Throw exception in `EnqueueActorMessagesV1.ParseData<TData>()` if parsing incorrect `DataType`.

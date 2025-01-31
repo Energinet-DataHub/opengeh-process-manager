@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 
@@ -20,4 +21,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// A model containing the validation errors if a wholesale services request is rejected.
 /// </summary>
 public record RequestCalculatedWholesaleServicesRejectedV1(
+    string OriginalMessageId,
+    string OriginalTransactionId,
+    ActorNumber RequestedForActorNumber,
+    ActorRole RequestedForActorRole,
+    ActorNumber RequestedByActorNumber,
+    ActorRole RequestedByActorRole,
+    BusinessReason BusinessReason,
     List<ValidationErrorDto> ValidationErrors);

@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
@@ -46,7 +47,15 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
 
     private Task EnqueueRejectMessageAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
     {
+        var requestInput = input.RequestInput;
         var rejectedMessage = new RequestCalculatedWholesaleServicesRejectedV1(
+            OriginalTransactionId: requestInput.TransactionId,
+            OriginalMessageId: requestInput.ActorMessageId,
+            RequestedForActorNumber: ActorNumber.Create(requestInput.RequestedForActorNumber),
+            RequestedForActorRole: ActorRole.FromName(requestInput.RequestedForActorRole),
+            RequestedByActorNumber: ActorNumber.Create(requestInput.RequestedByActorNumber),
+            RequestedByActorRole: ActorRole.FromName(requestInput.RequestedByActorRole),
+            BusinessReason: BusinessReason.FromName(requestInput.BusinessReason),
             ValidationErrors: input.ValidationErrors
                 .Select(e => new ValidationErrorDto(
                     Message: e.Message,
@@ -63,6 +72,7 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
+        RequestCalculatedWholesaleServicesInputV1 RequestInput,
         IReadOnlyCollection<ValidationError> ValidationErrors,
         Guid IdempotencyKey);
 }

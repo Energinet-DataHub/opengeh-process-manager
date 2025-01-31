@@ -61,8 +61,8 @@ internal class EnqueueActorMessagesActivity_Brs_028_V1(
             : null;
 
         var acceptedData = new RequestCalculatedWholesaleServicesAcceptedV1(
+            OriginalActorMessageId: requestInput.ActorMessageId,
             OriginalTransactionId: requestInput.TransactionId,
-            OriginalMessageId: requestInput.ActorMessageId,
             RequestedForActorNumber: ActorNumber.Create(requestInput.RequestedForActorNumber),
             RequestedForActorRole: ActorRole.FromName(requestInput.RequestedForActorRole),
             RequestedByActorNumber: ActorNumber.Create(requestInput.RequestedByActorNumber),

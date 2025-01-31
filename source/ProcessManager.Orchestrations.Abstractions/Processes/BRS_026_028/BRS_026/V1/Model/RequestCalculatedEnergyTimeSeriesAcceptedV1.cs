@@ -21,7 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// A model containing the data for an accepted request for calculated energy time series
 /// </summary>
 public record RequestCalculatedEnergyTimeSeriesAcceptedV1(
-    string OriginalMessageId,
+    string OriginalActorMessageId,
     string OriginalTransactionId,
     ActorNumber RequestedForActorNumber,
     ActorRole RequestedForActorRole,

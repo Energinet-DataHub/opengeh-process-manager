@@ -1,5 +1,10 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.18.2
+
+- Update `RequestCalculatedEnergyTimeSeriesRejectedV1` with missing properties.
+- Update `RequestCalculatedWholesaleServicesRejectedV1` with missing properties.
+
 ## Version 0.18.1
 
 - Update `RequestCalculatedEnergyTimeSeriesInputV1` with "requested by actor" properties.

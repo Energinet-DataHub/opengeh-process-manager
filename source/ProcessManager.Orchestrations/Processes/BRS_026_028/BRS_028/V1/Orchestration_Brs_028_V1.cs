@@ -49,7 +49,7 @@ internal class Orchestration_Brs_028_V1
 
         var (instanceId, options) = await InitializeOrchestrationAsync(context);
 
-        var validationResult = await PerformAsynchronousValidationAsync(context, instanceId, input);
+        var validationResult = await PerformBusinessValidationAsync(context, instanceId, input);
         await EnqueueActorMessagesInEdiAsync(context, instanceId, input, validationResult);
 
         var wasMessagesEnqueued = await WaitForEnqueueActorMessagesResponseFromEdiAsync(
@@ -57,7 +57,12 @@ internal class Orchestration_Brs_028_V1
             options.EnqueueActorMessagesTimeout,
             instanceId);
 
-        return await TerminateOrchestrationAsync(context, instanceId, input, wasMessagesEnqueued);
+        return await TerminateOrchestrationAsync(
+            context: context,
+            instanceId: instanceId,
+            input: input,
+            wasMessagesEnqueued: wasMessagesEnqueued,
+            failedBusinessValidation: !validationResult.IsValid);
     }
 
     private static TaskOptions CreateDefaultRetryOptions()
@@ -87,7 +92,7 @@ internal class Orchestration_Brs_028_V1
         return orchestrationInstanceContext;
     }
 
-    private async Task<PerformBusinessValidationActivity_Brs_028_V1.ActivityOutput> PerformAsynchronousValidationAsync(
+    private async Task<PerformBusinessValidationActivity_Brs_028_V1.ActivityOutput> PerformBusinessValidationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedWholesaleServicesInputV1 input)
@@ -153,6 +158,7 @@ internal class Orchestration_Brs_028_V1
                 nameof(EnqueueRejectMessageActivity_Brs_028_V1),
                 new EnqueueRejectMessageActivity_Brs_028_V1.ActivityInput(
                     instanceId,
+                    input,
                     validationResult.ValidationErrors,
                     idempotencyKey),
                 _defaultRetryOptions);
@@ -204,9 +210,10 @@ internal class Orchestration_Brs_028_V1
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         RequestCalculatedWholesaleServicesInputV1 input,
-        bool wasMessagesEnqueued)
+        bool wasMessagesEnqueued,
+        bool failedBusinessValidation)
     {
-        var orchestrationTerminationState = wasMessagesEnqueued
+        var orchestrationTerminationState = wasMessagesEnqueued && !failedBusinessValidation
             ? OrchestrationInstanceTerminationState.Succeeded
             : OrchestrationInstanceTerminationState.Failed;
 

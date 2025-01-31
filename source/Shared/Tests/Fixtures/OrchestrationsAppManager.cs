@@ -22,6 +22,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
@@ -485,11 +486,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             builder
                 .AddSubscription(EnqueueBrs023027SubscriptionName)
-                    .AddSubjectFilter($"Enqueue_{Brs_023_027.Name.ToLower()}")
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
                 .AddSubscription(EnqueueBrs026SubscriptionName)
-                    .AddSubjectFilter($"Enqueue_{Brs_026.Name.ToLower()}")
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_026.V1))
                 .AddSubscription(EnqueueBrs028SubscriptionName)
-                    .AddSubjectFilter($"Enqueue_{Brs_028.Name.ToLower()}");
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_028.V1));
 
             return builder;
         }

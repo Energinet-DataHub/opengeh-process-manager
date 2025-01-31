@@ -25,6 +25,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -114,14 +115,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         isWaitingForNotify.Should()
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
 
-        if (orchestrationInstance is null)
-            ArgumentNullException.ThrowIfNull(orchestrationInstance, nameof(orchestrationInstance));
-
         // Step 2b: Verify an enqueue actor messages event is sent on the service bus
         var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs026ServiceBusListener.When(
                 (message) =>
                 {
-                    if (!TryParseEnqueueActorMessages(message, out var enqueueActorMessagesV1))
+                    if (!message.TryParseAsEnqueueActorMessages(Brs_026.Name, out var enqueueActorMessagesV1))
                         return false;
 
                     var requestAcceptedV1 = enqueueActorMessagesV1.ParseData<RequestCalculatedEnergyTimeSeriesAcceptedV1>();
@@ -136,7 +134,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 3: Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent(
-                OrchestrationInstanceId: orchestrationInstance.Id.ToString(),
+                OrchestrationInstanceId: orchestrationInstance!.Id.ToString(),
                 EventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
             CancellationToken.None);
 
@@ -149,12 +147,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         orchestrationTerminatedWithSucceeded.Should().BeTrue(
             "because the orchestration instance should be succeeded within the given wait time");
 
-        // If isTerminated is true then terminatedOrchestrationInstance should never be null
-        ArgumentNullException.ThrowIfNull(terminatedOrchestrationInstance);
-
         // Orchestration instance and all steps should be Succeeded
         using var assertionScope = new AssertionScope();
-        terminatedOrchestrationInstance.Lifecycle.TerminationState.Should()
+        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
             .NotBeNull()
             .And.Be(OrchestrationInstanceTerminationState.Succeeded);
 
@@ -194,14 +189,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         isWaitingForNotify.Should()
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
 
-        if (orchestrationInstance is null)
-            ArgumentNullException.ThrowIfNull(orchestrationInstance, nameof(orchestrationInstance));
-
         // Step 2b: Verify an enqueue actor messages event is sent on the service bus
         var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs026ServiceBusListener.When(
                 (message) =>
                 {
-                    if (!TryParseEnqueueActorMessages(message, out var enqueueActorMessagesV1))
+                    if (!message.TryParseAsEnqueueActorMessages(Brs_026.Name, out var enqueueActorMessagesV1))
                         return false;
 
                     var requestAcceptedV1 = enqueueActorMessagesV1.ParseData<RequestCalculatedEnergyTimeSeriesRejectedV1>();
@@ -221,7 +213,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 3: Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent(
-                OrchestrationInstanceId: orchestrationInstance.Id.ToString(),
+                OrchestrationInstanceId: orchestrationInstance!.Id.ToString(),
                 EventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
             CancellationToken.None);
 
@@ -234,12 +226,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         orchestrationTerminatedWithSucceeded.Should().BeTrue(
             "because the orchestration instance should be failed within the given wait time");
 
-        // If isTerminated is true then terminatedOrchestrationInstance should never be null
-        ArgumentNullException.ThrowIfNull(terminatedOrchestrationInstance);
-
         // Orchestration instance and validation steps should be Failed
         using var assertionScope = new AssertionScope();
-        terminatedOrchestrationInstance.Lifecycle.TerminationState.Should()
+        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
             .NotBeNull()
             .And.Be(OrchestrationInstanceTerminationState.Failed);
 
@@ -263,7 +252,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 });
     }
 
-    private static RequestCalculatedEnergyTimeSeriesCommandV1 GivenRequestCalculatedEnergyTimeSeries(bool shouldFailBusinessValidation = false)
+    private static RequestCalculatedEnergyTimeSeriesCommandV1 GivenRequestCalculatedEnergyTimeSeries(
+        bool shouldFailBusinessValidation = false)
     {
         const string energySupplierNumber = "1234567891234";
         var energySupplierRole = ActorRole.EnergySupplier.Name;
@@ -288,31 +278,5 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 SettlementMethod: null,
                 SettlementVersion: null),
             idempotencyKey: Guid.NewGuid().ToString());
-    }
-
-    private bool TryParseEnqueueActorMessages(
-        ServiceBusReceivedMessage message,
-        out EnqueueActorMessagesV1 enqueueActorMessagesV1)
-    {
-        enqueueActorMessagesV1 = new EnqueueActorMessagesV1();
-        if (message.Subject != $"Enqueue_{Brs_026.Name.ToLower()}")
-            return false;
-
-        var majorVersion = message.ApplicationProperties["MajorVersion"].ToString();
-        if (majorVersion != nameof(EnqueueActorMessagesV1))
-        {
-            _testOutputHelper.WriteLine("Unexpected major version: {0}", majorVersion);
-            return false;
-        }
-
-        var messageBody = message.Body.ToString();
-        enqueueActorMessagesV1 = EnqueueActorMessagesV1.Parser.ParseJson(messageBody);
-        if (enqueueActorMessagesV1 == null)
-        {
-            _testOutputHelper.WriteLine("Unable to parse EnqueueActorMessagesV1 body: {0}", messageBody);
-            return false;
-        }
-
-        return true;
     }
 }

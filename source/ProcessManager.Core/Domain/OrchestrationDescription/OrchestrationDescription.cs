@@ -135,7 +135,7 @@ public class OrchestrationDescription
     /// <remarks>
     /// See https://learn.microsoft.com/en-us/ef/core/saving/concurrency?tabs=fluent-api
     /// </remarks>
-    public byte[]? RowVersion { get; }
+    internal byte[]? RowVersion { get; }
 
     /// <summary>
     /// Factory method that ensures domain rules are obeyed when creating and adding a new

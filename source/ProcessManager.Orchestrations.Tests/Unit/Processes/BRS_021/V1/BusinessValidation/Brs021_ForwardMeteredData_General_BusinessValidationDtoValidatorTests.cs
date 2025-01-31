@@ -21,36 +21,34 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.V1.BusinessValidation;
 
-public class Brs021BusinessValidationDtoValidatorTests
+public class Brs021_ForwardMeteredData_General_BusinessValidationDtoValidatorTests
 {
-    private readonly BusinessValidator<Brs021BusinessValidationDto> _sut;
+    private readonly BusinessValidator<Brs021_ForwardMeteredData_General_BusinessValidationDto> _sut;
 
-    public Brs021BusinessValidationDtoValidatorTests()
+    public Brs021_ForwardMeteredData_General_BusinessValidationDtoValidatorTests()
     {
         IServiceCollection services = new ServiceCollection();
 
         services.AddLogging();
 
         var orchestrationsAssembly = typeof(Orchestration_Brs_021_ForwardMeteredData_V1).Assembly;
-        var orchestrationsAbstractionsAssembly = typeof(Brs021BusinessValidationDto).Assembly;
+        var orchestrationsAbstractionsAssembly =
+            typeof(Brs021_ForwardMeteredData_General_BusinessValidationDto).Assembly;
         services.AddBusinessValidation(assembliesToScan: [orchestrationsAssembly, orchestrationsAbstractionsAssembly]);
 
         var serviceProvider = services.BuildServiceProvider();
 
-        _sut = serviceProvider.GetRequiredService<BusinessValidator<Brs021BusinessValidationDto>>();
+        _sut = serviceProvider
+            .GetRequiredService<BusinessValidator<Brs021_ForwardMeteredData_General_BusinessValidationDto>>();
     }
 
     [Fact]
-    public async Task Given_NoMasterData_When_Validate_Then_ValidationError()
+    public async Task Given_Input_When_Validate_Then_NoValidationErrors()
     {
         var input = MeteredDataForMeteringPointMessageInputV1Builder.Build();
 
         var result = await _sut.ValidateAsync(new(input, []));
 
-        result.Should()
-            .NotBeEmpty()
-            .And.Contain(
-                ve => ve.ErrorCode == "E10"
-                      && ve.Message == "Målepunktet findes ikke / The metering point does not exist");
+        result.Should().BeEmpty();
     }
 }

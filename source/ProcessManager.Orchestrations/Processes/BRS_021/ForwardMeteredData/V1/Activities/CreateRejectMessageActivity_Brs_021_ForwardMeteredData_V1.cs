@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -39,10 +40,20 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
                     null,
                     null,
                     null,
-                    activityInput.Errors.Select(err => new ReasonV1("A22", err)).ToList(),
+                    activityInput.GeneralErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message)).ToList(),
                     [],
-                    [],
-                    [],
+                    [
+                        new SeriesV1(
+                            activityInput.InputTransactionId,
+                            activityInput.SeriesErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message))
+                                .ToList()),
+                    ],
+                    [
+                        new MktActivityRecordV1(
+                            activityInput.InputTransactionId,
+                            activityInput.MasterDataErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message))
+                                .ToList()),
+                    ],
                     [])));
 
         return Task.FromResult(result);
@@ -52,7 +63,9 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
         OrchestrationInstanceId OrchestrationInstanceId,
         string InputTransactionId,
         MarketActorRecipient Recipient,
-        IReadOnlyCollection<string> Errors);
+        IReadOnlyCollection<ValidationError> GeneralErrors,
+        IReadOnlyCollection<ValidationError> SeriesErrors,
+        IReadOnlyCollection<ValidationError> MasterDataErrors);
 
     public sealed record ActivityOutput(MeteredDataForMeteringPointRejectedV1 RejectMessage);
 }

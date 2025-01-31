@@ -22,14 +22,14 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
-internal class PerformBusinessValidationActivity_Brs_021_ForwardMeteredData_V1(
+internal class PerformGeneralBusinessValidationActivity_Brs_021_ForwardMeteredData_V1(
     IOrchestrationInstanceProgressRepository repository,
-    BusinessValidator<Brs021BusinessValidationDto> validator)
+    BusinessValidator<Brs021_ForwardMeteredData_General_BusinessValidationDto> validator)
 {
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
-    private readonly BusinessValidator<Brs021BusinessValidationDto> _validator = validator;
+    private readonly BusinessValidator<Brs021_ForwardMeteredData_General_BusinessValidationDto> _validator = validator;
 
-    [Function(nameof(PerformBusinessValidationActivity_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(PerformGeneralBusinessValidationActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task<ActivityOutput> Run([ActivityTrigger] ActivityInput activityInput)
     {
         var validationErrors = await _validator

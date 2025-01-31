@@ -24,7 +24,7 @@ public class MeteredDataForMeteringPointMessageInputV1Builder
             MessageId: "MessageId",
             AuthenticatedActorId: Guid.NewGuid(),
             ActorNumber: "1111111111111",
-            ActorRole: "DDM",
+            ActorRole: ActorRole.GridAccessProvider.Code,
             TransactionId: "TransactionId",
             MeteringPointId: "MeteringPointId",
             MeteringPointType: MeteringPointType.Production.Code,

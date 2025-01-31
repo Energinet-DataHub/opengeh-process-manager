@@ -35,7 +35,7 @@ public static class ServiceBusReceivedMessageExtensions
         out EnqueueActorMessagesV1 enqueueActorMessagesV1)
     {
         enqueueActorMessagesV1 = new EnqueueActorMessagesV1();
-        if (message.Subject != $"Enqueue_{orchestrationUniqueName.ToLower()}")
+        if (message.Subject != EnqueueActorMessagesV1.BuildServiceBusMessageSubject(orchestrationUniqueName))
             return false;
 
         var majorVersion = message.ApplicationProperties["MajorVersion"].ToString();

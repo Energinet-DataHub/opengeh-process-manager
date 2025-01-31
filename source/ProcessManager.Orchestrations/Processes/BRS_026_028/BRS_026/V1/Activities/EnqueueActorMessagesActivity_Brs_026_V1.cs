@@ -64,7 +64,7 @@ internal class EnqueueActorMessagesActivity_Brs_026_V1(
             : null;
 
         var acceptedData = new RequestCalculatedEnergyTimeSeriesAcceptedV1(
-            OriginalMessageId: requestInput.ActorMessageId,
+            OriginalActorMessageId: requestInput.ActorMessageId,
             OriginalTransactionId: requestInput.TransactionId,
             RequestedForActorNumber: ActorNumber.Create(requestInput.RequestedForActorNumber),
             RequestedForActorRole: ActorRole.FromName(requestInput.RequestedForActorRole),

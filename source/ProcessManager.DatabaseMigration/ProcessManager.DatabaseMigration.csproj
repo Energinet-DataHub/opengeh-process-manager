@@ -18,6 +18,7 @@
     <EmbeddedResource Include="Scripts\202410240917 Create StepInstance table.sql" />
     <EmbeddedResource Include="Scripts\202412101700 Add RecurringCronExpression.sql" />
     <EmbeddedResource Include="Scripts\202501131400 Add IdempotencyKey.sql" />
+    <EmbeddedResource Include="Scripts\202501311000 Add RowVersion.sql" />
   </ItemGroup>
 
 </Project>

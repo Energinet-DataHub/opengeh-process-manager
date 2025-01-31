@@ -33,7 +33,7 @@ public class MeteringPointValidationRuleTests
         var result = await _sut.ValidateAsync(new(input, []));
 
         result.Should()
-            .NotBeEmpty()
+            .ContainSingle()
             .And.Contain(
                 ve => ve.ErrorCode == "E10"
                       && ve.Message == "Målepunktet findes ikke / The metering point does not exist");
@@ -58,9 +58,6 @@ public class MeteringPointValidationRuleTests
                         MeasurementUnit.KilowattHour),
                 ]));
 
-        result.Should()
-            .NotContain(
-                ve => ve.ErrorCode == "E10"
-                      && ve.Message == "Målepunktet findes ikke / The metering point does not exist");
+        result.Should().BeEmpty();
     }
 }

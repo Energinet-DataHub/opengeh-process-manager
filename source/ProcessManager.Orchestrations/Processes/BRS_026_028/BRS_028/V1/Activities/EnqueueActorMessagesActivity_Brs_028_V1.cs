@@ -62,6 +62,13 @@ internal class EnqueueActorMessagesActivity_Brs_028_V1(
         var settlementVersion = requestInput.SettlementVersion != null
             ? SettlementVersion.FromName(requestInput.SettlementVersion)
             : null;
+        var chargeTypes = requestInput.ChargeTypes != null
+            ? requestInput.ChargeTypes.Select(
+                    ct => new RequestCalculatedWholesaleServicesAcceptedV1.AcceptedChargeType(
+                        ChargeType: ct.ChargeType != null ? ChargeType.FromName(ct.ChargeType) : null,
+                        ChargeCode: ct.ChargeCode))
+                .ToList()
+            : [];
 
         var acceptedData = new RequestCalculatedWholesaleServicesAcceptedV1(
             OriginalActorMessageId: requestInput.ActorMessageId,
@@ -78,7 +85,7 @@ internal class EnqueueActorMessagesActivity_Brs_028_V1(
             EnergySupplierNumber: energySupplierNumber,
             ChargeOwnerNumber: chargeOwnerNumber,
             SettlementVersion: settlementVersion,
-            ChargeTypes: requestInput.ChargeTypes ?? []);
+            ChargeTypes: chargeTypes);
 
         return _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_028_V1.UniqueName,

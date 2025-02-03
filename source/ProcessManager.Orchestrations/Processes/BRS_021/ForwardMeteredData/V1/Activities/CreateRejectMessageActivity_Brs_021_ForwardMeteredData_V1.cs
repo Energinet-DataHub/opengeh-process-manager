@@ -52,12 +52,7 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
                             activityInput.SeriesErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message))
                                 .ToList()),
                     ],
-                    [
-                        new MktActivityRecordV1(
-                            activityInput.InputTransactionId,
-                            activityInput.MasterDataErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message))
-                                .ToList()),
-                    ],
+                    [],
                     [])));
 
         return Task.FromResult(result);
@@ -70,8 +65,7 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
         string InputProcessType,
         MarketActorRecipient Recipient,
         IReadOnlyCollection<ValidationError> GeneralErrors,
-        IReadOnlyCollection<ValidationError> SeriesErrors,
-        IReadOnlyCollection<ValidationError> MasterDataErrors);
+        IReadOnlyCollection<ValidationError> SeriesErrors);
 
     public sealed record ActivityOutput(MeteredDataForMeteringPointRejectedV1 RejectMessage);
 }

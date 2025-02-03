@@ -18,10 +18,10 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
 public class MeteringPointValidationRule
-    : IBusinessValidationRule<Brs021_ForwardMeteredData_MasterData_BusinessValidationDto>
+    : IBusinessValidationRule<Brs021_ForwardMeteredData_Series_BusinessValidationDto>
 {
     public Task<IList<ValidationError>> ValidateAsync(
-        Brs021_ForwardMeteredData_MasterData_BusinessValidationDto subject) =>
+        Brs021_ForwardMeteredData_Series_BusinessValidationDto subject) =>
         Task.FromResult<IList<ValidationError>>(
             subject.MeteringPointMasterData.Count <= 0
                 ? [new("Målepunktet findes ikke / The metering point does not exist", "E10")]

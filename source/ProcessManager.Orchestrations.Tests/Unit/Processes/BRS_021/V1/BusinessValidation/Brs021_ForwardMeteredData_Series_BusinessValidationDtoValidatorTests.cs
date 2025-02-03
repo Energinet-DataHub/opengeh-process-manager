@@ -43,12 +43,16 @@ public class Brs021_ForwardMeteredData_Series_BusinessValidationDtoValidatorTest
     }
 
     [Fact]
-    public async Task Given_Input_When_Validate_Then_NoValidationErrors()
+    public async Task Given_NoMasterData_When_Validate_Then_ValidationError()
     {
         var input = MeteredDataForMeteringPointMessageInputV1Builder.Build();
 
         var result = await _sut.ValidateAsync(new(input, []));
 
-        result.Should().BeEmpty();
+        result.Should()
+            .NotBeEmpty()
+            .And.Contain(
+                ve => ve.ErrorCode == "E10"
+                      && ve.Message == "Målepunktet findes ikke / The metering point does not exist");
     }
 }

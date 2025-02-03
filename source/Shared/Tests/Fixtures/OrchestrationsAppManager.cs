@@ -346,7 +346,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // => Shared integration event topic
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{IntegrationEventsOptions.SectionName}__{nameof(IntegrationEventsOptions.TopicName)}",
+            $"{IntegrationEventTopicOptions.SectionName}__{nameof(IntegrationEventTopicOptions.Name)}",
             integrationEventTopicResources.SharedTopic.Name);
 
         // => Databricks workspaces

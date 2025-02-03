@@ -14,6 +14,8 @@
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Mappers;
@@ -24,32 +26,39 @@ using NodaTime.Extensions;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 
 internal class CalculationStepStartJobActivity_Brs_023_027_V1(
+    IOrchestrationInstanceProgressRepository repository,
     [FromKeyedServices(DatabricksWorkspaceNames.Wholesale)] IDatabricksJobsClient client)
 {
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly IDatabricksJobsClient _client = client;
 
     [Function(nameof(CalculationStepStartJobActivity_Brs_023_027_V1))]
     public async Task<JobRunId> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var gridAreas = string.Join(", ", input.OrchestrationInput.GridAreaCodes);
+        var orchestrationInstance = await _repository
+            .GetAsync(input.OrchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        var orchestrationInput = orchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
+        var gridAreas = string.Join(", ", orchestrationInput.GridAreaCodes);
         var jobParameters = new List<string>
         {
             $"--calculation-id={input.CalculationId}",
             $"--grid-areas=[{gridAreas}]",
-            $"--period-start-datetime={input.OrchestrationInput.PeriodStartDate.ToInstant()}",
-            $"--period-end-datetime={input.OrchestrationInput.PeriodEndDate.ToInstant()}",
-            $"--calculation-type={CalculationTypeMapper.ToDeltaTableValue(input.OrchestrationInput.CalculationType)}",
+            $"--period-start-datetime={orchestrationInput.PeriodStartDate.ToInstant()}",
+            $"--period-end-datetime={orchestrationInput.PeriodEndDate.ToInstant()}",
+            $"--calculation-type={CalculationTypeMapper.ToDeltaTableValue(orchestrationInput.CalculationType)}",
             $"--created-by-user-id={input.UserId}",
         };
-        if (input.OrchestrationInput.IsInternalCalculation)
+        if (orchestrationInput.IsInternalCalculation)
             jobParameters.Add("--is-internal-calculation");
 
         return await _client.StartJobAsync("CalculatorJob", jobParameters).ConfigureAwait(false);
     }
 
     public record ActivityInput(
+        OrchestrationInstanceId OrchestrationInstanceId,
         Guid CalculationId,
-        Guid UserId,
-        CalculationInputV1 OrchestrationInput);
+        Guid UserId);
 }

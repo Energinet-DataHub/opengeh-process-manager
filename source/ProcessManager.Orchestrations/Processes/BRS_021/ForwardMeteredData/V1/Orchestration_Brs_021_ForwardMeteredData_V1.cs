@@ -13,79 +13,112 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
-using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.DurableTask;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 
-internal class Orchestration_Brs_021_ForwardMeteredData_V1
+public class Orchestration_Brs_021_ForwardMeteredData_V1(
+    IOrchestrationInstanceProgressRepository repository,
+    IClock clock)
 {
     internal const int ValidatingStep = 1;
-    internal const int StoringMeteredDataStep = 2;
+    internal const int ForwardMeteredDataStep = 2;
     internal const int FindReceiverStep = 3;
     internal const int EnqueueActorMessagesStep = 4;
 
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_021_ForwardedMeteredData.V1;
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
+    private readonly IClock _clock = clock;
 
-    private readonly TaskOptions _defaultRetryOptions;
-
-    public Orchestration_Brs_021_ForwardMeteredData_V1()
+    // [Function(nameof(Orchestration_Brs_021_ForwardMeteredData_V1))]
+    public async Task ReceiverMeteredData(MeteredDataForMeteringPointMessageInputV1 input, OrchestrationInstanceId orchestrationInstanceId)
     {
-        _defaultRetryOptions = CreateDefaultRetryOptions();
+        var orchestrationInstance = await _repository
+            .GetAsync(orchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        // Transition the orchestration instance to the 'Running' state
+        await TransitionOrchestrationInstancesToRunningAsync(orchestrationInstance).ConfigureAwait(false);
+
+        // start step: Validating metered data
+        await TransitionStepToRunningActivityAsync(orchestrationInstance, ValidatingStep).ConfigureAwait(false);
+        // fetch master data for metering point
+        // business validation
+        // terminate step: validation
+        await TransitionStepToTerminatedActivityAsync(orchestrationInstance, ValidatingStep).ConfigureAwait(false);
+
+        // start step: Forwarding metered data
+        await TransitionStepToRunningActivityAsync(orchestrationInstance, ForwardMeteredDataStep).ConfigureAwait(false);
+        // store incoming metered data + neighbor grid area owner´, etc.
+        // send metered data to measurements
     }
 
-    [Function(nameof(Orchestration_Brs_021_ForwardMeteredData_V1))]
-    public async Task<string> Run(
-        [OrchestrationTrigger] TaskOrchestrationContext context)
+    public async Task ForwardMeteredData(OrchestrationInstanceId orchestrationInstanceId)
     {
-        var input = context.GetOrchestrationParameterValue<MeteredDataForMeteringPointMessageInputV1>();
-        var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
+        var orchestrationInstance = await _repository
+            .GetAsync(orchestrationInstanceId)
+            .ConfigureAwait(false);
 
-        if (input == null)
-            return "Error: No input specified.";
+        // terminate step: Forwarding metered data
+        await TransitionStepToTerminatedActivityAsync(orchestrationInstance, ForwardMeteredDataStep).ConfigureAwait(false);
 
-        // Initialize
-        await context.CallActivityAsync(
-            nameof(OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1),
-            new OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
-            _defaultRetryOptions);
+        // start step: Find Receivers
+        await TransitionStepToRunningActivityAsync(orchestrationInstance, FindReceiverStep).ConfigureAwait(false);
+        // fetch incoming metered data + neighbor grid area owner´, etc.
+        // find all receivers for the metered data
+        // terminate step: Find Receivers
+        await TransitionStepToTerminatedActivityAsync(orchestrationInstance, FindReceiverStep).ConfigureAwait(false);
 
-        // Start Step: Find Receiver
-        await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_V1),
-            new TransitionStepToRunningActivity_V1.ActivityInput(
-                instanceId,
-                FindReceiverStep),
-            _defaultRetryOptions);
-
-        // Terminate Step: Find Receiver
-        await context.CallActivityAsync(
-            nameof(TransitionStepToTerminatedActivity_V1),
-            new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                instanceId,
-                FindReceiverStep,
-                OrchestrationStepTerminationState.Succeeded),
-            _defaultRetryOptions);
-
-        // Terminate
-        await context.CallActivityAsync(
-            nameof(OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            new OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
-            _defaultRetryOptions);
-
-        return "Success";
+        // start step: Enqueue Actor Messages
+        await TransitionStepToRunningActivityAsync(orchestrationInstance, EnqueueActorMessagesStep).ConfigureAwait(false);
+        // send metered data to all receivers
     }
 
-    private static TaskOptions CreateDefaultRetryOptions() =>
-        TaskOptions.FromRetryPolicy(
-            new RetryPolicy(
-                maxNumberOfAttempts: 5,
-                firstRetryInterval: TimeSpan.FromSeconds(30),
-                backoffCoefficient: 2.0));
+    public async Task MessagesEnqueued(OrchestrationInstanceId orchestrationInstanceId)
+    {
+        var orchestrationInstance = await _repository
+            .GetAsync(orchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        // terminate step: Enqueue Actor Messages
+        await TransitionStepToTerminatedActivityAsync(orchestrationInstance, EnqueueActorMessagesStep).ConfigureAwait(false);
+
+        // Transition the orchestration instance to the 'Succeeded' state
+        await TransitionOrchestrationInstancesToSucceededAsync(orchestrationInstance).ConfigureAwait(false);
+    }
+
+    private async Task TransitionOrchestrationInstancesToSucceededAsync(OrchestrationInstance orchestrationInstance)
+    {
+        orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
+        await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    private async Task TransitionOrchestrationInstancesToRunningAsync(OrchestrationInstance orchestrationInstance)
+    {
+        orchestrationInstance.Lifecycle.TransitionToRunning(_clock);
+        await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    private async Task TransitionStepToRunningActivityAsync(OrchestrationInstance orchestrationInstance, int stepSequence)
+    {
+        orchestrationInstance.TransitionStepToRunning(
+            stepSequence,
+            _clock);
+
+        await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    private async Task TransitionStepToTerminatedActivityAsync(OrchestrationInstance orchestrationInstance, int stepSequence)
+    {
+        orchestrationInstance.TransitionStepToTerminated(
+            stepSequence,
+            OrchestrationStepTerminationState.Succeeded,
+            _clock);
+
+        await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
 }

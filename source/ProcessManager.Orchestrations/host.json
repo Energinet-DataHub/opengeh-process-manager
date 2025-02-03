@@ -4,13 +4,8 @@
     "durableTask": {
       "hubName": "%ProcessManagerTaskHubName%",
       "storageProvider": {
-        "connectionName": "ProcessManagerStorageConnectionString",
-        "partitionCount": 16
-      },
-      "maxConcurrentOrchestratorFunctions": 50
-    },
-    "serviceBus": {
-      "maxConcurrentCalls": 80
+        "connectionName": "ProcessManagerStorageConnectionString"
+      }
     }
   },
   "logging": {

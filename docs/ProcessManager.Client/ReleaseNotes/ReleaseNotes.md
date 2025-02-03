@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.26.2
+
+- Update NuGet package properties `RepositoryUrl`, `PackageReleaseNotes` and `PackageDescription`.
+
 ## Version 0.26.1
 
 - Update `EnqueueActorMessagesV1` with `BuildServiceBusMessageSubject()` method.

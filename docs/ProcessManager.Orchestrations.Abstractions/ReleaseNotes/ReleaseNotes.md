@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.18.4
+
+- Update NuGet package properties `RepositoryUrl`, `PackageReleaseNotes` and `PackageDescription`.
+
 ## Version 0.18.3
 
 - Add `Resolution` to `RequestCalculatedWholesaleServicesAcceptedV1`.

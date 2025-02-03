@@ -51,8 +51,7 @@ internal class DurableOrchestrationInstanceExecutor(
                 await _durableClient
                     .StartNewAsync(
                         orchestratorFunctionName: orchestrationDescription.FunctionName,
-                        instanceId,
-                        input: orchestrationInstance.ParameterValue.SerializedParameterValue)
+                        instanceId)
                     .ConfigureAwait(false);
 
                 return true;

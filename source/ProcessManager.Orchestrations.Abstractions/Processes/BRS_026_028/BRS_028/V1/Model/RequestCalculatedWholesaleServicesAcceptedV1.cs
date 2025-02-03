@@ -27,6 +27,7 @@ public record RequestCalculatedWholesaleServicesAcceptedV1(
     ActorNumber RequestedByActorNumber,
     ActorRole RequestedByActorRole,
     BusinessReason BusinessReason,
+    Resolution? Resolution,
     DateTimeOffset PeriodStart,
     DateTimeOffset PeriodEnd,
     IReadOnlyCollection<string> GridAreas,

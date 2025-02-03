@@ -21,7 +21,7 @@ public class ChargeCodeValidationRule : IBusinessValidationRule<RequestCalculate
 {
     private static readonly ValidationError _chargeCodeLengthInvalidError = new(
         "Følgende chargeType mRID er for lang: {PropertyName}. Den må højst indeholde 10 karaktere/"
-        + "The following chargeType mRID is to long: {PropertyName} It must at most be 10 characters",
+        + "The following chargeType mRID is to long: {PropertyName}. It must at most be 10 characters",
         "D14");
 
     private static IList<ValidationError> NoError => [];

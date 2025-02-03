@@ -50,6 +50,9 @@ internal class EnqueueActorMessagesActivity_Brs_028_V1(
     {
         var requestInput = input.RequestInput;
 
+        var resolution = requestInput.Resolution != null
+            ? Resolution.FromName(requestInput.Resolution)
+            : null;
         var energySupplierNumber = requestInput.EnergySupplierNumber != null
             ? ActorNumber.Create(requestInput.EnergySupplierNumber)
             : null;
@@ -68,6 +71,7 @@ internal class EnqueueActorMessagesActivity_Brs_028_V1(
             RequestedByActorNumber: ActorNumber.Create(requestInput.RequestedByActorNumber),
             RequestedByActorRole: ActorRole.FromName(requestInput.RequestedByActorRole),
             BusinessReason: BusinessReason.FromName(requestInput.BusinessReason),
+            Resolution: resolution,
             PeriodStart: InstantPattern.General.Parse(requestInput.PeriodStart).GetValueOrThrow().ToDateTimeOffset(),
             PeriodEnd: InstantPattern.General.Parse(requestInput.PeriodEnd!).GetValueOrThrow().ToDateTimeOffset(),
             GridAreas: requestInput.GridAreas,

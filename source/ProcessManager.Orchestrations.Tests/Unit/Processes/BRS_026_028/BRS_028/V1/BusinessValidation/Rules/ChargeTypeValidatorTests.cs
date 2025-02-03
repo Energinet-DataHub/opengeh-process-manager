@@ -24,7 +24,7 @@ public class ChargeTypeValidatorTests
 {
     private static readonly ValidationError _chargeTypeIdIsToLongError = new(
         "Følgende chargeType mRID er for lang: {PropertyName}. Den må højst indeholde 10 karaktere/"
-        + "The following chargeType mRID is to long: {PropertyName} It must at most be 10 characters",
+        + "The following chargeType mRID is to long: {PropertyName}. It must at most be 10 characters",
         "D14");
 
     private readonly ChargeCodeValidationRule _sut = new();

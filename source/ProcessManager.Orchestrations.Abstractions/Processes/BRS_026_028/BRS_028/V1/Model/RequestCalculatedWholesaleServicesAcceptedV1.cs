@@ -27,10 +27,16 @@ public record RequestCalculatedWholesaleServicesAcceptedV1(
     ActorNumber RequestedByActorNumber,
     ActorRole RequestedByActorRole,
     BusinessReason BusinessReason,
+    Resolution? Resolution,
     DateTimeOffset PeriodStart,
     DateTimeOffset PeriodEnd,
     IReadOnlyCollection<string> GridAreas,
     ActorNumber? EnergySupplierNumber,
     ActorNumber? ChargeOwnerNumber,
     SettlementVersion? SettlementVersion,
-    IReadOnlyCollection<RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput> ChargeTypes);
+    IReadOnlyCollection<RequestCalculatedWholesaleServicesAcceptedV1.AcceptedChargeType> ChargeTypes)
+{
+    public record AcceptedChargeType(
+        ChargeType? ChargeType,
+        string? ChargeCode);
+}

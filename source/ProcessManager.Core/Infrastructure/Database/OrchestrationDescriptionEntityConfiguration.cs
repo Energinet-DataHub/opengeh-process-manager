@@ -55,6 +55,8 @@ internal class OrchestrationDescriptionEntityConfiguration : IEntityTypeConfigur
 
         builder.Property(o => o.HostName);
         builder.Property(o => o.IsEnabled);
+        builder.Property(o => o.RowVersion)
+            .IsRowVersion();
 
         builder.OwnsMany<StepDescription>(
             OrchestrationDescription.StepsPrivatePropertyName,

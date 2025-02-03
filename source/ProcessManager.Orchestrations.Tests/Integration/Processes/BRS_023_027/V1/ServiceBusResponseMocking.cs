@@ -51,7 +51,7 @@ public static class ServiceBusResponseMocking
                 })
             .VerifyCountAsync(1);
         var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(30));
-        messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
+        messageFound.Should().BeTrue("because EDI should have been asked to enqueue messages");
 
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent<CalculationEnqueueActorMessagesCompletedNotifyEventV1>(
@@ -82,6 +82,6 @@ public static class ServiceBusResponseMocking
                 })
             .VerifyCountAsync(1);
         var messageFound = verifyIntegrationEvent.Wait(TimeSpan.FromSeconds(30));
-        messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
+        messageFound.Should().BeTrue("because the expected message should be published to the shared integration event topic");
     }
 }

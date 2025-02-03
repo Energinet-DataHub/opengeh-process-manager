@@ -86,6 +86,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
 
         Fixture.EnqueueBrs023027ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+        Fixture.IntegrationEventServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         return Task.CompletedTask;
     }
@@ -228,7 +229,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // step 3.5: Wait for the integration event to be published
         await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
             orchestrationInstanceId: orchestrationInstanceId,
-            calculationType: Brs023027.Contracts.CalculationType.WholesaleFixing);
+            calculationType: Brs023027.Contracts.CalculationType.BalanceFixing);
 
         // Step 4: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(

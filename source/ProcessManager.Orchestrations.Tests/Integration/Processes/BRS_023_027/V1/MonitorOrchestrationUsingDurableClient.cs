@@ -91,6 +91,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
 
         Fixture.EnqueueBrs023027ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+        Fixture.IntegrationEventServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         return Task.CompletedTask;
     }

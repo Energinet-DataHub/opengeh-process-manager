@@ -141,9 +141,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     /// <param name="processManagerTopicResources">The required Process Manager topic resources. New resources will be created if not provided.</param>
     /// <param name="ediTopicResources">The required EDI topic resources. New resources will be created if not provided.</param>
+    /// <param name="integrationEventTopicResources">The required shared integration event topic resources. New resources will be created if not provided.</param>
     public async Task StartAsync(
         ProcessManagerTopicResources? processManagerTopicResources,
-        EdiTopicResources? ediTopicResources)
+        EdiTopicResources? ediTopicResources,
+        IntegrationEventTopicResources? integrationEventTopicResources)
     {
         if (_manageAzurite)
         {
@@ -159,12 +161,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
+        integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
             processManagerTopicResources,
             ediTopicResources,
+            integrationEventTopicResources,
             eventHubResource);
 
         // Create and start host
@@ -253,6 +257,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         string csprojName,
         ProcessManagerTopicResources processManagerTopicResources,
         EdiTopicResources ediTopicResources,
+        IntegrationEventTopicResources integrationEventTopicResources,
         EventHubResource eventHubResource)
     {
         var buildConfiguration = GetBuildConfiguration();
@@ -338,6 +343,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
             ediTopicResources.EdiTopic.Name);
+
+        // => Shared integration event topic
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{IntegrationEventsOptions.SectionName}__{nameof(IntegrationEventsOptions.TopicName)}",
+            integrationEventTopicResources.SharedTopic.Name);
 
         // => Databricks workspaces
         appHostSettings.ProcessEnvironmentVariables.Add(

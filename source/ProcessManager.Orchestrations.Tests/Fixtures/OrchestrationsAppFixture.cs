@@ -153,12 +153,12 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             ediTopicResources.EnqueueBrs028Subscription.SubscriptionName);
 
         // Create Integration Event topic resources
-        var integrationEventTopicResource = await OrchestrationsAppManager.IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
+        var integrationEventTopicResources = await OrchestrationsAppManager.IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
         await IntegrationEventServiceBusListener.AddTopicSubscriptionListenerAsync(
-            integrationEventTopicResource.SharedTopic.Name,
-            integrationEventTopicResource.Subscription.SubscriptionName);
+            integrationEventTopicResources.SharedTopic.Name,
+            integrationEventTopicResources.Subscription.SubscriptionName);
 
-        await OrchestrationsAppManager.StartAsync(orchestrationsProcessManagerTopicResources, ediTopicResources);
+        await OrchestrationsAppManager.StartAsync(orchestrationsProcessManagerTopicResources, ediTopicResources, integrationEventTopicResources);
         await ProcessManagerAppManager.StartAsync(processManagerAppProcessManagerTopicResources);
 
         ProcessManagerTopicName = orchestrationsProcessManagerTopicResources.ProcessManagerTopic.Name;

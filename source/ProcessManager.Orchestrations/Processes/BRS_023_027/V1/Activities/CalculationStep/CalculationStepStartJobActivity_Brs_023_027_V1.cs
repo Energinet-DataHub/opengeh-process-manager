@@ -40,18 +40,18 @@ internal class CalculationStepStartJobActivity_Brs_023_027_V1(
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        var orchestrationInput = orchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
-        var gridAreas = string.Join(", ", orchestrationInput.GridAreaCodes);
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
+        var gridAreas = string.Join(", ", orchestrationInstanceInput.GridAreaCodes);
         var jobParameters = new List<string>
         {
             $"--calculation-id={input.CalculationId}",
             $"--grid-areas=[{gridAreas}]",
-            $"--period-start-datetime={orchestrationInput.PeriodStartDate.ToInstant()}",
-            $"--period-end-datetime={orchestrationInput.PeriodEndDate.ToInstant()}",
-            $"--calculation-type={CalculationTypeMapper.ToDeltaTableValue(orchestrationInput.CalculationType)}",
+            $"--period-start-datetime={orchestrationInstanceInput.PeriodStartDate.ToInstant()}",
+            $"--period-end-datetime={orchestrationInstanceInput.PeriodEndDate.ToInstant()}",
+            $"--calculation-type={CalculationTypeMapper.ToDeltaTableValue(orchestrationInstanceInput.CalculationType)}",
             $"--created-by-user-id={input.UserId}",
         };
-        if (orchestrationInput.IsInternalCalculation)
+        if (orchestrationInstanceInput.IsInternalCalculation)
             jobParameters.Add("--is-internal-calculation");
 
         return await _client.StartJobAsync("CalculatorJob", jobParameters).ConfigureAwait(false);

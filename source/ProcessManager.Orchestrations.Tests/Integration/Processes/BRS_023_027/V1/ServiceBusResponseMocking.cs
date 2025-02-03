@@ -70,7 +70,7 @@ public static class ServiceBusResponseMocking
             .When(
                 message =>
                 {
-                    if (message.Subject != nameof(CalculationEnqueueCompletedV1))
+                    if (message.Subject != CalculationEnqueueCompletedV1.Descriptor.Name)
                         return false;
 
                     var calculationEnqueueCompletedV1 = CalculationEnqueueCompletedV1.Parser.ParseFrom(message.Body)!;

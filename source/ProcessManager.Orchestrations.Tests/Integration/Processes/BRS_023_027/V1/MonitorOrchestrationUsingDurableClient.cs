@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
@@ -104,7 +105,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
     /// <summary>
     /// Asserting that we can run a full orchestration, asserting the service bus messages sent to EDI and the
-    /// shared integration event topic. Lastly we assert that the history of the orchestration is as expected.
+    /// message published to the shared integration event topic.
+    /// Lastly we assert that the history of the orchestration is as expected.
     /// </summary>
     [Fact]
     public async Task Calculation_WhenRunningAFullOrchestration_HasExpectedHistoryAndServiceBusMessage()
@@ -113,6 +115,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
+        // step 1.0: Start the orchestration
         var orchestrationId = await StartCalculationAsync(
             calculationType: CalculationType.WholesaleFixing);
 
@@ -121,7 +124,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             processManagerMessageClient: ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationId);
 
-        // step 2.1: Wait for the integration event to be published
+        // step 2.5: Wait for the integration event to be published
         await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
             orchestrationInstanceId: orchestrationId,
             calculationType: Brs023027.Contracts.CalculationType.WholesaleFixing);
@@ -208,14 +211,16 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
     /// <summary>
     /// Asserting that no subsystem is informed about the calculation completed when running an internal calculation.
+    /// And the orchestration terminates successfully.
     /// </summary>
     [Fact]
-    public async Task Calculation_WhenRunningAnInternalCalculation_NoSubsystemIsInformedAboutCalculationCompleted()
+    public async Task Calculation_WhenStartingAnInternalCalculation_NoSubsystemIsInformedAndTerminatesSuccessfully()
     {
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
+        // step 1.0: Start the orchestration
         var orchestrationId = await StartCalculationAsync(
             calculationType: CalculationType.WholesaleFixing,
             isInternalCalculation: true);
@@ -225,7 +230,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             processManagerMessageClient: ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationId);
 
-        // step 2.1: Wait for the integration event to be published
+        // step 2.5: Wait for the integration event to be published
         await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
             orchestrationInstanceId: orchestrationId,
             calculationType: Brs023027.Contracts.CalculationType.WholesaleFixing);
@@ -257,6 +262,27 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         // => Verify that the durable function completed successfully
         completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
+
+        var isTerminatedSuccessfully = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                var orchestrationInstance = await ProcessManagerClient
+                    .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
+                        new GetOrchestrationInstanceByIdQuery(
+                            new UserIdentityDto(
+                                UserId: Guid.NewGuid(),
+                                ActorId: Guid.NewGuid()),
+                            orchestrationId),
+                        CancellationToken.None);
+
+                return
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
+            },
+            timeLimit: TimeSpan.FromSeconds(20),
+            delay: TimeSpan.FromSeconds(3));
+
+        isTerminatedSuccessfully.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
 
     private async Task<bool> AwaitJobStatusAsync(JobRunStatus expectedStatus, Guid orchestrationInstanceId)

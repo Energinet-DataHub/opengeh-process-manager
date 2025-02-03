@@ -125,12 +125,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     inputParameter),
                 CancellationToken.None);
 
-        // Step 2: Wait for service bus message to EDI and mock a response
+        // Step 2.0: Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
             ProcessManagerMessageClient,
             orchestrationInstanceId);
 
-        // step 2.1: Wait for the integration event to be published
+        // step 2.5: Wait for the integration event to be published
         await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
             orchestrationInstanceId: orchestrationInstanceId,
             calculationType: Brs023027.Contracts.CalculationType.WholesaleFixing);
@@ -220,12 +220,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await Fixture.ProcessManagerAppManager.AppHostManager
             .TriggerFunctionAsync("StartScheduledOrchestrationInstances");
 
-        // Step 3: Wait for service bus message to EDI and mock a response
+        // Step 3.0: Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
             ProcessManagerMessageClient,
             orchestrationInstanceId);
 
-        // step 3.1: Wait for the integration event to be published
+        // step 3.5: Wait for the integration event to be published
         await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
             orchestrationInstanceId: orchestrationInstanceId,
             calculationType: Brs023027.Contracts.CalculationType.WholesaleFixing);

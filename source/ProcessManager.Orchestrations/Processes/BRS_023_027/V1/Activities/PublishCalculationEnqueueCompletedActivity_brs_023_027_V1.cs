@@ -20,7 +20,7 @@ using Proto = Energinet.DataHub.Brs023027.Contracts;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 
-public class PublishCalculationEnqueueCompletedActivity_brs_023_027_V1(
+internal class PublishCalculationEnqueueCompletedActivity_brs_023_027_V1(
     IIntegrationEventPublisherClient integrationEventPublisherClient)
 {
     private readonly IIntegrationEventPublisherClient _integrationEventPublisherClient = integrationEventPublisherClient;
@@ -37,7 +37,7 @@ public class PublishCalculationEnqueueCompletedActivity_brs_023_027_V1(
 
         await _integrationEventPublisherClient.PublishAsync(
             eventIdentification: input.IdempotencyKey,
-            eventName: nameof(CalculationEnqueueCompletedV1),
+            eventName: CalculationEnqueueCompletedV1.Descriptor.Name,
             eventMinorVersion: 1,
             message: integrationEvent,
             CancellationToken.None).ConfigureAwait(false);

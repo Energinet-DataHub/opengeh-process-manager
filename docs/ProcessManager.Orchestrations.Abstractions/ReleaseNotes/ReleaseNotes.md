@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.19.0
+
+- Add protobuf contract `CalculationEnqueueCompletedV1`
+
 ## Version 0.18.2
 
 - Update `RequestCalculatedEnergyTimeSeriesRejectedV1` with missing properties.

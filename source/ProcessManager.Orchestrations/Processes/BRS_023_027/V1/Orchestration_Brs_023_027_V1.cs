@@ -160,7 +160,7 @@ internal class Orchestration_Brs_023_027_V1
             var calculationData = new CalculationEnqueueActorMessagesV1(
                 CalculationId: executionContext.CalculationId);
 
-            messagesSuccessfullyEnqueued = await EnqueueMessagesAsync(
+            messagesSuccessfullyEnqueued = await TryEnqueueMessagesAsync(
                 context: context,
                 instanceId: instanceId,
                 timeout: TimeSpan.FromSeconds(executionContext.OrchestrationOptions.MessagesEnqueuingExpiryTimeInSeconds),
@@ -170,6 +170,7 @@ internal class Orchestration_Brs_023_027_V1
             {
                 var integrationEventIdempotencyKey = context.NewGuid();
 
+                // Since messages have been prepared for the actors we need to inform the other subsystems
                 await context.CallActivityAsync(
                     nameof(PublishCalculationEnqueueCompletedActivity_brs_023_027_V1),
                     new PublishCalculationEnqueueCompletedActivity_brs_023_027_V1.ActivityInput(
@@ -203,7 +204,7 @@ internal class Orchestration_Brs_023_027_V1
             backoffCoefficient: 2.0));
     }
 
-    private async Task<bool> EnqueueMessagesAsync(
+    private async Task<bool> TryEnqueueMessagesAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         TimeSpan timeout,

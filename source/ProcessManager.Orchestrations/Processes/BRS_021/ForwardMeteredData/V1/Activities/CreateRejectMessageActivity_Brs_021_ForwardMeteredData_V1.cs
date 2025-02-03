@@ -22,8 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
 {
     [Function(nameof(CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1))]
-    public Task<ActivityOutput> Run(
-        [ActivityTrigger] ActivityInput activityInput)
+    public Task<ActivityOutput> Run([ActivityTrigger] ActivityInput activityInput)
     {
         var result = new ActivityOutput(
             new MeteredDataForMeteringPointRejectedV1(
@@ -32,10 +31,15 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
                 activityInput.Recipient,
                 activityInput.OrchestrationInstanceId.Value,
                 Guid.NewGuid(),
+                /*
+                 * For `AcknowledgementV1` only `received_MarketDocument.mRID`
+                 * and `received_MarketDocument.process.processType` should be set.
+                 * The remaining properties should be null.
+                 */
                 new AcknowledgementV1(
                     null,
                     activityInput.InputTransactionId,
-                    null,
+                    activityInput.InputProcessType,
                     null,
                     null,
                     null,
@@ -51,6 +55,7 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
     public sealed record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
         string InputTransactionId,
+        string InputProcessType,
         MarketActorRecipient Recipient,
         IReadOnlyCollection<string> Errors);
 

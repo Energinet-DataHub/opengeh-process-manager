@@ -1,5 +1,10 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.18.3
+
+- Add `Resolution` to `RequestCalculatedWholesaleServicesAcceptedV1`.
+- Add `RequestCalculatedWholesaleServicesAcceptedV1.AcceptedChargeType` type for `RequestCalculatedWholesaleServicesAcceptedV1.ChargeTypes`.
+
 ## Version 0.18.2
 
 - Update `RequestCalculatedEnergyTimeSeriesRejectedV1` with missing properties.

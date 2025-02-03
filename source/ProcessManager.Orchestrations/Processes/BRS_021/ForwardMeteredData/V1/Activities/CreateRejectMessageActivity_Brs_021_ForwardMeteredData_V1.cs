@@ -39,7 +39,7 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
                  */
                 new AcknowledgementV1(
                     null,
-                    activityInput.InputTransactionId,
+                    activityInput.InputMessageId,
                     activityInput.InputProcessType,
                     null,
                     null,
@@ -65,6 +65,7 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
 
     public sealed record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
+        string InputMessageId,
         string InputTransactionId,
         string InputProcessType,
         MarketActorRecipient Recipient,

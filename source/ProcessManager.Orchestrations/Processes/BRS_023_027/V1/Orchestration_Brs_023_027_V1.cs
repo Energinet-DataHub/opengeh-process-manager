@@ -15,7 +15,6 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
@@ -48,15 +47,6 @@ internal class Orchestration_Brs_023_027_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        // TODO: For demo purposes; decide if we want to continue injecting parameters
-        // OR we want to have a pattern where developers load any info they need from the databae, using the first activity.
-        // Currently we inject parameters when an orchestration is started.
-        // But 'context.InstanceId' contains the 'OrchestrationInstance.Id' so it is possible to load all
-        // information about an 'OrchestrationInstance' in activities and use any information (e.g. UserIdentity).
-        var orchestrationInput = context.GetOrchestrationParameterValue<CalculationInputV1>();
-        if (orchestrationInput == null)
-            return "Error: No input specified.";
-
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         // Initialize
@@ -84,9 +74,9 @@ internal class Orchestration_Brs_023_027_V1
         var jobRunId = await context.CallActivityAsync<JobRunId>(
             nameof(CalculationStepStartJobActivity_Brs_023_027_V1),
             new CalculationStepStartJobActivity_Brs_023_027_V1.ActivityInput(
+                instanceId,
                 executionContext.CalculationId,
-                executionContext.UserId,
-                orchestrationInput),
+                executionContext.UserId),
             _defaultRetryOptions);
 
         // TODO: We currently have removed the following functionality compared to the orchestration in Wholesale:

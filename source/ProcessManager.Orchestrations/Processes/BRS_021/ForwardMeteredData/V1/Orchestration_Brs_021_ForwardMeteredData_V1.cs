@@ -14,9 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
@@ -44,11 +42,7 @@ internal class Orchestration_Brs_021_ForwardMeteredData_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var input = context.GetOrchestrationParameterValue<MeteredDataForMeteringPointMessageInputV1>();
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
-
-        if (input == null)
-            return "Error: No input specified.";
 
         // Initialize
         await context.CallActivityAsync(

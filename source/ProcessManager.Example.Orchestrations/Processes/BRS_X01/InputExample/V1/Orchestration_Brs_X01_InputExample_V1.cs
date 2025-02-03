@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Activities;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
@@ -39,12 +37,6 @@ internal class Orchestration_Brs_X01_InputExample_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var input = context.GetOrchestrationParameterValue<InputV1>();
-        if (input == null)
-        {
-            return "Error: No input specified.";
-        }
-
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         // Initialize

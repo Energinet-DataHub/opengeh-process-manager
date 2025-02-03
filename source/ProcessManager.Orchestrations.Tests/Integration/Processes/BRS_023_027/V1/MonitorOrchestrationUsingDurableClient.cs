@@ -103,9 +103,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     }
 
     /// <summary>
-    /// Currently we assert the history and then check the service bus message.
-    /// When the monitor pattern is implemented this behavior should be changed.
-    /// Since we have to inform the orchestration that the job is completed when we receive the service bus message.
+    /// Asserting that we can run a full orchestration, asserting the service bus messages sent to EDI and the
+    /// shared integration event topic. Lastly we assert that the history of the orchestration is as expected.
     /// </summary>
     [Fact]
     public async Task Calculation_WhenRunningAFullOrchestration_HasExpectedHistoryAndServiceBusMessage()
@@ -117,7 +116,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var orchestrationId = await StartCalculationAsync(
             calculationType: CalculationType.WholesaleFixing);
 
-        // Wait for service bus message to EDI and mock a response
+        // step 2.0: Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
             processManagerMessageClient: ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationId);
@@ -131,6 +130,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             orchestrationId.ToString(),
             TimeSpan.FromSeconds(30));
 
+        // step 3.0: Verify the history of the orchestration
         var activities = completeOrchestrationStatus.History
             .OrderBy(item => item["Timestamp"])
             .Select(item => item.ToObject<OrchestrationHistoryItem>())
@@ -206,6 +206,59 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             .HaveCount(3, $"because we expects the orchestration instance to have 3 activities of type {nameof(CalculationStepGetJobRunStatusActivity_Brs_023_027_V1)}");
     }
 
+    /// <summary>
+    /// Asserting that no subsystem is informed about the calculation completed when running an internal calculation.
+    /// </summary>
+    [Fact]
+    public async Task Calculation_WhenRunningAnInternalCalculation_NoSubsystemIsInformedAboutCalculationCompleted()
+    {
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
+            RunLifeCycleState.TERMINATED,
+            CalculationJobName);
+
+        var orchestrationId = await StartCalculationAsync(
+            calculationType: CalculationType.WholesaleFixing,
+            isInternalCalculation: true);
+
+        // step 2.0: Wait for service bus message to EDI and mock a response
+        await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
+            processManagerMessageClient: ProcessManagerMessageClient,
+            orchestrationInstanceId: orchestrationId);
+
+        // step 2.1: Wait for the integration event to be published
+        await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
+            orchestrationInstanceId: orchestrationId,
+            calculationType: Brs023027.Contracts.CalculationType.WholesaleFixing);
+
+        var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
+            orchestrationId.ToString(),
+            TimeSpan.FromSeconds(30));
+
+        // step 3.0: Verify the history of the orchestration
+        var activities = completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Select(item => item.ToObject<OrchestrationHistoryItem>())
+            .ToList();
+
+        activities.Should().NotBeNull().And.Equal(
+        [
+            new OrchestrationHistoryItem("ExecutionStarted", FunctionName: nameof(Orchestration_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToRunningActivity_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(OrchestrationInitializeActivity_Brs_023_027_V1)),
+
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(CalculationStepStartJobActivity_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(CalculationStepGetJobRunStatusActivity_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
+
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToTerminatedActivity_V1)),
+            new OrchestrationHistoryItem("ExecutionCompleted"),
+        ]);
+
+        // => Verify that the durable function completed successfully
+        completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
+    }
+
     private async Task<bool> AwaitJobStatusAsync(JobRunStatus expectedStatus, Guid orchestrationInstanceId)
     {
         var matchFound = await Awaiter.TryWaitUntilConditionAsync(
@@ -239,14 +292,15 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
     private async Task<Guid> StartCalculationAsync(
         UserIdentityDto? userIdentity = null,
-        CalculationType calculationType = CalculationType.WholesaleFixing)
+        CalculationType calculationType = CalculationType.WholesaleFixing,
+        bool isInternalCalculation = false)
     {
         var inputParameter = new CalculationInputV1(
             calculationType,
             GridAreaCodes: new[] { "804" },
             PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
             PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
-            IsInternalCalculation: false);
+            IsInternalCalculation: isInternalCalculation);
         var orchestrationInstanceId = await ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartCalculationCommandV1(

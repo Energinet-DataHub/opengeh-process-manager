@@ -36,6 +36,7 @@ public static class DbUpgrader
                 .SqlDatabase(connectionString)
                 .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
                 .LogToConsole()
+                .WithExecutionTimeout(TimeSpan.FromHours(1))
                 .JournalToSqlTable(schemaName, "SchemaVersions")
                 .Build();
 

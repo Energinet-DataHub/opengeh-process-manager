@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -22,8 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
 {
     [Function(nameof(CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1))]
-    public Task<ActivityOutput> Run(
-        [ActivityTrigger] ActivityInput activityInput)
+    public Task<ActivityOutput> Run([ActivityTrigger] ActivityInput activityInput)
     {
         var result = new ActivityOutput(
             new MeteredDataForMeteringPointRejectedV1(
@@ -32,16 +32,26 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
                 activityInput.Recipient,
                 activityInput.OrchestrationInstanceId.Value,
                 Guid.NewGuid(),
+                /*
+                 * For `AcknowledgementV1` only `received_MarketDocument.mRID`
+                 * and `received_MarketDocument.process.processType` should be set.
+                 * The remaining properties should be null.
+                 */
                 new AcknowledgementV1(
                     null,
-                    activityInput.InputTransactionId,
+                    activityInput.InputMessageId,
+                    activityInput.InputProcessType,
                     null,
                     null,
                     null,
-                    null,
-                    activityInput.Errors.Select(err => new ReasonV1("A22", err)).ToList(),
+                    activityInput.GeneralErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message)).ToList(),
                     [],
-                    [],
+                    [
+                        new SeriesV1(
+                            activityInput.InputTransactionId,
+                            activityInput.SeriesErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message))
+                                .ToList()),
+                    ],
                     [],
                     [])));
 
@@ -50,9 +60,12 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
 
     public sealed record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
+        string InputMessageId,
         string InputTransactionId,
+        string InputProcessType,
         MarketActorRecipient Recipient,
-        IReadOnlyCollection<string> Errors);
+        IReadOnlyCollection<ValidationError> GeneralErrors,
+        IReadOnlyCollection<ValidationError> SeriesErrors);
 
     public sealed record ActivityOutput(MeteredDataForMeteringPointRejectedV1 RejectMessage);
 }

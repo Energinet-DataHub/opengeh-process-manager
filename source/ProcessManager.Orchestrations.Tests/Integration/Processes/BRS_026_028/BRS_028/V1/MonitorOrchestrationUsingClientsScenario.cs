@@ -15,7 +15,6 @@
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
@@ -24,8 +23,10 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
@@ -40,14 +41,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
     private readonly OrchestrationsAppFixture _fixture;
-    private readonly ITestOutputHelper _testOutputHelper;
 
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;
-        _testOutputHelper = testOutputHelper;
         _fixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
@@ -88,85 +87,39 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     /// <summary>
-    /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
+    /// Tests the BRS-026 orchestration instance when the request is valid and actor messages should be enqueued.
     /// </summary>
     [Fact]
-    public async Task RequestCalculatedWholesaleServices_WhenStarted_CanMonitorLifecycle()
+    public async Task Given_ValidRequestCalculatedWholesaleServices_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         // Step 1: Start new orchestration instance
-        var businessReason = BusinessReason.WholesaleFixing.Name;
-        const string energySupplierNumber = "1111111111111";
-        var transactionId = Guid.NewGuid().ToString();
-        var startRequestCommand = new RequestCalculatedWholesaleServicesCommandV1(
-            new ActorIdentityDto(Guid.NewGuid()),
-            new RequestCalculatedWholesaleServicesInputV1(
-                ActorMessageId: Guid.NewGuid().ToString(),
-                TransactionId: transactionId,
-                RequestedForActorNumber: energySupplierNumber,
-                RequestedForActorRole: ActorRole.EnergySupplier.Name,
-                RequestedByActorNumber: energySupplierNumber,
-                RequestedByActorRole: ActorRole.EnergySupplier.Name,
-                BusinessReason: businessReason,
-                PeriodStart: "2024-12-31T23:00:00Z",
-                PeriodEnd: "2025-01-31T23:00:00Z",
-                Resolution: null,
-                EnergySupplierNumber: energySupplierNumber,
-                ChargeOwnerNumber: null,
-                GridAreas: ["804"],
-                SettlementVersion: null,
-                ChargeTypes: null),
-            idempotencyKey: Guid.NewGuid().ToString());
+        var requestCommand = GivenRequestCalculatedWholesaleServices();
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
-            startRequestCommand,
+            requestCommand,
             CancellationToken.None);
 
         // Step 2a: Query until waiting for EnqueueActorMessagesCompleted notify event
         var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
-            .TryWaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
-                idempotencyKey: startRequestCommand.IdempotencyKey,
-                comparer: (oi) =>
-                {
-                    var enqueueActorMessagesStep = oi.Steps
-                        .Single(s => s.Sequence == Orchestration_Brs_028_V1.EnqueueActorMessagesStepSequence);
-
-                    return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
-                });
+            .WaitForStepToBeRunning<RequestCalculatedWholesaleServicesInputV1>(
+                idempotencyKey: requestCommand.IdempotencyKey,
+                stepSequence: Orchestration_Brs_028_V1.EnqueueActorMessagesStepSequence);
 
         isWaitingForNotify.Should()
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
-
-        if (orchestrationInstance is null)
-            ArgumentNullException.ThrowIfNull(orchestrationInstance, nameof(orchestrationInstance));
 
         // Step 2b: Verify an enqueue actor messages event is sent on the service bus
         var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs028ServiceBusListener.When(
                 (message) =>
                 {
-                    if (message.Subject != $"Enqueue_{Brs_028.Name.ToLower()}")
+                    if (!message.TryParseAsEnqueueActorMessages(Brs_028.Name, out var enqueueActorMessagesV1))
                         return false;
-
-                    var majorVersion = message.ApplicationProperties["MajorVersion"].ToString();
-                    if (majorVersion != nameof(EnqueueActorMessagesV1))
-                    {
-                        _testOutputHelper.WriteLine("Unexpected major version: {0}", majorVersion);
-                        return false;
-                    }
-
-                    var messageBody = message.Body.ToString();
-                    var enqueueActorMessagesV1 = EnqueueActorMessagesV1.Parser.ParseJson(messageBody);
-                    if (enqueueActorMessagesV1 == null)
-                    {
-                        _testOutputHelper.WriteLine("Unable to parse EnqueueActorMessagesV1 body: {0}", messageBody);
-                        return false;
-                    }
 
                     var requestAcceptedV1 = enqueueActorMessagesV1.ParseData<RequestCalculatedWholesaleServicesAcceptedV1>();
-
-                    return requestAcceptedV1.OriginalTransactionId == transactionId;
+                    return requestAcceptedV1.OriginalTransactionId == requestCommand.InputParameter.TransactionId;
                 })
             .VerifyCountAsync(1);
 
@@ -176,29 +129,24 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 3: Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent(
-                OrchestrationInstanceId: orchestrationInstance.Id.ToString(),
+                OrchestrationInstanceId: orchestrationInstance!.Id.ToString(),
                 EventName: RequestCalculatedWholesaleServicesNotifyEventsV1.EnqueueActorMessagesCompleted),
             CancellationToken.None);
 
         // Step 4: Query until terminated with succeeded
         var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
-            .TryWaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
-                idempotencyKey: startRequestCommand.IdempotencyKey,
-                (oi) => oi is
-                {
-                    Lifecycle:
-                    {
-                        State: OrchestrationInstanceLifecycleState.Terminated,
-                        TerminationState: OrchestrationInstanceTerminationState.Succeeded,
-                    },
-                });
+            .WaitForOrchestrationInstanceTerminated<RequestCalculatedWholesaleServicesInputV1>(
+                idempotencyKey: requestCommand.IdempotencyKey,
+                terminationState: OrchestrationInstanceTerminationState.Succeeded);
 
         orchestrationTerminatedWithSucceeded.Should().BeTrue("because the orchestration instance should complete within given wait time");
 
-        // If isTerminated is true then terminatedOrchestrationInstance should never be null
-        ArgumentNullException.ThrowIfNull(terminatedOrchestrationInstance);
+        // Orchestration instance and all steps should be Succeeded
+        using var assertionScope = new AssertionScope();
+        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
+            .NotBeNull()
+            .And.Be(OrchestrationInstanceTerminationState.Succeeded);
 
-        // All steps should be Succeeded
         terminatedOrchestrationInstance.Steps.Should()
             .AllSatisfy(
                 s =>
@@ -208,5 +156,121 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         .NotBeNull()
                         .And.Be(OrchestrationStepTerminationState.Succeeded);
                 });
+    }
+
+    /// <summary>
+    /// Tests the BRS-028 orchestration instance when the request is invalid and rejected actor messages should be enqueued.
+    /// </summary>
+    [Fact]
+    public async Task Given_InvalidRequestCalculatedWholesaleServices_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
+    {
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        // Step 1: Start new orchestration instance
+        var invalidRequestCommand = GivenRequestCalculatedWholesaleServices(shouldFailBusinessValidation: true);
+
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+            invalidRequestCommand,
+            CancellationToken.None);
+
+        // Step 2a: Query until waiting for EnqueueActorMessagesCompleted notify event
+        var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
+            .WaitForStepToBeRunning<RequestCalculatedWholesaleServicesInputV1>(
+                idempotencyKey: invalidRequestCommand.IdempotencyKey,
+                stepSequence: Orchestration_Brs_028_V1.EnqueueActorMessagesStepSequence);
+
+        isWaitingForNotify.Should()
+            .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
+
+        // Step 2b: Verify an enqueue actor messages event is sent on the service bus
+        var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs028ServiceBusListener.When(
+                (message) =>
+                {
+                    if (!message.TryParseAsEnqueueActorMessages(Brs_028.Name, out var enqueueActorMessagesV1))
+                        return false;
+
+                    var requestAcceptedV1 = enqueueActorMessagesV1.ParseData<RequestCalculatedWholesaleServicesRejectedV1>();
+
+                    requestAcceptedV1.ValidationErrors.Should()
+                        .HaveCount(1)
+                        .And.ContainSingle(
+                            (e) => e.Message.Contains(
+                                "Feltet EnergySupplier skal være udfyldt med et valid GLN/EIC nummer når en elleverandør anmoder om data"));
+                    return requestAcceptedV1.OriginalTransactionId == invalidRequestCommand.InputParameter.TransactionId;
+                })
+            .VerifyCountAsync(1);
+
+        var enqueueMessageFound = verifyEnqueueRejectedActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
+        enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestCalculatedWholesaleServicesInputV1)} service bus message should have been sent");
+
+        // Step 3: Send EnqueueActorMessagesCompleted event
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new NotifyOrchestrationInstanceEvent(
+                OrchestrationInstanceId: orchestrationInstance!.Id.ToString(),
+                EventName: RequestCalculatedWholesaleServicesNotifyEventsV1.EnqueueActorMessagesCompleted),
+            CancellationToken.None);
+
+        // Step 4: Query until terminated with failed
+        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
+            .WaitForOrchestrationInstanceTerminated<RequestCalculatedWholesaleServicesInputV1>(
+                idempotencyKey: invalidRequestCommand.IdempotencyKey,
+                terminationState: OrchestrationInstanceTerminationState.Failed);
+
+        orchestrationTerminatedWithSucceeded.Should().BeTrue(
+            "because the orchestration instance should be failed within the given wait time");
+
+        // Orchestration instance and validation steps should be Failed
+        using var assertionScope = new AssertionScope();
+        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
+            .NotBeNull()
+            .And.Be(OrchestrationInstanceTerminationState.Failed);
+
+        terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence).Should()
+            .SatisfyRespectively(
+                s =>
+                {
+                    // Validation step should be failed
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Failed);
+                },
+                s =>
+                {
+                    // Enqueue rejected messages step should be succeeded
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                });
+    }
+
+    private static RequestCalculatedWholesaleServicesCommandV1 GivenRequestCalculatedWholesaleServices(
+        bool shouldFailBusinessValidation = false)
+    {
+        const string energySupplierNumber = "1111111111111";
+        var energySupplierRole = ActorRole.EnergySupplier.Name;
+
+        return new RequestCalculatedWholesaleServicesCommandV1(
+            new ActorIdentityDto(Guid.NewGuid()),
+            new RequestCalculatedWholesaleServicesInputV1(
+                ActorMessageId: Guid.NewGuid().ToString(),
+                TransactionId: Guid.NewGuid().ToString(),
+                RequestedForActorNumber: energySupplierNumber,
+                RequestedForActorRole: energySupplierRole,
+                RequestedByActorNumber: energySupplierNumber,
+                RequestedByActorRole: energySupplierRole,
+                BusinessReason: BusinessReason.WholesaleFixing.Name,
+                PeriodStart: "2024-12-31T23:00:00Z",
+                PeriodEnd: "2025-01-31T23:00:00Z",
+                Resolution: null,
+                // EnergySupplierNumber is required when RequestedByActorRole is EnergySupplier, so the request will fail if not provided.
+                EnergySupplierNumber: !shouldFailBusinessValidation ? energySupplierNumber : null,
+                ChargeOwnerNumber: null,
+                GridAreas: ["804"],
+                SettlementVersion: null,
+                ChargeTypes: null),
+            idempotencyKey: Guid.NewGuid().ToString());
     }
 }

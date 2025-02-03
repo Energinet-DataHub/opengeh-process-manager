@@ -31,7 +31,11 @@ public class EnqueueActorMessagesActivity_Brs_X03_V1(
     public async Task<string> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await _repository.GetAsync(input.OrchestrationInstanceId).ConfigureAwait(false);
+        var orchestrationInstance = await _repository
+            .GetAsync(input.OrchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<ActorRequestProcessExampleInputV1>();
 
         await _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_X03_V1.UniqueName,
@@ -39,9 +43,9 @@ public class EnqueueActorMessagesActivity_Brs_X03_V1(
             orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
             input.IdempotencyKey,
             new ActorRequestProcessExampleEnqueueDataV1(
-                input.RequestedByActorNumber,
-                input.RequestedByActorRole,
-                input.BusinessReason))
+                orchestrationInstanceInput.RequestedByActorNumber,
+                orchestrationInstanceInput.RequestedByActorRole,
+                orchestrationInstanceInput.BusinessReason))
             .ConfigureAwait(false);
 
         return "Success";
@@ -49,8 +53,5 @@ public class EnqueueActorMessagesActivity_Brs_X03_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        Guid IdempotencyKey,
-        string RequestedByActorNumber,
-        string RequestedByActorRole,
-        string BusinessReason);
+        Guid IdempotencyKey);
 }

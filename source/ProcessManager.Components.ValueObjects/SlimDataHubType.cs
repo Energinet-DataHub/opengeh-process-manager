@@ -12,21 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Text.Json.Serialization;
-
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public record SettlementMethod : SlimDataHubType<SettlementMethod>
+/// <summary>
+/// Extends enumeration types with strongly typed methods using <typeparamref name="TDataHubType"/>.
+/// </summary>
+public abstract record SlimDataHubType<TDataHubType> : SlimEnumerationType
+    where TDataHubType : SlimDataHubType<TDataHubType>
 {
-    // Customer with more than ~100.000 kwH per year
-    public static readonly SettlementMethod NonProfiled = new("NonProfiled");
-
-    // Customer with less than ~100.000 kwH per year
-    public static readonly SettlementMethod Flex = new("Flex");
-
-    [JsonConstructor]
-    private SettlementMethod(string name)
+    protected SlimDataHubType(string name)
         : base(name)
     {
+    }
+
+    /// <summary>
+    /// Get instance of enumeration type by name.
+    /// </summary>
+    public static TDataHubType FromName(string name)
+    {
+        return GetAll<TDataHubType>().SingleOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException($"{name} is not a valid {typeof(TDataHubType).Name} {nameof(name)}");
     }
 }

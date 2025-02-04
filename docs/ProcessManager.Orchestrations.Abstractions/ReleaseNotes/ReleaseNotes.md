@@ -3,9 +3,9 @@
 ## Version 0.20.0
 
 - Add new columns to `OrchestrationInstance` and `StartOrchestrationInstanceV1`:
-  - ActorMessageId
-  - TransactionId
-  - MeteringPointId
+    - ActorMessageId
+    - TransactionId
+    - MeteringPointId
 
 ## Version 0.19.0
 

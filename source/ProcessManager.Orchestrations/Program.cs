@@ -58,6 +58,9 @@ var host = new HostBuilder()
         // Enqueue Messages in EDI
         services.AddEnqueueActorMessages(azureCredential);
 
+        // Integration event publisher
+        services.AddIntegrationEventPublisher(azureCredential);
+
         // Business validation
         var orchestrationsAssembly = typeof(Program).Assembly;
         var orchestrationsAbstractionsAssembly = typeof(RequestCalculatedEnergyTimeSeriesInputV1).Assembly;

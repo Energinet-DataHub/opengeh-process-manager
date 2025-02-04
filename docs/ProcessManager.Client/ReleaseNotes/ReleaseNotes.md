@@ -1,8 +1,12 @@
 # ProcessManager.Client Release Notes
 
-## Version 0.23.3
+## Version 0.27.1
 
 - No functional changes.
+
+## Version 0.27.0
+
+- Update Nuget package `Grpc.Tools`
 
 ## Version 0.26.2
 

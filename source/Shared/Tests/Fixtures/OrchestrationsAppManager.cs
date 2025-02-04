@@ -141,9 +141,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     /// <param name="processManagerTopicResources">The required Process Manager topic resources. New resources will be created if not provided.</param>
     /// <param name="ediTopicResources">The required EDI topic resources. New resources will be created if not provided.</param>
+    /// <param name="integrationEventTopicResources">The required shared integration event topic resources. New resources will be created if not provided.</param>
     public async Task StartAsync(
         ProcessManagerTopicResources? processManagerTopicResources,
-        EdiTopicResources? ediTopicResources)
+        EdiTopicResources? ediTopicResources,
+        IntegrationEventTopicResources? integrationEventTopicResources)
     {
         if (_manageAzurite)
         {
@@ -159,12 +161,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
+        integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
             processManagerTopicResources,
             ediTopicResources,
+            integrationEventTopicResources,
             eventHubResource);
 
         // Create and start host
@@ -253,6 +257,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         string csprojName,
         ProcessManagerTopicResources processManagerTopicResources,
         EdiTopicResources ediTopicResources,
+        IntegrationEventTopicResources integrationEventTopicResources,
         EventHubResource eventHubResource)
     {
         var buildConfiguration = GetBuildConfiguration();
@@ -339,6 +344,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
             ediTopicResources.EdiTopic.Name);
 
+        // => Shared integration event topic
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{IntegrationEventTopicOptions.SectionName}__{nameof(IntegrationEventTopicOptions.Name)}",
+            integrationEventTopicResources.SharedTopic.Name);
+
         // => Databricks workspaces
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
@@ -362,7 +372,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             "20");
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
-            "15");
+            "20");
         // Measurements Metered Data Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}",
@@ -515,6 +525,51 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 EnqueueBrs023027Subscription: enqueueBrs023027Subscription,
                 EnqueueBrs026Subscription: enqueueBrs026Subscription,
                 EnqueueBrs028Subscription: enqueueBrs028Subscription);
+        }
+    }
+
+    public record IntegrationEventTopicResources(
+        TopicResource SharedTopic,
+        SubscriptionProperties Subscription)
+    {
+        private const string SubscriptionName = "integration-event-subscription";
+
+        public static async Task<IntegrationEventTopicResources> CreateNew(
+            ServiceBusResourceProvider serviceBusResourceProvider)
+        {
+            var integrationEventTopicBuilder = serviceBusResourceProvider.BuildTopic("integration-event-topic");
+            AddSubscriptionsToTopicBuilder(integrationEventTopicBuilder);
+
+            var integrationEventTopic = await integrationEventTopicBuilder.CreateAsync();
+
+            return CreateFromTopic(integrationEventTopic);
+        }
+
+        /// <summary>
+        /// Add integration event subscription to the integration event topic.
+        /// </summary>
+        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
+        {
+            builder
+                .AddSubscription(SubscriptionName);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Get the <see cref="IntegrationEventTopicResources"/> used by the Orchestrations app.
+        /// <remarks>
+        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
+        /// </remarks>
+        /// </summary>
+        public static IntegrationEventTopicResources CreateFromTopic(TopicResource topic)
+        {
+            var integrationEventSubscriptionName = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(SubscriptionName));
+
+            return new IntegrationEventTopicResources(
+                SharedTopic: topic,
+                Subscription: integrationEventSubscriptionName);
         }
     }
 }

@@ -30,7 +30,8 @@ public static class ServiceBusResponseMocking
     public static async Task WaitAndMockServiceBusMessageToAndFromEdi(
         this ServiceBusListenerMock serviceBusListenerMock,
         IProcessManagerMessageClient processManagerMessageClient,
-        Guid orchestrationInstanceId)
+        Guid orchestrationInstanceId,
+        bool successfulResponse = true)
     {
         var verifyServiceBusMessage = await serviceBusListenerMock
             .When(
@@ -57,7 +58,7 @@ public static class ServiceBusResponseMocking
             new NotifyOrchestrationInstanceEvent<CalculationEnqueueActorMessagesCompletedNotifyEventV1>(
                 OrchestrationInstanceId: orchestrationInstanceId.ToString(),
                 EventName: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName,
-                Data: new CalculationEnqueueActorMessagesCompletedNotifyEventV1 { Success = true }),
+                Data: new CalculationEnqueueActorMessagesCompletedNotifyEventV1 { Success = successfulResponse }),
             CancellationToken.None);
     }
 

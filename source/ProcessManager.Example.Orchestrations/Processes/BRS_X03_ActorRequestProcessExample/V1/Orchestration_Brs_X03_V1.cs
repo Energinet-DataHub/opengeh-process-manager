@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Activities;
@@ -43,22 +42,18 @@ internal class Orchestration_Brs_X03_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var input = context.GetOrchestrationParameterValue<ActorRequestProcessExampleInputV1>();
-
         // Initialize orchestration instance
         var instanceId = await InitializeOrchestrationAsync(context);
 
         // Step: Business validation
         var validationResult = await PerformBusinessValidation(
             context,
-            instanceId,
-            input);
+            instanceId);
 
         // Step: Enqueue actor messages
         await EnqueueActorMessages(
             context,
-            instanceId,
-            input);
+            instanceId);
 
         var hasReceivedActorMessagesEnqueuedEvent = await WaitForActorMessagesEnqueuedEventAsync(
             context,
@@ -68,8 +63,7 @@ internal class Orchestration_Brs_X03_V1
         return await TerminateOrchestrationAsync(
             context,
             instanceId,
-            hasReceivedActorMessagesEnqueuedEvent,
-            input);
+            hasReceivedActorMessagesEnqueuedEvent);
     }
 
     private async Task<OrchestrationInstanceId> InitializeOrchestrationAsync(TaskOrchestrationContext context)
@@ -88,8 +82,7 @@ internal class Orchestration_Brs_X03_V1
 
     private async Task<PerformBusinessValidationActivity_Brs_X03_V1.ActivityOutput> PerformBusinessValidation(
         TaskOrchestrationContext context,
-        OrchestrationInstanceId instanceId,
-        ActorRequestProcessExampleInputV1 input)
+        OrchestrationInstanceId instanceId)
     {
         await context.CallActivityAsync(
             nameof(TransitionStepToRunningActivity_V1),
@@ -101,7 +94,7 @@ internal class Orchestration_Brs_X03_V1
         var businessValidationResult = await context.CallActivityAsync<PerformBusinessValidationActivity_Brs_X03_V1.ActivityOutput>(
             nameof(PerformBusinessValidationActivity_Brs_X03_V1),
             new PerformBusinessValidationActivity_Brs_X03_V1.ActivityInput(
-                input),
+                instanceId),
             _defaultRetryOptions);
 
         var businessValidationStepTerminationState = businessValidationResult.ValidationErrors.Count == 0
@@ -121,8 +114,7 @@ internal class Orchestration_Brs_X03_V1
 
     private async Task EnqueueActorMessages(
         TaskOrchestrationContext context,
-        OrchestrationInstanceId instanceId,
-        ActorRequestProcessExampleInputV1 input)
+        OrchestrationInstanceId instanceId)
     {
         await context.CallActivityAsync(
             nameof(TransitionStepToRunningActivity_V1),
@@ -136,10 +128,7 @@ internal class Orchestration_Brs_X03_V1
             nameof(EnqueueActorMessagesActivity_Brs_X03_V1),
             new EnqueueActorMessagesActivity_Brs_X03_V1.ActivityInput(
                 instanceId,
-                enqueueIdempotencyKey,
-                input.RequestedByActorNumber,
-                input.RequestedByActorRole,
-                input.BusinessReason),
+                enqueueIdempotencyKey),
             _defaultRetryOptions);
 
         await Task.CompletedTask;
@@ -188,8 +177,7 @@ internal class Orchestration_Brs_X03_V1
     private async Task<string> TerminateOrchestrationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        bool hasReceivedExampleNotifyEvent,
-        ActorRequestProcessExampleInputV1 input)
+        bool hasReceivedExampleNotifyEvent)
     {
         var terminationState = hasReceivedExampleNotifyEvent
             ? OrchestrationInstanceTerminationState.Succeeded
@@ -204,7 +192,7 @@ internal class Orchestration_Brs_X03_V1
         await Task.CompletedTask;
 
         return hasReceivedExampleNotifyEvent
-            ? $"Success (BusinessReason={input.BusinessReason})"
+            ? $"Success"
             : "Error: Timeout while waiting for example event";
     }
 

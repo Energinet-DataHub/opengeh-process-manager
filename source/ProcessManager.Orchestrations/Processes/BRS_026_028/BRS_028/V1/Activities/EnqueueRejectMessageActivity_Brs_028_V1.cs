@@ -42,12 +42,19 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        await EnqueueRejectMessageAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestCalculatedWholesaleServicesInputV1>();
+
+        await EnqueueRejectMessageAsync(
+            orchestrationInstance.Lifecycle.CreatedBy.Value,
+            input,
+            orchestrationInstanceInput).ConfigureAwait(false);
     }
 
-    private Task EnqueueRejectMessageAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
+    private Task EnqueueRejectMessageAsync(
+        OperatingIdentity orchestrationCreatedBy,
+        ActivityInput input,
+        RequestCalculatedWholesaleServicesInputV1 requestInput)
     {
-        var requestInput = input.RequestInput;
         var rejectedMessage = new RequestCalculatedWholesaleServicesRejectedV1(
             OriginalTransactionId: requestInput.TransactionId,
             OriginalMessageId: requestInput.ActorMessageId,
@@ -72,7 +79,6 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        RequestCalculatedWholesaleServicesInputV1 RequestInput,
         IReadOnlyCollection<ValidationError> ValidationErrors,
         Guid IdempotencyKey);
 }

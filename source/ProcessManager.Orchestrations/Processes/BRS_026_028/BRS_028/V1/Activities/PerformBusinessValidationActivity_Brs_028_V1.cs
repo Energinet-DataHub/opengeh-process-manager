@@ -35,7 +35,13 @@ internal class PerformBusinessValidationActivity_Brs_028_V1(
     public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var validationErrors = await _validator.ValidateAsync(input.RequestInput)
+        var orchestrationInstance = await _repository
+            .GetAsync(input.OrchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestCalculatedWholesaleServicesInputV1>();
+
+        var validationErrors = await _validator.ValidateAsync(orchestrationInstanceInput)
             .ConfigureAwait(false);
 
         var activityOutput = new ActivityOutput(
@@ -44,7 +50,6 @@ internal class PerformBusinessValidationActivity_Brs_028_V1(
 
         if (validationErrors.Count > 0)
         {
-            var orchestrationInstance = await _repository.GetAsync(input.OrchestrationInstanceId).ConfigureAwait(false);
             var step = orchestrationInstance.GetStep(input.StepSequence);
             step.SetCustomState(JsonSerializer.Serialize(activityOutput));
             await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
@@ -55,8 +60,7 @@ internal class PerformBusinessValidationActivity_Brs_028_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        int StepSequence,
-        RequestCalculatedWholesaleServicesInputV1 RequestInput);
+        int StepSequence);
 
     public record ActivityOutput(
         bool IsValid,

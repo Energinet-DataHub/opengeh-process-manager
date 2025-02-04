@@ -40,13 +40,19 @@ internal class EnqueueActorMessagesActivity_Brs_026_V1(
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        await EnqueueActorMessagesAsync(orchestrationInstance.Lifecycle.CreatedBy.Value, input).ConfigureAwait(false);
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestCalculatedEnergyTimeSeriesInputV1>();
+
+        await EnqueueActorMessagesAsync(
+            orchestrationInstance.Lifecycle.CreatedBy.Value,
+            input,
+            orchestrationInstanceInput).ConfigureAwait(false);
     }
 
-    private Task EnqueueActorMessagesAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input)
+    private Task EnqueueActorMessagesAsync(
+        OperatingIdentity orchestrationCreatedBy,
+        ActivityInput input,
+        RequestCalculatedEnergyTimeSeriesInputV1 requestInput)
     {
-        var requestInput = input.RequestInput;
-
         var energySupplierNumber = requestInput.EnergySupplierNumber != null
             ? ActorNumber.Create(requestInput.EnergySupplierNumber)
             : null;
@@ -90,6 +96,5 @@ internal class EnqueueActorMessagesActivity_Brs_026_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        RequestCalculatedEnergyTimeSeriesInputV1 RequestInput,
         Guid IdempotencyKey);
 }

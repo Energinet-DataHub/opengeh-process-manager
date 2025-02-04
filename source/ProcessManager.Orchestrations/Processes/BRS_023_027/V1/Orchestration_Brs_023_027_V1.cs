@@ -160,7 +160,7 @@ internal class Orchestration_Brs_023_027_V1
             {
                 var integrationEventIdempotencyKey = context.NewGuid();
 
-                // Since messages have been prepared for the actors we need to inform the other subsystems
+                // Messages have been prepared for the actors, we need to inform the other subsystems
                 await context.CallActivityAsync(
                     nameof(PublishCalculationEnqueueCompletedActivity_brs_023_027_V1),
                     new PublishCalculationEnqueueCompletedActivity_brs_023_027_V1.ActivityInput(

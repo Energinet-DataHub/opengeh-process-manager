@@ -110,7 +110,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     /// Lastly we assert that the history of the orchestration is as expected.
     /// </summary>
     [Fact]
-    public async Task Calculation_WhenRunningAFullOrchestration_HasExpectedHistoryAndServiceBusMessage()
+    public async Task Calculation_WhenRunningAFullOrchestration_HasExpectedHistoryAndServiceBusMessages()
     {
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             RunLifeCycleState.TERMINATED,

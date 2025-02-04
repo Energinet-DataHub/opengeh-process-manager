@@ -13,28 +13,37 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Activities;
 
 public class PerformBusinessValidationActivity_Brs_X03_V1(
+    IOrchestrationInstanceProgressRepository repository,
     BusinessValidator<ActorRequestProcessExampleInputV1> validator)
 {
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly BusinessValidator<ActorRequestProcessExampleInputV1> _validator = validator;
 
     [Function(nameof(PerformBusinessValidationActivity_Brs_X03_V1))]
     public async Task<ActivityOutput> Run(
-        [ActivityTrigger] ActivityInput activityInput)
+        [ActivityTrigger] ActivityInput input)
     {
-        var validationErrors = await _validator.ValidateAsync(activityInput.Input).ConfigureAwait(false);
+        var orchestrationInstance = await _repository
+            .GetAsync(input.OrchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<ActorRequestProcessExampleInputV1>();
+        var validationErrors = await _validator.ValidateAsync(orchestrationInstanceInput).ConfigureAwait(false);
 
         return new ActivityOutput(
                 validationErrors);
     }
 
     public record ActivityInput(
-        ActorRequestProcessExampleInputV1 Input);
+        OrchestrationInstanceId OrchestrationInstanceId);
 
     public record ActivityOutput(
         IReadOnlyCollection<ValidationError> ValidationErrors);

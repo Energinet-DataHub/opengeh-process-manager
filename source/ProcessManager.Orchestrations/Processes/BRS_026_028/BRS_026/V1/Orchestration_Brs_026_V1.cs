@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Activities;
@@ -44,12 +43,10 @@ internal class Orchestration_Brs_026_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var input = context.GetOrchestrationParameterValue<RequestCalculatedEnergyTimeSeriesInputV1>();
-
         var orchestrationInstanceContext = await InitializeOrchestrationAsync(context);
 
-        var validationResult = await PerformBusinessValidationAsync(context, orchestrationInstanceContext.Id, input);
-        await EnqueueActorMessagesInEdiAsync(context, orchestrationInstanceContext.Id, input, validationResult);
+        var validationResult = await PerformBusinessValidationAsync(context, orchestrationInstanceContext.Id);
+        await EnqueueActorMessagesInEdiAsync(context, orchestrationInstanceContext.Id, validationResult);
 
         var wasMessagesEnqueued = await WaitForEnqueueActorMessagesResponseFromEdiAsync(
             context,
@@ -59,7 +56,6 @@ internal class Orchestration_Brs_026_V1
         return await TerminateOrchestrationAsync(
             context: context,
             instanceId: orchestrationInstanceContext.Id,
-            input: input,
             wasMessagesEnqueued: wasMessagesEnqueued,
             failedBusinessValidation: !validationResult.IsValid);
     }
@@ -93,8 +89,7 @@ internal class Orchestration_Brs_026_V1
 
     private async Task<PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput> PerformBusinessValidationAsync(
         TaskOrchestrationContext context,
-        OrchestrationInstanceId instanceId,
-        RequestCalculatedEnergyTimeSeriesInputV1 input)
+        OrchestrationInstanceId instanceId)
     {
         await context.CallActivityAsync(
             nameof(TransitionStepToRunningActivity_V1),
@@ -107,8 +102,7 @@ internal class Orchestration_Brs_026_V1
             nameof(PerformBusinessValidationActivity_Brs_026_V1),
             new PerformBusinessValidationActivity_Brs_026_V1.ActivityInput(
                 instanceId,
-                BusinessValidationStepSequence,
-                input),
+                BusinessValidationStepSequence),
             _defaultRetryOptions);
 
         var asyncValidationTerminationState = validationResult.IsValid
@@ -128,7 +122,6 @@ internal class Orchestration_Brs_026_V1
     private async Task EnqueueActorMessagesInEdiAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        RequestCalculatedEnergyTimeSeriesInputV1 input,
         PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput validationResult)
     {
         await context.CallActivityAsync(
@@ -145,7 +138,6 @@ internal class Orchestration_Brs_026_V1
                 nameof(EnqueueActorMessagesActivity_Brs_026_V1),
                 new EnqueueActorMessagesActivity_Brs_026_V1.ActivityInput(
                     instanceId,
-                    input,
                     idempotencyKey),
                 _defaultRetryOptions);
         }
@@ -157,7 +149,6 @@ internal class Orchestration_Brs_026_V1
                 nameof(EnqueueRejectMessageActivity_Brs_026_V1),
                 new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
                     instanceId,
-                    input,
                     validationResult.ValidationErrors,
                     idempotencyKey),
                 _defaultRetryOptions);
@@ -208,7 +199,6 @@ internal class Orchestration_Brs_026_V1
     private async Task<string> TerminateOrchestrationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        RequestCalculatedEnergyTimeSeriesInputV1 input,
         bool wasMessagesEnqueued,
         bool failedBusinessValidation)
     {
@@ -224,7 +214,7 @@ internal class Orchestration_Brs_026_V1
             _defaultRetryOptions);
 
         return wasMessagesEnqueued
-            ? $"Success (BusinessReason={input.BusinessReason})"
+            ? $"Success"
             : "Error: Timeout while waiting for enqueue actor messages";
     }
 }

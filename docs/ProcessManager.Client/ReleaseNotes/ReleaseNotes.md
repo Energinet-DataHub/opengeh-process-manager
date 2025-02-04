@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.23.3
+
+- No functional changes.
+
 ## Version 0.26.2
 
 - Update NuGet package properties `RepositoryUrl`, `PackageReleaseNotes` and `PackageDescription`.

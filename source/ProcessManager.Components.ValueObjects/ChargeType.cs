@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json.Serialization;
+
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
 public class ChargeType : DataHubType<ChargeType>
@@ -20,7 +22,8 @@ public class ChargeType : DataHubType<ChargeType>
     public static readonly ChargeType Fee = new("Fee", "D02");
     public static readonly ChargeType Tariff = new("Tariff", "D03");
 
-    public ChargeType(string name, string code)
+    [JsonConstructor]
+    private ChargeType(string name, string code)
         : base(name, code)
     {
     }

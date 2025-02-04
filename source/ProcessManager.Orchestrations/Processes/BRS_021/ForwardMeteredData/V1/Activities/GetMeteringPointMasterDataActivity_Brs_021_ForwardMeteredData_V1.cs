@@ -14,13 +14,11 @@
 
 using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
-using MeteringPointType = Energinet.DataHub.ElectricityMarket.Integration.MeteringPointType;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
@@ -62,12 +60,12 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
                 .ToList());
     }
 
-    private static Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData Map(MeteringPointMasterData arg)
+    private static Model.MeteringPointMasterData Map(MeteringPointMasterData arg)
     {
         return new(
-            new Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointId(arg.Identification.Value),
-            new Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode(arg.GridAreaCode.Value),
-            new Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ActorNumber(arg.GridAccessProvider.Value),
+            new Model.MeteringPointId(arg.Identification.Value),
+            new Model.GridAreaCode(arg.GridAreaCode.Value),
+            new Model.ActorNumber(arg.GridAccessProvider.Value),
             MeteringPointMasterDataMapper.ConnectionStateMap.Map(arg.ConnectionState),
             MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(arg.Type),
             MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(arg.SubType),
@@ -76,5 +74,5 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
 
     public sealed record ActivityInput(string? MeteringPointIdentification, string StartDateTime, string? EndDateTime);
 
-    public sealed record ActivityOutput(IReadOnlyCollection<Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData> MeteringPointMasterData);
+    public sealed record ActivityOutput(IReadOnlyCollection<Model.MeteringPointMasterData> MeteringPointMasterData);
 }

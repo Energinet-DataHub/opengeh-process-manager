@@ -32,14 +32,20 @@ internal class StartNotifyOrchestrationInstanceExampleHandlerV1(
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,
         NotifyOrchestrationInstanceExampleInputV1 input,
-        string idempotencyKey)
+        string idempotencyKey,
+        string actorMessageId,
+        string transactionId,
+        string? meteringPointId)
     {
         await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
                 OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1.UniqueName),
                 input,
                 skipStepsBySequence: [],
-                new IdempotencyKey(idempotencyKey))
+                new IdempotencyKey(idempotencyKey),
+                actorMessageId,
+                transactionId,
+                meteringPointId)
             .ConfigureAwait(false);
     }
 }

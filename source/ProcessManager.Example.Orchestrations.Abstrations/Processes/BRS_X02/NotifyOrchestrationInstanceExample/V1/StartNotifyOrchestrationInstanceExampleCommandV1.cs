@@ -28,4 +28,7 @@ public record StartNotifyOrchestrationInstanceExampleCommandV1(
         OperatingIdentity,
         Brs_X02_NotifyOrchestrationInstanceExample.V1,
         InputParameter,
-        IdempotencyKey);
+        IdempotencyKey,
+        IdempotencyKey,
+        IdempotencyKey,
+        null);

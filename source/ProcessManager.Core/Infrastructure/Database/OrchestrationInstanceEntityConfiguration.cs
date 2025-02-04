@@ -144,5 +144,9 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
             .HasConversion(
                 id => id.Value,
                 dbValue => new OrchestrationDescriptionId(dbValue));
+
+        builder.Property(oi => oi.ActorMessageId);
+        builder.Property(oi => oi.TransactionId);
+        builder.Property(oi => oi.MeteringPointId);
     }
 }

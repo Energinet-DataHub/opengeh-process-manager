@@ -180,6 +180,9 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
             orchestrationDescription,
             skipStepsBySequence: [],
             clock: SystemClock.Instance,
+            actorMessageId: null,
+            transactionId: null,
+            meteringPointId: null,
             runAt: runAt);
 
         return orchestrationInstance;

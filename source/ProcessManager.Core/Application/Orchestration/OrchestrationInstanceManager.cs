@@ -74,7 +74,10 @@ internal class OrchestrationInstanceManager(
             identity,
             orchestrationDescription,
             inputParameter,
-            skipStepsBySequence).ConfigureAwait(false);
+            skipStepsBySequence,
+            null,
+            null,
+            null).ConfigureAwait(false);
 
         await RequestStartOfOrchestrationInstanceIfPendingAsync(
             orchestrationDescription,
@@ -89,7 +92,10 @@ internal class OrchestrationInstanceManager(
         OrchestrationDescriptionUniqueName uniqueName,
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence,
-        IdempotencyKey idempotencyKey)
+        IdempotencyKey idempotencyKey,
+        string actorMessageId,
+        string transactionId,
+        string? meteringPointId)
             where TParameter : class
     {
         var orchestrationDescription = await GuardMatchingOrchestrationDescriptionWithInputAsync(
@@ -104,7 +110,11 @@ internal class OrchestrationInstanceManager(
                 orchestrationDescription,
                 inputParameter,
                 skipStepsBySequence,
-                idempotencyKey: idempotencyKey).ConfigureAwait(false);
+                idempotencyKey: idempotencyKey,
+                actorMessageId: actorMessageId,
+                transactionId: transactionId,
+                meteringPointId: meteringPointId)
+            .ConfigureAwait(false);
 
         await RequestStartOfOrchestrationInstanceIfPendingAsync(
             orchestrationDescription,
@@ -154,6 +164,9 @@ internal class OrchestrationInstanceManager(
             orchestrationDescription,
             inputParameter,
             skipStepsBySequence,
+            null,
+            null,
+            null,
             runAt).ConfigureAwait(false);
 
         return orchestrationInstance.Id;
@@ -259,6 +272,9 @@ internal class OrchestrationInstanceManager(
             orchestrationDescription,
             skipStepsBySequence: [],
             _clock,
+            null,
+            null,
+            null,
             runAt);
 
         await _repository.AddAsync(orchestrationInstance).ConfigureAwait(false);
@@ -272,6 +288,9 @@ internal class OrchestrationInstanceManager(
         OrchestrationDescription orchestrationDescription,
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence,
+        string? actorMessageId,
+        string? transactionId,
+        string? meteringPointId,
         Instant? runAt = default,
         IdempotencyKey? idempotencyKey = default)
             where TParameter : class
@@ -281,6 +300,9 @@ internal class OrchestrationInstanceManager(
             orchestrationDescription,
             skipStepsBySequence,
             _clock,
+            null,
+            null,
+            null,
             runAt,
             idempotencyKey);
 

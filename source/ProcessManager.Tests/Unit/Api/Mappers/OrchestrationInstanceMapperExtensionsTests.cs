@@ -115,6 +115,9 @@ public class OrchestrationInstanceMapperExtensionsTests
             orchestrationDescription,
             skipStepsBySequence: [],
             SystemClock.Instance,
+            actorMessageId: null,
+            transactionId: null,
+            meteringPointId: null,
             runAt: null,
             idempotencyKey);
 

@@ -28,6 +28,9 @@ public interface IStartOrchestrationInstanceMessageCommands
         OrchestrationDescriptionUniqueName uniqueName,
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence,
-        IdempotencyKey idempotencyKey)
+        IdempotencyKey idempotencyKey,
+        string actorMessageId,
+        string transactionId,
+        string? meteringPointId)
             where TParameter : class;
 }

@@ -198,7 +198,10 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
             operatingIdentity,
             brsX01NoInputDescription,
             skipStepsBySequence: [],
-            clock: SystemClock.Instance);
+            clock: SystemClock.Instance,
+            actorMessageId: Guid.NewGuid().ToString(),
+            transactionId: Guid.NewGuid().ToString(),
+            meteringPointId: Guid.NewGuid().ToString());
 
         // Ensure orchestration instance can be set to Running later
         orchestrationInstance.Lifecycle.TransitionToQueued(SystemClock.Instance);

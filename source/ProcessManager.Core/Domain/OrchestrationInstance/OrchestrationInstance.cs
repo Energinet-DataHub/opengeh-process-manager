@@ -31,6 +31,9 @@ public class OrchestrationInstance
         OrchestrationDescriptionId orchestrationDescriptionId,
         OperatingIdentity identity,
         IClock clock,
+        string? actorMessageId,
+        string? transactionId,
+        string? meteringPointId,
         Instant? runAt = default,
         IdempotencyKey? idempotencyKey = default)
     {
@@ -44,6 +47,10 @@ public class OrchestrationInstance
         Steps = _steps.AsReadOnly();
 
         OrchestrationDescriptionId = orchestrationDescriptionId;
+
+        ActorMessageId = actorMessageId;
+        TransactionId = transactionId;
+        MeteringPointId = meteringPointId;
     }
 
     /// <summary>
@@ -51,8 +58,11 @@ public class OrchestrationInstance
     /// </summary>
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     // ReSharper disable once UnusedMember.Local -- Used by Entity Framework
-    private OrchestrationInstance()
+    private OrchestrationInstance(string? actorMessageId, string? transactionId, string? meteringPointId)
     {
+        ActorMessageId = actorMessageId;
+        TransactionId = transactionId;
+        MeteringPointId = meteringPointId;
     }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -98,6 +108,12 @@ public class OrchestrationInstance
     /// the workflow that the orchestration instance is an instance of.
     /// </summary>
     internal OrchestrationDescriptionId OrchestrationDescriptionId { get; }
+
+    internal string? ActorMessageId { get; private set; }
+
+    internal string? TransactionId { get; private set; }
+
+    internal string? MeteringPointId { get; private set; }
 
     /// <summary>
     /// Try to get a step by its sequence number.
@@ -158,6 +174,9 @@ public class OrchestrationInstance
         OrchestrationDescription.OrchestrationDescription description,
         IReadOnlyCollection<int> skipStepsBySequence,
         IClock clock,
+        string? actorMessageId,
+        string? transactionId,
+        string? meteringPointId,
         Instant? runAt = default,
         IdempotencyKey? idempotencyKey = default)
     {
@@ -178,6 +197,9 @@ public class OrchestrationInstance
             description.Id,
             identity,
             clock,
+            actorMessageId,
+            transactionId,
+            meteringPointId,
             runAt,
             idempotencyKey);
 

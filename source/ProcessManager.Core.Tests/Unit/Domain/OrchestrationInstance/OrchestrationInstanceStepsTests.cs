@@ -90,6 +90,9 @@ public class OrchestrationInstanceStepsTests
             orchestrationDescription,
             skipStepsBySequence: [],
             clock: SystemClock.Instance,
+            actorMessageId: Guid.NewGuid().ToString(),
+            transactionId: Guid.NewGuid().ToString(),
+            meteringPointId: Guid.NewGuid().ToString(),
             runAt: runAt);
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter

@@ -544,6 +544,9 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             orchestrationDescription,
             skipStepsBySequence: [],
             clock: SystemClock.Instance,
+            actorMessageId: Guid.NewGuid().ToString(),
+            transactionId: Guid.NewGuid().ToString(),
+            meteringPointId: Guid.NewGuid().ToString(),
             runAt: runAt,
             idempotencyKey: idempotencyKey);
 

@@ -31,14 +31,20 @@ internal class StartActorRequestProcessExampleHandlerV1(
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,
         ActorRequestProcessExampleInputV1 input,
-        string idempotencyKey)
+        string idempotencyKey,
+        string actorMessageId,
+        string transactionId,
+        string? meteringPointId)
     {
         await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
                 OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_X03_V1.UniqueName),
                 input,
                 skipStepsBySequence: [],
-                new IdempotencyKey(idempotencyKey))
+                new IdempotencyKey(idempotencyKey),
+                actorMessageId,
+                transactionId,
+                meteringPointId)
             .ConfigureAwait(false);
     }
 }

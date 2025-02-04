@@ -27,7 +27,7 @@ public record StartActorRequestProcessExampleV1
         ActorIdentityDto operatingIdentity,
         ActorRequestProcessExampleInputV1 inputParameter,
         string idempotencyKey)
-            : base(operatingIdentity, Brs_X03.V1, inputParameter, idempotencyKey)
+        : base(operatingIdentity, Brs_X03.V1, inputParameter, idempotencyKey, idempotencyKey, idempotencyKey, null)
     {
     }
 }

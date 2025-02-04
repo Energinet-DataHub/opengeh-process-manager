@@ -327,6 +327,9 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             orchestrationDescription,
             skipStepsBySequence: [3],
             clock: SystemClock.Instance,
+            actorMessageId: Guid.NewGuid().ToString(),
+            transactionId: Guid.NewGuid().ToString(),
+            meteringPointId: Guid.NewGuid().ToString(),
             runAt,
             idempotencyKey);
 

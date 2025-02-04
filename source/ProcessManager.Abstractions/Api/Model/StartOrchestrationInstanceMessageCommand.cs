@@ -37,14 +37,23 @@ public abstract record StartOrchestrationInstanceMessageCommand<TInputParameterD
     /// A value used by the Process Manager to ensure idempotency for a message command.
     /// The producer of the <see cref="StartOrchestrationInstanceMessageCommand{TInputParameterDto}"/> should
     /// create a key that is unique per command.</param>
+    /// <param name="actorMessageId"></param>
+    /// <param name="transactionId"></param>
+    /// <param name="meteringPointId"></param>
     public StartOrchestrationInstanceMessageCommand(
         ActorIdentityDto operatingIdentity,
         OrchestrationDescriptionUniqueNameDto orchestrationDescriptionUniqueName,
         TInputParameterDto inputParameter,
-        string idempotencyKey)
+        string idempotencyKey,
+        string actorMessageId,
+        string transactionId,
+        string? meteringPointId)
             : base(operatingIdentity, orchestrationDescriptionUniqueName, inputParameter)
     {
         IdempotencyKey = idempotencyKey;
+        ActorMessageId = actorMessageId;
+        TransactionId = transactionId;
+        MeteringPointId = meteringPointId;
     }
 
     /// <summary>
@@ -54,4 +63,19 @@ public abstract record StartOrchestrationInstanceMessageCommand<TInputParameterD
     /// Max length is 1024 characters.
     /// </summary>
     public string IdempotencyKey { get; }
+
+    /// <summary>
+    /// Max length is 36 characters.
+    /// </summary>
+    public string ActorMessageId { get; }
+
+    /// <summary>
+    /// Max length is 36 characters.
+    /// </summary>
+    public string TransactionId { get; }
+
+    /// <summary>
+    /// Max length is 36 characters.
+    /// </summary>
+    public string? MeteringPointId { get; }
 }

@@ -310,6 +310,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             .Select(item => item.ToObject<OrchestrationHistoryItem>())
             .ToList();
 
+        using var assertionScope = new AssertionScope();
         activities.Should().NotBeNull().And.Equal(
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: nameof(Orchestration_Brs_023_027_V1)),
@@ -344,10 +345,10 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                         ActorId: Guid.NewGuid()),
                     orchestrationId),
                 CancellationToken.None);
-        using var assertionScope = new AssertionScope();
 
         orchestrationInstance.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Failed);
-        orchestrationInstance.Steps.Last()
+        orchestrationInstance.Steps
+            .Single(step => step.Sequence == Orchestration_Brs_023_027_V1.EnqueueActorMessagesStepSequence)
             .Lifecycle.TerminationState
             .Should().Be(OrchestrationStepTerminationState.Failed);
     }

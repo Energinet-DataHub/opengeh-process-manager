@@ -14,7 +14,7 @@
 
 using System.Reflection;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
 public abstract class EnumerationType : IComparable
 {
@@ -23,14 +23,12 @@ public abstract class EnumerationType : IComparable
         Name = name;
     }
 
-    public string Name { get;  }
+    public string Name { get; }
 
     public static bool operator ==(EnumerationType? left, EnumerationType? right)
     {
         if (ReferenceEquals(left, null))
-        {
             return ReferenceEquals(right, null);
-        }
 
         return left.Equals(right);
     }
@@ -80,14 +78,10 @@ public abstract class EnumerationType : IComparable
     public override bool Equals(object? obj)
     {
         if (obj is null)
-        {
             return false;
-        }
 
         if (obj is not EnumerationType otherValue)
-        {
             return false;
-        }
 
         var typeMatches = GetType() == obj.GetType();
         var valueMatches = ValueMatches(otherValue);

@@ -14,19 +14,16 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-[Serializable]
-public class SettlementMethod : DataHubType<SettlementMethod>
+public class ChargeType : DataHubType<ChargeType>
 {
-    // Customer with more than ~100.000 kwH per year
-    public static readonly SettlementMethod NonProfiled = new("NonProfiled", "E02");
-
-    // Customer with less than ~100.000 kwH per year
-    public static readonly SettlementMethod Flex = new("Flex", "D01");
+    public static readonly ChargeType Subscription = new("Subscription", "D01");
+    public static readonly ChargeType Fee = new("Fee", "D02");
+    public static readonly ChargeType Tariff = new("Tariff", "D03");
 
     [JsonConstructor]
-    private SettlementMethod(string name, string code)
+    private ChargeType(string name, string code)
         : base(name, code)
     {
     }

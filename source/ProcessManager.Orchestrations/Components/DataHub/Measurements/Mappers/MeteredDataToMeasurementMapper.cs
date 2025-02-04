@@ -19,12 +19,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Mea
 
 public static class MeteredDataToMeasurementMapper
 {
-    internal static Dictionary<ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Quality, Energinet.DataHub.Measurements.Contracts.Quality> Quality { get; } = new()
+    internal static Dictionary<ProcessManager.Components.ValueObjects.Quality, Energinet.DataHub.Measurements.Contracts.Quality> Quality { get; } = new()
     {
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Quality.NotAvailable, Energinet.DataHub.Measurements.Contracts.Quality.QMissing },
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Quality.Estimated, Energinet.DataHub.Measurements.Contracts.Quality.QEstimated },
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Quality.AsProvided, Energinet.DataHub.Measurements.Contracts.Quality.QMeasured },
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Quality.Calculated, Energinet.DataHub.Measurements.Contracts.Quality.QCalculated },
+        { ProcessManager.Components.ValueObjects.Quality.NotAvailable, Energinet.DataHub.Measurements.Contracts.Quality.QMissing },
+        { ProcessManager.Components.ValueObjects.Quality.Estimated, Energinet.DataHub.Measurements.Contracts.Quality.QEstimated },
+        { ProcessManager.Components.ValueObjects.Quality.AsProvided, Energinet.DataHub.Measurements.Contracts.Quality.QMeasured },
+        { ProcessManager.Components.ValueObjects.Quality.Calculated, Energinet.DataHub.Measurements.Contracts.Quality.QCalculated },
     };
 
     internal static Dictionary<ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution, Resolution> Resolution { get; } = new()

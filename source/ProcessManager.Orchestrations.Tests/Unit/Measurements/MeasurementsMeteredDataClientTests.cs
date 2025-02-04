@@ -63,7 +63,7 @@ public class MeasurementsMeteredDataClientTests
             ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution.QuarterHourly,
             new List<Point>
             {
-                new(1, 100, ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Quality.AsProvided),
+                new(1, 100, ProcessManager.Components.ValueObjects.Quality.AsProvided),
             });
 
         var expectedData = new PersistSubmittedTransaction

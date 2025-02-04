@@ -81,7 +81,14 @@ public class ProcessManagerMessageClient(
             OrchestrationName = command.OrchestrationDescriptionUniqueName.Name,
             OrchestrationVersion = command.OrchestrationDescriptionUniqueName.Version,
             StartedByActorId = command.OperatingIdentity.ActorId.ToString(),
+            ActorMessageId = command.ActorMessageId,
+            TransactionId = command.TransactionId,
         };
+
+        if (command.MeteringPointId is not null)
+        {
+            startOrchestration.MeteringPointId = command.MeteringPointId;
+        }
 
         startOrchestration.SetInput(command.InputParameter);
 

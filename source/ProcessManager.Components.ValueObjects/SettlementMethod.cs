@@ -16,7 +16,6 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 
-[Serializable]
 public class SettlementMethod : DataHubType<SettlementMethod>
 {
     // Customer with more than ~100.000 kwH per year

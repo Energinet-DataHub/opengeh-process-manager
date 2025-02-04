@@ -16,7 +16,6 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 
-[Serializable]
 public class MeasurementUnit : DataHubType<MeasurementUnit>
 {
     public static readonly MeasurementUnit Ampere = new("Ampere", "AMP");

@@ -16,7 +16,6 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 
-[Serializable]
 public class Resolution : DataHubType<Resolution>
 {
     public static readonly Resolution QuarterHourly = new("QuarterHourly", "PT15M");

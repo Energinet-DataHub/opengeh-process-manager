@@ -16,7 +16,6 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 
-[Serializable]
 public class ActorRole : DataHubType<ActorRole>
 {
     public static readonly ActorRole MeteringPointAdministrator = new("MeteringPointAdministrator", "DDZ");

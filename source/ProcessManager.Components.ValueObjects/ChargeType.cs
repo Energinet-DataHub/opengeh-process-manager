@@ -14,7 +14,6 @@
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 
-[Serializable]
 public class ChargeType : DataHubType<ChargeType>
 {
     public static readonly ChargeType Subscription = new("Subscription", "D01");

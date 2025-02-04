@@ -16,7 +16,6 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 
-[Serializable]
 public class SettlementVersion : DataHubType<SettlementVersion>
 {
     public static readonly SettlementVersion FirstCorrection = new("FirstCorrection", "D01");

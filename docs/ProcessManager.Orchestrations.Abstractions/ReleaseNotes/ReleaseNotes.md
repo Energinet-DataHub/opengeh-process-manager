@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 0.19.0
+
+- Add reference to new NuGet package `Energinet.DataHub.ProcessManager.Components.ValueObjects`
+
 ## Version 0.18.4
 
 - Update NuGet package properties `RepositoryUrl`, `PackageReleaseNotes` and `PackageDescription`.

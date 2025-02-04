@@ -1,11 +1,15 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 0.19.0
+## Version 0.20.0
 
 - Add new columns to `OrchestrationInstance` and `StartOrchestrationInstanceV1`:
   - ActorMessageId
   - TransactionId
   - MeteringPointId
+
+## Version 0.19.0
+
+- Add protobuf contract `CalculationEnqueueCompletedV1`
 
 ## Version 0.18.4
 

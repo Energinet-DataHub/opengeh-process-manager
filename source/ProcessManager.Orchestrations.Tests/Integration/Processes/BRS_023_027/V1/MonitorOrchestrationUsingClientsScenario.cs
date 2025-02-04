@@ -31,6 +31,7 @@ using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
+using Proto = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Contracts;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1;
 
@@ -86,6 +87,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
 
         Fixture.EnqueueBrs023027ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+        Fixture.IntegrationEventServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         return Task.CompletedTask;
     }
@@ -125,10 +127,15 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     inputParameter),
                 CancellationToken.None);
 
-        // Step 2: Wait for service bus message to EDI and mock a response
+        // Step 2.0: Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
             ProcessManagerMessageClient,
             orchestrationInstanceId);
+
+        // step 2.5: Wait for the integration event to be published
+        await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
+            orchestrationInstanceId: orchestrationInstanceId,
+            calculationType: Proto.CalculationType.WholesaleFixing);
 
         // Step 3: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
@@ -215,10 +222,15 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await Fixture.ProcessManagerAppManager.AppHostManager
             .TriggerFunctionAsync("StartScheduledOrchestrationInstances");
 
-        // Step 3: Wait for service bus message to EDI and mock a response
+        // Step 3.0: Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
             ProcessManagerMessageClient,
             orchestrationInstanceId);
+
+        // step 3.5: Wait for the integration event to be published
+        await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
+            orchestrationInstanceId: orchestrationInstanceId,
+            calculationType: Proto.CalculationType.BalanceFixing);
 
         // Step 4: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(

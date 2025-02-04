@@ -1,11 +1,15 @@
 # ProcessManager.Client Release Notes
 
-## Version 0.27.0
+## Version 0.28.0
 
 - Add new columns to `OrchestrationInstance` and `StartOrchestrationInstanceV1`:
     - ActorMessageId
     - TransactionId
     - MeteringPointId
+
+## Version 0.27.0
+
+- Update Nuget package `Grpc.Tools`
 
 ## Version 0.26.2
 

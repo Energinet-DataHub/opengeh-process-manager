@@ -300,9 +300,9 @@ internal class OrchestrationInstanceManager(
             orchestrationDescription,
             skipStepsBySequence,
             _clock,
-            null,
-            null,
-            null,
+            actorMessageId,
+            transactionId,
+            meteringPointId,
             runAt,
             idempotencyKey);
 

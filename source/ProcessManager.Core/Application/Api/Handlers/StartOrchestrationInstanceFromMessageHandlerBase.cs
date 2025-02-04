@@ -102,7 +102,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
             idempotencyKey: message.GetIdempotencyKey(),
             actorMessageId: startOrchestration.ActorMessageId,
             transactionId: startOrchestration.TransactionId,
-            meteringPointId: startOrchestration.MeteringPointId)
+            meteringPointId: startOrchestration.HasMeteringPointId ? startOrchestration.MeteringPointId : null)
             .ConfigureAwait(false);
     }
 }

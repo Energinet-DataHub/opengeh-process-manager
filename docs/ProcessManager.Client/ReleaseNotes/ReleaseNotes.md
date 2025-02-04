@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 0.27.0
+
+- Update Nuget package `Grpc.Tools`
+
 ## Version 0.26.2
 
 - Update NuGet package properties `RepositoryUrl`, `PackageReleaseNotes` and `PackageDescription`.

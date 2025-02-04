@@ -150,7 +150,7 @@ internal class Orchestration_Brs_023_027_V1
             var calculationData = new CalculationEnqueueActorMessagesV1(
                 CalculationId: executionContext.CalculationId);
 
-            messagesSuccessfullyEnqueued = await EnqueueMessagesAsync(
+            messagesSuccessfullyEnqueued = await TryEnqueueMessagesAsync(
                 context: context,
                 instanceId: instanceId,
                 timeout: TimeSpan.FromSeconds(executionContext.OrchestrationOptions.MessagesEnqueuingExpiryTimeInSeconds),
@@ -158,9 +158,16 @@ internal class Orchestration_Brs_023_027_V1
 
             if (messagesSuccessfullyEnqueued)
             {
-                // TODO: Publish CalculationCompleted integration event when messages are enqueued and only if enqueued!
-                // It should not be seen as a part of enqueueing messages step and it is not a separate step itself.
-                // But it should happen before we transition the orchestration to terminated.
+                var integrationEventIdempotencyKey = context.NewGuid();
+
+                // Messages have been prepared for the actors, we need to inform the other subsystems
+                await context.CallActivityAsync(
+                    nameof(PublishCalculationEnqueueCompletedActivity_brs_023_027_V1),
+                    new PublishCalculationEnqueueCompletedActivity_brs_023_027_V1.ActivityInput(
+                        instanceId,
+                        executionContext.CalculationId,
+                        integrationEventIdempotencyKey),
+                    _defaultRetryOptions);
             }
         }
 
@@ -187,7 +194,7 @@ internal class Orchestration_Brs_023_027_V1
             backoffCoefficient: 2.0));
     }
 
-    private async Task<bool> EnqueueMessagesAsync(
+    private async Task<bool> TryEnqueueMessagesAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
         TimeSpan timeout,
@@ -213,11 +220,11 @@ internal class Orchestration_Brs_023_027_V1
         var success = false;
         try
         {
-            var enqueueEvent = await context.WaitForExternalEvent<CalculationEnqueueActorMessagesCompletedNotifyEventV1?>(
+            var enqueueEvent = await context.WaitForExternalEvent<CalculationEnqueueActorMessagesCompletedNotifyEventV1>(
                 eventName: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName,
                 timeout: timeout);
 
-            success = enqueueEvent is { Success: true };
+            success = enqueueEvent.Success;
         }
         catch (TaskCanceledException)
         {

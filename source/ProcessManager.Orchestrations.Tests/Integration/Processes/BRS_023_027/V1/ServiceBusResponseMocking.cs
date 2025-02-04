@@ -18,8 +18,10 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using FluentAssertions;
+using Proto = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Contracts;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1;
 
@@ -28,7 +30,8 @@ public static class ServiceBusResponseMocking
     public static async Task WaitAndMockServiceBusMessageToAndFromEdi(
         this ServiceBusListenerMock serviceBusListenerMock,
         IProcessManagerMessageClient processManagerMessageClient,
-        Guid orchestrationInstanceId)
+        Guid orchestrationInstanceId,
+        bool successfulResponse = true)
     {
         var verifyServiceBusMessage = await serviceBusListenerMock
             .When(
@@ -49,13 +52,37 @@ public static class ServiceBusResponseMocking
                 })
             .VerifyCountAsync(1);
         var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(30));
-        messageFound.Should().BeTrue("because the expected message should be sent on the ServiceBus");
+        messageFound.Should().BeTrue("because EDI should have been asked to enqueue messages");
 
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent<CalculationEnqueueActorMessagesCompletedNotifyEventV1>(
                 OrchestrationInstanceId: orchestrationInstanceId.ToString(),
                 EventName: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName,
-                Data: new CalculationEnqueueActorMessagesCompletedNotifyEventV1 { Success = true }),
+                Data: new CalculationEnqueueActorMessagesCompletedNotifyEventV1 { Success = successfulResponse }),
             CancellationToken.None);
+    }
+
+    public static async Task WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
+        this ServiceBusListenerMock serviceBusListenerMock,
+        Guid orchestrationInstanceId,
+        Proto.CalculationType calculationType)
+    {
+        var verifyIntegrationEvent = await serviceBusListenerMock
+            .When(
+                message =>
+                {
+                    if (message.Subject != CalculationEnqueueCompletedV1.Descriptor.Name)
+                        return false;
+
+                    var calculationEnqueueCompletedV1 = CalculationEnqueueCompletedV1.Parser.ParseFrom(message.Body)!;
+
+                    var calculationIdMatches = calculationEnqueueCompletedV1!.CalculationId == orchestrationInstanceId.ToString();
+                    var calculationTypeMatches = calculationEnqueueCompletedV1.CalculationType == calculationType;
+
+                    return calculationIdMatches && calculationTypeMatches;
+                })
+            .VerifyCountAsync(1);
+        var messageFound = verifyIntegrationEvent.Wait(TimeSpan.FromSeconds(30));
+        messageFound.Should().BeTrue("because the expected message should be published to the shared integration event topic");
     }
 }

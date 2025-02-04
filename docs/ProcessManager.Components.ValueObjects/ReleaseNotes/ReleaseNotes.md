@@ -1,5 +1,5 @@
 # ProcessManager.Components.ValueObjects Release Notes
 
-## Version 0.0.1
+## Version 0.1.0
 
-- First release.
+- Added `ValueObjects` that was previously located within NuGet package `ProcessManager.Orchestrations.Abstractions`.

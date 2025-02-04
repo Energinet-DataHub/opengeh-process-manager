@@ -17,7 +17,7 @@ syntax = "proto3";
 
 package google.protobuf;
 
-option csharp_namespace = "Energinet.DataHub.Brs023027.Contracts";
+option csharp_namespace = "Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Contracts";
 
 message CalculationEnqueueCompletedV1 {
   string calculationId = 1; // This is a guid.

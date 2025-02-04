@@ -13,15 +13,15 @@
 // limitations under the License.
 
 using System.Text.Json;
-using Energinet.DataHub.Brs023027.Contracts;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using FluentAssertions;
-using CalculationType = Energinet.DataHub.Brs023027.Contracts.CalculationType;
+using Proto = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Contracts;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1;
 
@@ -65,7 +65,7 @@ public static class ServiceBusResponseMocking
     public static async Task WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
         this ServiceBusListenerMock serviceBusListenerMock,
         Guid orchestrationInstanceId,
-        CalculationType calculationType)
+        Proto.CalculationType calculationType)
     {
         var verifyIntegrationEvent = await serviceBusListenerMock
             .When(

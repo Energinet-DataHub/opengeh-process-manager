@@ -31,6 +31,7 @@ using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
+using Proto = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Contracts;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1;
 
@@ -134,7 +135,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // step 2.5: Wait for the integration event to be published
         await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
             orchestrationInstanceId: orchestrationInstanceId,
-            calculationType: Brs023027.Contracts.CalculationType.WholesaleFixing);
+            calculationType: Proto.CalculationType.WholesaleFixing);
 
         // Step 3: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
@@ -229,7 +230,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // step 3.5: Wait for the integration event to be published
         await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
             orchestrationInstanceId: orchestrationInstanceId,
-            calculationType: Brs023027.Contracts.CalculationType.BalanceFixing);
+            calculationType: Proto.CalculationType.BalanceFixing);
 
         // Step 4: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(

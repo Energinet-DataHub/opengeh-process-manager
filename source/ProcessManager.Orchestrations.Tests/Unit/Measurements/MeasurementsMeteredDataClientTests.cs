@@ -16,6 +16,7 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
@@ -58,7 +59,7 @@ public class MeasurementsMeteredDataClientTests
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
             ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType.Consumption,
             "test-product",
-            ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KilowattHour,
+            MeasurementUnit.KilowattHour,
             ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution.QuarterHourly,
             new List<Point>
             {

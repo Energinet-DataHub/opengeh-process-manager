@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ElectricityMarket.Integration;
+using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
 
@@ -25,18 +26,18 @@ public static class MeteringPointMasterDataMapper
         { MeteringPointType.Exchange, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType.Exchange },
     };
 
-    public static readonly Dictionary<MeasureUnit, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit> MeasureUnitMap = new()
+    public static readonly Dictionary<MeasureUnit, MeasurementUnit> MeasureUnitMap = new()
     {
-        { MeasureUnit.Ampere, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.Ampere },
-        { MeasureUnit.STK, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.Pieces },
-        { MeasureUnit.kVArh, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KiloVoltAmpereReactiveHour },
-        { MeasureUnit.kWh, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KilowattHour },
-        { MeasureUnit.kW, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.Kilowatt },
-        { MeasureUnit.MW, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.Megawatt },
-        { MeasureUnit.MWh, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MegawattHour },
-        { MeasureUnit.Tonne, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MetricTon },
-        { MeasureUnit.MVAr, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MegaVoltAmpereReactivePower },
-        { MeasureUnit.DanishTariffCode, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.DanishTariffCode },
+        { MeasureUnit.Ampere, MeasurementUnit.Ampere },
+        { MeasureUnit.STK, MeasurementUnit.Pieces },
+        { MeasureUnit.kVArh, MeasurementUnit.KiloVoltAmpereReactiveHour },
+        { MeasureUnit.kWh, MeasurementUnit.KilowattHour },
+        { MeasureUnit.kW, MeasurementUnit.Kilowatt },
+        { MeasureUnit.MW, MeasurementUnit.Megawatt },
+        { MeasureUnit.MWh, MeasurementUnit.MegawattHour },
+        { MeasureUnit.Tonne, MeasurementUnit.MetricTon },
+        { MeasureUnit.MVAr, MeasurementUnit.MegaVoltAmpereReactivePower },
+        { MeasureUnit.DanishTariffCode, MeasurementUnit.DanishTariffCode },
     };
 
     public static readonly Dictionary<MeteringPointSubType, Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType> MeteringPointSubTypeMap = new()

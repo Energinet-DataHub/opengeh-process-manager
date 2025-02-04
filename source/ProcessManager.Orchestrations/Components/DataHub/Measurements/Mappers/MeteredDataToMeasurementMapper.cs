@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.Measurements.Contracts;
+using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
 
@@ -32,14 +33,14 @@ public static class MeteredDataToMeasurementMapper
         { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution.Hourly, Energinet.DataHub.Measurements.Contracts.Resolution.RPt1H },
     };
 
-    internal static Dictionary<ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit, Energinet.DataHub.Measurements.Contracts.Unit> MeasurementUnit { get; } = new()
+    internal static Dictionary<MeasurementUnit, Energinet.DataHub.Measurements.Contracts.Unit> MeasurementUnit { get; } = new()
     {
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KilowattHour, Unit.UKwh },
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MegawattHour, Unit.UMwh },
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MegaVoltAmpereReactivePower, Unit.UMvar },
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KiloVoltAmpereReactiveHour, Unit.UKvarh },
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.Kilowatt, Unit.UKw },
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MetricTon, Unit.UTonne },
+        { ProcessManager.Components.ValueObjects.MeasurementUnit.KilowattHour, Unit.UKwh },
+        { ProcessManager.Components.ValueObjects.MeasurementUnit.MegawattHour, Unit.UMwh },
+        { ProcessManager.Components.ValueObjects.MeasurementUnit.MegaVoltAmpereReactivePower, Unit.UMvar },
+        { ProcessManager.Components.ValueObjects.MeasurementUnit.KiloVoltAmpereReactiveHour, Unit.UKvarh },
+        { ProcessManager.Components.ValueObjects.MeasurementUnit.Kilowatt, Unit.UKw },
+        { ProcessManager.Components.ValueObjects.MeasurementUnit.MetricTon, Unit.UTonne },
     };
 
     internal static Dictionary<ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType, Energinet.DataHub.Measurements.Contracts.MeteringPointType> MeteringPointType { get; } = new()

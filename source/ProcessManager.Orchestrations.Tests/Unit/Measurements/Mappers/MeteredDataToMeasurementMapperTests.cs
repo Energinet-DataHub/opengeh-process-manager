@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.Measurements.Contracts;
+using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
 using FluentAssertions;
 
@@ -48,14 +49,14 @@ public class MeteredDataToMeasurementMapperTests
     [Fact]
     public void MeasurementUnit_Mapping_ShouldBeCorrect()
     {
-        var expectedMappings = new Dictionary<ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit, Energinet.DataHub.Measurements.Contracts.Unit>
+        var expectedMappings = new Dictionary<MeasurementUnit, Energinet.DataHub.Measurements.Contracts.Unit>
         {
-            { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KilowattHour, Energinet.DataHub.Measurements.Contracts.Unit.UKwh },
-            { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MegawattHour, Energinet.DataHub.Measurements.Contracts.Unit.UMwh },
-            { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MegaVoltAmpereReactivePower, Energinet.DataHub.Measurements.Contracts.Unit.UMvar },
-            { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KiloVoltAmpereReactiveHour, Energinet.DataHub.Measurements.Contracts.Unit.UKvarh },
-            { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.Kilowatt, Energinet.DataHub.Measurements.Contracts.Unit.UKw },
-            { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MetricTon, Energinet.DataHub.Measurements.Contracts.Unit.UTonne },
+            { MeasurementUnit.KilowattHour, Energinet.DataHub.Measurements.Contracts.Unit.UKwh },
+            { MeasurementUnit.MegawattHour, Energinet.DataHub.Measurements.Contracts.Unit.UMwh },
+            { MeasurementUnit.MegaVoltAmpereReactivePower, Energinet.DataHub.Measurements.Contracts.Unit.UMvar },
+            { MeasurementUnit.KiloVoltAmpereReactiveHour, Energinet.DataHub.Measurements.Contracts.Unit.UKvarh },
+            { MeasurementUnit.Kilowatt, Energinet.DataHub.Measurements.Contracts.Unit.UKw },
+            { MeasurementUnit.MetricTon, Energinet.DataHub.Measurements.Contracts.Unit.UTonne },
         };
 
         MeteredDataToMeasurementMapper.MeasurementUnit.Should().BeEquivalentTo(expectedMappings);

@@ -286,10 +286,6 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         isTerminatedSuccessfully.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
 
-    /// <summary>
-    /// Asserting that no subsystem is informed about the calculation completed when running an internal calculation.
-    /// Asserting that the orchestration terminated successfully.
-    /// </summary>
     [Fact]
     public async Task Calculation_WhenMessageEnqueueFails_NoIntegrationEventIsPublishedAndHasStatusFailed()
     {
@@ -365,7 +361,6 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         isTerminatedSuccessfully.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
-
 
     private async Task<bool> AwaitJobStatusAsync(JobRunStatus expectedStatus, Guid orchestrationInstanceId)
     {

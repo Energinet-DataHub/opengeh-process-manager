@@ -81,7 +81,13 @@ public class MeasurementsMeteredDataClientTests
             Resolution = Resolution.RPt15M,
         };
 
-        expectedData.Points.Add(new Energinet.DataHub.Measurements.Contracts.Point { Position = 1, Quantity = DecimalValueMapper.Map(100), Quality = Quality.QMeasured });
+        expectedData.Points.Add(
+            new Energinet.DataHub.Measurements.Contracts.Point
+            {
+                Position = 1,
+                Quantity = DecimalValueMapper.Map(100),
+                Quality = Energinet.DataHub.Measurements.Contracts.Quality.QMeasured,
+            });
 
         var expectedEventData = new EventData(expectedData.ToByteArray());
 

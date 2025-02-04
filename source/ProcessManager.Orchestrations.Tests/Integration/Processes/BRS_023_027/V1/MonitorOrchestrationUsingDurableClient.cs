@@ -295,8 +295,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         // step 1.0: Start the orchestration
         var orchestrationId = await StartCalculationAsync(
-            calculationType: CalculationType.WholesaleFixing,
-            isInternalCalculation: true);
+            calculationType: CalculationType.WholesaleFixing);
 
         // step 2.0: Wait for service bus message to EDI and mock a failed response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(

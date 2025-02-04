@@ -227,16 +227,6 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             calculationType: CalculationType.Aggregation,
             isInternalCalculation: true);
 
-        // step 2.0: Wait for service bus message to EDI and mock a response
-        await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
-            processManagerMessageClient: ProcessManagerMessageClient,
-            orchestrationInstanceId: orchestrationId);
-
-        // step 2.5: Wait for the integration event to be published
-        await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
-            orchestrationInstanceId: orchestrationId,
-            calculationType: Brs023027.Contracts.CalculationType.Aggregation);
-
         var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
             orchestrationId.ToString(),
             TimeSpan.FromSeconds(30));

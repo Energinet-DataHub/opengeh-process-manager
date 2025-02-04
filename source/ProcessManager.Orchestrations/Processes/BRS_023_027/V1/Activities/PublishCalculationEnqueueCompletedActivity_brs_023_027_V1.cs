@@ -14,6 +14,9 @@
 
 using Energinet.DataHub.Brs023027.Contracts;
 using Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using CalculationType = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model.CalculationType;
 using Proto = Energinet.DataHub.Brs023027.Contracts;
@@ -21,18 +24,25 @@ using Proto = Energinet.DataHub.Brs023027.Contracts;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 
 internal class PublishCalculationEnqueueCompletedActivity_brs_023_027_V1(
+    IOrchestrationInstanceProgressRepository repository,
     IIntegrationEventPublisherClient integrationEventPublisherClient)
 {
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly IIntegrationEventPublisherClient _integrationEventPublisherClient = integrationEventPublisherClient;
 
     [Function(nameof(PublishCalculationEnqueueCompletedActivity_brs_023_027_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
+        var orchestrationInstance = await _repository
+            .GetAsync(input.OrchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
         var integrationEvent = new CalculationEnqueueCompletedV1()
         {
             CalculationId = input.CalculationId.ToString(),
-            CalculationType = Map(input.CalculationType),
+            CalculationType = Map(orchestrationInstanceInput.CalculationType),
         };
 
         await _integrationEventPublisherClient.PublishAsync(
@@ -60,7 +70,7 @@ internal class PublishCalculationEnqueueCompletedActivity_brs_023_027_V1(
     }
 
     public record ActivityInput(
+        OrchestrationInstanceId OrchestrationInstanceId,
         Guid CalculationId,
-        CalculationType CalculationType,
         Guid IdempotencyKey);
 }

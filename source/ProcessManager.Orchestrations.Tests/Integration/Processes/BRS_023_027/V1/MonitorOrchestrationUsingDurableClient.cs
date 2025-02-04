@@ -105,7 +105,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     }
 
     /// <summary>
-    /// Asserting that we can run a full orchestration, asserting the service bus messages sent to EDI and the
+    /// Asserting that we can run a full orchestration, asserting the service bus message sent to EDI and the
     /// message published to the shared integration event topic.
     /// Lastly we assert that the history of the orchestration is as expected.
     /// </summary>
@@ -212,7 +212,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
     /// <summary>
     /// Asserting that no subsystem is informed about the calculation completed when running an internal calculation.
-    /// And the orchestration terminates successfully.
+    /// Asserting that the orchestration terminated successfully.
     /// </summary>
     [Fact]
     public async Task Calculation_WhenStartingAnInternalCalculation_NoSubsystemIsInformedAndTerminatesSuccessfully()

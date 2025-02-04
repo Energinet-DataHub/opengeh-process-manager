@@ -12,7 +12,7 @@
     <Company>Energinet-DataHub</Company>
     <Authors>Energinet-DataHub</Authors>
     <PackageProjectUrl>https://github.com/Energinet-DataHub</PackageProjectUrl>
-      <RepositoryUrl>https://github.com/Energinet-DataHub/opengeh-process-manager</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Energinet-DataHub/opengeh-process-manager</RepositoryUrl>
     <!-- PackageReleaseNotes:
       Is shown in Azure DevOps artifacts Release Notes section
     -->
@@ -62,20 +62,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Protobuf Include="**\*.proto">
-      <GrpcServices>None</GrpcServices>
-      <Access>Public</Access>
-      <ProtoCompile>True</ProtoCompile>
-      <CompileOutputs>True</CompileOutputs>
-      <Generator>MSBuild:Compile</Generator>
-    </Protobuf>
-    <PackageReference Include="Google.Protobuf" Version="3.29.1" />
-    <PackageReference Include="Grpc.Tools" Version="2.69.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="**\*.proto">

@@ -164,8 +164,8 @@ internal class Orchestration_Brs_023_027_V1
                 await context.CallActivityAsync(
                     nameof(PublishCalculationEnqueueCompletedActivity_brs_023_027_V1),
                     new PublishCalculationEnqueueCompletedActivity_brs_023_027_V1.ActivityInput(
+                        instanceId,
                         executionContext.CalculationId,
-                        orchestrationInput.CalculationType,
                         integrationEventIdempotencyKey),
                     _defaultRetryOptions);
             }

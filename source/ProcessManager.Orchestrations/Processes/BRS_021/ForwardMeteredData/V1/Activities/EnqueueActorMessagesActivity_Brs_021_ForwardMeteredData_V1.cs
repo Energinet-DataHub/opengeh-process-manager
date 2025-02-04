@@ -21,7 +21,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.ValueObjects.MeteringPointType;
-using Resolution = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution;
+using Resolution = Energinet.DataHub.ProcessManager.Components.ValueObjects.Resolution;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 

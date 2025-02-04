@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
 using FluentAssertions;
 using MeasurementsTypes = Energinet.DataHub.Measurements.Contracts;
@@ -38,10 +39,10 @@ public class MeteredDataToMeasurementMapperTests
     [Fact]
     public void Resolution_Mapping_ShouldBeCorrect()
     {
-        var expectedMappings = new Dictionary<ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution, MeasurementsTypes.Resolution>
+        var expectedMappings = new Dictionary<Resolution, MeasurementsTypes.Resolution>
         {
-            { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution.QuarterHourly, MeasurementsTypes.Resolution.RPt15M },
-            { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution.Hourly, MeasurementsTypes.Resolution.RPt1H },
+            { Resolution.QuarterHourly, MeasurementsTypes.Resolution.RPt15M },
+            { Resolution.Hourly, MeasurementsTypes.Resolution.RPt1H },
         };
 
         MeteredDataToMeasurementMapper.Resolution.Should().BeEquivalentTo(expectedMappings);

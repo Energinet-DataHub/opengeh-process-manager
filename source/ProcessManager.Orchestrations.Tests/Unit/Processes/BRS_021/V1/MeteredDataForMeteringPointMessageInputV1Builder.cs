@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.V1;

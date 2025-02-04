@@ -60,7 +60,7 @@ public class MeasurementsMeteredDataClientTests
             ProcessManager.Components.ValueObjects.MeteringPointType.Consumption,
             "test-product",
             MeasurementUnit.KilowattHour,
-            ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution.QuarterHourly,
+            ProcessManager.Components.ValueObjects.Resolution.QuarterHourly,
             new List<Point>
             {
                 new(1, 100, ProcessManager.Components.ValueObjects.Quality.AsProvided),
@@ -78,7 +78,7 @@ public class MeasurementsMeteredDataClientTests
             MeteringPointType = DataHub.Measurements.Contracts.MeteringPointType.MptConsumption,
             Product = meteredData.Product,
             Unit = Energinet.DataHub.Measurements.Contracts.Unit.UKwh,
-            Resolution = Resolution.RPt15M,
+            Resolution = Energinet.DataHub.Measurements.Contracts.Resolution.RPt15M,
         };
 
         expectedData.Points.Add(

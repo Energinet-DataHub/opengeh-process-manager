@@ -12,62 +12,62 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Measurements.Contracts;
-using Energinet.DataHub.ProcessManager.Components.ValueObjects;
+using MeasurementTypes=Energinet.DataHub.Measurements.Contracts;
+using PMTypes=Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
 
 public static class MeteredDataToMeasurementMapper
 {
-    internal static Dictionary<ProcessManager.Components.ValueObjects.Quality, Energinet.DataHub.Measurements.Contracts.Quality> Quality { get; } = new()
+    internal static Dictionary<PMTypes.Quality, MeasurementTypes.Quality> Quality { get; } = new()
     {
-        { ProcessManager.Components.ValueObjects.Quality.NotAvailable, Energinet.DataHub.Measurements.Contracts.Quality.QMissing },
-        { ProcessManager.Components.ValueObjects.Quality.Estimated, Energinet.DataHub.Measurements.Contracts.Quality.QEstimated },
-        { ProcessManager.Components.ValueObjects.Quality.AsProvided, Energinet.DataHub.Measurements.Contracts.Quality.QMeasured },
-        { ProcessManager.Components.ValueObjects.Quality.Calculated, Energinet.DataHub.Measurements.Contracts.Quality.QCalculated },
+        { PMTypes.Quality.NotAvailable, MeasurementTypes.Quality.QMissing },
+        { PMTypes.Quality.Estimated, MeasurementTypes.Quality.QEstimated },
+        { PMTypes.Quality.AsProvided, MeasurementTypes.Quality.QMeasured },
+        { PMTypes.Quality.Calculated, MeasurementTypes.Quality.QCalculated },
     };
 
-    internal static Dictionary<ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution, Resolution> Resolution { get; } = new()
+    internal static Dictionary<PMTypes.Resolution, MeasurementTypes.Resolution> Resolution { get; } = new()
     {
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution.QuarterHourly, Energinet.DataHub.Measurements.Contracts.Resolution.RPt15M },
-        { ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution.Hourly, Energinet.DataHub.Measurements.Contracts.Resolution.RPt1H },
+        { PMTypes.Resolution.QuarterHourly, MeasurementTypes.Resolution.RPt15M },
+        { PMTypes.Resolution.Hourly, MeasurementTypes.Resolution.RPt1H },
     };
 
-    internal static Dictionary<MeasurementUnit, Energinet.DataHub.Measurements.Contracts.Unit> MeasurementUnit { get; } = new()
+    internal static Dictionary<PMTypes.MeasurementUnit, MeasurementTypes.Unit> MeasurementUnit { get; } = new()
     {
-        { ProcessManager.Components.ValueObjects.MeasurementUnit.KilowattHour, Unit.UKwh },
-        { ProcessManager.Components.ValueObjects.MeasurementUnit.MegawattHour, Unit.UMwh },
-        { ProcessManager.Components.ValueObjects.MeasurementUnit.MegaVoltAmpereReactivePower, Unit.UMvar },
-        { ProcessManager.Components.ValueObjects.MeasurementUnit.KiloVoltAmpereReactiveHour, Unit.UKvarh },
-        { ProcessManager.Components.ValueObjects.MeasurementUnit.Kilowatt, Unit.UKw },
-        { ProcessManager.Components.ValueObjects.MeasurementUnit.MetricTon, Unit.UTonne },
+        { PMTypes.MeasurementUnit.KilowattHour, MeasurementTypes.Unit.UKwh },
+        { PMTypes.MeasurementUnit.MegawattHour, MeasurementTypes.Unit.UMwh },
+        { PMTypes.MeasurementUnit.MegaVoltAmpereReactivePower, MeasurementTypes.Unit.UMvar },
+        { PMTypes.MeasurementUnit.KiloVoltAmpereReactiveHour, MeasurementTypes.Unit.UKvarh },
+        { PMTypes.MeasurementUnit.Kilowatt, MeasurementTypes.Unit.UKw },
+        { PMTypes.MeasurementUnit.MetricTon, MeasurementTypes.Unit.UTonne },
     };
 
-    internal static Dictionary<ProcessManager.Components.ValueObjects.MeteringPointType, Energinet.DataHub.Measurements.Contracts.MeteringPointType> MeteringPointType { get; } = new()
+    internal static Dictionary<PMTypes.MeteringPointType, MeasurementTypes.MeteringPointType> MeteringPointType { get; } = new()
         {
-            { ProcessManager.Components.ValueObjects.MeteringPointType.Consumption, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptConsumption },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.Production, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptProduction },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.Exchange, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptExchange },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.VeProduction, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptVeProduction },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.Analysis, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptAnalysis },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.NotUsed, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptNotUsed },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.SurplusProductionGroup6, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptSurplusProductionGroup6 },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.NetProduction, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptNetProduction },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.SupplyToGrid, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptSupplyToGrid },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.ConsumptionFromGrid, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptConsumptionFromGrid },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.WholesaleServicesInformation, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptWholesaleServicesInformation },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.OwnProduction, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptOwnProduction },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.NetFromGrid, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptNetFromGrid },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.NetToGrid, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptNetToGrid },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.TotalConsumption, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptTotalConsumption },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.NetLossCorrection, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptNetLossCorrection },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.ElectricalHeating, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptElectricalHeating },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.NetConsumption, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptNetConsumption },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.OtherConsumption, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptOtherConsumption },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.OtherProduction, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptOtherProduction },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.CapacitySettlement, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptEffectPayment },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.ExchangeReactiveEnergy, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptExchangeReactiveEnergy },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.CollectiveNetProduction, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptCollectiveNetProduction },
-            { ProcessManager.Components.ValueObjects.MeteringPointType.CollectiveNetConsumption, Energinet.DataHub.Measurements.Contracts.MeteringPointType.MptCollectiveNetConsumption },
+            { PMTypes.MeteringPointType.Consumption, MeasurementTypes.MeteringPointType.MptConsumption },
+            { PMTypes.MeteringPointType.Production, MeasurementTypes.MeteringPointType.MptProduction },
+            { PMTypes.MeteringPointType.Exchange, MeasurementTypes.MeteringPointType.MptExchange },
+            { PMTypes.MeteringPointType.VeProduction, MeasurementTypes.MeteringPointType.MptVeProduction },
+            { PMTypes.MeteringPointType.Analysis, MeasurementTypes.MeteringPointType.MptAnalysis },
+            { PMTypes.MeteringPointType.NotUsed, MeasurementTypes.MeteringPointType.MptNotUsed },
+            { PMTypes.MeteringPointType.SurplusProductionGroup6, MeasurementTypes.MeteringPointType.MptSurplusProductionGroup6 },
+            { PMTypes.MeteringPointType.NetProduction, MeasurementTypes.MeteringPointType.MptNetProduction },
+            { PMTypes.MeteringPointType.SupplyToGrid, MeasurementTypes.MeteringPointType.MptSupplyToGrid },
+            { PMTypes.MeteringPointType.ConsumptionFromGrid, MeasurementTypes.MeteringPointType.MptConsumptionFromGrid },
+            { PMTypes.MeteringPointType.WholesaleServicesInformation, MeasurementTypes.MeteringPointType.MptWholesaleServicesInformation },
+            { PMTypes.MeteringPointType.OwnProduction, MeasurementTypes.MeteringPointType.MptOwnProduction },
+            { PMTypes.MeteringPointType.NetFromGrid, MeasurementTypes.MeteringPointType.MptNetFromGrid },
+            { PMTypes.MeteringPointType.NetToGrid, MeasurementTypes.MeteringPointType.MptNetToGrid },
+            { PMTypes.MeteringPointType.TotalConsumption, MeasurementTypes.MeteringPointType.MptTotalConsumption },
+            { PMTypes.MeteringPointType.NetLossCorrection, MeasurementTypes.MeteringPointType.MptNetLossCorrection },
+            { PMTypes.MeteringPointType.ElectricalHeating, MeasurementTypes.MeteringPointType.MptElectricalHeating },
+            { PMTypes.MeteringPointType.NetConsumption, MeasurementTypes.MeteringPointType.MptNetConsumption },
+            { PMTypes.MeteringPointType.OtherConsumption, MeasurementTypes.MeteringPointType.MptOtherConsumption },
+            { PMTypes.MeteringPointType.OtherProduction, MeasurementTypes.MeteringPointType.MptOtherProduction },
+            { PMTypes.MeteringPointType.CapacitySettlement, MeasurementTypes.MeteringPointType.MptEffectPayment },
+            { PMTypes.MeteringPointType.ExchangeReactiveEnergy, MeasurementTypes.MeteringPointType.MptExchangeReactiveEnergy },
+            { PMTypes.MeteringPointType.CollectiveNetProduction, MeasurementTypes.MeteringPointType.MptCollectiveNetProduction },
+            { PMTypes.MeteringPointType.CollectiveNetConsumption, MeasurementTypes.MeteringPointType.MptCollectiveNetConsumption },
         };
 }

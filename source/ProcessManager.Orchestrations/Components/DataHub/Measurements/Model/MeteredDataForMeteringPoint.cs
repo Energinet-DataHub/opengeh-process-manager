@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;

@@ -13,9 +13,8 @@
 // limitations under the License.
 
 using System.Text.Json.Serialization;
-using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
 public class Resolution : DataHubType<Resolution>
 {

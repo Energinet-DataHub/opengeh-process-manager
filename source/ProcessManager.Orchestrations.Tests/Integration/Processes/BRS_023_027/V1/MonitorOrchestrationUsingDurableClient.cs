@@ -32,6 +32,7 @@ using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Azure;
@@ -286,6 +287,12 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         isTerminatedSuccessfully.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
 
+    /// <summary>
+    /// Asserts that if EDI fails in enqueue messages, then:
+    /// The step is marked as failed.
+    /// No integration event is published.
+    /// And the orchestration is marked as failed.
+    /// </summary>
     [Fact]
     public async Task Calculation_WhenMessageEnqueueFails_NoIntegrationEventIsPublishedAndHasStatusFailed()
     {
@@ -339,26 +346,20 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         // => Verify that the durable function completed successfully
         completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
 
-        var isTerminatedSuccessfully = await Awaiter.TryWaitUntilConditionAsync(
-            async () =>
-            {
-                var orchestrationInstance = await ProcessManagerClient
-                    .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
-                        new GetOrchestrationInstanceByIdQuery(
-                            new UserIdentityDto(
-                                UserId: Guid.NewGuid(),
-                                ActorId: Guid.NewGuid()),
-                            orchestrationId),
-                        CancellationToken.None);
+        var orchestrationInstance = await ProcessManagerClient
+            .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
+                new GetOrchestrationInstanceByIdQuery(
+                    new UserIdentityDto(
+                        UserId: Guid.NewGuid(),
+                        ActorId: Guid.NewGuid()),
+                    orchestrationId),
+                CancellationToken.None);
+        using var assertionScope = new AssertionScope();
 
-                return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Failed;
-            },
-            timeLimit: TimeSpan.FromSeconds(20),
-            delay: TimeSpan.FromSeconds(3));
-
-        isTerminatedSuccessfully.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+        orchestrationInstance.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Failed);
+        orchestrationInstance.Steps.Last()
+            .Lifecycle.TerminationState
+            .Should().Be(OrchestrationStepTerminationState.Failed);
     }
 
     private async Task<bool> AwaitJobStatusAsync(JobRunStatus expectedStatus, Guid orchestrationInstanceId)

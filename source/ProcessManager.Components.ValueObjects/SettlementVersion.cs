@@ -16,15 +16,15 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public class SettlementVersion : DataHubType<SettlementVersion>
+public record SettlementVersion : SlimDataHubType<SettlementVersion>
 {
-    public static readonly SettlementVersion FirstCorrection = new("FirstCorrection", "D01");
-    public static readonly SettlementVersion SecondCorrection = new("SecondCorrection", "D02");
-    public static readonly SettlementVersion ThirdCorrection = new("ThirdCorrection", "D03");
+    public static readonly SettlementVersion FirstCorrection = new("FirstCorrection");
+    public static readonly SettlementVersion SecondCorrection = new("SecondCorrection");
+    public static readonly SettlementVersion ThirdCorrection = new("ThirdCorrection");
 
     [JsonConstructor]
-    private SettlementVersion(string name, string code)
-        : base(name, code)
+    private SettlementVersion(string name)
+        : base(name)
     {
     }
 }

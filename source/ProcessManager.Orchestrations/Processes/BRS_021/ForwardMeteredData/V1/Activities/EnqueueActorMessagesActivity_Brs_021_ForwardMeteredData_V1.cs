@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
-using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
-using MeteringPointType = Energinet.DataHub.ProcessManager.Components.ValueObjects.MeteringPointType;
-using Resolution = Energinet.DataHub.ProcessManager.Components.ValueObjects.Resolution;
+using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
+using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
 
@@ -57,7 +57,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
                 x => new AcceptedEnergyObservation(
                     int.Parse(x.Position!),
                     decimal.Parse(x.EnergyQuantity!),
-                    Quality.FromCode(x.QuantityQuality!)))
+                    Quality.FromName(x.QuantityQuality!)))
             .ToList();
 
         var receiver = activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId.Contains("perf_test")
@@ -67,12 +67,12 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
         var data = new MeteredDataForMeteringPointAcceptedV1(
             MessageId: messageInput.MessageId,
             MeteringPointId: messageInput.MeteringPointId!,
-            MeteringPointType: MeteringPointType.FromCode(messageInput.MeteringPointType!),
+            MeteringPointType: MeteringPointType.FromName(messageInput.MeteringPointType!),
             activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId,
             ProductNumber: messageInput.ProductNumber!,
-            MeasureUnit: MeasurementUnit.FromCode(messageInput.MeasureUnit!),
+            MeasureUnit: MeasurementUnit.FromName(messageInput.MeasureUnit!),
             RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.RegistrationDateTime).Value.ToDateTimeOffset(),
-            Resolution: Resolution.FromCode(messageInput.Resolution!),
+            Resolution: Resolution.FromName(messageInput.Resolution!),
             StartDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.StartDateTime).Value.ToDateTimeOffset(),
             EndDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.EndDateTime!).Value.ToDateTimeOffset(),
             AcceptedEnergyObservations: acceptedEnergyObservations,

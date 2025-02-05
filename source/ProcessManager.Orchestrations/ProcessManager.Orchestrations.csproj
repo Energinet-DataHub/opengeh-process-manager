@@ -50,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="./Components/DataHub/Measurements/Contracts/**/*.proto">
+    <Protobuf Include="./**/Contracts/**/*.proto">
       <GrpcServices>None</GrpcServices>
       <Access>Public</Access>
       <ProtoCompile>True</ProtoCompile>

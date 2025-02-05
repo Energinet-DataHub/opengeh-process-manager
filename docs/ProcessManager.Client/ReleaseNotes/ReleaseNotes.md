@@ -1,11 +1,15 @@
 # ProcessManager.Client Release Notes
 
-## Version 0.28.0
+## Version 1.1.0
 
 - Add new columns to `OrchestrationInstance` and `StartOrchestrationInstanceV1`:
     - ActorMessageId
     - TransactionId
     - MeteringPointId
+
+## Version 1.0.0
+
+- Moved `BusinessValidation` to NuGet package `ProcessManager.Components.Abstractions`.
 
 ## Version 0.27.1
 

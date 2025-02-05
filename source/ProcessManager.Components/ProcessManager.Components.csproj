@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
+    <ProjectReference Include="..\ProcessManager.Components.Abstractions\ProcessManager.Components.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

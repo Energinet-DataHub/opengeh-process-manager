@@ -1,9 +1,6 @@
-# ProcessManager.Components.ValueObjects Release Notes
+# ProcessManager.Components.Abstractions Release Notes
 
-## Version 0.2.0
+## Version 1.0.0
 
-- Refactor `ValueObjects` so they don't contain the `code` property.
-
-## Version 0.1.0
-
-- Added `ValueObjects` that was previously located within NuGet package `ProcessManager.Orchestrations.Abstractions`.
+- Added `ValueObjects` that was previously located within NuGet package `ProcessManager.Components.ValueObjects`.
+- Added `BusinessValidation` that was previously located within NuGet package `ProcessManager.Abstractions`.

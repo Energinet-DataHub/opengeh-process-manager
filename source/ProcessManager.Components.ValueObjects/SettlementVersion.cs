@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public record SettlementVersion : SlimDataHubType<SettlementVersion>
+public record SettlementVersion : DataHubRecordType<SettlementVersion>
 {
     public static readonly SettlementVersion FirstCorrection = new("FirstCorrection");
     public static readonly SettlementVersion SecondCorrection = new("SecondCorrection");

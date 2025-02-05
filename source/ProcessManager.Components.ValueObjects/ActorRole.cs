@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public record ActorRole : SlimDataHubType<ActorRole>
+public record ActorRole : DataHubRecordType<ActorRole>
 {
     public static readonly ActorRole MeteringPointAdministrator = new("MeteringPointAdministrator");
     public static readonly ActorRole EnergySupplier = new("EnergySupplier");

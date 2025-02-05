@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public record BusinessReason : SlimDataHubType<BusinessReason>
+public record BusinessReason : DataHubRecordType<BusinessReason>
 {
     public static readonly BusinessReason MoveIn = new("MoveIn");
     public static readonly BusinessReason BalanceFixing = new("BalanceFixing");

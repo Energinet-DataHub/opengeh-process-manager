@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public record SettlementMethod : SlimDataHubType<SettlementMethod>
+public record SettlementMethod : DataHubRecordType<SettlementMethod>
 {
     // Customer with more than ~100.000 kwH per year
     public static readonly SettlementMethod NonProfiled = new("NonProfiled");

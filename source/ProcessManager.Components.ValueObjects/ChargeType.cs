@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public record ChargeType : SlimDataHubType<ChargeType>
+public record ChargeType : DataHubRecordType<ChargeType>
 {
     public static readonly ChargeType Subscription = new("Subscription");
     public static readonly ChargeType Fee = new("Fee");

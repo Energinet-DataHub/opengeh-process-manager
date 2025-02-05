@@ -15,12 +15,12 @@
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
 /// <summary>
-/// Extends enumeration types with strongly typed methods using <typeparamref name="TDataHubType"/>.
+/// Extends enumeration types with strongly typed methods using <typeparamref name="TDataHubRecordType"/>.
 /// </summary>
-public abstract record SlimDataHubType<TDataHubType> : SlimEnumerationType
-    where TDataHubType : SlimDataHubType<TDataHubType>
+public abstract record DataHubRecordType<TDataHubRecordType> : EnumerationRecordType
+    where TDataHubRecordType : DataHubRecordType<TDataHubRecordType>
 {
-    protected SlimDataHubType(string name)
+    protected DataHubRecordType(string name)
         : base(name)
     {
     }
@@ -28,9 +28,9 @@ public abstract record SlimDataHubType<TDataHubType> : SlimEnumerationType
     /// <summary>
     /// Get instance of enumeration type by name.
     /// </summary>
-    public static TDataHubType FromName(string name)
+    public static TDataHubRecordType FromName(string name)
     {
-        return GetAll<TDataHubType>().SingleOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException($"{name} is not a valid {typeof(TDataHubType).Name} {nameof(name)}");
+        return GetAll<TDataHubRecordType>().SingleOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException($"{name} is not a valid {typeof(TDataHubRecordType).Name} {nameof(name)}");
     }
 }

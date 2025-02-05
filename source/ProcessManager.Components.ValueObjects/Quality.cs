@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public record Quality : SlimDataHubType<Quality>
+public record Quality : DataHubRecordType<Quality>
 {
     public static readonly Quality Adjusted = new("Adjusted");           // Korrigeret
     public static readonly Quality NotAvailable = new("NotAvailable");   // Manglende værdi

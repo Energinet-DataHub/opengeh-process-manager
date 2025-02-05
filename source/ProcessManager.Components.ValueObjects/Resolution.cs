@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public record Resolution : SlimDataHubType<Resolution>
+public record Resolution : DataHubRecordType<Resolution>
 {
     public static readonly Resolution QuarterHourly = new("QuarterHourly");
     public static readonly Resolution Hourly = new("Hourly");

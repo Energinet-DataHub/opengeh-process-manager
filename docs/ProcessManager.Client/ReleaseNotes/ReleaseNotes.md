@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 1.0.0
+
+- Moved `BusinessValidation` to NuGet package `ProcessManager.Components.Abstractions`.
+
 ## Version 0.27.1
 
 - No functional changes.

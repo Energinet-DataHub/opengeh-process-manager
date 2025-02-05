@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using EMTypes=Energinet.DataHub.ElectricityMarket.Integration;
-using PMTypes = Energinet.DataHub.ProcessManager.Components.ValueObjects;
+using EMTypes = Energinet.DataHub.ElectricityMarket.Integration;
+using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
 

@@ -16,15 +16,15 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public class ChargeType : DataHubType<ChargeType>
+public record ChargeType : SlimDataHubType<ChargeType>
 {
-    public static readonly ChargeType Subscription = new("Subscription", "D01");
-    public static readonly ChargeType Fee = new("Fee", "D02");
-    public static readonly ChargeType Tariff = new("Tariff", "D03");
+    public static readonly ChargeType Subscription = new("Subscription");
+    public static readonly ChargeType Fee = new("Fee");
+    public static readonly ChargeType Tariff = new("Tariff");
 
     [JsonConstructor]
-    private ChargeType(string name, string code)
-        : base(name, code)
+    private ChargeType(string name)
+        : base(name)
     {
     }
 }

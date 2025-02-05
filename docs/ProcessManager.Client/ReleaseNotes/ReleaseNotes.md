@@ -2,7 +2,7 @@
 
 ## Version 1.0.0
 
-- No functional changes.
+- Moved `BusinessValidation` to NuGet package `ProcessManageComponents.r.Abstractions`.
 
 ## Version 0.27.1
 

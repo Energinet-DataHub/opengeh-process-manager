@@ -18,6 +18,8 @@ name: Publish ProcessManager NuGet bundle(s)
 #
 # - ProcessManager.Client depends on
 #     - ProcessManager.Abstractions
+# - ProcessManager.Component.Abstractions depends on
+#     - ProcessManager.Abstractions
 # - ProcessManager.Orchestrations.Abstractions depends on
 #     - ProcessManager.Abstractions
 #     - ProcessManager.Components.Abstractions
@@ -157,16 +159,21 @@ jobs:
           nuget_token: ${{ secrets.nuget_token }}
           nupkg_recurse_path: source/ProcessManager.Abstractions
 
-      - name: Package content or build has changed for PM.Components.Abstractions
+      # NOTICE:
+      # If dependency ProcessManager.Abstractions has changed
+      # then we enforce a publish as if the ProcessManager.Components.Abstractions has changed,
+      # because we want to ensure the version of ProcessManager.Components.Abstractions is bumped.
+      - name: Package content, dependencies or build has changed for PM.Components.Abstractions
         id: changed-content-components
         uses: tj-actions/changed-files@v45
         with:
           base_sha: ${{ env.BASE_SHA }}
           files: |
             source/ProcessManager.Components.Abstractions/**/*.*
+            source/ProcessManager.Abstractions/**/*.*
             .github/workflows/processmanager-client-bundle-publish.yml
 
-      - name: List all changed files for PM.Components.Abstractions
+      - name: List all changed files for PM.Components.Abstractions or its dependencies
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-content-components.outputs.all_changed_files }}
         shell: bash

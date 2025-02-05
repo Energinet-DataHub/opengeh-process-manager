@@ -16,23 +16,23 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public class ActorRole : DataHubType<ActorRole>
+public record ActorRole : SlimDataHubType<ActorRole>
 {
-    public static readonly ActorRole MeteringPointAdministrator = new("MeteringPointAdministrator", "DDZ");
-    public static readonly ActorRole EnergySupplier = new("EnergySupplier", "DDQ");
-    public static readonly ActorRole GridAccessProvider = new("GridAccessProvider", "DDM");
-    public static readonly ActorRole MeteredDataAdministrator = new("MeteredDataAdministrator", "DGL");
-    public static readonly ActorRole MeteredDataResponsible = new("MeteredDataResponsible", "MDR");
-    public static readonly ActorRole BalanceResponsibleParty = new("BalanceResponsibleParty", "DDK");
-    public static readonly ActorRole ImbalanceSettlementResponsible = new("ImbalanceSettlementResponsible", "DDX");
-    public static readonly ActorRole SystemOperator = new("SystemOperator", "EZ");
-    public static readonly ActorRole DanishEnergyAgency = new("DanishEnergyAgency", "STS");
-    public static readonly ActorRole Delegated = new("Delegated", "DEL");
-    public static readonly ActorRole DataHubAdministrator = new("DataHubAdministrator", string.Empty);
+    public static readonly ActorRole MeteringPointAdministrator = new("MeteringPointAdministrator");
+    public static readonly ActorRole EnergySupplier = new("EnergySupplier");
+    public static readonly ActorRole GridAccessProvider = new("GridAccessProvider");
+    public static readonly ActorRole MeteredDataAdministrator = new("MeteredDataAdministrator");
+    public static readonly ActorRole MeteredDataResponsible = new("MeteredDataResponsible");
+    public static readonly ActorRole BalanceResponsibleParty = new("BalanceResponsibleParty");
+    public static readonly ActorRole ImbalanceSettlementResponsible = new("ImbalanceSettlementResponsible");
+    public static readonly ActorRole SystemOperator = new("SystemOperator");
+    public static readonly ActorRole DanishEnergyAgency = new("DanishEnergyAgency");
+    public static readonly ActorRole Delegated = new("Delegated");
+    public static readonly ActorRole DataHubAdministrator = new("DataHubAdministrator");
 
     [JsonConstructor]
-    private ActorRole(string name, string code)
-        : base(name, code)
+    private ActorRole(string name)
+        : base(name)
     {
     }
 }

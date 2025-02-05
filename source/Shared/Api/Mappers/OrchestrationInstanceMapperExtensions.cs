@@ -46,7 +46,10 @@ internal static class OrchestrationInstanceMapperExtensions
             ParameterValue: entity.ParameterValue.AsExpandoObject(),
             Steps: entity.Steps.Select(step => step.MapToDto()).ToList(),
             CustomState: entity.CustomState.Value,
-            IdempotencyKey: entity.IdempotencyKey?.Value);
+            IdempotencyKey: entity.IdempotencyKey?.Value,
+            ActorMessageId: entity.ActorMessageId?.Value,
+            TransactionId: entity.TransactionId?.Value,
+            MeteringPointId: entity.MeteringPointId?.Value);
     }
 
     public static ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleDto MapToDto(

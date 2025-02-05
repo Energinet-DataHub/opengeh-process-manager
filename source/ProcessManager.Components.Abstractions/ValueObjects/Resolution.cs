@@ -14,19 +14,17 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-public record Quality : DataHubRecordType<Quality>
+public record Resolution : DataHubRecordType<Resolution>
 {
-    public static readonly Quality Adjusted = new("Adjusted");           // Korrigeret
-    public static readonly Quality NotAvailable = new("NotAvailable");   // Manglende værdi
-    public static readonly Quality Estimated = new("Estimated");         // Estimeret
-    public static readonly Quality AsProvided = new("AsProvided");       // Målt
-    public static readonly Quality Incomplete = new("Incomplete");       // Ufuldstændig
-    public static readonly Quality Calculated = new("Calculated");       // Beregnet
+    public static readonly Resolution QuarterHourly = new("QuarterHourly");
+    public static readonly Resolution Hourly = new("Hourly");
+    public static readonly Resolution Daily = new("Daily");
+    public static readonly Resolution Monthly = new("Monthly");
 
     [JsonConstructor]
-    private Quality(string name)
+    private Resolution(string name)
         : base(name)
     {
     }

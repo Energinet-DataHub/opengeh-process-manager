@@ -14,7 +14,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 public record BusinessReason : DataHubRecordType<BusinessReason>
 {

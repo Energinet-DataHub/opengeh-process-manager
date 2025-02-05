@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using MeasurementTypes=Energinet.DataHub.Measurements.Contracts;
-using PMTypes=Energinet.DataHub.ProcessManager.Components.ValueObjects;
+using MeasurementTypes = Energinet.DataHub.Measurements.Contracts;
+using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
 

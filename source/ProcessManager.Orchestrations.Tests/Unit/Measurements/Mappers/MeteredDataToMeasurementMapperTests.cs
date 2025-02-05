@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
 using FluentAssertions;
 using MeasurementsTypes = Energinet.DataHub.Measurements.Contracts;
-using PMTypes = Energinet.DataHub.ProcessManager.Components.ValueObjects;
+using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Measurements.Mappers;
 
@@ -39,10 +38,10 @@ public class MeteredDataToMeasurementMapperTests
     [Fact]
     public void Resolution_Mapping_ShouldBeCorrect()
     {
-        var expectedMappings = new Dictionary<Resolution, MeasurementsTypes.Resolution>
+        var expectedMappings = new Dictionary<PMTypes.Resolution, MeasurementsTypes.Resolution>
         {
-            { Resolution.QuarterHourly, MeasurementsTypes.Resolution.RPt15M },
-            { Resolution.Hourly, MeasurementsTypes.Resolution.RPt1H },
+            { PMTypes.Resolution.QuarterHourly, MeasurementsTypes.Resolution.RPt15M },
+            { PMTypes.Resolution.Hourly, MeasurementsTypes.Resolution.RPt1H },
         };
 
         MeteredDataToMeasurementMapper.Resolution.Should().BeEquivalentTo(expectedMappings);
@@ -110,7 +109,10 @@ public class MeteredDataToMeasurementMapperTests
                     PMTypes.MeteringPointType.NetFromGrid,
                     MeasurementsTypes.MeteringPointType.MptNetFromGrid
                 },
-                { PMTypes.MeteringPointType.NetToGrid, MeasurementsTypes.MeteringPointType.MptNetToGrid },
+                {
+                    PMTypes.MeteringPointType.NetToGrid,
+                    MeasurementsTypes.MeteringPointType.MptNetToGrid
+                },
                 {
                     PMTypes.MeteringPointType.TotalConsumption,
                     MeasurementsTypes.MeteringPointType.MptTotalConsumption

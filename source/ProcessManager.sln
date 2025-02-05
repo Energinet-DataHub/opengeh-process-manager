@@ -98,15 +98,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Example.Cons
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{07126D7D-43C4-4A7D-ADBA-FBA0C412AB68}"
 	ProjectSection(SolutionItems) = preProject
-		..\docs\ProcessManager.Components.ValueObjects\Documentation.md = ..\docs\ProcessManager.Components.ValueObjects\Documentation.md
+		..\docs\ProcessManager.Components.Abstractions\Documentation.md = ..\docs\ProcessManager.Components.Abstractions\Documentation.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ReleaseNotes", "ReleaseNotes", "{3A25BC9B-6EEE-47D1-AC00-3F915A1E4A2E}"
 	ProjectSection(SolutionItems) = preProject
-		..\docs\ProcessManager.Components.ValueObjects\ReleaseNotes\ReleaseNotes.md = ..\docs\ProcessManager.Components.ValueObjects\ReleaseNotes\ReleaseNotes.md
+		..\docs\ProcessManager.Components.Abstractions\ReleaseNotes\ReleaseNotes.md = ..\docs\ProcessManager.Components.Abstractions\ReleaseNotes\ReleaseNotes.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Components.ValueObjects", "ProcessManager.Components.ValueObjects\ProcessManager.Components.ValueObjects.csproj", "{5906C54E-D64D-40BA-B5BA-B8890C030454}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessManager.Components.Abstractions", "ProcessManager.Components.ValueObjects\ProcessManager.Components.Abstractions.csproj", "{5906C54E-D64D-40BA-B5BA-B8890C030454}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

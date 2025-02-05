@@ -61,7 +61,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
-    <ProjectReference Include="..\ProcessManager.Components.ValueObjects\ProcessManager.Components.ValueObjects.csproj" />
+    <ProjectReference Include="..\ProcessManager.Components.ValueObjects\ProcessManager.Components.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="**\*.proto">

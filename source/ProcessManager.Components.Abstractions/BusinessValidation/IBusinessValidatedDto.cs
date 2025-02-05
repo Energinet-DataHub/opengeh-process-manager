@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Abstractions.Components.BusinessValidation;
+namespace Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 
 /// <summary>
-/// Validation error containing an error message and an error code.
+/// Marker interface to add to types for which a BusinessValidator{T} should be registered
 /// </summary>
-public record ValidationErrorDto(string Message, string ErrorCode);
+public interface IBusinessValidatedDto;

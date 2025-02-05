@@ -4,10 +4,6 @@
 
 - Update dependent NuGet package.
 
-## Version 0.20.1
-
-- Update dependent NuGet package.
-
 ## Version 0.20.0
 
 - Moved all types from namespace `ValueObjects` to new NuGet package `Energinet.DataHub.ProcessManager.Components.ValueObjects`

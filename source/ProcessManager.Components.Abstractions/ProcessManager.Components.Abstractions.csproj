@@ -54,4 +54,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

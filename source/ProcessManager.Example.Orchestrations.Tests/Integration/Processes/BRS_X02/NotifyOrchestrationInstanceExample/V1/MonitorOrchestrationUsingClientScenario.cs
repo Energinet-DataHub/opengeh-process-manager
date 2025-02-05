@@ -121,7 +121,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         isWaitingForNotify.Should().BeTrue("because the orchestration instance should wait for an ExampleNotifyEvent");
         orchestrationInstanceWaitingForEvent.Should().NotBeNull();
-        orchestrationInstanceWaitingForEvent.IdempotencyKey.Should().NotBeNull();
+        orchestrationInstanceWaitingForEvent!.IdempotencyKey.Should().NotBeNull();
 
         var orchestrationInstance = Fixture.DatabaseManager.CreateDbContext().OrchestrationInstances.First();
         orchestrationInstance.ActorMessageId.Should().Be(orchestrationInstanceWaitingForEvent.IdempotencyKey!);

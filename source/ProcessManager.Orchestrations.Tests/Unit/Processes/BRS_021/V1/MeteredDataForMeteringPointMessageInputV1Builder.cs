@@ -41,6 +41,6 @@ public class MeteredDataForMeteringPointMessageInputV1Builder
                 new(
                     "1",
                     "1024",
-                    Quality.AsProvided.Code),
+                    Quality.AsProvided.Name),
             ]);
 }

@@ -16,18 +16,18 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public class Quality : DataHubType<Quality>
+public record Quality : SlimDataHubType<Quality>
 {
-    public static readonly Quality Adjusted = new("Adjusted", "A01");           // Korrigeret
-    public static readonly Quality NotAvailable = new("NotAvailable", "A02");   // Manglende værdi
-    public static readonly Quality Estimated = new("Estimated", "A03");         // Estimeret
-    public static readonly Quality AsProvided = new("AsProvided", "A04");       // Målt
-    public static readonly Quality Incomplete = new("Incomplete", "A05");       // Ufuldstændig
-    public static readonly Quality Calculated = new("Calculated", "A06");       // Beregnet
+    public static readonly Quality Adjusted = new("Adjusted");           // Korrigeret
+    public static readonly Quality NotAvailable = new("NotAvailable");   // Manglende værdi
+    public static readonly Quality Estimated = new("Estimated");         // Estimeret
+    public static readonly Quality AsProvided = new("AsProvided");       // Målt
+    public static readonly Quality Incomplete = new("Incomplete");       // Ufuldstændig
+    public static readonly Quality Calculated = new("Calculated");       // Beregnet
 
     [JsonConstructor]
-    private Quality(string name, string code)
-        : base(name, code)
+    private Quality(string name)
+        : base(name)
     {
     }
 }

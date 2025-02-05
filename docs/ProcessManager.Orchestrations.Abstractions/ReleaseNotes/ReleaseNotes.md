@@ -1,6 +1,6 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 0.20.0
+## Version 0.21.0
 
 - Add new columns to `OrchestrationInstance` and `StartOrchestrationInstanceV1`:
     - ActorMessageId

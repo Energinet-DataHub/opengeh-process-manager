@@ -181,10 +181,10 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
             orchestrationDescription,
             skipStepsBySequence: [],
             clock: SystemClock.Instance,
-            actorMessageId: Guid.NewGuid().ToString(),
-            transactionId: Guid.NewGuid().ToString(),
-            meteringPointId: Guid.NewGuid().ToString(),
-            runAt: runAt);
+            runAt: runAt,
+            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
         return orchestrationInstance;
     }

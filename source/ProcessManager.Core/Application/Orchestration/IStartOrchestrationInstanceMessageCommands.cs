@@ -29,8 +29,8 @@ public interface IStartOrchestrationInstanceMessageCommands
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence,
         IdempotencyKey idempotencyKey,
-        string actorMessageId,
-        string transactionId,
-        string? meteringPointId)
+        ActorMessageId actorMessageId,
+        TransactionId transactionId,
+        MeteringPointId? meteringPointId)
             where TParameter : class;
 }

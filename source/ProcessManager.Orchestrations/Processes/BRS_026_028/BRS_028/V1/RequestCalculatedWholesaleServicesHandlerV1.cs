@@ -42,9 +42,9 @@ public class RequestCalculatedWholesaleServicesHandlerV1(
                 input,
                 skipStepsBySequence: [],
                 new IdempotencyKey(idempotencyKey),
-                actorMessageId,
-                transactionId,
-                meteringPointId)
+                new ActorMessageId(actorMessageId),
+                new TransactionId(transactionId),
+                meteringPointId is not null ? new MeteringPointId(meteringPointId) : null)
             .ConfigureAwait(false);
     }
 }

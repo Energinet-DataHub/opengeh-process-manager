@@ -93,9 +93,9 @@ internal class OrchestrationInstanceManager(
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence,
         IdempotencyKey idempotencyKey,
-        string actorMessageId,
-        string transactionId,
-        string? meteringPointId)
+        ActorMessageId actorMessageId,
+        TransactionId transactionId,
+        MeteringPointId? meteringPointId)
             where TParameter : class
     {
         var orchestrationDescription = await GuardMatchingOrchestrationDescriptionWithInputAsync(
@@ -164,10 +164,11 @@ internal class OrchestrationInstanceManager(
             orchestrationDescription,
             inputParameter,
             skipStepsBySequence,
+            runAt,
             null,
             null,
-            null,
-            runAt).ConfigureAwait(false);
+            null)
+            .ConfigureAwait(false);
 
         return orchestrationInstance.Id;
     }
@@ -271,11 +272,11 @@ internal class OrchestrationInstanceManager(
             identity,
             orchestrationDescription,
             skipStepsBySequence: [],
-            _clock,
-            null,
-            null,
-            null,
-            runAt);
+            clock: _clock,
+            runAt: runAt,
+            actorMessageId: null,
+            transactionId: null,
+            meteringPointId: null);
 
         await _repository.AddAsync(orchestrationInstance).ConfigureAwait(false);
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
@@ -288,11 +289,11 @@ internal class OrchestrationInstanceManager(
         OrchestrationDescription orchestrationDescription,
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence,
-        string? actorMessageId,
-        string? transactionId,
-        string? meteringPointId,
         Instant? runAt = default,
-        IdempotencyKey? idempotencyKey = default)
+        IdempotencyKey? idempotencyKey = default,
+        ActorMessageId? actorMessageId = default,
+        TransactionId? transactionId = default,
+        MeteringPointId? meteringPointId = default)
             where TParameter : class
     {
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
@@ -300,11 +301,11 @@ internal class OrchestrationInstanceManager(
             orchestrationDescription,
             skipStepsBySequence,
             _clock,
+            runAt,
+            idempotencyKey,
             actorMessageId,
             transactionId,
-            meteringPointId,
-            runAt,
-            idempotencyKey);
+            meteringPointId);
 
         orchestrationInstance.ParameterValue.SetFromInstance(inputParameter);
 

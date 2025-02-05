@@ -16,17 +16,19 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public sealed class BusinessReason : DataHubType<BusinessReason>
+public record BusinessReason : SlimDataHubType<BusinessReason>
 {
-    public static readonly BusinessReason MoveIn = new("MoveIn", "E65");
-    public static readonly BusinessReason BalanceFixing = new("BalanceFixing", "D04");
-    public static readonly BusinessReason PreliminaryAggregation = new("PreliminaryAggregation", "D03");
-    public static readonly BusinessReason WholesaleFixing = new("WholesaleFixing", "D05");
-    public static readonly BusinessReason Correction = new("Correction", "D32");
-    public static readonly BusinessReason PeriodicMetering = new("PeriodicMetering", "E23");
-    public static readonly BusinessReason PeriodicFlexMetering = new("PeriodicFlexMetering", "D42");
+    public static readonly BusinessReason MoveIn = new("MoveIn");
+    public static readonly BusinessReason BalanceFixing = new("BalanceFixing");
+    public static readonly BusinessReason PreliminaryAggregation = new("PreliminaryAggregation");
+    public static readonly BusinessReason WholesaleFixing = new("WholesaleFixing");
+    public static readonly BusinessReason Correction = new("Correction");
+    public static readonly BusinessReason PeriodicMetering = new("PeriodicMetering");
+    public static readonly BusinessReason PeriodicFlexMetering = new("PeriodicFlexMetering");
 
     [JsonConstructor]
-    private BusinessReason(string name, string code)
-        : base(name, code) { }
+    private BusinessReason(string name)
+        : base(name)
+    {
+    }
 }

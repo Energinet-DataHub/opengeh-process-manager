@@ -88,7 +88,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
     [NotNull]
     public TopicResource? EdiTopic { get; private set; }
 
-    public ProcessManagerDatabaseManager DatabaseManager { get; }
+    private ProcessManagerDatabaseManager DatabaseManager { get; }
 
     private AzuriteManager AzuriteManager { get; }
 

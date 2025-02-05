@@ -31,7 +31,10 @@ internal static class OrchestrationInstanceMapperExtensions
             entity.Steps.Select(step => step.MapToDto()).ToList(),
             entity.CustomState.Value,
             entity.ParameterValue.AsType<TInputParameterDto>(),
-            entity.IdempotencyKey?.Value);
+            entity.IdempotencyKey?.Value,
+            entity.ActorMessageId?.Value,
+            entity.TransactionId?.Value,
+            entity.MeteringPointId?.Value);
     }
 
     public static ApiModel.OrchestrationInstance.OrchestrationInstanceDto MapToDto(

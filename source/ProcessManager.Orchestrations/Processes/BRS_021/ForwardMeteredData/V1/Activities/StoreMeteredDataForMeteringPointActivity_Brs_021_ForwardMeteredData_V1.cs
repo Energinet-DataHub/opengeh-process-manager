@@ -82,7 +82,7 @@ internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredDa
             throw new ArgumentException("Resolution cannot be null or empty", nameof(resolution));
         }
 
-        return Resolution.FromCode(resolution);
+        return Resolution.FromName(resolution);
     }
 
     private MeasurementUnit ParseMeasureUnit(string? measureUnit)
@@ -92,7 +92,7 @@ internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredDa
             throw new ArgumentException("Metering point type cannot be null or empty", nameof(measureUnit));
         }
 
-        return MeasurementUnit.FromCode(measureUnit);
+        return MeasurementUnit.FromName(measureUnit);
     }
 
     private MeteringPointType ParseMeteringPointType(string? meteringPointType)
@@ -102,7 +102,7 @@ internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredDa
             throw new ArgumentException("Metering point type cannot be null or empty", nameof(meteringPointType));
         }
 
-        return MeteringPointType.FromCode(meteringPointType);
+        return MeteringPointType.FromName(meteringPointType);
     }
 
     private Quality ParseQuality(string? quality)
@@ -112,7 +112,7 @@ internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredDa
             throw new ArgumentException("Quality cannot be null or empty", nameof(quality));
         }
 
-        return Quality.FromCode(quality);
+        return Quality.FromName(quality);
     }
 
     private decimal ParseQuantity(string? sourceQuantity)

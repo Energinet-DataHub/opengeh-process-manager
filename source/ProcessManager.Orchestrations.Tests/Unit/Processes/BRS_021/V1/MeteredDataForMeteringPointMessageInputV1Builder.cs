@@ -29,7 +29,7 @@ public class MeteredDataForMeteringPointMessageInputV1Builder
             MeteringPointId: "MeteringPointId",
             MeteringPointType: MeteringPointType.Production.Code,
             ProductNumber: "ProductNumber",
-            MeasureUnit: MeasurementUnit.KilowattHour.Code,
+            MeasureUnit: MeasurementUnit.KilowattHour.Name,
             RegistrationDateTime: "2025-01-01T00:00Z",
             Resolution: Resolution.QuarterHourly.Code,
             StartDateTime: "2025-01-01T00:00Z",

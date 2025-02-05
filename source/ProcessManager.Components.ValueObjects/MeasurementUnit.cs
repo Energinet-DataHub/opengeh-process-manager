@@ -16,22 +16,22 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public class MeasurementUnit : DataHubType<MeasurementUnit>
+public record MeasurementUnit : SlimDataHubType<MeasurementUnit>
 {
-    public static readonly MeasurementUnit Ampere = new("Ampere", "AMP");
-    public static readonly MeasurementUnit Pieces = new("Pieces", "H87");
-    public static readonly MeasurementUnit KiloVoltAmpereReactiveHour = new("KiloVoltAmpereReactiveHour", "K3");
-    public static readonly MeasurementUnit KilowattHour = new("KilowattHour", "KWH");
-    public static readonly MeasurementUnit Kilowatt = new("Kilowatt", "KWT");
-    public static readonly MeasurementUnit Megawatt = new("Megawatt", "MAW");
-    public static readonly MeasurementUnit MegawattHour = new("MegawattHour", "MWH");
-    public static readonly MeasurementUnit MetricTon = new("MetricTon", "TNE");
-    public static readonly MeasurementUnit MegaVoltAmpereReactivePower = new("MegaVoltAmpereReactivePower", "Z03");
-    public static readonly MeasurementUnit DanishTariffCode = new("Kw", "Z14");
+    public static readonly MeasurementUnit Ampere = new("Ampere");
+    public static readonly MeasurementUnit Pieces = new("Pieces");
+    public static readonly MeasurementUnit KiloVoltAmpereReactiveHour = new("KiloVoltAmpereReactiveHour");
+    public static readonly MeasurementUnit KilowattHour = new("KilowattHour");
+    public static readonly MeasurementUnit Kilowatt = new("Kilowatt");
+    public static readonly MeasurementUnit Megawatt = new("Megawatt");
+    public static readonly MeasurementUnit MegawattHour = new("MegawattHour");
+    public static readonly MeasurementUnit MetricTon = new("MetricTon");
+    public static readonly MeasurementUnit MegaVoltAmpereReactivePower = new("MegaVoltAmpereReactivePower");
+    public static readonly MeasurementUnit DanishTariffCode = new("Kw");
 
     [JsonConstructor]
-    private MeasurementUnit(string name, string code)
-        : base(name, code)
+    private MeasurementUnit(string name)
+        : base(name)
     {
     }
 }

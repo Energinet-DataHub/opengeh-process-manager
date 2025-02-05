@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.0.1
+
+- Update dependent NuGet package.
+
 ## Version 1.0.0
 
 - Update dependent NuGet package.

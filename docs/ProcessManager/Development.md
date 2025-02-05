@@ -156,20 +156,27 @@ The projects inside solution folder `4. Orchestations` follows a strict folder s
 ├── Processes
 │   ├── BRS_021
 │   │   ├── ElectricalHeatingCalculation
-|   |   |   |── V1
-|   |   |   |   |── Activities
-|   |   |   |   |── ...
-|   |   |   |   |── Orchestration_Brs_021_ElectricalHeatingCalculation_V1.cs
-|   |   |   |   └── OrchestrationDescription.cs
-|   |   |   └── SearchElectricalHeatingCalculationHandler.cs
+|   |   |   └── V1
+|   |   |       |── Activities
+|   |   |       |── ...
+|   |   |       |── Orchestration_Brs_021_ElectricalHeatingCalculation_V1.cs
+|   |   |       └── OrchestrationDescriptionBuilder.cs
 |   |   └── ForwardMeteredData
 |   |       └── V1
 |   |           |── Activities
-|   |           └── OrchestrationDescription.cs
+|   |           |── ...
+|   |           |── Orchestration_Brs_021_ForwardMeteredData_V1.cs
+|   |           └── OrchestrationDescriptionBuilder.cs
 │   └── BRS_XYZ
-|       └── V1
-|           |── Activities
-|           └── OrchestrationDescription.cs
+|       |── CustomQueries
+|       |── V1
+|       |   |── Activities
+|       |   |── Mappers
+|       |   |── Model
+|       |   |── Options
+|       |   |── Orchestration_Brs_XYZ_V1.cs
+|       |   └── OrchestrationDescriptionBuilder.cs
+|       └── OptionsConfiguration.cs
 ```
 
 With this structure, we're able to assign the business teams ownership of their respected processes, and consequently we

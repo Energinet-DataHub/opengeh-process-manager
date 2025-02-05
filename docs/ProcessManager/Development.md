@@ -1,6 +1,6 @@
 # Process Manager: Developer Handbook
 
-In the following we will give an introduction to the `process manager`, some guidelines and how to get started.
+In the following we will give an introduction to the Process Manager, some guidelines and how to get started.
 If one wants a more abstract introduction, then please consult the documentation
 in [Confluence](https://energinet.atlassian.net/wiki/spaces/D3/pages/1126072346/Analyse+og+design+til+PM-22+ProcessManager#ProcessManager-and-framework-design)
 or [Miro](https://miro.com/app/board/uXjVLXgfr7o=/)
@@ -30,13 +30,12 @@ We recommend that one follows the [guidelines for durable functions](https://ene
 Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed
 to ensure that the history of the running orchestration are intact.
 The previous versions may not run to completion if this happens,
-consult [microsoft's versioning documentation for more information](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-versioning?tabs=csharp).
-(The process manager supports the "side-by-side" Mitigation strategy).
+consult [microsoft's versioning documentation for more information](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-versioning?tabs=csharp). The process manager supports the mentioned "side-by-side" Mitigation strategy.
 
 As a rule of thumb, one should make a new version if one of the following is true:
 
-- Input/output to the orchestration has changed
-- Input/output to any activity has changed
+- Input/output to/from the orchestration has changed
+- Input/output to/from any activity has changed
 - Any activity has been added or removed to the orchestration
 
 ### Developing activities

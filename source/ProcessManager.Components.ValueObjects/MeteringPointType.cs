@@ -16,38 +16,38 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public class MeteringPointType : DataHubType<MeteringPointType>
+public record MeteringPointType : SlimDataHubType<MeteringPointType>
 {
-    public static readonly MeteringPointType Consumption = new("Consumption", "E17");
-    public static readonly MeteringPointType Production = new("Production", "E18");
-    public static readonly MeteringPointType Exchange = new("Exchange", "E20");
+    public static readonly MeteringPointType Consumption = new("Consumption");
+    public static readonly MeteringPointType Production = new("Production");
+    public static readonly MeteringPointType Exchange = new("Exchange");
 
     // Child metering point types
-    public static readonly MeteringPointType VeProduction = new("VeProduction", "D01");
-    public static readonly MeteringPointType NetProduction = new("NetProduction", "D05");
-    public static readonly MeteringPointType SupplyToGrid = new("SupplyToGrid", "D06");
-    public static readonly MeteringPointType ConsumptionFromGrid = new("ConsumptionFromGrid", "D07");
-    public static readonly MeteringPointType WholesaleServicesInformation = new("WholesaleServicesInformation", "D08");
-    public static readonly MeteringPointType OwnProduction = new("OwnProduction", "D09");
-    public static readonly MeteringPointType NetFromGrid = new("NetFromGrid", "D10");
-    public static readonly MeteringPointType NetToGrid = new("NetToGrid", "D11");
-    public static readonly MeteringPointType TotalConsumption = new("TotalConsumption", "D12");
-    public static readonly MeteringPointType ElectricalHeating = new("ElectricalHeating", "D14");
-    public static readonly MeteringPointType NetConsumption = new("NetConsumption", "D15");
-    public static readonly MeteringPointType CapacitySettlement = new("CapacitySettlement", "D19");
-    public static readonly MeteringPointType Analysis = new("Analysis", "D02");
-    public static readonly MeteringPointType NotUsed = new("NotUsed", "D03");
-    public static readonly MeteringPointType SurplusProductionGroup6 = new("SurplusProductionGroup6", "D04");
-    public static readonly MeteringPointType NetLossCorrection = new("NetLossCorrection", "D13");
-    public static readonly MeteringPointType OtherConsumption = new("OtherConsumption", "D17");
-    public static readonly MeteringPointType OtherProduction = new("OtherProduction", "D18");
-    public static readonly MeteringPointType ExchangeReactiveEnergy = new("ExchangeReactiveEnergy", "D20");
-    public static readonly MeteringPointType CollectiveNetProduction = new("CollectiveNetProduction", "D21");
-    public static readonly MeteringPointType CollectiveNetConsumption = new("CollectiveNetConsumption", "D22");
+    public static readonly MeteringPointType VeProduction = new("VeProduction");
+    public static readonly MeteringPointType NetProduction = new("NetProduction");
+    public static readonly MeteringPointType SupplyToGrid = new("SupplyToGrid");
+    public static readonly MeteringPointType ConsumptionFromGrid = new("ConsumptionFromGrid");
+    public static readonly MeteringPointType WholesaleServicesInformation = new("WholesaleServicesInformation");
+    public static readonly MeteringPointType OwnProduction = new("OwnProduction");
+    public static readonly MeteringPointType NetFromGrid = new("NetFromGrid");
+    public static readonly MeteringPointType NetToGrid = new("NetToGrid");
+    public static readonly MeteringPointType TotalConsumption = new("TotalConsumption");
+    public static readonly MeteringPointType ElectricalHeating = new("ElectricalHeating");
+    public static readonly MeteringPointType NetConsumption = new("NetConsumption");
+    public static readonly MeteringPointType CapacitySettlement = new("CapacitySettlement");
+    public static readonly MeteringPointType Analysis = new("Analysis");
+    public static readonly MeteringPointType NotUsed = new("NotUsed");
+    public static readonly MeteringPointType SurplusProductionGroup6 = new("SurplusProductionGroup6");
+    public static readonly MeteringPointType NetLossCorrection = new("NetLossCorrection");
+    public static readonly MeteringPointType OtherConsumption = new("OtherConsumption");
+    public static readonly MeteringPointType OtherProduction = new("OtherProduction");
+    public static readonly MeteringPointType ExchangeReactiveEnergy = new("ExchangeReactiveEnergy");
+    public static readonly MeteringPointType CollectiveNetProduction = new("CollectiveNetProduction");
+    public static readonly MeteringPointType CollectiveNetConsumption = new("CollectiveNetConsumption");
 
     [JsonConstructor]
-    private MeteringPointType(string name, string code)
-        : base(name, code)
+    private MeteringPointType(string name)
+        : base(name)
     {
     }
 }

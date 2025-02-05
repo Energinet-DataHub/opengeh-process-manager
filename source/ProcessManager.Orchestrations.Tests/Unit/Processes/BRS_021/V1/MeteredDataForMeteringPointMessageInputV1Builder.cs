@@ -27,7 +27,7 @@ public class MeteredDataForMeteringPointMessageInputV1Builder
             ActorRole: ActorRole.GridAccessProvider.Name,
             TransactionId: "TransactionId",
             MeteringPointId: "MeteringPointId",
-            MeteringPointType: MeteringPointType.Production.Code,
+            MeteringPointType: MeteringPointType.Production.Name,
             ProductNumber: "ProductNumber",
             MeasureUnit: MeasurementUnit.KilowattHour.Name,
             RegistrationDateTime: "2025-01-01T00:00Z",

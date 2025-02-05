@@ -16,16 +16,16 @@ using System.Text.Json.Serialization;
 
 namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-public class Resolution : DataHubType<Resolution>
+public record Resolution : SlimDataHubType<Resolution>
 {
-    public static readonly Resolution QuarterHourly = new("QuarterHourly", "PT15M");
-    public static readonly Resolution Hourly = new("Hourly", "PT1H");
-    public static readonly Resolution Daily = new("Daily", "P1D");
-    public static readonly Resolution Monthly = new("Monthly", "P1M");
+    public static readonly Resolution QuarterHourly = new("QuarterHourly");
+    public static readonly Resolution Hourly = new("Hourly");
+    public static readonly Resolution Daily = new("Daily");
+    public static readonly Resolution Monthly = new("Monthly");
 
     [JsonConstructor]
-    private Resolution(string name, string code)
-        : base(name, code)
+    private Resolution(string name)
+        : base(name)
     {
     }
 }

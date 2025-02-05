@@ -31,7 +31,7 @@ public class MeteredDataForMeteringPointMessageInputV1Builder
             ProductNumber: "ProductNumber",
             MeasureUnit: MeasurementUnit.KilowattHour.Name,
             RegistrationDateTime: "2025-01-01T00:00Z",
-            Resolution: Resolution.QuarterHourly.Code,
+            Resolution: Resolution.QuarterHourly.Name,
             StartDateTime: "2025-01-01T00:00Z",
             EndDateTime: "2025-01-01T00:15Z",
             GridAccessProviderNumber: "GridAccessProviderNumber",

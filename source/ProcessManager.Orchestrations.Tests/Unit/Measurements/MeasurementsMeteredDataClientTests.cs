@@ -17,14 +17,14 @@ using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements;
-using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
-using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Mappers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
 using Moq;
-using Point = Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model.Point;
+using Point = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model.Point;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Measurements;
 

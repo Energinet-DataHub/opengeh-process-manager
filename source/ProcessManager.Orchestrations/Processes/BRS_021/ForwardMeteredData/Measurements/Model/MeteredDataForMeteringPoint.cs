@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 
 public record MeteredDataForMeteringPoint(
     string OrchestrationId,

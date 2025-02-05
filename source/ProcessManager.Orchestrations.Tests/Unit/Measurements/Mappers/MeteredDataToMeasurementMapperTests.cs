@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Mappers;
 using FluentAssertions;
 using MeasurementsTypes = Energinet.DataHub.Measurements.Contracts;
 using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;

@@ -14,9 +14,8 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-[Serializable]
 public class MeteringPointType : DataHubType<MeteringPointType>
 {
     public static readonly MeteringPointType Consumption = new("Consumption", "E17");

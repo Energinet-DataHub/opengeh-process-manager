@@ -16,6 +16,7 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Components.DataHub.Measurements.Model;
@@ -56,13 +57,13 @@ public class MeasurementsMeteredDataClientTests
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
-            ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType.Consumption,
+            ProcessManager.Components.ValueObjects.MeteringPointType.Consumption,
             "test-product",
-            ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KilowattHour,
-            ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Resolution.QuarterHourly,
+            MeasurementUnit.KilowattHour,
+            ProcessManager.Components.ValueObjects.Resolution.QuarterHourly,
             new List<Point>
             {
-                new(1, 100, ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.Quality.AsProvided),
+                new(1, 100, ProcessManager.Components.ValueObjects.Quality.AsProvided),
             });
 
         var expectedData = new PersistSubmittedTransaction
@@ -74,13 +75,19 @@ public class MeasurementsMeteredDataClientTests
             TransactionCreationDatetime = Timestamp.FromDateTimeOffset(meteredData.CreatedAt.ToDateTimeOffset()),
             StartDatetime = Timestamp.FromDateTimeOffset(meteredData.StartDateTime.ToDateTimeOffset()),
             EndDatetime = Timestamp.FromDateTimeOffset(meteredData.EndDateTime.ToDateTimeOffset()),
-            MeteringPointType = MeteringPointType.MptConsumption,
+            MeteringPointType = DataHub.Measurements.Contracts.MeteringPointType.MptConsumption,
             Product = meteredData.Product,
             Unit = Energinet.DataHub.Measurements.Contracts.Unit.UKwh,
-            Resolution = Resolution.RPt15M,
+            Resolution = Energinet.DataHub.Measurements.Contracts.Resolution.RPt15M,
         };
 
-        expectedData.Points.Add(new Energinet.DataHub.Measurements.Contracts.Point { Position = 1, Quantity = DecimalValueMapper.Map(100), Quality = Quality.QMeasured });
+        expectedData.Points.Add(
+            new Energinet.DataHub.Measurements.Contracts.Point
+            {
+                Position = 1,
+                Quantity = DecimalValueMapper.Map(100),
+                Quality = Energinet.DataHub.Measurements.Contracts.Quality.QMeasured,
+            });
 
         var expectedEventData = new EventData(expectedData.ToByteArray());
 

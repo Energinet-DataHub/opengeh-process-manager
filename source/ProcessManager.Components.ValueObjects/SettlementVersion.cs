@@ -14,18 +14,16 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-[Serializable]
-public class Resolution : DataHubType<Resolution>
+public class SettlementVersion : DataHubType<SettlementVersion>
 {
-    public static readonly Resolution QuarterHourly = new("QuarterHourly", "PT15M");
-    public static readonly Resolution Hourly = new("Hourly", "PT1H");
-    public static readonly Resolution Daily = new("Daily", "P1D");
-    public static readonly Resolution Monthly = new("Monthly", "P1M");
+    public static readonly SettlementVersion FirstCorrection = new("FirstCorrection", "D01");
+    public static readonly SettlementVersion SecondCorrection = new("SecondCorrection", "D02");
+    public static readonly SettlementVersion ThirdCorrection = new("ThirdCorrection", "D03");
 
     [JsonConstructor]
-    private Resolution(string name, string code)
+    private SettlementVersion(string name, string code)
         : base(name, code)
     {
     }

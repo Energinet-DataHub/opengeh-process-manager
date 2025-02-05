@@ -12,16 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+using System.Text.Json.Serialization;
 
-[Serializable]
-public class ChargeType : DataHubType<ChargeType>
+namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
+
+public class Resolution : DataHubType<Resolution>
 {
-    public static readonly ChargeType Subscription = new("Subscription", "D01");
-    public static readonly ChargeType Fee = new("Fee", "D02");
-    public static readonly ChargeType Tariff = new("Tariff", "D03");
+    public static readonly Resolution QuarterHourly = new("QuarterHourly", "PT15M");
+    public static readonly Resolution Hourly = new("Hourly", "PT1H");
+    public static readonly Resolution Daily = new("Daily", "P1D");
+    public static readonly Resolution Monthly = new("Monthly", "P1M");
 
-    public ChargeType(string name, string code)
+    [JsonConstructor]
+    private Resolution(string name, string code)
         : base(name, code)
     {
     }

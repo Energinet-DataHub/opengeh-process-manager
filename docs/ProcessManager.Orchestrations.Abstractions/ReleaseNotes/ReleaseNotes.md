@@ -7,6 +7,11 @@
     - TransactionId
     - MeteringPointId
 
+## Version 0.20.0
+
+- Moved all types from namespace `ValueObjects` to new NuGet package `Energinet.DataHub.ProcessManager.Components.ValueObjects`
+- Add reference to new NuGet package `Energinet.DataHub.ProcessManager.Components.ValueObjects`
+
 ## Version 0.19.0
 
 - Add protobuf contract `CalculationEnqueueCompletedV1`

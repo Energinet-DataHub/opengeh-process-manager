@@ -14,17 +14,18 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Components.ValueObjects;
 
-[Serializable]
-public class SettlementVersion : DataHubType<SettlementVersion>
+public class SettlementMethod : DataHubType<SettlementMethod>
 {
-    public static readonly SettlementVersion FirstCorrection = new("FirstCorrection", "D01");
-    public static readonly SettlementVersion SecondCorrection = new("SecondCorrection", "D02");
-    public static readonly SettlementVersion ThirdCorrection = new("ThirdCorrection", "D03");
+    // Customer with more than ~100.000 kwH per year
+    public static readonly SettlementMethod NonProfiled = new("NonProfiled", "E02");
+
+    // Customer with less than ~100.000 kwH per year
+    public static readonly SettlementMethod Flex = new("Flex", "D01");
 
     [JsonConstructor]
-    private SettlementVersion(string name, string code)
+    private SettlementMethod(string name, string code)
         : base(name, code)
     {
     }

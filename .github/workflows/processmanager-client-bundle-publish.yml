@@ -16,18 +16,20 @@ name: Publish ProcessManager NuGet bundle(s)
 
 # DESCRIPTION:
 #
-# - ProcessManager.Client depends on ProcessManager.Abstractions
-# - ProcessManager.Orchestrations.Abstractions depends on ProcessManager.Abstractions
+# - ProcessManager.Client depends on
+#     - ProcessManager.Abstractions
+# - ProcessManager.Orchestrations.Abstractions depends on
+#     - ProcessManager.Abstractions
+#     - ProcessManager.Components.ValueObjects
+#
+# If dependencies has changed their consumers must have their versions updated.
 #
 # To ensure the version of ProcessManager.Abstractions is the same for both when changed
 # in the same PR, we must build all using the same workflow.
 #
 # We consider ProcessManager.Client and ProcessManager.Abstractions as a bundle, which means
-# they must use the same version numbers. ProcessManager.Orchestrations.Abstractions is
-# considered its own bundle and can be versioned in isolation.
-#
-# If ProcessManager.Abstractions has changed then both its consumers must have their
-# versions updated.
+# they must use the same version numbers. ProcessManager.Orchestrations.Abstractions and
+# ProcessManager.Components.ValueObjects is each considered its own bundle and can be versioned in isolation.
 
 on:
   # Build, test, pack and publish release packages
@@ -39,6 +41,7 @@ on:
     paths:
       - source/ProcessManager.Client/**
       - source/ProcessManager.Abstractions/**
+      - source/ProcessManager.Components.ValueObjects/**
       - source/ProcessManager.Orchestrations.Abstractions/**
       - .github/workflows/processmanager-client-bundle-publish.yml
   # Build, test, pack
@@ -109,6 +112,11 @@ jobs:
         with:
           project_path: ./source/ProcessManager.Abstractions/ProcessManager.Abstractions.csproj
 
+      - name: Pack ProcessManager.Components.ValueObjects project
+        uses: Energinet-DataHub/.github/.github/actions/nuget-project-pack@v14
+        with:
+          project_path: ./source/ProcessManager.Components.ValueObjects/ProcessManager.Components.ValueObjects.csproj
+
       - name: Pack ProcessManager.Orchestrations.Abstractions project
         uses: Energinet-DataHub/.github/.github/actions/nuget-project-pack@v14
         with:
@@ -149,11 +157,37 @@ jobs:
           nuget_token: ${{ secrets.nuget_token }}
           nupkg_recurse_path: source/ProcessManager.Abstractions
 
+      - name: Package content or build has changed for PM.Components.ValueObjects
+        id: changed-content-valueobjects
+        uses: tj-actions/changed-files@v45
+        with:
+          base_sha: ${{ env.BASE_SHA }}
+          files: |
+            source/ProcessManager.Components.ValueObjects/**/*.*
+            .github/workflows/processmanager-client-bundle-publish.yml
+
+      - name: List all changed files for PM.Components.ValueObjects
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-content-valueobjects.outputs.all_changed_files }}
+        shell: bash
+        run: |
+          for file in "$ALL_CHANGED_FILES"; do
+            echo "$file was changed"
+          done
+
+      - name: Assert version of ProcessManager.Components.ValueObjects NuGet package and push it to NuGet.org
+        uses: Energinet-DataHub/.github/.github/actions/nuget-packages-assert-and-push@v14
+        with:
+          push_packages: ${{ env.TRIGGERED_BY_PR_COMMIT == 'false' && steps.changed-content-valueobjects.outputs.any_changed == 'true' }}
+          content_changed: ${{ steps.changed-content-valueobjects.outputs.any_changed }}
+          nuget_token: ${{ secrets.nuget_token }}
+          nupkg_recurse_path: source/ProcessManager.Components.ValueObjects
+
       # NOTICE:
-      # If dependency ProcessManager.Abstractions has changed then we enforce a publish as if the
-      # ProcessManager.Orchestrations.Abstractions has changed, because we want to ensure the
-      # version of ProcessManager.Orchestrations.Abstractions is bumped.
-      - name: Package content, dependencies or build has changed for PM.Abstractions or PM.Orchestrations.Abstractions
+      # If dependency ProcessManager.Abstractions or ProcessManager.Components.ValueObjects has changed
+      # then we enforce a publish as if the ProcessManager.Orchestrations.Abstractions has changed,
+      # because we want to ensure the version of ProcessManager.Orchestrations.Abstractions is bumped.
+      - name: Package content, dependencies or build has changed for PM.Orchestrations.Abstractions
         id: changed-content-orchestrations
         uses: tj-actions/changed-files@v45
         with:
@@ -161,9 +195,10 @@ jobs:
           files: |
             source/ProcessManager.Orchestrations.Abstractions/**/*.*
             source/ProcessManager.Abstractions/**/*.*
+            source/ProcessManager.Components.ValueObjects/**/*.*
             .github/workflows/processmanager-client-bundle-publish.yml
 
-      - name: List all changed files for PM.Abstractions or PM.Orchestrations.Abstractions
+      - name: List all changed files for PM.Orchestrations.Abstractions or its dependencies
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-content-orchestrations.outputs.all_changed_files }}
         shell: bash

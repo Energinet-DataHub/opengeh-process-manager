@@ -132,6 +132,8 @@ Furthermore, this package contains the classes needed to communicate via the end
 [`4. Orchestrations`](#solution-folder-4-orchestrations) contains an `Abstractions` project as well,
 which is released as a NuGet package and used by the `Client` to communicate with the orchestrations via custom `HttpTrigger` and `ServiceBusTrigger` functions.
 
+[`5. Components`](#solution-folder-5-components) also contains an `Abstractions` project released as a NuGet package. This is used in combination with the `Client` to communicate with certain subsystems.
+
 ### Solution folder 2. Api
 
 The `2. Api` folder contains the `HttpTrigger` functions which are used to administrate the orchestrations.
@@ -193,6 +195,8 @@ Consult the example orchestrations in [`7.Example`](#solution-folder-7-examples)
 All functionality that may be used by more than one process should be placed here.
 This could be a client to `databricks` or the like.
 
+If the component is used in communication with other subsystems and want to share types, they must be placed in `Components.Abstractions`.
+
 ### Solution folder 6. SubsystemTests
 
 This is currently without functionality.
@@ -201,7 +205,7 @@ This is currently without functionality.
 
 The purpose of `7.Example` is to give inspiration of how one may implement orchestrations in the process manager.
 Notice how the structure is a simplified version of folder [`4. Orchestrations`](#solution-folder-4-orchestrations).
-The `Example Orchestration` contains two examples, with and without input. These can be used as inspiration to get up
+The `Example Orchestration` contains multiple examples, with and without input. These can be used as inspiration to get up
 and running.
 
 The tests document how one may start an orchestration, how one may test the orchestration's activities, and how one may

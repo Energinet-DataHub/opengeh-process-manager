@@ -7,6 +7,10 @@
     - TransactionId
     - MeteringPointId
 
+## Version 1.0.1
+
+- No functional changes.
+
 ## Version 1.0.0
 
 - Moved `BusinessValidation` to NuGet package `ProcessManager.Components.Abstractions`.

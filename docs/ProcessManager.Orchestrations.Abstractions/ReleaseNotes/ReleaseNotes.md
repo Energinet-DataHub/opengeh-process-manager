@@ -1,11 +1,12 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 1.1.0
+## Version 1.0.3
 
-- Add new columns to `OrchestrationInstance` and `StartOrchestrationInstanceV1`:
-    - ActorMessageId
-    - TransactionId
-    - MeteringPointId
+- Update dependent NuGet package.
+
+## Version 1.0.2
+
+- Update dependent NuGet package.
 
 ## Version 1.0.1
 

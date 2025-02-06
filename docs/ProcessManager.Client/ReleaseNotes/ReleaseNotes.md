@@ -1,11 +1,8 @@
 # ProcessManager.Client Release Notes
 
-## Version 1.1.0
+## Version 1.0.2
 
-- Add new columns to `OrchestrationInstance` and `StartOrchestrationInstanceV1`:
-    - ActorMessageId
-    - TransactionId
-    - MeteringPointId
+- No functional changes.
 
 ## Version 1.0.1
 

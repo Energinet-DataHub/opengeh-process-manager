@@ -122,7 +122,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             OrchestrationInstanceTerminationState.Failed,
             "because the orchestration instance should be failed");
 
-        orchestrationInstance.Steps.Should().SatisfyRespectively(
+        orchestrationInstance.Steps.OrderBy(s => s.Sequence).Should().SatisfyRespectively(
             successStep =>
             {
                 successStep.Sequence.Should().Be(Orchestration_Brs_X05_V1.SuccessStep);

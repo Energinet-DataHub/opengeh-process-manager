@@ -267,10 +267,7 @@ internal class OrchestrationInstanceManager(
             orchestrationDescription,
             skipStepsBySequence: [],
             clock: _clock,
-            runAt: runAt,
-            actorMessageId: null,
-            transactionId: null,
-            meteringPointId: null);
+            runAt: runAt);
 
         await _repository.AddAsync(orchestrationInstance).ConfigureAwait(false);
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);

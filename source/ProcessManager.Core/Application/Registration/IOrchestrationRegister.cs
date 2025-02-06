@@ -19,27 +19,27 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Registration;
 /// <summary>
 /// Read/write access to the orchestration register.
 /// </summary>
-internal interface IOrchestrationRegister
+public interface IOrchestrationRegister
 {
     Task<IReadOnlyCollection<OrchestrationDescription>> GetAllByHostNameAsync(string hostName);
 
     /// <summary>
-    /// Determine if <paramref name="hostDescription"/> is unknown to the register and needs to be registered;
+    /// Determine if <paramref name="newDescription"/> is unknown to the register and needs to be registered;
     /// or if it was previously disabled and needs to be enabled;
     /// or if any refreshable property has changed.
     /// </summary>
-    /// <param name="registerDescription">Orchestration description as described in the register.</param>
-    /// <param name="hostDescription">Orchestration description as described by the application host.</param>
+    /// <param name="existingDescription">Orchestration description as described in the register.</param>
+    /// <param name="newDescription">Orchestration description as described by the application host.</param>
     /// <returns><see langword="true"/> if the orchestration description should be registered or updated; otherwise <see langword="false"/>.</returns>
-    bool ShouldRegisterOrUpdate(OrchestrationDescription? registerDescription, OrchestrationDescription hostDescription);
+    bool ShouldRegisterOrUpdate(OrchestrationDescription existingDescription, OrchestrationDescription newDescription);
 
     /// <summary>
     /// Durable Functions orchestration host's can use this method to register or update the orchestrations
     /// they host.
     /// </summary>
-    /// <param name="hostDescription">Orchestration description as described by the application host.</param>
+    /// <param name="newDescription">Orchestration description as described by the application host.</param>
     /// <param name="hostName">Name of the application host.</param>
-    Task RegisterOrUpdateAsync(OrchestrationDescription hostDescription, string hostName);
+    Task RegisterOrUpdateAsync(OrchestrationDescription newDescription, string hostName);
 
     /// <summary>
     /// Durable Functions orchestration host's can use this method to disable orchestrations they don't host anymore

@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -279,7 +280,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         bool withError = false)
     {
         var input = new MeteredDataForMeteringPointMessageInputV1(
+            "MessageId",
             Guid.NewGuid(),
+            "1111111111111",
+            ActorRole.GridAccessProvider.Name,
             "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
             withError ? "NoMasterData" : "571313101700011887",
             "D20",

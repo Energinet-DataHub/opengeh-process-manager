@@ -5,6 +5,7 @@
       "ProcessManager.Abstractions\\ProcessManager.Abstractions.csproj",
       "ProcessManager.Client.Tests\\ProcessManager.Client.Tests.csproj",
       "ProcessManager.Client\\ProcessManager.Client.csproj",
+      "ProcessManager.Components.Abstractions\\ProcessManager.Components.Abstractions.csproj",
       "ProcessManager.Orchestrations.Abstractions\\ProcessManager.Orchestrations.Abstractions.csproj"
     ]
   }

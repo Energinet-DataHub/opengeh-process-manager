@@ -22,17 +22,18 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_028;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026.V1.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_028.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Options;
 using WireMock.Server;
 using Xunit.Abstractions;
 
@@ -140,9 +141,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     /// <param name="processManagerTopicResources">The required Process Manager topic resources. New resources will be created if not provided.</param>
     /// <param name="ediTopicResources">The required EDI topic resources. New resources will be created if not provided.</param>
+    /// <param name="integrationEventTopicResources">The required shared integration event topic resources. New resources will be created if not provided.</param>
     public async Task StartAsync(
         ProcessManagerTopicResources? processManagerTopicResources,
-        EdiTopicResources? ediTopicResources)
+        EdiTopicResources? ediTopicResources,
+        IntegrationEventTopicResources? integrationEventTopicResources)
     {
         if (_manageAzurite)
         {
@@ -158,12 +161,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
+        integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
             processManagerTopicResources,
             ediTopicResources,
+            integrationEventTopicResources,
             eventHubResource);
 
         // Create and start host
@@ -252,6 +257,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         string csprojName,
         ProcessManagerTopicResources processManagerTopicResources,
         EdiTopicResources ediTopicResources,
+        IntegrationEventTopicResources integrationEventTopicResources,
         EventHubResource eventHubResource)
     {
         var buildConfiguration = GetBuildConfiguration();
@@ -337,6 +343,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
             ediTopicResources.EdiTopic.Name);
+
+        // => Shared integration event topic
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{IntegrationEventTopicOptions.SectionName}__{nameof(IntegrationEventTopicOptions.Name)}",
+            integrationEventTopicResources.SharedTopic.Name);
 
         // => Databricks workspaces
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -460,9 +471,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     public record EdiTopicResources(
         TopicResource EdiTopic,
-        SubscriptionProperties EnqueueBrs023027Subscription)
+        SubscriptionProperties EnqueueBrs023027Subscription,
+        SubscriptionProperties EnqueueBrs026Subscription,
+        SubscriptionProperties EnqueueBrs028Subscription)
     {
         private const string EnqueueBrs023027SubscriptionName = "enqueue-brs-023-027-subscription";
+        private const string EnqueueBrs026SubscriptionName = "enqueue-brs-026-subscription";
+        private const string EnqueueBrs028SubscriptionName = "enqueue-brs-028-subscription";
 
         public static async Task<EdiTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
         {
@@ -481,7 +496,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             builder
                 .AddSubscription(EnqueueBrs023027SubscriptionName)
-                    .AddSubjectFilter($"Enqueue_{Brs_023_027.Name.ToLower()}");
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
+                .AddSubscription(EnqueueBrs026SubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_026.V1))
+                .AddSubscription(EnqueueBrs028SubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_028.V1));
 
             return builder;
         }
@@ -496,10 +515,61 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             var enqueueBrs023027Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(EnqueueBrs023027SubscriptionName));
+            var enqueueBrs026Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(EnqueueBrs026SubscriptionName));
+            var enqueueBrs028Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(EnqueueBrs028SubscriptionName));
 
             return new EdiTopicResources(
-                topic,
-                enqueueBrs023027Subscription);
+                EdiTopic: topic,
+                EnqueueBrs023027Subscription: enqueueBrs023027Subscription,
+                EnqueueBrs026Subscription: enqueueBrs026Subscription,
+                EnqueueBrs028Subscription: enqueueBrs028Subscription);
+        }
+    }
+
+    public record IntegrationEventTopicResources(
+        TopicResource SharedTopic,
+        SubscriptionProperties Subscription)
+    {
+        private const string SubscriptionName = "integration-event-subscription";
+
+        public static async Task<IntegrationEventTopicResources> CreateNew(
+            ServiceBusResourceProvider serviceBusResourceProvider)
+        {
+            var integrationEventTopicBuilder = serviceBusResourceProvider.BuildTopic("integration-event-topic");
+            AddSubscriptionsToTopicBuilder(integrationEventTopicBuilder);
+
+            var integrationEventTopic = await integrationEventTopicBuilder.CreateAsync();
+
+            return CreateFromTopic(integrationEventTopic);
+        }
+
+        /// <summary>
+        /// Add integration event subscription to the integration event topic.
+        /// </summary>
+        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
+        {
+            builder
+                .AddSubscription(SubscriptionName);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Get the <see cref="IntegrationEventTopicResources"/> used by the Orchestrations app.
+        /// <remarks>
+        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
+        /// </remarks>
+        /// </summary>
+        public static IntegrationEventTopicResources CreateFromTopic(TopicResource topic)
+        {
+            var integrationEventSubscriptionName = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(SubscriptionName));
+
+            return new IntegrationEventTopicResources(
+                SharedTopic: topic,
+                Subscription: integrationEventSubscriptionName);
         }
     }
 }

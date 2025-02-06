@@ -25,38 +25,45 @@ internal static class OrchestrationRegisterExtensions
     /// </summary>
     /// <param name="register">Orchestration register.</param>
     /// <param name="hostName">Name of the application hosting the Durable Functions orchestrations.</param>
-    /// <param name="hostDescriptions">List of orchestration descriptions that describes Durable Function orchestrations
+    /// <param name="newDescriptions">List of orchestration descriptions that describes Durable Function orchestrations
     /// known to the application host.</param>
     public static async Task SynchronizeAsync(
         this IOrchestrationRegister register,
         string hostName,
-        IReadOnlyCollection<OrchestrationDescription> hostDescriptions)
+        IReadOnlyCollection<OrchestrationDescription> newDescriptions)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(hostName);
-        ArgumentNullException.ThrowIfNull(hostDescriptions);
+        ArgumentNullException.ThrowIfNull(newDescriptions);
 
-        var registerDescriptions = await register.GetAllByHostNameAsync(hostName).ConfigureAwait(false);
+        var existingDescriptions = await register.GetAllByHostNameAsync(hostName).ConfigureAwait(false);
 
         // Deregister orchestrations not known to the host anymore
-        foreach (var registerDescription in registerDescriptions)
+        foreach (var existingDescription in existingDescriptions)
         {
-            var hostDescription = hostDescriptions
-                .SingleOrDefault(x =>
-                    x.UniqueName == registerDescription.UniqueName);
-
-            if (hostDescription == null)
-                await register.DeregisterAsync(registerDescription).ConfigureAwait(false);
+            if (DescriptionNoLongerExists(newDescriptions, existingDescription.UniqueName))
+                await register.DeregisterAsync(existingDescription).ConfigureAwait(false);
         }
 
         // Register orchestrations not known (or previously disabled) in the register
-        foreach (var hostDescription in hostDescriptions)
+        foreach (var newDescription in newDescriptions)
         {
-            var registerDescription = registerDescriptions
+            var existingDescription = existingDescriptions
                 .SingleOrDefault(x =>
-                    x.UniqueName == hostDescription.UniqueName);
+                    x.UniqueName == newDescription.UniqueName);
 
-            if (register.ShouldRegisterOrUpdate(registerDescription, hostDescription))
-                await register.RegisterOrUpdateAsync(hostDescription, hostName).ConfigureAwait(false);
+            if (existingDescription == null
+                || register.ShouldRegisterOrUpdate(existingDescription, newDescription))
+            {
+                await register.RegisterOrUpdateAsync(newDescription, hostName).ConfigureAwait(false);
+            }
         }
+    }
+
+    private static bool DescriptionNoLongerExists(
+        IReadOnlyCollection<OrchestrationDescription> newDescriptions,
+        OrchestrationDescriptionUniqueName existingDescriptionUniqueName)
+    {
+        return !newDescriptions
+            .Any(x => x.UniqueName == existingDescriptionUniqueName);
     }
 }

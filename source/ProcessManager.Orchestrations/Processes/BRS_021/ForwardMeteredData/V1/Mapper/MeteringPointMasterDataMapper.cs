@@ -12,46 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ElectricityMarket.Integration;
+using EMTypes = Energinet.DataHub.ElectricityMarket.Integration;
+using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
 
 public static class MeteringPointMasterDataMapper
 {
-    public static readonly Dictionary<MeteringPointType, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType> MeteringPointTypeMap = new()
+    public static readonly Dictionary<EMTypes.MeteringPointType, PMTypes.MeteringPointType> MeteringPointTypeMap = new()
     {
-        { MeteringPointType.Consumption, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType.Consumption },
-        { MeteringPointType.Production, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType.Production },
-        { MeteringPointType.Exchange, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeteringPointType.Exchange },
+        { EMTypes.MeteringPointType.Consumption, PMTypes.MeteringPointType.Consumption },
+        { EMTypes.MeteringPointType.Production, PMTypes.MeteringPointType.Production },
+        { EMTypes.MeteringPointType.Exchange, PMTypes.MeteringPointType.Exchange },
     };
 
-    public static readonly Dictionary<MeasureUnit, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit> MeasureUnitMap = new()
+    public static readonly Dictionary<EMTypes.MeasureUnit, PMTypes.MeasurementUnit> MeasureUnitMap = new()
     {
-        { MeasureUnit.Ampere, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.Ampere },
-        { MeasureUnit.STK, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.Pieces },
-        { MeasureUnit.kVArh, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KiloVoltAmpereReactiveHour },
-        { MeasureUnit.kWh, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.KilowattHour },
-        { MeasureUnit.kW, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.Kilowatt },
-        { MeasureUnit.MW, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.Megawatt },
-        { MeasureUnit.MWh, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MegawattHour },
-        { MeasureUnit.Tonne, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MetricTon },
-        { MeasureUnit.MVAr, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.MegaVoltAmpereReactivePower },
-        { MeasureUnit.DanishTariffCode, Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Components.Datahub.ValueObjects.MeasurementUnit.DanishTariffCode },
+        { EMTypes.MeasureUnit.Ampere, PMTypes.MeasurementUnit.Ampere },
+        { EMTypes.MeasureUnit.STK, PMTypes.MeasurementUnit.Pieces },
+        { EMTypes.MeasureUnit.kVArh, PMTypes.MeasurementUnit.KiloVoltAmpereReactiveHour },
+        { EMTypes.MeasureUnit.kWh, PMTypes.MeasurementUnit.KilowattHour },
+        { EMTypes.MeasureUnit.kW, PMTypes.MeasurementUnit.Kilowatt },
+        { EMTypes.MeasureUnit.MW, PMTypes.MeasurementUnit.Megawatt },
+        { EMTypes.MeasureUnit.MWh, PMTypes.MeasurementUnit.MegawattHour },
+        { EMTypes.MeasureUnit.Tonne, PMTypes.MeasurementUnit.MetricTon },
+        { EMTypes.MeasureUnit.MVAr, PMTypes.MeasurementUnit.MegaVoltAmpereReactivePower },
+        { EMTypes.MeasureUnit.DanishTariffCode, PMTypes.MeasurementUnit.DanishTariffCode },
     };
 
-    public static readonly Dictionary<MeteringPointSubType, Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType> MeteringPointSubTypeMap = new()
+    public static readonly Dictionary<EMTypes.MeteringPointSubType, Model.MeteringPointSubType> MeteringPointSubTypeMap = new()
     {
-        { MeteringPointSubType.Physical, Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType.Physical },
-        { MeteringPointSubType.Virtual, Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType.Virtual },
-        { MeteringPointSubType.Calculated, Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType.Calculated },
+        { EMTypes.MeteringPointSubType.Physical, Model.MeteringPointSubType.Physical },
+        { EMTypes.MeteringPointSubType.Virtual, Model.MeteringPointSubType.Virtual },
+        { EMTypes.MeteringPointSubType.Calculated, Model.MeteringPointSubType.Calculated },
     };
 
-    public static readonly Dictionary<ConnectionState, Model.ConnectionState> ConnectionStateMap = new()
+    public static readonly Dictionary<EMTypes.ConnectionState, Model.ConnectionState> ConnectionStateMap = new()
     {
-        { ConnectionState.NotUsed, Model.ConnectionState.NotUsed },
-        { ConnectionState.ClosedDown, Model.ConnectionState.ClosedDown },
-        { ConnectionState.New, Model.ConnectionState.New },
-        { ConnectionState.Connected, Model.ConnectionState.Connected },
-        { ConnectionState.Disconnected, Model.ConnectionState.Disconnected },
+        { EMTypes.ConnectionState.NotUsed, Model.ConnectionState.NotUsed },
+        { EMTypes.ConnectionState.ClosedDown, Model.ConnectionState.ClosedDown },
+        { EMTypes.ConnectionState.New, Model.ConnectionState.New },
+        { EMTypes.ConnectionState.Connected, Model.ConnectionState.Connected },
+        { EMTypes.ConnectionState.Disconnected, Model.ConnectionState.Disconnected },
     };
 }

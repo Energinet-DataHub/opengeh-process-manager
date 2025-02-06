@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
 
@@ -23,4 +24,4 @@ public record ActorRequestProcessExampleInputV1(
     string RequestedByActorNumber,
     string RequestedByActorRole,
     string BusinessReason)
-        : IInputParameterDto;
+        : IInputParameterDto, IBusinessValidatedDto;

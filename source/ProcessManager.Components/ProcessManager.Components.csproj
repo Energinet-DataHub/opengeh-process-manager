@@ -11,11 +11,11 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.Azure.Messaging.EventHubs" Version="9.0.0" />
-    <PackageReference Include="Azure.Identity" Version="1.13.1" />
+    <PackageReference Include="Azure.Identity" Version="1.13.2" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.5" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.9.0" />
     <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="6.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.1" />
     <PackageReference Include="Microsoft.Azure.Databricks.Client" Version="2.6.2" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="8.0.0" />
@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
+    <ProjectReference Include="..\ProcessManager.Components.Abstractions\ProcessManager.Components.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

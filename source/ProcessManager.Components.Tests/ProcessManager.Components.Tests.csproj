@@ -18,14 +18,14 @@
   <ItemGroup>
     <PackageReference Include="Energinet.DataHub.Core.App.WebApp" Version="14.0.2" />
     <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="7.2.1" />
-    <PackageReference Include="coverlet.collector" Version="6.0.2">
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit" Version="2.9.2" />
@@ -37,7 +37,7 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.29.1" />
-    <PackageReference Include="Grpc.Tools" Version="2.68.1">
+    <PackageReference Include="Grpc.Tools" Version="2.69.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -45,6 +45,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Components\ProcessManager.Components.csproj" />
+    <ProjectReference Include="..\ProcessManager.Example.Orchestrations\ProcessManager.Example.Orchestrations.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,13 +55,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="./Unit/Measurements/Contracts/**/*.proto">
-      <GrpcServices>None</GrpcServices>
-      <Access>Public</Access>
-      <ProtoCompile>True</ProtoCompile>
-      <CompileOutputs>True</CompileOutputs>
-      <Generator>MSBuild:Compile</Generator>
-    </Protobuf>
     <Protobuf Include="./Integration/IntegrationEventPublisher/Contracts/**/*.proto">
       <GrpcServices>None</GrpcServices>
       <Access>Public</Access>

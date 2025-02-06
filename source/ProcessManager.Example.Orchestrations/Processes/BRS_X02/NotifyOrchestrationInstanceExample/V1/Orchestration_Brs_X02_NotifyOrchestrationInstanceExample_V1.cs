@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Activities;
@@ -43,8 +42,6 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var input = context.GetOrchestrationParameterValue<NotifyOrchestrationInstanceExampleInputV1>();
-
         // Initialize
         var executionPlan = await InitializeOrchestrationAsync(context);
 
@@ -57,11 +54,10 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
         return await TerminateOrchestrationAsync(
             context,
             executionPlan.OrchestrationInstanceId,
-            hasReceivedExampleNotifyEvent,
-            input);
+            hasReceivedExampleNotifyEvent);
     }
 
-    private async Task<OrchestrationExecutionPlan> InitializeOrchestrationAsync(TaskOrchestrationContext context)
+    private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
@@ -70,9 +66,9 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
             new TransitionOrchestrationToRunningActivity_V1.ActivityInput(instanceId),
             _defaultRetryOptions);
 
-        var orchestrationExecutionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
-            nameof(GetOrchestrationExecutionPlanActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
-            new GetOrchestrationExecutionPlanActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
+        var orchestrationExecutionPlan = await context.CallActivityAsync<OrchestrationInstanceContext>(
+            nameof(GetOrchestrationInstanceContextActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
+            new GetOrchestrationInstanceContextActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
                 instanceId),
             _defaultRetryOptions);
 
@@ -137,8 +133,7 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
     private async Task<string> TerminateOrchestrationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        bool hasReceivedExampleNotifyEvent,
-        NotifyOrchestrationInstanceExampleInputV1 input)
+        bool hasReceivedExampleNotifyEvent)
     {
         var terminationState = hasReceivedExampleNotifyEvent
             ? OrchestrationInstanceTerminationState.Succeeded
@@ -152,7 +147,7 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
             _defaultRetryOptions);
 
         return hasReceivedExampleNotifyEvent
-            ? $"Success (BusinessReason={input.InputString})"
+            ? $"Success"
             : "Error: Timeout while waiting for example event";
     }
 

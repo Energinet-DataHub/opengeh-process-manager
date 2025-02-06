@@ -31,6 +31,27 @@ public partial class StartOrchestrationInstanceV1
     public TInputData ParseInput<TInputData>()
         where TInputData : class?
     {
+        if (InputType != typeof(TInputData).Name)
+        {
+            throw new InvalidOperationException($"Incorrect data type in received StartOrchestrationInstanceV1 message (TargetType={typeof(TInputData).Name}, InputType={InputType})")
+            {
+                Data =
+                {
+                    { "TargetType", typeof(TInputData).Name },
+                    { nameof(OrchestrationName), OrchestrationName },
+                    { nameof(OrchestrationVersion), OrchestrationVersion },
+                    { nameof(MajorVersion), MajorVersion },
+                    { nameof(InputFormat), InputFormat },
+                    { nameof(InputType), InputType },
+                    {
+                        nameof(Input), Input.Length < 1000
+                            ? Input
+                            : Input.Substring(0, 1000)
+                    },
+                },
+            };
+        }
+
         var result = InputFormat switch
         {
             StartOrchestrationInstanceInputFormatV1.Json => JsonSerializer.Deserialize<TInputData>(Input),
@@ -46,10 +67,10 @@ public partial class StartOrchestrationInstanceV1
             {
                 Data =
                 {
+                    { "TargetType", typeof(TInputData).Name },
                     { nameof(OrchestrationName), OrchestrationName },
                     { nameof(OrchestrationVersion), OrchestrationVersion },
                     { nameof(MajorVersion), MajorVersion },
-                    { "TargetType", typeof(TInputData).Name },
                     { nameof(InputFormat), InputFormat },
                     { nameof(InputType), InputType },
                     {

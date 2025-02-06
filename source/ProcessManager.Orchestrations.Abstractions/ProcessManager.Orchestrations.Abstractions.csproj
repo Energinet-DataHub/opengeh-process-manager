@@ -7,26 +7,26 @@
 
   <PropertyGroup>
     <PackageId>Energinet.DataHub.ProcessManager.Orchestrations.Abstractions</PackageId>
-    <PackageVersion>0.15.2$(VersionSuffix)</PackageVersion>
+    <PackageVersion>1.0.1$(VersionSuffix)</PackageVersion>
     <Title>DH3 Process Manager Orchestrations Abstractions library</Title>
     <Company>Energinet-DataHub</Company>
     <Authors>Energinet-DataHub</Authors>
     <PackageProjectUrl>https://github.com/Energinet-DataHub</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Energinet-DataHub/opengeh-edi</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Energinet-DataHub/opengeh-process-manager</RepositoryUrl>
     <!-- PackageReleaseNotes:
       Is shown in Azure DevOps artifacts Release Notes section
     -->
     <PackageReleaseNotes>
-      [Release Notes](https://github.com/Energinet-DataHub/opengeh-edi/blob/master/docs/ProcessManager.Orchestrations.Abstractions/ReleaseNotes/ReleaseNotes.md)
-      [Documentation](https://github.com/Energinet-DataHub/opengeh-edi/blob/master/docs/ProcessManager.Orchestrations.Abstractions/Documentation.md)
+      [Release Notes](https://github.com/Energinet-DataHub/opengeh-process-manager/blob/master/docs/ProcessManager.Orchestrations.Abstractions/ReleaseNotes/ReleaseNotes.md)
+      [Documentation](https://github.com/Energinet-DataHub/opengeh-process-manager/blob/master/docs/ProcessManager.Orchestrations.Abstractions/Documentation.md)
     </PackageReleaseNotes>
     <!-- PackageDescription:
       Is shown in GitHub packages "About this package" section,
       and in Visual Studio package manager view.
     -->
     <PackageDescription>
-      [Release Notes](https://github.com/Energinet-DataHub/opengeh-edi/blob/master/docs/ProcessManager.Orchestrations.Abstractions/ReleaseNotes/ReleaseNotes.md)
-      [Documentation](https://github.com/Energinet-DataHub/opengeh-edi/blob/master/docs/ProcessManager.Orchestrations.Abstractions/Documentation.md)
+      [Release Notes](https://github.com/Energinet-DataHub/opengeh-process-manager/blob/master/docs/ProcessManager.Orchestrations.Abstractions/ReleaseNotes/ReleaseNotes.md)
+      [Documentation](https://github.com/Energinet-DataHub/opengeh-process-manager/blob/master/docs/ProcessManager.Orchestrations.Abstractions/Documentation.md)
     </PackageDescription>
     <Description>Library containing orchestrations abstractions used by Energinet DataHub Process Manager and clients to communicate.</Description>
     <PackageTags>energinet;datahub</PackageTags>
@@ -48,19 +48,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.29.1" />
+    <PackageReference Include="Grpc.Tools" Version="2.69.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NodaTime" Version="3.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Abstractions\ProcessManager.Abstractions.csproj" />
+    <ProjectReference Include="..\ProcessManager.Components.Abstractions\ProcessManager.Components.Abstractions.csproj" />
   </ItemGroup>
-
   <ItemGroup>
-    <Folder Include="Components\" />
+    <Protobuf Include="**\*.proto">
+      <GrpcServices>None</GrpcServices>
+      <Access>Public</Access>
+      <ProtoCompile>True</ProtoCompile>
+      <CompileOutputs>True</CompileOutputs>
+      <Generator>MSBuild:Compile</Generator>
+    </Protobuf>
   </ItemGroup>
 
 </Project>

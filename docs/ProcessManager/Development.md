@@ -1,6 +1,6 @@
 # Process Manager: Developer Handbook
 
-In the following we will give an introduction to the `process manager`, some guidelines and how to get started.
+In the following we will give an introduction to the Process Manager, some guidelines and how to get started.
 If one wants a more abstract introduction, then please consult the documentation
 in [Confluence](https://energinet.atlassian.net/wiki/spaces/D3/pages/1126072346/Analyse+og+design+til+PM-22+ProcessManager#ProcessManager-and-framework-design)
 or [Miro](https://miro.com/app/board/uXjVLXgfr7o=/)
@@ -30,13 +30,12 @@ We recommend that one follows the [guidelines for durable functions](https://ene
 Furthermore, we encourage people to create a new version of the orchestration if the orchestration is live and changed
 to ensure that the history of the running orchestration are intact.
 The previous versions may not run to completion if this happens,
-consult [microsoft's versioning documentation for more information](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-versioning?tabs=csharp).
-(The process manager supports the "side-by-side" Mitigation strategy).
+consult [microsoft's versioning documentation for more information](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-versioning?tabs=csharp). The process manager supports the mentioned "side-by-side" Mitigation strategy.
 
 As a rule of thumb, one should make a new version if one of the following is true:
 
-- Input/output to the orchestration has changed
-- Input/output to any activity has changed
+- Input/output to/from the orchestration has changed
+- Input/output to/from any activity has changed
 - Any activity has been added or removed to the orchestration
 
 ### Developing activities
@@ -126,12 +125,14 @@ Where folder 1, 2, 3, and 7 are meant for the team maintaining the client and 4,
 ### Solution folder 1. Client
 
 The `1. Client` folder contains the `Client` which is used to administrate the orchestrations from other subsystems.
-It is built as a nuget package containing a `HttpClient` and a `ServiceBusClient`.
+It is built as a NuGet package containing a `HttpClient` and a `ServiceBusClient`.
 Furthermore, this package contains the classes needed to communicate via the endpoints in
 [`2. Api`](#solution-folder-2-api).
 
-[`4. Orchestrations`](#solution-folder-4-orchestrations) contains an `Abstraction` solution as well,
-which is released as a nuget package and used by the `Client` to communicate with the orchestrations via the custom `HttpsTriggers`.
+[`4. Orchestrations`](#solution-folder-4-orchestrations) contains an `Abstractions` project as well,
+which is released as a NuGet package and used by the `Client` to communicate with the orchestrations via custom `HttpTrigger` and `ServiceBusTrigger` functions.
+
+[`5. Components`](#solution-folder-5-components) also contains an `Abstractions` project released as a NuGet package. This is used in combination with the `Client` to communicate with certain subsystems.
 
 ### Solution folder 2. Api
 
@@ -139,7 +140,7 @@ The `2. Api` folder contains the `HttpTrigger` functions which are used to admin
 It supports some basic functionality, such as starting an orchestration, checking the status of an orchestration and
 canceling an orchestration.
 Please note, that `Start` in the `Api` solution is restricted to orchestrations without an input.
-If one wants to start an orchestration with input, one needs to implement a new `HttpTrigger` function in
+If one wants to start an orchestration with input, one needs to implement a custom `HttpTrigger` function in
 [`4. Orchestrations`](#solution-folder-4-orchestrations).
 
 ### Solution folder 3. Core
@@ -157,20 +158,27 @@ The projects inside solution folder `4. Orchestations` follows a strict folder s
 ├── Processes
 │   ├── BRS_021
 │   │   ├── ElectricalHeatingCalculation
-|   |   |   |── V1
-|   |   |   |   |── Activities
-|   |   |   |   |── ...
-|   |   |   |   |── Orchestration_Brs_021_ElectricalHeatingCalculation_V1.cs
-|   |   |   |   └── OrchestrationDescription.cs
-|   |   |   └── SearchElectricalHeatingCalculationHandler.cs
+|   |   |   └── V1
+|   |   |       |── Activities
+|   |   |       |── ...
+|   |   |       |── Orchestration_Brs_021_ElectricalHeatingCalculation_V1.cs
+|   |   |       └── OrchestrationDescriptionBuilder.cs
 |   |   └── ForwardMeteredData
 |   |       └── V1
 |   |           |── Activities
-|   |           └── OrchestrationDescription.cs
+|   |           |── ...
+|   |           |── Orchestration_Brs_021_ForwardMeteredData_V1.cs
+|   |           └── OrchestrationDescriptionBuilder.cs
 │   └── BRS_XYZ
-|       └── V1
-|           |── Activities
-|           └── OrchestrationDescription.cs
+|       |── CustomQueries
+|       |── V1
+|       |   |── Activities
+|       |   |── Mappers
+|       |   |── Model
+|       |   |── Options
+|       |   |── Orchestration_Brs_XYZ_V1.cs
+|       |   └── OrchestrationDescriptionBuilder.cs
+|       └── OptionsConfiguration.cs
 ```
 
 With this structure, we're able to assign the business teams ownership of their respected processes, and consequently we
@@ -187,6 +195,8 @@ Consult the example orchestrations in [`7.Example`](#solution-folder-7-examples)
 All functionality that may be used by more than one process should be placed here.
 This could be a client to `databricks` or the like.
 
+If the component is used in communication with other subsystems and want to share types, they must be placed in `Components.Abstractions`.
+
 ### Solution folder 6. SubsystemTests
 
 This is currently without functionality.
@@ -195,7 +205,7 @@ This is currently without functionality.
 
 The purpose of `7.Example` is to give inspiration of how one may implement orchestrations in the process manager.
 Notice how the structure is a simplified version of folder [`4. Orchestrations`](#solution-folder-4-orchestrations).
-The `Example Orchestration` contains two examples, with and without input. These can be used as inspiration to get up
+The `Example Orchestration` contains multiple examples, with and without input. These can be used as inspiration to get up
 and running.
 
 The tests document how one may start an orchestration, how one may test the orchestration's activities, and how one may

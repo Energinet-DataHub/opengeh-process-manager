@@ -135,6 +135,9 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                     ? null
                     : new IdempotencyKey(dbValue));
 
+        builder.Property(o => o.RowVersion)
+            .IsRowVersion();
+
         // Relation to description
         builder.Property(o => o.OrchestrationDescriptionId)
             .ValueGeneratedNever()

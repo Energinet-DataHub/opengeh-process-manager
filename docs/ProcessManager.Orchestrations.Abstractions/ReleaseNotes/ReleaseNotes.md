@@ -1,5 +1,82 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.0.1
+
+- Update dependent NuGet package.
+
+## Version 1.0.0
+
+- Update dependent NuGet package.
+
+## Version 0.20.0
+
+- Moved all types from namespace `ValueObjects` to new NuGet package `Energinet.DataHub.ProcessManager.Components.ValueObjects`
+- Add reference to new NuGet package `Energinet.DataHub.ProcessManager.Components.ValueObjects`
+
+## Version 0.19.0
+
+- Add protobuf contract `CalculationEnqueueCompletedV1`
+
+## Version 0.18.4
+
+- Update NuGet package properties `RepositoryUrl`, `PackageReleaseNotes` and `PackageDescription`.
+
+## Version 0.18.3
+
+- Add `Resolution` to `RequestCalculatedWholesaleServicesAcceptedV1`.
+- Add `RequestCalculatedWholesaleServicesAcceptedV1.AcceptedChargeType` type for `RequestCalculatedWholesaleServicesAcceptedV1.ChargeTypes`.
+
+## Version 0.18.2
+
+- Update `RequestCalculatedEnergyTimeSeriesRejectedV1` with missing properties.
+- Update `RequestCalculatedWholesaleServicesRejectedV1` with missing properties.
+
+## Version 0.18.1
+
+- Update `RequestCalculatedEnergyTimeSeriesInputV1` with "requested by actor" properties.
+- Update `RequestCalculatedEnergyTimeSeriesAcceptedV1` with "requested by actor" properties.
+- Update `RequestCalculatedWholesaleServicesInputV1` with "requested by actor" and message/transaction id properties.
+- Implement `RequestCalculatedWholesaleServicesAcceptedV1` with correct properties.
+
+## Version 0.18.0
+
+- Add `ActorNumber` and `ActorRole` to `MeteredDataForMeteringPointMessageInputV1`.
+
+## Version 0.17.4
+
+- Rename `NotifyEnqueueFinishedV1` to `CalculationEnqueueActorMessagesCompletedNotifyEventV1`.
+- Rename `CalculatedDataForCalculationTypeV1` to `CalculationEnqueueActorMessagesV1`.
+
+## Version 0.17.3
+
+- Updated `MeteredDataForMeteringPointAcceptedV1`
+- Add `MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1`
+
+## Version 0.17.2
+
+- Update `RequestCalculatedWholesaleServicesInputV1` model with `IBusinessValidatedDto` interface.
+- Rename `RequestCalculatedWholesaleServicesInputV1.ChargeTypeInputV1` to `RequestCalculatedWholesaleServicesInputV1.ChargeTypeInput`.
+- Update `RequestCalculatedWholesaleServicesRejectedV1` properties to be a list of validation errors.
+
+## Version 0.17.1
+
+- Update `RequestCalculatedEnergyTimeSeriesInputV1` with the required input.
+- Update `RequestCalculatedEnergyTimeSeriesAcceptedV1` with the correct properties.
+
+## Version 0.17.0
+
+- Add shared namespace for `BRS_026`/`BRS_028` types, so they now live in `BRS_026_028.BRS_026` and `BRS_026_028.BRS_028` namespaces.
+
+## Version 0.16.1
+
+- Add `NotifyEnqueueFinishedV1`.
+
+## Version 0.16.0
+
+- Add `SettlementMethod` and `SettlementVersion` DataHub types.
+- Update `RequestCalculatedEnergyTimeSeriesInputV1` model with `IBusinessValidatedDto` interface.
+- Update `RequestCalculatedEnergyTimeSeriesRejectedV1` properties to be a list of validation errors.
+
 ## Version 0.15.2
 
 - Update dependent NuGet package.

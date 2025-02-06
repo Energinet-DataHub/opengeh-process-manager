@@ -1,5 +1,43 @@
 # ProcessManager.Client Release Notes
 
+## Version 1.0.1
+
+- No functional changes.
+
+## Version 1.0.0
+
+- Moved `BusinessValidation` to NuGet package `ProcessManager.Components.Abstractions`.
+
+## Version 0.27.1
+
+- No functional changes.
+
+## Version 0.27.0
+
+- Update Nuget package `Grpc.Tools`
+
+## Version 0.26.2
+
+- Update NuGet package properties `RepositoryUrl`, `PackageReleaseNotes` and `PackageDescription`.
+
+## Version 0.26.1
+
+- Update `EnqueueActorMessagesV1` with `BuildServiceBusMessageSubject()` method.
+
+## Version 0.26.0
+
+- Throw exception in `EnqueueActorMessagesV1.ParseData<TData>()` if parsing incorrect `DataType`.
+- Throw exception in `NotifyOrchestrationInstanceV1.ParseData<TNotifyData>()` if parsing incorrect `DataType`.
+- Throw exception in `StartOrchestrationInstanceV1.ParseInput<TInputData>()` if parsing incorrect `InputType`.
+
+## Version 0.25.1
+
+- No functional changes.
+
+## Version 0.25.0
+
+- Add `IBusinessValidatedDto` and `ValidationErrorDto` used to support business validation.
+
 ## Version 0.24.0
 
 - Add `INotifyDataDto` type constraint to `NotifyOrchestrationInstanceV1`

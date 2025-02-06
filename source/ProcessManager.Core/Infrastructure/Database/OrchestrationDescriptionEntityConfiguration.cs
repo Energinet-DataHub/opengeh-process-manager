@@ -55,9 +55,11 @@ internal class OrchestrationDescriptionEntityConfiguration : IEntityTypeConfigur
 
         builder.Property(o => o.HostName);
         builder.Property(o => o.IsEnabled);
+        builder.Property(o => o.RowVersion)
+            .IsRowVersion();
 
-        builder.OwnsMany(
-            o => o.Steps,
+        builder.OwnsMany<StepDescription>(
+            OrchestrationDescription.StepsPrivatePropertyName,
             b =>
             {
                 b.ToTable("StepDescription");
@@ -83,5 +85,6 @@ internal class OrchestrationDescriptionEntityConfiguration : IEntityTypeConfigur
 
                 b.WithOwner().HasForeignKey(s => s.OrchestrationDescriptionId);
             });
+        builder.Ignore(o => o.Steps); // Steps is a get-only property for the private _steps collection.
     }
 }

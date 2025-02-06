@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
@@ -26,8 +28,10 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
+using Proto = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Contracts;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1;
 
@@ -54,14 +58,26 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
                 = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
+                = Fixture.ProcessManagerTopicName,
         });
+        services.AddAzureClients(
+            builder => builder.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerHttpClients();
+        services.AddProcessManagerMessageClient();
         ServiceProvider = services.BuildServiceProvider();
+
+        ProcessManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        ProcessManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
     }
 
     private OrchestrationsAppFixture Fixture { get; }
 
     private ServiceProvider ServiceProvider { get; }
+
+    private IProcessManagerClient ProcessManagerClient { get;  }
+
+    private IProcessManagerMessageClient ProcessManagerMessageClient { get; }
 
     public Task InitializeAsync()
     {
@@ -69,6 +85,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
 
         Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
+
+        Fixture.EnqueueBrs023027ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+        Fixture.IntegrationEventServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         return Task.CompletedTask;
     }
@@ -89,31 +108,40 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
+        var calculationType = CalculationType.WholesaleFixing;
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
         // Step 1: Start new calculation orchestration instance
         var inputParameter = new CalculationInputV1(
-            CalculationType.WholesaleFixing,
+            calculationType,
             GridAreaCodes: new[] { "804" },
             PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
             PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
             IsInternalCalculation: false);
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartCalculationCommandV1(
                     userIdentity,
                     inputParameter),
                 CancellationToken.None);
 
-        // Step 2: Query until terminated with succeeded
+        // Step 2.0: Wait for service bus message to EDI and mock a response
+        await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
+            ProcessManagerMessageClient,
+            orchestrationInstanceId);
+
+        // step 2.5: Wait for the integration event to be published
+        await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
+            orchestrationInstanceId: orchestrationInstanceId,
+            calculationType: Proto.CalculationType.WholesaleFixing);
+
+        // Step 3: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
+                var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
@@ -129,8 +157,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
 
-        // Step 3: General search using name and termination state
-        var orchestrationInstancesGeneralSearch = await processManagerClient
+        // Step 4: General search using name and termination state
+        var orchestrationInstancesGeneralSearch = await ProcessManagerClient
             .SearchOrchestrationInstancesByNameAsync<CalculationInputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
                     userIdentity,
@@ -144,7 +172,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
 
-        // Step 4: Custom search
+        // Step 5: Custom search
         var customQuery = new CalculationQuery(userIdentity)
         {
             CalculationTypes = new[] { inputParameter.CalculationType },
@@ -153,7 +181,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             PeriodEndDate = inputParameter.PeriodEndDate,
             IsInternalCalculation = inputParameter.IsInternalCalculation,
         };
-        var orchestrationInstancesCustomSearch = await processManagerClient
+        var orchestrationInstancesCustomSearch = await ProcessManagerClient
             .SearchOrchestrationInstancesByCustomQueryAsync(
                 customQuery,
                 CancellationToken.None);
@@ -172,14 +200,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
         // Step 1: Schedule new calculation orchestration instance
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await ProcessManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleCalculationCommandV1(
                     userIdentity,
@@ -196,11 +222,21 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await Fixture.ProcessManagerAppManager.AppHostManager
             .TriggerFunctionAsync("StartScheduledOrchestrationInstances");
 
-        // Step 3: Query until terminated with succeeded
+        // Step 3.0: Wait for service bus message to EDI and mock a response
+        await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
+            ProcessManagerMessageClient,
+            orchestrationInstanceId);
+
+        // step 3.5: Wait for the integration event to be published
+        await Fixture.IntegrationEventServiceBusListener.WaitAndAssertCalculationEnqueueCompletedIntegrationEvent(
+            orchestrationInstanceId: orchestrationInstanceId,
+            calculationType: Proto.CalculationType.BalanceFixing);
+
+        // Step 4: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
+                var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
@@ -220,14 +256,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task CalculationScheduledToRunInTheFuture_WhenCanceled_CanMonitorLifecycle()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorId: Guid.NewGuid());
 
         // Step 1: Schedule new calculation orchestration instance
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await ProcessManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleCalculationCommandV1(
                     userIdentity,
@@ -241,7 +275,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 CancellationToken.None);
 
         // Step 2: Cancel the calculation orchestration instance
-        await processManagerClient
+        await ProcessManagerClient
             .CancelScheduledOrchestrationInstanceAsync(
                 new CancelScheduledOrchestrationInstanceCommand(
                     userIdentity,
@@ -252,7 +286,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
+                var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
@@ -267,5 +301,53 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             delay: TimeSpan.FromSeconds(3));
 
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+    }
+
+    [Fact]
+    public async Task Calculation_WhenEdiDoesNotRespond_ThenOrchestrationTimesOutAndHasStatusFailed()
+    {
+        // Mocking the databricks api. Forcing it to return a terminated successful job status
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
+            RunLifeCycleState.TERMINATED,
+            CalculationJobName);
+
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorId: Guid.NewGuid());
+
+        // Step 1: Start new calculation orchestration instance
+        var inputParameter = new CalculationInputV1(
+            CalculationType.WholesaleFixing,
+            GridAreaCodes: new[] { "804" },
+            PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
+            PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
+            IsInternalCalculation: false);
+
+        var orchestrationInstanceId = await ProcessManagerClient
+            .StartNewOrchestrationInstanceAsync(
+                new StartCalculationCommandV1(
+                    userIdentity,
+                    inputParameter),
+                CancellationToken.None);
+
+        // Step 2: Query until terminated with failed
+        var isTerminatedWithFailed = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                var orchestrationInstance = await ProcessManagerClient
+                    .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
+                        new GetOrchestrationInstanceByIdQuery(
+                            userIdentity,
+                            orchestrationInstanceId),
+                        CancellationToken.None);
+
+                return
+                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Failed;
+            },
+            timeLimit: TimeSpan.FromSeconds(30),
+            delay: TimeSpan.FromSeconds(3));
+
+        isTerminatedWithFailed.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
 }

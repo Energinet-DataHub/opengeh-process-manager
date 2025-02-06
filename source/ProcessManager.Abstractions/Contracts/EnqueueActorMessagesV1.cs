@@ -13,12 +13,23 @@
 // limitations under the License.
 
 using System.Text.Json;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
 public partial class EnqueueActorMessagesV1
 {
     public const string MajorVersion = nameof(EnqueueActorMessagesV1);
+
+    /// <summary>
+    /// Build the service bus message subject using the provided orchestration unique name.
+    /// </summary>
+    public static string BuildServiceBusMessageSubject(string orchestrationUniqueName) => $"Enqueue_{orchestrationUniqueName.ToLower()}";
+
+    /// <summary>
+    /// Build the service bus message subject using the provided orchestration unique name.
+    /// </summary>
+    public static string BuildServiceBusMessageSubject(OrchestrationDescriptionUniqueNameDto uniqueName) => BuildServiceBusMessageSubject(uniqueName.Name);
 
     public void SetData<TData>(TData data)
         where TData : class
@@ -31,6 +42,26 @@ public partial class EnqueueActorMessagesV1
     public TData ParseData<TData>()
         where TData : class
     {
+        if (DataType != typeof(TData).Name)
+        {
+            throw new InvalidOperationException($"Incorrect data type in received EnqueueActorMessagesV1 message (TargetType={typeof(TData).Name}, DataType={DataType})")
+            {
+                Data =
+                {
+                    { "TargetType", typeof(TData).Name },
+                    { nameof(OrchestrationInstanceId), OrchestrationInstanceId },
+                    { nameof(MajorVersion), MajorVersion },
+                    { nameof(DataFormat), DataFormat },
+                    { nameof(DataType), DataType },
+                    {
+                        nameof(Data), Data.Length < 1000
+                            ? Data
+                            : Data.Substring(0, 1000)
+                    },
+                },
+            };
+        }
+
         var result = DataFormat switch
         {
             EnqueueActorMessagesDataFormatV1.Json => JsonSerializer.Deserialize<TData>(Data),
@@ -46,6 +77,7 @@ public partial class EnqueueActorMessagesV1
             {
                 Data =
                 {
+                    { "TargetType", typeof(TData).Name },
                     { nameof(OrchestrationInstanceId), OrchestrationInstanceId },
                     { nameof(MajorVersion), MajorVersion },
                     { nameof(DataFormat), DataFormat },

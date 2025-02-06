@@ -72,6 +72,19 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
+        EnqueueBrs026ServiceBusListener = new ServiceBusListenerMock(
+            OrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
+        EnqueueBrs028ServiceBusListener = new ServiceBusListenerMock(
+            OrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
+
+        IntegrationEventServiceBusListener = new ServiceBusListenerMock(
+            OrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -90,6 +103,12 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     public string? ProcessManagerTopicName { get; private set; }
 
     public ServiceBusListenerMock EnqueueBrs023027ServiceBusListener { get; }
+
+    public ServiceBusListenerMock EnqueueBrs026ServiceBusListener { get; }
+
+    public ServiceBusListenerMock EnqueueBrs028ServiceBusListener { get; }
+
+    public ServiceBusListenerMock IntegrationEventServiceBusListener { get; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -126,8 +145,20 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await EnqueueBrs023027ServiceBusListener.AddTopicSubscriptionListenerAsync(
             ediTopicResources.EnqueueBrs023027Subscription.TopicName,
             ediTopicResources.EnqueueBrs023027Subscription.SubscriptionName);
+        await EnqueueBrs026ServiceBusListener.AddTopicSubscriptionListenerAsync(
+            ediTopicResources.EnqueueBrs026Subscription.TopicName,
+            ediTopicResources.EnqueueBrs026Subscription.SubscriptionName);
+        await EnqueueBrs028ServiceBusListener.AddTopicSubscriptionListenerAsync(
+            ediTopicResources.EnqueueBrs028Subscription.TopicName,
+            ediTopicResources.EnqueueBrs028Subscription.SubscriptionName);
 
-        await OrchestrationsAppManager.StartAsync(orchestrationsProcessManagerTopicResources, ediTopicResources);
+        // Create Integration Event topic resources
+        var integrationEventTopicResources = await OrchestrationsAppManager.IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
+        await IntegrationEventServiceBusListener.AddTopicSubscriptionListenerAsync(
+            integrationEventTopicResources.SharedTopic.Name,
+            integrationEventTopicResources.Subscription.SubscriptionName);
+
+        await OrchestrationsAppManager.StartAsync(orchestrationsProcessManagerTopicResources, ediTopicResources, integrationEventTopicResources);
         await ProcessManagerAppManager.StartAsync(processManagerAppProcessManagerTopicResources);
 
         ProcessManagerTopicName = orchestrationsProcessManagerTopicResources.ProcessManagerTopic.Name;
@@ -152,6 +183,9 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         AzuriteManager.Dispose();
         await ServiceBusResourceProvider.DisposeAsync();
         await EnqueueBrs023027ServiceBusListener.DisposeAsync();
+        await EnqueueBrs026ServiceBusListener.DisposeAsync();
+        await EnqueueBrs028ServiceBusListener.DisposeAsync();
+        await IntegrationEventServiceBusListener.DisposeAsync();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)

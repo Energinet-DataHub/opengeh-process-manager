@@ -15,7 +15,6 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DurableTask;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
@@ -25,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.M
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
+using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
@@ -47,15 +47,6 @@ internal class Orchestration_Brs_023_027_V1
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        // TODO: For demo purposes; decide if we want to continue injecting parameters
-        // OR we want to have a pattern where developers load any info they need from the databae, using the first activity.
-        // Currently we inject parameters when an orchestration is started.
-        // But 'context.InstanceId' contains the 'OrchestrationInstance.Id' so it is possible to load all
-        // information about an 'OrchestrationInstance' in activities and use any information (e.g. UserIdentity).
-        var orchestrationInput = context.GetOrchestrationParameterValue<CalculationInputV1>();
-        if (orchestrationInput == null)
-            return "Error: No input specified.";
-
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         // Initialize
@@ -83,9 +74,9 @@ internal class Orchestration_Brs_023_027_V1
         var jobRunId = await context.CallActivityAsync<JobRunId>(
             nameof(CalculationStepStartJobActivity_Brs_023_027_V1),
             new CalculationStepStartJobActivity_Brs_023_027_V1.ActivityInput(
+                instanceId,
                 executionContext.CalculationId,
-                executionContext.UserId,
-                orchestrationInput),
+                executionContext.UserId),
             _defaultRetryOptions);
 
         // TODO: We currently have removed the following functionality compared to the orchestration in Wholesale:
@@ -151,49 +142,45 @@ internal class Orchestration_Brs_023_027_V1
             }
         }
 
+        var messagesSuccessfullyEnqueued = true;
+
         // Step: Enqueue messages
         if (!executionContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStepSequence))
         {
-            await context.CallActivityAsync(
-                nameof(TransitionStepToRunningActivity_V1),
-                new TransitionStepToRunningActivity_V1.ActivityInput(
-                    instanceId,
-                    EnqueueActorMessagesStepSequence),
-                _defaultRetryOptions);
+            var calculationData = new CalculationEnqueueActorMessagesV1(
+                CalculationId: executionContext.CalculationId);
 
-            var calculationData = new CalculatedDataForCalculationTypeV1(
-                CalculationId: executionContext.CalculationId,
-                CalculationType: orchestrationInput.CalculationType);
+            messagesSuccessfullyEnqueued = await TryEnqueueMessagesAsync(
+                context: context,
+                instanceId: instanceId,
+                timeout: TimeSpan.FromSeconds(executionContext.OrchestrationOptions.MessagesEnqueuingExpiryTimeInSeconds),
+                calculationData: calculationData);
 
-            var idempotencyKey = context.NewGuid();
+            if (messagesSuccessfullyEnqueued)
+            {
+                var integrationEventIdempotencyKey = context.NewGuid();
 
-            await context.CallActivityAsync(
-                nameof(EnqueueActorMessagesActivity_Brs_023_027_V1),
-                new EnqueueActorMessagesActivity_Brs_023_027_V1.ActivityInput(
-                    instanceId,
-                    calculationData,
-                    idempotencyKey),
-                _defaultRetryOptions);
-
-            // TODO: Wait for actor messages enqueued notify event
-
-            await context.CallActivityAsync(
-                nameof(TransitionStepToTerminatedActivity_V1),
-                new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                    instanceId,
-                    EnqueueActorMessagesStepSequence,
-                    OrchestrationStepTerminationState.Succeeded),
-                _defaultRetryOptions);
+                // Messages have been prepared for the actors, we need to inform the other subsystems
+                await context.CallActivityAsync(
+                    nameof(PublishCalculationEnqueueCompletedActivity_brs_023_027_V1),
+                    new PublishCalculationEnqueueCompletedActivity_brs_023_027_V1.ActivityInput(
+                        instanceId,
+                        executionContext.CalculationId,
+                        integrationEventIdempotencyKey),
+                    _defaultRetryOptions);
+            }
         }
 
-        // TODO: Publish CalculationCompleted integration event (should this also be published if enqueue messages is skipped?)
+        var terminationState = messagesSuccessfullyEnqueued
+            ? OrchestrationInstanceTerminationState.Succeeded
+            : OrchestrationInstanceTerminationState.Failed;
 
         // Terminate
         await context.CallActivityAsync(
             nameof(TransitionOrchestrationToTerminatedActivity_V1),
             new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                 instanceId,
-                OrchestrationInstanceTerminationState.Succeeded),
+                terminationState),
             _defaultRetryOptions);
 
         return "Success";
@@ -205,5 +192,62 @@ internal class Orchestration_Brs_023_027_V1
             maxNumberOfAttempts: 5,
             firstRetryInterval: TimeSpan.FromSeconds(30),
             backoffCoefficient: 2.0));
+    }
+
+    private async Task<bool> TryEnqueueMessagesAsync(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        TimeSpan timeout,
+        CalculationEnqueueActorMessagesV1 calculationData)
+    {
+        await context.CallActivityAsync(
+            nameof(TransitionStepToRunningActivity_V1),
+            new TransitionStepToRunningActivity_V1.ActivityInput(
+                instanceId,
+                EnqueueActorMessagesStepSequence),
+            _defaultRetryOptions);
+
+        var idempotencyKey = context.NewGuid();
+
+        await context.CallActivityAsync(
+            nameof(EnqueueActorMessagesActivity_Brs_023_027_V1),
+            new EnqueueActorMessagesActivity_Brs_023_027_V1.ActivityInput(
+                instanceId,
+                calculationData,
+                idempotencyKey),
+            _defaultRetryOptions);
+
+        var success = false;
+        try
+        {
+            var enqueueEvent = await context.WaitForExternalEvent<CalculationEnqueueActorMessagesCompletedNotifyEventV1>(
+                eventName: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName,
+                timeout: timeout);
+
+            success = enqueueEvent.Success;
+        }
+        catch (TaskCanceledException)
+        {
+            var logger = context.CreateReplaySafeLogger<Orchestration_Brs_023_027_V1>();
+            logger.Log(
+                LogLevel.Error,
+                "Timeout while waiting for enqueue actor messages to complete (InstanceId={OrchestrationInstanceId}, Timeout={Timeout}).",
+                instanceId.Value,
+                timeout.ToString("g"));
+        }
+
+        var enqueueActorMessagesTerminationState = success
+            ? OrchestrationStepTerminationState.Succeeded
+            : OrchestrationStepTerminationState.Failed;
+
+        await context.CallActivityAsync(
+            nameof(TransitionStepToTerminatedActivity_V1),
+            new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                instanceId,
+                EnqueueActorMessagesStepSequence,
+                enqueueActorMessagesTerminationState),
+            _defaultRetryOptions);
+
+        return success;
     }
 }

@@ -112,8 +112,8 @@ internal class Orchestration_Brs_X05_V1
                     OrchestrationInstanceId: instanceId,
                     StepSequence: FailingStep,
                     TerminationState: OrchestrationStepTerminationState.Failed,
-                    TransitionOrchestrationInstanceToFailed: true,
-                    CustomState: e.ToString()),
+                    CustomState: e.ToString(),
+                    TransitionOrchestrationInstanceToFailed: true),
                 options: _defaultRetryOptions);
 
             throw;

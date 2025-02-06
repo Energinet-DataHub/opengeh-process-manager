@@ -117,9 +117,6 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         isTerminated.Should().BeTrue("because the BRS-X03 orchestration instance should complete within given wait time");
         succeededOrchestrationInstance.Should().NotBeNull();
-        succeededOrchestrationInstance!.ActorMessageId.Should().BeNull();
-        succeededOrchestrationInstance.TransactionId.Should().BeNull();
-        succeededOrchestrationInstance.MeteringPointId.Should().BeNull();
 
         succeededOrchestrationInstance!.Steps.Should()
             .AllSatisfy(

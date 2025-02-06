@@ -40,6 +40,7 @@
     <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />
     <ProjectReference Include="..\ProcessManager.DatabaseMigration\ProcessManager.DatabaseMigration.csproj" />
     <ProjectReference Include="..\ProcessManager.Example.Orchestrations\ProcessManager.Example.Orchestrations.csproj" />
+    <ProjectReference Include="..\ProcessManager.Orchestrations.Abstractions\ProcessManager.Orchestrations.Abstractions.csproj" />
     <ProjectReference Include="..\ProcessManager\ProcessManager.csproj" />
   </ItemGroup>
 

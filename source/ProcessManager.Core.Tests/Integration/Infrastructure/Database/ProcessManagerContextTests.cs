@@ -15,10 +15,12 @@
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
 
@@ -237,6 +239,72 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             .BeEquivalentTo(existingOrchestrationInstance);
     }
 
+    [Fact]
+    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_When_FilteringJsonColumnUsingLINQ_Then_ReturnsExpectedItem()
+    {
+        // Arrange
+        var expectedPeriodStart1 = DateTime.Now;
+        var expectedPeriodEnd1 = DateTime.Now.AddDays(1);
+        var expectedIsInternalCalculation1 = true;
+
+        var expectedPeriodStart2 = DateTime.Now.AddDays(2);
+        var expectedPeriodEnd2 = DateTime.Now.AddDays(3);
+        var expectedIsInternalCalculation2 = false;
+
+        var testParameter1 = new TestOrchestrationParameter
+        {
+            PeriodStartDate = expectedPeriodStart1,
+            PeriodEndDate = expectedPeriodEnd1,
+            IsInternalCalculation = expectedIsInternalCalculation1,
+        };
+
+        var testParameter2 = new TestOrchestrationParameter
+        {
+            PeriodStartDate = expectedPeriodStart2,
+            PeriodEndDate = expectedPeriodEnd2,
+            IsInternalCalculation = expectedIsInternalCalculation2,
+        };
+
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance1 = CreateOrchestrationInstance(existingOrchestrationDescription, testParameter: testParameter1);
+        var existingOrchestrationInstance2 = CreateOrchestrationInstance(existingOrchestrationDescription, testParameter: testParameter2);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance1);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance2);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
+        var actualOrchestrationInstanceIds = await readDbContext.Database
+            .SqlQuery<TestOrchestrationParameter>($"""
+                SELECT
+                    CAST(JSON_VALUE([o].[SerializedParameterValue], '$.PeriodStartDate') AS datetimeoffset) AS PeriodStartDate,
+                    CAST(JSON_VALUE([o].[SerializedParameterValue], '$.PeriodEndDate') AS datetimeoffset) AS PeriodEndDate,
+                    CAST(JSON_VALUE([o].[SerializedParameterValue], '$.IsInternalCalculation') AS bit) AS IsInternalCalculation,
+                FROM
+                    [pm].[OrchestrationInstance] AS [o]
+                """)
+            .GroupBy(x => new
+            {
+                x.PeriodStartDate,
+                x.PeriodEndDate,
+                x.IsInternalCalculation,
+            })
+            .Select(x => new TestOrchestrationParameter
+            {
+                x.PeriodStartDate == expectedPeriodStart1
+                && x.PeriodEndDate == expectedPeriodEnd1
+                && x.IsInternalCalculation == expectedIsInternalCalculation1
+            }).ToListAsync();
+
+        // Assert
+        actualOrchestrationInstanceIds.Count.Should().Be(1);
+    }
+
     private static OrchestrationDescription CreateOrchestrationDescription(string? recurringCronExpression = default)
     {
         var orchestrationDescription = new OrchestrationDescription(
@@ -261,6 +329,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         OperatingIdentity? identity = default,
         Instant? runAt = default,
         int? testInt = default,
+        TestOrchestrationParameter? testParameter = default,
         IdempotencyKey? idempotencyKey = default)
     {
         var operatingIdentity = identity
@@ -276,11 +345,10 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             runAt,
             idempotencyKey);
 
-        orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
+        if (testParameter != null)
         {
-            TestString = "Test string",
-            TestInt = testInt ?? 42,
-        });
+            orchestrationInstance.ParameterValue.SetFromInstance(testParameter);
+        }
 
         return orchestrationInstance;
     }
@@ -290,5 +358,15 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         public string? TestString { get; set; }
 
         public int? TestInt { get; set; }
+
+        public IReadOnlyCollection<CalculationType>? CalculationTypes { get; set; }
+
+        public IReadOnlyCollection<string>? GridAreaCodes { get; set; }
+
+        public DateTimeOffset? PeriodStartDate { get; set; }
+
+        public DateTimeOffset? PeriodEndDate { get; set; }
+
+        public bool? IsInternalCalculation { get; set; }
     }
 }

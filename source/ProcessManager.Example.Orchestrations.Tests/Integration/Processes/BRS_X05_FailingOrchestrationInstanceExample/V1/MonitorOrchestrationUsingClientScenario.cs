@@ -31,10 +31,6 @@ using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
 
-/// <summary>
-/// Test case where we verify the Process Manager clients can be used to notify an example orchestration
-/// and monitor its status during its lifetime.
-/// </summary>
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 {

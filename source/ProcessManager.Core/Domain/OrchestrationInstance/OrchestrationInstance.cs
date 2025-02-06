@@ -91,10 +91,19 @@ public class OrchestrationInstance
     /// </summary>
     public IdempotencyKey? IdempotencyKey { get; private set; }
 
+    /// <summary>
+    /// The id of the actor message that triggered the orchestration instance.
+    /// </summary>
     public ActorMessageId? ActorMessageId { get; private set; }
 
+    /// <summary>
+    /// The id of the transaction that triggered the orchestration instance.
+    /// </summary>
     public TransactionId? TransactionId { get; private set; }
 
+    /// <summary>
+    /// The id of the metering point for which the orchestration is operating.
+    /// </summary>
     public MeteringPointId? MeteringPointId { get; private set; }
 
     /// <summary>

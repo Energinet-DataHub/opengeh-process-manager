@@ -74,10 +74,7 @@ internal class OrchestrationInstanceManager(
             identity,
             orchestrationDescription,
             inputParameter,
-            skipStepsBySequence,
-            null,
-            null,
-            null).ConfigureAwait(false);
+            skipStepsBySequence).ConfigureAwait(false);
 
         await RequestStartOfOrchestrationInstanceIfPendingAsync(
             orchestrationDescription,
@@ -164,10 +161,7 @@ internal class OrchestrationInstanceManager(
             orchestrationDescription,
             inputParameter,
             skipStepsBySequence,
-            runAt,
-            null,
-            null,
-            null)
+            runAt)
             .ConfigureAwait(false);
 
         return orchestrationInstance.Id;

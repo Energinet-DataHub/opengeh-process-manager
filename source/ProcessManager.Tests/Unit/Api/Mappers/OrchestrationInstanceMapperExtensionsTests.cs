@@ -117,9 +117,9 @@ public class OrchestrationInstanceMapperExtensionsTests
             clock: SystemClock.Instance,
             runAt: null,
             idempotencyKey: idempotencyKey,
-            actorMessageId: null,
-            transactionId: null,
-            meteringPointId: null);
+            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {

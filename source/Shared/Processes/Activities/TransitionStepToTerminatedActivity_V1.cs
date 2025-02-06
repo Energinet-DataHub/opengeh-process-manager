@@ -39,11 +39,22 @@ public class TransitionStepToTerminatedActivity_V1(
             input.TerminationState,
             _clock);
 
+        if (input.CustomState is not null)
+        {
+            var step = orchestrationInstance.GetStep(input.StepSequence);
+            step.SetCustomState(input.CustomState);
+        }
+
+        if (input.TransitionOrchestrationInstanceToFailed)
+            orchestrationInstance.Lifecycle.TransitionToFailed(_clock);
+
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
         int StepSequence,
-        OrchestrationStepTerminationState TerminationState);
+        OrchestrationStepTerminationState TerminationState,
+        string? CustomState = null,
+        bool TransitionOrchestrationInstanceToFailed = false);
 }

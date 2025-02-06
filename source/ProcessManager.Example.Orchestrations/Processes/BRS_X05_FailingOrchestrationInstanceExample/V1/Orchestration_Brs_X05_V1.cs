@@ -111,7 +111,7 @@ internal class Orchestration_Brs_X05_V1
                 input: new TransitionOrchestrationAndStepToFailedActivity_V1.ActivityInput(
                     OrchestrationInstanceId: instanceId,
                     FailedStepSequence: FailingStep,
-                    FailedStepCustomState: e.ToString()),
+                    FailedStepErrorMessage: e.ToString()),
                 options: _defaultRetryOptions);
 
             throw;

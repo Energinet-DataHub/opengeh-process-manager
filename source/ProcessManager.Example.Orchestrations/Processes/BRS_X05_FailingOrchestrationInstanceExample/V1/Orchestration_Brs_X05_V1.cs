@@ -107,13 +107,11 @@ internal class Orchestration_Brs_X05_V1
         catch (Exception e)
         {
             await context.CallActivityAsync(
-                name: nameof(TransitionStepToTerminatedActivity_V1),
-                input: new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                name: nameof(TransitionOrchestrationAndStepToFailedActivity_V1),
+                input: new TransitionOrchestrationAndStepToFailedActivity_V1.ActivityInput(
                     OrchestrationInstanceId: instanceId,
-                    StepSequence: FailingStep,
-                    TerminationState: OrchestrationStepTerminationState.Failed,
-                    CustomState: e.ToString(),
-                    TransitionOrchestrationInstanceToFailed: true),
+                    FailedStepSequence: FailingStep,
+                    FailedStepCustomState: e.ToString()),
                 options: _defaultRetryOptions);
 
             throw;

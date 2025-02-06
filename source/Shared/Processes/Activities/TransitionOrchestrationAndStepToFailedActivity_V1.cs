@@ -19,14 +19,14 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 
-public class TransitionStepToTerminatedActivity_V1(
+public class TransitionOrchestrationAndStepToFailedActivity_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository repository)
 {
     private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
 
-    [Function(nameof(TransitionStepToTerminatedActivity_V1))]
+    [Function(nameof(TransitionOrchestrationAndStepToFailedActivity_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -34,16 +34,17 @@ public class TransitionStepToTerminatedActivity_V1(
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.TransitionStepToTerminated(
-            input.StepSequence,
-            input.TerminationState,
-            _clock);
+        var step = orchestrationInstance.GetStep(input.FailedStepSequence);
+        step.Lifecycle.TransitionToTerminated(_clock, OrchestrationStepTerminationState.Failed);
+        step.SetCustomState(input.FailedStepCustomState);
+
+        orchestrationInstance.Lifecycle.TransitionToFailed(_clock);
 
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        int StepSequence,
-        OrchestrationStepTerminationState TerminationState);
+        int FailedStepSequence,
+        string FailedStepCustomState);
 }

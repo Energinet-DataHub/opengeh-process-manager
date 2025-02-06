@@ -19,9 +19,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Activities;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
@@ -31,7 +29,7 @@ using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X05_FailedOrchestrationInstance.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
 
 /// <summary>
 /// Test case where we verify the Process Manager clients can be used to notify an example orchestration
@@ -86,7 +84,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     /// Tests that we set the step and the orchestration instance to failed if an activity fails (even with retries).
     /// </summary>
     [Fact]
-    public async Task Given_FailingOrchestrationInstance_When_Started_Then_TheOrchestrationInstanceIsTerminatedWithFailed_AndThen_TheFailingStepIsTerminatedWithFailed()
+    public async Task Given_FailingOrchestrationInstanceActivity_When_OrchestrationInstanceStarted_Then_OrchestrationInstanceTerminatedWithFailed_AndThen_FailingStepTerminatedWithFailed()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

@@ -14,19 +14,19 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Steps;
 
 [SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "ConfigureAwait must not be used in durable function code")]
 internal class EnqueueActorMessagesStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceId instanceId,
-    PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput validationResult,
+    PerformBusinessValidationActivity_Brs_028_V1.ActivityOutput validationResult,
     TimeSpan actorMessagesEnqueuedTimeout)
         : StepExecutor(context, defaultRetryOptions, instanceId)
 {
@@ -43,8 +43,8 @@ internal class EnqueueActorMessagesStep(
         if (validationResult.IsValid)
         {
             await Context.CallActivityAsync(
-                nameof(EnqueueActorMessagesActivity_Brs_026_V1),
-                new EnqueueActorMessagesActivity_Brs_026_V1.ActivityInput(
+                nameof(EnqueueActorMessagesActivity_Brs_028_V1),
+                new EnqueueActorMessagesActivity_Brs_028_V1.ActivityInput(
                     InstanceId,
                     idempotencyKey),
                 DefaultRetryOptions);
@@ -54,8 +54,8 @@ internal class EnqueueActorMessagesStep(
             ArgumentNullException.ThrowIfNull(validationResult.ValidationErrors);
 
             await Context.CallActivityAsync(
-                nameof(EnqueueRejectMessageActivity_Brs_026_V1),
-                new EnqueueRejectMessageActivity_Brs_026_V1.ActivityInput(
+                nameof(EnqueueRejectMessageActivity_Brs_028_V1),
+                new EnqueueRejectMessageActivity_Brs_028_V1.ActivityInput(
                     InstanceId,
                     validationResult.ValidationErrors,
                     idempotencyKey),
@@ -66,7 +66,7 @@ internal class EnqueueActorMessagesStep(
         // If the timeout is reached, an exception will be thrown, and StepExecutor will fail the step and orchestration instance.
         // If we later need a more complex handling of the timeout, we can try/catch the TaskCanceledException here and handle it manually.
         await Context.WaitForExternalEvent<int?>(
-            eventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted,
+            eventName: RequestCalculatedWholesaleServicesNotifyEventsV1.EnqueueActorMessagesCompleted,
             timeout: _actorMessagesEnqueuedTimeout);
 
         return OrchestrationStepTerminationState.Succeeded;

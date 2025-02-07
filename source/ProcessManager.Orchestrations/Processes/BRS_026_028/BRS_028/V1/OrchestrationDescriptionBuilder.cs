@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
 
@@ -29,8 +30,8 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.ParameterDefinition.SetFromType<RequestCalculatedWholesaleServicesInputV1>();
 
-        description.AppendStepDescription("Forretningsvalidering");
-        description.AppendStepDescription("Udsend beskeder");
+        description.AppendStepDescription(BusinessValidationStep.StepDescription);
+        description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
 
         return description;
     }

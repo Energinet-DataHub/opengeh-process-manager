@@ -135,14 +135,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 EventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
             CancellationToken.None);
 
-        // Step 4: Query until terminated with succeeded
-        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
+        // Step 4: Query until terminated
+        var (orchestrationTerminated, terminatedOrchestrationInstance) = await processManagerClient
             .WaitForOrchestrationInstanceTerminated<RequestCalculatedEnergyTimeSeriesInputV1>(
-                requestCommand.IdempotencyKey,
-                terminationState: OrchestrationInstanceTerminationState.Succeeded);
+                requestCommand.IdempotencyKey);
 
-        orchestrationTerminatedWithSucceeded.Should().BeTrue(
-            "because the orchestration instance should be succeeded within the given wait time");
+        orchestrationTerminated.Should().BeTrue(
+            "because the orchestration instance should be terminated within the given wait time");
 
         // Orchestration instance and all steps should be Succeeded
         using var assertionScope = new AssertionScope();
@@ -214,14 +213,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 EventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
             CancellationToken.None);
 
-        // Step 4: Query until terminated with failed
+        // Step 4: Query until terminated
         var (orchestrationWasTerminated, terminatedOrchestrationInstance) = await processManagerClient
             .WaitForOrchestrationInstanceTerminated<RequestCalculatedEnergyTimeSeriesInputV1>(
-                idempotencyKey: invalidRequestCommand.IdempotencyKey,
-                terminationState: OrchestrationInstanceTerminationState.Failed);
+                idempotencyKey: invalidRequestCommand.IdempotencyKey);
 
         orchestrationWasTerminated.Should().BeTrue(
-            "because the orchestration instance should be failed within the given wait time");
+            "because the orchestration instance should be terminated within the given wait time");
 
         // Orchestration instance and validation steps should be Failed
         using var assertionScope = new AssertionScope();

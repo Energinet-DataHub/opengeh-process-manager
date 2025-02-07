@@ -135,10 +135,10 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     /// The test performs the following orchestration, by running both an Orchestrations app and a Consumer app:
     /// 1. Start BRX-X03 (ActorRequestProcessExample) from consumer app with an invalid business reason.
     /// 2. Receive start orchestration service bus message and start the orchestration in Orchestrations app.
-    /// 3. Fail the business validation step.
-    /// 3. Send EnqueueActorMessages (rejected) event from orchestration to the Consumer app, and wait for ActorMessagesEnqueued notify.
+    /// 3. Fail the business validation step (and write validation errors to the step's custom state).
+    /// 3. Send EnqueueActorMessages (reject) event from orchestration to the Consumer app, and wait for ActorMessagesEnqueued notify.
     /// 4. Receive EnqueueActorMessages event in Consumer app, and send ActorMessagesEnqueued notify event back.
-    /// 5. Terminate orchestration (with TerminationState=Succeeded) in Orchestrations app, if ActorMessagesEnqueued event is received before timeout.
+    /// 5. Terminate orchestration (with TerminationState=Failed) in Orchestrations app, because business validation failed.
     /// </summary>
     [Fact]
     public async Task Given_ConsumerApp_AndGiven_InvalidBusinessReasonInput_When_BRS_X03_OrchestrationInstanceStartedByConsumer_Then_OrchestrationTerminatesWithFailed_AndThen_ValidationStepTerminatesWithFailed()

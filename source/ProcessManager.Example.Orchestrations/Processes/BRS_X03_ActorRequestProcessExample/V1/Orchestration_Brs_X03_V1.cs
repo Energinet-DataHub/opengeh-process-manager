@@ -44,8 +44,12 @@ internal class Orchestration_Brs_X03_V1
         // Initialize orchestration instance
         var instanceId = await InitializeOrchestrationAsync(context);
 
-        var businessValidationResult = await new BusinessValidationStep(context, _defaultRetryOptions, instanceId)
+        var businessValidationResult = await new BusinessValidationStep(
+                context,
+                _defaultRetryOptions,
+                instanceId)
             .ExecuteStepAsync();
+
         await new EnqueueActorMessagesStep(
                 context,
                 _defaultRetryOptions,

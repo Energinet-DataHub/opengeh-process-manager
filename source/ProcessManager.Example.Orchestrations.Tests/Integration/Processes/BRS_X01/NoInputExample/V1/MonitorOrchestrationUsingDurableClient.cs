@@ -106,11 +106,11 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         [
             new("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
-            new("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
+            new("TaskCompleted", FunctionName: "PerformCalculationActivity_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
             new("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
-            new("ExecutionCompleted")
+            new("ExecutionCompleted"),
         ]);
 
         // => Verify that the durable function completed successfully

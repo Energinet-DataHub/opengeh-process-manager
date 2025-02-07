@@ -19,7 +19,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 /// <summary>
 /// An activity that always succeeds.
 /// </summary>
-public class SuccessActivity_Brs_X05_V1
+internal class SuccessActivity_Brs_X05_V1
 {
     [Function(nameof(SuccessActivity_Brs_X05_V1))]
     public Task<string> Run(

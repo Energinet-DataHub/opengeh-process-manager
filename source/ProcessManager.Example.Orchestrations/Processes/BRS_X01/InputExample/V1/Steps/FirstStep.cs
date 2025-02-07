@@ -18,7 +18,7 @@ using Microsoft.DurableTask;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Steps;
 
-public class FirstStep(
+internal class FirstStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceId instanceId)

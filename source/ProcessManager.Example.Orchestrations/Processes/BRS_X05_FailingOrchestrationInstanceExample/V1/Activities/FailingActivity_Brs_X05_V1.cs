@@ -19,7 +19,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 /// <summary>
 /// An activity that always fails.
 /// </summary>
-public class FailingActivity_Brs_X05_V1
+internal class FailingActivity_Brs_X05_V1
 {
     public const string ExceptionMessage = "This activity always fails";
 

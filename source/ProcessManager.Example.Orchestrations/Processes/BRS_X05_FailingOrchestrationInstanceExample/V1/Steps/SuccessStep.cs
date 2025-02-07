@@ -20,7 +20,7 @@ using Microsoft.DurableTask;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
 
 #pragma warning disable CA2007
-public class SuccessStep(
+internal class SuccessStep(
     TaskOrchestrationContext context,
     TaskRetryOptions retryOptions,
     OrchestrationInstanceId instanceId)

@@ -22,7 +22,7 @@ using Microsoft.DurableTask;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
 
 #pragma warning disable CA2007
-public class EnqueueActorMessagesStep(
+internal class EnqueueActorMessagesStep(
     TaskOrchestrationContext context,
     TaskRetryOptions retryOptions,
     OrchestrationInstanceId instanceId,

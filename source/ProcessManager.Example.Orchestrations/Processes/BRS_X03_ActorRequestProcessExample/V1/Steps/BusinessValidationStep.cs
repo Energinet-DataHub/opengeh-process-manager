@@ -20,7 +20,7 @@ using Microsoft.DurableTask;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
 
 #pragma warning disable CA2007
-public class BusinessValidationStep(
+internal class BusinessValidationStep(
     TaskOrchestrationContext context,
     TaskRetryOptions retryOptions,
     OrchestrationInstanceId instanceId)
@@ -31,8 +31,7 @@ public class BusinessValidationStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<(OrchestrationStepTerminationState StepTerminationState, PerformBusinessValidationActivity_Brs_X03_V1.ActivityOutput StepOutput)>
-        PerformStepWithOutputAsync()
+    protected override async Task<StepOutput> PerformStepAsync()
     {
         var businessValidationResult = await Context.CallActivityAsync<PerformBusinessValidationActivity_Brs_X03_V1.ActivityOutput>(
             nameof(PerformBusinessValidationActivity_Brs_X03_V1),
@@ -44,7 +43,7 @@ public class BusinessValidationStep(
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
 
-        return (stepTerminationState, businessValidationResult);
+        return new StepOutput(stepTerminationState, businessValidationResult);
     }
 }
 #pragma warning restore CA2007

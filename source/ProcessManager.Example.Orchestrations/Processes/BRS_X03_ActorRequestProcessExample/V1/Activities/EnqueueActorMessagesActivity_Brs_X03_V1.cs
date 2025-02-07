@@ -20,7 +20,7 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Activities;
 
-public class EnqueueActorMessagesActivity_Brs_X03_V1(
+internal class EnqueueActorMessagesActivity_Brs_X03_V1(
     IOrchestrationInstanceProgressRepository repository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {

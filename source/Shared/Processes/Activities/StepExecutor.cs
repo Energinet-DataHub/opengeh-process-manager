@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 namespace Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 
 #pragma warning disable CA2007
+
 /// <summary>
 /// Base type for executing a step in an orchestration, which handles the step lifecycle transitions, including
 /// failing the step instance and orchestration instance if an exception occurs.
@@ -37,7 +38,7 @@ namespace Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 /// </list>
 /// </remarks>
 /// </summary>
-public abstract class StepExecutor(
+internal abstract class StepExecutorBase(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceId instanceId)
@@ -50,6 +51,66 @@ public abstract class StepExecutor(
 
     protected abstract int StepSequenceNumber { get; }
 
+    /// <summary>
+    /// Transition the step instance's lifecycle to running.
+    /// </summary>
+    protected async Task TransitionStepToRunning()
+    {
+        await Context.CallActivityAsync(
+            name: nameof(TransitionStepToRunningActivity_V1),
+            input: new TransitionStepToRunningActivity_V1.ActivityInput(
+                OrchestrationInstanceId: InstanceId,
+                StepSequence: StepSequenceNumber),
+            options: DefaultRetryOptions);
+    }
+
+    /// <summary>
+    /// Transition the orchestration and step instance's lifecycle to failed.
+    /// <remarks>Also logs the exception as an error.</remarks>
+    /// </summary>
+    /// <param name="e">The exception that caused the orchestration to fail.</param>
+    protected async Task TransitionStepAndOrchestrationToFailed(Exception e)
+    {
+        var logger = Context.CreateReplaySafeLogger(GetType());
+        logger.LogError(
+            exception: e,
+            message: "Unhandled exception while performing step (InstanceId={OrchestrationInstanceId}, StepFullName={StepFullName}, StepSequence={StepSequence}).",
+            GetType().FullName,
+            InstanceId.Value,
+            StepSequenceNumber);
+
+        await Context.CallActivityAsync(
+            name: nameof(TransitionOrchestrationAndStepToFailedActivity_V1),
+            input: new TransitionOrchestrationAndStepToFailedActivity_V1.ActivityInput(
+                OrchestrationInstanceId: InstanceId,
+                FailedStepSequence: StepSequenceNumber,
+                FailedStepErrorMessage: e.ToString()),
+            options: DefaultRetryOptions);
+    }
+
+    /// <summary>
+    /// Transition the step instance's lifecycle to the given <paramref name="stepTerminationState"/>.
+    /// </summary>
+    /// <param name="stepTerminationState">The termination state to transition of the step.</param>
+    protected async Task TransitionStepToTerminated(OrchestrationStepTerminationState stepTerminationState)
+    {
+        await Context.CallActivityAsync(
+            name: nameof(TransitionStepToTerminatedActivity_V1),
+            input: new TransitionStepToTerminatedActivity_V1.ActivityInput(
+                OrchestrationInstanceId: InstanceId,
+                StepSequence: StepSequenceNumber,
+                TerminationState: stepTerminationState),
+            options: DefaultRetryOptions);
+    }
+}
+
+/// <inheritdoc/>
+internal abstract class StepExecutor(
+    TaskOrchestrationContext context,
+    TaskRetryOptions defaultRetryOptions,
+    OrchestrationInstanceId instanceId)
+        : StepExecutorBase(context, defaultRetryOptions, instanceId)
+{
     /// <summary>
     /// Execute the step, handling the lifecycle transitions of the step instance, including failing the step and
     /// orchestration instances if an unhandled exception occurs in <see cref="PerformStepAsync"/>.
@@ -97,74 +158,24 @@ public abstract class StepExecutor(
     /// </summary>
     /// <returns>The step termination state, which the step instance will be transitioned to.</returns>
     protected abstract Task<OrchestrationStepTerminationState> PerformStepAsync();
-
-    protected async Task TransitionStepToRunning()
-    {
-        await Context.CallActivityAsync(
-            name: nameof(TransitionStepToRunningActivity_V1),
-            input: new TransitionStepToRunningActivity_V1.ActivityInput(
-                OrchestrationInstanceId: InstanceId,
-                StepSequence: StepSequenceNumber),
-            options: DefaultRetryOptions);
-    }
-
-    protected async Task TransitionStepAndOrchestrationToFailed(Exception e)
-    {
-        var logger = Context.CreateReplaySafeLogger(GetType());
-        logger.LogError(
-            exception: e,
-            message: "Unhandled exception while performing step (InstanceId={OrchestrationInstanceId}, StepFullName={StepFullName}, StepSequence={StepSequence}).",
-            GetType().FullName,
-            InstanceId.Value,
-            StepSequenceNumber);
-
-        await Context.CallActivityAsync(
-            name: nameof(TransitionOrchestrationAndStepToFailedActivity_V1),
-            input: new TransitionOrchestrationAndStepToFailedActivity_V1.ActivityInput(
-                OrchestrationInstanceId: InstanceId,
-                FailedStepSequence: StepSequenceNumber,
-                FailedStepErrorMessage: e.ToString()),
-            options: DefaultRetryOptions);
-    }
-
-    protected async Task TransitionStepToTerminated(OrchestrationStepTerminationState stepTerminationState)
-    {
-        await Context.CallActivityAsync(
-            name: nameof(TransitionStepToTerminatedActivity_V1),
-            input: new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                OrchestrationInstanceId: InstanceId,
-                StepSequence: StepSequenceNumber,
-                TerminationState: stepTerminationState),
-            options: DefaultRetryOptions);
-    }
 }
 
-#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-/// <summary>
-/// Base type for executing a step (with output) in an orchestration, which handles the step lifecycle transitions, including
-/// failing the step instance and orchestration instance if an exception occurs.
-/// <remarks>
-/// !!! IMPORTANT !!!: This type (and types that inherit from it) is used directly in a durable function orchestration,
-/// so all constraints regarding code in durable function also applies to this class, and the steps that inherit from it.
-/// These constraints include:
-/// <list type="bullet">
-/// <item>
-/// All awaited tasks must origin from the <see cref="TaskOrchestrationContext"/>. This includes not calling .ConfigureAwait()
-/// since that will create a task that is not awaitable in a durable function.
-/// </item>
-/// <item>
-/// All code must be replay safe.
-/// </item>
-/// </list>
-/// </remarks>
-/// </summary>
-public abstract class StepExecutor<TStepOutput>(
+/// <inheritdoc/>
+internal abstract class StepExecutor<TStepOutput>(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceId instanceId)
-        : StepExecutor(context, defaultRetryOptions, instanceId)
+        : StepExecutorBase(context, defaultRetryOptions, instanceId)
 {
-    public new async Task<TStepOutput> ExecuteStepAsync()
+    /// <summary>
+    /// Execute the step, handling the lifecycle transitions of the step instance, including failing the step and
+    /// orchestration instances if an unhandled exception occurs in <see cref="PerformStepAsync"/>.
+    /// </summary>
+    /// <exception cref="Exception">
+    /// If an unhandled exception happens in <see cref="PerformStepAsync"/>, the step and orchestration instance will
+    /// be transitioned to failed, and the exception will be re-thrown.
+    /// </exception>
+    public async Task<TStepOutput> ExecuteStepAsync()
     {
         await TransitionStepToRunning();
 
@@ -172,9 +183,9 @@ public abstract class StepExecutor<TStepOutput>(
         TStepOutput stepOutput;
         try
         {
-            var stepResult = await PerformStepWithOutputAsync();
-            stepTerminationState = stepResult.StepTerminationState;
-            stepOutput = stepResult.StepOutput;
+            var stepResult = await PerformStepAsync();
+            stepTerminationState = stepResult.TerminationState;
+            stepOutput = stepResult.Output;
         }
         catch (Exception e)
         {
@@ -187,14 +198,30 @@ public abstract class StepExecutor<TStepOutput>(
         return stepOutput;
     }
 
-    [Obsolete("This method should not be called or implemented, use PerformStepWithOutputAsync() instead")]
-    protected override Task<OrchestrationStepTerminationState> PerformStepAsync()
-    {
-        throw new NotSupportedException("This method should not be called, use PerformStepWithOutputAsync() instead");
-    }
+    /// <summary>
+    /// Perform the actual step logic. If an unhandled exception occurs, the step and orchestration instance will be transitioned
+    /// to failed.
+    /// <remarks>
+    /// !!! IMPORTANT !!!: The implementation of this method is used directly in a durable function orchestration,
+    /// so all constraints regarding code in durable function also applies to the method implementation,
+    /// in the types that inherit from it.
+    /// These constraints include:
+    /// <list type="bullet">
+    /// <item>
+    /// All awaited tasks must origin from the <see cref="TaskOrchestrationContext"/>. This includes not calling .ConfigureAwait()
+    /// since that will create a task that is not awaitable in a durable function.
+    /// </item>
+    /// <item>
+    /// All code must be replay safe.
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// </summary>
+    /// <returns>The step output, defined by the <typeparamref name="TStepOutput"/> type parameter.</returns>
+    protected abstract Task<StepOutput> PerformStepAsync();
 
-    protected abstract Task<(OrchestrationStepTerminationState StepTerminationState, TStepOutput StepOutput)>
-        PerformStepWithOutputAsync();
+    internal record StepOutput(
+        OrchestrationStepTerminationState TerminationState,
+        TStepOutput Output);
 }
-#pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
 #pragma warning restore CA2007

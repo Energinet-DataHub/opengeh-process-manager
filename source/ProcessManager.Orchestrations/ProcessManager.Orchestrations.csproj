@@ -43,6 +43,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
+    <Compile Include="..\Shared\Processes\Activities\StepExecutor.cs">
+      <Link>Processes\Shared\Activities\StepExecutor.cs</Link>
+    </Compile>
     <Compile Include="..\Shared\Processes\Activities\TransitionOrchestrationAndStepToFailedActivity_V1.cs">
       <Link>Processes\Shared\Activities\TransitionOrchestrationAndStepToFailedActivity_V1.cs</Link>
     </Compile>

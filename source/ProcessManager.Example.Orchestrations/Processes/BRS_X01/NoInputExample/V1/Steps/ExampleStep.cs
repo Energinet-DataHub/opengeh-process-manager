@@ -20,7 +20,7 @@ using Microsoft.DurableTask;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Steps;
 
 #pragma warning disable CA2007
-public class ExampleStep(
+internal class ExampleStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceId instanceId)
@@ -31,7 +31,7 @@ public class ExampleStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<(OrchestrationStepTerminationState StepTerminationState, int StepOutput)> PerformStepWithOutputAsync()
+    protected override async Task<StepOutput> PerformStepAsync()
     {
         var workResult = await Context.CallActivityAsync<PerformCalculationActivity_Brs_X01_NoInputExample_V1.ActivityOutput>(
                 nameof(PerformCalculationActivity_Brs_X01_NoInputExample_V1),
@@ -39,7 +39,7 @@ public class ExampleStep(
                     InstanceId),
                 DefaultRetryOptions);
 
-        return (OrchestrationStepTerminationState.Succeeded, workResult.CalculationResult);
+        return new StepOutput(OrchestrationStepTerminationState.Succeeded, workResult.CalculationResult);
     }
 }
 #pragma warning restore CA2007

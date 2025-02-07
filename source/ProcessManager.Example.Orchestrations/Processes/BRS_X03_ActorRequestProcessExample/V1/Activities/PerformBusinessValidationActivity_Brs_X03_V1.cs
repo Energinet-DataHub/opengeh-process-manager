@@ -22,7 +22,7 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Activities;
 
-public class PerformBusinessValidationActivity_Brs_X03_V1(
+internal class PerformBusinessValidationActivity_Brs_X03_V1(
     IOrchestrationInstanceProgressRepository repository,
     BusinessValidator<ActorRequestProcessExampleInputV1> validator)
 {

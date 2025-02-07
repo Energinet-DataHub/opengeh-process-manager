@@ -22,7 +22,7 @@ using Microsoft.Extensions.Logging;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Steps;
 
 #pragma warning disable CA2007
-public class WaitForNotifyEventStep(
+internal class WaitForNotifyEventStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceId instanceId,
@@ -36,11 +36,11 @@ public class WaitForNotifyEventStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<(OrchestrationStepTerminationState StepTerminationState, bool StepOutput)> PerformStepWithOutputAsync()
+    protected override async Task<StepOutput> PerformStepAsync()
     {
         // Wait for notify event
         // If the event isn't received before the timeout, an exception will be thrown, and the StepExecutor<> will fail the step and orchestration.
-       // We can handle it manually by using try/catch here instead.
+        // We can handle it manually by using try/catch here instead.
         ExampleNotifyEventDataV1? notifyData = null;
         try
         {
@@ -78,7 +78,7 @@ public class WaitForNotifyEventStep(
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
 
-        return (stepTerminationState, hasReceivedExampleNotifyEvent);
+        return new StepOutput(stepTerminationState, hasReceivedExampleNotifyEvent);
     }
 }
 #pragma warning restore CA2007

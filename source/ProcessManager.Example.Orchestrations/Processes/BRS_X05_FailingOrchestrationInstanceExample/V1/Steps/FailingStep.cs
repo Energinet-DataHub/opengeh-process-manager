@@ -20,7 +20,7 @@ using Microsoft.DurableTask;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
 
 #pragma warning disable CA2007
-public class FailingStep(
+internal class FailingStep(
     TaskOrchestrationContext context,
     TaskRetryOptions retryOptions,
     OrchestrationInstanceId instanceId)
@@ -36,18 +36,10 @@ public class FailingStep(
     {
         await Context.CallActivityAsync(
             name: nameof(FailingActivity_Brs_X05_V1),
-            options: CreateRetryPolicy());
+            options: DefaultRetryOptions);
 
         // This should never be called, since above activity throws an exception.
         return OrchestrationStepTerminationState.Succeeded;
-    }
-
-    private TaskOptions CreateRetryPolicy()
-    {
-        return TaskOptions.FromRetryPolicy(new RetryPolicy(
-            maxNumberOfAttempts: 3,
-            firstRetryInterval: TimeSpan.FromMilliseconds(100),
-            backoffCoefficient: 1));
     }
 }
 #pragma warning restore CA2007

@@ -47,7 +47,9 @@ public class StartTrigger_Brs_X03(
                     RequestedByActorNumber: "1234567890123",
                     RequestedByActorRole: "EnergySupplier",
                     BusinessReason: input.BusinessReason),
-                idempotencyKey: input.IdempotencyKey),
+                idempotencyKey: input.IdempotencyKey,
+                actorMessageId: Guid.NewGuid().ToString(),
+                transactionId: Guid.NewGuid().ToString()),
             CancellationToken.None);
     }
 

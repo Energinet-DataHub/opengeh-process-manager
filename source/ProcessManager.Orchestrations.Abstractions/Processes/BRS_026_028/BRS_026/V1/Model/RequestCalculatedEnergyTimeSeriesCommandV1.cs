@@ -40,7 +40,10 @@ public sealed record RequestCalculatedEnergyTimeSeriesCommandV1
                 operatingIdentity,
                 orchestrationDescriptionUniqueName: Brs_026.V1,
                 inputParameter,
-                idempotencyKey)
+                idempotencyKey,
+                inputParameter.ActorMessageId,
+                inputParameter.TransactionId,
+                null)
     {
     }
 }

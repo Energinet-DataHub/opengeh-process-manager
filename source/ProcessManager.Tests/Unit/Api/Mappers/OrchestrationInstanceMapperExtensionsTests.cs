@@ -114,9 +114,12 @@ public class OrchestrationInstanceMapperExtensionsTests
             userIdentity,
             orchestrationDescription,
             skipStepsBySequence: [],
-            SystemClock.Instance,
+            clock: SystemClock.Instance,
             runAt: null,
-            idempotencyKey);
+            idempotencyKey: idempotencyKey,
+            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {

@@ -57,6 +57,8 @@ public class WaitForNotifyEventStep(
                 "Timeout while waiting for example notify event (InstanceId={OrchestrationInstanceId}, Timeout={Timeout}).",
                 InstanceId.Value,
                 _exampleNotifyEventTimeout.ToString("g"));
+
+            // Does not rethrow the exception, since we don't want the orchestration instance to fail.
         }
 
         if (notifyData != null)

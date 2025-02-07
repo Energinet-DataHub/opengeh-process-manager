@@ -19,6 +19,24 @@ using Microsoft.Extensions.Logging;
 namespace Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 
 #pragma warning disable CA2007
+/// <summary>
+/// Base type for executing a step in an orchestration, which handles the step lifecycle transitions, including
+/// failing the step instance and orchestration instance if an exception occurs.
+/// <remarks>
+/// !!! IMPORTANT !!!: This type (and types that inherit from it) is used directly in a durable function orchestration,
+/// so all constraints regarding code in durable function also applies to this class, and the steps that inherit from it.
+/// These constraints include:
+/// <list type="bullet">
+/// <item>
+/// All awaited tasks must origin from the <see cref="TaskOrchestrationContext"/>. This includes not calling .ConfigureAwait()
+/// since that will create a task that is not awaitable in a durable function.
+/// </item>
+/// <item>
+/// All code must be replay safe.
+/// </item>
+/// </list>
+/// </remarks>
+/// </summary>
 public abstract class StepExecutor(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
@@ -32,14 +50,17 @@ public abstract class StepExecutor(
 
     protected abstract int StepSequenceNumber { get; }
 
+    /// <summary>
+    /// Execute the step, handling the lifecycle transitions of the step instance, including failing the step and
+    /// orchestration instances if an unhandled exception occurs in <see cref="PerformStepAsync"/>.
+    /// </summary>
+    /// <exception cref="Exception">
+    /// If an unhandled exception happens in <see cref="PerformStepAsync"/>, the step and orchestration instance will
+    /// be transitioned to failed, and the exception will be re-thrown.
+    /// </exception>
     public async Task ExecuteStepAsync()
     {
-        await Context.CallActivityAsync(
-            name: nameof(TransitionStepToRunningActivity_V1),
-            input: new TransitionStepToRunningActivity_V1.ActivityInput(
-                OrchestrationInstanceId: InstanceId,
-                StepSequence: StepSequenceNumber),
-            options: DefaultRetryOptions);
+        await TransitionStepToRunning();
 
         OrchestrationStepTerminationState stepTerminationState;
         try
@@ -48,24 +69,66 @@ public abstract class StepExecutor(
         }
         catch (Exception e)
         {
-            var logger = Context.CreateReplaySafeLogger(GetType());
-            logger.Log(
-                logLevel: LogLevel.Error,
-                exception: e,
-                message: "Exception while performing step (InstanceId={OrchestrationInstanceId}).",
-                InstanceId.Value);
-
-            await Context.CallActivityAsync(
-                name: nameof(TransitionOrchestrationAndStepToFailedActivity_V1),
-                input: new TransitionOrchestrationAndStepToFailedActivity_V1.ActivityInput(
-                    OrchestrationInstanceId: InstanceId,
-                    FailedStepSequence: StepSequenceNumber,
-                    FailedStepErrorMessage: e.ToString()),
-                options: DefaultRetryOptions);
-
+            await TransitionStepAndOrchestrationToFailed(e);
             throw;
         }
 
+        await TransitionStepToTerminated(stepTerminationState);
+    }
+
+    /// <summary>
+    /// Perform the actual step logic. If an unhandled exception occurs, the step and orchestration instance will be transitioned
+    /// to failed.
+    /// <remarks>
+    /// !!! IMPORTANT !!!: The implementation of this method is used directly in a durable function orchestration,
+    /// so all constraints regarding code in durable function also applies to the method implementation,
+    /// in the types that inherit from it.
+    /// These constraints include:
+    /// <list type="bullet">
+    /// <item>
+    /// All awaited tasks must origin from the <see cref="TaskOrchestrationContext"/>. This includes not calling .ConfigureAwait()
+    /// since that will create a task that is not awaitable in a durable function.
+    /// </item>
+    /// <item>
+    /// All code must be replay safe.
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// </summary>
+    /// <returns>The step termination state, which the step instance will be transitioned to.</returns>
+    protected abstract Task<OrchestrationStepTerminationState> PerformStepAsync();
+
+    protected async Task TransitionStepToRunning()
+    {
+        await Context.CallActivityAsync(
+            name: nameof(TransitionStepToRunningActivity_V1),
+            input: new TransitionStepToRunningActivity_V1.ActivityInput(
+                OrchestrationInstanceId: InstanceId,
+                StepSequence: StepSequenceNumber),
+            options: DefaultRetryOptions);
+    }
+
+    protected async Task TransitionStepAndOrchestrationToFailed(Exception e)
+    {
+        var logger = Context.CreateReplaySafeLogger(GetType());
+        logger.LogError(
+            exception: e,
+            message: "Unhandled exception while performing step (InstanceId={OrchestrationInstanceId}, StepFullName={StepFullName}, StepSequence={StepSequence}).",
+            GetType().FullName,
+            InstanceId.Value,
+            StepSequenceNumber);
+
+        await Context.CallActivityAsync(
+            name: nameof(TransitionOrchestrationAndStepToFailedActivity_V1),
+            input: new TransitionOrchestrationAndStepToFailedActivity_V1.ActivityInput(
+                OrchestrationInstanceId: InstanceId,
+                FailedStepSequence: StepSequenceNumber,
+                FailedStepErrorMessage: e.ToString()),
+            options: DefaultRetryOptions);
+    }
+
+    protected async Task TransitionStepToTerminated(OrchestrationStepTerminationState stepTerminationState)
+    {
         await Context.CallActivityAsync(
             name: nameof(TransitionStepToTerminatedActivity_V1),
             input: new TransitionStepToTerminatedActivity_V1.ActivityInput(
@@ -74,11 +137,27 @@ public abstract class StepExecutor(
                 TerminationState: stepTerminationState),
             options: DefaultRetryOptions);
     }
-
-    protected abstract Task<OrchestrationStepTerminationState> PerformStepAsync();
 }
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
+/// <summary>
+/// Base type for executing a step (with output) in an orchestration, which handles the step lifecycle transitions, including
+/// failing the step instance and orchestration instance if an exception occurs.
+/// <remarks>
+/// !!! IMPORTANT !!!: This type (and types that inherit from it) is used directly in a durable function orchestration,
+/// so all constraints regarding code in durable function also applies to this class, and the steps that inherit from it.
+/// These constraints include:
+/// <list type="bullet">
+/// <item>
+/// All awaited tasks must origin from the <see cref="TaskOrchestrationContext"/>. This includes not calling .ConfigureAwait()
+/// since that will create a task that is not awaitable in a durable function.
+/// </item>
+/// <item>
+/// All code must be replay safe.
+/// </item>
+/// </list>
+/// </remarks>
+/// </summary>
 public abstract class StepExecutor<TStepOutput>(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
@@ -87,12 +166,7 @@ public abstract class StepExecutor<TStepOutput>(
 {
     public new async Task<TStepOutput> ExecuteStepAsync()
     {
-        await Context.CallActivityAsync(
-            name: nameof(TransitionStepToRunningActivity_V1),
-            input: new TransitionStepToRunningActivity_V1.ActivityInput(
-                OrchestrationInstanceId: InstanceId,
-                StepSequence: StepSequenceNumber),
-            options: DefaultRetryOptions);
+        await TransitionStepToRunning();
 
         OrchestrationStepTerminationState stepTerminationState;
         TStepOutput stepOutput;
@@ -104,31 +178,11 @@ public abstract class StepExecutor<TStepOutput>(
         }
         catch (Exception e)
         {
-            var logger = Context.CreateReplaySafeLogger(GetType());
-            logger.Log(
-                logLevel: LogLevel.Error,
-                exception: e,
-                message: "Exception while performing step (InstanceId={OrchestrationInstanceId}).",
-                InstanceId.Value);
-
-            await Context.CallActivityAsync(
-                name: nameof(TransitionOrchestrationAndStepToFailedActivity_V1),
-                input: new TransitionOrchestrationAndStepToFailedActivity_V1.ActivityInput(
-                    OrchestrationInstanceId: InstanceId,
-                    FailedStepSequence: StepSequenceNumber,
-                    FailedStepErrorMessage: e.ToString()),
-                options: DefaultRetryOptions);
-
+            await TransitionStepAndOrchestrationToFailed(e);
             throw;
         }
 
-        await Context.CallActivityAsync(
-            name: nameof(TransitionStepToTerminatedActivity_V1),
-            input: new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                OrchestrationInstanceId: InstanceId,
-                StepSequence: StepSequenceNumber,
-                TerminationState: stepTerminationState),
-            options: DefaultRetryOptions);
+        await TransitionStepToTerminated(stepTerminationState);
 
         return stepOutput;
     }

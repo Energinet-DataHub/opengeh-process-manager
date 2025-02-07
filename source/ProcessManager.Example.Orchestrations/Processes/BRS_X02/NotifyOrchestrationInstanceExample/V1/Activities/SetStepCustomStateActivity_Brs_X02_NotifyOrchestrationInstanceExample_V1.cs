@@ -19,7 +19,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Activities;
 
-public class SetStepCustomStateActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1(
+internal class SetStepCustomStateActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1(
     IOrchestrationInstanceProgressRepository repository,
     IClock clock)
 {

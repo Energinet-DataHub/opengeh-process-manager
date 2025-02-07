@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Steps;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -116,7 +117,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 comparer: (oi) =>
                 {
                     var enqueueActorMessagesStep = oi.Steps
-                        .Single(s => s.Sequence == Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleNotifyEventStepSequence);
+                        .Single(s => s.Sequence == WaitForNotifyEventStep.StepSequence);
 
                     return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
                 });
@@ -128,7 +129,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         orchestrationInstanceWaitingForEvent.MeteringPointId.Should().BeNull();
 
         // Step 3: Send ExampleNotifyEvent event
-        var expectedEventDataMessage = "This is a notification data example";
+        const string expectedEventDataMessage = "This is a notification data example";
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent!.Id.ToString(),
@@ -136,8 +137,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 Data: new ExampleNotifyEventDataV1(expectedEventDataMessage)),
             CancellationToken.None);
 
-        // Step 4: Query until terminated with succeeded
-        var (isTerminated, succeededOrchestrationInstance) = await processManagerClient
+        // Step 4: Query until terminated
+        var (isTerminated, orchestrationInstance) = await processManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 (oi) => oi is
@@ -145,15 +146,14 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                     Lifecycle:
                     {
                         State: OrchestrationInstanceLifecycleState.Terminated,
-                        TerminationState: OrchestrationInstanceTerminationState.Succeeded,
                     },
                 });
 
         isTerminated.Should().BeTrue("because the orchestration instance should complete within given wait time");
-        succeededOrchestrationInstance.Should().NotBeNull();
+        orchestrationInstance.Should().NotBeNull();
 
-        // Assert that custom status is the expected notify event data
-        succeededOrchestrationInstance!.Steps.Should()
+        orchestrationInstance!.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Succeeded);
+        orchestrationInstance.Steps.Should()
             .HaveCount(1)
             .And.ContainSingle(s => s.CustomState == expectedEventDataMessage);
     }
@@ -187,7 +187,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 comparer: (oi) =>
                 {
                     var enqueueActorMessagesStep = oi.Steps
-                        .Single(s => s.Sequence == Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleNotifyEventStepSequence);
+                        .Single(s => s.Sequence == WaitForNotifyEventStep.StepSequence);
 
                     return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
                 });
@@ -213,8 +213,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 Data: new ExampleNotifyEventDataV1(ignoredEventDataMessage)),
             CancellationToken.None);
 
-        // Step 4: Query until terminated with succeeded
-        var (isTerminated, succeededOrchestrationInstance) = await processManagerClient
+        // Step 4: Query until terminated
+        var (isTerminated, orchestrationInstance) = await processManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 (oi) => oi is
@@ -227,10 +227,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 });
 
         isTerminated.Should().BeTrue("because the orchestration instance should complete within given wait time");
-        succeededOrchestrationInstance.Should().NotBeNull();
+        orchestrationInstance.Should().NotBeNull();
 
         // Assert that custom status is the expected notify event data (and not the ignored notify event)
-        succeededOrchestrationInstance!.Steps.Should()
+        orchestrationInstance!.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Succeeded);
+        orchestrationInstance.Steps.Should()
             .HaveCount(1)
             .And.ContainSingle(s => s.CustomState == expectedEventDataMessage)
             .And.NotContain(s => s.CustomState == ignoredEventDataMessage);

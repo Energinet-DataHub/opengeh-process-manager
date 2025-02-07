@@ -49,6 +49,7 @@ public class ProcessManagerExtensionsTests
             typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges.BreakingChangesOrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.OrchestrationDescriptionBuilder),
         };
 
         // Act

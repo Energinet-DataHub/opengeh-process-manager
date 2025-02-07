@@ -14,26 +14,22 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample;
 
 internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
 {
     public OrchestrationDescription Build()
     {
         var description = new OrchestrationDescription(
-            uniqueName: OrchestrationDescriptionUniqueName.FromDto(Brs_X03.V1),
+            uniqueName: OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_X05_V1.UniqueName),
             canBeScheduled: false,
-            functionName: nameof(Orchestration_Brs_X03_V1));
+            functionName: nameof(Orchestration_Brs_X05_V1));
 
-        description.ParameterDefinition.SetFromType<ActorRequestProcessExampleInputV1>();
-
-        description.AppendStepDescription(BusinessValidationStep.StepDescription);
-        description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
+        description.AppendStepDescription(SuccessStep.StepDescription);
+        description.AppendStepDescription(FailingStep.StepDescription);
 
         return description;
     }

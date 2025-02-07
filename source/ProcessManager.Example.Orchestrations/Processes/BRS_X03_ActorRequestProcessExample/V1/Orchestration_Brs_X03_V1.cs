@@ -48,14 +48,14 @@ internal class Orchestration_Brs_X03_V1
                 context,
                 _defaultRetryOptions,
                 instanceId)
-            .ExecuteStepAsync();
+            .ExecuteAsync();
 
         await new EnqueueActorMessagesStep(
                 context,
                 _defaultRetryOptions,
                 instanceId,
                 businessValidationResult.ValidationErrors)
-            .ExecuteStepAsync();
+            .ExecuteAsync();
 
         // Terminate orchestration instance
         return await TerminateOrchestrationAsync(

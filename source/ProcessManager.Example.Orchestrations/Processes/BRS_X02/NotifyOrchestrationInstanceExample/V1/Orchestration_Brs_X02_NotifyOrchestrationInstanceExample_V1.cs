@@ -53,7 +53,7 @@ internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
                 _defaultRetryOptions,
                 orchestrationInstanceContext.OrchestrationInstanceId,
                 orchestrationInstanceContext.Options.WaitForExampleNotifyEventTimeout)
-            .ExecuteStepAsync();
+            .ExecuteAsync();
 
         return await TerminateOrchestrationAsync(
             context,

@@ -43,7 +43,7 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
         var orchestrationInstanceId = await InitializeOrchestrationAsync(context);
 
         var exampleStepResult = await new ExampleStep(context, _defaultRetryOptions, orchestrationInstanceId)
-            .ExecuteStepAsync();
+            .ExecuteAsync();
 
         // Terminate
         return await TerminateOrchestrationAsync(context, instanceId, exampleStepResult);

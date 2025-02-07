@@ -42,13 +42,13 @@ internal class Orchestration_Brs_X01_InputExample_V1
 
         // First Step
         await new FirstStep(context, _defaultRetryOptions, orchestrationInstanceContext.OrchestrationInstanceId)
-            .ExecuteStepAsync();
+            .ExecuteAsync();
 
         // Skippable step
         if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(SkippableStep.StepSequence))
         {
             await new SkippableStep(context, _defaultRetryOptions, orchestrationInstanceContext.OrchestrationInstanceId)
-                .ExecuteStepAsync();
+                .ExecuteAsync();
         }
 
         // Terminate

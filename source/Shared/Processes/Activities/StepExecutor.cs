@@ -54,7 +54,7 @@ internal abstract class StepExecutorBase(
     /// <summary>
     /// Transition the step instance's lifecycle to running.
     /// </summary>
-    protected async Task TransitionStepToRunning()
+    protected async Task TransitionToRunning()
     {
         await Context.CallActivityAsync(
             name: nameof(TransitionStepToRunningActivity_V1),
@@ -92,7 +92,7 @@ internal abstract class StepExecutorBase(
     /// Transition the step instance's lifecycle to the given <paramref name="stepTerminationState"/>.
     /// </summary>
     /// <param name="stepTerminationState">The termination state to transition of the step.</param>
-    protected async Task TransitionStepToTerminated(OrchestrationStepTerminationState stepTerminationState)
+    protected async Task TransitionToTerminated(OrchestrationStepTerminationState stepTerminationState)
     {
         await Context.CallActivityAsync(
             name: nameof(TransitionStepToTerminatedActivity_V1),
@@ -119,14 +119,14 @@ internal abstract class StepExecutor(
     /// If an unhandled exception happens in <see cref="PerformStepAsync"/>, the step and orchestration instance will
     /// be transitioned to failed, and the exception will be re-thrown.
     /// </exception>
-    public async Task ExecuteStepAsync()
+    public async Task ExecuteAsync()
     {
-        await TransitionStepToRunning();
+        await TransitionToRunning();
 
-        OrchestrationStepTerminationState stepTerminationState;
+        OrchestrationStepTerminationState terminationState;
         try
         {
-            stepTerminationState = await PerformStepAsync();
+            terminationState = await PerformStepAsync();
         }
         catch (Exception e)
         {
@@ -134,7 +134,7 @@ internal abstract class StepExecutor(
             throw;
         }
 
-        await TransitionStepToTerminated(stepTerminationState);
+        await TransitionToTerminated(terminationState);
     }
 
     /// <summary>
@@ -175,17 +175,17 @@ internal abstract class StepExecutor<TStepOutput>(
     /// If an unhandled exception happens in <see cref="PerformStepAsync"/>, the step and orchestration instance will
     /// be transitioned to failed, and the exception will be re-thrown.
     /// </exception>
-    public async Task<TStepOutput> ExecuteStepAsync()
+    public async Task<TStepOutput> ExecuteAsync()
     {
-        await TransitionStepToRunning();
+        await TransitionToRunning();
 
-        OrchestrationStepTerminationState stepTerminationState;
-        TStepOutput stepOutput;
+        OrchestrationStepTerminationState terminationState;
+        TStepOutput output;
         try
         {
-            var stepResult = await PerformStepAsync();
-            stepTerminationState = stepResult.TerminationState;
-            stepOutput = stepResult.Output;
+            var result = await PerformStepAsync();
+            terminationState = result.TerminationState;
+            output = result.Output;
         }
         catch (Exception e)
         {
@@ -193,9 +193,9 @@ internal abstract class StepExecutor<TStepOutput>(
             throw;
         }
 
-        await TransitionStepToTerminated(stepTerminationState);
+        await TransitionToTerminated(terminationState);
 
-        return stepOutput;
+        return output;
     }
 
     /// <summary>

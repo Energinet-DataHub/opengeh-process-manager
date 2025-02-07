@@ -42,10 +42,10 @@ internal class Orchestration_Brs_X05_V1
     {
         var instanceId = await InitializeOrchestrationAsync(context);
 
-        await new SuccessStep(context, _defaultRetryOptions, instanceId).ExecuteStepAsync();
+        await new SuccessStep(context, _defaultRetryOptions, instanceId).ExecuteAsync();
 
         // This "failing step" fails and throws an exception
-        await new FailingStep(context, _defaultRetryOptions, instanceId).ExecuteStepAsync();
+        await new FailingStep(context, _defaultRetryOptions, instanceId).ExecuteAsync();
 
         throw new InvalidOperationException("The orchestration should never reach this point");
     }

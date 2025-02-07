@@ -113,10 +113,10 @@ internal abstract class StepExecutor(
 {
     /// <summary>
     /// Execute the step, handling the lifecycle transitions of the step instance, including failing the step and
-    /// orchestration instances if an unhandled exception occurs in <see cref="PerformStepAsync"/>.
+    /// orchestration instances if an unhandled exception occurs in <see cref="OnExecuteAsync"/>.
     /// </summary>
     /// <exception cref="Exception">
-    /// If an unhandled exception happens in <see cref="PerformStepAsync"/>, the step and orchestration instance will
+    /// If an unhandled exception happens in <see cref="OnExecuteAsync"/>, the step and orchestration instance will
     /// be transitioned to failed, and the exception will be re-thrown.
     /// </exception>
     public async Task ExecuteAsync()
@@ -126,7 +126,7 @@ internal abstract class StepExecutor(
         OrchestrationStepTerminationState terminationState;
         try
         {
-            terminationState = await PerformStepAsync();
+            terminationState = await OnExecuteAsync();
         }
         catch (Exception e)
         {
@@ -157,7 +157,7 @@ internal abstract class StepExecutor(
     /// </remarks>
     /// </summary>
     /// <returns>The step termination state, which the step instance will be transitioned to.</returns>
-    protected abstract Task<OrchestrationStepTerminationState> PerformStepAsync();
+    protected abstract Task<OrchestrationStepTerminationState> OnExecuteAsync();
 }
 
 /// <inheritdoc/>
@@ -169,10 +169,10 @@ internal abstract class StepExecutor<TStepOutput>(
 {
     /// <summary>
     /// Execute the step, handling the lifecycle transitions of the step instance, including failing the step and
-    /// orchestration instances if an unhandled exception occurs in <see cref="PerformStepAsync"/>.
+    /// orchestration instances if an unhandled exception occurs in <see cref="OnExecuteAsync"/>.
     /// </summary>
     /// <exception cref="Exception">
-    /// If an unhandled exception happens in <see cref="PerformStepAsync"/>, the step and orchestration instance will
+    /// If an unhandled exception happens in <see cref="OnExecuteAsync"/>, the step and orchestration instance will
     /// be transitioned to failed, and the exception will be re-thrown.
     /// </exception>
     public async Task<TStepOutput> ExecuteAsync()
@@ -183,7 +183,7 @@ internal abstract class StepExecutor<TStepOutput>(
         TStepOutput output;
         try
         {
-            var result = await PerformStepAsync();
+            var result = await OnExecuteAsync();
             terminationState = result.TerminationState;
             output = result.Output;
         }
@@ -218,7 +218,7 @@ internal abstract class StepExecutor<TStepOutput>(
     /// </remarks>
     /// </summary>
     /// <returns>The step output, defined by the <typeparamref name="TStepOutput"/> type parameter.</returns>
-    protected abstract Task<StepOutput> PerformStepAsync();
+    protected abstract Task<StepOutput> OnExecuteAsync();
 
     internal record StepOutput(
         OrchestrationStepTerminationState TerminationState,

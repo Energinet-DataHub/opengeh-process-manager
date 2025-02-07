@@ -31,7 +31,7 @@ internal class BusinessValidationStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<StepOutput> PerformStepAsync()
+    protected override async Task<StepOutput> OnExecuteAsync()
     {
         var businessValidationResult = await Context.CallActivityAsync<PerformBusinessValidationActivity_Brs_X03_V1.ActivityOutput>(
             nameof(PerformBusinessValidationActivity_Brs_X03_V1),

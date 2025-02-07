@@ -36,7 +36,7 @@ internal class WaitForNotifyEventStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<StepOutput> PerformStepAsync()
+    protected override async Task<StepOutput> OnExecuteAsync()
     {
         // Wait for notify event
         // If the event isn't received before the timeout, an exception will be thrown, and the StepExecutor<> will fail the step and orchestration.

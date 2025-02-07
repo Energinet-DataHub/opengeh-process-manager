@@ -31,7 +31,7 @@ internal class SuccessStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<OrchestrationStepTerminationState> PerformStepAsync()
+    protected override async Task<OrchestrationStepTerminationState> OnExecuteAsync()
     {
         await Context.CallActivityAsync(
             name: nameof(SuccessActivity_Brs_X05_V1),

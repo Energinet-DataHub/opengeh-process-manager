@@ -36,7 +36,7 @@ internal class EnqueueActorMessagesStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<OrchestrationStepTerminationState> PerformStepAsync()
+    protected override async Task<OrchestrationStepTerminationState> OnExecuteAsync()
     {
         var enqueueIdempotencyKey = Context.NewGuid();
 

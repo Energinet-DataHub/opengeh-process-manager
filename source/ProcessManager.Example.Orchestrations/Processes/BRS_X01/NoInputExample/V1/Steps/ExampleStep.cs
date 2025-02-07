@@ -31,7 +31,7 @@ internal class ExampleStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<StepOutput> PerformStepAsync()
+    protected override async Task<StepOutput> OnExecuteAsync()
     {
         var workResult = await Context.CallActivityAsync<PerformCalculationActivity_Brs_X01_NoInputExample_V1.ActivityOutput>(
                 nameof(PerformCalculationActivity_Brs_X01_NoInputExample_V1),

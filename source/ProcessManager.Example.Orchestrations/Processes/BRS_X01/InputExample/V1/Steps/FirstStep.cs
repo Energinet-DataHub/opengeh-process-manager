@@ -29,7 +29,7 @@ internal class FirstStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override Task<OrchestrationStepTerminationState> PerformStepAsync()
+    protected override Task<OrchestrationStepTerminationState> OnExecuteAsync()
     {
         // Step does nothing
         return Task.FromResult(OrchestrationStepTerminationState.Succeeded);

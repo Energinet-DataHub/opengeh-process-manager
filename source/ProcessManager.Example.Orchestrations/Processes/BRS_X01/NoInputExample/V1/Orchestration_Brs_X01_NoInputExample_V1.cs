@@ -61,7 +61,7 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
                 OrchestrationInstanceTerminationState.Succeeded),
             new TaskOptions(_defaultRetryOptions));
 
-        return $"Success: {exampleStepResult}";
+        return $"Success (example step result: {exampleStepResult})";
     }
 
     private async Task<OrchestrationInstanceId> InitializeOrchestrationAsync(TaskOrchestrationContext context)

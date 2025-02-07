@@ -118,6 +118,6 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             .OrderBy(item => item["Timestamp"])
             .Last();
         last.Value<string>("EventType").Should().Be("ExecutionCompleted");
-        last.Value<string>("Result").Should().Be("Success: 42", "because the orchestration should succeed and the PerformCalculationActivity output (42) should be written to the orchestration instance's output");
+        last.Value<string>("Result").Should().Be("Success (example step result: 42)", "because the orchestration should succeed and the example step result (42) should be written to the output");
     }
 }

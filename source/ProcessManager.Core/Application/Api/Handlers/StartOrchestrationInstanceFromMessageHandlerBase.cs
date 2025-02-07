@@ -57,7 +57,13 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         }
     }
 
-    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input, string idempotencyKey);
+    protected abstract Task StartOrchestrationInstanceAsync(
+        ActorIdentity actorIdentity,
+        TInputParameterDto input,
+        string idempotencyKey,
+        string actorMessageId,
+        string transactionId,
+        string? meteringPointId);
 
     private async Task HandleV1(ServiceBusReceivedMessage message)
     {
@@ -74,6 +80,9 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
                     ActorId = startOrchestration.StartedByActorId,
                 },
                 startOrchestration.InputFormat,
+                startOrchestration.ActorMessageId,
+                startOrchestration.TransactionId,
+                startOrchestration.MeteringPointId,
             },
         });
 
@@ -90,7 +99,10 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         await StartOrchestrationInstanceAsync(
             new ActorIdentity(new ActorId(actorId)),
             inputParameterDto,
-            idempotencyKey: message.GetIdempotencyKey())
+            idempotencyKey: message.GetIdempotencyKey(),
+            actorMessageId: startOrchestration.ActorMessageId,
+            transactionId: startOrchestration.TransactionId,
+            meteringPointId: startOrchestration.HasMeteringPointId ? startOrchestration.MeteringPointId : null)
             .ConfigureAwait(false);
     }
 }

@@ -144,5 +144,32 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
             .HasConversion(
                 id => id.Value,
                 dbValue => new OrchestrationDescriptionId(dbValue));
+
+        builder.Property(o => o.ActorMessageId)
+            .HasConversion(
+                state => state == null
+                    ? null
+                    : state.Value,
+                dbValue => dbValue == null
+                    ? null
+                    : new ActorMessageId(dbValue));
+
+        builder.Property(o => o.TransactionId)
+            .HasConversion(
+                state => state == null
+                    ? null
+                    : state.Value,
+                dbValue => dbValue == null
+                    ? null
+                    : new TransactionId(dbValue));
+
+        builder.Property(o => o.MeteringPointId)
+            .HasConversion(
+                state => state == null
+                    ? null
+                    : state.Value,
+                dbValue => dbValue == null
+                    ? null
+                    : new MeteringPointId(dbValue));
     }
 }

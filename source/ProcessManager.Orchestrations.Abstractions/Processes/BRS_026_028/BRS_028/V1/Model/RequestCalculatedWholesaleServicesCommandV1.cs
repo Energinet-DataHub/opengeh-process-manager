@@ -40,7 +40,10 @@ public sealed record RequestCalculatedWholesaleServicesCommandV1
                 operatingIdentity,
                 orchestrationDescriptionUniqueName: Brs_028.V1,
                 inputParameter,
-                idempotencyKey)
+                idempotencyKey,
+                inputParameter.ActorMessageId,
+                inputParameter.TransactionId,
+                null)
     {
     }
 }

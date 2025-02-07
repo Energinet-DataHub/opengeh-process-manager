@@ -26,10 +26,16 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationI
 /// <param name="Steps">Workflow steps the orchestration instance is going through.</param>
 /// <param name="CustomState">Any custom state of the orchestration instance.</param>
 /// <param name="IdempotencyKey">A value used by the Process Manager to ensure idempotency for a message command.</param>
+/// <param name="ActorMessageId">The id of the actor message that triggered the orchestration instance.</param>
+/// <param name="TransactionId">The id of the transaction that triggered the orchestration instance.</param>
+/// <param name="MeteringPointId">The id of the metering point for which the orchestration is operating.</param>
 public record OrchestrationInstanceDto(
     Guid Id,
     OrchestrationInstanceLifecycleDto Lifecycle,
     ExpandoObject ParameterValue,
     IReadOnlyCollection<StepInstanceDto> Steps,
     string CustomState,
-    string? IdempotencyKey = default);
+    string? IdempotencyKey = default,
+    string? ActorMessageId = default,
+    string? TransactionId = default,
+    string? MeteringPointId = default);

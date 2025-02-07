@@ -101,7 +101,9 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             new ActorIdentityDto(Guid.NewGuid()),
             new NotifyOrchestrationInstanceExampleInputV1(
                 InputString: "input-string"),
-            IdempotencyKey: Guid.NewGuid().ToString());
+            IdempotencyKey: Guid.NewGuid().ToString(),
+            ActorMessageId: Guid.NewGuid().ToString(),
+            TransactionId: Guid.NewGuid().ToString());
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startRequestCommand,
@@ -121,6 +123,9 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         isWaitingForNotify.Should().BeTrue("because the orchestration instance should wait for an ExampleNotifyEvent");
         orchestrationInstanceWaitingForEvent.Should().NotBeNull();
+        orchestrationInstanceWaitingForEvent!.ActorMessageId.Should().Be(startRequestCommand.ActorMessageId);
+        orchestrationInstanceWaitingForEvent.TransactionId.Should().Be(startRequestCommand.TransactionId);
+        orchestrationInstanceWaitingForEvent.MeteringPointId.Should().BeNull();
 
         // Step 3: Send ExampleNotifyEvent event
         var expectedEventDataMessage = "This is a notification data example";
@@ -167,7 +172,9 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             new ActorIdentityDto(Guid.NewGuid()),
             new NotifyOrchestrationInstanceExampleInputV1(
                 InputString: "input-string"),
-            IdempotencyKey: Guid.NewGuid().ToString());
+            IdempotencyKey: Guid.NewGuid().ToString(),
+            ActorMessageId: Guid.NewGuid().ToString(),
+            TransactionId: Guid.NewGuid().ToString());
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startRequestCommand,

@@ -124,5 +124,10 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 CancellationToken.None);
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
+        orchestrationInstancesGeneralSearch.Should().ContainSingle();
+        var orchestrationInstance = orchestrationInstancesGeneralSearch.Single();
+        orchestrationInstance.ActorMessageId.Should().BeNull();
+        orchestrationInstance.TransactionId.Should().BeNull();
+        orchestrationInstance.MeteringPointId.Should().BeNull();
     }
 }

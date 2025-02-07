@@ -31,14 +31,20 @@ public class StartForwardMeteredDataHandlerV1(
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,
         MeteredDataForMeteringPointMessageInputV1 input,
-        string idempotencyKey)
+        string idempotencyKey,
+        string actorMessageId,
+        string transactionId,
+        string? meteringPointId)
     {
         await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
                 OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName),
                 input,
                 skipStepsBySequence: [],
-                new IdempotencyKey(idempotencyKey))
+                new IdempotencyKey(idempotencyKey),
+                new ActorMessageId(actorMessageId),
+                new TransactionId(transactionId),
+                meteringPointId is not null ? new MeteringPointId(meteringPointId) : null)
             .ConfigureAwait(false);
     }
 }

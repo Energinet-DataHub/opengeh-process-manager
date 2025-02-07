@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 1.0.2
+
+- Add `ActorMessageId`, `TransactionId`, and `MetertingPointId` to `StartOrchestrationInstanceV1`.
+
 ## Version 1.0.1
 
 - No functional changes.

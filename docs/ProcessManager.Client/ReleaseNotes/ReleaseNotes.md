@@ -2,7 +2,7 @@
 
 ## Version 1.0.2
 
-- No functional changes.
+- Add `ActorMessageId`, `TransactionId`, and `MetertingPointId` to `StartOrchestrationInstanceV1`.
 
 ## Version 1.0.1
 

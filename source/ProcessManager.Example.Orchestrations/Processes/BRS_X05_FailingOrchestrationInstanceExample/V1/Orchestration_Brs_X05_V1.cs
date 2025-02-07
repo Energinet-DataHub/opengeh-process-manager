@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X05_FailingOrchestrationInstanceExample;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Activities;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
@@ -24,16 +24,13 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 
 internal class Orchestration_Brs_X05_V1
 {
-    internal const int SuccessStep = 1;
-    internal const int FailingStep = 2;
-
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_X05.V1;
 
-    private readonly TaskOptions _defaultRetryOptions;
+    private readonly TaskRetryOptions _defaultRetryOptions;
 
     public Orchestration_Brs_X05_V1()
     {
-        _defaultRetryOptions = TaskOptions.FromRetryPolicy(new RetryPolicy(
+        _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(new RetryPolicy(
             maxNumberOfAttempts: 3,
             firstRetryInterval: TimeSpan.FromMilliseconds(100),
             backoffCoefficient: 1));
@@ -45,10 +42,10 @@ internal class Orchestration_Brs_X05_V1
     {
         var instanceId = await InitializeOrchestrationAsync(context);
 
-        await PerformSuccessStepAsync(context, instanceId);
+        await new SuccessStep(context, _defaultRetryOptions, instanceId).ExecuteStepAsync();
 
         // This "failing step" fails and throws an exception
-        await PerformFailingStepAsync(context, instanceId);
+        await new FailingStep(context, _defaultRetryOptions, instanceId).ExecuteStepAsync();
 
         throw new InvalidOperationException("The orchestration should never reach this point");
     }
@@ -61,68 +58,9 @@ internal class Orchestration_Brs_X05_V1
             nameof(TransitionOrchestrationToRunningActivity_V1),
             new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
                 instanceId),
-            _defaultRetryOptions);
+            new TaskOptions(_defaultRetryOptions));
         await Task.CompletedTask;
 
         return instanceId;
-    }
-
-    private async Task PerformSuccessStepAsync(TaskOrchestrationContext context, OrchestrationInstanceId instanceId)
-    {
-        await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_V1),
-            new TransitionStepToRunningActivity_V1.ActivityInput(
-                instanceId,
-                SuccessStep),
-            _defaultRetryOptions);
-
-        await context.CallActivityAsync(
-            nameof(SuccessActivity_Brs_X05_V1),
-            _defaultRetryOptions);
-
-        await context.CallActivityAsync(
-            nameof(TransitionStepToTerminatedActivity_V1),
-            new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                instanceId,
-                SuccessStep,
-                OrchestrationStepTerminationState.Succeeded),
-            _defaultRetryOptions);
-    }
-
-    private async Task PerformFailingStepAsync(TaskOrchestrationContext context, OrchestrationInstanceId instanceId)
-    {
-        await context.CallActivityAsync(
-            name: nameof(TransitionStepToRunningActivity_V1),
-            input: new TransitionStepToRunningActivity_V1.ActivityInput(
-                OrchestrationInstanceId: instanceId,
-                StepSequence: FailingStep),
-            options: _defaultRetryOptions);
-
-        try
-        {
-            await context.CallActivityAsync(
-                name: nameof(FailingActivity_Brs_X05_V1),
-                options: _defaultRetryOptions);
-        }
-        catch (Exception e)
-        {
-            await context.CallActivityAsync(
-                name: nameof(TransitionOrchestrationAndStepToFailedActivity_V1),
-                input: new TransitionOrchestrationAndStepToFailedActivity_V1.ActivityInput(
-                    OrchestrationInstanceId: instanceId,
-                    FailedStepSequence: FailingStep,
-                    FailedStepErrorMessage: e.ToString()),
-                options: _defaultRetryOptions);
-
-            throw;
-        }
-
-        await context.CallActivityAsync(
-            name: nameof(TransitionStepToTerminatedActivity_V1),
-            input: new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                OrchestrationInstanceId: instanceId,
-                StepSequence: FailingStep,
-                TerminationState: OrchestrationStepTerminationState.Succeeded),
-            options: _defaultRetryOptions);
     }
 }

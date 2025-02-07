@@ -20,8 +20,8 @@ using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Activities;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -121,12 +121,12 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         orchestrationInstance.Steps.OrderBy(s => s.Sequence).Should().SatisfyRespectively(
             successStep =>
             {
-                successStep.Sequence.Should().Be(Orchestration_Brs_X05_V1.SuccessStep);
+                successStep.Sequence.Should().Be(SuccessStep.StepSequence);
                 successStep.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded);
             },
             failingStep =>
             {
-                failingStep.Sequence.Should().Be(Orchestration_Brs_X05_V1.FailingStep);
+                failingStep.Sequence.Should().Be(FailingStep.StepSequence);
                 failingStep.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Failed);
                 failingStep.CustomState.Should().Contain(typeof(TaskFailedException).FullName);
                 failingStep.CustomState.Should().Contain(FailingActivity_Brs_X05_V1.ExceptionMessage);

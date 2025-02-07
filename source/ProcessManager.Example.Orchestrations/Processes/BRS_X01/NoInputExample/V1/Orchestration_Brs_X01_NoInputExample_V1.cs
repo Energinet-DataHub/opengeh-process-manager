@@ -13,8 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Activities;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Steps;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
@@ -24,13 +23,14 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 // TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
 internal class Orchestration_Brs_X01_NoInputExample_V1
 {
-    internal const int FirstStepSequence = 1;
-
-    private readonly TaskOptions _defaultRetryOptions;
+    private readonly TaskRetryOptions _defaultRetryOptions;
 
     public Orchestration_Brs_X01_NoInputExample_V1()
     {
-        _defaultRetryOptions = CreateDefaultRetryOptions();
+        _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(new RetryPolicy(
+                maxNumberOfAttempts: 5,
+                firstRetryInterval: TimeSpan.FromSeconds(30),
+                backoffCoefficient: 2.0));
     }
 
     [Function(nameof(Orchestration_Brs_X01_NoInputExample_V1))]
@@ -40,49 +40,41 @@ internal class Orchestration_Brs_X01_NoInputExample_V1
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         // Initialize
-        await context.CallActivityAsync(
-            nameof(TransitionOrchestrationToRunningActivity_V1),
-            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
-                instanceId),
-            _defaultRetryOptions);
+        var orchestrationInstanceId = await InitializeOrchestrationAsync(context);
 
-        var executionPlan = await context.CallActivityAsync<OrchestrationExecutionPlan>(
-            nameof(OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1),
-            new OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1.ActivityInput(
-                instanceId),
-            _defaultRetryOptions);
-
-        // First Step
-        await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_V1),
-            new TransitionStepToRunningActivity_V1.ActivityInput(
-                instanceId,
-                FirstStepSequence),
-            _defaultRetryOptions);
-        await context.CallActivityAsync(
-            nameof(TransitionStepToTerminatedActivity_V1),
-            new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                instanceId,
-                FirstStepSequence,
-                OrchestrationStepTerminationState.Succeeded),
-            _defaultRetryOptions);
+        var exampleStepResult = await new ExampleStep(context, _defaultRetryOptions, orchestrationInstanceId)
+            .ExecuteStepAsync();
 
         // Terminate
+        return await TerminateOrchestrationAsync(context, instanceId, exampleStepResult);
+    }
+
+    private async Task<string> TerminateOrchestrationAsync(
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        int exampleStepResult)
+    {
         await context.CallActivityAsync(
             nameof(TransitionOrchestrationToTerminatedActivity_V1),
             new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 OrchestrationInstanceTerminationState.Succeeded),
-            _defaultRetryOptions);
+            new TaskOptions(_defaultRetryOptions));
 
-        return "Success";
+        return $"Success: {exampleStepResult}";
     }
 
-    private static TaskOptions CreateDefaultRetryOptions()
+    private async Task<OrchestrationInstanceId> InitializeOrchestrationAsync(TaskOrchestrationContext context)
     {
-        return TaskOptions.FromRetryPolicy(new RetryPolicy(
-            maxNumberOfAttempts: 5,
-            firstRetryInterval: TimeSpan.FromSeconds(30),
-            backoffCoefficient: 2.0));
+        var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
+
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToRunningActivity_V1),
+            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
+                instanceId),
+            new TaskOptions(_defaultRetryOptions));
+        await Task.CompletedTask;
+
+        return instanceId;
     }
 }

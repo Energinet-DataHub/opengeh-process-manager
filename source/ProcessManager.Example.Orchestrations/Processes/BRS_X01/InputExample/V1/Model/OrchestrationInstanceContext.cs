@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Model;
@@ -21,8 +22,10 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 /// skipped steps. This allow us to handle decision about activities to skip within
 /// the orchestration instead of within activities.
 /// </summary>
+/// <param name="OrchestrationInstanceId"></param>
 /// <param name="OrchestrationOptions">Options for configuration of the orchestration execution.</param>
 /// <param name="SkippedStepsBySequence">Contains the sequence number of any skipped steps.</param>
-public record OrchestrationExecutionPlan(
+public record OrchestrationInstanceContext(
+    OrchestrationInstanceId OrchestrationInstanceId,
     OrchestrationOptions_Brs_X01_InputExample_V1 OrchestrationOptions,
     IReadOnlyCollection<int> SkippedStepsBySequence);

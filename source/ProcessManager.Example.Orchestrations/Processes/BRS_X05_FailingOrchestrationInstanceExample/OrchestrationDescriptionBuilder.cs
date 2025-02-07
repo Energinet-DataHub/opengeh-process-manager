@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample;
 
@@ -27,8 +28,8 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
             canBeScheduled: false,
             functionName: nameof(Orchestration_Brs_X05_V1));
 
-        description.AppendStepDescription("Success step");
-        description.AppendStepDescription("Failing step");
+        description.AppendStepDescription(SuccessStep.StepDescription);
+        description.AppendStepDescription(FailingStep.StepDescription);
 
         return description;
     }

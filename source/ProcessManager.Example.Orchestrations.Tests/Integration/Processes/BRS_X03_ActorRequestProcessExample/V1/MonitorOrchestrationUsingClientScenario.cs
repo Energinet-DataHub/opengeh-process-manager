@@ -12,15 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Functions.BRS_X03_ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.BusinessValidation.ValidationRules;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -121,6 +125,67 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 {
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                });
+    }
+
+    /// <summary>
+    /// Tests that an orchestration instance is set to failed when the business validation fails.
+    /// The test performs the following orchestration, by running both an Orchestrations app and a Consumer app:
+    /// 1. Start BRX-X03 (ActorRequestProcessExample) from consumer app with an invalid business reason.
+    /// 2. Receive start orchestration service bus message and start the orchestration in Orchestrations app.
+    /// 3. Fail the business validation step.
+    /// 3. Send EnqueueActorMessages (rejected) event from orchestration to the Consumer app, and wait for ActorMessagesEnqueued notify.
+    /// 4. Receive EnqueueActorMessages event in Consumer app, and send ActorMessagesEnqueued notify event back.
+    /// 5. Terminate orchestration (with TerminationState=Succeeded) in Orchestrations app, if ActorMessagesEnqueued event is received before timeout.
+    /// </summary>
+    [Fact]
+    public async Task Given_ConsumerApp_AndGiven_InvalidBusinessReasonInput_When_BRS_X03_OrchestrationInstanceStartedByConsumer_Then_OrchestrationTerminatesWithFailed_AndThen_ValidationStepTerminatesWithFailed()
+    {
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        // Step 1: Start new BRS-X03 using the Example.Consumer app, with an invalid business reason (empty string)
+        var idempotencyKey = Guid.NewGuid().ToString();
+        var startTriggerInput = new StartTrigger_Brs_X03.StartTriggerInput(
+            IdempotencyKey: idempotencyKey,
+            BusinessReason: BusinessReasonValidationRule.InvalidBusinessReason);
+        await Fixture.ExampleConsumerAppManager.AppHostManager.HttpClient.PostAsJsonAsync(
+            requestUri: "/api/actor-request-process/start",
+            value: startTriggerInput);
+
+        // Step 2: Query until terminated
+        var (isTerminated, orchestrationInstance) = await processManagerClient
+            .TryWaitForOrchestrationInstance<ActorRequestProcessExampleInputV1>(
+                idempotencyKey: idempotencyKey,
+                (oi) => oi is
+                {
+                    Lifecycle.State: OrchestrationInstanceLifecycleState.Terminated,
+                });
+
+        isTerminated.Should().BeTrue("because the BRS-X03 orchestration instance should complete within given wait time");
+        orchestrationInstance.Should().NotBeNull();
+
+        using var assertionScope = new AssertionScope();
+
+        orchestrationInstance!.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Failed);
+
+        orchestrationInstance.Steps.OrderBy(s => s.Sequence).Should()
+            .SatisfyRespectively(
+                validationStep =>
+                {
+                    validationStep.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    validationStep.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Failed);
+                    JsonSerializer.Deserialize<ValidationError[]>(validationStep.CustomState)
+                        .Should()
+                        .Satisfy(ve => ve.Message.Equals(BusinessReasonValidationRule.ValidationErrorMessage));
+                },
+                enqueueStep =>
+                {
+                    enqueueStep.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    enqueueStep.Lifecycle.TerminationState.Should()
                         .NotBeNull()
                         .And.Be(OrchestrationStepTerminationState.Succeeded);
                 });

@@ -102,18 +102,16 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             .Select(item => item.ToObject<OrchestrationHistoryItem>())
             .ToList();
 
-        var expectedHistory = new List<OrchestrationHistoryItem>()
-        {
+        activities.Should().NotBeNull().And.Equal(
+        [
             new("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
             new("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
             new("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
             new("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
-            new("ExecutionCompleted"),
-        };
-
-        activities.Should().NotBeNull().And.Equal(expectedHistory);
+            new("ExecutionCompleted")
+        ]);
 
         // => Verify that the durable function completed successfully
         var last = completeOrchestrationStatus.History

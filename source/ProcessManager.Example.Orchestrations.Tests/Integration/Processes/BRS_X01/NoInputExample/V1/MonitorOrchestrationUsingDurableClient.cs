@@ -102,24 +102,22 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             .Select(item => item.ToObject<OrchestrationHistoryItem>())
             .ToList();
 
-        var expectedHistory = new List<OrchestrationHistoryItem>()
-        {
+        activities.Should().NotBeNull().And.Equal(
+        [
             new("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
-            new("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
+            new("TaskCompleted", FunctionName: "PerformCalculationActivity_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
             new("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
             new("ExecutionCompleted"),
-        };
-
-        activities.Should().NotBeNull().And.Equal(expectedHistory);
+        ]);
 
         // => Verify that the durable function completed successfully
         var last = completeOrchestrationStatus.History
             .OrderBy(item => item["Timestamp"])
             .Last();
         last.Value<string>("EventType").Should().Be("ExecutionCompleted");
-        last.Value<string>("Result").Should().Be("Success");
+        last.Value<string>("Result").Should().Be("Success (example step result: 42)", "because the orchestration should succeed and the example step result (42) should be written to the output");
     }
 }

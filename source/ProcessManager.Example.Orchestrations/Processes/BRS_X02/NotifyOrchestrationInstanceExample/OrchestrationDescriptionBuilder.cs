@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
 
@@ -33,7 +34,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.ParameterDefinition.SetFromType<NotifyOrchestrationInstanceExampleInputV1>();
 
-        description.AppendStepDescription("Wait for notify event");
+        description.AppendStepDescription(WaitForNotifyEventStep.StepDescription);
 
         return description;
     }

@@ -19,11 +19,14 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 
 public class BusinessReasonValidationRule : IBusinessValidationRule<ActorRequestProcessExampleInputV1>
 {
+    internal const string InvalidBusinessReason = "";
+    internal const string ValidationErrorMessage = "BusinessReason skal være udfyldt / BusinessReaon must have a value";
+
     private IList<ValidationError> NoErrors => [];
 
     private IList<ValidationError> StringIsEmptyError => [
         new(
-            Message: "BusinessReason skal være udfyldt / BusinessReaon must have a value",
+            Message: ValidationErrorMessage,
             ErrorCode: "E01"),
     ];
 

@@ -14,23 +14,31 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Activities;
 
-internal class OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1(
+internal class PerformCalculationActivity_Brs_X01_NoInputExample_V1(
     IOrchestrationInstanceProgressRepository repository)
 {
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
 
-    [Function(nameof(OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1))]
-    public Task<OrchestrationExecutionPlan> Run(
+    [Function(nameof(PerformCalculationActivity_Brs_X01_NoInputExample_V1))]
+    public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        return Task.FromResult(new OrchestrationExecutionPlan([]));
+        var orchestrationInstance = await _repository.GetAsync(input.OrchestrationInstanceId).ConfigureAwait(false);
+
+        // Do some work here instead of delaying ...
+        await Task.Delay(100).ConfigureAwait(false);
+
+        return new ActivityOutput(
+            CalculationResult: 42);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId);
+
+    public record ActivityOutput(
+        int CalculationResult);
 }

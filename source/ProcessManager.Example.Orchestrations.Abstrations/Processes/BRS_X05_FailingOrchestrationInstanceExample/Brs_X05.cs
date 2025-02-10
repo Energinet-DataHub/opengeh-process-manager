@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
-/// <summary>
-/// The purpose of this record is to give the orchestration information about
-/// skipped steps. This allow us to handle decision about activities to skip within
-/// the orchestration instead of within activities.
-/// </summary>
-/// <param name="SkippedStepsBySequence">Contains the sequence number of any skipped steps.</param>
-public record OrchestrationExecutionPlan(IReadOnlyCollection<int> SkippedStepsBySequence);
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X05_FailingOrchestrationInstanceExample;
+
+public static class Brs_X05
+{
+    public const string Name = "Brs_X05";
+
+    public static OrchestrationDescriptionUniqueNameDto V1 { get; } = new(Name, 1);
+}

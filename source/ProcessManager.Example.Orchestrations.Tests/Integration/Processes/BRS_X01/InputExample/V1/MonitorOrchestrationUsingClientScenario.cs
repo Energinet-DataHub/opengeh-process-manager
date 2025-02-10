@@ -107,8 +107,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
+                    orchestrationInstance.Lifecycle is
+                    {
+                        State: OrchestrationInstanceLifecycleState.Terminated,
+                        TerminationState: OrchestrationInstanceTerminationState.Succeeded
+                    };
             },
             timeLimit: TimeSpan.FromSeconds(60),
             delay: TimeSpan.FromSeconds(3));

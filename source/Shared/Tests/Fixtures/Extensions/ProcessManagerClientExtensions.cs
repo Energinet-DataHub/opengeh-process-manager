@@ -71,14 +71,16 @@ public static class ProcessManagerClientExtensions
     public static Task<(bool Succes, OrchestrationInstanceTypedDto<TInput>? OrchestrationInstance)> WaitForOrchestrationInstanceTerminated<TInput>(
         this IProcessManagerClient client,
         string idempotencyKey,
-        OrchestrationInstanceTerminationState terminationState)
+        OrchestrationInstanceTerminationState? terminationState = null)
         where TInput : class, IInputParameterDto
     {
         return client.TryWaitForOrchestrationInstance<TInput>(
             idempotencyKey,
             (orchestrationInstance) =>
                 orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
-                && orchestrationInstance.Lifecycle.TerminationState == terminationState);
+                && (
+                    terminationState is null
+                    || orchestrationInstance.Lifecycle.TerminationState == terminationState));
     }
 
     /// <summary>

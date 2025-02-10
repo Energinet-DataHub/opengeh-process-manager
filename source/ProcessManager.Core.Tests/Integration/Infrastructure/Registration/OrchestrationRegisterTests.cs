@@ -58,7 +58,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             .Setup(o => o.Value)
             .Returns(new ProcessManagerOptions
             {
-                AllowOrchestrationDescriptionBreakingChanges = true,
+                AllowOrchestrationDescriptionBreakingChanges = false,
             });
 
         var uniqueName = new OrchestrationDescriptionUniqueName("TestOrchestration", 1);

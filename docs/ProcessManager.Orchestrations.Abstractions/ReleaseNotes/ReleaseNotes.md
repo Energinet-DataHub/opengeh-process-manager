@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.1.0
+
+- Add optional `createdByActorId` to filter to `ActorRequestQuery` for BRS-026/028.
+
 ## Version 1.0.4
 
 - Update dependent NuGet package.

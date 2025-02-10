@@ -1,5 +1,12 @@
 # ProcessManager.Client Release Notes
 
+## Version 1.1.1
+
+- Align the package versions for `ProcessManager.Client` and `ProcessManager.Abstractions`:
+    - `Client` was version 1.0.2 (as was the release notes) and `Abstractions` was version 1.1.0.
+    - Both are now version 1.1.1.
+- No functional changes.
+
 ## Version 1.0.2
 
 - Add `ActorMessageId`, `TransactionId`, and `MetertingPointId` to `StartOrchestrationInstanceV1`.

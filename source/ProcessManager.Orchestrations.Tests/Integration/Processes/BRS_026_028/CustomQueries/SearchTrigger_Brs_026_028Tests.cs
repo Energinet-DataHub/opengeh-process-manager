@@ -173,7 +173,8 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         var customQuery = new ActorRequestQuery(
             userIdentity,
             activatedAtOrLater: now,
-            activatedAtOrEarlier: now.AddMinutes(1));
+            activatedAtOrEarlier: now.AddMinutes(1),
+            createdByActorId: actorIdentity.ActorId);
 
         // Act
         var actual = await ProcessManagerClient

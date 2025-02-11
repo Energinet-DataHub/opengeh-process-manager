@@ -34,10 +34,12 @@ public sealed record ActorRequestQuery
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
     /// <param name="activatedAtOrLater">The time (or later) when the orchestration instances was queued or scheduled to run at.</param>
     /// <param name="activatedAtOrEarlier">The time (or earlier) when the orchestration instances was queued or scheduled to run at.</param>
+    /// <param name="createdByActorId">Optional actor id of the actor to filter by. If not provided, actor requests are returned regardless of who created it.</param>
     public ActorRequestQuery(
         UserIdentityDto operatingIdentity,
         DateTimeOffset activatedAtOrLater,
-        DateTimeOffset activatedAtOrEarlier)
+        DateTimeOffset activatedAtOrEarlier,
+        Guid? createdByActorId)
             : base(operatingIdentity)
     {
         OrchestrationDescriptionNames = [
@@ -45,6 +47,7 @@ public sealed record ActorRequestQuery
             Brs_028.Name];
         ActivatedAtOrLater = activatedAtOrLater;
         ActivatedAtOrEarlier = activatedAtOrEarlier;
+        CreatedByActorId = createdByActorId;
     }
 
     /// <inheritdoc/>
@@ -64,4 +67,9 @@ public sealed record ActorRequestQuery
     /// The time (or earlier) when the orchestration instances was queued or scheduled to run at.
     /// </summary>
     public DateTimeOffset ActivatedAtOrEarlier { get; }
+
+    /// <summary>
+    /// Optional actor id of the actor to filter by. If not provided, actor requests are returned regardless of who created it.
+    /// </summary>
+    public Guid? CreatedByActorId { get; }
 }

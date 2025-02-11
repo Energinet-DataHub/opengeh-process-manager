@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAre
 /// <summary>
 /// Implementation of <see cref="IGridAreaOwnerClient"/> that uses <see cref="IElectricityMarketViews"/> to get the grid area owner.
 /// </summary>
-public class GridAreaOwnerClient(
+public class ElectricityMarketGridAreaOwnerClient(
     IElectricityMarketViews electricityMarketViews)
     : IGridAreaOwnerClient
 {

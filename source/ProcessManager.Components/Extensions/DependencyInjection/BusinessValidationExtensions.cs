@@ -44,7 +44,7 @@ public static class BusinessValidationExtensions
         services.AddTransient<PeriodValidationHelper>();
 
         // TODO: Replace GridAreaOwnerMockClient with actual client
-        services.AddTransient<IGridAreaOwnerClient, GridAreaOwnerMockClient>();
+        services.AddTransient<IGridAreaOwnerClient, GridAreaOwnerClient>();
 
         return services;
     }

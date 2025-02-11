@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
+
 namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
 
 /// <summary>
@@ -37,12 +39,21 @@ public interface IGridAreaOwnerClient
 }
 
 /// <summary>
-/// Mock of the <see cref="IGridAreaOwnerClient"/>, that always returns true.
+/// Implementation of <see cref="IGridAreaOwnerClient"/> that uses <see cref="IElectricityMarketViews"/> to get the grid area owner.
 /// </summary>
-public class GridAreaOwnerMockClient : IGridAreaOwnerClient
+public class GridAreaOwnerClient(
+    IElectricityMarketViews electricityMarketViews)
+    : IGridAreaOwnerClient
 {
-    public Task<bool> IsCurrentOwnerAsync(string gridArea, string actorNumber, CancellationToken cancellationToken)
+    private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
+
+    public async Task<bool> IsCurrentOwnerAsync(string gridArea, string actorNumber, CancellationToken cancellationToken)
     {
-        return Task.FromResult(true);
+        var gridAreaOwner = await _electricityMarketViews.GetGridAreaOwnerAsync(gridArea).ConfigureAwait(false);
+
+        if (gridAreaOwner == null)
+            return false;
+
+        return gridAreaOwner.GridAccessProviderGln.Equals(actorNumber);
     }
 }

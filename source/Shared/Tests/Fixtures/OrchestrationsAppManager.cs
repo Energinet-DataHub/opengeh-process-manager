@@ -22,6 +22,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
+using Energinet.DataHub.ElectricityMarket.Integration.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
@@ -380,6 +381,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
             eventHubResource.Name);
+
+        // Electric Market client
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{nameof(ApiClientOptions)}__{nameof(ApiClientOptions.BaseUrl)}",
+            "http://localhost:9165");
 
         // => BRS-026
         appHostSettings.ProcessEnvironmentVariables.Add(

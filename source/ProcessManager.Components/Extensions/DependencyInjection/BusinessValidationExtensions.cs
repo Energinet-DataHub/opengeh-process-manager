@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Reflection;
+using Energinet.DataHub.ElectricityMarket.Integration.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
@@ -43,7 +44,9 @@ public static class BusinessValidationExtensions
 
         services.AddTransient<PeriodValidationHelper>();
 
-        // TODO: Replace GridAreaOwnerMockClient with actual client
+        // ElectricityMarketModule requires the app setting ApiClientOptions__BaseUrl to be set
+        services.AddElectricityMarketModule();
+
         services.AddTransient<IGridAreaOwnerClient, GridAreaOwnerClient>();
 
         return services;

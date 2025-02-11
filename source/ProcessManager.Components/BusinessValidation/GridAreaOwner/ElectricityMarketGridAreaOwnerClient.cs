@@ -14,11 +14,15 @@
 
 using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.GridAreas;
+using Energinet.DataHub.ElectricityMarket.Integration.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
 
 /// <summary>
 /// Implementation of <see cref="IGridAreaOwnerClient"/> that uses <see cref="IElectricityMarketViews"/> to get the grid area owner.
+/// <remarks>
+/// Requires <see cref="ApiClientOptions"/> to be registered in app settings.
+/// </remarks>
 /// </summary>
 public class ElectricityMarketGridAreaOwnerClient(
     IElectricityMarketViews electricityMarketViews)

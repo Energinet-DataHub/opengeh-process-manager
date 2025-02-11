@@ -20,7 +20,7 @@
     <EmbeddedResource Include="Scripts\202501131400 Add IdempotencyKey.sql" />
     <EmbeddedResource Include="Scripts\202501311000 Add RowVersion.sql" />
     <EmbeddedResource Include="Scripts\202502041220 Add ActorMessageId TransactionId MeteringPointId to OrchestrationInstance.sql" />
-    <EmbeddedResource Include="Scripts\202502111403 Add indicies on OrchestrationDescriptionId.sql" />
+    <EmbeddedResource Include="Scripts\202502111403 Add indicies on OrchestrationDescriptionId and OrchestrationInstanceId.sql" />
   </ItemGroup>
 
 </Project>

@@ -10,10 +10,10 @@ GO
 
 IF NOT EXISTS (SELECT 1
                FROM sys.indexes
-               WHERE name = 'IX_StepInstance_OrchestrationDescriptionId'
+               WHERE name = 'IX_StepInstance_OrchestrationInstanceId'
                AND object_id = OBJECT_ID('[pm].[StepInstance]'))
 BEGIN
-CREATE NONCLUSTERED INDEX IX_StepInstance_OrchestrationDescriptionId
-    ON [pm].[StepInstance]([OrchestrationDescriptionId]);
+CREATE NONCLUSTERED INDEX IX_StepInstance_OrchestrationInstanceId
+    ON [pm].[StepInstance]([OrchestrationInstanceId]);
 END
 GO

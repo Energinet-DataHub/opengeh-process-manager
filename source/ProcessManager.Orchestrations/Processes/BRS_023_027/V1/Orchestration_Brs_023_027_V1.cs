@@ -40,7 +40,12 @@ internal class Orchestration_Brs_023_027_V1
 
     public Orchestration_Brs_023_027_V1()
     {
-        _defaultRetryOptions = CreateDefaultRetryOptions();
+        // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
+        // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
+        _defaultRetryOptions = TaskOptions.FromRetryPolicy(new RetryPolicy(
+            maxNumberOfAttempts: 8,
+            firstRetryInterval: TimeSpan.FromSeconds(30),
+            backoffCoefficient: 2.0));
     }
 
     [Function(nameof(Orchestration_Brs_023_027_V1))]
@@ -184,14 +189,6 @@ internal class Orchestration_Brs_023_027_V1
             _defaultRetryOptions);
 
         return "Success";
-    }
-
-    private static TaskOptions CreateDefaultRetryOptions()
-    {
-        return TaskOptions.FromRetryPolicy(new RetryPolicy(
-            maxNumberOfAttempts: 5,
-            firstRetryInterval: TimeSpan.FromSeconds(30),
-            backoffCoefficient: 2.0));
     }
 
     private async Task<bool> TryEnqueueMessagesAsync(

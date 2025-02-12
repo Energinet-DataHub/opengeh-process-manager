@@ -45,7 +45,7 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
     {
         _fixture = fixture;
 
-        _actorIdentity = new ActorIdentity(new Actor(Guid.NewGuid()));
+        _actorIdentity = new ActorIdentity(new Actor("1234567890123", "EnergySupplier"));
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 

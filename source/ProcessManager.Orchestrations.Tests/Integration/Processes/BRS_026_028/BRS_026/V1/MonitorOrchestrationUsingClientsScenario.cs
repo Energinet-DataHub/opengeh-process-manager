@@ -247,14 +247,14 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 });
     }
 
-    private static RequestCalculatedEnergyTimeSeriesCommandV1 GivenRequestCalculatedEnergyTimeSeries(
+    private RequestCalculatedEnergyTimeSeriesCommandV1 GivenRequestCalculatedEnergyTimeSeries(
         bool shouldFailBusinessValidation = false)
     {
         const string energySupplierNumber = "1234567891234";
         var energySupplierRole = ActorRole.EnergySupplier.Name;
 
         return new RequestCalculatedEnergyTimeSeriesCommandV1(
-            new ActorIdentityDto(Guid.NewGuid()),
+            _fixture.DefaultActorIdentity,
             new RequestCalculatedEnergyTimeSeriesInputV1(
                 ActorMessageId: Guid.NewGuid().ToString(),
                 TransactionId: Guid.NewGuid().ToString(),

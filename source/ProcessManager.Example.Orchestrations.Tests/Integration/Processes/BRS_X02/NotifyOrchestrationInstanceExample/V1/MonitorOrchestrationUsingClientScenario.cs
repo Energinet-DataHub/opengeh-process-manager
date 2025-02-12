@@ -36,6 +36,10 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 {
+    private readonly ActorIdentityDto _actorIdentity = new ActorIdentityDto(
+        ActorNumber: "1234567891234",
+        ActorRole: "EnergySupplier");
+
     public MonitorOrchestrationUsingClientScenario(
         ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
@@ -99,7 +103,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 1: Start new orchestration instance
         var startRequestCommand = new StartNotifyOrchestrationInstanceExampleCommandV1(
-            new ActorIdentityDto(Guid.NewGuid()),
+            _actorIdentity,
             new NotifyOrchestrationInstanceExampleInputV1(
                 InputString: "input-string"),
             IdempotencyKey: Guid.NewGuid().ToString(),
@@ -169,7 +173,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 1: Start new orchestration instance
         var startRequestCommand = new StartNotifyOrchestrationInstanceExampleCommandV1(
-            new ActorIdentityDto(Guid.NewGuid()),
+            _actorIdentity,
             new NotifyOrchestrationInstanceExampleInputV1(
                 InputString: "input-string"),
             IdempotencyKey: Guid.NewGuid().ToString(),

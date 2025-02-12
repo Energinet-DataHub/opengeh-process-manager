@@ -25,6 +25,9 @@ namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure
 public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixture>
 {
     private readonly ProcessManagerCoreFixture _fixture;
+    private readonly UserIdentity _userIdentity = new UserIdentity(
+        new UserId(Guid.NewGuid()),
+        new Actor("1234567890123", "EnergySupplier"));
 
     public ProcessManagerContextTests(ProcessManagerCoreFixture fixture)
     {
@@ -210,14 +213,12 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_UserCanceledOrchestrationInstanceAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
-        var userIdentity = new UserIdentity(new UserId(Guid.NewGuid()), new Actor(Guid.NewGuid()));
-
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            identity: userIdentity,
+            identity: _userIdentity,
             runAt: SystemClock.Instance.GetCurrentInstant());
-        existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(SystemClock.Instance, userIdentity);
+        existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(SystemClock.Instance, _userIdentity);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -310,17 +311,14 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         return orchestrationDescription;
     }
 
-    private static OrchestrationInstance CreateOrchestrationInstance(
+    private OrchestrationInstance CreateOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
         OperatingIdentity? identity = default,
         Instant? runAt = default,
         int? testInt = default,
         IdempotencyKey? idempotencyKey = default)
     {
-        var operatingIdentity = identity
-            ?? new UserIdentity(
-                new UserId(Guid.NewGuid()),
-                new Actor(Guid.NewGuid()));
+        var operatingIdentity = identity ?? _userIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,

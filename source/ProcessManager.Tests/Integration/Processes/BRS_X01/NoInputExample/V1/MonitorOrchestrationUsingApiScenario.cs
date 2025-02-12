@@ -62,10 +62,12 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
-        var command = new StartNoInputExampleCommandV1(
-             operatingIdentity: new UserIdentityDto(
-                 Guid.NewGuid(),
-                 Guid.NewGuid()));
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorNumber: "1234567890123",
+            ActorRole: "EnergySupplier");
+
+        var command = new StartNoInputExampleCommandV1(userIdentity);
 
         using var startRequest = new HttpRequestMessage(
             HttpMethod.Post,
@@ -86,9 +88,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
 
         // Step 2: Query until terminated with succeeded
         var query = new GetOrchestrationInstanceByIdQuery(
-            new UserIdentityDto(
-                Guid.NewGuid(),
-                Guid.NewGuid()),
+            userIdentity,
             orchestrationInstanceId);
 
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(

@@ -31,6 +31,11 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 {
+    private readonly UserIdentityDto _userIdentity = new UserIdentityDto(
+        UserId: Guid.NewGuid(),
+        ActorNumber: "1234567890123",
+        ActorRole: "EnergySupplier");
+
     public MonitorOrchestrationUsingDurableClient(
         ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
@@ -75,17 +80,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Start new orchestration instance
         var input = new InputV1(
             ShouldSkipSkippableStep: false);
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartInputExampleCommandV1(
-                    userIdentity,
+                    _userIdentity,
                     input),
                 CancellationToken.None);
 
@@ -128,17 +129,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Start new orchestration instance
         var input = new InputV1(
             ShouldSkipSkippableStep: true);
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartInputExampleCommandV1(
-                    userIdentity,
+                    _userIdentity,
                     input),
                 CancellationToken.None);
 

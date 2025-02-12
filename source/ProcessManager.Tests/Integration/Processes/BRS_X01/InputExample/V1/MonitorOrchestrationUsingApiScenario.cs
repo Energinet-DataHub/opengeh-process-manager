@@ -35,6 +35,11 @@ namespace Energinet.DataHub.ProcessManager.Tests.Integration.Processes.BRS_X01.I
 [Collection(nameof(ProcessManagerAppCollection))]
 public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
 {
+    private readonly UserIdentityDto _userIdentity = new UserIdentityDto(
+        UserId: Guid.NewGuid(),
+        ActorNumber: "1234567890123",
+        ActorRole: "EnergySupplier");
+
     public MonitorOrchestrationUsingApiScenario(
         ProcessManagerAppFixture fixture,
         ITestOutputHelper testOutputHelper)
@@ -64,16 +69,12 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         var orchestration = Brs_X01_InputExample.V1;
         var input = new InputV1(
             ShouldSkipSkippableStep: false);
 
         var command = new StartInputExampleCommandV1(
-             operatingIdentity: userIdentity,
+             operatingIdentity: _userIdentity,
              input);
 
         using var startRequest = new HttpRequestMessage(
@@ -95,7 +96,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
 
         // Step 2: Query until terminated with succeeded
         var query = new GetOrchestrationInstanceByIdQuery(
-            userIdentity,
+            _userIdentity,
             orchestrationInstanceId);
 
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
@@ -133,17 +134,13 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestration_WhenScheduledToRunNow_CanSearch()
     {
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         var now = DateTimeOffset.UtcNow;
         var orchestration = Brs_X01_InputExample.V1;
         var input = new InputV1(
             ShouldSkipSkippableStep: false);
 
         var command = new ScheduleInputExampleCommandV1(
-             operatingIdentity: userIdentity,
+             operatingIdentity: _userIdentity,
              input,
              runAt: now);
 
@@ -166,7 +163,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
 
         // Step 2: General search using name
         var queryByName = new SearchOrchestrationInstancesByNameQuery(
-            userIdentity,
+            _userIdentity,
             orchestration.Name,
             version: null,
             lifecycleState: null,
@@ -195,7 +192,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
 
         // Step 3: Custom search
         var customQuery = new InputExampleQuery(
-            userIdentity,
+            _userIdentity,
             skippedStepTwo: input.ShouldSkipSkippableStep);
 
         using var customQueryRequest = new HttpRequestMessage(

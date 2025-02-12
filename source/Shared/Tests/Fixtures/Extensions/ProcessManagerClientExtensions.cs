@@ -46,7 +46,8 @@ public static class ProcessManagerClientExtensions
                         new GetOrchestrationInstanceByIdempotencyKeyQuery(
                             new UserIdentityDto(
                                 UserId: Guid.NewGuid(),
-                                ActorId: Guid.NewGuid()),
+                                ActorNumber: "1234567891234",
+                                ActorRole: "EnergySupplier"),
                             idempotencyKey),
                         CancellationToken.None);
 

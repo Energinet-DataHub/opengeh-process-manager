@@ -92,7 +92,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
 
         var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(input.AuthenticatedActorId),
+            new ActorIdentityDto(input.ActorNumber, input.ActorRole),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -158,7 +158,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = CreateMeteredDataForMeteringPointMessageInputV1(true);
 
         var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(input.AuthenticatedActorId),
+            new ActorIdentityDto(input.ActorNumber, input.ActorRole),
             input,
             "test-message-id");
 
@@ -242,7 +242,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
 
         var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(input.AuthenticatedActorId),
+            new ActorIdentityDto(input.ActorNumber, input.ActorRole),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -251,17 +251,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             CancellationToken.None);
 
         // Step 2: Query until terminated with succeeded
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
                 var orchestrationInstance = await processManagerClient
                     .GetOrchestrationInstanceByIdempotencyKeyAsync<MeteredDataForMeteringPointMessageInputV1>(
                         new GetOrchestrationInstanceByIdempotencyKeyQuery(
-                            userIdentity,
+                            _fixture.DefaultUserIdentity,
                             startCommand.IdempotencyKey),
                         CancellationToken.None);
 

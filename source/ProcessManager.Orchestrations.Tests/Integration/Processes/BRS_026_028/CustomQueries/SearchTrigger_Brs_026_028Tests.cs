@@ -98,19 +98,17 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         // Arrange
         var now = DateTimeOffset.UtcNow;
 
-        var actorIdentity = new ActorIdentityDto(
-            ActorId: Guid.NewGuid());
-
-        var energySupplierNumber = "23143245321";
+        const string energySupplierNumber = "23143245321";
+        const string energySupplierRole = "EnergySupplier";
 
         // => Brs 026
         var brs026Input = new RequestCalculatedEnergyTimeSeriesInputV1(
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString(),
             RequestedForActorNumber: energySupplierNumber,
-            RequestedForActorRole: "EnergySupplier",
+            RequestedForActorRole: energySupplierRole,
             RequestedByActorNumber: energySupplierNumber,
-            RequestedByActorRole: "EnergySupplier",
+            RequestedByActorRole: energySupplierRole,
             BusinessReason: "BalanceFixing",
             PeriodStart: "2024-04-07 23:00:00",
             PeriodEnd: "2024-04-08 23:00:00",
@@ -121,7 +119,7 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
             SettlementMethod: null,
             SettlementVersion: null);
         var startRequestCalculatedEnergyTimeSeriesCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
-            actorIdentity,
+            Fixture.DefaultActorIdentity,
             brs026Input,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -139,9 +137,9 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString(),
             RequestedForActorNumber: energySupplierNumber,
-            RequestedForActorRole: "EnergySupplier",
+            RequestedForActorRole: energySupplierRole,
             RequestedByActorNumber: energySupplierNumber,
-            RequestedByActorRole: "EnergySupplier",
+            RequestedByActorRole: energySupplierRole,
             BusinessReason: "WholesaleFixing",
             PeriodStart: "2024-04-01 23:00:00",
             PeriodEnd: "2024-04-30 23:00:00",
@@ -152,7 +150,7 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
             SettlementVersion: null,
             ChargeTypes: null);
         var startRequestCalculatedWholesaleServicesCommand = new RequestCalculatedWholesaleServicesCommandV1(
-            actorIdentity,
+            new ActorIdentityDto(energySupplierNumber, energySupplierRole),
             brs028Input,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -166,15 +164,15 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
             name: nameof(Orchestration_Brs_028_V1));
 
         // => Custom query
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         var customQuery = new ActorRequestQuery(
-            userIdentity,
+            new UserIdentityDto(
+                UserId: Guid.NewGuid(),
+                ActorNumber: energySupplierNumber,
+                ActorRole: energySupplierRole),
             activatedAtOrLater: now,
             activatedAtOrEarlier: now.AddMinutes(1),
-            createdByActorId: actorIdentity.ActorId);
+            createdByActorNumber: energySupplierNumber,
+            createdByActorRole: energySupplierRole);
 
         // Act
         var actual = await ProcessManagerClient

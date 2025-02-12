@@ -91,15 +91,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Step 1: Start new calculation orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartElectricalHeatingCalculationCommandV1(
-                    userIdentity),
+                    Fixture.DefaultUserIdentity),
                 CancellationToken.None);
 
         // Step 2: Query until terminated with succeeded
@@ -109,7 +105,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 var orchestrationInstance = await processManagerClient
                     .GetOrchestrationInstanceByIdAsync(
                         new GetOrchestrationInstanceByIdQuery(
-                            userIdentity,
+                            Fixture.DefaultUserIdentity,
                             orchestrationInstanceId),
                         CancellationToken.None);
 
@@ -126,7 +122,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var orchestrationInstancesGeneralSearch = await processManagerClient
             .SearchOrchestrationInstancesByNameAsync(
                 new SearchOrchestrationInstancesByNameQuery(
-                    userIdentity,
+                    Fixture.DefaultUserIdentity,
                     name: Brs_021_ElectricalHeatingCalculation.Name,
                     version: null,
                     lifecycleState: OrchestrationInstanceLifecycleState.Terminated,

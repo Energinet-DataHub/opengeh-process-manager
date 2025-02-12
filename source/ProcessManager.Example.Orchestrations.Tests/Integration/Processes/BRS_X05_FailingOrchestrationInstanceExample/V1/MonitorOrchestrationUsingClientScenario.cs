@@ -85,7 +85,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         // Step 1: Start new orchestration instance
-        var userIdentity = new UserIdentityDto(Guid.NewGuid(), Guid.NewGuid());
+        var userIdentity = new UserIdentityDto(Guid.NewGuid(), "1234567891234", "EnergySupplier");
         var startRequestCommand = new StartFailingOrchestrationInstanceExampleV1(userIdentity);
 
         var orchestrationInstanceId = await processManagerClient.StartNewOrchestrationInstanceAsync(

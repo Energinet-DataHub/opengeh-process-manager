@@ -173,7 +173,7 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
     {
         var userIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
-            new Actor(Guid.NewGuid()));
+            new Actor("1234567890123", "EnergySupplier"));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,

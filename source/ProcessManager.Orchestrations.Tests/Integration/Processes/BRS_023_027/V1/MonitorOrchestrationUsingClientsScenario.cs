@@ -109,9 +109,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             CalculationJobName);
 
         var calculationType = CalculationType.WholesaleFixing;
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
 
         // Step 1: Start new calculation orchestration instance
         var inputParameter = new CalculationInputV1(
@@ -123,7 +120,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var orchestrationInstanceId = await ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartCalculationCommandV1(
-                    userIdentity,
+                    Fixture.DefaultUserIdentity,
                     inputParameter),
                 CancellationToken.None);
 
@@ -144,7 +141,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
-                            userIdentity,
+                            Fixture.DefaultUserIdentity,
                             orchestrationInstanceId),
                         CancellationToken.None);
 
@@ -161,7 +158,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var orchestrationInstancesGeneralSearch = await ProcessManagerClient
             .SearchOrchestrationInstancesByNameAsync<CalculationInputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
-                    userIdentity,
+                    Fixture.DefaultUserIdentity,
                     name: Brs_023_027.Name,
                     version: null,
                     lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
@@ -173,7 +170,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
 
         // Step 5: Custom search
-        var customQuery = new CalculationQuery(userIdentity)
+        var customQuery = new CalculationQuery(Fixture.DefaultUserIdentity)
         {
             CalculationTypes = new[] { inputParameter.CalculationType },
             GridAreaCodes = inputParameter.GridAreaCodes,
@@ -200,15 +197,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Step 1: Schedule new calculation orchestration instance
         var orchestrationInstanceId = await ProcessManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleCalculationCommandV1(
-                    userIdentity,
+                    Fixture.DefaultUserIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
                     inputParameter: new CalculationInputV1(
                         CalculationType.BalanceFixing,
@@ -239,7 +232,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
-                            userIdentity,
+                            Fixture.DefaultUserIdentity,
                             orchestrationInstanceId),
                         CancellationToken.None);
 
@@ -256,15 +249,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task CalculationScheduledToRunInTheFuture_WhenCanceled_CanMonitorLifecycle()
     {
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Step 1: Schedule new calculation orchestration instance
         var orchestrationInstanceId = await ProcessManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleCalculationCommandV1(
-                    userIdentity,
+                    Fixture.DefaultUserIdentity,
                     runAt: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
                     inputParameter: new CalculationInputV1(
                         CalculationType.Aggregation,
@@ -278,7 +267,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await ProcessManagerClient
             .CancelScheduledOrchestrationInstanceAsync(
                 new CancelScheduledOrchestrationInstanceCommand(
-                    userIdentity,
+                    Fixture.DefaultUserIdentity,
                     orchestrationInstanceId),
                 CancellationToken.None);
 
@@ -289,7 +278,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
-                            userIdentity,
+                            Fixture.DefaultUserIdentity,
                             orchestrationInstanceId),
                         CancellationToken.None);
 
@@ -311,10 +300,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Step 1: Start new calculation orchestration instance
         var inputParameter = new CalculationInputV1(
             CalculationType.WholesaleFixing,
@@ -326,7 +311,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var orchestrationInstanceId = await ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartCalculationCommandV1(
-                    userIdentity,
+                    Fixture.DefaultUserIdentity,
                     inputParameter),
                 CancellationToken.None);
 
@@ -337,7 +322,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
-                            userIdentity,
+                            Fixture.DefaultUserIdentity,
                             orchestrationInstanceId),
                         CancellationToken.None);
 

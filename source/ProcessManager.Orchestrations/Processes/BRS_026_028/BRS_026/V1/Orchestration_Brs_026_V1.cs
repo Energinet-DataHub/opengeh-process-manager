@@ -32,9 +32,11 @@ internal class Orchestration_Brs_026_V1
 
     public Orchestration_Brs_026_V1()
     {
+        // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
+        // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
         _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(
             new RetryPolicy(
-                maxNumberOfAttempts: 5,
+                maxNumberOfAttempts: 8,
                 firstRetryInterval: TimeSpan.FromSeconds(30),
                 backoffCoefficient: 2.0));
     }

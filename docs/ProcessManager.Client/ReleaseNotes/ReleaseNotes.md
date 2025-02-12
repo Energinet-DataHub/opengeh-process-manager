@@ -1,5 +1,14 @@
 # ProcessManager.Client Release Notes
 
+## Version 1.2.0
+
+**Breaking changes:**
+
+- Change `ActorId` to `ActorNumber` and `ActorRole` on `ActorIdentityDto`. This is a breaking change for all commands on `IProcessManagerMessageClient`.
+- Change `ActorId` to `ActorNumber` and `ActorRole` on `UserIdentityDto`. This is a breaking change for all commands and queries on `IProcessManagerClient`.
+- Change `OrchestrationStartedByActorId` to `OrchestrationStartedByActor` with `ActorNumber` and `ActorRole` on `EnqueueActorMessagesV1`.
+- Change `StartedByActorId` to `StartedByActor` with `ActorNumber` and `ActorRole` on `StartOrchestrationInstanceV1`.
+
 ## Version 1.1.1
 
 - Align the package versions for `ProcessManager.Client` and `ProcessManager.Abstractions`:

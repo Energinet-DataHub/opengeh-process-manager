@@ -15,6 +15,10 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Energinet.DataHub.ElectricityMarket.Integration;
+using Energinet.DataHub.ElectricityMarket.Integration.Models.Common;
+using Energinet.DataHub.ElectricityMarket.Integration.Models.GridAreas;
+using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
+using Energinet.DataHub.ElectricityMarket.Integration.Models.ProcessDelegation;
 using NodaTime;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -24,13 +28,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.TestServices;
 // TODO (ID-283)
 public sealed class ElectricityMarketViewsStub : IElectricityMarketViews
 {
-    public async IAsyncEnumerable<MeteringPointMasterData> GetMeteringPointMasterDataChangesAsync(
+    public async Task<IEnumerable<MeteringPointMasterData>> GetMeteringPointMasterDataChangesAsync(
         MeteringPointIdentification meteringPointId,
         Interval period)
     {
         if (meteringPointId.Value == "NoMasterData")
         {
-            yield break;
+            return [];
         }
 
         var meteringPointMasterData =
@@ -51,7 +55,21 @@ public sealed class ElectricityMarketViewsStub : IElectricityMarketViews
         SetProperty(meteringPointMasterData, "Unit", MeasureUnit.kWh);
         SetProperty(meteringPointMasterData, "ProductId", ProductId.FuelQuantity);
 
-        yield return meteringPointMasterData;
+        return [meteringPointMasterData];
+    }
+
+    public Task<ProcessDelegationDto?> GetProcessDelegationAsync(
+        string actorNumber,
+        EicFunction actorRole,
+        string gridAreaCode,
+        DelegatedProcess processType)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<GridAreaOwnerDto?> GetGridAreaOwnerAsync(string gridAreaCode)
+    {
+        throw new NotImplementedException();
     }
 
     public IAsyncEnumerable<MeteringPointEnergySupplier> GetMeteringPointEnergySuppliersAsync(

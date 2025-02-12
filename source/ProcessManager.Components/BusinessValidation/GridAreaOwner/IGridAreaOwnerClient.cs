@@ -35,14 +35,3 @@ public interface IGridAreaOwnerClient
     /// <returns>Returns true of the given <paramref name="actorNumber"/> is the current owner.</returns>
     Task<bool> IsCurrentOwnerAsync(string gridArea, string actorNumber, CancellationToken cancellationToken);
 }
-
-/// <summary>
-/// Mock of the <see cref="IGridAreaOwnerClient"/>, that always returns true.
-/// </summary>
-public class GridAreaOwnerMockClient : IGridAreaOwnerClient
-{
-    public Task<bool> IsCurrentOwnerAsync(string gridArea, string actorNumber, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(true);
-    }
-}

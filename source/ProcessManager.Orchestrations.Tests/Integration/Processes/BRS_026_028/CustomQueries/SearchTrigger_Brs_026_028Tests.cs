@@ -25,6 +25,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
@@ -184,6 +185,7 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         // TODO:
         // We could improve this test by using the "Idempotency Key" to compare from the "request",
         // but currently this is not supported when using the ProcessManager over ServiceBus
+        using var assertionScope = new AssertionScope();
         actual.Should()
             .Contain(x =>
                 x.GetType() == typeof(RequestCalculatedEnergyTimeSeriesResult))

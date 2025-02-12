@@ -40,7 +40,7 @@ public static class EnergySupplierIsOnlyAllowedToRequestOwnDataHelper
         if (!IsValidEnergySupplierIdFormat(energySupplierNumber))
             return Task.FromResult(InvalidEnergySupplierError);
 
-        if (!RequestedByIdEqualsEnergySupplier(requestedForActorNumber, energySupplierNumber))
+        if (!RequestedForActorNumberEqualsEnergySupplier(requestedForActorNumber, energySupplierNumber))
             return Task.FromResult(NotEqualToRequestedByError);
 
         return Task.FromResult(NoError);
@@ -51,8 +51,8 @@ public static class EnergySupplierIsOnlyAllowedToRequestOwnDataHelper
         return ActorNumberValidationHelper.IsValidGlnNumber(energySupplierId) || ActorNumberValidationHelper.IsValidEicNumber(energySupplierId);
     }
 
-    private static bool RequestedByIdEqualsEnergySupplier(string requestedByActorId, string energySupplierId)
+    private static bool RequestedForActorNumberEqualsEnergySupplier(string requestedForActorNumber, string energySupplierNumber)
     {
-        return requestedByActorId.Equals(energySupplierId, StringComparison.OrdinalIgnoreCase);
+        return requestedForActorNumber.Equals(energySupplierNumber, StringComparison.OrdinalIgnoreCase);
     }
 }

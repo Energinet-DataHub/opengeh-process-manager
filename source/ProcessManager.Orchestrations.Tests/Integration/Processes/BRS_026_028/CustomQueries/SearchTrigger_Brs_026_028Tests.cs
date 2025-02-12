@@ -99,28 +99,27 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         // Arrange
         var now = DateTimeOffset.UtcNow;
 
-        const string energySupplierNumber = "23143245321";
-        const string energySupplierRole = "EnergySupplier";
+        var energySupplierActorIdentity = new ActorIdentityDto("23143245321", "EnergySupplier");
 
         // => Brs 026
         var brs026Input = new RequestCalculatedEnergyTimeSeriesInputV1(
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString(),
-            RequestedForActorNumber: energySupplierNumber,
-            RequestedForActorRole: energySupplierRole,
-            RequestedByActorNumber: energySupplierNumber,
-            RequestedByActorRole: energySupplierRole,
+            RequestedForActorNumber: energySupplierActorIdentity.ActorNumber,
+            RequestedForActorRole: energySupplierActorIdentity.ActorRole,
+            RequestedByActorNumber: energySupplierActorIdentity.ActorNumber,
+            RequestedByActorRole: energySupplierActorIdentity.ActorRole,
             BusinessReason: "BalanceFixing",
             PeriodStart: "2024-04-07 23:00:00",
             PeriodEnd: "2024-04-08 23:00:00",
-            EnergySupplierNumber: energySupplierNumber,
+            EnergySupplierNumber: energySupplierActorIdentity.ActorNumber,
             BalanceResponsibleNumber: null,
             GridAreas: ["804"],
             MeteringPointType: null,
             SettlementMethod: null,
             SettlementVersion: null);
         var startRequestCalculatedEnergyTimeSeriesCommand = new RequestCalculatedEnergyTimeSeriesCommandV1(
-            Fixture.DefaultActorIdentity,
+            energySupplierActorIdentity,
             brs026Input,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -137,21 +136,21 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         var brs028Input = new RequestCalculatedWholesaleServicesInputV1(
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString(),
-            RequestedForActorNumber: energySupplierNumber,
-            RequestedForActorRole: energySupplierRole,
-            RequestedByActorNumber: energySupplierNumber,
-            RequestedByActorRole: energySupplierRole,
+            RequestedForActorNumber: energySupplierActorIdentity.ActorNumber,
+            RequestedForActorRole: energySupplierActorIdentity.ActorRole,
+            RequestedByActorNumber: energySupplierActorIdentity.ActorNumber,
+            RequestedByActorRole: energySupplierActorIdentity.ActorRole,
             BusinessReason: "WholesaleFixing",
             PeriodStart: "2024-04-01 23:00:00",
             PeriodEnd: "2024-04-30 23:00:00",
             Resolution: null,
-            EnergySupplierNumber: energySupplierNumber,
+            EnergySupplierNumber: energySupplierActorIdentity.ActorNumber,
             ChargeOwnerNumber: null,
             GridAreas: ["804"],
             SettlementVersion: null,
             ChargeTypes: null);
         var startRequestCalculatedWholesaleServicesCommand = new RequestCalculatedWholesaleServicesCommandV1(
-            new ActorIdentityDto(energySupplierNumber, energySupplierRole),
+            energySupplierActorIdentity,
             brs028Input,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -168,12 +167,12 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         var customQuery = new ActorRequestQuery(
             new UserIdentityDto(
                 UserId: Guid.NewGuid(),
-                ActorNumber: energySupplierNumber,
-                ActorRole: energySupplierRole),
+                ActorNumber: energySupplierActorIdentity.ActorNumber,
+                ActorRole: energySupplierActorIdentity.ActorRole),
             activatedAtOrLater: now,
             activatedAtOrEarlier: now.AddMinutes(1),
-            createdByActorNumber: energySupplierNumber,
-            createdByActorRole: energySupplierRole);
+            createdByActorNumber: energySupplierActorIdentity.ActorNumber,
+            createdByActorRole: energySupplierActorIdentity.ActorRole);
 
         // Act
         var actual = await ProcessManagerClient

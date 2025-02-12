@@ -210,7 +210,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_UserCanceledOrchestrationInstanceAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
-        var userIdentity = new UserIdentity(new UserId(Guid.NewGuid()), new ActorId(Guid.NewGuid()));
+        var userIdentity = new UserIdentity(new UserId(Guid.NewGuid()), new Actor(Guid.NewGuid()));
 
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance = CreateOrchestrationInstance(
@@ -320,7 +320,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         var operatingIdentity = identity
             ?? new UserIdentity(
                 new UserId(Guid.NewGuid()),
-                new ActorId(Guid.NewGuid()));
+                new Actor(Guid.NewGuid()));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,

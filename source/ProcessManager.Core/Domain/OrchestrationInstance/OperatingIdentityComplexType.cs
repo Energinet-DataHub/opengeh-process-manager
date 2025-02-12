@@ -38,10 +38,10 @@ public record OperatingIdentityComplexType
             switch (IdentityType)
             {
                 case nameof(ActorIdentity):
-                    return new ActorIdentity(new ActorId(ActorId!.Value));
+                    return new ActorIdentity(new Actor(ActorNumber!, ActorRole!));
 
                 case nameof(UserIdentity):
-                    return new UserIdentity(new UserId(UserId!.Value), new ActorId(ActorId!.Value));
+                    return new UserIdentity(new UserId(UserId!.Value), new Actor(ActorNumber!, ActorRole!));
 
                 default:
                     throw new InvalidOperationException($"Unknown operating identity type '{IdentityType}'.");
@@ -54,13 +54,15 @@ public record OperatingIdentityComplexType
             {
                 case ActorIdentity actor:
                     IdentityType = nameof(ActorIdentity);
-                    ActorId = actor.ActorId.Value;
+                    ActorNumber = actor.Actor.Number;
+                    ActorRole = actor.Actor.Role;
                     break;
 
                 case UserIdentity user:
                     IdentityType = nameof(UserIdentity);
-                    ActorId = user.ActorId.Value;
                     UserId = user.UserId.Value;
+                    ActorNumber = user.Actor.Number;
+                    ActorRole = user.Actor.Role;
                     break;
 
                 default:
@@ -71,7 +73,9 @@ public record OperatingIdentityComplexType
 
     internal string? IdentityType { get; private set; }
 
-    internal Guid? ActorId { get; private set; }
+    internal string? ActorNumber { get; private set; }
+
+    internal string? ActorRole { get; private set; }
 
     internal Guid? UserId { get; private set; }
 }

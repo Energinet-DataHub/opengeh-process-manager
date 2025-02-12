@@ -40,12 +40,14 @@ public class StartTrigger_Brs_X03(
         StartTriggerInput input,
         FunctionContext executionContext)
     {
+        const string actorNumber = "1234567890123";
+        const string actorRole = "EnergySupplier";
         return _messageClient.StartNewOrchestrationInstanceAsync(
             new StartActorRequestProcessExampleV1(
-                operatingIdentity: new ActorIdentityDto(Guid.NewGuid()),
+                operatingIdentity: new ActorIdentityDto(actorNumber, actorRole),
                 inputParameter: new ActorRequestProcessExampleInputV1(
-                    RequestedByActorNumber: "1234567890123",
-                    RequestedByActorRole: "EnergySupplier",
+                    RequestedByActorNumber: actorNumber,
+                    RequestedByActorRole: actorRole,
                     BusinessReason: input.BusinessReason),
                 idempotencyKey: input.IdempotencyKey,
                 actorMessageId: Guid.NewGuid().ToString(),

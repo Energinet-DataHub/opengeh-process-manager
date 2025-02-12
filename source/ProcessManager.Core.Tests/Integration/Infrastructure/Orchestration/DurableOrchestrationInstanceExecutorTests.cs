@@ -192,7 +192,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
     {
         var operatingIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
+            new Actor(Guid.NewGuid()));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,

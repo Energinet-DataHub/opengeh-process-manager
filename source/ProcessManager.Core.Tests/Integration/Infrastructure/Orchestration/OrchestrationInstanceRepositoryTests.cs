@@ -526,7 +526,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         nowClockMock.Setup(m => m.GetCurrentInstant())
             .Returns(now);
 
-        var actorId = new ActorId(Guid.NewGuid());
+        var actorId = new Actor(Guid.NewGuid());
 
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var existingOrchestrationDescription = CreateOrchestrationDescription(uniqueName);
@@ -538,7 +538,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
 
         var orchestrationInstanceCreatedByOtherActor = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActorId: new ActorId(Guid.NewGuid()));
+            createdByActorId: new Actor(Guid.NewGuid()));
         orchestrationInstanceCreatedByOtherActor.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
@@ -581,12 +581,12 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
 
         var orchestrationInstanceByActor1 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActorId: new ActorId(Guid.NewGuid()));
+            createdByActorId: new Actor(Guid.NewGuid()));
         orchestrationInstanceByActor1.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
         var orchestrationInstanceByActor2 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActorId: new ActorId(Guid.NewGuid()));
+            createdByActorId: new Actor(Guid.NewGuid()));
         orchestrationInstanceByActor2.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
@@ -633,11 +633,11 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         OrchestrationDescription orchestrationDescription,
         Instant? runAt = null,
         IdempotencyKey? idempotencyKey = null,
-        ActorId? createdByActorId = null)
+        Actor? createdByActorId = null)
     {
         var userIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
-            createdByActorId ?? new ActorId(Guid.NewGuid()));
+            createdByActorId ?? new Actor(Guid.NewGuid()));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,

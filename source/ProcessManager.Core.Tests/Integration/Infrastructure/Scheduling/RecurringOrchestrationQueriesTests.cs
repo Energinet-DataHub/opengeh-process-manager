@@ -114,7 +114,7 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
             SystemClock.Instance,
             new UserIdentity(
                 new UserId(Guid.NewGuid()),
-                new ActorId(Guid.NewGuid())));
+                new Actor(Guid.NewGuid())));
 
         var existingOrchestrationDescription02 = CreateOrchestrationDescription(
             new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1));
@@ -174,7 +174,7 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
     {
         var userIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
+            new Actor(Guid.NewGuid()));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,

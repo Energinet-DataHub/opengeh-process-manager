@@ -52,7 +52,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
         _now = _fixture.ClockMock.Object.GetCurrentInstant();
         _userIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
+            new Actor(Guid.NewGuid()));
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 

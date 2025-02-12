@@ -31,8 +31,8 @@ public class OrchestrationInstanceMapperExtensionsTests
     {
         return new List<object[]>
         {
-            new object[] { new ActorIdentity(new ActorId(Guid.NewGuid())), typeof(ActorIdentityDto) },
-            new object[] { new UserIdentity(new UserId(Guid.NewGuid()), new ActorId(Guid.NewGuid())), typeof(UserIdentityDto) },
+            new object[] { new ActorIdentity(new Actor(Guid.NewGuid())), typeof(ActorIdentityDto) },
+            new object[] { new UserIdentity(new UserId(Guid.NewGuid()), new Actor(Guid.NewGuid())), typeof(UserIdentityDto) },
         };
     }
 
@@ -108,7 +108,7 @@ public class OrchestrationInstanceMapperExtensionsTests
         var userIdentity = createdBy
             ?? new UserIdentity(
                 new UserId(Guid.NewGuid()),
-                new ActorId(Guid.NewGuid()));
+                new Actor(Guid.NewGuid()));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,

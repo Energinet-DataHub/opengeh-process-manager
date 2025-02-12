@@ -48,7 +48,8 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                         lb.Ignore(ct => ct.Value);
 
                         lb.Property(ct => ct.IdentityType);
-                        lb.Property(ct => ct.ActorId);
+                        lb.Property(ct => ct.ActorNumber);
+                        lb.Property(ct => ct.ActorRole);
                         lb.Property(ct => ct.UserId);
                     });
 
@@ -65,7 +66,8 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                         lb.Ignore(ct => ct.Value);
 
                         lb.Property(ct => ct.IdentityType);
-                        lb.Property(ct => ct.ActorId);
+                        lb.Property(ct => ct.ActorNumber);
+                        lb.Property(ct => ct.ActorRole);
                         lb.Property(ct => ct.UserId);
                     });
             });

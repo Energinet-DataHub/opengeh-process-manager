@@ -77,7 +77,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
                 startOrchestration.OrchestrationVersion,
                 OperatingIdentity = new
                 {
-                    ActorId = startOrchestration.StartedByActorId,
+                    Actor = startOrchestration.StartedByActor,
                 },
                 startOrchestration.InputFormat,
                 startOrchestration.ActorMessageId,
@@ -88,17 +88,12 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
 
         var inputParameterDto = startOrchestration.ParseInput<TInputParameterDto>();
 
-        if (!Guid.TryParse(startOrchestration.StartedByActorId, out var actorId))
-        {
-            throw new ArgumentOutOfRangeException(
-                paramName: nameof(StartOrchestrationInstanceV1.StartedByActorId),
-                actualValue: startOrchestration.StartedByActorId,
-                message: $"Unable to parse {nameof(startOrchestration.StartedByActorId)} to guid (MessageId={message.MessageId}, Subject={message.Subject})");
-        }
-
         await StartOrchestrationInstanceAsync(
-            new ActorIdentity(new ActorId(actorId)),
-            inputParameterDto,
+            actorIdentity: new ActorIdentity(
+                new Actor(
+                    Number: startOrchestration.StartedByActor.ActorNumber,
+                    Role: startOrchestration.StartedByActor.ActorRole)),
+            input: inputParameterDto,
             idempotencyKey: message.GetIdempotencyKey(),
             actorMessageId: startOrchestration.ActorMessageId,
             transactionId: startOrchestration.TransactionId,

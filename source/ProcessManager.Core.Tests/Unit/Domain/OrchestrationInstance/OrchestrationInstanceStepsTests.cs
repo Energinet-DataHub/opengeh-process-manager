@@ -83,7 +83,7 @@ public class OrchestrationInstanceStepsTests
     {
         var userIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
+            new Actor(Guid.NewGuid()));
 
         var orchestrationInstance = CoreDomain.OrchestrationInstance.OrchestrationInstance.CreateFromDescription(
             userIdentity,

@@ -55,7 +55,6 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
             _orchestrationOptions,
             CalculationId: input.InstanceId.Value,
             userIdentityDto.UserId,
-            userIdentityDto.ActorId,
             stepsSkippedBySequence);
     }
 

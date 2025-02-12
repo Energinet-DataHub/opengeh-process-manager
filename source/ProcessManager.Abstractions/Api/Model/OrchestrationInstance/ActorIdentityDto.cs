@@ -15,5 +15,6 @@
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
 public record ActorIdentityDto(
-    Guid ActorId)
+    string ActorNumber,
+    string ActorRole)
         : IOperatingIdentityDto;

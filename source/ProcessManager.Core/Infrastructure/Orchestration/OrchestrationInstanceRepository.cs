@@ -84,11 +84,10 @@ internal class OrchestrationInstanceRepository(
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        // Query OrchestrationInstances
         var query = _context
             .OrchestrationDescriptions
-            .Where(x => x.UniqueName.Name == name)
-            .Where(x => version == null || x.UniqueName.Version == version)
+                .Where(x => x.UniqueName.Name == name)
+                .Where(x => version == null || x.UniqueName.Version == version)
             .Join(
                 _context.OrchestrationInstances,
                 description => description.Id,
@@ -124,20 +123,5 @@ internal class OrchestrationInstanceRepository(
             .Select(x => ValueTuple.Create(x.UniqueName, x.instance));
 
         return await query.ToListAsync().ConfigureAwait(false);
-    }
-
-    private class TestOrchestrationParameter
-    {
-        public Guid OrchestrationInstanceId { get; set; }
-
-        public IList<string?>? CalculationTypes { get; set; }
-
-        public IList<string?>? GridAreaCodes { get; set; }
-
-        public DateTimeOffset? PeriodStartDate { get; set; }
-
-        public DateTimeOffset? PeriodEndDate { get; set; }
-
-        public bool? IsInternalCalculation { get; set; }
     }
 }

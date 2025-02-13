@@ -12,18 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Newtonsoft.Json;
 using NodaTime;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
 
@@ -296,85 +291,6 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
     }
 
-    [Fact]
-    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_When_FilteringJsonColumnUsingLINQ_Then_ReturnsExpectedItem()
-    {
-        // Arrange
-        var expectedPeriodStart1 = DateTime.Now;
-        var expectedPeriodEnd1 = DateTime.Now.AddDays(1);
-        var expectedIsInternalCalculation1 = true;
-
-        var expectedPeriodStart2 = DateTime.Now.AddDays(2);
-        var expectedPeriodEnd2 = DateTime.Now.AddDays(3);
-        var expectedIsInternalCalculation2 = false;
-
-        var testParameter1 = new TestOrchestrationParameter
-        {
-            PeriodStartDate = expectedPeriodStart1,
-            PeriodEndDate = expectedPeriodEnd1,
-            IsInternalCalculation = expectedIsInternalCalculation1,
-            CalculationTypes = new List<string?> { "0", "1" },
-            GridAreaCodes = new List<string?> { "804" },
-        };
-
-        var testParameter2 = new TestOrchestrationParameter
-        {
-            PeriodStartDate = expectedPeriodStart2,
-            PeriodEndDate = expectedPeriodEnd2,
-            IsInternalCalculation = expectedIsInternalCalculation2,
-            CalculationTypes = new List<string?> { "2" },
-            GridAreaCodes = new List<string?> { "708", "804" },
-        };
-
-        var searchParams = new TestOrchestrationParameter
-        {
-            PeriodStartDate = DateTime.Now,
-            PeriodEndDate = DateTime.Now.AddDays(3),
-            IsInternalCalculation = false,
-            CalculationTypes = new List<string?> { "2" },
-            GridAreaCodes = new List<string?> { "708" },
-        };
-
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance1 = CreateOrchestrationInstance(existingOrchestrationDescription, testParameter: testParameter1);
-        var existingOrchestrationInstance2 = CreateOrchestrationInstance(existingOrchestrationDescription, testParameter: testParameter2);
-
-        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
-        {
-            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
-            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance1);
-            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance2);
-            await writeDbContext.SaveChangesAsync();
-        }
-
-        // Act
-        await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
-        var orchestrationInstanceList = readDbContext.OrchestrationInstances.ToList();
-
-        var calculationsToFilter = orchestrationInstanceList
-            .Select(x => new
-            {
-                OrchestrationId = x.Id,
-                ParameterValue = JsonConvert.DeserializeObject<TestOrchestrationParameter>(x.ParameterValue.SerializedParameterValue),
-            });
-
-        var calculationTypesSet = searchParams.CalculationTypes?.ToHashSet();
-        var gridAreaCodesSet = searchParams.GridAreaCodes?.ToHashSet();
-
-        var filteredCalculations = calculationsToFilter
-            .Where(calculation =>
-                (calculationTypesSet == null || calculation.ParameterValue?.CalculationTypes?.Any(calculationTypesSet.Contains) != false) &&
-                (gridAreaCodesSet == null || calculation.ParameterValue?.GridAreaCodes?.Any(gridAreaCodesSet.Contains) != false) &&
-                (searchParams.PeriodStartDate == null || calculation.ParameterValue?.PeriodStartDate >= searchParams.PeriodStartDate) &&
-                (searchParams.PeriodEndDate == null || calculation.ParameterValue?.PeriodEndDate <= searchParams.PeriodEndDate) &&
-                (searchParams.IsInternalCalculation == null || calculation.ParameterValue?.IsInternalCalculation == searchParams.IsInternalCalculation))
-            .Select(calculation => calculation.OrchestrationId)
-            .ToHashSet();
-
-        // Assert
-        filteredCalculations.Count.Should().Be(1);
-    }
-
     private static OrchestrationDescription CreateOrchestrationDescription(string? recurringCronExpression = default)
     {
         var orchestrationDescription = new OrchestrationDescription(
@@ -399,7 +315,6 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         OperatingIdentity? identity = default,
         Instant? runAt = default,
         int? testInt = default,
-        TestOrchestrationParameter? testParameter = default,
         IdempotencyKey? idempotencyKey = default)
     {
         var operatingIdentity = identity
@@ -418,10 +333,11 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             transactionId: new TransactionId(Guid.NewGuid().ToString()),
             meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
-        if (testParameter != null)
+        orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {
-            orchestrationInstance.ParameterValue.SetFromInstance(testParameter);
-        }
+            TestString = "Test string",
+            TestInt = testInt ?? 42,
+        });
 
         return orchestrationInstance;
     }
@@ -484,14 +400,8 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
 
     private class TestOrchestrationParameter
     {
-        public List<string?>? CalculationTypes { get; set; }
+        public string? TestString { get; set; }
 
-        public List<string?>? GridAreaCodes { get; set; }
-
-        public DateTimeOffset? PeriodStartDate { get; set; }
-
-        public DateTimeOffset? PeriodEndDate { get; set; }
-
-        public bool? IsInternalCalculation { get; set; }
+        public int? TestInt { get; set; }
     }
 }

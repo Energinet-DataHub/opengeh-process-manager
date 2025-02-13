@@ -67,10 +67,8 @@ internal class SearchCalculationHandler(
                 terminatedAtOrEarlier)
             .ConfigureAwait(false);
 
-        var calculationList = calculations.ToList();
-
-        // TODO: Temporary in-memory filter on ParameterValues - should be replaced when we figure out how to pass filter objects to generic repository implementation.
-        var calculationsToFilter = calculationList
+        // TODO: Temporary in-memory filter on ParameterValues - should be refactored when we figure out how to pass filter objects to generic repository implementation.
+        var calculationsToFilter = calculations
             .Select(x => new
             {
                 OrchestrationId = x.Id,

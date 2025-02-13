@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+
 namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 public record OperatingIdentityComplexType
@@ -38,10 +40,10 @@ public record OperatingIdentityComplexType
             switch (IdentityType)
             {
                 case nameof(ActorIdentity):
-                    return new ActorIdentity(Actor.From(ActorNumber!, ActorRole!));
+                    return new ActorIdentity(new Actor(ActorNumber!, ActorRole!));
 
                 case nameof(UserIdentity):
-                    return new UserIdentity(new UserId(UserId!.Value), Actor.From(ActorNumber!, ActorRole!));
+                    return new UserIdentity(new UserId(UserId!.Value), new Actor(ActorNumber!, ActorRole!));
 
                 default:
                     throw new InvalidOperationException($"Unknown operating identity type '{IdentityType}'.");
@@ -54,15 +56,15 @@ public record OperatingIdentityComplexType
             {
                 case ActorIdentity actor:
                     IdentityType = nameof(ActorIdentity);
-                    ActorNumber = actor.Actor.Number.Value;
-                    ActorRole = actor.Actor.Role.Name;
+                    ActorNumber = actor.Actor.Number;
+                    ActorRole = actor.Actor.Role;
                     break;
 
                 case UserIdentity user:
                     IdentityType = nameof(UserIdentity);
                     UserId = user.UserId.Value;
-                    ActorNumber = user.Actor.Number.Value;
-                    ActorRole = user.Actor.Role.Name;
+                    ActorNumber = user.Actor.Number;
+                    ActorRole = user.Actor.Role;
                     break;
 
                 default:
@@ -73,9 +75,9 @@ public record OperatingIdentityComplexType
 
     internal string? IdentityType { get; private set; }
 
-    internal string? ActorNumber { get; private set; }
+    internal ActorNumber? ActorNumber { get; private set; }
 
-    internal string? ActorRole { get; private set; }
+    internal ActorRole? ActorRole { get; private set; }
 
     internal Guid? UserId { get; private set; }
 }

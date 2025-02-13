@@ -119,8 +119,8 @@ internal class OrchestrationInstanceRepository(
                 description => description.Id,
                 instance => instance.OrchestrationDescriptionId,
                 (description, instance) => new { description.UniqueName, instance })
-            .Where(x => createdByActorNumber == null || x.instance.Lifecycle.CreatedBy.ActorNumber == createdByActorNumber.Value)
-            .Where(x => createdByActorRole == null || x.instance.Lifecycle.CreatedBy.ActorRole == createdByActorRole.Name)
+            .Where(x => createdByActorNumber == null || x.instance.Lifecycle.CreatedBy.ActorNumber == createdByActorNumber)
+            .Where(x => createdByActorRole == null || x.instance.Lifecycle.CreatedBy.ActorRole == createdByActorRole)
             .Where(x =>
                 (x.instance.Lifecycle.QueuedAt >= activatedAtOrLater && x.instance.Lifecycle.QueuedAt <= activatedAtOrEarlier)
                 || (x.instance.Lifecycle.ScheduledToRunAt >= activatedAtOrLater && x.instance.Lifecycle.ScheduledToRunAt <= activatedAtOrEarlier))

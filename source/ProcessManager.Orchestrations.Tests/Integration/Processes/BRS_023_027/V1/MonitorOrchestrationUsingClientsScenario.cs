@@ -187,8 +187,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 CancellationToken.None);
 
         orchestrationInstancesCustomSearch.Should().Contain(x => x.OrchestrationInstance.Id == orchestrationInstanceId);
-
-        // TODO: Enable when custom filtering has been implemented correct
         orchestrationInstancesCustomSearch.Count.Should().Be(1);
     }
 

@@ -78,25 +78,12 @@ internal class SearchCalculationHandler(
 
     private bool FilterCalculation(OrchestrationInstance orchestrationInstance, CalculationQuery query)
     {
-        var parameters = JsonConvert.DeserializeObject<CalculationParameterValue>(orchestrationInstance.ParameterValue.SerializedParameterValue);
+        var calculationInput = orchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
 
-        return (query.CalculationTypes == null || parameters?.CalculationTypes?.Any(query.CalculationTypes.Contains) != false) &&
-                (query.GridAreaCodes == null || parameters?.GridAreaCodes?.Any(query.GridAreaCodes.Contains) != false) &&
-                (query.PeriodStartDate == null || parameters?.PeriodStartDate >= query.PeriodStartDate) &&
-                (query.PeriodEndDate == null || parameters?.PeriodEndDate <= query.PeriodEndDate) &&
-                (query.IsInternalCalculation == null || parameters?.IsInternalCalculation == query.IsInternalCalculation);
-    }
-
-    private class CalculationParameterValue()
-    {
-        public List<CalculationType>? CalculationTypes { get; set; }
-
-        public List<string>? GridAreaCodes { get; set; }
-
-        public DateTimeOffset? PeriodStartDate { get; set; }
-
-        public DateTimeOffset? PeriodEndDate { get; set; }
-
-        public bool? IsInternalCalculation { get; set; }
+        return (query.CalculationTypes == null || query.CalculationTypes.Contains(calculationInput.CalculationType)) &&
+                (query.GridAreaCodes == null || calculationInput.GridAreaCodes.Any(query.GridAreaCodes.Contains)) &&
+                (query.PeriodStartDate == null || calculationInput.PeriodStartDate >= query.PeriodStartDate) &&
+                (query.PeriodEndDate == null || calculationInput.PeriodEndDate <= query.PeriodEndDate) &&
+                (query.IsInternalCalculation == null || calculationInput.IsInternalCalculation == query.IsInternalCalculation);
     }
 }

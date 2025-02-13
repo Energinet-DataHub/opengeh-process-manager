@@ -1,5 +1,17 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 1.1.2
+
+- Update dependent NuGet package.
+
+## Version 1.1.1
+
+- Update dependent NuGet package.
+
+## Version 1.1.0
+
+- Extend `DataHubRecordType<TDataHubRecordType>` with method `FromNameOrDefault`.
+
 ## Version 1.0.1
 
 - Update dependent NuGet package.

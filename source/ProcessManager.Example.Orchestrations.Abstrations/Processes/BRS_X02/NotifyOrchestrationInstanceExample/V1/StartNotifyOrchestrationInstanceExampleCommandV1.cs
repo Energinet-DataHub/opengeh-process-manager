@@ -23,9 +23,14 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 public record StartNotifyOrchestrationInstanceExampleCommandV1(
     ActorIdentityDto OperatingIdentity,
     NotifyOrchestrationInstanceExampleInputV1 InputParameter,
-    string IdempotencyKey)
+    string IdempotencyKey,
+    string ActorMessageId,
+    string TransactionId)
     : StartOrchestrationInstanceMessageCommand<NotifyOrchestrationInstanceExampleInputV1>(
         OperatingIdentity,
         Brs_X02_NotifyOrchestrationInstanceExample.V1,
         InputParameter,
-        IdempotencyKey);
+        IdempotencyKey,
+        ActorMessageId,
+        TransactionId,
+        null);

@@ -412,8 +412,11 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             orchestrationDescription,
             skipStepsBySequence: [3],
             clock: SystemClock.Instance,
-            runAt,
-            idempotencyKey);
+            runAt: runAt,
+            idempotencyKey: idempotencyKey,
+            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
         if (testParameter != null)
         {

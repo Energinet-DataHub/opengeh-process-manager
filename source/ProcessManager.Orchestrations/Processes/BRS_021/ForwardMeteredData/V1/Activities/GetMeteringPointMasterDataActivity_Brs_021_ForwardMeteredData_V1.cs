@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
@@ -25,12 +25,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository progressRepository,
-    IElectricityMarketViews electricityMarketViews)
+    ElectricityMarket.Integration.IElectricityMarketViews electricityMarketViews)
     : ProgressActivityBase(
         clock,
         progressRepository)
 {
-    private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
+    private readonly ElectricityMarket.Integration.IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
     [Function(nameof(GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1))]
     public async Task<ActivityOutput> Run(
@@ -41,7 +41,7 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
             return new([]);
         }
 
-        var id = new MeteringPointIdentification(activityInput.MeteringPointIdentification);
+        var id = new ElectricityMarket.Integration.Models.MasterData.MeteringPointIdentification(activityInput.MeteringPointIdentification);
         var startDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.StartDateTime);
         var endDateTime = InstantPatternWithOptionalSeconds.Parse(activityInput.EndDateTime);
 
@@ -50,22 +50,21 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
             return new([]);
         }
 
-        var meteringPointMasterDatas = await _electricityMarketViews
+        var meteringPointMasterData = await _electricityMarketViews
             .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
-            .ToListAsync()
             .ConfigureAwait(false);
         return new(
-            meteringPointMasterDatas
+            meteringPointMasterData
                 .Select(Map)
                 .ToList());
     }
 
-    private static Model.MeteringPointMasterData Map(MeteringPointMasterData arg)
+    private static MeteringPointMasterData Map(ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData arg)
     {
         return new(
-            new Model.MeteringPointId(arg.Identification.Value),
-            new Model.GridAreaCode(arg.GridAreaCode.Value),
-            new Model.ActorNumber(arg.GridAccessProvider.Value),
+            new MeteringPointId(arg.Identification.Value),
+            new GridAreaCode(arg.GridAreaCode.Value),
+            new ActorNumber(arg.GridAccessProvider.Value),
             MeteringPointMasterDataMapper.ConnectionStateMap.Map(arg.ConnectionState),
             MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(arg.Type),
             MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(arg.SubType),
@@ -74,5 +73,5 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
 
     public sealed record ActivityInput(string? MeteringPointIdentification, string StartDateTime, string? EndDateTime);
 
-    public sealed record ActivityOutput(IReadOnlyCollection<Model.MeteringPointMasterData> MeteringPointMasterData);
+    public sealed record ActivityOutput(IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
 }

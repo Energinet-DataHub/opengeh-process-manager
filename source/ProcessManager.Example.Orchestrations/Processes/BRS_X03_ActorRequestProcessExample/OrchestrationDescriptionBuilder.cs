@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample;
 
@@ -31,8 +32,8 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.ParameterDefinition.SetFromType<ActorRequestProcessExampleInputV1>();
 
-        description.AppendStepDescription("Business validation");
-        description.AppendStepDescription("Enqueue actor messages");
+        description.AppendStepDescription(BusinessValidationStep.StepDescription);
+        description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
 
         return description;
     }

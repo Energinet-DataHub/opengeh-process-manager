@@ -23,6 +23,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Moq;
 using NodaTime;
+using OrchestrationInstanceLifecycleState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
+using OrchestrationInstanceTerminationState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
 
@@ -505,7 +507,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         var actual = await _sut.SearchAsync(
             orchestrationDescriptionNames: [uniqueName01.Name, uniqueName02.Name],
             activatedAtOrLater: tomorrow,
-            activatedAtOrEarlier: tomorrow.PlusHours(1));
+            activatedAtOrEarlier: tomorrow.PlusHours(1),
+            createdByActorId: null);
 
         // Assert
         actual.Should()
@@ -514,7 +517,103 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
                 (uniqueName02, isScheduledToRunTomorrowBasedOn02)]);
     }
 
-    private static OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)
+    [Fact]
+    public async Task GivenTwoOrchestrationInstancesCreatedByDifferentActors_WhenSearchWithCreatedByActorId_ThenOnlyOneExpectedOrchestrationInstanceRetrieved()
+    {
+        // Arrange
+        var now = SystemClock.Instance.GetCurrentInstant();
+        var nowClockMock = new Mock<IClock>();
+        nowClockMock.Setup(m => m.GetCurrentInstant())
+            .Returns(now);
+
+        var actorId = new ActorId(Guid.NewGuid());
+
+        var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
+        var existingOrchestrationDescription = CreateOrchestrationDescription(uniqueName);
+
+        var expectedOrchestrationInstance = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            createdByActorId: actorId);
+        expectedOrchestrationInstance.Lifecycle.TransitionToQueued(nowClockMock.Object);
+
+        var orchestrationInstanceCreatedByOtherActor = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            createdByActorId: new ActorId(Guid.NewGuid()));
+        orchestrationInstanceCreatedByOtherActor.Lifecycle.TransitionToQueued(nowClockMock.Object);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(expectedOrchestrationInstance);
+            writeDbContext.OrchestrationInstances.Add(orchestrationInstanceCreatedByOtherActor);
+
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        var actual = await _sut.SearchAsync(
+            orchestrationDescriptionNames: [uniqueName.Name],
+            activatedAtOrLater: now,
+            activatedAtOrEarlier: now,
+            createdByActorId: actorId.Value);
+
+        // Assert
+        actual.Should()
+            .BeEquivalentTo([
+                (uniqueName01: uniqueName, expectedOrchestrationInstance),
+            ]);
+
+        // This is also tested by the statement above, but this makes what we are testing explicit.
+        actual.Should().NotContain((uniqueName, orchestrationInstanceCreatedByOtherActor));
+    }
+
+    [Fact]
+    public async Task GivenTwoOrchestrationInstancesCreatedByDifferentActors_WhenSearchWithoutCreatedByActorId_ThenBothExpectedOrchestrationInstanceRetrieved()
+    {
+        // Arrange
+        var now = SystemClock.Instance.GetCurrentInstant();
+        var nowClockMock = new Mock<IClock>();
+        nowClockMock.Setup(m => m.GetCurrentInstant())
+            .Returns(now);
+
+        var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
+        var existingOrchestrationDescription = CreateOrchestrationDescription(uniqueName);
+
+        var orchestrationInstanceByActor1 = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            createdByActorId: new ActorId(Guid.NewGuid()));
+        orchestrationInstanceByActor1.Lifecycle.TransitionToQueued(nowClockMock.Object);
+
+        var orchestrationInstanceByActor2 = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            createdByActorId: new ActorId(Guid.NewGuid()));
+        orchestrationInstanceByActor2.Lifecycle.TransitionToQueued(nowClockMock.Object);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(orchestrationInstanceByActor1);
+            writeDbContext.OrchestrationInstances.Add(orchestrationInstanceByActor2);
+
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        var actual = await _sut.SearchAsync(
+            orchestrationDescriptionNames: [uniqueName.Name],
+            activatedAtOrLater: now,
+            activatedAtOrEarlier: now,
+            createdByActorId: null);
+
+        // Assert
+        actual.Should()
+            .BeEquivalentTo([
+                (uniqueName01: uniqueName, orchestrationInstanceByActor1),
+                (uniqueName01: uniqueName, orchestrationInstanceByActor2),
+            ]);
+    }
+
+    private OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)
     {
         var orchestrationDescription = new OrchestrationDescription(
             uniqueName: uniqueName ?? new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
@@ -530,14 +629,15 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         return orchestrationDescription;
     }
 
-    private static OrchestrationInstance CreateOrchestrationInstance(
+    private OrchestrationInstance CreateOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
-        Instant? runAt = default,
-        IdempotencyKey? idempotencyKey = default)
+        Instant? runAt = null,
+        IdempotencyKey? idempotencyKey = null,
+        ActorId? createdByActorId = null)
     {
         var userIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
+            createdByActorId ?? new ActorId(Guid.NewGuid()));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,
@@ -545,7 +645,10 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             skipStepsBySequence: [],
             clock: SystemClock.Instance,
             runAt: runAt,
-            idempotencyKey: idempotencyKey);
+            idempotencyKey: idempotencyKey,
+            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {

@@ -28,9 +28,27 @@ public abstract record DataHubRecordType<TDataHubRecordType> : EnumerationRecord
     /// <summary>
     /// Get instance of enumeration type by name.
     /// </summary>
+    /// <param name="name">Name that identifies enumeration type.</param>
+    /// <returns>Instance of enumeration type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if <paramref name="name"/> doesn't match a defined enumeration type.</exception>
     public static TDataHubRecordType FromName(string name)
     {
         return GetAll<TDataHubRecordType>().SingleOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
             ?? throw new InvalidOperationException($"{name} is not a valid {typeof(TDataHubRecordType).Name} {nameof(name)}");
+    }
+
+    /// <summary>
+    /// Get instance of enumeration type by name, or null.
+    /// </summary>
+    /// <param name="name">Name that identifies enumeration type.</param>
+    /// <returns><see langword="null"/> if <paramref name="name"/> is <see langword="null"/>;
+    /// otherwise instance of enumeration type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if <paramref name="name"/> is not <see langword="null"/> and
+    /// doesn't match a defined enumeration type.</exception>
+    public static TDataHubRecordType? FromNameOrDefault(string? name)
+    {
+        return name is null
+            ? null
+            : FromName(name);
     }
 }

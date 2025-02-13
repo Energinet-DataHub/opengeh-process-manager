@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
 
@@ -31,7 +32,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
             canBeScheduled: true,
             functionName: nameof(Orchestration_Brs_X01_NoInputExample_V1));
 
-        description.AppendStepDescription("Example step 1");
+        description.AppendStepDescription(ExampleStep.StepDescription);
 
         return description;
     }

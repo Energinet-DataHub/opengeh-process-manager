@@ -37,6 +37,7 @@ public class RequestCalculatedWholesaleServicesInputV1ValidatorTests
         services.AddTransient<DateTimeZone>(s => DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
         services.AddTransient<IClock>(s => SystemClock.Instance);
 
+        // IGridAreaOwnerClient mock must be added before AddBusinessValidation(), to override the default client registration
         var gridAreaOwnerClientMock = new Mock<IGridAreaOwnerClient>();
         services.AddScoped<IGridAreaOwnerClient>(_ => gridAreaOwnerClientMock.Object);
 

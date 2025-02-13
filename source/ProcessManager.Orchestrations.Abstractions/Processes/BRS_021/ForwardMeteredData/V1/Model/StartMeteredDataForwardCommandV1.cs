@@ -40,7 +40,10 @@ public record StartForwardMeteredDataCommandV1
                 operatingIdentity,
                 orchestrationDescriptionUniqueName: Brs_021_ForwardedMeteredData.V1,
                 inputParameter,
-                idempotencyKey)
+                idempotencyKey,
+                inputParameter.MessageId,
+                inputParameter.TransactionId,
+                inputParameter.MeteringPointId)
     {
     }
 }

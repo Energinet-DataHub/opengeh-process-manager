@@ -15,7 +15,6 @@
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1;
@@ -45,6 +44,7 @@ public class RequestCalculatedEnergyTimeSeriesInputV1ValidatorTests
         services.AddTransient<DateTimeZone>(s => _timeZone);
         services.AddTransient<IClock>(s => _clockMock.Object);
 
+        // IGridAreaOwnerClient mock must be added before AddBusinessValidation(), to override the default client registration
         var gridAreaOwnerClientMock = new Mock<IGridAreaOwnerClient>();
         services.AddScoped<IGridAreaOwnerClient>(_ => gridAreaOwnerClientMock.Object);
 

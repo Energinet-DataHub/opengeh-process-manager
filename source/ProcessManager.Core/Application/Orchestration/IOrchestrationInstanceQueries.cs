@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using NodaTime;
+using OrchestrationInstanceLifecycleState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
+using OrchestrationInstanceTerminationState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 
@@ -49,8 +52,13 @@ public interface IOrchestrationInstanceQueries
     /// Use the returned unique name to determine which orchestration description a given orchestration instance
     /// was created from.
     /// </summary>
+    /// <param name="orchestrationDescriptionNames"></param>
+    /// <param name="activatedAtOrLater"></param>
+    /// <param name="activatedAtOrEarlier"></param>
+    /// <param name="createdByActorId">Filter by the actor id that created the orchestration instance. If not provided then all will be returned.</param>
     Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,
-        Instant activatedAtOrEarlier);
+        Instant activatedAtOrEarlier,
+        Guid? createdByActorId);
 }

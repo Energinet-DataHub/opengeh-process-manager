@@ -26,6 +26,10 @@ message StartOrchestrationInstanceV1 {
   string input = 3; // The input to the orchestration serialized to string.
   StartOrchestrationInstanceInputFormatV1 input_format = 5; // The format the input field is serialized as.
   string input_type = 6; // Name of the input type (example: "RequestCalculatedEnergyTimeSeriesInputV1").
+
+  string actor_message_id = 7; // The id of the actor message that triggered the orchestration.
+  string transaction_id = 8; // The id of the transaction that triggered the orchestration.
+  optional string metering_point_id = 9; // The id of the metering point for which the orchestration is operating.
 }
 
 enum StartOrchestrationInstanceInputFormatV1 {

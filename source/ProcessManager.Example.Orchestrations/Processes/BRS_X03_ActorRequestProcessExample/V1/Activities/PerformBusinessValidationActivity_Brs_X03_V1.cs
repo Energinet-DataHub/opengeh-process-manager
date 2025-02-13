@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Activities;
 
-public class PerformBusinessValidationActivity_Brs_X03_V1(
+internal class PerformBusinessValidationActivity_Brs_X03_V1(
     IOrchestrationInstanceProgressRepository repository,
     BusinessValidator<ActorRequestProcessExampleInputV1> validator)
 {
@@ -37,6 +39,14 @@ public class PerformBusinessValidationActivity_Brs_X03_V1(
 
         var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<ActorRequestProcessExampleInputV1>();
         var validationErrors = await _validator.ValidateAsync(orchestrationInstanceInput).ConfigureAwait(false);
+
+        if (validationErrors.Count > 0)
+        {
+            var businessValidationStep = orchestrationInstance.GetStep(BusinessValidationStep.StepSequence);
+            businessValidationStep.SetCustomState(JsonSerializer.Serialize(validationErrors));
+
+            await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        }
 
         return new ActivityOutput(
                 validationErrors);

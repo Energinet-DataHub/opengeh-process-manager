@@ -78,7 +78,7 @@ internal class SearchCalculationHandler(
         var calculationTypesSet = query.CalculationTypes?.ToHashSet();
         var gridAreaCodesSet = query.GridAreaCodes?.ToHashSet();
 
-        var filteredCalculations = calculationsToFilter
+        var filteredCalculationIds = calculationsToFilter
             .Where(calculation =>
                 (calculationTypesSet == null || calculation.ParameterValue?.CalculationTypes?.Any(calculationTypesSet.Contains) != false) &&
                 (gridAreaCodesSet == null || calculation.ParameterValue?.GridAreaCodes?.Any(gridAreaCodesSet.Contains) != false) &&
@@ -89,7 +89,7 @@ internal class SearchCalculationHandler(
             .ToHashSet();
 
         return calculations
-            .Where(calculation => filteredCalculations.Contains(calculation.Id))
+            .Where(calculation => filteredCalculationIds.Contains(calculation.Id))
             .Select(item => new CalculationQueryResult(item.MapToTypedDto<CalculationInputV1>()))
             .ToList();
     }

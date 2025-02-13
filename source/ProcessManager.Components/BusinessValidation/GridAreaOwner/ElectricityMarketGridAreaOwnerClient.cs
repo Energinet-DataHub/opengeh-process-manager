@@ -15,6 +15,7 @@
 using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.GridAreas;
 using Energinet.DataHub.ElectricityMarket.Integration.Options;
+using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
 
@@ -25,10 +26,12 @@ namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAre
 /// </remarks>
 /// </summary>
 public class ElectricityMarketGridAreaOwnerClient(
-    IElectricityMarketViews electricityMarketViews)
+    IElectricityMarketViews electricityMarketViews,
+    ILogger<ElectricityMarketGridAreaOwnerClient> logger)
     : IGridAreaOwnerClient
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
+    private readonly ILogger<ElectricityMarketGridAreaOwnerClient> _logger = logger;
 
     public async Task<bool> IsCurrentOwnerAsync(string gridArea, string actorNumber, CancellationToken cancellationToken)
     {
@@ -36,6 +39,16 @@ public class ElectricityMarketGridAreaOwnerClient(
         try
         {
             gridAreaOwner = await _electricityMarketViews.GetGridAreaOwnerAsync(gridArea).ConfigureAwait(false);
+        }
+        catch (HttpRequestException httpRequestException)
+        {
+            // If a grid area owner isn't found, Electricity Market returns a 500 Internal Server Error, which causes
+            // a HttpRequestException to be thrown. We log this exception and return false until the issue is fixed.
+            _logger.LogError(
+                exception: httpRequestException,
+                "Http request exception while getting grid area owner for grid area '{GridArea}'",
+                gridArea);
+            gridAreaOwner = null;
         }
         catch (Exception e)
         {

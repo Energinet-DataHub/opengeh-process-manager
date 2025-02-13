@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// Input to BRS-X03
 /// </summary>
 public record ActorRequestProcessExampleInputV1(
-    ActorNumber RequestedByActorNumber,
-    ActorRole RequestedByActorRole,
+    string RequestedByActorNumber,
+    string RequestedByActorRole,
     string BusinessReason)
         : IInputParameterDto, IBusinessValidatedDto;

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
@@ -46,8 +47,8 @@ internal class EnqueueActorMessagesActivity_Brs_X03_V1(
             orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
             input.IdempotencyKey,
             new ActorRequestProcessExampleEnqueueDataV1(
-                orchestrationInstanceInput.RequestedByActorNumber,
-                orchestrationInstanceInput.RequestedByActorRole,
+                ActorNumber.Create(orchestrationInstanceInput.RequestedByActorNumber),
+                ActorRole.FromName(orchestrationInstanceInput.RequestedByActorRole),
                 businessReason))
             .ConfigureAwait(false);
 

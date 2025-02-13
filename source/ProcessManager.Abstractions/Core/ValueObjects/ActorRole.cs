@@ -44,7 +44,7 @@ public record ActorRole : DataHubRecordType<ActorRole>
     public Contracts.ActorRoleV1 ToActorRoleV1()
     {
         if (!Enum.TryParse<Contracts.ActorRoleV1>(Name, out var actorRoleV1))
-            throw new ArgumentOutOfRangeException(nameof(Name), Name, "Cannot convert to ActorRoleV1");
+            throw new ArgumentOutOfRangeException(nameof(Name), Name, $"Cannot convert {nameof(ActorRole)} to {nameof(Contracts.ActorRoleV1)}");
 
         return actorRoleV1;
     }

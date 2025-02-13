@@ -48,8 +48,8 @@ public class StartTrigger_Brs_X03(
             new StartActorRequestProcessExampleV1(
                 operatingIdentity: new ActorIdentityDto(actorNumber, actorRole),
                 inputParameter: new ActorRequestProcessExampleInputV1(
-                    RequestedByActorNumber: actorNumber,
-                    RequestedByActorRole: actorRole,
+                    RequestedByActorNumber: actorNumber.Value,
+                    RequestedByActorRole: actorRole.Name,
                     BusinessReason: input.BusinessReason),
                 idempotencyKey: input.IdempotencyKey,
                 actorMessageId: Guid.NewGuid().ToString(),

@@ -102,7 +102,7 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         var now = DateTimeOffset.UtcNow;
 
         var energySupplierActorIdentity = new ActorIdentityDto(
-            ActorNumber.Create("23143245321"),
+            ActorNumber.Create("2314324532132"),
             ActorRole.EnergySupplier);
 
         // => Brs 026

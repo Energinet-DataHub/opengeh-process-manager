@@ -16,11 +16,11 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 public record Actor(string Number, string Role)
 {
-    public string Number { get; } = !string.IsNullOrWhiteSpace(Number) // TODO: Should we validate actor number length is 13 or 16?
+    public string Number { get; } = !string.IsNullOrWhiteSpace(Number)
         ? Number
         : throw new ArgumentOutOfRangeException(nameof(Number), Number, "Actor number cannot be null or empty");
 
-    public string Role { get; } = !string.IsNullOrWhiteSpace(Role) // TODO: Should we validate actor role is a "known" role?
+    public string Role { get; } = !string.IsNullOrWhiteSpace(Role)
         ? Role
         : throw new ArgumentOutOfRangeException(nameof(Role), Role, "Actor role cannot be null or empty");
 }

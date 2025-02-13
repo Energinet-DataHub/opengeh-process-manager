@@ -14,7 +14,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 
 public record ActorRole : DataHubRecordType<ActorRole>
 {
@@ -34,5 +34,18 @@ public record ActorRole : DataHubRecordType<ActorRole>
     private ActorRole(string name)
         : base(name)
     {
+    }
+
+    public static ActorRole From(Contracts.ActorRoleV1 actorRoleV1)
+    {
+        return FromName(actorRoleV1.ToString());
+    }
+
+    public Contracts.ActorRoleV1 ToActorRoleV1()
+    {
+        if (!Enum.TryParse<Contracts.ActorRoleV1>(Name, out var actorRoleV1))
+            throw new ArgumentOutOfRangeException(nameof(Name), Name, "Cannot convert to ActorRoleV1");
+
+        return actorRoleV1;
     }
 }

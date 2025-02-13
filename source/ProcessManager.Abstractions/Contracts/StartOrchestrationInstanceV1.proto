@@ -14,6 +14,7 @@
  */
 
 syntax = "proto3";
+import "Contracts/ActorRoleV1.proto";
 
 option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
 
@@ -35,11 +36,11 @@ message StartOrchestrationInstanceV1 {
 }
 
 enum StartOrchestrationInstanceInputFormatV1 {
-  Unspecified = 0;
+  UnspecifiedFormat = 0;
   Json = 1;
 }
 
 message StartOrchestrationInstanceActorV1 {
   string actor_number = 1; // The actor GLN number.
-  string actor_role = 2; // The actor role (example: "EnergySupplier", "BalanceResponsibleParty" etc.)
+  ActorRoleV1 actor_role = 2; // The actor role.
 }

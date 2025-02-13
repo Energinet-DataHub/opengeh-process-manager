@@ -1,0 +1,35 @@
+/* Copyright 2020 Energinet DataHub A/S
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License2");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
+
+// The actor roles that can send messages to the Process Manager.
+// Should be equal to the values in Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.ActorRole
+enum ActorRoleV1 {
+  UnspecifiedRole = 0; // Should never be used, but is here to comply with protobuf best practices.
+  MeteringPointAdministrator = 1;
+  EnergySupplier = 2;
+  GridAccessProvider = 3;
+  MeteredDataAdministrator = 4;
+  MeteredDataResponsible = 5;
+  BalanceResponsibleParty = 6;
+  ImbalanceSettlementResponsible = 7;
+  SystemOperator = 8;
+  DanishEnergyAgency = 9;
+  Delegated = 10;
+  DataHubAdministrator = 11;
+}

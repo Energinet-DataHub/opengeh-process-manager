@@ -90,9 +90,9 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
 
         await StartOrchestrationInstanceAsync(
             actorIdentity: new ActorIdentity(
-                new Actor(
-                    Number: startOrchestration.StartedByActor.ActorNumber,
-                    Role: startOrchestration.StartedByActor.ActorRole)),
+                Actor.From(
+                    startOrchestration.StartedByActor.ActorNumber,
+                    startOrchestration.StartedByActor.ActorRole)),
             input: inputParameterDto,
             idempotencyKey: message.GetIdempotencyKey(),
             actorMessageId: startOrchestration.ActorMessageId,

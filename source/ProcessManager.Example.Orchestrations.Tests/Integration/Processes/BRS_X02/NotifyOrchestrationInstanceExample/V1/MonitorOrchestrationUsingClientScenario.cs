@@ -14,9 +14,11 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Steps;
@@ -37,8 +39,8 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 {
     private readonly ActorIdentityDto _actorIdentity = new ActorIdentityDto(
-        ActorNumber: "1234567891234",
-        ActorRole: "EnergySupplier");
+        ActorNumber: ActorNumber.Create("1234567891234"),
+        ActorRole: ActorRole.EnergySupplier);
 
     public MonitorOrchestrationUsingClientScenario(
         ExampleOrchestrationsAppFixture fixture,

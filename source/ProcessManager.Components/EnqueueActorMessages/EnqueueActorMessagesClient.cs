@@ -52,8 +52,8 @@ public class EnqueueActorMessagesClient(
             OrchestrationVersion = orchestration.Version,
             OrchestrationStartedByActor = new EnqueueActorMessagesActorV1
             {
-                ActorNumber = startedByActorNumber,
-                ActorRole = startedByActorRole,
+                ActorNumber = startedByActorNumber.Value,
+                ActorRole = startedByActorRole.ToActorRoleV1(),
             },
             OrchestrationInstanceId = orchestrationInstanceId.ToString(),
         };

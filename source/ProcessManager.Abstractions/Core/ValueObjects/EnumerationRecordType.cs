@@ -14,7 +14,7 @@
 
 using System.Reflection;
 
-namespace Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 
 /// <summary>
 /// Base for enumeration types which are records with

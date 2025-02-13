@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -105,7 +106,7 @@ public class RecurringPlannerHandler(
     {
         return new UserIdentity(
             new UserId(Guid.Parse("C861C5E2-8DDA-43E5-A5D0-B94834EE3FF6")),
-            new Actor("5790001330583", "DataHubAdministrator"));
+            new Actor(ActorNumber.Create("5790001330583"), ActorRole.DataHubAdministrator));
     }
 
     private IEnumerable<Instant> ConvertToInstants(IEnumerable<DateTime> scheduleAtInTimeZone)

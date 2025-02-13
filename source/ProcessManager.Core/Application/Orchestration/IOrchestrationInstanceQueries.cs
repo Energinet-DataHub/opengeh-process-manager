@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using NodaTime;
@@ -61,6 +62,6 @@ public interface IOrchestrationInstanceQueries
         IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,
         Instant activatedAtOrEarlier,
-        string? createdByActorNumber,
-        string? createdByActorRole);
+        ActorNumber? createdByActorNumber,
+        ActorRole? createdByActorRole);
 }

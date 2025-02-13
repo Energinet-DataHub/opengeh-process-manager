@@ -16,6 +16,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
@@ -31,8 +33,8 @@ public class OrchestrationInstanceMapperExtensionsTests
     {
         return new List<object[]>
         {
-            new object[] { new ActorIdentity(new Actor("1234567890123", "EnergySupplier")), typeof(ActorIdentityDto) },
-            new object[] { new UserIdentity(new UserId(Guid.NewGuid()), new Actor("1234567890123", "EnergySupplier")), typeof(UserIdentityDto) },
+            new object[] { new ActorIdentity(new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier)), typeof(ActorIdentityDto) },
+            new object[] { new UserIdentity(new UserId(Guid.NewGuid()), new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier)), typeof(UserIdentityDto) },
         };
     }
 
@@ -108,7 +110,7 @@ public class OrchestrationInstanceMapperExtensionsTests
         var userIdentity = createdBy
             ?? new UserIdentity(
                 new UserId(Guid.NewGuid()),
-                new Actor("1234567890123", "EnergySupplier"));
+                new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,

@@ -15,6 +15,7 @@
 using System.Diagnostics.CodeAnalysis;
 using AutoFixture.Xunit2;
 using Energinet.DataHub.Core.TestCommon.AutoFixture.Attributes;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;

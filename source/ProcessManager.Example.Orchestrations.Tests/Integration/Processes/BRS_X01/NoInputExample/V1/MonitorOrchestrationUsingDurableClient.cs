@@ -14,9 +14,11 @@
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -81,8 +83,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
-            ActorNumber: "1234567891234",
-            ActorRole: "EnergySupplier");
+            ActorNumber: ActorNumber.Create("1234567891234"),
+            ActorRole: ActorRole.EnergySupplier);
 
         // Start new orchestration instance
         var orchestrationInstanceId = await processManagerClient

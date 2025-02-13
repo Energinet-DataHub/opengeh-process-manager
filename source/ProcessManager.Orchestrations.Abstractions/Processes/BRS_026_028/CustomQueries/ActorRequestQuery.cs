@@ -14,6 +14,8 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 
@@ -40,8 +42,8 @@ public sealed record ActorRequestQuery
         UserIdentityDto operatingIdentity,
         DateTimeOffset activatedAtOrLater,
         DateTimeOffset activatedAtOrEarlier,
-        string? createdByActorNumber,
-        string? createdByActorRole)
+        ActorNumber? createdByActorNumber,
+        ActorRole? createdByActorRole)
             : base(operatingIdentity)
     {
         OrchestrationDescriptionNames = [
@@ -74,10 +76,10 @@ public sealed record ActorRequestQuery
     /// <summary>
     /// Optional actor number of the actor to filter by. If not provided, the filter won't be applied.
     /// </summary>
-    public string? CreatedByActorNumber { get; }
+    public ActorNumber? CreatedByActorNumber { get; }
 
     /// <summary>
     /// Optional actor role of the actor to filter by. If not provided, the filter won't be applied.
     /// </summary>
-    public string? CreatedByActorRole { get; }
+    public ActorRole? CreatedByActorRole { get; }
 }

@@ -14,6 +14,7 @@
  */
 
 syntax = "proto3";
+import "Contracts/ActorRoleV1.proto";
 
 option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
 
@@ -35,11 +36,11 @@ message EnqueueActorMessagesV1 {
 }
 
 enum EnqueueActorMessagesDataFormatV1 {
-  Unspecified = 0;
+  UnspecifiedFormat = 0; // Should never be used, but is here to comply with protobuf best practices.
   Json = 1;
 }
 
 message EnqueueActorMessagesActorV1 {
   string actor_number = 1; // The actor GLN number.
-  string actor_role = 2; // The actor role (example: "EnergySupplier", "BalanceResponsibleParty" etc.)
+  ActorRoleV1 actor_role = 2; // The actor role.
 }

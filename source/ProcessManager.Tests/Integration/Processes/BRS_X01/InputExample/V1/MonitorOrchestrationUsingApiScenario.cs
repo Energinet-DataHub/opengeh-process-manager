@@ -18,6 +18,8 @@ using System.Text.Json;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
@@ -37,8 +39,8 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
 {
     private readonly UserIdentityDto _userIdentity = new UserIdentityDto(
         UserId: Guid.NewGuid(),
-        ActorNumber: "1234567890123",
-        ActorRole: "EnergySupplier");
+        ActorNumber: ActorNumber.Create("1234567890123"),
+        ActorRole: ActorRole.EnergySupplier);
 
     public MonitorOrchestrationUsingApiScenario(
         ProcessManagerAppFixture fixture,

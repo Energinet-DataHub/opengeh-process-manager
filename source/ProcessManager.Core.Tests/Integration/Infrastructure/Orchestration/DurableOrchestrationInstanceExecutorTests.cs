@@ -14,6 +14,8 @@
 
 using DurableTask.Core.Exceptions;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
@@ -192,7 +194,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
     {
         var operatingIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
-            new Actor("1234567890123", "EnergySupplier"));
+            new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,

@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
 public record UserIdentityDto(
     Guid UserId,
-    string ActorNumber,
-    string ActorRole)
+    ActorNumber ActorNumber,
+    ActorRole ActorRole)
         : IOperatingIdentityDto;

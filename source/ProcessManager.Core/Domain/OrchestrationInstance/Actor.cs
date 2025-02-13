@@ -12,15 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+
 namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
-public record Actor(string Number, string Role)
+public record Actor(ActorNumber Number, ActorRole Role)
 {
-    public string Number { get; } = !string.IsNullOrWhiteSpace(Number)
-        ? Number
-        : throw new ArgumentOutOfRangeException(nameof(Number), Number, "Actor number cannot be null or empty");
+    public static Actor From(string actorNumber, string actorRole)
+    {
+        return new Actor(
+            ActorNumber.Create(actorNumber),
+            ActorRole.FromName(actorRole));
+    }
 
-    public string Role { get; } = !string.IsNullOrWhiteSpace(Role)
-        ? Role
-        : throw new ArgumentOutOfRangeException(nameof(Role), Role, "Actor role cannot be null or empty");
+    public static Actor From(string actorNumber, Abstractions.Contracts.ActorRoleV1 actorRole)
+    {
+        return new Actor(
+            ActorNumber.Create(actorNumber),
+            ActorRole.FromName(actorRole.ToString()));
+    }
 }

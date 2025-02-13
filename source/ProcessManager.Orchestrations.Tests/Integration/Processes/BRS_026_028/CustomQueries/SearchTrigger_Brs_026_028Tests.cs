@@ -14,9 +14,11 @@
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.CustomQueries;
@@ -99,20 +101,22 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         // Arrange
         var now = DateTimeOffset.UtcNow;
 
-        var energySupplierActorIdentity = new ActorIdentityDto("23143245321", "EnergySupplier");
+        var energySupplierActorIdentity = new ActorIdentityDto(
+            ActorNumber.Create("23143245321"),
+            ActorRole.EnergySupplier);
 
         // => Brs 026
         var brs026Input = new RequestCalculatedEnergyTimeSeriesInputV1(
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString(),
-            RequestedForActorNumber: energySupplierActorIdentity.ActorNumber,
-            RequestedForActorRole: energySupplierActorIdentity.ActorRole,
-            RequestedByActorNumber: energySupplierActorIdentity.ActorNumber,
-            RequestedByActorRole: energySupplierActorIdentity.ActorRole,
+            RequestedForActorNumber: energySupplierActorIdentity.ActorNumber.Value,
+            RequestedForActorRole: energySupplierActorIdentity.ActorRole.Name,
+            RequestedByActorNumber: energySupplierActorIdentity.ActorNumber.Value,
+            RequestedByActorRole: energySupplierActorIdentity.ActorRole.Name,
             BusinessReason: "BalanceFixing",
             PeriodStart: "2024-04-07 23:00:00",
             PeriodEnd: "2024-04-08 23:00:00",
-            EnergySupplierNumber: energySupplierActorIdentity.ActorNumber,
+            EnergySupplierNumber: energySupplierActorIdentity.ActorNumber.Value,
             BalanceResponsibleNumber: null,
             GridAreas: ["804"],
             MeteringPointType: null,
@@ -136,15 +140,15 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         var brs028Input = new RequestCalculatedWholesaleServicesInputV1(
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString(),
-            RequestedForActorNumber: energySupplierActorIdentity.ActorNumber,
-            RequestedForActorRole: energySupplierActorIdentity.ActorRole,
-            RequestedByActorNumber: energySupplierActorIdentity.ActorNumber,
-            RequestedByActorRole: energySupplierActorIdentity.ActorRole,
+            RequestedForActorNumber: energySupplierActorIdentity.ActorNumber.Value,
+            RequestedForActorRole: energySupplierActorIdentity.ActorRole.Name,
+            RequestedByActorNumber: energySupplierActorIdentity.ActorNumber.Value,
+            RequestedByActorRole: energySupplierActorIdentity.ActorRole.Name,
             BusinessReason: "WholesaleFixing",
             PeriodStart: "2024-04-01 23:00:00",
             PeriodEnd: "2024-04-30 23:00:00",
             Resolution: null,
-            EnergySupplierNumber: energySupplierActorIdentity.ActorNumber,
+            EnergySupplierNumber: energySupplierActorIdentity.ActorNumber.Value,
             ChargeOwnerNumber: null,
             GridAreas: ["804"],
             SettlementVersion: null,

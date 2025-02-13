@@ -21,6 +21,8 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
@@ -112,8 +114,8 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     public ServiceBusListenerMock IntegrationEventServiceBusListener { get; }
 
     public ActorIdentityDto DefaultActorIdentity => new ActorIdentityDto(
-        "1234567890123",
-        "EnergySupplier");
+        ActorNumber.Create("1234567890123"),
+        ActorRole.EnergySupplier);
 
     public UserIdentityDto DefaultUserIdentity => new UserIdentityDto(
         Guid.NewGuid(),

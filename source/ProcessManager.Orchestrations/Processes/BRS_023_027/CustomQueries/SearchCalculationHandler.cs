@@ -69,21 +69,22 @@ internal class SearchCalculationHandler(
 
         // TODO: Temporary in-memory filter on ParameterValues - should be refactored when we figure out how to pass filter objects to generic repository implementation.
         var filteredCalculations = calculations
-            .Select(orchestrationInstance => new
-            {
-                OrchestrationInstance = orchestrationInstance,
-                ParameterValue = JsonConvert.DeserializeObject<CalculationParameterValue>(orchestrationInstance.ParameterValue.SerializedParameterValue),
-            })
-            .Where(calculation =>
-                (query.CalculationTypes == null || calculation.ParameterValue?.CalculationTypes?.Any(query.CalculationTypes.Contains) != false) &&
-                (query.GridAreaCodes == null || calculation.ParameterValue?.GridAreaCodes?.Any(query.GridAreaCodes.Contains) != false) &&
-                (query.PeriodStartDate == null || calculation.ParameterValue?.PeriodStartDate >= query.PeriodStartDate) &&
-                (query.PeriodEndDate == null || calculation.ParameterValue?.PeriodEndDate <= query.PeriodEndDate) &&
-                (query.IsInternalCalculation == null || calculation.ParameterValue?.IsInternalCalculation == query.IsInternalCalculation))
-            .Select(calculation => new CalculationQueryResult(calculation.OrchestrationInstance.MapToTypedDto<CalculationInputV1>()))
+            .Where(instance => FilterCalculation(instance, query))
+            .Select(calculation => new CalculationQueryResult(calculation.MapToTypedDto<CalculationInputV1>()))
             .ToList();
 
         return filteredCalculations;
+    }
+
+    private bool FilterCalculation(OrchestrationInstance orchestrationInstance, CalculationQuery query)
+    {
+        var parameters = JsonConvert.DeserializeObject<CalculationParameterValue>(orchestrationInstance.ParameterValue.SerializedParameterValue);
+
+        return (query.CalculationTypes == null || parameters?.CalculationTypes?.Any(query.CalculationTypes.Contains) != false) &&
+                (query.GridAreaCodes == null || parameters?.GridAreaCodes?.Any(query.GridAreaCodes.Contains) != false) &&
+                (query.PeriodStartDate == null || parameters?.PeriodStartDate >= query.PeriodStartDate) &&
+                (query.PeriodEndDate == null || parameters?.PeriodEndDate <= query.PeriodEndDate) &&
+                (query.IsInternalCalculation == null || parameters?.IsInternalCalculation == query.IsInternalCalculation);
     }
 
     private class CalculationParameterValue()

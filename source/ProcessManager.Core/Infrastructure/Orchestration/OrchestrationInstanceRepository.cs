@@ -83,16 +83,6 @@ internal class OrchestrationInstanceRepository(
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        // Temp for testing
-        var searchParams = new TestOrchestrationParameter
-        {
-            IsInternalCalculation = false,
-            PeriodStartDate = DateTime.Now,
-            PeriodEndDate = DateTime.Now.AddDays(2),
-            CalculationTypes = ["1"],
-            GridAreaCodes = ["804"],
-        };
-
         // Query OrchestrationInstances
         var query = _context
             .OrchestrationDescriptions
@@ -108,52 +98,7 @@ internal class OrchestrationInstanceRepository(
             .Where(x => startedAtOrLater == null || x.Lifecycle.StartedAt >= startedAtOrLater)
             .Where(x => terminatedAtOrEarlier == null || x.Lifecycle.TerminatedAt <= terminatedAtOrEarlier);
 
-        // Query ParameterValue JSON string
-        var actualOrchestrationInstanceIds = _context.Database
-            .SqlQuery<TestOrchestrationParameter>($"""
-        SELECT
-            CAST(JSON_VALUE([o].[SerializedParameterValue], '$.PeriodStartDate') AS datetimeoffset) AS PeriodStartDate,
-            CAST(JSON_VALUE([o].[SerializedParameterValue], '$.PeriodEndDate') AS datetimeoffset) AS PeriodEndDate,
-            CAST(JSON_VALUE([o].[SerializedParameterValue], '$.IsInternalCalculation') AS bit) AS IsInternalCalculation,
-            JSON_QUERY([o].[SerializedParameterValue], '$.CalculationTypes') AS CalculationTypes,
-            JSON_QUERY([o].[SerializedParameterValue], '$.GridAreaCodes') AS GridAreaCodes,
-            o.Id AS OrchestrationInstanceId
-        FROM
-            [pm].[OrchestrationInstance] AS [o]
-        """)
-            .GroupBy(x => new
-            {
-                x.CalculationTypes,
-                x.GridAreaCodes,
-                x.PeriodStartDate,
-                x.PeriodEndDate,
-                x.IsInternalCalculation,
-                x.OrchestrationInstanceId,
-            })
-            .Select(x => new TestOrchestrationParameter
-            {
-                CalculationTypes = x.Key.CalculationTypes,
-                GridAreaCodes = x.Key.GridAreaCodes,
-                PeriodStartDate = x.Key.PeriodStartDate,
-                PeriodEndDate = x.Key.PeriodEndDate,
-                IsInternalCalculation = x.Key.IsInternalCalculation,
-                OrchestrationInstanceId = x.Key.OrchestrationInstanceId,
-            })
-            .Where(x =>
-                (searchParams.IsInternalCalculation == null || x.IsInternalCalculation == searchParams.IsInternalCalculation) &&
-                (searchParams.PeriodStartDate == null || x.PeriodStartDate >= searchParams.PeriodStartDate) &&
-                (searchParams.PeriodEndDate == null || x.PeriodEndDate <= searchParams.PeriodEndDate) &&
-                (searchParams.CalculationTypes == null || searchParams.CalculationTypes.Any(filter => x.CalculationTypes!.Contains(filter))) &&
-                (searchParams.GridAreaCodes == null || searchParams.GridAreaCodes.Any(filter => x.GridAreaCodes!.Contains(filter))));
-
-        // Join OrchestrationInstances with matching ParameterValues.
-        var combinedResults = query.Join(
-            actualOrchestrationInstanceIds,
-            instance => instance.Id,
-            param => new OrchestrationInstanceId(param.OrchestrationInstanceId),
-            (instance, param) => instance);
-
-        return await combinedResults.ToListAsync().ConfigureAwait(false);
+        return await query.ToListAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc />

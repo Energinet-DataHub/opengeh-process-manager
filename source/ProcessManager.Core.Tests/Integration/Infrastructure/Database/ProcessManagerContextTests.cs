@@ -21,6 +21,7 @@ using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using Newtonsoft.Json;
 using NodaTime;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -348,41 +349,30 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
 
         // Act
         await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
-        var actualOrchestrationInstanceIds = readDbContext.Database
-            .SqlQuery<TestOrchestrationParameter>($"""
-                SELECT
-                    CAST(JSON_VALUE([o].[SerializedParameterValue], '$.PeriodStartDate') AS datetimeoffset) AS PeriodStartDate,
-                    CAST(JSON_VALUE([o].[SerializedParameterValue], '$.PeriodEndDate') AS datetimeoffset) AS PeriodEndDate,
-                    CAST(JSON_VALUE([o].[SerializedParameterValue], '$.IsInternalCalculation') AS bit) AS IsInternalCalculation,
-                    JSON_QUERY([o].[SerializedParameterValue], '$.CalculationTypes') AS CalculationTypes,
-                    JSON_QUERY([o].[SerializedParameterValue], '$.GridAreaCodes') AS GridAreaCodes
-                FROM
-                    [pm].[OrchestrationInstance] AS [o]
-                """)
-            .GroupBy(x => new
+        var orchestrationInstanceList = readDbContext.OrchestrationInstances.ToList();
+
+        var calculationsToFilter = orchestrationInstanceList
+            .Select(x => new
             {
-                x.CalculationTypes,
-                x.GridAreaCodes,
-                x.PeriodStartDate,
-                x.PeriodEndDate,
-                x.IsInternalCalculation,
-            })
-            .Select(x => new TestOrchestrationParameter
-            {
-                CalculationTypes = x.Key.CalculationTypes,
-                GridAreaCodes = x.Key.GridAreaCodes,
-                PeriodStartDate = x.Key.PeriodStartDate,
-                PeriodEndDate = x.Key.PeriodEndDate,
-                IsInternalCalculation = x.Key.IsInternalCalculation,
-            }).Where(x =>
-                (!searchParams.IsInternalCalculation.HasValue || x.IsInternalCalculation == searchParams.IsInternalCalculation) &&
-                (!searchParams.PeriodStartDate.HasValue || x.PeriodStartDate >= searchParams.PeriodStartDate) &&
-                (!searchParams.PeriodEndDate.HasValue || x.PeriodEndDate <= searchParams.PeriodEndDate))
-            .ToList();
+                OrchestrationId = x.Id,
+                ParameterValue = JsonConvert.DeserializeObject<TestOrchestrationParameter>(x.ParameterValue.SerializedParameterValue),
+            });
+
+        var calculationTypesSet = searchParams.CalculationTypes?.ToHashSet();
+        var gridAreaCodesSet = searchParams.GridAreaCodes?.ToHashSet();
+
+        var filteredCalculations = calculationsToFilter
+            .Where(calculation =>
+                (calculationTypesSet == null || calculation.ParameterValue?.CalculationTypes?.Any(calculationTypesSet.Contains) != false) &&
+                (gridAreaCodesSet == null || calculation.ParameterValue?.GridAreaCodes?.Any(gridAreaCodesSet.Contains) != false) &&
+                (searchParams.PeriodStartDate == null || calculation.ParameterValue?.PeriodStartDate >= searchParams.PeriodStartDate) &&
+                (searchParams.PeriodEndDate == null || calculation.ParameterValue?.PeriodEndDate <= searchParams.PeriodEndDate) &&
+                (searchParams.IsInternalCalculation == null || calculation.ParameterValue?.IsInternalCalculation == searchParams.IsInternalCalculation))
+            .Select(calculation => calculation.OrchestrationId)
+            .ToHashSet();
 
         // Assert
-        actualOrchestrationInstanceIds.Should().NotBeNull();
-        //actualOrchestrationInstanceIds.Count.Should().Be(1);
+        filteredCalculations.Count.Should().Be(1);
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(string? recurringCronExpression = default)
@@ -491,9 +481,9 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
 
     private class TestOrchestrationParameter
     {
-        public IList<string?>? CalculationTypes { get; set; }
+        public List<string?>? CalculationTypes { get; set; }
 
-        public IList<string?>? GridAreaCodes { get; set; }
+        public List<string?>? GridAreaCodes { get; set; }
 
         public DateTimeOffset? PeriodStartDate { get; set; }
 

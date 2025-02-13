@@ -18,6 +18,8 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.CustomQueries;
@@ -65,15 +67,45 @@ internal class SearchCalculationHandler(
                 terminatedAtOrEarlier)
             .ConfigureAwait(false);
 
-        // TODO: Filter on additional properties here
-        //// query.CalculationTypes
-        //// query.GridAreaCodes
-        //// query.PeriodStartDate
-        //// query.PeriodEndDate
-        //// query.IsInternalCalculation
+        var calculationList = calculations.ToList();
+
+        // TODO: Temporary in-memory filter on ParameterValues - should be replaced when we figure out how to pass filter objects to generic repository implementation.
+        var calculationsToFilter = calculationList
+            .Select(x => new
+            {
+                OrchestrationId = x.Id,
+                ParameterValue = JsonConvert.DeserializeObject<CalculationParameterValue>(x.ParameterValue.SerializedParameterValue),
+            });
+
+        var calculationTypesSet = query.CalculationTypes?.ToHashSet();
+        var gridAreaCodesSet = query.GridAreaCodes?.ToHashSet();
+
+        var filteredCalculations = calculationsToFilter
+            .Where(calculation =>
+                (calculationTypesSet == null || calculation.ParameterValue?.CalculationTypes?.Any(calculationTypesSet.Contains) != false) &&
+                (gridAreaCodesSet == null || calculation.ParameterValue?.GridAreaCodes?.Any(gridAreaCodesSet.Contains) != false) &&
+                (query.PeriodStartDate == null || calculation.ParameterValue?.PeriodStartDate >= query.PeriodStartDate) &&
+                (query.PeriodEndDate == null || calculation.ParameterValue?.PeriodEndDate <= query.PeriodEndDate) &&
+                (query.IsInternalCalculation == null || calculation.ParameterValue?.IsInternalCalculation == query.IsInternalCalculation))
+            .Select(calculation => calculation.OrchestrationId)
+            .ToHashSet();
 
         return calculations
+            .Where(calculation => filteredCalculations.Contains(calculation.Id))
             .Select(item => new CalculationQueryResult(item.MapToTypedDto<CalculationInputV1>()))
             .ToList();
+    }
+
+    private class CalculationParameterValue()
+    {
+        public List<CalculationType>? CalculationTypes { get; set; }
+
+        public List<string>? GridAreaCodes { get; set; }
+
+        public DateTimeOffset? PeriodStartDate { get; set; }
+
+        public DateTimeOffset? PeriodEndDate { get; set; }
+
+        public bool? IsInternalCalculation { get; set; }
     }
 }

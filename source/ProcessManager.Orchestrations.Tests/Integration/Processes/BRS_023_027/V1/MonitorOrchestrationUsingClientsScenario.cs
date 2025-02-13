@@ -189,7 +189,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         orchestrationInstancesCustomSearch.Should().Contain(x => x.OrchestrationInstance.Id == orchestrationInstanceId);
 
         // TODO: Enable when custom filtering has been implemented correct
-        ////orchestrationInstancesCustomSearch.Count.Should().Be(1);
+        orchestrationInstancesCustomSearch.Count.Should().Be(1);
     }
 
     [Fact]

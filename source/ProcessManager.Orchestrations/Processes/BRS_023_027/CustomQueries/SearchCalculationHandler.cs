@@ -68,30 +68,22 @@ internal class SearchCalculationHandler(
             .ConfigureAwait(false);
 
         // TODO: Temporary in-memory filter on ParameterValues - should be refactored when we figure out how to pass filter objects to generic repository implementation.
-        var calculationsToFilter = calculations
-            .Select(x => new
+        var filteredCalculations = calculations
+            .Select(orchestrationInstance => new
             {
-                OrchestrationId = x.Id,
-                ParameterValue = JsonConvert.DeserializeObject<CalculationParameterValue>(x.ParameterValue.SerializedParameterValue),
-            });
-
-        var calculationTypesSet = query.CalculationTypes?.ToHashSet();
-        var gridAreaCodesSet = query.GridAreaCodes?.ToHashSet();
-
-        var filteredCalculationIds = calculationsToFilter
+                OrchestrationInstance = orchestrationInstance,
+                ParameterValue = JsonConvert.DeserializeObject<CalculationParameterValue>(orchestrationInstance.ParameterValue.SerializedParameterValue),
+            })
             .Where(calculation =>
-                (calculationTypesSet == null || calculation.ParameterValue?.CalculationTypes?.Any(calculationTypesSet.Contains) != false) &&
-                (gridAreaCodesSet == null || calculation.ParameterValue?.GridAreaCodes?.Any(gridAreaCodesSet.Contains) != false) &&
+                (query.CalculationTypes == null || calculation.ParameterValue?.CalculationTypes?.Any(query.CalculationTypes.Contains) != false) &&
+                (query.GridAreaCodes == null || calculation.ParameterValue?.GridAreaCodes?.Any(query.GridAreaCodes.Contains) != false) &&
                 (query.PeriodStartDate == null || calculation.ParameterValue?.PeriodStartDate >= query.PeriodStartDate) &&
                 (query.PeriodEndDate == null || calculation.ParameterValue?.PeriodEndDate <= query.PeriodEndDate) &&
                 (query.IsInternalCalculation == null || calculation.ParameterValue?.IsInternalCalculation == query.IsInternalCalculation))
-            .Select(calculation => calculation.OrchestrationId)
-            .ToHashSet();
-
-        return calculations
-            .Where(calculation => filteredCalculationIds.Contains(calculation.Id))
-            .Select(item => new CalculationQueryResult(item.MapToTypedDto<CalculationInputV1>()))
+            .Select(calculation => new CalculationQueryResult(calculation.OrchestrationInstance.MapToTypedDto<CalculationInputV1>()))
             .ToList();
+
+        return filteredCalculations;
     }
 
     private class CalculationParameterValue()

@@ -4,7 +4,7 @@
 
 - Update `ProcessManager.Abstractions` to version 1.2.0.
 
-### Breaking changes:
+### Breaking changes
 
 - Remove `ActorNumber`, `ActorRole`, `DataHubRecordType` and `EnumerationRecordType` (moved to `ProcessManager.Abstractions`).
 

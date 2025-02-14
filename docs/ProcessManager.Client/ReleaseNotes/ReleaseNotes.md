@@ -5,7 +5,7 @@
 - Add `ActorNumber`, `ActorRole`, `DataHubRecordType` and `EnumerationRecordType` (moved from `ProcessManager.Components.Abstractions`).
 - Add `ActorRoleV1`.
 
-### Breaking changes:
+### Breaking changes
 
 - Change `ActorId` to `ActorNumber` and `ActorRole` on `ActorIdentityDto`. This is a breaking change for all commands on `IProcessManagerMessageClient`.
 - Change `ActorId` to `ActorNumber` and `ActorRole` on `UserIdentityDto`. This is a breaking change for all commands and queries on `IProcessManagerClient`.

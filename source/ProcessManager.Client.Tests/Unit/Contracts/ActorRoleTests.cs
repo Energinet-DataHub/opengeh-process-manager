@@ -19,6 +19,9 @@ using FluentAssertions;
 
 namespace Energinet.DataHub.ProcessManager.Client.Tests.Unit.Contracts;
 
+/// <summary>
+/// Tests that ensures <see cref="ActorRoleV1"/> and <see cref="ActorRole"/> names are in sync.
+/// </summary>
 public class ActorRoleTests
 {
     public static TheoryData<ActorRoleV1> AllActorRoleV1Values()
@@ -35,7 +38,7 @@ public class ActorRoleTests
     }
 
     /// <summary>
-    /// Ensure that all ActorRoleV1 values can be mapped to ActorRole
+    /// Ensure that all ActorRoleV1 values can be mapped to an ActorRole.
     /// </summary>
     [Theory]
     [MemberData(nameof(AllActorRoleV1Values))]
@@ -46,8 +49,8 @@ public class ActorRoleTests
     }
 
     /// <summary>
-    /// Ensure that all ActorRole values can be mapped to ActorRoleV1.
-    /// Maybe this isn't necessary and we only need to ensure all ActorRoleV1 values can be mapped to an ActorRole.
+    /// Ensure that all ActorRole values can be mapped to an ActorRoleV1.
+    /// Maybe this isn't necessary, and we only need to ensure all ActorRoleV1 values can be mapped to an ActorRole.
     /// </summary>
     [Theory]
     [MemberData(nameof(AllActorRoleValues))]

@@ -18,7 +18,7 @@ syntax = "proto3";
 option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
 
 // The actor roles that can send messages to the Process Manager.
-// Should be equal to the values in Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.ActorRole
+// Should be equal to the actor role names in Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects.ActorRole
 enum ActorRoleV1 {
   UnspecifiedRole = 0; // Should never be used, but is here to comply with protobuf best practices.
   MeteringPointAdministrator = 1;

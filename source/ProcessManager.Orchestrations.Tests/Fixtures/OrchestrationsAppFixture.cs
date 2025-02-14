@@ -22,7 +22,6 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;

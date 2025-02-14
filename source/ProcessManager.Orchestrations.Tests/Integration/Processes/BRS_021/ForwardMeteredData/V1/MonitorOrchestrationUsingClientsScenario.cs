@@ -16,10 +16,10 @@ using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -92,7 +92,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
 
         var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(input.AuthenticatedActorId),
+            new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -158,7 +158,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = CreateMeteredDataForMeteringPointMessageInputV1(true);
 
         var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(input.AuthenticatedActorId),
+            new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             "test-message-id");
 
@@ -242,7 +242,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
 
         var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(input.AuthenticatedActorId),
+            new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -251,17 +251,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             CancellationToken.None);
 
         // Step 2: Query until terminated with succeeded
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
                 var orchestrationInstance = await processManagerClient
                     .GetOrchestrationInstanceByIdempotencyKeyAsync<MeteredDataForMeteringPointMessageInputV1>(
                         new GetOrchestrationInstanceByIdempotencyKeyQuery(
-                            userIdentity,
+                            _fixture.DefaultUserIdentity,
                             startCommand.IdempotencyKey),
                         CancellationToken.None);
 

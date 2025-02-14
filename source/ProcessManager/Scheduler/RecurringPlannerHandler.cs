@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -28,7 +29,7 @@ public class RecurringPlannerHandler(
     IRecurringOrchestrationQueries query,
     IStartOrchestrationInstanceCommands manager)
 {
-    internal static readonly UserIdentity RecurringJobIdentity = CreateIdentity();
+    internal static readonly UserIdentity RecurringJobIdentity = DataHubSystemAdministratorUser.UserIdentity;
 
     private readonly ILogger _logger = logger;
     private readonly DateTimeZone _dateTimeZone = dateTimeZone;
@@ -94,18 +95,6 @@ public class RecurringPlannerHandler(
                     orchestrationDescription.Id.Value);
             }
         }
-    }
-
-    /// <summary>
-    /// We combine a "known user id" (known by Market Participant)
-    /// and the DataHub Administrator actor id to create an
-    /// operating identity for recurring jobs.
-    /// </summary>
-    private static UserIdentity CreateIdentity()
-    {
-        return new UserIdentity(
-            new UserId(Guid.Parse("C861C5E2-8DDA-43E5-A5D0-B94834EE3FF6")),
-            new ActorId(Guid.Parse("00000000-0000-0000-0000-000000000001")));
     }
 
     private IEnumerable<Instant> ConvertToInstants(IEnumerable<DateTime> scheduleAtInTimeZone)

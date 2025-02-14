@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -508,7 +509,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             orchestrationDescriptionNames: [uniqueName01.Name, uniqueName02.Name],
             activatedAtOrLater: tomorrow,
             activatedAtOrEarlier: tomorrow.PlusHours(1),
-            createdByActorId: null);
+            createdByActorNumber: null,
+            createdByActorRole: null);
 
         // Assert
         actual.Should()
@@ -518,7 +520,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenTwoOrchestrationInstancesCreatedByDifferentActors_WhenSearchWithCreatedByActorId_ThenOnlyOneExpectedOrchestrationInstanceRetrieved()
+    public async Task GivenTwoOrchestrationInstancesCreatedByDifferentActors_WhenSearchWithCreatedByActor_ThenOnlyOneExpectedOrchestrationInstanceRetrieved()
     {
         // Arrange
         var now = SystemClock.Instance.GetCurrentInstant();
@@ -526,19 +528,20 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         nowClockMock.Setup(m => m.GetCurrentInstant())
             .Returns(now);
 
-        var actorId = new ActorId(Guid.NewGuid());
+        var actor = new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier);
+        var otherActor = new Actor(ActorNumber.Create("1234567890123"), ActorRole.BalanceResponsibleParty);
 
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var existingOrchestrationDescription = CreateOrchestrationDescription(uniqueName);
 
         var expectedOrchestrationInstance = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActorId: actorId);
+            createdByActor: actor);
         expectedOrchestrationInstance.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
         var orchestrationInstanceCreatedByOtherActor = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActorId: new ActorId(Guid.NewGuid()));
+            createdByActor: otherActor);
         orchestrationInstanceCreatedByOtherActor.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
@@ -555,7 +558,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             orchestrationDescriptionNames: [uniqueName.Name],
             activatedAtOrLater: now,
             activatedAtOrEarlier: now,
-            createdByActorId: actorId.Value);
+            createdByActorNumber: actor.Number,
+            createdByActorRole: actor.Role);
 
         // Assert
         actual.Should()
@@ -568,7 +572,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenTwoOrchestrationInstancesCreatedByDifferentActors_WhenSearchWithoutCreatedByActorId_ThenBothExpectedOrchestrationInstanceRetrieved()
+    public async Task GivenTwoOrchestrationInstancesCreatedByDifferentActors_WhenSearchWithoutCreatedByActor_ThenBothExpectedOrchestrationInstanceRetrieved()
     {
         // Arrange
         var now = SystemClock.Instance.GetCurrentInstant();
@@ -579,14 +583,16 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var existingOrchestrationDescription = CreateOrchestrationDescription(uniqueName);
 
+        var actor1 = new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier);
         var orchestrationInstanceByActor1 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActorId: new ActorId(Guid.NewGuid()));
+            createdByActor: actor1);
         orchestrationInstanceByActor1.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
+        var actor2 = new Actor(ActorNumber.Create("1234567890123"), ActorRole.BalanceResponsibleParty);
         var orchestrationInstanceByActor2 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActorId: new ActorId(Guid.NewGuid()));
+            createdByActor: actor2);
         orchestrationInstanceByActor2.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
@@ -603,7 +609,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             orchestrationDescriptionNames: [uniqueName.Name],
             activatedAtOrLater: now,
             activatedAtOrEarlier: now,
-            createdByActorId: null);
+            createdByActorNumber: null,
+            createdByActorRole: null);
 
         // Assert
         actual.Should()
@@ -633,11 +640,11 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         OrchestrationDescription orchestrationDescription,
         Instant? runAt = null,
         IdempotencyKey? idempotencyKey = null,
-        ActorId? createdByActorId = null)
+        Actor? createdByActor = null)
     {
         var userIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
-            createdByActorId ?? new ActorId(Guid.NewGuid()));
+            createdByActor ?? new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,

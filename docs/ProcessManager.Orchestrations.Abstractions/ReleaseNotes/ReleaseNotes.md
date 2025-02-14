@@ -1,5 +1,16 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.2.0
+
+**Breaking changes:**
+
+- Update `ActorRequestQuery` with `CreatedByActorNumber` and `CreatedByActorRole` instead of `CreatedByActorId`.
+- Update to `ProcessManager.Abstractions` package version 1.2.0, which includes the following breaking changes:
+    - Change `ActorId` to `ActorNumber` and `ActorRole` on `ActorIdentityDto`. This is a breaking change for all commands on `IProcessManagerMessageClient`.
+    - Change `ActorId` to `ActorNumber` and `ActorRole` on `UserIdentityDto`. This is a breaking change for all commands and queries on `IProcessManagerClient`.
+    - Change `OrchestrationStartedByActorId` to `OrchestrationStartedByActor` with `ActorNumber` and `ActorRole` on `EnqueueActorMessagesV1`.
+    - Change `StartedByActorId` to `StartedByActor` with `ActorNumber` and `ActorRole` on `StartOrchestrationInstanceV1`.
+
 ## Version 1.1.0
 
 - Add optional `createdByActorId` to filter to `ActorRequestQuery` for BRS-026/028.

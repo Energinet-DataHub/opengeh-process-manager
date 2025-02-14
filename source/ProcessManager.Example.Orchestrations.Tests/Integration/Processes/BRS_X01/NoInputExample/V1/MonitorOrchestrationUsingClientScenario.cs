@@ -15,6 +15,7 @@
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
@@ -81,7 +82,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
+            ActorNumber: ActorNumber.Create("1234567891234"),
+            ActorRole: ActorRole.EnergySupplier);
 
         // Step 1: Start new orchestration instance
         var orchestrationInstanceId = await processManagerClient

@@ -12,6 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+
 namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
-public record ActorId(Guid Value);
+public record Actor(ActorNumber Number, ActorRole Role)
+{
+    public static Actor From(string actorNumber, string actorRole)
+    {
+        return new Actor(
+            ActorNumber.Create(actorNumber),
+            ActorRole.FromName(actorRole));
+    }
+
+    public static Actor From(string actorNumber, Abstractions.Contracts.ActorRoleV1 actorRole)
+    {
+        return new Actor(
+            ActorNumber.Create(actorNumber),
+            ActorRole.FromName(actorRole.ToString()));
+    }
+}

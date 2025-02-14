@@ -80,7 +80,11 @@ public class ProcessManagerMessageClient(
         {
             OrchestrationName = command.OrchestrationDescriptionUniqueName.Name,
             OrchestrationVersion = command.OrchestrationDescriptionUniqueName.Version,
-            StartedByActorId = command.OperatingIdentity.ActorId.ToString(),
+            StartedByActor = new StartOrchestrationInstanceActorV1
+            {
+                ActorNumber = command.OperatingIdentity.ActorNumber.Value,
+                ActorRole = command.OperatingIdentity.ActorRole.ToActorRoleV1(),
+            },
             ActorMessageId = command.ActorMessageId,
             TransactionId = command.TransactionId,
         };

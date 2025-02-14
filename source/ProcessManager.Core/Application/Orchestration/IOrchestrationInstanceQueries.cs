@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using NodaTime;
@@ -55,10 +56,12 @@ public interface IOrchestrationInstanceQueries
     /// <param name="orchestrationDescriptionNames"></param>
     /// <param name="activatedAtOrLater"></param>
     /// <param name="activatedAtOrEarlier"></param>
-    /// <param name="createdByActorId">Filter by the actor id that created the orchestration instance. If not provided then all will be returned.</param>
+    /// <param name="createdByActorNumber">Filter by the actor number that created the orchestration instance. If not provided then all will be returned.</param>
+    /// <param name="createdByActorRole">Filter by the actor role that created the orchestration instance. If not provided then all will be returned.</param>
     Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,
         Instant activatedAtOrEarlier,
-        Guid? createdByActorId);
+        ActorNumber? createdByActorNumber,
+        ActorRole? createdByActorRole);
 }

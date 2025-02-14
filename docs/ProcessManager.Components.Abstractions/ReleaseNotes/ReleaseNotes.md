@@ -1,5 +1,13 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 1.2.0
+
+- Update `ProcessManager.Abstractions` to version 1.2.0.
+
+### Breaking changes
+
+- Remove `ActorNumber`, `ActorRole`, `DataHubRecordType` and `EnumerationRecordType` (moved to `ProcessManager.Abstractions`).
+
 ## Version 1.1.2
 
 - Update dependent NuGet package.

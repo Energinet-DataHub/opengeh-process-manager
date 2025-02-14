@@ -18,6 +18,8 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.CustomQueries;
@@ -65,15 +67,23 @@ internal class SearchCalculationHandler(
                 terminatedAtOrEarlier)
             .ConfigureAwait(false);
 
-        // TODO: Filter on additional properties here
-        //// query.CalculationTypes
-        //// query.GridAreaCodes
-        //// query.PeriodStartDate
-        //// query.PeriodEndDate
-        //// query.IsInternalCalculation
-
-        return calculations
-            .Select(item => new CalculationQueryResult(item.MapToTypedDto<CalculationInputV1>()))
+        // TODO: Temporary in-memory filter on ParameterValues - should be refactored when we figure out how to pass filter objects to generic repository implementation.
+        var filteredCalculations = calculations
+            .Where(instance => FilterCalculation(instance, query))
+            .Select(calculation => new CalculationQueryResult(calculation.MapToTypedDto<CalculationInputV1>()))
             .ToList();
+
+        return filteredCalculations;
+    }
+
+    private bool FilterCalculation(OrchestrationInstance orchestrationInstance, CalculationQuery query)
+    {
+        var calculationInput = orchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
+
+        return (query.CalculationTypes == null || query.CalculationTypes.Contains(calculationInput.CalculationType)) &&
+                (query.GridAreaCodes == null || calculationInput.GridAreaCodes.Any(query.GridAreaCodes.Contains)) &&
+                (query.PeriodStartDate == null || calculationInput.PeriodStartDate >= query.PeriodStartDate) &&
+                (query.PeriodEndDate == null || calculationInput.PeriodEndDate <= query.PeriodEndDate) &&
+                (query.IsInternalCalculation == null || calculationInput.IsInternalCalculation == query.IsInternalCalculation);
     }
 }

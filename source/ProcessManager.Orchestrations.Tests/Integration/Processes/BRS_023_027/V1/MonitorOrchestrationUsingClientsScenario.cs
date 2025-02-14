@@ -116,7 +116,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 1: Start new calculation orchestration instance
         var inputParameter = new CalculationInputV1(
             calculationType,
-            GridAreaCodes: new[] { "804" },
+            GridAreaCodes: new[] { "999" },
             PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
             PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
             IsInternalCalculation: false);
@@ -187,9 +187,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 CancellationToken.None);
 
         orchestrationInstancesCustomSearch.Should().Contain(x => x.OrchestrationInstance.Id == orchestrationInstanceId);
-
-        // TODO: Enable when custom filtering has been implemented correct
-        ////orchestrationInstancesCustomSearch.Count.Should().Be(1);
+        orchestrationInstancesCustomSearch.Count.Should().Be(1);
     }
 
     [Fact]

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
@@ -23,10 +24,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 /// <param name="OrchestrationOptions">Options for configuration of the orchestration execution.</param>
 /// <param name="CalculationId">The ID of the databricks calculation.</param>
 /// <param name="UserId">User id of the user that created and thereby started the orchestration.</param>
+/// <param name="OrchestrationInstanceId">The id of the orchestration instance</param>
 /// <param name="SkippedStepsBySequence">Contains the sequence number of any skipped steps. This allows us to handle decision about activities to skip within
 /// the orchestration instead of within activities.</param>
-public record OrchestrationExecutionContext(
+public record OrchestrationInstanceContext(
     OrchestrationOptions_Brs_023_027_V1 OrchestrationOptions,
     Guid CalculationId,
     Guid UserId,
+    OrchestrationInstanceId OrchestrationInstanceId,
     IReadOnlyCollection<int> SkippedStepsBySequence);

@@ -36,7 +36,7 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
     private readonly OrchestrationOptions_Brs_023_027_V1 _orchestrationOptions = orchestrationOptions.Value;
 
     [Function(nameof(OrchestrationInitializeActivity_Brs_023_027_V1))]
-    public async Task<OrchestrationExecutionContext> Run(
+    public async Task<OrchestrationInstanceContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _repository
@@ -51,10 +51,11 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
             .Select(step => step.Sequence)
         .ToList();
 
-        return new OrchestrationExecutionContext(
+        return new OrchestrationInstanceContext(
             _orchestrationOptions,
             CalculationId: input.InstanceId.Value,
             userIdentityDto.UserId,
+            input.InstanceId,
             stepsSkippedBySequence);
     }
 

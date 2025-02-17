@@ -14,24 +14,18 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Options;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 
 /// <summary>
-/// Options for the configuration of Measurements metered data event hub producer clients.
+/// Contains Wholesale migration options that we can configure as hierarchical.
 /// </summary>
-public class MeasurementsMeteredDataClientOptions
+public class WholesaleMigrationOptions
 {
-    public const string SectionName = "MeasurementsEventHub";
+    public const string SectionName = "WholesaleMigration";
 
     /// <summary>
-    /// The namespace name of the event hub which the Process Manager sends events on
+    /// Connection string to the Wholesale subsystem SQL database.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string NamespaceName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Name of the event hub which the Process Manager sends events on
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string EventHubName { get; set; } = string.Empty;
+    public string SqlDatabaseConnectionString { get; set; } = string.Empty;
 }

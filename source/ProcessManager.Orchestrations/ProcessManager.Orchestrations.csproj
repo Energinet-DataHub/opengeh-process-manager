@@ -65,4 +65,8 @@
     </Protobuf>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="InternalProcesses\WholesaleMigration\V1\" />
+  </ItemGroup>
+
 </Project>

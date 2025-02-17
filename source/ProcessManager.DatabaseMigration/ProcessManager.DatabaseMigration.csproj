@@ -25,6 +25,7 @@
     <EmbeddedResource Include="Scripts\202502121451 Set created by default values for lifecycle ActorNumber and ActorRole on OrchestrationInstance.sql" />
     <EmbeddedResource Include="Scripts\202502121452 Set canceled by default values for lifecycle ActorNumber and ActorRole on OrchestrationInstance.sql" />
     <EmbeddedResource Include="Scripts\202502121453 Remove lifecycle ActorId from OrchestrationInstance.sql" />
+    <EmbeddedResource Include="Scripts\202502171057 Add search index to Orchestration Instance.sql" />
   </ItemGroup>
 
 </Project>

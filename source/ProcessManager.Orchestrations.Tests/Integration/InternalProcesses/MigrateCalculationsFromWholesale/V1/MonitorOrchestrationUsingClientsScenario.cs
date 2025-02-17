@@ -109,7 +109,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 return terminatedOrchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated;
             },
             timeLimit: TimeSpan.FromSeconds(60),
-            delay: TimeSpan.FromSeconds(3));
+            delay: TimeSpan.FromSeconds(1));
 
         orchestrationTerminated.Should().BeTrue(
             "because the orchestration instance should be terminated within the given wait time");

@@ -19,7 +19,6 @@ using Microsoft.DurableTask;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
 
-#pragma warning disable CA2007
 internal class FailingStep(
     TaskOrchestrationContext context,
     TaskRetryOptions retryOptions,
@@ -41,4 +40,3 @@ internal class FailingStep(
         return OrchestrationStepTerminationState.Succeeded;
     }
 }
-#pragma warning restore CA2007

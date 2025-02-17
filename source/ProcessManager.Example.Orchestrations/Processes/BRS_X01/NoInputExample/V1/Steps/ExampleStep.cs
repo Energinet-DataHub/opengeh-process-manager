@@ -19,7 +19,6 @@ using Microsoft.DurableTask;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Steps;
 
-#pragma warning disable CA2007
 internal class ExampleStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
@@ -42,4 +41,3 @@ internal class ExampleStep(
         return new StepOutput(OrchestrationStepTerminationState.Succeeded, workResult.CalculationResult);
     }
 }
-#pragma warning restore CA2007

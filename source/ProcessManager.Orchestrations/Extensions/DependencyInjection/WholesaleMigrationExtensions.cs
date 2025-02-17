@@ -29,6 +29,11 @@ public static class WholesaleMigrationExtensions
     public static IServiceCollection AddWholesaleDatabase(this IServiceCollection services)
     {
         services
+            .AddOptions<WholesaleMigrationOptions>()
+            .BindConfiguration(WholesaleMigrationOptions.SectionName)
+            .ValidateDataAnnotations();
+
+        services
             .AddDbContext<WholesaleContext>((sp, optionsBuilder) =>
             {
                 var wholesaleOptions = sp.GetRequiredService<IOptions<WholesaleMigrationOptions>>().Value;

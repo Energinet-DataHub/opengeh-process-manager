@@ -29,10 +29,6 @@ using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.InternalProcesses.MigrateCalculationsFromWholesale.V1;
 
-/// <summary>
-/// Test collection that verifies the Process Manager clients can be used to start a
-/// request calculated energy time series orchestration and monitor its status during its lifetime.
-/// </summary>
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
@@ -76,7 +72,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     /// <summary>
-    /// Tests the BRS-026 orchestration instance when the request is valid and actor messages should be enqueued.
+    /// Tests the MigrateCalculationsFromWholesale orchestration instance.
     /// </summary>
     [Fact]
     public async Task Given_ValidRequestCalculatedEnergyTimeSeries_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()

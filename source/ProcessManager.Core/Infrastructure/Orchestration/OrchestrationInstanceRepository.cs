@@ -75,7 +75,14 @@ internal class OrchestrationInstanceRepository(
         return await query.ToListAsync().ConfigureAwait(false);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Get all orchestration instances filtered by their related orchestration definition name and version,
+    /// and their lifecycle / termination states.
+    /// <remarks>
+    /// The SearchAsync queries on this repository is covered by the "IX_OrchestrationInstance_SearchComposite" index,
+    /// so if one of the queries are updated then the index should be updated as well.
+    /// </remarks>
+    /// </summary>
     public async Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
         string name,
         int? version = default,
@@ -103,7 +110,22 @@ internal class OrchestrationInstanceRepository(
         return await query.ToListAsync().ConfigureAwait(false);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Get all orchestration instances filtered by their orchestration description name and activation
+    /// (queued at/scheduled to run at) timestamp. This means orchestration instances from different
+    /// orchestration descriptions can be searched for and returned.
+    /// Use the returned unique name to determine which orchestration description a given orchestration instance
+    /// was created from.
+    /// <remarks>
+    /// The SearchAsync queries on this repository is covered by the "IX_OrchestrationInstance_SearchComposite" index,
+    /// so if one of the queries are updated then the index should be updated as well.
+    /// </remarks>
+    /// </summary>
+    /// <param name="orchestrationDescriptionNames"></param>
+    /// <param name="activatedAtOrLater"></param>
+    /// <param name="activatedAtOrEarlier"></param>
+    /// <param name="createdByActorNumber">Filter by the actor number that created the orchestration instance. If not provided then all will be returned.</param>
+    /// <param name="createdByActorRole">Filter by the actor role that created the orchestration instance. If not provided then all will be returned.</param>
     public async Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,

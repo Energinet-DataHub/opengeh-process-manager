@@ -14,7 +14,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Options;
 
 /// <summary>
 /// Options for the configuration of Measurements metered data event hub producer clients.

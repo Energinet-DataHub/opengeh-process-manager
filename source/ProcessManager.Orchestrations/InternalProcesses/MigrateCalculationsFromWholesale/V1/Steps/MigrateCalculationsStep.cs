@@ -38,7 +38,7 @@ internal class MigrateCalculationsStep(
     {
         for (var i = 0; i < _calculationsToMigrate.Ids.Count; i++)
         {
-            var calculationToMigrateId = _calculationsToMigrate.Ids.ElementAt(index: i);
+            var calculationToMigrateId = _calculationsToMigrate.Ids.ElementAt(i);
 
             await Context.CallActivityAsync(
                 name: nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1),

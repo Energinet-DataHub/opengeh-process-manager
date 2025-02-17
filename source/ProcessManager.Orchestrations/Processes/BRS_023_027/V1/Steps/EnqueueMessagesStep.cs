@@ -33,6 +33,7 @@ internal class EnqueueMessagesStep(
             defaultRetryOptions,
             orchestrationInstanceContext.OrchestrationInstanceId)
 {
+    internal const string StepDescription = "Udsend beskeder";
     internal const int EnqueueActorMessagesStepSequence = 2;
 
     protected override int StepSequenceNumber => EnqueueActorMessagesStepSequence;

@@ -20,7 +20,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.M
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.Steps;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
 
 [SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "ConfigureAwait must not be used in durable function code")]
 internal class CalculationStep(
@@ -32,6 +32,7 @@ internal class CalculationStep(
             defaultRetryOptions,
             orchestrationInstanceContext.OrchestrationInstanceId)
 {
+    internal const string StepDescription = "Beregning";
     private const int CalculationStepSequence = 1;
 
     protected override int StepSequenceNumber => CalculationStepSequence;

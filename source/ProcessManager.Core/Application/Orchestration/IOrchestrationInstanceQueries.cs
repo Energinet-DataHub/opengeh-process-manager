@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using NodaTime;
@@ -36,6 +37,10 @@ public interface IOrchestrationInstanceQueries
     /// <summary>
     /// Get all orchestration instances filtered by their related orchestration definition name and version,
     /// and their lifecycle / termination states.
+    /// <remarks>
+    /// The SearchAsync queries on this interface is covered by the "IX_OrchestrationInstance_SearchComposite" index,
+    /// so if one of the queries are updated then the index should be updated as well.
+    /// </remarks>
     /// </summary>
     Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
         string name,
@@ -52,14 +57,20 @@ public interface IOrchestrationInstanceQueries
     /// orchestration descriptions can be searched for and returned.
     /// Use the returned unique name to determine which orchestration description a given orchestration instance
     /// was created from.
+    /// <remarks>
+    /// The SearchAsync queries on this interface is covered by the "IX_OrchestrationInstance_SearchComposite" index,
+    /// so if one of the queries are updated then the index should be updated as well.
+    /// </remarks>
     /// </summary>
     /// <param name="orchestrationDescriptionNames"></param>
     /// <param name="activatedAtOrLater"></param>
     /// <param name="activatedAtOrEarlier"></param>
-    /// <param name="createdByActorId">Filter by the actor id that created the orchestration instance. If not provided then all will be returned.</param>
+    /// <param name="createdByActorNumber">Filter by the actor number that created the orchestration instance. If not provided then all will be returned.</param>
+    /// <param name="createdByActorRole">Filter by the actor role that created the orchestration instance. If not provided then all will be returned.</param>
     Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,
         Instant activatedAtOrEarlier,
-        Guid? createdByActorId);
+        ActorNumber? createdByActorNumber,
+        ActorRole? createdByActorRole);
 }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
@@ -40,7 +41,7 @@ public static class EnergySupplierIsOnlyAllowedToRequestOwnDataHelper
         if (!IsValidEnergySupplierIdFormat(energySupplierNumber))
             return Task.FromResult(InvalidEnergySupplierError);
 
-        if (!RequestedByIdEqualsEnergySupplier(requestedForActorNumber, energySupplierNumber))
+        if (!RequestedForActorNumberEqualsEnergySupplier(requestedForActorNumber, energySupplierNumber))
             return Task.FromResult(NotEqualToRequestedByError);
 
         return Task.FromResult(NoError);
@@ -51,8 +52,8 @@ public static class EnergySupplierIsOnlyAllowedToRequestOwnDataHelper
         return ActorNumberValidationHelper.IsValidGlnNumber(energySupplierId) || ActorNumberValidationHelper.IsValidEicNumber(energySupplierId);
     }
 
-    private static bool RequestedByIdEqualsEnergySupplier(string requestedByActorId, string energySupplierId)
+    private static bool RequestedForActorNumberEqualsEnergySupplier(string requestedForActorNumber, string energySupplierNumber)
     {
-        return requestedByActorId.Equals(energySupplierId, StringComparison.OrdinalIgnoreCase);
+        return requestedForActorNumber.Equals(energySupplierNumber, StringComparison.OrdinalIgnoreCase);
     }
 }

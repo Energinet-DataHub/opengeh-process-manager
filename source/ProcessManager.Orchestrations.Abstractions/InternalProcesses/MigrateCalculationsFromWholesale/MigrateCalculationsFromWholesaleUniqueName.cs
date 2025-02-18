@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
-public record ActorId(Guid Value);
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.InternalProcesses.MigrateCalculationsFromWholesale;
+
+public static class MigrateCalculationsFromWholesaleUniqueName
+{
+    public const string Name = "MigrateCalculationsFromWholesale";
+
+    public static OrchestrationDescriptionUniqueNameDto V1 { get; } = new(Name, 1);
+}

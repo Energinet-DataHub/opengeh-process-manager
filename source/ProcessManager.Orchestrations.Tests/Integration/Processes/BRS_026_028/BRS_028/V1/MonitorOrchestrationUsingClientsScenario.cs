@@ -15,13 +15,13 @@
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Steps;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
@@ -246,14 +246,14 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 });
     }
 
-    private static RequestCalculatedWholesaleServicesCommandV1 GivenRequestCalculatedWholesaleServices(
+    private RequestCalculatedWholesaleServicesCommandV1 GivenRequestCalculatedWholesaleServices(
         bool shouldFailBusinessValidation = false)
     {
         const string energySupplierNumber = "1111111111111";
         var energySupplierRole = ActorRole.EnergySupplier.Name;
 
         return new RequestCalculatedWholesaleServicesCommandV1(
-            new ActorIdentityDto(Guid.NewGuid()),
+            _fixture.DefaultActorIdentity,
             new RequestCalculatedWholesaleServicesInputV1(
                 ActorMessageId: Guid.NewGuid().ToString(),
                 TransactionId: Guid.NewGuid().ToString(),

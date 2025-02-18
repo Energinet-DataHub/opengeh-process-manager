@@ -18,6 +18,8 @@ using System.Text.Json;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using FluentAssertions;
@@ -62,10 +64,12 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
-        var command = new StartNoInputExampleCommandV1(
-             operatingIdentity: new UserIdentityDto(
-                 Guid.NewGuid(),
-                 Guid.NewGuid()));
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorNumber: ActorNumber.Create("1234567890123"),
+            ActorRole: ActorRole.EnergySupplier);
+
+        var command = new StartNoInputExampleCommandV1(userIdentity);
 
         using var startRequest = new HttpRequestMessage(
             HttpMethod.Post,
@@ -86,9 +90,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
 
         // Step 2: Query until terminated with succeeded
         var query = new GetOrchestrationInstanceByIdQuery(
-            new UserIdentityDto(
-                Guid.NewGuid(),
-                Guid.NewGuid()),
+            userIdentity,
             orchestrationInstanceId);
 
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(

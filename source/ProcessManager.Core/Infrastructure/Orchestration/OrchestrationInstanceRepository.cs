@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
@@ -108,7 +109,8 @@ internal class OrchestrationInstanceRepository(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,
         Instant activatedAtOrEarlier,
-        Guid? createdByActorId)
+        ActorNumber? createdByActorNumber,
+        ActorRole? createdByActorRole)
     {
         var query = _context
             .OrchestrationDescriptions
@@ -118,7 +120,8 @@ internal class OrchestrationInstanceRepository(
                 description => description.Id,
                 instance => instance.OrchestrationDescriptionId,
                 (description, instance) => new { description.UniqueName, instance })
-            .Where(x => createdByActorId == null || x.instance.Lifecycle.CreatedBy.ActorId == createdByActorId)
+            .Where(x => createdByActorNumber == null || x.instance.Lifecycle.CreatedBy.ActorNumber == createdByActorNumber)
+            .Where(x => createdByActorRole == null || x.instance.Lifecycle.CreatedBy.ActorRole == createdByActorRole)
             .Where(x =>
                 (x.instance.Lifecycle.QueuedAt >= activatedAtOrLater && x.instance.Lifecycle.QueuedAt <= activatedAtOrEarlier)
                 || (x.instance.Lifecycle.ScheduledToRunAt >= activatedAtOrLater && x.instance.Lifecycle.ScheduledToRunAt <= activatedAtOrEarlier))

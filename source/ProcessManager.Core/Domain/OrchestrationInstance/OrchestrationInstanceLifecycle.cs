@@ -81,8 +81,6 @@ public class OrchestrationInstanceLifecycle
 
     internal string? CreatedByIdentityType { get; private set; }
 
-    internal Guid? CreatedByActorId { get; private set; }
-
     internal Guid? CreatedByUserId { get; private set; }
 
     public bool IsPendingForScheduledStart()

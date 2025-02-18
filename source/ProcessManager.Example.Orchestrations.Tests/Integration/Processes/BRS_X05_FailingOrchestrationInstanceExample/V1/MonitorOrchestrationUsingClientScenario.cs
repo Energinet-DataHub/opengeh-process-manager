@@ -16,6 +16,7 @@ using DurableTask.Core.Exceptions;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
@@ -85,7 +86,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         // Step 1: Start new orchestration instance
-        var userIdentity = new UserIdentityDto(Guid.NewGuid(), Guid.NewGuid());
+        var userIdentity = new UserIdentityDto(Guid.NewGuid(), ActorNumber.Create("1234567891234"), ActorRole.EnergySupplier);
         var startRequestCommand = new StartFailingOrchestrationInstanceExampleV1(userIdentity);
 
         var orchestrationInstanceId = await processManagerClient.StartNewOrchestrationInstanceAsync(

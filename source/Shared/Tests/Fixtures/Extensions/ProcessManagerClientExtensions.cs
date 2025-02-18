@@ -15,6 +15,7 @@
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -46,7 +47,8 @@ public static class ProcessManagerClientExtensions
                         new GetOrchestrationInstanceByIdempotencyKeyQuery(
                             new UserIdentityDto(
                                 UserId: Guid.NewGuid(),
-                                ActorId: Guid.NewGuid()),
+                                ActorNumber: ActorNumber.Create("1234567891234"),
+                                ActorRole: ActorRole.EnergySupplier),
                             idempotencyKey),
                         CancellationToken.None);
 

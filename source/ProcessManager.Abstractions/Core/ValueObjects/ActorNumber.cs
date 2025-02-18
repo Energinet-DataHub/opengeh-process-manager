@@ -14,7 +14,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 
 public record ActorNumber
 {

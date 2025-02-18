@@ -16,6 +16,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
@@ -37,6 +38,11 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 {
+    private readonly UserIdentityDto _userIdentity = new UserIdentityDto(
+        UserId: Guid.NewGuid(),
+        ActorNumber: ActorNumber.Create("1234567890123"),
+        ActorRole: ActorRole.EnergySupplier);
+
     public MonitorOrchestrationUsingClientScenario(
         ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
@@ -81,17 +87,13 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Step 1: Start new orchestration instance
         var input = new InputV1(
             ShouldSkipSkippableStep: false);
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartInputExampleCommandV1(
-                    userIdentity,
+                    _userIdentity,
                     input),
                 CancellationToken.None);
 
@@ -102,7 +104,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 var orchestrationInstance = await processManagerClient
                     .GetOrchestrationInstanceByIdAsync<InputV1>(
                         new GetOrchestrationInstanceByIdQuery(
-                            userIdentity,
+                            _userIdentity,
                             orchestrationInstanceId),
                         CancellationToken.None);
 
@@ -122,7 +124,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var orchestrationInstancesGeneralSearch = await processManagerClient
             .SearchOrchestrationInstancesByNameAsync<InputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
-                    userIdentity,
+                    _userIdentity,
                     name: Brs_X01_InputExample.Name,
                     version: null,
                     lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
@@ -135,7 +137,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 4: Custom search
         var customQuery = new InputExampleQuery(
-            userIdentity,
+            _userIdentity,
             skippedStepTwo: input.ShouldSkipSkippableStep);
 
         var orchestrationInstancesCustomSearch = await processManagerClient
@@ -154,15 +156,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Step 1: Schedule new example orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleInputExampleCommandV1(
-                    userIdentity,
+                    _userIdentity,
                     runAt: DateTimeOffset.Parse("2024-11-01T06:19:10.0209567+01:00"),
                     inputParameter: new InputV1(
                         ShouldSkipSkippableStep: false)),
@@ -179,7 +177,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 var orchestrationInstance = await processManagerClient
                     .GetOrchestrationInstanceByIdAsync<InputV1>(
                         new GetOrchestrationInstanceByIdQuery(
-                            userIdentity,
+                            _userIdentity,
                             orchestrationInstanceId),
                         CancellationToken.None);
 
@@ -198,15 +196,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Step 1: Schedule new example orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleInputExampleCommandV1(
-                    userIdentity,
+                    _userIdentity,
                     runAt: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
                     inputParameter: new InputV1(
                         ShouldSkipSkippableStep: false)),
@@ -216,7 +210,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         await processManagerClient
             .CancelScheduledOrchestrationInstanceAsync(
                 new CancelScheduledOrchestrationInstanceCommand(
-                    userIdentity,
+                    _userIdentity,
                     orchestrationInstanceId),
                 CancellationToken.None);
 
@@ -227,7 +221,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 var orchestrationInstance = await processManagerClient
                     .GetOrchestrationInstanceByIdAsync<InputV1>(
                         new GetOrchestrationInstanceByIdQuery(
-                            userIdentity,
+                            _userIdentity,
                             orchestrationInstanceId),
                         CancellationToken.None);
 

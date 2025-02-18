@@ -14,6 +14,7 @@
  */
 
 syntax = "proto3";
+import "Contracts/ActorRoleV1.proto";
 
 option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
 
@@ -22,17 +23,24 @@ message EnqueueActorMessagesV1 {
   string orchestration_name = 1; // The name of the orchestration to enqueue actor messages for.
   int32 orchestration_version = 2; // The version of the orchestration to enqueue actor messages for.
 
-  string orchestration_started_by_actor_id = 4; // The actor id that started the orchestration.
-  optional string orchestration_started_by_user_id = 6; // The user id that started the orchestration, if any.
+  reserved 4; // Reserve the "4" number since that was the "string orchestration_started_by_actor_id = 4" field.
 
   string data = 3; // The enqueue actor messages data serialized.
   string data_type = 5; // Name of the data type (examples could be "RequestCalculatedEnergyTimeSeriesAcceptedV1" or "RequestCalculatedEnergyTimeSeriesRejectedV1").
   EnqueueActorMessagesDataFormatV1 data_format = 7; // The format the data field is serialized as.
 
   string orchestration_instance_id = 8; // The id of the orchestration instance, used for notifying when the messages has been enqueued.
+
+  optional string orchestration_started_by_user_id = 6; // The user id that started the orchestration, if any.
+  EnqueueActorMessagesActorV1 orchestration_started_by_actor = 9; // The actor id that started the orchestration.
 }
 
 enum EnqueueActorMessagesDataFormatV1 {
-  Unspecified = 0;
+  UnspecifiedFormat = 0; // Should never be used, but is here to comply with protobuf best practices.
   Json = 1;
+}
+
+message EnqueueActorMessagesActorV1 {
+  string actor_number = 1; // The actor GLN number.
+  ActorRoleV1 actor_role = 2; // The actor role.
 }

@@ -36,10 +36,10 @@ public class EnqueueActorMessagesClient(
         TInputData data)
             where TInputData : class
     {
-        var (startedByActorId, startedByUserId) = orchestrationStartedBy switch
+        var (startedByActorNumber, startedByActorRole, startedByUserId) = orchestrationStartedBy switch
         {
-            ActorIdentityDto actor => (actor.ActorId, (Guid?)null),
-            UserIdentityDto user => (user.ActorId, user.UserId),
+            ActorIdentityDto actor => (actor.ActorNumber, actor.ActorRole, (Guid?)null),
+            UserIdentityDto user => (user.ActorNumber, user.ActorRole, user.UserId),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(orchestrationStartedBy),
                 orchestrationStartedBy.GetType().Name,
@@ -50,7 +50,11 @@ public class EnqueueActorMessagesClient(
         {
             OrchestrationName = orchestration.Name,
             OrchestrationVersion = orchestration.Version,
-            OrchestrationStartedByActorId = startedByActorId.ToString(),
+            OrchestrationStartedByActor = new EnqueueActorMessagesActorV1
+            {
+                ActorNumber = startedByActorNumber.Value,
+                ActorRole = startedByActorRole.ToActorRoleV1(),
+            },
             OrchestrationInstanceId = orchestrationInstanceId.ToString(),
         };
         enqueueActorMessages.SetData(data);

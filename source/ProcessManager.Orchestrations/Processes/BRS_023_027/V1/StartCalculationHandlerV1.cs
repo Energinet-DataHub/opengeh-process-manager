@@ -42,12 +42,8 @@ internal class StartCalculationHandlerV1(
 
         var orchestrationInstanceId = await _manager
             .StartNewOrchestrationInstanceAsync(
-                identity: new UserIdentity(
-                    new UserId(command.OperatingIdentity.UserId),
-                    new ActorId(command.OperatingIdentity.ActorId)),
-                uniqueName: new OrchestrationDescriptionUniqueName(
-                    command.OrchestrationDescriptionUniqueName.Name,
-                    command.OrchestrationDescriptionUniqueName.Version),
+                identity: UserIdentity.FromDto(command.OperatingIdentity),
+                uniqueName: OrchestrationDescriptionUniqueName.FromDto(command.OrchestrationDescriptionUniqueName),
                 inputParameter: command.InputParameter,
                 skipStepsBySequence: skipStepsBySequence)
             .ConfigureAwait(false);
@@ -66,12 +62,8 @@ internal class StartCalculationHandlerV1(
 
         var orchestrationInstanceId = await _manager
             .ScheduleNewOrchestrationInstanceAsync(
-                identity: new UserIdentity(
-                    new UserId(command.OperatingIdentity.UserId),
-                    new ActorId(command.OperatingIdentity.ActorId)),
-                uniqueName: new OrchestrationDescriptionUniqueName(
-                    command.OrchestrationDescriptionUniqueName.Name,
-                    command.OrchestrationDescriptionUniqueName.Version),
+                identity: UserIdentity.FromDto(command.OperatingIdentity),
+                uniqueName: OrchestrationDescriptionUniqueName.FromDto(command.OrchestrationDescriptionUniqueName),
                 inputParameter: command.InputParameter,
                 runAt: command.RunAt.ToInstant(),
                 skipStepsBySequence: skipStepsBySequence)

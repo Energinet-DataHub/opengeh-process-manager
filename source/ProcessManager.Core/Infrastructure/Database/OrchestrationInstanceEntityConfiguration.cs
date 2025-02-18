@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.EntityFrameworkCore;
@@ -48,7 +49,17 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                         lb.Ignore(ct => ct.Value);
 
                         lb.Property(ct => ct.IdentityType);
-                        lb.Property(ct => ct.ActorId);
+
+                        lb.Property(ct => ct.ActorNumber)
+                            .HasConversion(
+                                actorNumber => actorNumber != null ? actorNumber.Value : null,
+                                dbValue => dbValue != null ? ActorNumber.Create(dbValue) : null);
+
+                        lb.Property(ct => ct.ActorRole)
+                            .HasConversion(
+                                actorRole => actorRole != null ? actorRole.Name : null,
+                                dbValue => dbValue != null ? ActorRole.FromName(dbValue) : null);
+
                         lb.Property(ct => ct.UserId);
                     });
 
@@ -65,7 +76,17 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                         lb.Ignore(ct => ct.Value);
 
                         lb.Property(ct => ct.IdentityType);
-                        lb.Property(ct => ct.ActorId);
+
+                        lb.Property(ct => ct.ActorNumber)
+                            .HasConversion(
+                                actorNumber => actorNumber != null ? actorNumber.Value : null,
+                                dbValue => dbValue != null ? ActorNumber.Create(dbValue) : null);
+
+                        lb.Property(ct => ct.ActorRole)
+                            .HasConversion(
+                                actorRole => actorRole != null ? actorRole.Name : null,
+                                dbValue => dbValue != null ? ActorRole.FromName(dbValue) : null);
+
                         lb.Property(ct => ct.UserId);
                     });
             });

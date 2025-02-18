@@ -14,11 +14,11 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Steps;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -36,6 +36,10 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 {
+    private readonly ActorIdentityDto _actorIdentity = new ActorIdentityDto(
+        ActorNumber: ActorNumber.Create("1234567891234"),
+        ActorRole: ActorRole.EnergySupplier);
+
     public MonitorOrchestrationUsingClientScenario(
         ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
@@ -99,7 +103,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 1: Start new orchestration instance
         var startRequestCommand = new StartNotifyOrchestrationInstanceExampleCommandV1(
-            new ActorIdentityDto(Guid.NewGuid()),
+            _actorIdentity,
             new NotifyOrchestrationInstanceExampleInputV1(
                 InputString: "input-string"),
             IdempotencyKey: Guid.NewGuid().ToString(),
@@ -169,7 +173,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 1: Start new orchestration instance
         var startRequestCommand = new StartNotifyOrchestrationInstanceExampleCommandV1(
-            new ActorIdentityDto(Guid.NewGuid()),
+            _actorIdentity,
             new NotifyOrchestrationInstanceExampleInputV1(
                 InputString: "input-string"),
             IdempotencyKey: Guid.NewGuid().ToString(),

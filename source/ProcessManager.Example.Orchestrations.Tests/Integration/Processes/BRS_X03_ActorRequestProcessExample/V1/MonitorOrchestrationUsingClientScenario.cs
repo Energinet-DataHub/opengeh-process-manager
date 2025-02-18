@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Functions.BRS_X03_ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
@@ -98,7 +99,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var idempotencyKey = Guid.NewGuid().ToString();
         var startTriggerInput = new StartTrigger_Brs_X03.StartTriggerInput(
             IdempotencyKey: idempotencyKey,
-            BusinessReason: "B01");
+            BusinessReason: BusinessReason.WholesaleFixing.Name);
         await Fixture.ExampleConsumerAppManager.AppHostManager.HttpClient.PostAsJsonAsync(
             requestUri: "/api/actor-request-process/start",
             value: startTriggerInput);

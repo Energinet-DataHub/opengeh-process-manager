@@ -262,9 +262,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 var orchestrationInstance = await ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
-                            new UserIdentityDto(
-                                UserId: Guid.NewGuid(),
-                                ActorId: Guid.NewGuid()),
+                            Fixture.DefaultUserIdentity,
                             orchestrationId),
                         CancellationToken.None);
 
@@ -341,9 +339,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var orchestrationInstance = await ProcessManagerClient
             .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                 new GetOrchestrationInstanceByIdQuery(
-                    new UserIdentityDto(
-                        UserId: Guid.NewGuid(),
-                        ActorId: Guid.NewGuid()),
+                    Fixture.DefaultUserIdentity,
                     orchestrationId),
                 CancellationToken.None);
 
@@ -392,16 +388,14 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     {
         var inputParameter = new CalculationInputV1(
             calculationType,
-            GridAreaCodes: new[] { "804" },
+            GridAreaCodes: ["804"],
             PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
             PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
             IsInternalCalculation: isInternalCalculation);
         var orchestrationInstanceId = await ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartCalculationCommandV1(
-                    userIdentity ?? new UserIdentityDto(
-                        UserId: Guid.NewGuid(),
-                        ActorId: Guid.NewGuid()),
+                    userIdentity ?? Fixture.DefaultUserIdentity,
                     inputParameter),
                 CancellationToken.None);
 

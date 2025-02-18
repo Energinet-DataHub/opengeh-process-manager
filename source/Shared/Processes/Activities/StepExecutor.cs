@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 
-// This code is used directly in durable functions, so it must not use .ConfigureAwait()
+// This code is used directly in durable functions orchestrations, so it must not use .ConfigureAwait()
 #pragma warning disable CA2007
 
 /// <summary>

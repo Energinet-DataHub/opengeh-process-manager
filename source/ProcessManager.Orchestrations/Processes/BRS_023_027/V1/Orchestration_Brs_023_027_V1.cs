@@ -96,8 +96,8 @@ internal class Orchestration_Brs_023_027_V1
             _defaultTaskOptions);
 
         var executionContext = await context.CallActivityAsync<OrchestrationInstanceContext>(
-            nameof(OrchestrationInitializeActivity_Brs_023_027_V1),
-            new OrchestrationInitializeActivity_Brs_023_027_V1.ActivityInput(
+            nameof(GetOrchestrationInstanceContextActivity_Brs_023_027_V1),
+            new GetOrchestrationInstanceContextActivity_Brs_023_027_V1.ActivityInput(
                 instanceId),
             _defaultTaskOptions);
 

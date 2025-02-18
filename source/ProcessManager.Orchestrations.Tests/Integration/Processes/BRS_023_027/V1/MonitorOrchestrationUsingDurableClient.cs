@@ -146,7 +146,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: nameof(Orchestration_Brs_023_027_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToRunningActivity_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(OrchestrationInitializeActivity_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(GetOrchestrationInstanceContextActivity_Brs_023_027_V1)),
 
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(CalculationStepStartJobActivity_Brs_023_027_V1)),
@@ -242,7 +242,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: nameof(Orchestration_Brs_023_027_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToRunningActivity_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(OrchestrationInitializeActivity_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(GetOrchestrationInstanceContextActivity_Brs_023_027_V1)),
 
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(CalculationStepStartJobActivity_Brs_023_027_V1)),

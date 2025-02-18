@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Models;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 
@@ -21,7 +23,7 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
 {
     [Function(nameof(GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale_V1))]
     public async Task<CalculationsToMigrate> Run(
-        [ActivityTrigger] object? input)
+        [ActivityTrigger] FunctionContext functionContext)
     {
         await Task.CompletedTask.ConfigureAwait(false);
 

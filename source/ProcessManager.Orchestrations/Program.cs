@@ -73,6 +73,9 @@ var host = new HostBuilder()
 
         // Measurements
         services.AddMeasurementsMeteredDataClient(azureCredential);
+
+        // Wholesale migrations
+        services.AddWholesaleDatabase();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

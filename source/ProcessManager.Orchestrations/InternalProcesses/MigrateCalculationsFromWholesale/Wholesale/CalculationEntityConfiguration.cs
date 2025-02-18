@@ -13,11 +13,11 @@
 // limitations under the License.
 
 using System.Text.Json;
-using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.WholesaleMigration.Wholesale.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.WholesaleMigration.Wholesale;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 
 internal class CalculationEntityConfiguration : IEntityTypeConfiguration<Calculation>
 {

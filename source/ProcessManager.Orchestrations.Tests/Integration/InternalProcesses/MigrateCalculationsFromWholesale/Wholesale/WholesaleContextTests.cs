@@ -13,12 +13,12 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.WholesaleMigration.Wholesale.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.InternalProcesses.WholesaleMigration.Wholesale;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 
 public class WholesaleContextTests : IClassFixture<WholesaleDatabaseFixture>
 {

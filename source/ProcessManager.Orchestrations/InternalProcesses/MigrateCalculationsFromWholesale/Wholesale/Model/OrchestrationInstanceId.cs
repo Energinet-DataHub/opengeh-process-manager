@@ -12,20 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel.DataAnnotations;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
-
-/// <summary>
-/// Contains Wholesale migration options that we can configure as hierarchical.
-/// </summary>
-public class WholesaleMigrationOptions
+public sealed record OrchestrationInstanceId(string Id)
 {
-    public const string SectionName = "WholesaleMigration";
-
-    /// <summary>
-    /// Connection string to the Wholesale subsystem SQL database.
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string SqlDatabaseConnectionString { get; set; } = string.Empty;
+    public string Id { get; } = !string.IsNullOrWhiteSpace(Id)
+        ? Id
+        : throw new ArgumentException($"Id was null or whitespace (value: \"{Id}\")", nameof(Id));
 }

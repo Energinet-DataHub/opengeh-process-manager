@@ -13,30 +13,30 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.WholesaleMigration.Wholesale;
+using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 
-public static class WholesaleMigrationExtensions
+public static class WholesaleDatabaseExtensions
 {
     /// <summary>
-    /// Register Process Manager database and health checks.
-    /// Depends on <see cref="WholesaleMigrationOptions"/>.
+    /// Register Wholesale database and health checks.
+    /// Depends on <see cref="WholesaleDatabaseOptions"/>.
     /// </summary>
     public static IServiceCollection AddWholesaleDatabase(this IServiceCollection services)
     {
         services
-            .AddOptions<WholesaleMigrationOptions>()
-            .BindConfiguration(WholesaleMigrationOptions.SectionName)
+            .AddOptions<WholesaleDatabaseOptions>()
+            .BindConfiguration(WholesaleDatabaseOptions.SectionName)
             .ValidateDataAnnotations();
 
         services
             .AddDbContext<WholesaleContext>((sp, optionsBuilder) =>
             {
-                var wholesaleOptions = sp.GetRequiredService<IOptions<WholesaleMigrationOptions>>().Value;
+                var wholesaleOptions = sp.GetRequiredService<IOptions<WholesaleDatabaseOptions>>().Value;
 
                 optionsBuilder.UseSqlServer(wholesaleOptions.SqlDatabaseConnectionString, providerOptionsBuilder =>
                 {

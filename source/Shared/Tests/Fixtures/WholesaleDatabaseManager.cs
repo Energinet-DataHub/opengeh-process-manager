@@ -16,7 +16,7 @@ using System.Text;
 using DbUp;
 using DbUp.Engine;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Database;
-using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.WholesaleMigration.Wholesale;
+using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 using Microsoft.EntityFrameworkCore;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;

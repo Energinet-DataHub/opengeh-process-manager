@@ -14,7 +14,7 @@
 
 using System.Text.RegularExpressions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.WholesaleMigration.Wholesale.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 
 public sealed record GridAreaCode
 {

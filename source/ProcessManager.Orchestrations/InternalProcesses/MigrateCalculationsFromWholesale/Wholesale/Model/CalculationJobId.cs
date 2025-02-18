@@ -12,22 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.WholesaleMigration.Wholesale.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 
-/// <summary>
-/// The unit of measurement for the quantity.
-/// </summary>
-public enum QuantityUnit
-{
-    /// <summary>
-    /// The quantity unit is Kilo Watt Hour.
-    /// Code: H87
-    /// </summary>
-    Kwh,
-
-    /// <summary>
-    /// The quantity unit is pieces.
-    /// The unit is used for subscriptions and fees that are associated with the metering point.
-    /// </summary>
-    Pieces,
-}
+public sealed record CalculationJobId(long Id);

@@ -12,6 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.WholesaleMigration.Wholesale.Model;
+using System.ComponentModel.DataAnnotations;
 
-public sealed record CalculationJobId(long Id);
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+
+/// <summary>
+/// Contains Wholesale database options that we can configure as hierarchical.
+/// </summary>
+public class WholesaleDatabaseOptions
+{
+    public const string SectionName = "WholesaleDatabase";
+
+    /// <summary>
+    /// Connection string to the Wholesale subsystem SQL database.
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string SqlDatabaseConnectionString { get; set; } = string.Empty;
+}

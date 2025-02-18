@@ -407,7 +407,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // => Wholesale migration (database)
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{WholesaleMigrationOptions.SectionName}__{nameof(WholesaleMigrationOptions.SqlDatabaseConnectionString)}",
+            $"{WholesaleDatabaseOptions.SectionName}__{nameof(WholesaleDatabaseOptions.SqlDatabaseConnectionString)}",
             WholesaleDatabaseManager.ConnectionString);
 
         return appHostSettings;

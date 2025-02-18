@@ -40,10 +40,11 @@ public interface IOrchestrationInstanceQueries
     Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
         string name,
         int? version,
-        OrchestrationInstanceLifecycleState? lifecycleState,
+        IReadOnlyCollection<OrchestrationInstanceLifecycleState?>? lifecycleStates,
         OrchestrationInstanceTerminationState? terminationState,
         Instant? startedAtOrLater,
-        Instant? terminatedAtOrEarlier);
+        Instant? terminatedAtOrEarlier,
+        Instant? scheduledAtOrLater);
 
     /// <summary>
     /// Get all orchestration instances filtered by their orchestration description name and activation

@@ -37,10 +37,12 @@ internal class SearchInputExampleHandler(
         // so if necessary we can validate their data access.
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        var lifecycleState =
-            Enum.TryParse<OrchestrationInstanceLifecycleState>(query.LifecycleState.ToString(), ignoreCase: true, out var lifecycleStateResult)
-            ? lifecycleStateResult
-            : (OrchestrationInstanceLifecycleState?)null;
+        var lifecycleState = query.LifecycleStates?
+            .Select(state =>
+                Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
+                ? lifecycleStateResult
+                : (OrchestrationInstanceLifecycleState?)null)
+            .ToList();
         var terminationState =
             Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
             ? terminationStateResult
@@ -48,6 +50,9 @@ internal class SearchInputExampleHandler(
 
         // DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
         // See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
+        var scheduledAtOrLater = query.ScheduledAtOrLater.HasValue
+            ? Instant.FromDateTimeOffset(query.ScheduledAtOrLater.Value)
+            : (Instant?)null;
         var startedAtOrLater = query.StartedAtOrLater.HasValue
             ? Instant.FromDateTimeOffset(query.StartedAtOrLater.Value)
             : (Instant?)null;
@@ -62,7 +67,8 @@ internal class SearchInputExampleHandler(
                 lifecycleState,
                 terminationState,
                 startedAtOrLater,
-                terminatedAtOrEarlier)
+                terminatedAtOrEarlier,
+                scheduledAtOrLater)
             .ConfigureAwait(false);
 
         return calculations

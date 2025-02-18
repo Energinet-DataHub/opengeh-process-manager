@@ -77,10 +77,11 @@ internal class OrchestrationInstanceRepository(
     public async Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
         string name,
         int? version = default,
-        OrchestrationInstanceLifecycleState? lifecycleState = default,
+        IReadOnlyCollection<OrchestrationInstanceLifecycleState?>? lifecycleStates = default,
         OrchestrationInstanceTerminationState? terminationState = default,
         Instant? startedAtOrLater = default,
-        Instant? terminatedAtOrEarlier = default)
+        Instant? terminatedAtOrEarlier = default,
+        Instant? scheduledAtOrLater = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
@@ -93,10 +94,11 @@ internal class OrchestrationInstanceRepository(
                 description => description.Id,
                 instance => instance.OrchestrationDescriptionId,
                 (_, instance) => instance)
-            .Where(x => lifecycleState == null || x.Lifecycle.State == lifecycleState)
+            .Where(x => lifecycleStates == null || lifecycleStates.Contains(x.Lifecycle.State))
             .Where(x => terminationState == null || x.Lifecycle.TerminationState == terminationState)
             .Where(x => startedAtOrLater == null || x.Lifecycle.StartedAt >= startedAtOrLater)
-            .Where(x => terminatedAtOrEarlier == null || x.Lifecycle.TerminatedAt <= terminatedAtOrEarlier);
+            .Where(x => terminatedAtOrEarlier == null || x.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
+            .Where(x => scheduledAtOrLater == null || x.Lifecycle.ScheduledToRunAt <= scheduledAtOrLater);
 
         return await query.ToListAsync().ConfigureAwait(false);
     }

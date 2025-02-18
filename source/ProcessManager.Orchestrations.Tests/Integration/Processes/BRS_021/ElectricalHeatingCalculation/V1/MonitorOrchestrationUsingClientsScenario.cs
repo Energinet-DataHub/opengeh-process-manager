@@ -129,7 +129,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     userIdentity,
                     name: Brs_021_ElectricalHeatingCalculation.Name,
                     version: null,
-                    lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
+                    lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
                     terminationState: OrchestrationInstanceTerminationState.Succeeded,
                     startedAtOrLater: null,
                     terminatedAtOrEarlier: null),

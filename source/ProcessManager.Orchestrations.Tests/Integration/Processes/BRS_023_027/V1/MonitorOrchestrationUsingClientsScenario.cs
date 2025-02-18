@@ -164,7 +164,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     userIdentity,
                     name: Brs_023_027.Name,
                     version: null,
-                    lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
+                    lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
                     terminationState: OrchestrationInstanceTerminationState.Succeeded,
                     startedAtOrLater: null,
                     terminatedAtOrEarlier: null),

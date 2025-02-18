@@ -169,7 +169,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             userIdentity,
             orchestration.Name,
             version: null,
-            lifecycleState: null,
+            lifecycleStates: null,
             terminationState: null,
             startedAtOrLater: null,
             terminatedAtOrEarlier: null);

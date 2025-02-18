@@ -33,6 +33,8 @@ internal class Orchestration_Brs_023_027_V1
 
     private readonly TaskRetryOptions _defaultRetryOptions;
 
+    private readonly TaskOptions _defaultTaskOptions;
+
     public Orchestration_Brs_023_027_V1()
     {
         // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
@@ -42,6 +44,8 @@ internal class Orchestration_Brs_023_027_V1
                 maxNumberOfAttempts: 8,
                 firstRetryInterval: TimeSpan.FromSeconds(30),
                 backoffCoefficient: 2.0));
+
+        _defaultTaskOptions = new TaskOptions(_defaultRetryOptions);
     }
 
     [Function(nameof(Orchestration_Brs_023_027_V1))]
@@ -74,7 +78,7 @@ internal class Orchestration_Brs_023_027_V1
                         orchestrationInstanceContext.OrchestrationInstanceId,
                         orchestrationInstanceContext.CalculationId,
                         integrationEventIdempotencyKey),
-                    new TaskOptions(_defaultRetryOptions));
+                    _defaultTaskOptions);
         }
 
         return await SetTerminateOrchestrationAsync(
@@ -91,13 +95,13 @@ internal class Orchestration_Brs_023_027_V1
             nameof(TransitionOrchestrationToRunningActivity_V1),
             new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
                 instanceId),
-            new TaskOptions(_defaultRetryOptions));
+            _defaultTaskOptions);
 
         var executionContext = await context.CallActivityAsync<OrchestrationInstanceContext>(
             nameof(OrchestrationInitializeActivity_Brs_023_027_V1),
             new OrchestrationInitializeActivity_Brs_023_027_V1.ActivityInput(
                 instanceId),
-            new TaskOptions(_defaultRetryOptions));
+            _defaultTaskOptions);
 
         return executionContext;
     }
@@ -116,7 +120,7 @@ internal class Orchestration_Brs_023_027_V1
             new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
                 instanceId,
                 orchestrationTerminationState),
-            new TaskOptions(_defaultRetryOptions));
+            _defaultTaskOptions);
         return "Success";
     }
 }

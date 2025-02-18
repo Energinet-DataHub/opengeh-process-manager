@@ -1,8 +1,8 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 2.0.0
+## Version 1.3.0
 
-- `CalculationQuery` now takes `IReadOnlyCollection<OrchestrationInstanceLifecycleState?>?` instead of `OrchestrationINstanceLifecycleState?`.
+- `CalculationQuery` now takes `IReadOnlyCollection<OrchestrationInstanceLifecycleState>?` instead of `OrchestrationINstanceLifecycleState?`.
 - `CalculationQuery` now takes an additional optional parameter `Instant? scheduledAtOrLater` to filter on scheduled calculations.
 
 ## Version 1.2.1

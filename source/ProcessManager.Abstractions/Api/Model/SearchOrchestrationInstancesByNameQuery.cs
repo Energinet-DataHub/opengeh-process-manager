@@ -38,7 +38,7 @@ public sealed record SearchOrchestrationInstancesByNameQuery
         UserIdentityDto operatingIdentity,
         string name,
         int? version,
-        IReadOnlyCollection<OrchestrationInstanceLifecycleState?>? lifecycleStates,
+        IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates,
         OrchestrationInstanceTerminationState? terminationState,
         DateTimeOffset? startedAtOrLater,
         DateTimeOffset? terminatedAtOrEarlier,
@@ -68,7 +68,7 @@ public sealed record SearchOrchestrationInstancesByNameQuery
     /// <summary>
     /// Lifecycle states that orchestration instances can be in.
     /// </summary>
-    public IReadOnlyCollection<OrchestrationInstanceLifecycleState?>? LifecycleStates { get; }
+    public IReadOnlyCollection<OrchestrationInstanceLifecycleState>? LifecycleStates { get; }
 
     /// <summary>
     /// Termination states that orchestration instances can be in.

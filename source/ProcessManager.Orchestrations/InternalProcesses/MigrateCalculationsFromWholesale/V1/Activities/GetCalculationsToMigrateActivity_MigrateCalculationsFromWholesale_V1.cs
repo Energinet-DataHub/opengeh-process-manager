@@ -21,7 +21,7 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
 {
     [Function(nameof(GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale_V1))]
     public async Task<CalculationsToMigrate> Run(
-        [ActivityTrigger] object? input)
+        [ActivityTrigger] FunctionContext functionContext)
     {
         await Task.CompletedTask.ConfigureAwait(false);
 

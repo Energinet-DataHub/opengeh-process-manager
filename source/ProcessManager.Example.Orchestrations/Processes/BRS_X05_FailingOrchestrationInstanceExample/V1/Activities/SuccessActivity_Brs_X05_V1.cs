@@ -23,7 +23,7 @@ internal class SuccessActivity_Brs_X05_V1
 {
     [Function(nameof(SuccessActivity_Brs_X05_V1))]
     public Task<string> Run(
-        [ActivityTrigger] object? input)
+        [ActivityTrigger] FunctionContext functionContext)
     {
         return Task.FromResult("Success");
     }

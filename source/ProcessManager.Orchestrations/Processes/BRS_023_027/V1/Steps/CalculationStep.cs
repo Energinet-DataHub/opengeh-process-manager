@@ -81,7 +81,7 @@ internal class CalculationStep(
                     throw new Exception($"Databricks job with id: {jobRunId} had status {jobRunStatus.ToString()}");
 
                 default:
-                    throw new InvalidOperationException($"Unknown job run status '{jobRunStatus.ToString()}'.");
+                    throw new InvalidOperationException($"Unknown job run status '{jobRunStatus.ToString()}' for jobRunId: {jobRunId}.");
             }
         }
 

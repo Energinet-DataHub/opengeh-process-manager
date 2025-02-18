@@ -205,6 +205,9 @@ public class WholesaleDatabaseManager(string name)
             $"'{columnValue}'";
     }
 
+    /// <summary>
+    /// Column values must be separated by ';' because some values contain ','.
+    /// </summary>
     private static string GetCsvToInsertIntoCalculationsTable()
     {
         return """

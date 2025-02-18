@@ -33,7 +33,7 @@ public class WholesaleContextTests : IClassFixture<WholesaleDatabaseFixture>
     public async Task Given_CalculationInDatabase_When_RetrievingFromDatabase_Then_HasExpectedValues()
     {
         // Arrange
-        var existingCalculationId = Guid.Parse("d49e67f3-b17e-4a6b-bfb3-73ffa9077985");
+        var existingCalculationId = Guid.Parse("a1d54d74-a5c0-45c9-af9f-49acd8cfba19");
 
         // Act
         await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
@@ -44,20 +44,16 @@ public class WholesaleContextTests : IClassFixture<WholesaleDatabaseFixture>
         calculation.Should().NotBeNull();
         calculation!.GridAreaCodes.Should().BeEquivalentTo(new[]
         {
-            new GridAreaCode("533"),
-            new GridAreaCode("543"),
-            new GridAreaCode("584"),
-            new GridAreaCode("803"),
-            new GridAreaCode("804"),
-            new GridAreaCode("950"),
+            new GridAreaCode("042"),
+            new GridAreaCode("853"),
         });
-        calculation!.PeriodStart.Should().Be(Instant.FromUtc(2022, 12, 31, 23, 0));
-        calculation.PeriodEnd.Should().Be(Instant.FromUtc(2023, 1, 31, 23, 0));
+        calculation!.PeriodStart.Should().Be(Instant.FromUtc(2024, 12, 31, 23, 0));
+        calculation.PeriodEnd.Should().Be(Instant.FromUtc(2025, 1, 01, 23, 0));
         calculation.CalculationType.Should().Be(CalculationType.Aggregation);
-        calculation.CreatedByUserId.Should().Be(Guid.Parse("5bfaa00b-cfbe-440f-15ef-08dc65f606a6"));
-        calculation.CreatedTime.Should().Be(Instant.FromDateTimeOffset(DateTimeOffset.Parse("2024-09-05T09:57:58.6951104Z")));
-        calculation.OrchestrationState.Should().Be(CalculationOrchestrationState.Completed);
-        calculation.OrchestrationInstanceId.Id.Should().Be("b20e306a66c6423594b59bb91b1f321a");
+        calculation.CreatedByUserId.Should().Be(Guid.Parse("14fc5005-e99e-4a45-5d58-08dc313ce97b"));
+        calculation.CreatedTime.Should().Be(Instant.FromDateTimeOffset(DateTimeOffset.Parse("2025-01-02T08:40:38.1754566Z")));
+        calculation.OrchestrationState.Should().Be(CalculationOrchestrationState.CalculationFailed);
+        calculation.OrchestrationInstanceId.Id.Should().Be("cb852a951f554f5cad921ddf87b63fc3");
         calculation.CanceledByUserId.Should().Be(null);
         calculation.IsInternalCalculation.Should().Be(true);
     }

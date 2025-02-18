@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
 using NodaTime;
 using NodaTime.Extensions;
 
@@ -37,7 +38,7 @@ internal class StartCalculationHandlerV1(
 
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
-            ? [Orchestration_Brs_023_027_V1.EnqueueActorMessagesStepSequence]
+            ? [EnqueueMessagesStep.EnqueueActorMessagesStepSequence]
             : [];
 
         var orchestrationInstanceId = await _manager
@@ -57,7 +58,7 @@ internal class StartCalculationHandlerV1(
 
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
-            ? [Orchestration_Brs_023_027_V1.EnqueueActorMessagesStepSequence]
+            ? [EnqueueMessagesStep.EnqueueActorMessagesStepSequence]
             : [];
 
         var orchestrationInstanceId = await _manager

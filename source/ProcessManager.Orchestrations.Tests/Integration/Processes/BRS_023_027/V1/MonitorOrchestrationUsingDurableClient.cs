@@ -25,6 +25,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Wiremock;
@@ -328,7 +329,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         orchestrationInstance.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Failed);
         orchestrationInstance.Steps
-            .Single(step => step.Sequence == Orchestration_Brs_023_027_V1.EnqueueActorMessagesStepSequence)
+            .Single(step => step.Sequence == EnqueueMessagesStep.EnqueueActorMessagesStepSequence)
             .Lifecycle.TerminationState
             .Should().Be(OrchestrationStepTerminationState.Failed);
     }

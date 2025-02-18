@@ -25,7 +25,7 @@ internal class FailingActivity_Brs_X05_V1
 
     [Function(nameof(FailingActivity_Brs_X05_V1))]
     public Task<string> Run(
-        [ActivityTrigger] object? input)
+        [ActivityTrigger] FunctionContext functionContext)
     {
         throw new Exception(ExceptionMessage);
     }

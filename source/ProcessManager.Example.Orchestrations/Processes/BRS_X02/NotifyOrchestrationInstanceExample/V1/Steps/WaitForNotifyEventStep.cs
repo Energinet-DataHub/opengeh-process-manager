@@ -21,7 +21,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Steps;
 
-#pragma warning disable CA2007
 internal class WaitForNotifyEventStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
@@ -81,4 +80,3 @@ internal class WaitForNotifyEventStep(
         return new StepOutput(stepTerminationState, hasReceivedExampleNotifyEvent);
     }
 }
-#pragma warning restore CA2007

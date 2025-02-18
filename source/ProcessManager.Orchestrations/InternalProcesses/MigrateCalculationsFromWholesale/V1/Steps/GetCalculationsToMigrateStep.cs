@@ -13,39 +13,32 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Models;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Steps;
 
-internal class BusinessValidationStep(
+internal class GetCalculationsToMigrateStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceId instanceId)
-        : StepExecutor<PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput>(
-            context,
-            defaultRetryOptions,
-            instanceId)
+        : StepExecutor<CalculationsToMigrate>(context, defaultRetryOptions, instanceId)
 {
-    internal const string StepDescription = "Forretningsvalidering";
+    internal const string StepName = "Hent eksisterende beregninger";
     internal const int StepSequence = 1;
 
     protected override int StepSequenceNumber => StepSequence;
 
     protected override async Task<StepOutput> OnExecuteAsync()
     {
-        var validationResult = await Context.CallActivityAsync<PerformBusinessValidationActivity_Brs_026_V1.ActivityOutput>(
-            nameof(PerformBusinessValidationActivity_Brs_026_V1),
-            new PerformBusinessValidationActivity_Brs_026_V1.ActivityInput(
-                InstanceId,
-                StepSequence),
+        var calculationsToMigrate = await Context.CallActivityAsync<CalculationsToMigrate>(
+            nameof(GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale_V1),
             DefaultRetryOptions);
 
-        var asyncValidationTerminationState = validationResult.IsValid
-            ? OrchestrationStepTerminationState.Succeeded
-            : OrchestrationStepTerminationState.Failed;
-
-        return new StepOutput(asyncValidationTerminationState, validationResult);
+        return new StepOutput(
+            OrchestrationStepTerminationState.Succeeded,
+            calculationsToMigrate);
     }
 }

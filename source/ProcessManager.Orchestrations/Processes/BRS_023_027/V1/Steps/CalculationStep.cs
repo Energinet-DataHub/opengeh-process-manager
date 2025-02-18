@@ -51,10 +51,9 @@ internal class CalculationStep(
         // TODO: We currently have removed the following functionality compared to the orchestration in Wholesale:
         //  - Updating job status in SQL database; it can be found in durable function monitor if we need to
         //  - "Restart" the calculation job if it was canceled; not sure this is a valid feature anymore
-        var continueCalculationMonitor = true;
         var expiryTime = Context.CurrentUtcDateTime
             .AddSeconds(orchestrationInstanceContext.OrchestrationOptions.CalculationJobStatusExpiryTimeInSeconds);
-        while (continueCalculationMonitor && Context.CurrentUtcDateTime < expiryTime)
+        while (Context.CurrentUtcDateTime < expiryTime)
         {
             // Monitor calculation (Databricks)
             var jobRunStatus = await Context.CallActivityAsync<JobRunStatus>(
@@ -78,16 +77,14 @@ internal class CalculationStep(
                     return OrchestrationStepTerminationState.Succeeded;
 
                 case JobRunStatus.Failed:
-                    throw new ArgumentException(); // TODO: Add proper message
-
                 case JobRunStatus.Canceled:
-                    throw new ArgumentException(); // TODO: Add proper message
+                    throw new Exception($"Databricks job with id: {jobRunId} had status {jobRunStatus.ToString()}");
 
                 default:
-                    throw new InvalidOperationException("Unknown job run status '{jobRunStatus}'.");
+                    throw new InvalidOperationException($"Unknown job run status '{jobRunStatus.ToString()}'.");
             }
         }
 
-        throw new ArgumentException(); // TODO: Add proper message
+        throw new Exception($"Databricks job with id: {jobRunId} did not finish within giving time");
     }
 }

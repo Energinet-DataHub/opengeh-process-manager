@@ -17,17 +17,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.InternalProcesses.MigrateCalculationsFromWholesale.V1;
 
-/// <summary>
-/// Command for starting a BRS-X01 no-input example.
-/// Must be JSON serializable.
-/// </summary>
 public sealed record MigrateCalculationsFromWholesaleCommandV1
     : StartOrchestrationInstanceCommand<UserIdentityDto>
 {
-    /// <summary>
-    /// Construct command.
-    /// </summary>
-    /// <param name="operatingIdentity">Identity of the user executing the command.</param>
     public MigrateCalculationsFromWholesaleCommandV1(
         UserIdentityDto operatingIdentity)
         : base(

@@ -1,5 +1,10 @@
 # ProcessManager.Client Release Notes
 
+## Version 2.0.0
+
+- `IOrchestrationInstanceQueries.SearchAsync` now takes `IReadOnlyCollection<OrchestrationInstanceLifecycleState?>?` instead of `OrchestrationINstanceLifecycleState?`.
+- `IOrchestrationInstanceQueries.SearchAsync` now takes and additional optional parameter `Instant? scheduledAtOrLater` to filter on scheduled calculations.
+
 ## Version 1.2.0
 
 - Add `ActorNumber`, `ActorRole`, `DataHubRecordType` and `EnumerationRecordType` (moved from `ProcessManager.Components.Abstractions`).

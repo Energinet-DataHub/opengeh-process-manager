@@ -78,7 +78,7 @@ internal class OrchestrationInstanceRepository(
     public async Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
         string name,
         int? version = default,
-        IReadOnlyCollection<OrchestrationInstanceLifecycleState?>? lifecycleStates = default,
+        IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates = default,
         OrchestrationInstanceTerminationState? terminationState = default,
         Instant? startedAtOrLater = default,
         Instant? terminatedAtOrEarlier = default,

@@ -48,7 +48,7 @@ public record InputExampleQuery
     /// </summary>
     public string OrchestrationDescriptionName { get; }
 
-    public IReadOnlyCollection<OrchestrationInstanceLifecycleState?>? LifecycleStates { get; set; }
+    public IReadOnlyCollection<OrchestrationInstanceLifecycleState>? LifecycleStates { get; set; }
 
     public OrchestrationInstanceTerminationState? TerminationState { get; set; }
 

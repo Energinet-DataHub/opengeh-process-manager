@@ -55,6 +55,8 @@ internal class SearchOrchestrationInstancesByNameTrigger(
                 Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
                 ? lifecycleStateResult
                 : (OrchestrationInstanceLifecycleState?)null)
+            .Where(state => state.HasValue)
+            .Select(state => state!.Value)
             .ToList();
         var terminationState =
             Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)

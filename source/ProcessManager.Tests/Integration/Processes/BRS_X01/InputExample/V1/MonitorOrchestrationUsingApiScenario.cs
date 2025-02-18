@@ -171,7 +171,8 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             lifecycleStates: null,
             terminationState: null,
             startedAtOrLater: null,
-            terminatedAtOrEarlier: null);
+            terminatedAtOrEarlier: null,
+            scheduledAtOrLater: null);
 
         using var queryByNameRequest = new HttpRequestMessage(
             HttpMethod.Post,

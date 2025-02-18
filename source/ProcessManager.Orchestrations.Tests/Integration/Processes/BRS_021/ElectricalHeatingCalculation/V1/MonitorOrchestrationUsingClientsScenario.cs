@@ -128,7 +128,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
                     terminationState: OrchestrationInstanceTerminationState.Succeeded,
                     startedAtOrLater: null,
-                    terminatedAtOrEarlier: null),
+                    terminatedAtOrEarlier: null,
+                    scheduledAtOrLater: null),
                 CancellationToken.None);
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);

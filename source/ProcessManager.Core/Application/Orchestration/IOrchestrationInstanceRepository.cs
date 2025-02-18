@@ -55,7 +55,7 @@ internal interface IOrchestrationInstanceRepository
     Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
         string name,
         int? version,
-        IReadOnlyCollection<OrchestrationInstanceLifecycleState?>? lifecycleState,
+        IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleState,
         OrchestrationInstanceTerminationState? terminationState,
         Instant? startedAtOrLater,
         Instant? terminatedAtOrEarlier,

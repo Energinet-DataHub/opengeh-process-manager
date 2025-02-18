@@ -292,7 +292,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             await writeDbContext.SaveChangesAsync();
         }
 
-        var lifecycleStates = new List<OrchestrationInstanceLifecycleState?> { OrchestrationInstanceLifecycleState.Running };
+        var lifecycleStates = new List<OrchestrationInstanceLifecycleState> { OrchestrationInstanceLifecycleState.Running };
 
         // Act
         var actual = await _sut.SearchAsync(existingOrchestrationDescriptionV1.UniqueName.Name, lifecycleStates: lifecycleStates);

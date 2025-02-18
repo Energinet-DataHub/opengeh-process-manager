@@ -27,8 +27,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 // TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
 internal class Orchestration_Brs_023_027_V1
 {
-    internal const int EnqueueActorMessagesStepSequence = 2;
-
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_023_027.V1;
 
     private readonly TaskRetryOptions _defaultRetryOptions;
@@ -61,7 +59,7 @@ internal class Orchestration_Brs_023_027_V1
             .ExecuteAsync();
 
         // Step: Enqueue messages
-        if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStepSequence))
+        if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueMessagesStep.EnqueueActorMessagesStepSequence))
         {
             await new EnqueueMessagesStep(
                 context,
@@ -121,6 +119,7 @@ internal class Orchestration_Brs_023_027_V1
                 instanceId,
                 orchestrationTerminationState),
             _defaultTaskOptions);
+
         return "Success";
     }
 }

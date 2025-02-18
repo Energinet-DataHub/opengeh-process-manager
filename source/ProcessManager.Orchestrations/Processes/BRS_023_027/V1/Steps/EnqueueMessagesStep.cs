@@ -63,7 +63,7 @@ internal class EnqueueMessagesStep(
             if (enqueueEvent.Success)
                 return new StepOutput(OrchestrationStepTerminationState.Succeeded, enqueueEvent.Success);
 
-            throw new ArgumentException();
+            throw new Exception($"Enqueue messages did not finish within {orchestrationInstanceContext.OrchestrationOptions.MessagesEnqueuingExpiryTimeInSeconds} seconds");
         }
         catch (TaskCanceledException)
         {

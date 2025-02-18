@@ -14,19 +14,20 @@
 
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 
-/// <summary>
-/// An activity that always fails.
-/// </summary>
-internal class FailingActivity_Brs_X05_V1
+public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1
 {
-    public const string ExceptionMessage = "This activity always fails";
-
-    [Function(nameof(FailingActivity_Brs_X05_V1))]
-    public Task<string> Run(
-        [ActivityTrigger] FunctionContext functionContext)
+    [Function(nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1))]
+    public async Task<string> Run(
+        [ActivityTrigger] ActivityInput input)
     {
-        throw new Exception(ExceptionMessage);
+        // TODO: Implement migration
+        await Task.CompletedTask.ConfigureAwait(false);
+
+        return $"Migrated {input.CalculationToMigrateId}";
     }
+
+    public record ActivityInput(
+        Guid CalculationToMigrateId);
 }

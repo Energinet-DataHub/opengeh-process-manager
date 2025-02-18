@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
@@ -20,7 +19,6 @@ using Microsoft.DurableTask;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Steps;
 
-[SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "ConfigureAwait must not be used in durable function code")]
 internal class BusinessValidationStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,

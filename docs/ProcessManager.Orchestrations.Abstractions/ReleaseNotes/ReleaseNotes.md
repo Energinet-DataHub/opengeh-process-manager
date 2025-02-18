@@ -1,5 +1,11 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.2.1
+
+- Add `InternalProcesses/V1/MigrateCalculationsFromWholesale` internal process.
+    - Add `MigrateCalculationsFromWholesaleUniqueName`.
+    - Add `MigrateCalculationsFromWholesaleCommandV1`.
+
 ## Version 1.2.0
 
 **Breaking changes:**

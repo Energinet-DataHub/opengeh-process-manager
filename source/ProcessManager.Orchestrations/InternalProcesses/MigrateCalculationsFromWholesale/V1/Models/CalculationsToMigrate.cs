@@ -12,21 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.Azure.Functions.Worker;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Models;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Activities;
-
-/// <summary>
-/// An activity that always fails.
-/// </summary>
-internal class FailingActivity_Brs_X05_V1
-{
-    public const string ExceptionMessage = "This activity always fails";
-
-    [Function(nameof(FailingActivity_Brs_X05_V1))]
-    public Task<string> Run(
-        [ActivityTrigger] FunctionContext functionContext)
-    {
-        throw new Exception(ExceptionMessage);
-    }
-}
+public record CalculationsToMigrate(
+    IReadOnlyCollection<Guid> Ids);

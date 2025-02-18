@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Models;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 
-/// <summary>
-/// An activity that always fails.
-/// </summary>
-internal class FailingActivity_Brs_X05_V1
+internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale_V1()
 {
-    public const string ExceptionMessage = "This activity always fails";
-
-    [Function(nameof(FailingActivity_Brs_X05_V1))]
-    public Task<string> Run(
+    [Function(nameof(GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale_V1))]
+    public async Task<CalculationsToMigrate> Run(
         [ActivityTrigger] FunctionContext functionContext)
     {
-        throw new Exception(ExceptionMessage);
+        await Task.CompletedTask.ConfigureAwait(false);
+
+        // TODO: Get calculations to migrate
+        var calculationsToMigrate = new CalculationsToMigrate(
+            Ids: []);
+
+        return calculationsToMigrate;
     }
 }

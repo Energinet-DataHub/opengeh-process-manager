@@ -19,7 +19,6 @@ using Microsoft.DurableTask;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
 
-#pragma warning disable CA2007
 internal class BusinessValidationStep(
     TaskOrchestrationContext context,
     TaskRetryOptions retryOptions,
@@ -46,4 +45,3 @@ internal class BusinessValidationStep(
         return new StepOutput(stepTerminationState, businessValidationResult);
     }
 }
-#pragma warning restore CA2007

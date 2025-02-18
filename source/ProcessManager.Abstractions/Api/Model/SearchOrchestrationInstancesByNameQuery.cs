@@ -29,23 +29,25 @@ public sealed record SearchOrchestrationInstancesByNameQuery
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
     /// <param name="name">A common name to identity the orchestration which the instances was created from.</param>
     /// <param name="version">A version identifying a specific implementation of the orchestration which the instances was created from.</param>
-    /// <param name="lifecycleState">Lifecycle states that orchestration instances can be in.</param>
+    /// <param name="lifecycleStates">Lifecycle states that orchestration instances can be in.</param>
     /// <param name="terminationState">Termination states that orchestration instances can be in.</param>
     /// <param name="startedAtOrLater">The time (or later) when the orchestration instances was transitioned to the Running state.</param>
     /// <param name="terminatedAtOrEarlier">The time (or earlier) when the orchestration instances was transitioned to the Terminated state.</param>
+    /// <param name="scheduledAtOrLater">The time (or later) when the orchestration instances are scheduled.</param>
     public SearchOrchestrationInstancesByNameQuery(
         UserIdentityDto operatingIdentity,
         string name,
         int? version,
-        OrchestrationInstanceLifecycleState? lifecycleState,
+        IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates,
         OrchestrationInstanceTerminationState? terminationState,
         DateTimeOffset? startedAtOrLater,
-        DateTimeOffset? terminatedAtOrEarlier)
+        DateTimeOffset? terminatedAtOrEarlier,
+        DateTimeOffset? scheduledAtOrLater)
             : base(operatingIdentity)
     {
         Name = name;
         Version = version;
-        LifecycleState = lifecycleState;
+        LifecycleStates = lifecycleStates;
         TerminationState = terminationState;
         StartedAtOrLater = startedAtOrLater;
         TerminatedAtOrEarlier = terminatedAtOrEarlier;
@@ -66,7 +68,7 @@ public sealed record SearchOrchestrationInstancesByNameQuery
     /// <summary>
     /// Lifecycle states that orchestration instances can be in.
     /// </summary>
-    public OrchestrationInstanceLifecycleState? LifecycleState { get; }
+    public IReadOnlyCollection<OrchestrationInstanceLifecycleState>? LifecycleStates { get; }
 
     /// <summary>
     /// Termination states that orchestration instances can be in.
@@ -82,4 +84,9 @@ public sealed record SearchOrchestrationInstancesByNameQuery
     /// The time (or earlier) when the orchestration instances was transitioned to the Terminated state.
     /// </summary>
     public DateTimeOffset? TerminatedAtOrEarlier { get; }
+
+    /// <summary>
+    /// The time (or later) when the orchestration instances are scheduled.
+    /// </summary>
+    public DateTimeOffset? ScheduledAtOrLater { get; }
 }

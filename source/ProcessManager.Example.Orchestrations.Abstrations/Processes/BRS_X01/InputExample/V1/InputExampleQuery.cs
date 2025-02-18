@@ -48,13 +48,15 @@ public record InputExampleQuery
     /// </summary>
     public string OrchestrationDescriptionName { get; }
 
-    public OrchestrationInstanceLifecycleState? LifecycleState { get; set; }
+    public IReadOnlyCollection<OrchestrationInstanceLifecycleState>? LifecycleStates { get; set; }
 
     public OrchestrationInstanceTerminationState? TerminationState { get; set; }
 
     public DateTimeOffset? StartedAtOrLater { get; set; }
 
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
+
+    public DateTimeOffset? ScheduledAtOrLater { get; set; }
 
     public bool SkippedStepTwo { get; set; }
 }

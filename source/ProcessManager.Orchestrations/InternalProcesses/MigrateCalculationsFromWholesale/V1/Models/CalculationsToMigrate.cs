@@ -15,4 +15,6 @@
 namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Models;
 
 public record CalculationsToMigrate(
-    IReadOnlyCollection<Guid> Ids);
+    IReadOnlyCollection<Guid> CalculationIdsToMigrate,
+    IReadOnlyCollection<Guid> AllCalculationIds,
+    IReadOnlyCollection<Guid> AlreadyMigratedCalculationIds);

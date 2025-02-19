@@ -36,9 +36,9 @@ internal class MigrateCalculationsStep(
 
     protected override async Task<OrchestrationStepTerminationState> OnExecuteAsync()
     {
-        for (var i = 0; i < _calculationsToMigrate.Ids.Count; i++)
+        for (var i = 0; i < _calculationsToMigrate.CalculationIdsToMigrate.Count; i++)
         {
-            var calculationToMigrateId = _calculationsToMigrate.Ids.ElementAt(i);
+            var calculationToMigrateId = _calculationsToMigrate.CalculationIdsToMigrate.ElementAt(i);
 
             await Context.CallActivityAsync(
                 name: nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1),

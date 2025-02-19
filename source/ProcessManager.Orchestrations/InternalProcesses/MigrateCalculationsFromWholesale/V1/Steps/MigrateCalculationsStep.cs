@@ -36,16 +36,22 @@ internal class MigrateCalculationsStep(
 
     protected override async Task<OrchestrationStepTerminationState> OnExecuteAsync()
     {
-        for (var i = 0; i < _calculationsToMigrate.Ids.Count; i++)
-        {
-            var calculationToMigrateId = _calculationsToMigrate.Ids.ElementAt(i);
+        var calculationIdsToMigrate = _calculationsToMigrate.CalculationIdsToMigrate;
 
-            await Context.CallActivityAsync(
+        // Fan-out/fan-in pattern: https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-cloud-backup?tabs=csharp
+        var migrateActivityTasks = new Task[calculationIdsToMigrate.Count];
+        for (var i = 0; i < calculationIdsToMigrate.Count; i++)
+        {
+            var calculationToMigrateId = calculationIdsToMigrate.ElementAt(i);
+
+            migrateActivityTasks[i] = Context.CallActivityAsync(
                 name: nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1),
                 input: new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.ActivityInput(
                     CalculationToMigrateId: calculationToMigrateId),
                 options: DefaultRetryOptions);
         }
+
+        await Task.WhenAll(migrateActivityTasks);
 
         return OrchestrationStepTerminationState.Succeeded;
     }

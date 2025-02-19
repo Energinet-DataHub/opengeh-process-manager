@@ -75,7 +75,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     /// Tests the MigrateCalculationsFromWholesale orchestration instance.
     /// </summary>
     [Fact]
-    public async Task Given_ValidRequestCalculatedEnergyTimeSeries_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+    public async Task Given_MigrateCalculationsFromWholesaleCommand_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 

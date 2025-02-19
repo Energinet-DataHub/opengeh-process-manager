@@ -91,7 +91,7 @@ public class TimeSeriesTypeValidatorTests
     [Theory]
     [InlineData(nameof(MeteringPointType.Exchange))]
     [InlineData(nameof(MeteringPointType.Consumption))]
-    public async Task Validate_AsEnergySupplierAndNoSettlementMethod_ReturnsExceptedValidationErrors(string meteringPointType)
+    public async Task Validate_AsEnergySupplierAndNoSettlementMethod_ReturnsExpectedValidationErrors(string meteringPointType)
     {
         // Arrange
         var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(

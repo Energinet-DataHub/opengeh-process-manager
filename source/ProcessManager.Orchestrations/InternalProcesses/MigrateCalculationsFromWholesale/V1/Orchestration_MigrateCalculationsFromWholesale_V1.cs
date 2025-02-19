@@ -50,6 +50,13 @@ internal class Orchestration_MigrateCalculationsFromWholesale_V1
             _defaultRetryOptions,
             instanceId).ExecuteAsync();
 
+        context.SetCustomStatus(new
+        {
+            calculationsToMigrate.CalculationsToMigrateCount,
+            calculationsToMigrate.AlreadyMigratedCalculationsCount,
+            calculationsToMigrate.AllWholesaleCalculationsCount,
+        });
+
         await new MigrateCalculationsStep(
             context,
             _defaultRetryOptions,

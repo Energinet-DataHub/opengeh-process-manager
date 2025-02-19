@@ -40,7 +40,7 @@ public class OrchestrationInstance
         Id = new OrchestrationInstanceId(Guid.NewGuid());
         Lifecycle = new OrchestrationInstanceLifecycle(identity, clock, runAt);
         ParameterValue = new();
-        CustomState = new OrchestrationInstanceCustomState(string.Empty);
+        CustomState = new OrchestrationInstanceCustomState { Value = string.Empty };
         IdempotencyKey = idempotencyKey;
 
         _steps = [];

@@ -39,10 +39,14 @@ internal class SearchCalculationHandler(
         // so if necessary we can validate their data access.
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        var lifecycleState =
-            Enum.TryParse<OrchestrationInstanceLifecycleState>(query.LifecycleState.ToString(), ignoreCase: true, out var lifecycleStateResult)
-            ? lifecycleStateResult
-            : (OrchestrationInstanceLifecycleState?)null;
+        var lifecycleState = query.LifecycleStates?
+            .Select(state =>
+                Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
+                ? lifecycleStateResult
+                : (OrchestrationInstanceLifecycleState?)null)
+            .Where(state => state.HasValue)
+            .Select(state => state!.Value)
+            .ToList();
         var terminationState =
             Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
             ? terminationStateResult
@@ -50,6 +54,10 @@ internal class SearchCalculationHandler(
 
         // DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
         // See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
+
+        var scheduledAtOrLater = query.ScheduledAtOrLater.HasValue
+            ? Instant.FromDateTimeOffset(query.ScheduledAtOrLater.Value)
+            : (Instant?)null;
         var startedAtOrLater = query.StartedAtOrLater.HasValue
             ? Instant.FromDateTimeOffset(query.StartedAtOrLater.Value)
             : (Instant?)null;
@@ -64,7 +72,8 @@ internal class SearchCalculationHandler(
                 lifecycleState,
                 terminationState,
                 startedAtOrLater,
-                terminatedAtOrEarlier)
+                terminatedAtOrEarlier,
+                scheduledAtOrLater)
             .ConfigureAwait(false);
 
         // TODO: Temporary in-memory filter on ParameterValues - should be refactored when we figure out how to pass filter objects to generic repository implementation.

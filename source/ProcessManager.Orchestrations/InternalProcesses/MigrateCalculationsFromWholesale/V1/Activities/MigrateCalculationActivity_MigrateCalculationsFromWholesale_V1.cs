@@ -29,13 +29,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.Migr
 public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     WholesaleContext wholesaleContext,
     ProcessManagerContext processManagerContext,
-    OrchestrationInstanceFactory orchestrationInstanceFactory)
+    IOrchestrationInstanceFactory orchestrationInstanceFactory)
 {
     public const string MigratedWholesaleCalculationIdCustomStatePrefix = "MigratedWholesaleCalculationId=";
 
     private readonly WholesaleContext _wholesaleContext = wholesaleContext;
     private readonly ProcessManagerContext _processManagerContext = processManagerContext;
-    private readonly OrchestrationInstanceFactory _orchestrationInstanceFactory = orchestrationInstanceFactory;
+    private readonly IOrchestrationInstanceFactory _orchestrationInstanceFactory = orchestrationInstanceFactory;
 
     public static OrchestrationInstanceCustomState GetMigratedWholesaleCalculationIdCustomState(Guid wholesaleCalculationId)
     {

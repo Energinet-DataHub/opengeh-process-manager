@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using NodaTime;
@@ -20,45 +19,19 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 
 /// <summary>
-/// A custom designed class for the feature Migrate Wholesale Calculations,
+/// A custom designed interface for the feature Migrate Wholesale Calculations,
 /// so we avoid exposing inner details to Orchestrations, and can easily remove
 /// it again, when its purpose has been fulfilled.
 /// </summary>
-internal sealed class OrchestrationInstanceFactory : IOrchestrationInstanceFactory, IClock
+public interface IOrchestrationInstanceFactory
 {
-    private Instant CreatedAt { get; set; }
-
-    /// <inheritdoc/>
+    /// <summary>
+    /// Create an Orchestration Instance from input.
+    /// </summary>
     public OrchestrationInstance CreateQueuedOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
         Guid createdByUserId,
         Instant createdTime,
         Instant scheduledAt,
-        IReadOnlyCollection<int> skipStepsBySequence)
-    {
-        CreatedAt = createdTime;
-
-        var identity = new UserIdentity(
-            new UserId(createdByUserId),
-            DataHubSystemAdministrator.UserIdentity.Actor);
-
-        // We use the class implementation of IClock to set "CreatedAt" when the orchestration instance is created.
-        // Any skipped steps will use the same timestamp for "TerminatedAt".
-        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-            identity,
-            orchestrationDescription,
-            skipStepsBySequence,
-            this,
-            scheduledAt);
-
-        // We use the same timestamp for "QueuedAt"
-        orchestrationInstance.Lifecycle.TransitionToQueued(this);
-
-        return orchestrationInstance;
-    }
-
-    Instant IClock.GetCurrentInstant()
-    {
-        return CreatedAt;
-    }
+        IReadOnlyCollection<int> skipStepsBySequence);
 }

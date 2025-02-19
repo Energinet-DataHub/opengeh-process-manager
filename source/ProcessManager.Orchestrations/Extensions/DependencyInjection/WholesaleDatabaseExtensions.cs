@@ -43,6 +43,9 @@ public static class WholesaleDatabaseExtensions
                     providerOptionsBuilder.UseNodaTime();
                     providerOptionsBuilder.EnableRetryOnFailure();
                 });
+
+                // As we should never change anything in the Wholesale database we disable "change tracking" by default
+                optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             });
 
         services

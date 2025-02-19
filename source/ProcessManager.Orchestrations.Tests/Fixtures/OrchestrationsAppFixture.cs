@@ -186,7 +186,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await EventHubListener.DisposeAsync();
         await OrchestrationsAppManager.DisposeAsync();
         await ProcessManagerAppManager.DisposeAsync();
         await DurableTaskManager.DisposeAsync();
@@ -197,6 +196,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await EnqueueBrs026ServiceBusListener.DisposeAsync();
         await EnqueueBrs028ServiceBusListener.DisposeAsync();
         await IntegrationEventServiceBusListener.DisposeAsync();
+        await EventHubListener.DisposeAsync();
     }
 
     public void SetTestOutputHelper(ITestOutputHelper? testOutputHelper)

@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
@@ -34,9 +35,9 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.ParameterDefinition.SetFromType<CalculationInputV1>();
 
-        description.AppendStepDescription("Beregning");
+        description.AppendStepDescription(CalculationStep.StepDescription);
         description.AppendStepDescription(
-            "Besked dannelse",
+            EnqueueMessagesStep.StepDescription,
             canBeSkipped: true,
             skipReason: "Do not perform this step for an internal calculation.");
 

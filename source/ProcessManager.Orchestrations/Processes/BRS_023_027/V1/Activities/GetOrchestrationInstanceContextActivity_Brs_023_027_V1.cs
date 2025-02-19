@@ -24,19 +24,17 @@ using Microsoft.Extensions.Options;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 
 /// <summary>
-/// The first activity in the orchestration.
-/// It is responsible for updating the status to 'Running' and return
-/// key information needed to configure, plan and handle the orchestration execution.
+/// Get the <see cref="OrchestrationInstanceContext"/> for the orchestration instance.
 /// </summary>
-internal class OrchestrationInitializeActivity_Brs_023_027_V1(
+internal class GetOrchestrationInstanceContextActivity_Brs_023_027_V1(
     IOrchestrationInstanceProgressRepository repository,
     IOptions<OrchestrationOptions_Brs_023_027_V1> orchestrationOptions)
 {
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly OrchestrationOptions_Brs_023_027_V1 _orchestrationOptions = orchestrationOptions.Value;
 
-    [Function(nameof(OrchestrationInitializeActivity_Brs_023_027_V1))]
-    public async Task<OrchestrationExecutionContext> Run(
+    [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_023_027_V1))]
+    public async Task<OrchestrationInstanceContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
         var orchestrationInstance = await _repository
@@ -51,10 +49,11 @@ internal class OrchestrationInitializeActivity_Brs_023_027_V1(
             .Select(step => step.Sequence)
         .ToList();
 
-        return new OrchestrationExecutionContext(
+        return new OrchestrationInstanceContext(
             _orchestrationOptions,
             CalculationId: input.InstanceId.Value,
             userIdentityDto.UserId,
+            input.InstanceId,
             stepsSkippedBySequence);
     }
 

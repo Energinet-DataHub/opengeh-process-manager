@@ -25,6 +25,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Wiremock;
@@ -146,7 +147,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: nameof(Orchestration_Brs_023_027_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToRunningActivity_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(OrchestrationInitializeActivity_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(GetOrchestrationInstanceContextActivity_Brs_023_027_V1)),
 
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(CalculationStepStartJobActivity_Brs_023_027_V1)),
@@ -242,7 +243,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: nameof(Orchestration_Brs_023_027_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToRunningActivity_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(OrchestrationInitializeActivity_Brs_023_027_V1)),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(GetOrchestrationInstanceContextActivity_Brs_023_027_V1)),
 
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(CalculationStepStartJobActivity_Brs_023_027_V1)),
@@ -299,42 +300,25 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             orchestrationInstanceId: orchestrationId,
             successfulResponse: false);
 
-        var completeOrchestrationStatus = await Fixture.DurableClient.WaitForOrchestrationCompletedAsync(
-            orchestrationId.ToString(),
-            TimeSpan.FromSeconds(30));
+        await AwaitOrchestrationRuntimeStatusAsync(orchestrationId.ToString(), OrchestrationRuntimeStatus.Failed);
 
-        // step 3.0: Verify the history of the orchestration
-        var activities = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Select(item => item.ToObject<OrchestrationHistoryItem>())
-            .ToList();
+        var completeOrchestrationStatus = await Fixture.DurableClient.GetStatusAsync(
+            instanceId: orchestrationId.ToString(),
+            showHistory: true);
 
         using var assertionScope = new AssertionScope();
-        activities.Should().NotBeNull().And.Equal(
-        [
-            new OrchestrationHistoryItem("ExecutionStarted", FunctionName: nameof(Orchestration_Brs_023_027_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToRunningActivity_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(OrchestrationInitializeActivity_Brs_023_027_V1)),
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(CalculationStepStartJobActivity_Brs_023_027_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(CalculationStepGetJobRunStatusActivity_Brs_023_027_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
+        // step 3.0: Verify the function state and history
+        // => Verify that the history does not contain publish integration event activity
+        completeOrchestrationStatus.History
+            .OrderBy(item => item["Timestamp"])
+            .Select(item => item.ToObject<OrchestrationHistoryItem>())
+            .ToList()
+            .Should()
+            .NotContain(historyItem => historyItem!.FunctionName == nameof(PublishCalculationEnqueueCompletedActivity_brs_023_027_V1));
 
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(EnqueueActorMessagesActivity_Brs_023_027_V1)),
-            new OrchestrationHistoryItem("TimerCreated"),
-            new OrchestrationHistoryItem("EventRaised",   Name: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
-
-            // The activity below should not be run.
-            // new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(PublishCalculationEnqueueCompletedActivity_brs_023_027_V1)),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToTerminatedActivity_V1)),
-            new OrchestrationHistoryItem("ExecutionCompleted"),
-        ]);
-
-        // => Verify that the durable function completed successfully
-        completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Completed);
+        // => Verify that the durable function failed
+        completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Failed);
 
         var orchestrationInstance = await ProcessManagerClient
             .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
@@ -345,9 +329,21 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         orchestrationInstance.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Failed);
         orchestrationInstance.Steps
-            .Single(step => step.Sequence == Orchestration_Brs_023_027_V1.EnqueueActorMessagesStepSequence)
+            .Single(step => step.Sequence == EnqueueMessagesStep.EnqueueActorMessagesStepSequence)
             .Lifecycle.TerminationState
             .Should().Be(OrchestrationStepTerminationState.Failed);
+    }
+
+    private async Task AwaitOrchestrationRuntimeStatusAsync(string orchestrationInstanceId, OrchestrationRuntimeStatus status)
+    {
+        await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                var orchestrationStatus = await Fixture.DurableClient.GetStatusAsync(orchestrationInstanceId);
+                return orchestrationStatus.RuntimeStatus == status;
+            },
+            TimeSpan.FromSeconds(30),
+            TimeSpan.FromSeconds(1));
     }
 
     private async Task<bool> AwaitJobStatusAsync(JobRunStatus expectedStatus, Guid orchestrationInstanceId)

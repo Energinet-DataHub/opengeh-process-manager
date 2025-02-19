@@ -34,13 +34,14 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
         [ActivityTrigger] FunctionContext functionContext)
     {
         var allWholesaleCalculationsIds = await _wholesaleContext.Calculations
-            .Where(c => c.OrchestrationState == CalculationOrchestrationState.Completed)
             .AsNoTracking()
+            .Where(c => c.OrchestrationState == CalculationOrchestrationState.Completed)
             .Select(c => c.Id)
             .ToListAsync()
             .ConfigureAwait(false);
 
         var alreadyMigratedCalculations = await _processManagerContext.OrchestrationDescriptions
+            .AsNoTracking()
             .Where(od => od.UniqueName.Name == MigrateCalculationsFromWholesaleUniqueName.V1.Name
                          && od.UniqueName.Version == MigrateCalculationsFromWholesaleUniqueName.V1.Version)
             .Join(
@@ -48,8 +49,8 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
                 outerKeySelector: od => od.Id,
                 innerKeySelector: oi => oi.OrchestrationDescriptionId,
                 resultSelector: (od, oi) => oi)
-            .Where(oi => oi.CustomState.Value.Contains(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.MigratedWholesaleCalculationIdCustomStatePrefix))
             .AsNoTracking()
+            .Where(oi => oi.CustomState.Value.Contains(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.MigratedWholesaleCalculationIdCustomStatePrefix))
             .ToListAsync()
             .ConfigureAwait(false);
 

@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
@@ -28,13 +29,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.Migr
 public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     WholesaleContext wholesaleContext,
     ProcessManagerContext processManagerContext,
-    IOrchestrationInstanceFactory orchestrationInstanceFactory)
+    OrchestrationInstanceFactory orchestrationInstanceFactory)
 {
     public const string MigratedWholesaleCalculationIdCustomStatePrefix = "MigratedWholesaleCalculationId=";
 
     private readonly WholesaleContext _wholesaleContext = wholesaleContext;
     private readonly ProcessManagerContext _processManagerContext = processManagerContext;
-    private readonly IOrchestrationInstanceFactory _orchestrationInstanceFactory = orchestrationInstanceFactory;
+    private readonly OrchestrationInstanceFactory _orchestrationInstanceFactory = orchestrationInstanceFactory;
 
     public static OrchestrationInstanceCustomState GetMigratedWholesaleCalculationIdCustomState(Guid wholesaleCalculationId)
     {
@@ -60,20 +61,14 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
 
         if (migratedCalculation == null)
         {
-            var brs_023_023_description = await _processManagerContext.OrchestrationDescriptions
-                .AsNoTracking()
-                .SingleAsync(x => x.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
-                .ConfigureAwait(false);
-
             var wholesaleCalculation = await _wholesaleContext.Calculations
                 .FirstAsync(x => x.Id == input.CalculationToMigrateId)
                 .ConfigureAwait(false);
 
-            var orchestrationInstance = _orchestrationInstanceFactory.CreateEntity(
-                brs_023_023_description.Id,
-                wholesaleCalculation.CreatedByUserId,
-                wholesaleCalculation.CreatedTime,
-                wholesaleCalculation.ScheduledAt);
+            // Created + Queued
+            var orchestrationInstance = await CreateQueuedOrchestrationInstanceAsync(wholesaleCalculation).ConfigureAwait(false);
+
+            orchestrationInstance.CustomState.Value = $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculation.Id}";
 
             var calculationInput = new CalculationInputV1(
                 CalculationType: ToCalculationType(wholesaleCalculation.CalculationType),
@@ -83,7 +78,26 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
                 IsInternalCalculation: wholesaleCalculation.IsInternalCalculation);
             orchestrationInstance.ParameterValue.SetFromInstance(calculationInput);
 
-            orchestrationInstance.CustomState.Value = $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculation.Id}";
+            // Running
+            orchestrationInstance.Lifecycle.TransitionToRunning(new MagicClock(wholesaleCalculation.ExecutionTimeStart));
+
+            // Step: Calculation
+            orchestrationInstance.TransitionStepToRunning(1, new MagicClock(wholesaleCalculation.ExecutionTimeStart));
+            orchestrationInstance.TransitionStepToTerminated(1, OrchestrationStepTerminationState.Succeeded, new MagicClock(wholesaleCalculation.ExecutionTimeEnd));
+
+            // Step: Enqueue messages
+            var stepsSkippedBySequence = orchestrationInstance.Steps
+                .Where(step => step.IsSkipped())
+                .Select(step => step.Sequence)
+                .ToList();
+            if (!stepsSkippedBySequence.Contains(2))
+            {
+                orchestrationInstance.TransitionStepToRunning(2, new MagicClock(wholesaleCalculation.ActorMessagesEnqueuingTimeStart));
+                orchestrationInstance.TransitionStepToTerminated(2, OrchestrationStepTerminationState.Succeeded, new MagicClock(wholesaleCalculation.ActorMessagesEnqueuedTimeEnd));
+            }
+
+            // Terminated
+            orchestrationInstance.Lifecycle.TransitionToSucceeded(new MagicClock(wholesaleCalculation.CompletedTime));
 
             await _processManagerContext.OrchestrationInstances
                 .AddAsync(orchestrationInstance)
@@ -120,6 +134,39 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     private static DateTimeOffset ToDateTimeOffset(Instant periodStart)
     {
         throw new NotImplementedException();
+    }
+
+    private async Task<OrchestrationInstance> CreateQueuedOrchestrationInstanceAsync(Wholesale.Model.Calculation wholesaleCalculation)
+    {
+        var brs_023_023_description = await _processManagerContext.OrchestrationDescriptions
+            .AsNoTracking()
+            .SingleAsync(x => x.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
+            .ConfigureAwait(false);
+
+        IReadOnlyCollection<int> skipStepsBySequence = wholesaleCalculation.IsInternalCalculation
+            ? [EnqueueMessagesStep.EnqueueActorMessagesStepSequence]
+            : [];
+
+        return _orchestrationInstanceFactory.CreateQueuedOrchestrationInstance(
+            brs_023_023_description,
+            wholesaleCalculation.CreatedByUserId,
+            wholesaleCalculation.CreatedTime,
+            wholesaleCalculation.ScheduledAt,
+            skipStepsBySequence);
+    }
+
+    /// <summary>
+    /// We do not allow nulls, and they should not appear within the given dataset for migration
+    /// </summary>
+    /// <param name="timeOrNull"></param>
+    private class MagicClock(Instant? timeOrNull) : IClock
+    {
+        private readonly Instant _time = (Instant)timeOrNull!;
+
+        public Instant GetCurrentInstant()
+        {
+            return _time;
+        }
     }
 
     public record ActivityInput(

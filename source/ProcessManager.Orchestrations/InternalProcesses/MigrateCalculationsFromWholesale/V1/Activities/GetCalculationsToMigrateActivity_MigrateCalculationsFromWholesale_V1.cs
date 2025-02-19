@@ -63,9 +63,12 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
             .ToList();
 
         var calculationsToMigrate = new CalculationsToMigrate(
+            CalculationsToMigrateCount: remainingCalculationsIdsToMigrate.Count,
             CalculationIdsToMigrate: remainingCalculationsIdsToMigrate,
-            AllCalculationIds: allWholesaleCalculationsIds,
-            AlreadyMigratedCalculationIds: alreadyMigratedCalculationIds);
+            AllWholesaleCalculationIds: allWholesaleCalculationsIds,
+            AllWholesaleCalculationsCount: allWholesaleCalculationsIds.Count,
+            AlreadyMigratedCalculationIds: alreadyMigratedCalculationIds,
+            AlreadyMigratedCalculationsCount: alreadyMigratedCalculationIds.Count);
 
         return calculationsToMigrate;
     }

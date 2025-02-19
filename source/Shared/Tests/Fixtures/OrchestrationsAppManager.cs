@@ -32,7 +32,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Options;
@@ -116,6 +115,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.Credential);
 
         MockServer = WireMockServer.Start(port: wireMockServerPort);
+
+        WholesaleDatabaseManager = new WholesaleDatabaseManager("Wholesale");
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -129,6 +130,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public string? EventHubName { get; private set; }
 
     public WireMockServer MockServer { get; }
+
+    public WholesaleDatabaseManager WholesaleDatabaseManager { get; }
 
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
@@ -165,6 +168,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
         integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
 
+        await WholesaleDatabaseManager.CreateDatabaseAsync();
+
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
@@ -191,6 +196,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         await ServiceBusResourceProvider.DisposeAsync();
         await EventHubResourceProvider.DisposeAsync();
         MockServer.Dispose();
+
+        await WholesaleDatabaseManager.DeleteDatabaseAsync();
     }
 
     /// <summary>
@@ -397,6 +404,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_028_V1.SectionName}__{nameof(OrchestrationOptions_Brs_028_V1.EnqueueActorMessagesTimeout)}",
             TimeSpan.FromSeconds(60).ToString());
+
+        // => Wholesale migration (database)
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{WholesaleDatabaseOptions.SectionName}__{nameof(WholesaleDatabaseOptions.SqlDatabaseConnectionString)}",
+            WholesaleDatabaseManager.ConnectionString);
 
         return appHostSettings;
     }

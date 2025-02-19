@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 
@@ -26,5 +28,9 @@ public interface IOrchestrationInstanceFactory
     /// <summary>
     /// Create an Orchestration Instance from input.
     /// </summary>
-    OrchestrationInstance CreateEntity();
+    OrchestrationInstance CreateEntity(
+        OrchestrationDescriptionId orchestrationDescriptionId,
+        Guid createdByUserId,
+        Instant createdTime,
+        Instant scheduledAt1);
 }

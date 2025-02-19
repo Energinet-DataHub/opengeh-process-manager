@@ -13,11 +13,15 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 
@@ -34,8 +38,7 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
 
     public static OrchestrationInstanceCustomState GetMigratedWholesaleCalculationIdCustomState(Guid wholesaleCalculationId)
     {
-        return new OrchestrationInstanceCustomState(
-            $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculationId}");
+        return new OrchestrationInstanceCustomState { Value = $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculationId}" };
     }
 
     public static Guid GetMigratedWholesaleCalculationIdCustomStateGuid(OrchestrationInstanceCustomState customState)
@@ -57,15 +60,66 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
 
         if (migratedCalculation == null)
         {
-            var calculation = _wholesaleContext.Calculations
-                .FirstAsync(x => x.Id == input.CalculationToMigrateId);
+            var brs_023_023_description = await _processManagerContext.OrchestrationDescriptions
+                .AsNoTracking()
+                .SingleAsync(x => x.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
+                .ConfigureAwait(false);
 
-            var orchestrationInstance = _orchestrationInstanceFactory.CreateEntity();
-            await _processManagerContext.OrchestrationInstances.AddAsync(orchestrationInstance).ConfigureAwait(false);
-            await _processManagerContext.CommitAsync().ConfigureAwait(false);
+            var wholesaleCalculation = await _wholesaleContext.Calculations
+                .FirstAsync(x => x.Id == input.CalculationToMigrateId)
+                .ConfigureAwait(false);
+
+            var orchestrationInstance = _orchestrationInstanceFactory.CreateEntity(
+                brs_023_023_description.Id,
+                wholesaleCalculation.CreatedByUserId,
+                wholesaleCalculation.CreatedTime,
+                wholesaleCalculation.ScheduledAt);
+
+            var calculationInput = new CalculationInputV1(
+                CalculationType: ToCalculationType(wholesaleCalculation.CalculationType),
+                GridAreaCodes: wholesaleCalculation.GridAreaCodes.Select(x => x.Code).ToList(),
+                PeriodStartDate: ToDateTimeOffset(wholesaleCalculation.PeriodStart),
+                PeriodEndDate: ToDateTimeOffset(wholesaleCalculation.PeriodEnd),
+                IsInternalCalculation: wholesaleCalculation.IsInternalCalculation);
+            orchestrationInstance.ParameterValue.SetFromInstance(calculationInput);
+
+            orchestrationInstance.CustomState.Value = $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculation.Id}";
+
+            await _processManagerContext.OrchestrationInstances
+                .AddAsync(orchestrationInstance)
+                .ConfigureAwait(false);
+            await _processManagerContext
+                .CommitAsync()
+                .ConfigureAwait(false);
         }
 
         return $"Migrated {input.CalculationToMigrateId}";
+    }
+
+    private static CalculationType ToCalculationType(Wholesale.Model.CalculationType calculationType)
+    {
+        switch (calculationType)
+        {
+            case Wholesale.Model.CalculationType.BalanceFixing:
+                return CalculationType.BalanceFixing;
+            case Wholesale.Model.CalculationType.Aggregation:
+                return CalculationType.Aggregation;
+            case Wholesale.Model.CalculationType.WholesaleFixing:
+                return CalculationType.WholesaleFixing;
+            case Wholesale.Model.CalculationType.FirstCorrectionSettlement:
+                return CalculationType.FirstCorrectionSettlement;
+            case Wholesale.Model.CalculationType.SecondCorrectionSettlement:
+                return CalculationType.SecondCorrectionSettlement;
+            case Wholesale.Model.CalculationType.ThirdCorrectionSettlement:
+                return CalculationType.ThirdCorrectionSettlement;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(calculationType), calculationType, "Calculation type is invalid.");
+        }
+    }
+
+    private static DateTimeOffset ToDateTimeOffset(Instant periodStart)
+    {
+        throw new NotImplementedException();
     }
 
     public record ActivityInput(

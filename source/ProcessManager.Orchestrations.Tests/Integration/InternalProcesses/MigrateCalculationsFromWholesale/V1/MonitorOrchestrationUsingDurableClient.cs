@@ -21,6 +21,8 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.InternalProcesses.MigrateCalculationsFromWholesale.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Models;
+using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -29,6 +31,7 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -91,7 +94,14 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     {
         // Given
         // => Wholesale calculations to migrate
-        var expectedWholesaleCalculationIds = WholesaleDatabaseManager.GetCalculationIds();
+        List<Guid> expectedWholesaleCalculationIds;
+        await using (var wholesaleContext = Fixture.OrchestrationsAppManager.WholesaleDatabaseManager.CreateDbContext())
+        {
+            expectedWholesaleCalculationIds = await wholesaleContext.Calculations
+                .Where(c => c.OrchestrationState == CalculationOrchestrationState.Completed)
+                .Select(c => c.Id)
+                .ToListAsync();
+        }
 
         // When
         // => Start new orchestration instance
@@ -140,7 +150,15 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             new("ExecutionCompleted"),
         ];
 
-        using var assertionScope = new AssertionScope();
+        using var assertionScope = new AssertionScope { FormattingOptions = { MaxLines = 2000, } };
+        completeOrchestrationStatus.CustomStatus.Should().NotBeNull();
+        completeOrchestrationStatus.CustomStatus.Value<int>(nameof(CalculationsToMigrate.AllWholesaleCalculationsCount))
+            .Should().Be(expectedWholesaleCalculationIds.Count);
+        completeOrchestrationStatus.CustomStatus.Value<int>(nameof(CalculationsToMigrate.CalculationsToMigrateCount))
+            .Should().Be(expectedWholesaleCalculationIds.Count);
+        completeOrchestrationStatus.CustomStatus.Value<int>(nameof(CalculationsToMigrate.AlreadyMigratedCalculationsCount))
+            .Should().Be(0);
+
         activities.Should().NotBeNull().And.Equal(expectedActivities);
 
         // => Verify that the durable function completed successfully

@@ -65,10 +65,10 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
         var calculationsToMigrate = new CalculationsToMigrate(
             CalculationsToMigrateCount: remainingCalculationsIdsToMigrate.Count,
             CalculationIdsToMigrate: remainingCalculationsIdsToMigrate,
-            AllWholesaleCalculationIds: allWholesaleCalculationsIds,
             AllWholesaleCalculationsCount: allWholesaleCalculationsIds.Count,
-            AlreadyMigratedCalculationIds: alreadyMigratedCalculationIds,
-            AlreadyMigratedCalculationsCount: alreadyMigratedCalculationIds.Count);
+            AllWholesaleCalculationIds: allWholesaleCalculationsIds,
+            AlreadyMigratedCalculationsCount: alreadyMigratedCalculationIds.Count,
+            AlreadyMigratedCalculationIds: alreadyMigratedCalculationIds);
 
         return calculationsToMigrate;
     }

@@ -114,24 +114,28 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
 
                 b.OwnsOne(
                     o => o.Lifecycle,
-                    b =>
+                    lb =>
                     {
-                        b.Property(l => l.State);
-                        b.Property(l => l.TerminationState);
+                        lb.Property(l => l.State);
+                        lb.Property(l => l.TerminationState);
 
-                        b.Property(l => l.StartedAt);
-                        b.Property(l => l.TerminatedAt);
+                        lb.Property(l => l.StartedAt);
+                        lb.Property(l => l.TerminatedAt);
 
-                        b.Property(l => l.CanBeSkipped);
+                        lb.Property(l => l.CanBeSkipped);
                     });
 
                 b.Property(s => s.Description);
                 b.Property(s => s.Sequence);
 
-                b.Property(s => s.CustomState)
-                    .HasConversion(
-                        state => state.Value,
-                        dbValue => new StepInstanceCustomState(dbValue));
+                // Cannot use .ComplexProperty() in a nested configuration builder, so we have to use .OwnsOne().
+                b.OwnsOne(
+                    s => s.CustomState,
+                    csb =>
+                    {
+                        csb.Property(cs => cs.Value)
+                            .HasColumnName(nameof(StepInstance.CustomState));
+                    });
 
                 // Relation to parent
                 b.Property(s => s.OrchestrationInstanceId)
@@ -142,10 +146,13 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                 b.WithOwner().HasForeignKey(s => s.OrchestrationInstanceId);
             });
 
-        builder.Property(o => o.CustomState)
-            .HasConversion(
-                state => state.Value,
-                dbValue => new OrchestrationInstanceCustomState(dbValue));
+        builder.ComplexProperty(
+            o => o.CustomState,
+            csb =>
+            {
+                csb.Property(cs => cs.Value)
+                    .HasColumnName(nameof(StepInstance.CustomState));
+            });
 
         builder.Property(o => o.IdempotencyKey)
             .HasConversion(

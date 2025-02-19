@@ -34,7 +34,6 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
         [ActivityTrigger] FunctionContext functionContext)
     {
         var allWholesaleCalculationsIds = await _wholesaleContext.Calculations
-            .AsNoTracking()
             .Where(c => c.OrchestrationState == CalculationOrchestrationState.Completed)
             .Select(c => c.Id)
             .ToListAsync()

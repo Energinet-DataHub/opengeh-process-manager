@@ -131,9 +131,9 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
         }
     }
 
-    private static DateTimeOffset ToDateTimeOffset(Instant periodStart)
+    private static DateTimeOffset ToDateTimeOffset(Instant instant)
     {
-        throw new NotImplementedException();
+        return instant.ToDateTimeOffset();
     }
 
     private async Task<OrchestrationInstance> CreateQueuedOrchestrationInstanceAsync(Wholesale.Model.Calculation wholesaleCalculation)

@@ -29,7 +29,7 @@ public class RecurringPlannerHandler(
     IRecurringOrchestrationQueries query,
     IStartOrchestrationInstanceCommands manager)
 {
-    internal static readonly UserIdentity RecurringJobIdentity = DataHubSystemAdministratorUser.UserIdentity;
+    internal static readonly UserIdentity RecurringJobIdentity = DataHubSystemAdministrator.UserIdentity;
 
     private readonly ILogger _logger = logger;
     private readonly DateTimeZone _dateTimeZone = dateTimeZone;

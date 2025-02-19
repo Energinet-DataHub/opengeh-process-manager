@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Scheduler;
 /// <summary>
 /// The DataHub administrator user that the Market Participant is seeded with.
 /// </summary>
-public static class DataHubSystemAdministratorUser
+public static class DataHubSystemAdministrator
 {
     private static readonly UserId _userId = new UserId(Guid.Parse("C861C5E2-8DDA-43E5-A5D0-B94834EE3FF6"));
 

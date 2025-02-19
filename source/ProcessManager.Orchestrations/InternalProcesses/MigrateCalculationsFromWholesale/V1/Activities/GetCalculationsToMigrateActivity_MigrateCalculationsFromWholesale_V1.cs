@@ -42,8 +42,9 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
 
         var alreadyMigratedCalculations = await _processManagerContext.OrchestrationDescriptions
             .AsNoTracking()
-            .Where(od => od.UniqueName.Name == MigrateCalculationsFromWholesaleUniqueName.V1.Name
-                         && od.UniqueName.Version == MigrateCalculationsFromWholesaleUniqueName.V1.Version)
+            .Where(od =>
+                od.UniqueName.Name == MigrateCalculationsFromWholesaleUniqueName.V1.Name
+                && od.UniqueName.Version == MigrateCalculationsFromWholesaleUniqueName.V1.Version)
             .Join(
                 inner: _processManagerContext.OrchestrationInstances,
                 outerKeySelector: od => od.Id,

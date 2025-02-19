@@ -159,10 +159,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     Fixture.DefaultUserIdentity,
                     name: Brs_023_027.Name,
                     version: null,
-                    lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
+                    lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
                     terminationState: OrchestrationInstanceTerminationState.Succeeded,
                     startedAtOrLater: null,
-                    terminatedAtOrEarlier: null),
+                    terminatedAtOrEarlier: null,
+                    scheduledAtOrLater: null),
                 CancellationToken.None);
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);

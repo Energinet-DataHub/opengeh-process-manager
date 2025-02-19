@@ -28,7 +28,7 @@ public interface IOrchestrationInstanceFactory
     /// <summary>
     /// Create an Orchestration Instance from input.
     /// </summary>
-    public OrchestrationInstance CreateQueuedOrchestrationInstance(
+    OrchestrationInstance CreateQueuedOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
         Guid createdByUserId,
         Instant createdTime,

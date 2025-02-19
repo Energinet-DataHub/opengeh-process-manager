@@ -24,6 +24,23 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 public class WholesaleDatabaseManager(string name)
     : SqlServerDatabaseManager<WholesaleContext>(name + $"_{DateTime.Now:yyyyMMddHHmm}_")
 {
+    public static List<Guid> GetCalculationIds()
+    {
+        var csvData = GetCsvToInsertIntoCalculationsTable();
+        var lines = csvData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        var calculationIds = new List<Guid>();
+
+        // Start at rowIndex = 1, since rowIndex 0 is the column names.
+        for (var rowIndex = 1; rowIndex < lines.Length; rowIndex++)
+        {
+            var columnValues = lines[rowIndex].Split(';');
+            var calculationId = Guid.Parse(columnValues[0]);
+            calculationIds.Add(calculationId);
+        }
+
+        return calculationIds;
+    }
+
     /// <inheritdoc/>
     public override WholesaleContext CreateDbContext()
     {

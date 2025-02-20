@@ -38,6 +38,11 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
         using var wholesaleContext = _fixture.WholesaleDatabaseManager.CreateDbContext();
         using var processManagerContext = _fixture.PMDatabaseManager.CreateDbContext();
 
+        // => Describe BRS 023 / 027
+        var builder = new Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.OrchestrationDescriptionBuilder();
+        await processManagerContext.OrchestrationDescriptions.AddAsync(builder.Build());
+        await processManagerContext.CommitAsync();
+
         var sut = new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
             wholesaleContext,
             processManagerContext,

@@ -97,9 +97,9 @@ internal class OrchestrationInstanceRepository(
                 (_, instance) => instance)
             .Where(x => lifecycleStates == null || lifecycleStates.Contains(x.Lifecycle.State))
             .Where(x => terminationState == null || x.Lifecycle.TerminationState == terminationState)
-            .Where(x => startedAtOrLater == null || x.Lifecycle.StartedAt >= startedAtOrLater)
+            .Where(x => startedAtOrLater == null || startedAtOrLater <= x.Lifecycle.StartedAt)
             .Where(x => terminatedAtOrEarlier == null || x.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
-            .Where(x => scheduledAtOrLater == null || x.Lifecycle.ScheduledToRunAt <= scheduledAtOrLater);
+            .Where(x => scheduledAtOrLater == null || scheduledAtOrLater <= x.Lifecycle.ScheduledToRunAt);
 
         return await query.ToListAsync().ConfigureAwait(false);
     }

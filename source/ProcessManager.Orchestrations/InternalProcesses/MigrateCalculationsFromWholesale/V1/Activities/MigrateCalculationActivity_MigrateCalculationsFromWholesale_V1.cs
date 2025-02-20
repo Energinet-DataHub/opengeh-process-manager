@@ -12,12 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 
 public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1
 {
+    public const string MigratedWholesaleCalculationIdCustomStatePrefix = "MigratedWholesaleCalculationId=";
+
+    public static OrchestrationInstanceCustomState GetMigratedWholesaleCalculationIdCustomState(Guid wholesaleCalculationId)
+    {
+        return new OrchestrationInstanceCustomState(
+            $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculationId}");
+    }
+
+    public static Guid GetMigratedWholesaleCalculationIdCustomStateGuid(OrchestrationInstanceCustomState customState)
+    {
+        var calculationIdString = customState.Value.Replace(MigratedWholesaleCalculationIdCustomStatePrefix, string.Empty);
+        var calculationId = Guid.Parse(calculationIdString);
+        return calculationId;
+    }
+
     [Function(nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1))]
     public async Task<string> Run(
         [ActivityTrigger] ActivityInput input)

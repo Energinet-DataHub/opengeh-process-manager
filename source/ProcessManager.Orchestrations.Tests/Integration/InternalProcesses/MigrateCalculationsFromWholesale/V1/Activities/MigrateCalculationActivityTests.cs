@@ -54,7 +54,7 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
 
         // Assert
         using var assertionScope = new AssertionScope();
-        actual.Should().NotBeNull().And.Contain("Migrated");
+        actual.Should().NotBeNull().And.Contain("Migration succeeded");
 
         var wholesaleCalculation = await wholesaleContext.Calculations.FindAsync(existingCalculationId);
         var migratedOrchestrationInstance = await processManagerContext.OrchestrationInstances
@@ -111,7 +111,7 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
 
         // Assert
         using var assertionScope = new AssertionScope();
-        actual.Should().NotBeNull().And.Contain("Migrated");
+        actual.Should().NotBeNull().And.Contain("Migration succeeded");
 
         var wholesaleCalculation = await wholesaleContext.Calculations.FindAsync(existingCalculationId);
         var migratedOrchestrationInstance = await processManagerContext.OrchestrationInstances

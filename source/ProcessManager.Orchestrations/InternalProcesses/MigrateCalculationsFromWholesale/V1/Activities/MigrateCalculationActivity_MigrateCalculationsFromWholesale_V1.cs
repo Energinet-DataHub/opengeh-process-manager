@@ -56,28 +56,28 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
         try
         {
             var wasMigrated = await WasCalculationIdMigratedAsync(input.CalculationToMigrateId).ConfigureAwait(false);
-            if (!wasMigrated)
-            {
-                var wholesaleCalculation = await _wholesaleContext.Calculations
+            if (wasMigrated)
+                return $"Migration skipped for '{input.CalculationToMigrateId}'.";
+
+            var wholesaleCalculation = await _wholesaleContext.Calculations
                     .FirstAsync(x => x.Id == input.CalculationToMigrateId)
                     .ConfigureAwait(false);
 
-                var brs_023_027_V1_description = await _processManagerContext.OrchestrationDescriptions
-                    .AsNoTracking()
-                    .SingleAsync(x => x.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
-                    .ConfigureAwait(false);
+            var brs_023_027_V1_description = await _processManagerContext.OrchestrationDescriptions
+                .AsNoTracking()
+                .SingleAsync(x => x.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
+                .ConfigureAwait(false);
 
-                var orchestrationInstance = MigrateCalculationToOrchestrationInstance(wholesaleCalculation, brs_023_027_V1_description);
+            var orchestrationInstance = MigrateCalculationToOrchestrationInstance(wholesaleCalculation, brs_023_027_V1_description);
 
-                await _processManagerContext.OrchestrationInstances
-                    .AddAsync(orchestrationInstance)
-                    .ConfigureAwait(false);
-                await _processManagerContext
-                    .CommitAsync()
-                    .ConfigureAwait(false);
-            }
+            await _processManagerContext.OrchestrationInstances
+                .AddAsync(orchestrationInstance)
+                .ConfigureAwait(false);
+            await _processManagerContext
+                .CommitAsync()
+                .ConfigureAwait(false);
 
-            return $"Migrated '{input.CalculationToMigrateId}'";
+            return $"Migration succeeded for '{input.CalculationToMigrateId}'.";
         }
         catch (Exception ex)
         {

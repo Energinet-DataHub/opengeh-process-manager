@@ -55,13 +55,8 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     {
         try
         {
-            var migratedCalculation = await _processManagerContext.OrchestrationInstances
-                .AsNoTracking()
-                .Where(x => x.CustomState == GetMigratedWholesaleCalculationIdCustomState(input.CalculationToMigrateId))
-                .FirstOrDefaultAsync()
-                .ConfigureAwait(false);
-
-            if (migratedCalculation == null)
+            var wasMigrated = await WasCalculationIdMigratedAsync(input.CalculationToMigrateId).ConfigureAwait(false);
+            if (!wasMigrated)
             {
                 var wholesaleCalculation = await _wholesaleContext.Calculations
                     .FirstAsync(x => x.Id == input.CalculationToMigrateId)
@@ -72,48 +67,7 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
                     .SingleAsync(x => x.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
                     .ConfigureAwait(false);
 
-                // Created + Queued
-                IReadOnlyCollection<int> skipStepsBySequence = wholesaleCalculation.IsInternalCalculation
-                    ? [EnqueueMessagesStep.EnqueueActorMessagesStepSequence]
-                    : [];
-
-                var orchestrationInstance = _orchestrationInstanceFactory.CreateQueuedOrchestrationInstance(
-                    brs_023_027_V1_description,
-                    wholesaleCalculation.CreatedByUserId,
-                    wholesaleCalculation.CreatedTime,
-                    wholesaleCalculation.ScheduledAt,
-                    skipStepsBySequence);
-
-                orchestrationInstance.CustomState.Value = $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculation.Id}";
-
-                var calculationInput = new CalculationInputV1(
-                    CalculationType: ToCalculationType(wholesaleCalculation.CalculationType),
-                    GridAreaCodes: wholesaleCalculation.GridAreaCodes.Select(x => x.Code).ToList(),
-                    PeriodStartDate: ToDateTimeOffset(wholesaleCalculation.PeriodStart),
-                    PeriodEndDate: ToDateTimeOffset(wholesaleCalculation.PeriodEnd),
-                    IsInternalCalculation: wholesaleCalculation.IsInternalCalculation);
-                orchestrationInstance.ParameterValue.SetFromInstance(calculationInput);
-
-                // Running
-                orchestrationInstance.Lifecycle.TransitionToRunning(new MagicClock(wholesaleCalculation.ExecutionTimeStart));
-
-                // Step: Calculation
-                orchestrationInstance.TransitionStepToRunning(1, new MagicClock(wholesaleCalculation.ExecutionTimeStart));
-                orchestrationInstance.TransitionStepToTerminated(1, OrchestrationStepTerminationState.Succeeded, new MagicClock(wholesaleCalculation.ExecutionTimeEnd));
-
-                // Step: Enqueue messages
-                var stepsSkippedBySequence = orchestrationInstance.Steps
-                    .Where(step => step.IsSkipped())
-                    .Select(step => step.Sequence)
-                    .ToList();
-                if (!stepsSkippedBySequence.Contains(2))
-                {
-                    orchestrationInstance.TransitionStepToRunning(2, new MagicClock(wholesaleCalculation.ActorMessagesEnqueuingTimeStart));
-                    orchestrationInstance.TransitionStepToTerminated(2, OrchestrationStepTerminationState.Succeeded, new MagicClock(wholesaleCalculation.ActorMessagesEnqueuedTimeEnd));
-                }
-
-                // Terminated
-                orchestrationInstance.Lifecycle.TransitionToSucceeded(new MagicClock(wholesaleCalculation.CompletedTime));
+                var orchestrationInstance = MigrateCalculationToOrchestrationInstance(wholesaleCalculation, brs_023_027_V1_description);
 
                 await _processManagerContext.OrchestrationInstances
                     .AddAsync(orchestrationInstance)
@@ -148,6 +102,64 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     private static DateTimeOffset ToDateTimeOffset(Instant instant)
     {
         return instant.ToDateTimeOffset();
+    }
+
+    private Task<bool> WasCalculationIdMigratedAsync(Guid wholesaleCalculationId)
+    {
+        return _processManagerContext.OrchestrationInstances
+            .AsNoTracking()
+            .Where(x => x.CustomState == GetMigratedWholesaleCalculationIdCustomState(wholesaleCalculationId))
+            .AnyAsync();
+    }
+
+    private OrchestrationInstance MigrateCalculationToOrchestrationInstance(
+        Wholesale.Model.Calculation wholesaleCalculation,
+        OrchestrationDescription brs_023_027_V1_description)
+    {
+        // Orchestration Instance => Created + Queued
+        IReadOnlyCollection<int> skipStepsBySequence = wholesaleCalculation.IsInternalCalculation
+            ? [EnqueueMessagesStep.EnqueueActorMessagesStepSequence]
+            : [];
+
+        var orchestrationInstance = _orchestrationInstanceFactory.CreateQueuedOrchestrationInstance(
+            brs_023_027_V1_description,
+            wholesaleCalculation.CreatedByUserId,
+            wholesaleCalculation.CreatedTime,
+            wholesaleCalculation.ScheduledAt,
+            skipStepsBySequence);
+
+        orchestrationInstance.CustomState.Value = $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculation.Id}";
+
+        var calculationInput = new CalculationInputV1(
+            CalculationType: ToCalculationType(wholesaleCalculation.CalculationType),
+            GridAreaCodes: wholesaleCalculation.GridAreaCodes.Select(x => x.Code).ToList(),
+            PeriodStartDate: ToDateTimeOffset(wholesaleCalculation.PeriodStart),
+            PeriodEndDate: ToDateTimeOffset(wholesaleCalculation.PeriodEnd),
+            IsInternalCalculation: wholesaleCalculation.IsInternalCalculation);
+        orchestrationInstance.ParameterValue.SetFromInstance(calculationInput);
+
+        // Orchestration Instance => Running
+        orchestrationInstance.Lifecycle.TransitionToRunning(new MagicClock(wholesaleCalculation.ExecutionTimeStart));
+
+        // Step: Calculation
+        orchestrationInstance.TransitionStepToRunning(1, new MagicClock(wholesaleCalculation.ExecutionTimeStart));
+        orchestrationInstance.TransitionStepToTerminated(1, OrchestrationStepTerminationState.Succeeded, new MagicClock(wholesaleCalculation.ExecutionTimeEnd));
+
+        // Step: Enqueue messages
+        var stepsSkippedBySequence = orchestrationInstance.Steps
+            .Where(step => step.IsSkipped())
+            .Select(step => step.Sequence)
+            .ToList();
+        if (!stepsSkippedBySequence.Contains(2))
+        {
+            orchestrationInstance.TransitionStepToRunning(2, new MagicClock(wholesaleCalculation.ActorMessagesEnqueuingTimeStart));
+            orchestrationInstance.TransitionStepToTerminated(2, OrchestrationStepTerminationState.Succeeded, new MagicClock(wholesaleCalculation.ActorMessagesEnqueuedTimeEnd));
+        }
+
+        // Orchestration Instance => Terminated
+        orchestrationInstance.Lifecycle.TransitionToSucceeded(new MagicClock(wholesaleCalculation.CompletedTime));
+
+        return orchestrationInstance;
     }
 
     /// <summary>

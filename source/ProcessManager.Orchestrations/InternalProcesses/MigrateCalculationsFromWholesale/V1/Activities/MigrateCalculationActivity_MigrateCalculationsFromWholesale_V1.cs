@@ -67,8 +67,22 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
                     .FirstAsync(x => x.Id == input.CalculationToMigrateId)
                     .ConfigureAwait(false);
 
+                var brs_023_027_V1_description = await _processManagerContext.OrchestrationDescriptions
+                    .AsNoTracking()
+                    .SingleAsync(x => x.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
+                    .ConfigureAwait(false);
+
                 // Created + Queued
-                var orchestrationInstance = await CreateQueuedOrchestrationInstanceAsync(wholesaleCalculation).ConfigureAwait(false);
+                IReadOnlyCollection<int> skipStepsBySequence = wholesaleCalculation.IsInternalCalculation
+                    ? [EnqueueMessagesStep.EnqueueActorMessagesStepSequence]
+                    : [];
+
+                var orchestrationInstance = _orchestrationInstanceFactory.CreateQueuedOrchestrationInstance(
+                    brs_023_027_V1_description,
+                    wholesaleCalculation.CreatedByUserId,
+                    wholesaleCalculation.CreatedTime,
+                    wholesaleCalculation.ScheduledAt,
+                    skipStepsBySequence);
 
                 orchestrationInstance.CustomState.Value = $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculation.Id}";
 
@@ -134,25 +148,6 @@ public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     private static DateTimeOffset ToDateTimeOffset(Instant instant)
     {
         return instant.ToDateTimeOffset();
-    }
-
-    private async Task<OrchestrationInstance> CreateQueuedOrchestrationInstanceAsync(Wholesale.Model.Calculation wholesaleCalculation)
-    {
-        var brs_023_023_description = await _processManagerContext.OrchestrationDescriptions
-            .AsNoTracking()
-            .SingleAsync(x => x.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
-            .ConfigureAwait(false);
-
-        IReadOnlyCollection<int> skipStepsBySequence = wholesaleCalculation.IsInternalCalculation
-            ? [EnqueueMessagesStep.EnqueueActorMessagesStepSequence]
-            : [];
-
-        return _orchestrationInstanceFactory.CreateQueuedOrchestrationInstance(
-            brs_023_023_description,
-            wholesaleCalculation.CreatedByUserId,
-            wholesaleCalculation.CreatedTime,
-            wholesaleCalculation.ScheduledAt,
-            skipStepsBySequence);
     }
 
     /// <summary>

@@ -81,7 +81,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
         }
         catch (Exception ex)
         {
-            return $"Migration failed '{input.CalculationToMigrateId}'. Exception: {ex.Message}";
+            throw new InvalidOperationException($"Migration failed for '{input.CalculationToMigrateId}'.", ex);
         }
     }
 

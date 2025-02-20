@@ -144,6 +144,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
             new("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
             ..expectedMigrateCalculationActivities,
+            new("TaskCompleted", FunctionName: nameof(ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1)),
             new("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
 
             new("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToTerminatedActivity_V1)),

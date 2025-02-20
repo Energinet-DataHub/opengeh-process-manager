@@ -26,7 +26,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 
-public class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
+internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     WholesaleContext wholesaleContext,
     ProcessManagerContext processManagerContext,
     IOrchestrationInstanceFactory orchestrationInstanceFactory)

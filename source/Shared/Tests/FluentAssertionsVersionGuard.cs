@@ -15,7 +15,7 @@
 using FluentAssertions;
 using Xunit;
 
-namespace Energinet.DataHub.ProcessManager.Tests;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests;
 
 public class FluentAssertionsVersionGuard
 {

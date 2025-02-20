@@ -33,18 +33,13 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
     }
 
     [Fact]
-    public async Task Given_CalculationInDatabase_When_CallingActivity_Then_CalculationIsMigrated()
+    public async Task Given_InternalCalculationInDatabase_When_CallingActivity_Then_CalculationIsMigrated()
     {
         // Arrange
         var existingCalculationId = Guid.Parse("5dd7bbb3-07f7-4cbd-a74f-17aaed795fa9");
 
         using var wholesaleContext = _fixture.WholesaleDatabaseManager.CreateDbContext();
         using var processManagerContext = _fixture.PMDatabaseManager.CreateDbContext();
-
-        // => Describe BRS 023 / 027
-        var builder = new Orchestrations.Processes.BRS_023_027.V1.OrchestrationDescriptionBuilder();
-        await processManagerContext.OrchestrationDescriptions.AddAsync(builder.Build());
-        await processManagerContext.CommitAsync();
 
         var sut = new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
             wholesaleContext,
@@ -77,15 +72,73 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
         migratedOrchestrationInstance.Lifecycle.CreatedAt.Should().Be(wholesaleCalculation.CreatedTime);
         migratedOrchestrationInstance.Lifecycle.QueuedAt.Should().Be(wholesaleCalculation.CreatedTime);
         migratedOrchestrationInstance.Lifecycle.TerminatedAt.Should().Be(wholesaleCalculation.CompletedTime);
+        migratedOrchestrationInstance.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Succeeded);
 
         // => Step: Calculation
         var step1 = migratedOrchestrationInstance.Steps.First(x => x.Sequence == 1);
         migratedOrchestrationInstance.Lifecycle.StartedAt.Should().Be(wholesaleCalculation.ExecutionTimeStart);
         step1.Lifecycle.StartedAt.Should().Be(wholesaleCalculation.ExecutionTimeStart);
         step1.Lifecycle.TerminatedAt.Should().Be(wholesaleCalculation.ExecutionTimeEnd);
+        step1.Lifecycle.TerminationState.Should().Be(Core.Domain.OrchestrationInstance.OrchestrationStepTerminationState.Succeeded);
 
         // => Step: Enqueue Messages
         var step2 = migratedOrchestrationInstance.Steps.First(x => x.Sequence == 2);
         step2.Lifecycle.TerminationState.Should().Be(Core.Domain.OrchestrationInstance.OrchestrationStepTerminationState.Skipped);
+    }
+
+    [Fact]
+    public async Task Given_CalculationInDatabase_When_CallingActivity_Then_CalculationIsMigrated()
+    {
+        // Arrange
+        var existingCalculationId = Guid.Parse("00feb707-73af-4d9d-9c85-5a22255cd474");
+
+        using var wholesaleContext = _fixture.WholesaleDatabaseManager.CreateDbContext();
+        using var processManagerContext = _fixture.PMDatabaseManager.CreateDbContext();
+
+        var sut = new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
+            wholesaleContext,
+            processManagerContext,
+            new OrchestrationInstanceFactory());
+
+        // Act
+        var actual = await sut.Run(new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.ActivityInput(existingCalculationId));
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        actual.Should().NotBeNull().And.Contain("Migrated");
+
+        var wholesaleCalculation = await wholesaleContext.Calculations.FindAsync(existingCalculationId);
+        var migratedOrchestrationInstance = await processManagerContext.OrchestrationInstances
+            .Where(x => x.CustomState == MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.GetMigratedWholesaleCalculationIdCustomState(existingCalculationId))
+            .FirstAsync();
+
+        // => Input
+        var input = migratedOrchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
+        input.CalculationType.Should().Be(CalculationType.BalanceFixing);
+        input.GridAreaCodes.Should().BeEquivalentTo(wholesaleCalculation!.GridAreaCodes.Select(x => x.Code).ToList());
+        input.PeriodStartDate.Should().Be(wholesaleCalculation.PeriodStart.ToDateTimeOffset());
+        input.PeriodEndDate.Should().Be(wholesaleCalculation.PeriodEnd.ToDateTimeOffset());
+        input.IsInternalCalculation.Should().Be(wholesaleCalculation.IsInternalCalculation);
+
+        // => Lifecycle
+        migratedOrchestrationInstance.Lifecycle.CreatedBy.Value.As<UserIdentity>().UserId.Value.Should().Be(wholesaleCalculation.CreatedByUserId);
+        migratedOrchestrationInstance.Lifecycle.ScheduledToRunAt.Should().Be(wholesaleCalculation.ScheduledAt);
+        migratedOrchestrationInstance.Lifecycle.CreatedAt.Should().Be(wholesaleCalculation.CreatedTime);
+        migratedOrchestrationInstance.Lifecycle.QueuedAt.Should().Be(wholesaleCalculation.CreatedTime);
+        migratedOrchestrationInstance.Lifecycle.TerminatedAt.Should().Be(wholesaleCalculation.CompletedTime);
+        migratedOrchestrationInstance.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Succeeded);
+
+        // => Step: Calculation
+        var step1 = migratedOrchestrationInstance.Steps.First(x => x.Sequence == 1);
+        migratedOrchestrationInstance.Lifecycle.StartedAt.Should().Be(wholesaleCalculation.ExecutionTimeStart);
+        step1.Lifecycle.StartedAt.Should().Be(wholesaleCalculation.ExecutionTimeStart);
+        step1.Lifecycle.TerminatedAt.Should().Be(wholesaleCalculation.ExecutionTimeEnd);
+        step1.Lifecycle.TerminationState.Should().Be(Core.Domain.OrchestrationInstance.OrchestrationStepTerminationState.Succeeded);
+
+        // => Step: Enqueue Messages
+        var step2 = migratedOrchestrationInstance.Steps.First(x => x.Sequence == 2);
+        step2.Lifecycle.StartedAt.Should().Be(wholesaleCalculation.ActorMessagesEnqueuingTimeStart);
+        step2.Lifecycle.TerminatedAt.Should().Be(wholesaleCalculation.ActorMessagesEnqueuedTimeEnd);
+        step2.Lifecycle.TerminationState.Should().Be(Core.Domain.OrchestrationInstance.OrchestrationStepTerminationState.Succeeded);
     }
 }

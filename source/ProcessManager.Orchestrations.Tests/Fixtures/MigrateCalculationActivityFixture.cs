@@ -32,6 +32,12 @@ public class MigrateCalculationActivityFixture : IAsyncLifetime
     {
         await WholesaleDatabaseManager.CreateDatabaseAsync();
         await PMDatabaseManager.CreateDatabaseAsync();
+
+        // Describe BRS 023 / 027
+        using var processManagerContext = PMDatabaseManager.CreateDbContext();
+        var builder = new Orchestrations.Processes.BRS_023_027.V1.OrchestrationDescriptionBuilder();
+        await processManagerContext.OrchestrationDescriptions.AddAsync(builder.Build());
+        await processManagerContext.CommitAsync();
     }
 
     public async Task DisposeAsync()

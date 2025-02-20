@@ -32,6 +32,9 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
         _fixture = fixture;
     }
 
+    /// <summary>
+    /// Testing an "Internal Calculation" which should "skip" the step "Enqueue Messages".
+    /// </summary>
     [Fact]
     public async Task Given_InternalCalculationInDatabase_When_CallingActivity_Then_CalculationIsMigrated()
     {
@@ -86,6 +89,9 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
         step2.Lifecycle.TerminationState.Should().Be(Core.Domain.OrchestrationInstance.OrchestrationStepTerminationState.Skipped);
     }
 
+    /// <summary>
+    /// Testing an "External Calculation" which should run the step "Enqueue Messages".
+    /// </summary>
     [Fact]
     public async Task Given_CalculationInDatabase_When_CallingActivity_Then_CalculationIsMigrated()
     {

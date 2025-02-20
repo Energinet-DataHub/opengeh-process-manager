@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using AutoFixture;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -101,6 +102,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 .Where(c => c.OrchestrationState == CalculationOrchestrationState.Completed)
                 .Select(c => c.Id)
                 .ToListAsync();
+        }
+
+        // => Clean database for orchestration instances to not get already migrated calculations
+        await using (var processManagerContext = Fixture.OrchestrationsAppManager.DatabaseManager.CreateDbContext())
+        {
+            await processManagerContext.Database.ExecuteSqlAsync($"DELETE FROM [pm].[StepInstance]");
+            await processManagerContext.Database.ExecuteSqlAsync($"DELETE FROM [pm].[OrchestrationInstance]");
         }
 
         // When

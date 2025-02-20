@@ -13,10 +13,13 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.EntityFrameworkCore;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 
@@ -39,7 +42,7 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
         using var processManagerContext = _fixture.PMDatabaseManager.CreateDbContext();
 
         // => Describe BRS 023 / 027
-        var builder = new Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.OrchestrationDescriptionBuilder();
+        var builder = new Orchestrations.Processes.BRS_023_027.V1.OrchestrationDescriptionBuilder();
         await processManagerContext.OrchestrationDescriptions.AddAsync(builder.Build());
         await processManagerContext.CommitAsync();
 
@@ -54,5 +57,35 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
         // Assert
         using var assertionScope = new AssertionScope();
         actual.Should().NotBeNull().And.Contain("Migrated");
+
+        var wholesaleCalculation = await wholesaleContext.Calculations.FindAsync(existingCalculationId);
+        var migratedOrchestrationInstance = await processManagerContext.OrchestrationInstances
+            .Where(x => x.CustomState == MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.GetMigratedWholesaleCalculationIdCustomState(existingCalculationId))
+            .FirstAsync();
+
+        // => Input
+        var input = migratedOrchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
+        input.CalculationType.Should().Be(CalculationType.Aggregation);
+        input.GridAreaCodes.Should().BeEquivalentTo(wholesaleCalculation!.GridAreaCodes.Select(x => x.Code).ToList());
+        input.PeriodStartDate.Should().Be(wholesaleCalculation.PeriodStart.ToDateTimeOffset());
+        input.PeriodEndDate.Should().Be(wholesaleCalculation.PeriodEnd.ToDateTimeOffset());
+        input.IsInternalCalculation.Should().Be(wholesaleCalculation.IsInternalCalculation);
+
+        // => Lifecycle
+        migratedOrchestrationInstance.Lifecycle.CreatedBy.Value.As<UserIdentity>().UserId.Value.Should().Be(wholesaleCalculation.CreatedByUserId);
+        migratedOrchestrationInstance.Lifecycle.ScheduledToRunAt.Should().Be(wholesaleCalculation.ScheduledAt);
+        migratedOrchestrationInstance.Lifecycle.CreatedAt.Should().Be(wholesaleCalculation.CreatedTime);
+        migratedOrchestrationInstance.Lifecycle.QueuedAt.Should().Be(wholesaleCalculation.CreatedTime);
+        migratedOrchestrationInstance.Lifecycle.TerminatedAt.Should().Be(wholesaleCalculation.CompletedTime);
+
+        // => Step: Calculation
+        var step1 = migratedOrchestrationInstance.Steps.First(x => x.Sequence == 1);
+        migratedOrchestrationInstance.Lifecycle.StartedAt.Should().Be(wholesaleCalculation.ExecutionTimeStart);
+        step1.Lifecycle.StartedAt.Should().Be(wholesaleCalculation.ExecutionTimeStart);
+        step1.Lifecycle.TerminatedAt.Should().Be(wholesaleCalculation.ExecutionTimeEnd);
+
+        // => Step: Enqueue Messages
+        var step2 = migratedOrchestrationInstance.Steps.First(x => x.Sequence == 2);
+        step2.Lifecycle.TerminationState.Should().Be(Core.Domain.OrchestrationInstance.OrchestrationStepTerminationState.Skipped);
     }
 }

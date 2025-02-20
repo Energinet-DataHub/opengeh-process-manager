@@ -163,6 +163,8 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     }
 
     /// <summary>
+    /// An implementation of IClock that allows us to manipulate time and set it to a decired value.
+    /// This is used in state transitions to be able to make the transition happen at a certain time.
     /// We do not allow nulls, and they should not appear within the given dataset for migration
     /// </summary>
     /// <param name="timeOrNull"></param>

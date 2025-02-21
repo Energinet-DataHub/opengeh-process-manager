@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Models;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
-using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,23 +31,14 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
     public async Task<CalculationsToMigrate> Run(
         [ActivityTrigger] FunctionContext functionContext)
     {
-        var allWholesaleCalculationsIds = await _wholesaleContext.Calculations
-            .Where(c => c.OrchestrationState == CalculationOrchestrationState.Completed)
+        var allWholesaleCalculationsIds = await _wholesaleContext
+            .CreateCalculationsToMigrateQuery()
             .Select(c => c.Id)
             .ToListAsync()
             .ConfigureAwait(false);
 
         var alreadyMigratedCalculations = await _processManagerContext
-            .OrchestrationDescriptions
-                .AsNoTracking()
-                .Where(od => od.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
-            .Join(
-                inner: _processManagerContext.OrchestrationInstances,
-                outerKeySelector: od => od.Id,
-                innerKeySelector: oi => oi.OrchestrationDescriptionId,
-                resultSelector: (_, oi) => oi)
-            .AsNoTracking()
-            .Where(oi => oi.CustomState.SerializedValue.Contains(nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState.MigratedWholesaleCalculationId)))
+            .CreateMigratedCalculationsQuery()
             .ToListAsync()
             .ConfigureAwait(false);
 

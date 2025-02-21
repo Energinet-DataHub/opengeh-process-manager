@@ -59,7 +59,7 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
         var wholesaleCalculation = await wholesaleContext.Calculations.FindAsync(existingCalculationId);
         var migratedOrchestrationInstance = await processManagerContext.OrchestrationInstances
             .Where(x => x.CustomState == MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.GetMigratedWholesaleCalculationIdCustomState(existingCalculationId))
-            .FirstAsync();
+            .SingleAsync();
 
         // => Input
         var input = migratedOrchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
@@ -116,7 +116,7 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
         var wholesaleCalculation = await wholesaleContext.Calculations.FindAsync(existingCalculationId);
         var migratedOrchestrationInstance = await processManagerContext.OrchestrationInstances
             .Where(x => x.CustomState == MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.GetMigratedWholesaleCalculationIdCustomState(existingCalculationId))
-            .FirstAsync();
+            .SingleAsync();
 
         // => Input
         var input = migratedOrchestrationInstance.ParameterValue.AsType<CalculationInputV1>();

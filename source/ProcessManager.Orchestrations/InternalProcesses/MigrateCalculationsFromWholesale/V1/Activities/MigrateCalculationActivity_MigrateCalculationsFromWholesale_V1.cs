@@ -60,7 +60,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
                 return $"Migration skipped for '{input.CalculationToMigrateId}'.";
 
             var wholesaleCalculation = await _wholesaleContext.Calculations
-                    .FirstAsync(x => x.Id == input.CalculationToMigrateId)
+                    .SingleAsync(x => x.Id == input.CalculationToMigrateId)
                     .ConfigureAwait(false);
 
             var brs_023_027_V1_description = await _processManagerContext.OrchestrationDescriptions
@@ -170,7 +170,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     /// <param name="timeOrNull"></param>
     private class MagicClock(Instant? timeOrNull) : IClock
     {
-        private readonly Instant _time = (Instant)timeOrNull!;
+        private readonly Instant _time = timeOrNull ?? throw new ArgumentNullException("Instant cannot be null when migrating.");
 
         public Instant GetCurrentInstant()
         {

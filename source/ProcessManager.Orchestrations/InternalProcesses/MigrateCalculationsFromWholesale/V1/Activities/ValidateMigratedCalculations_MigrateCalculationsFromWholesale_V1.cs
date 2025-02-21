@@ -15,7 +15,6 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.InternalProcesses.MigrateCalculationsFromWholesale;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
@@ -34,36 +33,23 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.Migr
 public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
     ILogger<ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1> logger,
     WholesaleContext wholesaleContext,
-    ProcessManagerContext processManagerContext,
-    IOrchestrationInstanceQueries orchestrationInstanceQueries)
+    ProcessManagerContext processManagerContext)
 {
     private readonly ILogger<ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1> _logger = logger;
     private readonly WholesaleContext _wholesaleContext = wholesaleContext;
     private readonly ProcessManagerContext _processManagerContext = processManagerContext;
-    private readonly IOrchestrationInstanceQueries _orchestrationInstanceQueries = orchestrationInstanceQueries;
 
     [Function(nameof(ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1))]
     public async Task Run(
         [ActivityTrigger] FunctionContext functionContext)
     {
-        var wholesaleCalculations = await _wholesaleContext.Calculations
-            .AsNoTracking()
-            .Where(c => c.OrchestrationState == CalculationOrchestrationState.Completed)
+        var wholesaleCalculations = await _wholesaleContext
+            .CreateCalculationsToMigrateQuery()
             .ToListAsync()
             .ConfigureAwait(false);
 
-        var migratedCalculations = await _processManagerContext.OrchestrationDescriptions
-            .AsNoTracking()
-            .Where(od =>
-                od.UniqueName.Name == Brs_023_027.V1.Name
-                && od.UniqueName.Version == Brs_023_027.V1.Version)
-            .Join(
-                inner: _processManagerContext.OrchestrationInstances,
-                outerKeySelector: od => od.Id,
-                innerKeySelector: oi => oi.OrchestrationDescriptionId,
-                resultSelector: (od, oi) => oi)
-            .AsNoTracking()
-            .Where(oi => oi.CustomState.Value.Contains(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.MigratedWholesaleCalculationIdCustomStatePrefix))
+        var migratedCalculations = await _processManagerContext
+            .CreateMigratedCalculationsQuery()
             .ToListAsync()
             .ConfigureAwait(false);
 

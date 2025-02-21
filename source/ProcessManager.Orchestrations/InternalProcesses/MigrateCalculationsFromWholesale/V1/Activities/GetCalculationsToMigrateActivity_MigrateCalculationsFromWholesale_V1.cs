@@ -34,23 +34,14 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
     public async Task<CalculationsToMigrate> Run(
         [ActivityTrigger] FunctionContext functionContext)
     {
-        var allWholesaleCalculationsIds = await _wholesaleContext.Calculations
-            .Where(c => c.OrchestrationState == CalculationOrchestrationState.Completed)
+        var allWholesaleCalculationsIds = await _wholesaleContext
+            .CreateCalculationsToMigrateQuery()
             .Select(c => c.Id)
             .ToListAsync()
             .ConfigureAwait(false);
 
         var alreadyMigratedCalculations = await _processManagerContext
-            .OrchestrationDescriptions
-                .AsNoTracking()
-                .Where(od => od.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
-            .Join(
-                inner: _processManagerContext.OrchestrationInstances,
-                outerKeySelector: od => od.Id,
-                innerKeySelector: oi => oi.OrchestrationDescriptionId,
-                resultSelector: (_, oi) => oi)
-            .AsNoTracking()
-            .Where(oi => oi.CustomState.Value.Contains(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.MigratedWholesaleCalculationIdCustomStatePrefix))
+            .CreateMigratedCalculationsQuery()
             .ToListAsync()
             .ConfigureAwait(false);
 

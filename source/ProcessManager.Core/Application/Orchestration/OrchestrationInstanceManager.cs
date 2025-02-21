@@ -205,6 +205,7 @@ internal class OrchestrationInstanceManager(
         if (orchestrationInstanceToNotify is null)
         {
             _logger.LogWarning($"Notifying orchestration instance with id '{id}' and event name '{eventName}' failed.");
+            return;
         }
 
         await _executor.NotifyOrchestrationInstanceAsync(id, eventName, eventData).ConfigureAwait(false);

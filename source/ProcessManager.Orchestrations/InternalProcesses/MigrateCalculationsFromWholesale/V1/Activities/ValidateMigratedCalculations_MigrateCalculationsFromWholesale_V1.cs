@@ -40,7 +40,7 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
     private readonly ProcessManagerContext _processManagerContext = processManagerContext;
 
     [Function(nameof(ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1))]
-    public async Task Run(
+    public async Task<string> Run(
         [ActivityTrigger] FunctionContext functionContext)
     {
         var wholesaleCalculations = await _wholesaleContext
@@ -78,6 +78,8 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
                 },
             };
         }
+
+        return $"Validated {migratedCalculations.Count} migrated calculations.";
     }
 
     private IReadOnlyCollection<Calculation> GetNotMigratedWholesaleCalculations(

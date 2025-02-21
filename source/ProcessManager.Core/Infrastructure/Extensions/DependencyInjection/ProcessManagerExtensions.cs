@@ -153,6 +153,9 @@ public static class ProcessManagerExtensions
         services.AddHealthChecks()
             .AddTypeActivatedCheck<OrchestrationRegisterHealthCheck>("Orchestration register", HealthStatus.Unhealthy);
 
+        // => For the feature Migrate Wholesale Calculations
+        services.TryAddTransient<IOrchestrationInstanceFactory, OrchestrationInstanceFactory>();
+
         return services;
     }
 

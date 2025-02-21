@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using DomainModel = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 

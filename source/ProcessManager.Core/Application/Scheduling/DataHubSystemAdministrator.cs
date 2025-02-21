@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Scheduler;
+namespace Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 
 /// <summary>
 /// The DataHub administrator user that the Market Participant is seeded with.

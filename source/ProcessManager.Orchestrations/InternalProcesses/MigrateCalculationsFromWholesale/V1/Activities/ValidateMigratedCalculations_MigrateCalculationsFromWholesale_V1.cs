@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.InternalProcesses.MigrateCalculationsFromWholesale;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
@@ -54,8 +55,8 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
         var migratedCalculations = await _processManagerContext.OrchestrationDescriptions
             .AsNoTracking()
             .Where(od =>
-                od.UniqueName.Name == MigrateCalculationsFromWholesaleUniqueName.V1.Name
-                && od.UniqueName.Version == MigrateCalculationsFromWholesaleUniqueName.V1.Version)
+                od.UniqueName.Name == Brs_023_027.V1.Name
+                && od.UniqueName.Version == Brs_023_027.V1.Version)
             .Join(
                 inner: _processManagerContext.OrchestrationInstances,
                 outerKeySelector: od => od.Id,
@@ -83,7 +84,7 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
                 "Errors while migrating Wholesale calculations. Failed calculation ids: {FailedCalculationIds}, migration errors: {MigrationErrors}",
                 migrationErrors.Select(e => e.Key).ToList(),
                 migrationErrors);
-            throw new Exception("Errors while migrating Wholesale calculations (Failed calculation ids: " + string.Join(", ", migrationErrors.Keys) + ")")
+            throw new Exception("Errors while migrating Wholesale calculations. Failed calculations: " + string.Join("\n", migrationErrors.Select(e => $"{e.Key}: [{string.Join(", ", e.Value)}]")))
             {
                 Data =
                 {

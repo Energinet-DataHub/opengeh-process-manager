@@ -204,7 +204,7 @@ internal class OrchestrationInstanceManager(
 
         if (orchestrationInstanceToNotify is null)
         {
-            _logger.LogWarning($"Notifying orchestration instance with id '{id}' and event name '{eventName}' failed.");
+            _logger.LogWarning($"Notifying orchestration instance with id '{id.Value}' and event name '{eventName}' failed.");
             return;
         }
 

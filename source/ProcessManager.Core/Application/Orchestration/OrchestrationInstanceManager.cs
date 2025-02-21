@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
@@ -27,7 +28,8 @@ internal class OrchestrationInstanceManager(
     IClock clock,
     IOrchestrationInstanceExecutor executor,
     IOrchestrationRegisterQueries orchestrationRegister,
-    IOrchestrationInstanceRepository repository) :
+    IOrchestrationInstanceRepository repository,
+    ILogger<OrchestrationInstanceManager> logger) :
         IStartOrchestrationInstanceCommands,
         IStartOrchestrationInstanceMessageCommands,
         IStartScheduledOrchestrationInstanceCommand,
@@ -38,6 +40,7 @@ internal class OrchestrationInstanceManager(
     private readonly IOrchestrationInstanceExecutor _executor = executor;
     private readonly IOrchestrationRegisterQueries _orchestrationRegister = orchestrationRegister;
     private readonly IOrchestrationInstanceRepository _repository = repository;
+    private readonly ILogger<OrchestrationInstanceManager> _logger = logger;
 
     /// <inheritdoc />
     public async Task<OrchestrationInstanceId> StartNewOrchestrationInstanceAsync(
@@ -200,7 +203,9 @@ internal class OrchestrationInstanceManager(
         var orchestrationInstanceToNotify = await _repository.GetOrDefaultAsync(id).ConfigureAwait(false);
 
         if (orchestrationInstanceToNotify is null)
-            throw new InvalidOperationException($"Orchestration instance (Id={id.Value}) to notify was not found.");
+        {
+            _logger.LogWarning($"Notifying orchestration instance with id '{id}' and event name '{eventName}' failed.");
+        }
 
         await _executor.NotifyOrchestrationInstanceAsync(id, eventName, eventData).ConfigureAwait(false);
     }

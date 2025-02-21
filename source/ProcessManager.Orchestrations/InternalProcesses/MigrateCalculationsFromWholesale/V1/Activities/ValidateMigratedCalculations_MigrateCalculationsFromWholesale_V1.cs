@@ -71,7 +71,7 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
             wholesaleCalculations,
             migratedCalculations);
 
-        var migrationErrors = await GetIncorrectlyMigratedCalculations(migratedCalculations).ConfigureAwait(false);
+        var migrationErrors = GetIncorrectlyMigratedCalculations(migratedCalculations);
 
         foreach (var notMigratedWholesaleCalculation in notMigratedWholesaleCalculations)
         {
@@ -81,8 +81,8 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
         if (migrationErrors.Count != 0)
         {
             _logger.LogError(
-                "Errors while migrating Wholesale calculations. Failed calculation ids: {FailedCalculationIds}, migration errors: {MigrationErrors}",
-                migrationErrors.Select(e => e.Key).ToList(),
+                "Errors while migrating Wholesale calculations. Failed calculations count: {FailedCalculationsCount}, migration errors: {MigrationErrors}",
+                migrationErrors.Count,
                 migrationErrors);
             throw new Exception("Errors while migrating Wholesale calculations. Failed calculations: " + string.Join("\n", migrationErrors.Select(e => $"{e.Key}: [{string.Join(", ", e.Value)}]")))
             {
@@ -95,8 +95,8 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
     }
 
     private IReadOnlyCollection<Calculation> GetNotMigratedWholesaleCalculations(
-        List<Calculation> wholesaleCalculations,
-        List<OrchestrationInstance> migratedCalculations)
+        IReadOnlyCollection<Calculation> wholesaleCalculations,
+        IReadOnlyCollection<OrchestrationInstance> migratedCalculations)
     {
         var migratedCalculationIds = migratedCalculations
             .Select(oi => oi.CustomState)
@@ -110,30 +110,23 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
         return notMigratedCalculations;
     }
 
-    private async Task<Dictionary<Guid, IReadOnlyCollection<string>>> GetIncorrectlyMigratedCalculations(List<OrchestrationInstance> allMigratedCalculations)
+    private Dictionary<Guid, IReadOnlyCollection<string>> GetIncorrectlyMigratedCalculations(IReadOnlyCollection<OrchestrationInstance> allMigratedCalculations)
     {
-        var migrationErrorsTasks = allMigratedCalculations
+        var migrationErrors = allMigratedCalculations
             .Select(GetMigrationErrorsForCalculation)
             .ToList();
-
-        var migrationErrors = await Task.WhenAll(migrationErrorsTasks)
-            .ConfigureAwait(false);
 
         return migrationErrors
             .Where(c => c.Value.Count > 0)
             .ToDictionary();
     }
 
-    private async Task<KeyValuePair<Guid, IReadOnlyCollection<string>>> GetMigrationErrorsForCalculation(OrchestrationInstance migratedCalculation)
+    private KeyValuePair<Guid, IReadOnlyCollection<string>> GetMigrationErrorsForCalculation(OrchestrationInstance migratedCalculation)
     {
         var wholesaleCalculationId = MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1
             .GetMigratedWholesaleCalculationIdCustomStateGuid(migratedCalculation.CustomState);
 
-        var orchestrationInstance = await _orchestrationInstanceQueries
-            .GetAsync(migratedCalculation.Id)
-            .ConfigureAwait(false);
-
-        var asTypedDto = orchestrationInstance.MapToTypedDto<CalculationInputV1>();
+        var asTypedDto = migratedCalculation.MapToTypedDto<CalculationInputV1>();
 
         // Verify that the typed ParameterValue works and the at least one GridAreaCodes is present.
         var checks = new Dictionary<string, bool>

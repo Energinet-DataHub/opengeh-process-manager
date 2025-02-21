@@ -131,14 +131,14 @@ public class ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesa
             {
                 nameof(asTypedDto.Lifecycle.CreatedBy),
                 asTypedDto.Lifecycle.CreatedBy is UserIdentityDto ui
-                    && ui.UserId != Guid.Empty
-                    && ui.ActorRole == DataHubSystemAdministrator.UserIdentity.Actor.Role
-                    && ui.ActorNumber == DataHubSystemAdministrator.UserIdentity.Actor.Number
+                && ui.UserId != Guid.Empty
+                && ui.ActorRole == DataHubSystemAdministrator.UserIdentity.Actor.Role
+                && ui.ActorNumber == DataHubSystemAdministrator.UserIdentity.Actor.Number
             },
             {
                 nameof(asTypedDto.Lifecycle.ScheduledToRunAt),
                 asTypedDto.Lifecycle.ScheduledToRunAt is not null
-                    && asTypedDto.Lifecycle.ScheduledToRunAt != default(DateTimeOffset)
+                && asTypedDto.Lifecycle.ScheduledToRunAt != default(DateTimeOffset)
             },
             {
                 nameof(asTypedDto.Lifecycle.StartedAt),

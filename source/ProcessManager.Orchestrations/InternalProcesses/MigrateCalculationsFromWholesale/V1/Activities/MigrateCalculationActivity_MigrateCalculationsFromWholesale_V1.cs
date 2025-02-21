@@ -128,7 +128,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
             wholesaleCalculation.ScheduledAt,
             skipStepsBySequence);
 
-        orchestrationInstance.CustomState.Value = $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculation.Id}";
+        orchestrationInstance.CustomState.Value = GetMigratedWholesaleCalculationIdCustomState(wholesaleCalculation.Id).Value;
 
         var calculationInput = new CalculationInputV1(
             CalculationType: ToCalculationType(wholesaleCalculation.CalculationType),

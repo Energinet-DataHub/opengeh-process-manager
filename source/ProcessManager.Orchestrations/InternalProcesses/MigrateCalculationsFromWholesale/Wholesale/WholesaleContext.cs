@@ -33,6 +33,13 @@ public class WholesaleContext : DbContext
 
     public virtual DbSet<Calculation> Calculations { get; private set; } = null!;
 
+    public IQueryable<Calculation> CreateCalculationsToMigrateQuery()
+    {
+        return Calculations
+            .AsNoTracking()
+            .Where(c => c.OrchestrationState == CalculationOrchestrationState.Completed);
+    }
+
     public Task<int> SaveChangesAsync() => base.SaveChangesAsync();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

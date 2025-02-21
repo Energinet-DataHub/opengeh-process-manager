@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
@@ -124,6 +127,18 @@ public class ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesa
             {
                 nameof(asTypedDto.Lifecycle.TerminationState),
                 asTypedDto.Lifecycle.TerminationState is OrchestrationInstanceTerminationState.Succeeded
+            },
+            {
+                nameof(asTypedDto.Lifecycle.CreatedBy),
+                asTypedDto.Lifecycle.CreatedBy is UserIdentityDto ui
+                    && ui.UserId != Guid.Empty
+                    && ui.ActorRole == DataHubSystemAdministrator.UserIdentity.Actor.Role
+                    && ui.ActorNumber == DataHubSystemAdministrator.UserIdentity.Actor.Number
+            },
+            {
+                nameof(asTypedDto.Lifecycle.ScheduledToRunAt),
+                asTypedDto.Lifecycle.ScheduledToRunAt is not null
+                    && asTypedDto.Lifecycle.ScheduledToRunAt != default(DateTimeOffset)
             },
             {
                 nameof(asTypedDto.Lifecycle.StartedAt),

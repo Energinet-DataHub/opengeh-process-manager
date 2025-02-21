@@ -151,7 +151,7 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
             },
             {
                 nameof(asTypedDto.ParameterValue.PeriodEndDate),
-                asTypedDto.ParameterValue.PeriodStartDate != default
+                asTypedDto.ParameterValue.PeriodEndDate != default
             },
         };
 

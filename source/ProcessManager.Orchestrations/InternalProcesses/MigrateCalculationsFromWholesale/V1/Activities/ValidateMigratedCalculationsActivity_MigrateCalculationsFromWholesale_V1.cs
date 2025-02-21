@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
@@ -30,16 +28,16 @@ using StepInstanceLifecycleState = Energinet.DataHub.ProcessManager.Abstractions
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 
-public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
-    ILogger<ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1> logger,
+public class ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesale_V1(
+    ILogger<ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesale_V1> logger,
     WholesaleContext wholesaleContext,
     ProcessManagerContext processManagerContext)
 {
-    private readonly ILogger<ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1> _logger = logger;
+    private readonly ILogger<ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesale_V1> _logger = logger;
     private readonly WholesaleContext _wholesaleContext = wholesaleContext;
     private readonly ProcessManagerContext _processManagerContext = processManagerContext;
 
-    [Function(nameof(ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1))]
+    [Function(nameof(ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesale_V1))]
     public async Task<string> Run(
         [ActivityTrigger] FunctionContext functionContext)
     {
@@ -79,7 +77,7 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
             };
         }
 
-        return $"Validated {migratedCalculations.Count} migrated calculations.";
+        return $"Successfully validated {migratedCalculations.Count} migrated calculations.";
     }
 
     private IReadOnlyCollection<Calculation> GetNotMigratedWholesaleCalculations(

@@ -54,7 +54,7 @@ internal class MigrateCalculationsStep(
         await Task.WhenAll(migrateActivityTasks);
 
         await Context.CallActivityAsync(
-            name: nameof(ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1),
+            name: nameof(ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesale_V1),
             options: DefaultRetryOptions);
 
         return OrchestrationStepTerminationState.Succeeded;

@@ -50,13 +50,13 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
                 innerKeySelector: oi => oi.OrchestrationDescriptionId,
                 resultSelector: (_, oi) => oi)
             .AsNoTracking()
-            .Where(oi => oi.CustomState.Value.Contains(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.MigratedWholesaleCalculationIdCustomStatePrefix))
+            .Where(oi => oi.CustomState.SerializedValue.Contains(nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState.MigratedWholesaleCalculationId)))
             .ToListAsync()
             .ConfigureAwait(false);
 
         var alreadyMigratedCalculationIds = alreadyMigratedCalculations
             .Select(oi => oi.CustomState)
-            .Select(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.GetMigratedWholesaleCalculationIdCustomStateGuid)
+            .Select(cs => cs.AsType<MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState>().MigratedWholesaleCalculationId)
             .ToList();
 
         var remainingCalculationsIdsToMigrate = allWholesaleCalculationsIds

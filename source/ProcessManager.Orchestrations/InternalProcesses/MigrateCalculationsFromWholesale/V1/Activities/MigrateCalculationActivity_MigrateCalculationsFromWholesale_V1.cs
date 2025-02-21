@@ -31,22 +31,13 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     ProcessManagerContext processManagerContext,
     IOrchestrationInstanceFactory orchestrationInstanceFactory)
 {
-    public const string MigratedWholesaleCalculationIdCustomStatePrefix = "MigratedWholesaleCalculationId=";
-
     private readonly WholesaleContext _wholesaleContext = wholesaleContext;
     private readonly ProcessManagerContext _processManagerContext = processManagerContext;
     private readonly IOrchestrationInstanceFactory _orchestrationInstanceFactory = orchestrationInstanceFactory;
 
-    public static OrchestrationInstanceCustomState GetMigratedWholesaleCalculationIdCustomState(Guid wholesaleCalculationId)
+    public static SerializedValueType GetMigratedWholesaleCalculationIdCustomState(Guid wholesaleCalculationId)
     {
-        return new OrchestrationInstanceCustomState($"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculationId}");
-    }
-
-    public static Guid GetMigratedWholesaleCalculationIdCustomStateGuid(OrchestrationInstanceCustomState customState)
-    {
-        var calculationIdString = customState.Value.Replace(MigratedWholesaleCalculationIdCustomStatePrefix, string.Empty);
-        var calculationId = Guid.Parse(calculationIdString);
-        return calculationId;
+        return SerializedValueType.CreateWithValue(new CustomState(wholesaleCalculationId));
     }
 
     [Function(nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1))]
@@ -128,7 +119,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
             wholesaleCalculation.ScheduledAt,
             skipStepsBySequence);
 
-        orchestrationInstance.CustomState = new OrchestrationInstanceCustomState($"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculation.Id}");
+        orchestrationInstance.CustomState.SetFromInstance(new CustomState(wholesaleCalculation.Id));
 
         var calculationInput = new CalculationInputV1(
             CalculationType: ToCalculationType(wholesaleCalculation.CalculationType),
@@ -180,4 +171,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
 
     public record ActivityInput(
         Guid CalculationToMigrateId);
+
+    public record CustomState(
+        Guid MigratedWholesaleCalculationId);
 }

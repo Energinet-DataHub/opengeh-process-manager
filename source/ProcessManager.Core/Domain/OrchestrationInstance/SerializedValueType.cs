@@ -35,6 +35,20 @@ public class SerializedValueType
     public string SerializedValue { get; private set; }
 
     /// <summary>
+    /// Create a new <see cref="SerializedValueType"/> from a value instance.
+    /// An value must be a <see langword="class"/>
+    /// (which includes <see langword="record"/>), and be serializable to JSON.
+    /// </summary>
+    public static SerializedValueType CreateWithValue<TValue>(TValue instance)
+        where TValue : class
+    {
+        var target = new SerializedValueType();
+        target.SetFromInstance(instance);
+
+        return target;
+    }
+
+    /// <summary>
     /// Serialize the value from an instance.
     /// An value must be a <see langword="class"/>
     /// (which includes <see langword="record"/>), and be serializable to JSON.

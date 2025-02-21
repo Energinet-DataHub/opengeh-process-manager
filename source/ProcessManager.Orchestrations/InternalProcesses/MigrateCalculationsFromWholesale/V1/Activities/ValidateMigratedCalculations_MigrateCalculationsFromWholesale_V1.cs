@@ -172,9 +172,10 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
                         },
                         {
                             $"{stepName}: {nameof(s.Lifecycle.StartedAt)}",
-                            s.Lifecycle.TerminationState is OrchestrationStepTerminationState.Skipped || (
-                                s.Lifecycle.StartedAt != null
-                                && s.Lifecycle.StartedAt != default(DateTimeOffset))
+                            s.Lifecycle is { TerminationState: OrchestrationStepTerminationState.Skipped, StartedAt: null }
+                                || (
+                                    s.Lifecycle.StartedAt != null
+                                    && s.Lifecycle.StartedAt != default(DateTimeOffset))
                         },
                         {
                             $"{stepName}: {nameof(s.Lifecycle.TerminatedAt)}",

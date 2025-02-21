@@ -176,7 +176,7 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
                     {
                         {
                             $"{stepName}: {nameof(s.Lifecycle.State)}",
-                            s.Lifecycle.State != StepInstanceLifecycleState.Terminated
+                            s.Lifecycle.State == StepInstanceLifecycleState.Terminated
                         },
                         {
                             $"{stepName}: {nameof(s.Lifecycle.TerminationState)}",
@@ -184,8 +184,9 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
                         },
                         {
                             $"{stepName}: {nameof(s.Lifecycle.StartedAt)}",
-                            s.Lifecycle.StartedAt != null
-                            && s.Lifecycle.StartedAt != default(DateTimeOffset)
+                            s.Lifecycle.TerminationState == OrchestrationStepTerminationState.Skipped || (
+                                s.Lifecycle.StartedAt != null
+                                && s.Lifecycle.StartedAt != default(DateTimeOffset))
                         },
                         {
                             $"{stepName}: {nameof(s.Lifecycle.TerminatedAt)}",

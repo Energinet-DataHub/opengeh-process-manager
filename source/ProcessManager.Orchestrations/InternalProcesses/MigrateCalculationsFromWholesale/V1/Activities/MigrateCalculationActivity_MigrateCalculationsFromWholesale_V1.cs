@@ -35,7 +35,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     private readonly ProcessManagerContext _processManagerContext = processManagerContext;
     private readonly IOrchestrationInstanceFactory _orchestrationInstanceFactory = orchestrationInstanceFactory;
 
-    public static SerializedValueType GetMigratedWholesaleCalculationIdCustomState(Guid wholesaleCalculationId)
+    public static SerializedValueType GetCustomState(Guid wholesaleCalculationId)
     {
         return SerializedValueType.CreateWithValue(new CustomState(wholesaleCalculationId));
     }
@@ -99,7 +99,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     {
         return _processManagerContext.OrchestrationInstances
             .AsNoTracking()
-            .Where(x => x.CustomState == GetMigratedWholesaleCalculationIdCustomState(wholesaleCalculationId))
+            .Where(x => x.CustomState == GetCustomState(wholesaleCalculationId))
             .AnyAsync();
     }
 

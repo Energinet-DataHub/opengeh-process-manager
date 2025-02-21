@@ -43,8 +43,8 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
             .ConfigureAwait(false);
 
         var alreadyMigratedCalculationIds = alreadyMigratedCalculations
-            .Select(oi => oi.CustomState)
-            .Select(cs => cs.AsType<MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState>().MigratedWholesaleCalculationId)
+            .Select(oi => oi.CustomState.AsType<MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState>())
+            .Select(cs => cs.MigratedWholesaleCalculationId)
             .ToList();
 
         var remainingCalculationsIdsToMigrate = allWholesaleCalculationsIds

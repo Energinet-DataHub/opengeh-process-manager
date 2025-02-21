@@ -114,25 +114,25 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
 
         var asTypedDto = migratedCalculation.MapToTypedDto<CalculationInputV1>();
 
-        // Verify that the typed ParameterValue works and the at least one GridAreaCodes is present.
+        // Verify that the orchestration instance is mapped to a typed DTO correctly.
         var checks = new Dictionary<string, bool>
         {
             {
                 nameof(asTypedDto.Lifecycle.State),
-                asTypedDto.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+                asTypedDto.Lifecycle.State is OrchestrationInstanceLifecycleState.Terminated
             },
             {
                 nameof(asTypedDto.Lifecycle.TerminationState),
-                asTypedDto.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded
+                asTypedDto.Lifecycle.TerminationState is OrchestrationInstanceTerminationState.Succeeded
             },
             {
                 nameof(asTypedDto.Lifecycle.StartedAt),
-                asTypedDto.Lifecycle.StartedAt != null
+                asTypedDto.Lifecycle.StartedAt is not null
                 && asTypedDto.Lifecycle.StartedAt != default(DateTimeOffset)
             },
             {
                 nameof(asTypedDto.Lifecycle.TerminatedAt),
-                asTypedDto.Lifecycle.TerminatedAt != null
+                asTypedDto.Lifecycle.TerminatedAt is not null
                 && asTypedDto.Lifecycle.TerminatedAt != default(DateTimeOffset)
             },
             {
@@ -162,21 +162,21 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
                     {
                         {
                             $"{stepName}: {nameof(s.Lifecycle.State)}",
-                            s.Lifecycle.State == StepInstanceLifecycleState.Terminated
+                            s.Lifecycle.State is StepInstanceLifecycleState.Terminated
                         },
                         {
                             $"{stepName}: {nameof(s.Lifecycle.TerminationState)}",
-                            s.Lifecycle.TerminationState == OrchestrationStepTerminationState.Succeeded
+                            s.Lifecycle.TerminationState is OrchestrationStepTerminationState.Skipped or OrchestrationStepTerminationState.Succeeded
                         },
                         {
                             $"{stepName}: {nameof(s.Lifecycle.StartedAt)}",
-                            s.Lifecycle.TerminationState == OrchestrationStepTerminationState.Skipped || (
+                            s.Lifecycle.TerminationState is OrchestrationStepTerminationState.Skipped || (
                                 s.Lifecycle.StartedAt != null
                                 && s.Lifecycle.StartedAt != default(DateTimeOffset))
                         },
                         {
                             $"{stepName}: {nameof(s.Lifecycle.TerminatedAt)}",
-                            s.Lifecycle.TerminatedAt != null
+                            s.Lifecycle.TerminatedAt is not null
                             && s.Lifecycle.TerminatedAt != default(DateTimeOffset)
                         },
                     };

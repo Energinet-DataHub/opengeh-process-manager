@@ -117,7 +117,8 @@ public class ValidateMigratedCalculationsActivityTests : IClassFixture<MigrateCa
 
         // Then
         (await act.Should().ThrowAsync<Exception>())
-            .WithMessage($"*Errors while migrating Wholesale calculations.*{wholesaleCalculationId}: [Not migrated]*");
+            .WithMessage("*Errors while migrating Wholesale calculations.*")
+            .WithMessage($"*{wholesaleCalculationId}: [Not migrated]*");
     }
 
     [Fact]
@@ -164,7 +165,7 @@ public class ValidateMigratedCalculationsActivityTests : IClassFixture<MigrateCa
 
         // Then
         (await act.Should().ThrowAsync<Exception>())
-            .WithMessage($"*Errors while migrating Wholesale calculations.*")
+            .WithMessage("*Errors while migrating Wholesale calculations.*")
             .WithMessage($"*{wholesaleCalculationId}: [*TerminationState*]*")
             .WithMessage($"*{wholesaleCalculationId}: [*CalculationType*]*")
             .WithMessage($"*{wholesaleCalculationId}: [*GridAreaCodes*]*")

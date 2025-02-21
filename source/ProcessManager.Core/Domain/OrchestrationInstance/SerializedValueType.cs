@@ -18,11 +18,11 @@ using System.Text.Json;
 namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 /// <summary>
-/// Support storing a string value as JSON.
+/// Store a value as JSON.
 /// </summary>
-public class SerializableValue
+public class SerializedValueType
 {
-    internal SerializableValue()
+    internal SerializedValueType()
     {
         SerializedValue = string.Empty;
     }

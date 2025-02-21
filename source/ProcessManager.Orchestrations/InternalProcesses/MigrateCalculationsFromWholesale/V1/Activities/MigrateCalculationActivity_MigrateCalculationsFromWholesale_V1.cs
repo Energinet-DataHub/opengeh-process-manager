@@ -39,7 +39,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
 
     public static OrchestrationInstanceCustomState GetMigratedWholesaleCalculationIdCustomState(Guid wholesaleCalculationId)
     {
-        return new OrchestrationInstanceCustomState { Value = $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculationId}" };
+        return new OrchestrationInstanceCustomState($"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculationId}");
     }
 
     public static Guid GetMigratedWholesaleCalculationIdCustomStateGuid(OrchestrationInstanceCustomState customState)
@@ -128,7 +128,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
             wholesaleCalculation.ScheduledAt,
             skipStepsBySequence);
 
-        orchestrationInstance.CustomState.Value = $"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculation.Id}";
+        orchestrationInstance.CustomState = new OrchestrationInstanceCustomState($"{MigratedWholesaleCalculationIdCustomStatePrefix}{wholesaleCalculation.Id}");
 
         var calculationInput = new CalculationInputV1(
             CalculationType: ToCalculationType(wholesaleCalculation.CalculationType),

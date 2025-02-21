@@ -332,7 +332,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             transactionId: new TransactionId(Guid.NewGuid().ToString()),
             meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
-        orchestrationInstance.CustomState.Value = "Something new";
+        orchestrationInstance.CustomState = new OrchestrationInstanceCustomState("Something new");
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {

@@ -151,7 +151,7 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
             csb =>
             {
                 csb.Property(cs => cs.Value)
-                    .HasColumnName(nameof(StepInstance.CustomState));
+                    .HasColumnName(nameof(OrchestrationInstance.CustomState));
             });
 
         builder.Property(o => o.IdempotencyKey)

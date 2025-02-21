@@ -40,7 +40,7 @@ public class OrchestrationInstance
         Id = new OrchestrationInstanceId(Guid.NewGuid());
         Lifecycle = new OrchestrationInstanceLifecycle(identity, clock, runAt);
         ParameterValue = new();
-        CustomState = new OrchestrationInstanceCustomState { Value = string.Empty };
+        CustomState = new OrchestrationInstanceCustomState(string.Empty);
         IdempotencyKey = idempotencyKey;
 
         _steps = [];
@@ -84,7 +84,7 @@ public class OrchestrationInstance
     /// <summary>
     /// Any custom state of the orchestration instance.
     /// </summary>
-    public OrchestrationInstanceCustomState CustomState { get; }
+    public OrchestrationInstanceCustomState CustomState { get; set; }
 
     /// <summary>
     /// A value used by the Process Manager to ensure idempotency for a message command.

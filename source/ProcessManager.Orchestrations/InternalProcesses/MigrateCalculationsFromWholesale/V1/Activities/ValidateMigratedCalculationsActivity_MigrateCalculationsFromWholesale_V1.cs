@@ -166,6 +166,10 @@ public class ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesa
                 nameof(asTypedDto.ParameterValue.PeriodEndDate),
                 asTypedDto.ParameterValue.PeriodEndDate != default
             },
+            {
+                nameof(asTypedDto.Steps),
+                asTypedDto.Steps.Count == 2
+            },
         };
 
         var stepChecks = asTypedDto.Steps

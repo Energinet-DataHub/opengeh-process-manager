@@ -14,8 +14,10 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -23,13 +25,33 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 
-public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationActivityFixture>
+public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationActivityFixture>, IAsyncLifetime
 {
     private readonly MigrateCalculationActivityFixture _fixture;
+    private readonly MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1 _sut;
+    private readonly WholesaleContext _wholesaleContext;
+    private readonly ProcessManagerContext _processManagerContext;
 
     public MigrateCalculationActivityTests(MigrateCalculationActivityFixture fixture)
     {
         _fixture = fixture;
+        _wholesaleContext = _fixture.WholesaleDatabaseManager.CreateDbContext();
+        _processManagerContext = _fixture.PMDatabaseManager.CreateDbContext();
+        _sut = new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
+            _wholesaleContext,
+            _processManagerContext,
+            new OrchestrationInstanceFactory());
+    }
+
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _wholesaleContext.DisposeAsync();
+        await _processManagerContext.DisposeAsync();
     }
 
     /// <summary>
@@ -41,20 +63,15 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
         // Arrange
         var existingCalculationId = Guid.Parse("5dd7bbb3-07f7-4cbd-a74f-17aaed795fa9");
 
-        using var wholesaleContext = _fixture.WholesaleDatabaseManager.CreateDbContext();
-        using var processManagerContext = _fixture.PMDatabaseManager.CreateDbContext();
-
-        var sut = new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
-            wholesaleContext,
-            processManagerContext,
-            new OrchestrationInstanceFactory());
-
         // Act
-        var actual = await sut.Run(new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.ActivityInput(existingCalculationId));
+        var actual = await _sut.Run(new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.ActivityInput(existingCalculationId));
 
         // Assert
         using var assertionScope = new AssertionScope();
         actual.Should().NotBeNull().And.Contain("Migration succeeded");
+
+        using var wholesaleContext = _fixture.WholesaleDatabaseManager.CreateDbContext();
+        using var processManagerContext = _fixture.PMDatabaseManager.CreateDbContext();
 
         var wholesaleCalculation = await wholesaleContext.Calculations.FindAsync(existingCalculationId);
         var migratedOrchestrationInstance = await processManagerContext.OrchestrationInstances
@@ -98,20 +115,15 @@ public class MigrateCalculationActivityTests : IClassFixture<MigrateCalculationA
         // Arrange
         var existingCalculationId = Guid.Parse("00feb707-73af-4d9d-9c85-5a22255cd474");
 
-        using var wholesaleContext = _fixture.WholesaleDatabaseManager.CreateDbContext();
-        using var processManagerContext = _fixture.PMDatabaseManager.CreateDbContext();
-
-        var sut = new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
-            wholesaleContext,
-            processManagerContext,
-            new OrchestrationInstanceFactory());
-
         // Act
-        var actual = await sut.Run(new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.ActivityInput(existingCalculationId));
+        var actual = await _sut.Run(new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.ActivityInput(existingCalculationId));
 
         // Assert
         using var assertionScope = new AssertionScope();
         actual.Should().NotBeNull().And.Contain("Migration succeeded");
+
+        using var wholesaleContext = _fixture.WholesaleDatabaseManager.CreateDbContext();
+        using var processManagerContext = _fixture.PMDatabaseManager.CreateDbContext();
 
         var wholesaleCalculation = await wholesaleContext.Calculations.FindAsync(existingCalculationId);
         var migratedOrchestrationInstance = await processManagerContext.OrchestrationInstances

@@ -38,8 +38,7 @@ public static class ProcessManagerContextExtensions
                 resultSelector: (od, oi) => oi)
             .AsNoTracking()
             .Where(
-                oi => oi.CustomState.Value.Contains(
-                    MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1
-                        .MigratedWholesaleCalculationIdCustomStatePrefix));
+                oi => oi.CustomState.SerializedValue
+                    .Contains(nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState.MigratedWholesaleCalculationId)));
     }
 }

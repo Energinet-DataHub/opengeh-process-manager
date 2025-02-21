@@ -111,95 +111,103 @@ public class ValidateMigratedCalculations_MigrateCalculationsFromWholesale_V1(
 
     private async Task<Dictionary<Guid, IReadOnlyCollection<string>>> GetIncorrectlyMigratedCalculations(List<OrchestrationInstance> allMigratedCalculations)
     {
-        var incorrectlyMigratedCalculations = new Dictionary<Guid, IReadOnlyCollection<string>>();
-        foreach (var migratedCalculation in allMigratedCalculations)
+        var migrationErrorsTasks = allMigratedCalculations
+            .Select(GetMigrationErrorsForCalculation)
+            .ToList();
+
+        var migrationErrors = await Task.WhenAll(migrationErrorsTasks)
+            .ConfigureAwait(false);
+
+        return migrationErrors
+            .Where(c => c.Value.Count > 0)
+            .ToDictionary();
+    }
+
+    private async Task<KeyValuePair<Guid, IReadOnlyCollection<string>>> GetMigrationErrorsForCalculation(OrchestrationInstance migratedCalculation)
+    {
+        var wholesaleCalculationId = MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1
+            .GetMigratedWholesaleCalculationIdCustomStateGuid(migratedCalculation.CustomState);
+
+        var orchestrationInstance = await _orchestrationInstanceQueries
+            .GetAsync(migratedCalculation.Id)
+            .ConfigureAwait(false);
+
+        var asTypedDto = orchestrationInstance.MapToTypedDto<CalculationInputV1>();
+
+        // Verify that the typed ParameterValue works and the at least one GridAreaCodes is present.
+        var checks = new Dictionary<string, bool>
         {
-            var wholesaleCalculationId = MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1
-                .GetMigratedWholesaleCalculationIdCustomStateGuid(migratedCalculation.CustomState);
-
-            var orchestrationInstance = await _orchestrationInstanceQueries
-                .GetAsync(migratedCalculation.Id)
-                .ConfigureAwait(false);
-
-            if (orchestrationInstance == null)
-                throw new InvalidOperationException($"Orchestration instance with id {migratedCalculation.Id} query failed");
-
-            var asTypedDto = orchestrationInstance.MapToTypedDto<CalculationInputV1>();
-
-            // Verify that the typed ParameterValue works and the at least one GridAreaCodes is present.
-            var checks = new Dictionary<string, bool>
             {
-                {
-                    nameof(asTypedDto.Lifecycle.State),
-                    asTypedDto.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
-                },
-                {
-                    nameof(asTypedDto.Lifecycle.TerminationState),
-                    asTypedDto.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded
-                },
-                {
-                    nameof(asTypedDto.Lifecycle.StartedAt),
-                    asTypedDto.Lifecycle.StartedAt != null && asTypedDto.Lifecycle.StartedAt != default(DateTimeOffset)
-                },
-                {
-                    nameof(asTypedDto.Lifecycle.TerminatedAt),
-                    asTypedDto.Lifecycle.TerminatedAt != null && asTypedDto.Lifecycle.TerminatedAt != default(DateTimeOffset)
-                },
-                {
-                    nameof(asTypedDto.ParameterValue.GridAreaCodes),
-                    asTypedDto.ParameterValue.GridAreaCodes.Count > 0
-                },
-                {
-                    nameof(asTypedDto.ParameterValue.CalculationType),
-                    Enum.IsDefined(asTypedDto.ParameterValue.CalculationType)
-                },
-                {
-                    nameof(asTypedDto.ParameterValue.PeriodStartDate),
-                    asTypedDto.ParameterValue.PeriodStartDate != default
-                },
-                {
-                    nameof(asTypedDto.ParameterValue.PeriodEndDate),
-                    asTypedDto.ParameterValue.PeriodStartDate != default
-                },
-            };
+                nameof(asTypedDto.Lifecycle.State),
+                asTypedDto.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
+            },
+            {
+                nameof(asTypedDto.Lifecycle.TerminationState),
+                asTypedDto.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded
+            },
+            {
+                nameof(asTypedDto.Lifecycle.StartedAt),
+                asTypedDto.Lifecycle.StartedAt != null
+                && asTypedDto.Lifecycle.StartedAt != default(DateTimeOffset)
+            },
+            {
+                nameof(asTypedDto.Lifecycle.TerminatedAt),
+                asTypedDto.Lifecycle.TerminatedAt != null
+                && asTypedDto.Lifecycle.TerminatedAt != default(DateTimeOffset)
+            },
+            {
+                nameof(asTypedDto.ParameterValue.GridAreaCodes),
+                asTypedDto.ParameterValue.GridAreaCodes.Count > 0
+            },
+            {
+                nameof(asTypedDto.ParameterValue.CalculationType),
+                Enum.IsDefined(asTypedDto.ParameterValue.CalculationType)
+            },
+            {
+                nameof(asTypedDto.ParameterValue.PeriodStartDate),
+                asTypedDto.ParameterValue.PeriodStartDate != default
+            },
+            {
+                nameof(asTypedDto.ParameterValue.PeriodEndDate),
+                asTypedDto.ParameterValue.PeriodStartDate != default
+            },
+        };
 
-            var stepChecks = asTypedDto.Steps
-                .SelectMany(
-                    s =>
+        var stepChecks = asTypedDto.Steps
+            .SelectMany(
+                s =>
+                {
+                    var stepName = $"Step {s.Sequence}";
+                    return new Dictionary<string, bool>
                     {
-                        var stepName = $"Step {s.Sequence}";
-                        return new Dictionary<string, bool>
                         {
-                            {
-                                $"{stepName}: {nameof(s.Lifecycle.State)}",
-                                s.Lifecycle.State != StepInstanceLifecycleState.Terminated
-                            },
-                            {
-                                $"{stepName}: {nameof(s.Lifecycle.TerminationState)}",
-                                s.Lifecycle.TerminationState == OrchestrationStepTerminationState.Succeeded
-                            },
-                            {
-                                $"{stepName}: {nameof(s.Lifecycle.StartedAt)}",
-                                s.Lifecycle.StartedAt != null && s.Lifecycle.StartedAt != default(DateTimeOffset)
-                            },
-                            {
-                                $"{stepName}: {nameof(s.Lifecycle.TerminatedAt)}",
-                                s.Lifecycle.TerminatedAt != null && s.Lifecycle.TerminatedAt != default(DateTimeOffset)
-                            },
-                        };
-                    });
+                            $"{stepName}: {nameof(s.Lifecycle.State)}",
+                            s.Lifecycle.State != StepInstanceLifecycleState.Terminated
+                        },
+                        {
+                            $"{stepName}: {nameof(s.Lifecycle.TerminationState)}",
+                            s.Lifecycle.TerminationState == OrchestrationStepTerminationState.Succeeded
+                        },
+                        {
+                            $"{stepName}: {nameof(s.Lifecycle.StartedAt)}",
+                            s.Lifecycle.StartedAt != null
+                            && s.Lifecycle.StartedAt != default(DateTimeOffset)
+                        },
+                        {
+                            $"{stepName}: {nameof(s.Lifecycle.TerminatedAt)}",
+                            s.Lifecycle.TerminatedAt != null
+                            && s.Lifecycle.TerminatedAt != default(DateTimeOffset)
+                        },
+                    };
+                });
 
-            checks = checks.Concat(stepChecks).ToDictionary();
+        checks = checks.Concat(stepChecks).ToDictionary();
 
-            var invalidChecks = checks
-                .Where(c => c.Value == false)
-                .Select(c => c.Key)
-                .ToList();
+        var invalidChecks = checks
+            .Where(c => c.Value == false)
+            .Select(c => c.Key)
+            .ToList();
 
-            if (invalidChecks.Count != 0)
-                incorrectlyMigratedCalculations.Add(wholesaleCalculationId, invalidChecks);
-        }
-
-        return incorrectlyMigratedCalculations;
+        return new KeyValuePair<Guid, IReadOnlyCollection<string>>(wholesaleCalculationId, invalidChecks);
     }
 }

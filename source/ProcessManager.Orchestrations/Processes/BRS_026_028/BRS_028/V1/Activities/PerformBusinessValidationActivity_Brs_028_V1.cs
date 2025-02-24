@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Steps;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Activities;
@@ -44,18 +45,18 @@ internal class PerformBusinessValidationActivity_Brs_028_V1(
         var validationErrors = await _validator.ValidateAsync(orchestrationInstanceInput)
             .ConfigureAwait(false);
 
-        var activityOutput = new ActivityOutput(
-            IsValid: validationErrors.Count == 0,
-            ValidationErrors: validationErrors);
-
         if (validationErrors.Count > 0)
         {
             var step = orchestrationInstance.GetStep(input.StepSequence);
-            step.SetCustomState(JsonSerializer.Serialize(activityOutput));
+            step.CustomState.SetFromInstance(new BusinessValidationStep.CustomState(
+                IsValid: validationErrors.Count == 0,
+                ValidationErrors: validationErrors));
             await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
 
-        return activityOutput;
+        return new ActivityOutput(
+            IsValid: validationErrors.Count == 0,
+            ValidationErrors: validationErrors);
     }
 
     public record ActivityInput(

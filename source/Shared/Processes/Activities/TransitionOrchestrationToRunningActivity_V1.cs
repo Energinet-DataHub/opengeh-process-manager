@@ -38,6 +38,6 @@ internal class TransitionOrchestrationToRunningActivity_V1(
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
-    public record ActivityInput(
+    internal record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId);
 }

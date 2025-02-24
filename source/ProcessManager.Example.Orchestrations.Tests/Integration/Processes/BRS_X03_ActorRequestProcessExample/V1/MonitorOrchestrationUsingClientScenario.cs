@@ -22,6 +22,7 @@ using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Functions.BRS_X03_ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.BusinessValidation.ValidationRules;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -179,7 +180,10 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                     validationStep.Lifecycle.TerminationState.Should()
                         .NotBeNull()
                         .And.Be(OrchestrationStepTerminationState.Failed);
-                    JsonSerializer.Deserialize<ValidationError[]>(validationStep.CustomState)
+
+                    var customState = JsonSerializer.Deserialize<BusinessValidationStep.CustomState>(validationStep.CustomState);
+                    customState.Should().NotBeNull();
+                    customState!.ValidationErrors
                         .Should()
                         .Satisfy(ve => ve.Message.Equals(BusinessReasonValidationRule.ValidationErrorMessage));
                 },

@@ -133,7 +133,7 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                     s => s.CustomState,
                     csb =>
                     {
-                        csb.Property(cs => cs.Value)
+                        csb.Property(cs => cs.SerializedValue)
                             .HasColumnName(nameof(StepInstance.CustomState));
                     });
 

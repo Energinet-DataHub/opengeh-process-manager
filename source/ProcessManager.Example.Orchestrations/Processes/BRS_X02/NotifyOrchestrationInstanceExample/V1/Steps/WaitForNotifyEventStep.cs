@@ -79,4 +79,7 @@ internal class WaitForNotifyEventStep(
 
         return new StepOutput(stepTerminationState, hasReceivedExampleNotifyEvent);
     }
+
+    public record CustomState(
+        string Message);
 }

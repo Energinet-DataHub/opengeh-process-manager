@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -157,9 +158,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         orchestrationInstance.Should().NotBeNull();
 
         orchestrationInstance!.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Succeeded);
+
+        var expectedCustomState = JsonSerializer.Serialize(new WaitForNotifyEventStep.CustomState(expectedEventDataMessage));
         orchestrationInstance.Steps.Should()
             .HaveCount(1)
-            .And.ContainSingle(s => s.CustomState == expectedEventDataMessage);
+            .And.ContainSingle(s => s.CustomState == expectedCustomState);
     }
 
     /// <summary>
@@ -235,9 +238,12 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Assert that custom status is the expected notify event data (and not the ignored notify event)
         orchestrationInstance!.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Succeeded);
+
+        var expectedCustomState = JsonSerializer.Serialize(new WaitForNotifyEventStep.CustomState(expectedEventDataMessage));
+        var ignoredCustomState = JsonSerializer.Serialize(new WaitForNotifyEventStep.CustomState(ignoredEventDataMessage));
         orchestrationInstance.Steps.Should()
             .HaveCount(1)
-            .And.ContainSingle(s => s.CustomState == expectedEventDataMessage)
-            .And.NotContain(s => s.CustomState == ignoredEventDataMessage);
+            .And.ContainSingle(s => s.CustomState == expectedCustomState)
+            .And.NotContain(s => s.CustomState == ignoredCustomState);
     }
 }

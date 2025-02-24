@@ -23,7 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 /// Transition the orchestration instance and one of it's steps to failed. Should be used to update
 /// the orchestration instance when a step fails.
 /// </summary>
-public class TransitionOrchestrationAndStepToFailedActivity_V1(
+internal class TransitionOrchestrationAndStepToFailedActivity_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository repository)
 {
@@ -40,7 +40,8 @@ public class TransitionOrchestrationAndStepToFailedActivity_V1(
 
         var step = orchestrationInstance.GetStep(input.FailedStepSequence);
         step.Lifecycle.TransitionToTerminated(_clock, OrchestrationStepTerminationState.Failed);
-        step.SetCustomState(input.FailedStepErrorMessage);
+        step.CustomState.SetFromInstance(new FailedStepCustomState(
+            ErrorMessage: input.FailedStepErrorMessage));
 
         orchestrationInstance.Lifecycle.TransitionToFailed(_clock);
 
@@ -53,8 +54,14 @@ public class TransitionOrchestrationAndStepToFailedActivity_V1(
     /// <param name="OrchestrationInstanceId">Id of the orchestration instance that failed.</param>
     /// <param name="FailedStepSequence">Sequence number of the step that failed.</param>
     /// <param name="FailedStepErrorMessage">Error message, typically the exception's <see cref="Exception.ToString()"/> output. Is set as the failed step's <see cref="StepInstance.CustomState"/>.</param>
-    public record ActivityInput(
+    internal record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
         int FailedStepSequence,
         string FailedStepErrorMessage);
+
+    /// <summary>
+    /// Failed step custom state object, which will be serialized to the step instance's custom state.
+    /// </summary>
+    internal record FailedStepCustomState(
+        string ErrorMessage);
 }

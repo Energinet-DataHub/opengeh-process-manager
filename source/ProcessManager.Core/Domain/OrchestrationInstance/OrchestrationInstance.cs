@@ -73,7 +73,7 @@ public class OrchestrationInstance
     /// <summary>
     /// Contains the Durable Functions orchestration input parameter value.
     /// </summary>
-    public ParameterValue ParameterValue { get; }
+    public SerializedValueType ParameterValue { get; }
 
     /// <summary>
     /// Steps the orchestration instance is going through, and which should be

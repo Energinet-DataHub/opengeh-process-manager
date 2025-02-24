@@ -203,7 +203,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         // Act
         await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
         var actualOrchestrationInstanceIds = await readDbContext.Database
-            .SqlQuery<Guid>($"SELECT [o].[Id] FROM [pm].[OrchestrationInstance] AS [o] WHERE CAST(JSON_VALUE([o].[SerializedParameterValue],'$.TestInt') AS int) = {expectedTestInt}")
+            .SqlQuery<Guid>($"SELECT [o].[Id] FROM [pm].[OrchestrationInstance] AS [o] WHERE CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}")
             .ToListAsync();
 
         // Assert

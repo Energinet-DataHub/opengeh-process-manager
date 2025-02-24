@@ -13,73 +13,116 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
-using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.DurableTask;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 
-internal class Orchestration_Brs_021_ForwardMeteredData_V1
+public class Orchestration_Brs_021_ForwardMeteredData_V1(
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IClock clock)
 {
     internal const int ValidatingStep = 1;
-    internal const int StoringMeteredDataStep = 2;
+    internal const int ForwardToMeasurementStep = 2;
     internal const int FindReceiverStep = 3;
     internal const int EnqueueActorMessagesStep = 4;
 
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_021_ForwardedMeteredData.V1;
+    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IClock _clock = clock;
 
-    private readonly TaskOptions _defaultRetryOptions;
-
-    public Orchestration_Brs_021_ForwardMeteredData_V1()
+    /// <summary>
+    /// Responsible for executing the initialization of the orchestration
+    /// which includes the following steps:
+    /// - fetching the metered data from Electricity Market
+    /// - validating the incoming metered data
+    /// - If the metered data is valid, the metered data is forwarded to Measurements
+    /// - If the metered data is invalid, a validation error forwarded to EDI
+    /// </summary>
+    public async Task InitializeAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
-        _defaultRetryOptions = CreateDefaultRetryOptions();
+        var orchestrationInstance = await _progressRepository
+            .GetAsync(orchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        // Initialize orchestration instance
+        orchestrationInstance.Lifecycle.TransitionToRunning(_clock);
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+
+        // Start Step: Validate Metered Data
+        await StartStep(orchestrationInstance, ValidatingStep);
+
+        // Fetch Metered Data and store received data used to find receiver later in the orchestration
+        // Validate Metered Data
+        // Terminate Step: Validate Metered Data
+        await TerminateStep(orchestrationInstance, ValidatingStep);
+
+        // Start Step: Forward to Measurements
+        await StartStep(orchestrationInstance, ForwardToMeasurementStep);
     }
 
-    [Function(nameof(Orchestration_Brs_021_ForwardMeteredData_V1))]
-    public async Task<string> Run(
-        [OrchestrationTrigger] TaskOrchestrationContext context)
+    /// <summary>
+    /// Responsible for forwarding the metered data after it has been validated and Measurements has confirmed
+    /// they have received the data. The steps are as follows:
+    /// - Find the market receiver of the metered data
+    /// - Enqueue the metered data to the market receiver
+    /// </summary>
+    public async Task EnqueueMessages(OrchestrationInstanceId orchestrationInstanceId)
     {
-        var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
+        var orchestrationInstance = await _progressRepository
+            .GetAsync(orchestrationInstanceId)
+            .ConfigureAwait(false);
 
-        // Initialize
-        await context.CallActivityAsync(
-            nameof(OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1),
-            new OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
-            _defaultRetryOptions);
+        // Teriminate step: Forward to Measurements
+        await TerminateStep(orchestrationInstance, ValidatingStep);
 
         // Start Step: Find Receiver
-        await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_V1),
-            new TransitionStepToRunningActivity_V1.ActivityInput(
-                instanceId,
-                FindReceiverStep),
-            _defaultRetryOptions);
-
+        await StartStep(orchestrationInstance, FindReceiverStep);
+        // Find Receiver
         // Terminate Step: Find Receiver
-        await context.CallActivityAsync(
-            nameof(TransitionStepToTerminatedActivity_V1),
-            new TransitionStepToTerminatedActivity_V1.ActivityInput(
-                instanceId,
-                FindReceiverStep,
-                OrchestrationStepTerminationState.Succeeded),
-            _defaultRetryOptions);
+        await TerminateStep(orchestrationInstance, FindReceiverStep);
 
-        // Terminate
-        await context.CallActivityAsync(
-            nameof(OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1),
-            new OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1.ActivityInput(instanceId),
-            _defaultRetryOptions);
-
-        return "Success";
+        // Start Step: Enqueue Actor Messages
+        await StartStep(orchestrationInstance, EnqueueActorMessagesStep);
+        // Enqueue Actor Messages
     }
 
-    private static TaskOptions CreateDefaultRetryOptions() =>
-        TaskOptions.FromRetryPolicy(
-            new RetryPolicy(
-                maxNumberOfAttempts: 5,
-                firstRetryInterval: TimeSpan.FromSeconds(30),
-                backoffCoefficient: 2.0));
+    /// <summary>
+    /// Responsible for terminating the orchestration instance after
+    /// EDI has enqueue the metered data to the market receiver.
+    /// </summary>
+    public async Task TerminateAsync(OrchestrationInstanceId orchestrationInstanceId)
+    {
+        var orchestrationInstance = await _progressRepository
+            .GetAsync(orchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        // Terminate Step: Enqueue Actor Messages
+        await TerminateStep(orchestrationInstance, EnqueueActorMessagesStep);
+
+        // Terminate orchestration instance
+        orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    private async Task TerminateStep(OrchestrationInstance orchestrationInstance, int step)
+    {
+        orchestrationInstance.TransitionStepToTerminated(
+            step,
+            OrchestrationStepTerminationState.Succeeded,
+            _clock);
+
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    private async Task StartStep(OrchestrationInstance orchestrationInstance, int step)
+    {
+        orchestrationInstance.TransitionStepToRunning(
+            step,
+            _clock);
+
+        await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
 }

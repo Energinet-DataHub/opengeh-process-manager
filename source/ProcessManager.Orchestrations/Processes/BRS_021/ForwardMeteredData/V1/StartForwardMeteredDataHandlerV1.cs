@@ -23,10 +23,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public class StartForwardMeteredDataHandlerV1(
     ILogger<StartForwardMeteredDataHandlerV1> logger,
-    IStartOrchestrationInstanceMessageCommands commands)
+    IStartOrchestrationInstanceMessageCommands commands,
+    Orchestration_Brs_021_ForwardMeteredData_V1 orchestrationBrs021ForwardMeteredDataV1)
         : StartOrchestrationInstanceFromMessageHandlerBase<MeteredDataForMeteringPointMessageInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
+    private readonly Orchestration_Brs_021_ForwardMeteredData_V1 _orchestrationBrs021ForwardMeteredDataV1 = orchestrationBrs021ForwardMeteredDataV1;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,
@@ -36,7 +38,8 @@ public class StartForwardMeteredDataHandlerV1(
         string transactionId,
         string? meteringPointId)
     {
-        await _commands.StartNewOrchestrationInstanceAsync(
+        // TODO: should start the orchestration instance without triggering a durable function. Comes in story #550
+        var orchestrationInstanceId = await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
                 OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName),
                 input,
@@ -45,6 +48,10 @@ public class StartForwardMeteredDataHandlerV1(
                 new ActorMessageId(actorMessageId),
                 new TransactionId(transactionId),
                 meteringPointId is not null ? new MeteringPointId(meteringPointId) : null)
+            .ConfigureAwait(false);
+
+        await _orchestrationBrs021ForwardMeteredDataV1.InitializeAsync(
+                orchestrationInstanceId)
             .ConfigureAwait(false);
     }
 }

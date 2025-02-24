@@ -95,8 +95,8 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
             o => o.ParameterValue,
             b =>
             {
-                b.Property(l => l.SerializedParameterValue)
-                    .HasColumnName(nameof(OrchestrationInstance.ParameterValue.SerializedParameterValue));
+                b.Property(l => l.SerializedValue)
+                    .HasColumnName(nameof(OrchestrationInstance.ParameterValue));
             });
 
         builder.OwnsMany(

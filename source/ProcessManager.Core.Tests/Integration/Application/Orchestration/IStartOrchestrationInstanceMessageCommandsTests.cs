@@ -158,8 +158,7 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
         // Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
         services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();
 
-        var hostEnvironmentMock = new Mock<IHostEnvironment>();
-        hostEnvironmentMock.Setup(x => x.IsDevelopment()).Returns(false);
+        var hostEnvironmentMock = new Mock<IHostEnvironment> { Object = { EnvironmentName = Environments.Development } };
         services.AddSingleton(hostEnvironmentMock.Object);
 
         return services;

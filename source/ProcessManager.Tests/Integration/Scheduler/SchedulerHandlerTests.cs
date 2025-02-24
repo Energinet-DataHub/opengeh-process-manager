@@ -61,8 +61,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
 
         var services = ConfigureServices(_fixture, _executorMock);
 
-        var hostEnvironmentMock = new Mock<IHostEnvironment>();
-        hostEnvironmentMock.Setup(x => x.IsDevelopment()).Returns(false);
+        var hostEnvironmentMock = new Mock<IHostEnvironment> { Object = { EnvironmentName = Environments.Development } };
         services.AddSingleton(hostEnvironmentMock.Object);
 
         _serviceProvider = services.BuildServiceProvider();

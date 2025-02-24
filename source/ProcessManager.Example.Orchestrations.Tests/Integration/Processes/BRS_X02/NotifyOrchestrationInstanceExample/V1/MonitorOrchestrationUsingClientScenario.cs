@@ -25,7 +25,9 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Xunit.Abstractions;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 
@@ -157,9 +159,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         orchestrationInstance.Should().NotBeNull();
 
         orchestrationInstance!.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Succeeded);
+
+        var expectedCustomState = JsonSerializer.Serialize(new WaitForNotifyEventStep.CustomState(expectedEventDataMessage));
         orchestrationInstance.Steps.Should()
             .HaveCount(1)
-            .And.ContainSingle(s => s.CustomState == expectedEventDataMessage);
+            .And.ContainSingle(s => s.CustomState == expectedCustomState);
     }
 
     /// <summary>
@@ -235,9 +239,12 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Assert that custom status is the expected notify event data (and not the ignored notify event)
         orchestrationInstance!.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Succeeded);
+
+        var expectedCustomState = JsonSerializer.Serialize(new WaitForNotifyEventStep.CustomState(expectedEventDataMessage));
+        var ignoredCustomState = JsonSerializer.Serialize(new WaitForNotifyEventStep.CustomState(ignoredEventDataMessage));
         orchestrationInstance.Steps.Should()
             .HaveCount(1)
-            .And.ContainSingle(s => s.CustomState == expectedEventDataMessage)
-            .And.NotContain(s => s.CustomState == ignoredEventDataMessage);
+            .And.ContainSingle(s => s.CustomState == expectedCustomState)
+            .And.NotContain(s => s.CustomState == ignoredCustomState);
     }
 }

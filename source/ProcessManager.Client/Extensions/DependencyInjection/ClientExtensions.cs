@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Identity;
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.ProcessManager.Client.Authorization;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
@@ -50,6 +53,17 @@ public static class ClientExtensions
             ConfigureHttpClient(sp, httpClient, options.OrchestrationsApiBaseAddress);
         });
 
+        services.TryAddSingleton<IAuthorizationHeaderProvider>(sp =>
+        {
+            // We currently register AuthorizationHeaderProvider like this to be in control of the
+            // creation of DefaultAzureCredential.
+            // As we register IAuthorizationHeaderProvider as singleton and it has the instance
+            // of DefaultAzureCredential, we expect it will use caching and handle token refresh.
+            // However the documentation is a bit unclear: https://learn.microsoft.com/da-dk/dotnet/azure/sdk/authentication/best-practices?tabs=aspdotnet#understand-when-token-lifetime-and-caching-logic-is-needed
+            var credential = new DefaultAzureCredential();
+            var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
+            return new AuthorizationHeaderProvider(credential, options.ApplicationIdUri);
+        });
         services.AddScoped<IProcessManagerClient, ProcessManagerClient>();
 
         return services;

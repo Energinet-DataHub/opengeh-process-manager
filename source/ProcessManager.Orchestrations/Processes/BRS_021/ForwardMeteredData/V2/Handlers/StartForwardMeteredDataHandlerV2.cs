@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 
@@ -26,10 +27,13 @@ public class StartForwardMeteredDataHandlerV2(
     ILogger<StartForwardMeteredDataHandlerV2> logger,
     IStartOrchestrationInstanceMessageCommands commands,
     IOrchestrationInstanceProgressRepository progressRepository,
-    IClock clock)
+    IClock clock,
+    IMeasurementsMeteredDataClient measurementsMeteredDataClient)
         : StartOrchestrationInstanceFromMessageHandlerBase<MeteredDataForMeteringPointMessageInputV1>(logger)
 {
     private IOrchestrationInstanceProgressRepository ProgressRepository { get; } = progressRepository;
+
+    private IMeasurementsMeteredDataClient MeasurementsMeteredDataClient { get; } = measurementsMeteredDataClient;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,

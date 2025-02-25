@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Messaging.EventHubs;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Handlers;
 using Microsoft.Azure.Functions.Worker;
@@ -32,9 +33,9 @@ public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2
         [EventHubTrigger(
             "%EventHubName%",
             Connection = "EventHubConnection")]
-        string message)
+        EventData[] message)
     {
-        var notification = JsonConvert.DeserializeObject<MeasurementReceivedMeteredDataNotification>(message);
+        var notification = JsonConvert.DeserializeObject<MeasurementReceivedMeteredDataNotification>(message[0].EventBody.ToString());
         if (notification == null) throw new InvalidOperationException("Failed to deserialize message");
 
         var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notification.OrchestrationId.Id));

@@ -78,7 +78,8 @@ public class ClientExtensionsTests
                 .WithMessage("DataAnnotation validation failed for 'ProcessManagerHttpClientsOptions'*")
             .And.Failures.Should()
                 .ContainMatch("*GeneralApiBaseAddress field is required*")
-                .And.ContainMatch("*OrchestrationsApiBaseAddress field is required*");
+                .And.ContainMatch("*OrchestrationsApiBaseAddress field is required*")
+                .And.ContainMatch("*ApplicationIdUri field is required*");
     }
 
     [Fact]

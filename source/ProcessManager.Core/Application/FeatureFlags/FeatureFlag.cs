@@ -25,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 public enum FeatureFlag
 {
     /// <summary>
-    /// <p>THIS FEATURE CANNOT BE USED ON PRE-PROD AND PROD!</p>
+    /// <p>THIS FEATURE MUST NOT BE USED ON PRE-PROD AND PROD!</p>
     /// Enables "silent mode" for PM core.
     /// When silent mode is enabled, some errors are instead turned into logged warnings.
     /// The intended use case for this is to prevent the system from reporting exceptions that are not critical to the

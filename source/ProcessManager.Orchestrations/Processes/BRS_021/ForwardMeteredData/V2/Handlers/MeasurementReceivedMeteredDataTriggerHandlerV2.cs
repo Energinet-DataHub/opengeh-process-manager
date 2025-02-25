@@ -42,6 +42,20 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV2(
                 clock,
                 _progressRepository)
             .ConfigureAwait(false);
+
+        await StepHelper.StartStep(
+                orchestrationInstance,
+                OrchestrationDescriptionBuilder.FindReceiverStep,
+                clock,
+                _progressRepository)
+            .ConfigureAwait(false);
+        await StepHelper.TerminateStep(
+                orchestrationInstance,
+                OrchestrationDescriptionBuilder.FindReceiverStep,
+                clock,
+                _progressRepository)
+            .ConfigureAwait(false);
+
         await StepHelper.StartStep(
                 orchestrationInstance,
                 OrchestrationDescriptionBuilder.EnqueueActorMessagesStep,
@@ -62,7 +76,7 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV2(
             EndDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
             AcceptedEnergyObservations: new List<AcceptedEnergyObservation>
             {
-                new AcceptedEnergyObservation(1, 1, Quality.Calculated),
+                new(1, 1, Quality.Calculated),
             },
             MarketActorRecipients: [new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)]);
 

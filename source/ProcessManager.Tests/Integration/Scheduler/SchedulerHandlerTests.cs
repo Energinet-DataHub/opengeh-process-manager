@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
@@ -29,7 +28,6 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Moq;
 using NodaTime;
 
@@ -60,10 +58,6 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 
         var services = ConfigureServices(_fixture, _executorMock);
-
-        var hostEnvironmentMock = new Mock<IHostEnvironment> { Object = { EnvironmentName = Environments.Development } };
-        services.AddSingleton(hostEnvironmentMock.Object);
-
         _serviceProvider = services.BuildServiceProvider();
 
         _orchestrationRegister = _serviceProvider.GetRequiredService<IOrchestrationRegister>();

@@ -26,7 +26,6 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Moq;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Application.Orchestration;
@@ -157,9 +156,6 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
 
         // Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
         services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();
-
-        var hostEnvironmentMock = new Mock<IHostEnvironment> { Object = { EnvironmentName = Environments.Development } };
-        services.AddSingleton(hostEnvironmentMock.Object);
 
         return services;
     }

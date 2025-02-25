@@ -24,4 +24,16 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 /// </summary>
 public enum FeatureFlag
 {
+    /// <summary>
+    /// <p>THIS FEATURE CANNOT BE USED ON PRE-PROD AND PROD!</p>
+    /// Enables "silent mode" for PM core.
+    /// When silent mode is enabled, some errors are instead turned into logged warnings.
+    /// The intended use case for this is to prevent the system from reporting exceptions that are not critical to the
+    /// system's operation and that are expected to occur as part of executing e.g. subsystem tests in other subsystems.
+    /// An example of this could be the error when receiving a notify on an orchestration instance id that does not exist.
+    /// As part of the subsystem tests in e.g. EDI, such events will be generated, but they won't correspond to any
+    /// actual orchestration. If these errors were not silenced in the environment in which these tests are executed,
+    /// the log and dead-letter queue for the PM core will be flooded with false errors.
+    /// </summary>
+    SilentMode,
 }

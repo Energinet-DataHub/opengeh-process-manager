@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -30,7 +31,7 @@ internal class OrchestrationInstanceManager(
     IOrchestrationInstanceExecutor executor,
     IOrchestrationRegisterQueries orchestrationRegister,
     IOrchestrationInstanceRepository repository,
-    IHostEnvironment hostEnvironment,
+    IFeatureFlagManager featureFlagManager,
     ILogger<OrchestrationInstanceManager> logger) :
         IStartOrchestrationInstanceCommands,
         IStartOrchestrationInstanceMessageCommands,
@@ -42,7 +43,7 @@ internal class OrchestrationInstanceManager(
     private readonly IOrchestrationInstanceExecutor _executor = executor;
     private readonly IOrchestrationRegisterQueries _orchestrationRegister = orchestrationRegister;
     private readonly IOrchestrationInstanceRepository _repository = repository;
-    private readonly IHostEnvironment _hostEnvironment = hostEnvironment;
+    private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
     private readonly ILogger<OrchestrationInstanceManager> _logger = logger;
 
     /// <inheritdoc />
@@ -207,7 +208,7 @@ internal class OrchestrationInstanceManager(
 
         if (orchestrationInstanceToNotify is null)
         {
-            if (_hostEnvironment.IsDevelopment())
+            if (_featureFlagManager.IsEnabledAsync(FeatureFlag.SilentMode).Result)
             {
                 _logger.LogWarning(
                     $"Notifying orchestration instance with id '{id.Value}' and event name '{eventName}' failed.");

@@ -88,16 +88,10 @@ public static class ClientExtensions
     }
 
     /// <summary>
-    /// Configure http client base address; and if available then apply
-    /// the authorization header from the current HTTP context.
+    /// Configure http client base address.
     /// </summary>
     private static void ConfigureHttpClient(IServiceProvider sp, HttpClient httpClient, string baseAddress)
     {
         httpClient.BaseAddress = new Uri(baseAddress);
-
-        var httpContextAccessor = sp.GetService<IHttpContextAccessor>();
-        var authorizationHeaderValue = (string?)httpContextAccessor?.HttpContext?.Request.Headers.Authorization;
-        if (!string.IsNullOrWhiteSpace(authorizationHeaderValue))
-            httpClient.DefaultRequestHeaders.Add("Authorization", authorizationHeaderValue);
     }
 }

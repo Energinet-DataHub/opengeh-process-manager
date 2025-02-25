@@ -97,8 +97,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
 
     private Task<bool> WasCalculationIdMigratedAsync(Guid wholesaleCalculationId)
     {
-        return _processManagerContext.OrchestrationInstances
-            .AsNoTracking()
+        return _processManagerContext.CreateMigratedCalculationsQuery()
             .Where(x => x.CustomState == GetCustomState(wholesaleCalculationId))
             .AnyAsync();
     }

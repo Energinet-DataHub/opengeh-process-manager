@@ -25,7 +25,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateC
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
@@ -103,6 +102,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 .ToListAsync();
         }
 
+        // => Clean database for orchestration instances to not get already migrated calculations
+        await using (var processManagerContext = Fixture.OrchestrationsAppManager.DatabaseManager.CreateDbContext())
+        {
+            await processManagerContext.Database.ExecuteSqlAsync($"DELETE FROM [pm].[StepInstance]");
+            await processManagerContext.Database.ExecuteSqlAsync($"DELETE FROM [pm].[OrchestrationInstance]");
+        }
+
         // When
         // => Start new orchestration instance
         var userIdentityDto = new UserIdentityDto(
@@ -144,6 +150,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
             new("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
             ..expectedMigrateCalculationActivities,
+            new("TaskCompleted", FunctionName: nameof(ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesale_V1)),
             new("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
 
             new("TaskCompleted", FunctionName: nameof(TransitionOrchestrationToTerminatedActivity_V1)),

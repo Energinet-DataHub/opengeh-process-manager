@@ -40,7 +40,7 @@ public class OrchestrationInstance
         Id = new OrchestrationInstanceId(Guid.NewGuid());
         Lifecycle = new OrchestrationInstanceLifecycle(identity, clock, runAt);
         ParameterValue = new();
-        CustomState = new OrchestrationInstanceCustomState(string.Empty);
+        CustomState = new SerializedValueType();
         IdempotencyKey = idempotencyKey;
 
         _steps = [];
@@ -73,7 +73,7 @@ public class OrchestrationInstance
     /// <summary>
     /// Contains the Durable Functions orchestration input parameter value.
     /// </summary>
-    public ParameterValue ParameterValue { get; }
+    public SerializedValueType ParameterValue { get; }
 
     /// <summary>
     /// Steps the orchestration instance is going through, and which should be
@@ -84,7 +84,7 @@ public class OrchestrationInstance
     /// <summary>
     /// Any custom state of the orchestration instance.
     /// </summary>
-    public OrchestrationInstanceCustomState CustomState { get; }
+    public SerializedValueType CustomState { get; }
 
     /// <summary>
     /// A value used by the Process Manager to ensure idempotency for a message command.

@@ -30,12 +30,11 @@ internal class Orchestration_MigrateCalculationsFromWholesale_V1
 
     public Orchestration_MigrateCalculationsFromWholesale_V1()
     {
-        // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
-        // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
+        // Retry is only here to guard for network errors, so it shouldn't wait long before retrying.
         _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(
             new RetryPolicy(
-                maxNumberOfAttempts: 8,
-                firstRetryInterval: TimeSpan.FromSeconds(30),
+                maxNumberOfAttempts: 4,
+                firstRetryInterval: TimeSpan.FromSeconds(1),
                 backoffCoefficient: 2.0));
     }
 

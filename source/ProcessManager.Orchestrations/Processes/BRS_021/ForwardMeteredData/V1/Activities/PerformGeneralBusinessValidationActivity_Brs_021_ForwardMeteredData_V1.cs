@@ -44,7 +44,7 @@ internal class PerformGeneralBusinessValidationActivity_Brs_021_ForwardMeteredDa
                 await _repository.GetAsync(activityInput.OrchestrationInstanceId).ConfigureAwait(false);
 
             var step = orchestrationInstance.GetStep(activityInput.StepSequence);
-            step.SetCustomState(JsonSerializer.Serialize(activityOutput));
+            step.CustomState.SetFromInstance(activityOutput);
             await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
 

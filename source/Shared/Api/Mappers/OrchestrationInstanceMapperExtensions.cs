@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using DomainModel = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
@@ -29,7 +28,7 @@ internal static class OrchestrationInstanceMapperExtensions
             entity.Id.Value,
             entity.Lifecycle.MapToDto(),
             entity.Steps.Select(step => step.MapToDto()).ToList(),
-            entity.CustomState.Value,
+            entity.CustomState.SerializedValue,
             entity.ParameterValue.AsType<TInputParameterDto>(),
             entity.IdempotencyKey?.Value,
             entity.ActorMessageId?.Value,
@@ -45,7 +44,7 @@ internal static class OrchestrationInstanceMapperExtensions
             Lifecycle: entity.Lifecycle.MapToDto(),
             ParameterValue: entity.ParameterValue.AsExpandoObject(),
             Steps: entity.Steps.Select(step => step.MapToDto()).ToList(),
-            CustomState: entity.CustomState.Value,
+            CustomState: entity.CustomState.SerializedValue,
             IdempotencyKey: entity.IdempotencyKey?.Value,
             ActorMessageId: entity.ActorMessageId?.Value,
             TransactionId: entity.TransactionId?.Value,
@@ -93,7 +92,7 @@ internal static class OrchestrationInstanceMapperExtensions
             Lifecycle: entity.Lifecycle.MapToDto(),
             Description: entity.Description,
             Sequence: entity.Sequence,
-            CustomState: entity.CustomState.Value);
+            CustomState: entity.CustomState.SerializedValue);
     }
 
     public static ApiModel.OrchestrationInstance.StepInstanceLifecycleDto MapToDto(

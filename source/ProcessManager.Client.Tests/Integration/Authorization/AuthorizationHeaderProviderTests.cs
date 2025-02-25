@@ -24,14 +24,14 @@ public class AuthorizationHeaderProviderTests
     private const string ApplicationIdUriForTests = "https://management.azure.com";
 
     [Fact]
-    public async Task Given_ApplicationIdUriForTests_When_CreateAuthorizationHeaderAsync_Then_ReturnedHeaderContainsBearerTokenWithExpectedAudience()
+    public void Given_ApplicationIdUriForTests_When_CreateAuthorizationHeader_Then_ReturnedHeaderContainsBearerTokenWithExpectedAudience()
     {
         // Arrange
         var credential = new DefaultAzureCredential();
         var sut = new AuthorizationHeaderProvider(credential, ApplicationIdUriForTests);
 
         // Act
-        var actual = await sut.CreateAuthorizationHeaderAsync(CancellationToken.None);
+        var actual = sut.CreateAuthorizationHeader();
 
         // Assert
         actual.Should().NotBeNull();
@@ -43,16 +43,16 @@ public class AuthorizationHeaderProviderTests
     }
 
     [Fact]
-    public async Task Given_ReusedSutInstance_When_CreateAuthorizationHeaderAsyncIsCalledMultipleTimes_Then_ReturnedHeaderContainsSameTokenBecauseTokenCacheIsUsed()
+    public async Task Given_ReusedSutInstance_When_CreateAuthorizationHeaderIsCalledMultipleTimes_Then_ReturnedHeaderContainsSameTokenBecauseTokenCacheIsUsed()
     {
         // Arrange
         var credential = new DefaultAzureCredential();
         var sut = new AuthorizationHeaderProvider(credential, ApplicationIdUriForTests);
 
         // Act
-        var header01 = await sut.CreateAuthorizationHeaderAsync(CancellationToken.None);
+        var header01 = sut.CreateAuthorizationHeader();
         await Task.Delay(TimeSpan.FromSeconds(1));
-        var header02 = await sut.CreateAuthorizationHeaderAsync(CancellationToken.None);
+        var header02 = sut.CreateAuthorizationHeader();
 
         // Assert
         header01.Parameter.Should().Be(header02.Parameter);

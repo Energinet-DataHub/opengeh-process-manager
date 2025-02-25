@@ -29,13 +29,9 @@ internal class AuthorizationHeaderProvider : IAuthorizationHeaderProvider
     }
 
     /// <inheritdoc/>
-    public async Task<AuthenticationHeaderValue> CreateAuthorizationHeaderAsync(CancellationToken cancellationToken = default)
+    public AuthenticationHeaderValue CreateAuthorizationHeader()
     {
-        var tokenResponse = await _credential
-            .GetTokenAsync(
-                new TokenRequestContext([_applicationIdUri]),
-                cancellationToken)
-            .ConfigureAwait(false);
+        var tokenResponse = _credential.GetToken(new TokenRequestContext([_applicationIdUri]), CancellationToken.None);
 
         return new AuthenticationHeaderValue("Bearer", tokenResponse.Token);
     }

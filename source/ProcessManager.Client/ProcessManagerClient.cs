@@ -17,7 +17,6 @@ using System.Text;
 using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Client.Authorization;
 using Energinet.DataHub.ProcessManager.Client.Extensions;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 
@@ -35,13 +34,11 @@ internal class ProcessManagerClient : IProcessManagerClient
 {
     private readonly HttpClient _generalApiHttpClient;
     private readonly HttpClient _orchestrationsApiHttpClient;
-    private readonly IAuthorizationHeaderProvider _authorizationHeaderProvider;
 
-    public ProcessManagerClient(IHttpClientFactory httpClientFactory, IAuthorizationHeaderProvider authorizationHeaderProvider)
+    public ProcessManagerClient(IHttpClientFactory httpClientFactory)
     {
         _generalApiHttpClient = httpClientFactory.CreateClient(HttpClientNames.GeneralApi);
         _orchestrationsApiHttpClient = httpClientFactory.CreateClient(HttpClientNames.OrchestrationsApi);
-        _authorizationHeaderProvider = authorizationHeaderProvider;
     }
 
     /// <inheritdoc/>
@@ -57,7 +54,9 @@ internal class ProcessManagerClient : IProcessManagerClient
             ? $"/api/orchestrationinstance/command/schedule/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}"
             : $"/api/orchestrationinstance/command/schedule";
 
-        using var request = await CreateAuthorizedPostRequestAsync(commandUrlPath, cancellationToken).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            commandUrlPath);
         // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
         var json = JsonSerializer.Serialize(command, command.GetType());
         request.Content = new StringContent(
@@ -82,7 +81,9 @@ internal class ProcessManagerClient : IProcessManagerClient
         CancelScheduledOrchestrationInstanceCommand command,
         CancellationToken cancellationToken)
     {
-        using var request = await CreateAuthorizedPostRequestAsync("/api/orchestrationinstance/command/cancel", cancellationToken).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/command/cancel");
         var json = JsonSerializer.Serialize(command);
         request.Content = new StringContent(
             json,
@@ -108,7 +109,9 @@ internal class ProcessManagerClient : IProcessManagerClient
             ? $"/api/orchestrationinstance/command/start/custom/{command.OrchestrationDescriptionUniqueName.Name}/{command.OrchestrationDescriptionUniqueName.Version}"
             : $"/api/orchestrationinstance/command/start";
 
-        using var request = await CreateAuthorizedPostRequestAsync(commandUrlPath, cancellationToken).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            commandUrlPath);
         // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
         var json = JsonSerializer.Serialize(command, command.GetType());
         request.Content = new StringContent(
@@ -133,7 +136,9 @@ internal class ProcessManagerClient : IProcessManagerClient
         GetOrchestrationInstanceByIdQuery query,
         CancellationToken cancellationToken)
     {
-        using var request = await CreateAuthorizedPostRequestAsync("/api/orchestrationinstance/query/id", cancellationToken).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/id");
         var json = JsonSerializer.Serialize(query);
         request.Content = new StringContent(
             json,
@@ -158,7 +163,9 @@ internal class ProcessManagerClient : IProcessManagerClient
         CancellationToken cancellationToken)
             where TInputParameterDto : class, IInputParameterDto
     {
-        using var request = await CreateAuthorizedPostRequestAsync("/api/orchestrationinstance/query/id", cancellationToken).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/id");
         var json = JsonSerializer.Serialize(query);
         request.Content = new StringContent(
             json,
@@ -183,7 +190,9 @@ internal class ProcessManagerClient : IProcessManagerClient
         CancellationToken cancellationToken)
             where TInputParameterDto : class, IInputParameterDto
     {
-        using var request = await CreateAuthorizedPostRequestAsync("/api/orchestrationinstance/query/idempotencykey", cancellationToken).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/idempotencykey");
         var json = JsonSerializer.Serialize(query);
         request.Content = new StringContent(
             json,
@@ -213,7 +222,9 @@ internal class ProcessManagerClient : IProcessManagerClient
         SearchOrchestrationInstancesByNameQuery query,
         CancellationToken cancellationToken)
     {
-        using var request = await CreateAuthorizedPostRequestAsync("/api/orchestrationinstance/query/name", cancellationToken).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/name");
         var json = JsonSerializer.Serialize(query);
         request.Content = new StringContent(
             json,
@@ -238,7 +249,9 @@ internal class ProcessManagerClient : IProcessManagerClient
         CancellationToken cancellationToken)
             where TInputParameterDto : class, IInputParameterDto
     {
-        using var request = await CreateAuthorizedPostRequestAsync("/api/orchestrationinstance/query/name", cancellationToken).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/orchestrationinstance/query/name");
         var json = JsonSerializer.Serialize(query);
         request.Content = new StringContent(
             json,
@@ -263,7 +276,9 @@ internal class ProcessManagerClient : IProcessManagerClient
         CancellationToken cancellationToken)
             where TItem : class
     {
-        using var request = await CreateAuthorizedPostRequestAsync($"/api/orchestrationinstance/query/custom/{query.QueryRouteName}", cancellationToken).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/query/custom/{query.QueryRouteName}");
         // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
         var json = JsonSerializer.Serialize(query, query.GetType());
         request.Content = new StringContent(
@@ -281,16 +296,5 @@ internal class ProcessManagerClient : IProcessManagerClient
             .ConfigureAwait(false);
 
         return orchestrationInstances!;
-    }
-
-    private async Task<HttpRequestMessage> CreateAuthorizedPostRequestAsync(string requestUri, CancellationToken cancellationToken)
-    {
-        var request = new HttpRequestMessage(
-            HttpMethod.Post,
-            requestUri);
-
-        request.Headers.Authorization = await _authorizationHeaderProvider.CreateAuthorizationHeaderAsync(cancellationToken).ConfigureAwait(false);
-
-        return request;
     }
 }

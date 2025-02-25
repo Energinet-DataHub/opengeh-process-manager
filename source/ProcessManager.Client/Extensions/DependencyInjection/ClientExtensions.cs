@@ -42,17 +42,6 @@ public static class ClientExtensions
             .BindConfiguration(ProcessManagerHttpClientsOptions.SectionName)
             .ValidateDataAnnotations();
 
-        services.AddHttpClient(HttpClientNames.GeneralApi, (sp, httpClient) =>
-        {
-            var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
-            httpClient.BaseAddress = new Uri(options.GeneralApiBaseAddress);
-        });
-        services.AddHttpClient(HttpClientNames.OrchestrationsApi, (sp, httpClient) =>
-        {
-            var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
-            httpClient.BaseAddress = new Uri(options.OrchestrationsApiBaseAddress);
-        });
-
         services.TryAddSingleton<IAuthorizationHeaderProvider>(sp =>
         {
             // We currently register AuthorizationHeaderProvider like this to be in control of the
@@ -64,6 +53,18 @@ public static class ClientExtensions
             var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
             return new AuthorizationHeaderProvider(credential, options.ApplicationIdUri);
         });
+
+        services.AddHttpClient(HttpClientNames.GeneralApi, (sp, httpClient) =>
+        {
+            var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
+            ConfigureHttpClient(sp, httpClient, options.GeneralApiBaseAddress);
+        });
+        services.AddHttpClient(HttpClientNames.OrchestrationsApi, (sp, httpClient) =>
+        {
+            var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
+            ConfigureHttpClient(sp, httpClient, options.OrchestrationsApiBaseAddress);
+        });
+
         services.AddScoped<IProcessManagerClient, ProcessManagerClient>();
 
         return services;
@@ -99,5 +100,13 @@ public static class ClientExtensions
         services.AddScoped<IProcessManagerMessageClient, ProcessManagerMessageClient>();
 
         return services;
+    }
+
+    private static void ConfigureHttpClient(IServiceProvider sp, HttpClient httpClient, string baseAddress)
+    {
+        httpClient.BaseAddress = new Uri(baseAddress);
+
+        var headerProvider = sp.GetRequiredService<IAuthorizationHeaderProvider>();
+        httpClient.DefaultRequestHeaders.Authorization = headerProvider.CreateAuthorizationHeader();
     }
 }

@@ -15,7 +15,6 @@
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Authorization;

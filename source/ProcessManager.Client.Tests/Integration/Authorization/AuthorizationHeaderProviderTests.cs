@@ -41,4 +41,20 @@ public class AuthorizationHeaderProviderTests
         var token = tokenhandler.ReadJwtToken(actual.Parameter);
         token.Audiences.Should().Contain(ApplicationIdUriForTests);
     }
+
+    [Fact]
+    public async Task Given_ReusedSutInstance_When_CreateAuthorizationHeaderAsyncIsCalledMultipleTimes_Then_ReturnedHeaderContainsSameTokenBecauseTokenCacheIsUsed()
+    {
+        // Arrange
+        var credential = new DefaultAzureCredential();
+        var sut = new AuthorizationHeaderProvider(credential, ApplicationIdUriForTests);
+
+        // Act
+        var header01 = await sut.CreateAuthorizationHeaderAsync(CancellationToken.None);
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        var header02 = await sut.CreateAuthorizationHeaderAsync(CancellationToken.None);
+
+        // Assert
+        header01.Parameter.Should().Be(header02.Parameter);
+    }
 }

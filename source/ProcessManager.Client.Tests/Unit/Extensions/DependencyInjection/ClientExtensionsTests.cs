@@ -25,6 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Unit.Extensions.Dependen
 
 public class ClientExtensionsTests
 {
+    private const string ApiApplicationIdUriFake = "api://datahub3-processmanager";
     private const string GeneralApiBaseAddressFake = "https://www.fake-general.com";
     private const string OrchestrationsApiBaseAddressFake = "https://www.fake-orchestrations.com";
 
@@ -44,6 +45,7 @@ public class ClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = ApiApplicationIdUriFake,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
         });
@@ -85,6 +87,7 @@ public class ClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = ApiApplicationIdUriFake,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
         });

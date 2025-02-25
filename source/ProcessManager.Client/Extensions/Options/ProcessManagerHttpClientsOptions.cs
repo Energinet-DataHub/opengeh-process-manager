@@ -26,6 +26,7 @@ public class ProcessManagerHttpClientsOptions
     /// <summary>
     /// Uri (scope) for which the client must request a token and send as part of the http request.
     /// </summary>
+    [Required(AllowEmptyStrings = false)]
     public string ApplicationIdUri { get; set; } = string.Empty;
 
     /// <summary>

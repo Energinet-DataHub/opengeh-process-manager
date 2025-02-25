@@ -51,4 +51,9 @@ public class ProcessManagerTopicOptions
     /// </summary>
     //[Required(AllowEmptyStrings = false)] // TODO: Removed required for now since tests cannot be run (yet)
     public string Brs021ForwardMeteredDataSubscriptionName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    public string Brs021EdiEnqueuedForwardMeteredDataSubscriptionName { get; set; } = string.Empty;
 }

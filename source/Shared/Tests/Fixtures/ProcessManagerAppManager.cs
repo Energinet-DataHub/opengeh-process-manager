@@ -87,7 +87,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
     /// In integration tests we use one that we know all identities can get a token for, which
     /// means we don't test authentication in integration tests (in general).
     /// </summary>
-    public string ApplicationIdUri => "https://management.azure.com";
+    public string ApplicationIdUriForTests => "https://management.azure.com";
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
 

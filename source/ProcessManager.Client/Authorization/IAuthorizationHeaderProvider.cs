@@ -21,5 +21,5 @@ internal interface IAuthorizationHeaderProvider
     /// <summary>
     /// Create an authorization header to be used when calling Process Manager API's.
     /// </summary>
-    Task<AuthenticationHeaderValue> CreateAuthorizationHeader(CancellationToken cancellationToken = default);
+    Task<AuthenticationHeaderValue> CreateAuthorizationHeaderAsync(CancellationToken cancellationToken = default);
 }

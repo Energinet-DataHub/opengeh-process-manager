@@ -53,7 +53,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                = Fixture.ProcessManagerAppManager.ApplicationIdUri,
+                = Fixture.ProcessManagerAppManager.ApplicationIdUriForTests,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]

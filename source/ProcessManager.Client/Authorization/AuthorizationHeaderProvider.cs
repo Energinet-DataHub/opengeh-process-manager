@@ -29,7 +29,7 @@ internal class AuthorizationHeaderProvider : IAuthorizationHeaderProvider
     }
 
     /// <inheritdoc/>
-    public async Task<AuthenticationHeaderValue> CreateAuthorizationHeader(CancellationToken cancellationToken = default)
+    public async Task<AuthenticationHeaderValue> CreateAuthorizationHeaderAsync(CancellationToken cancellationToken = default)
     {
         var tokenResponse = await _credential
             .GetTokenAsync(

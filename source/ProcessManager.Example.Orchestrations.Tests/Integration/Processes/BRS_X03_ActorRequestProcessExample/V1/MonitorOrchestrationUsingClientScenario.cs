@@ -51,7 +51,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         {
             // Process Manager HTTP client
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                = Fixture.ProcessManagerAppManager.ApplicationIdUri,
+                = Fixture.ProcessManagerAppManager.ApplicationIdUriForTests,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]

@@ -289,7 +289,7 @@ internal class ProcessManagerClient : IProcessManagerClient
             HttpMethod.Post,
             requestUri);
 
-        request.Headers.Authorization = await _authorizationHeaderProvider.CreateAuthorizationHeader(cancellationToken).ConfigureAwait(false);
+        request.Headers.Authorization = await _authorizationHeaderProvider.CreateAuthorizationHeaderAsync(cancellationToken).ConfigureAwait(false);
 
         return request;
     }

@@ -92,7 +92,7 @@ internal static class OrchestrationInstanceMapperExtensions
             Lifecycle: entity.Lifecycle.MapToDto(),
             Description: entity.Description,
             Sequence: entity.Sequence,
-            CustomState: entity.CustomState.Value);
+            CustomState: entity.CustomState.SerializedValue);
     }
 
     public static ApiModel.OrchestrationInstance.StepInstanceLifecycleDto MapToDto(

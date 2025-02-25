@@ -95,8 +95,8 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
             o => o.ParameterValue,
             b =>
             {
-                b.Property(l => l.SerializedParameterValue)
-                    .HasColumnName(nameof(OrchestrationInstance.ParameterValue.SerializedParameterValue));
+                b.Property(l => l.SerializedValue)
+                    .HasColumnName(nameof(OrchestrationInstance.ParameterValue));
             });
 
         builder.OwnsMany(
@@ -133,7 +133,7 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                     s => s.CustomState,
                     csb =>
                     {
-                        csb.Property(cs => cs.Value)
+                        csb.Property(cs => cs.SerializedValue)
                             .HasColumnName(nameof(StepInstance.CustomState));
                     });
 

@@ -87,10 +87,9 @@ public sealed class ElectricityMarketViewsStub : IElectricityMarketViews
         }
     }
 
-    public sealed record StubActorNumber : ActorNumber
+    public sealed record StubActorNumber
     {
         public StubActorNumber(string value)
-            : base(value)
         {
         }
     }

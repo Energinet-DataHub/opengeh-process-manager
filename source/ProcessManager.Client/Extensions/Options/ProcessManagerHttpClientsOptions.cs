@@ -24,6 +24,12 @@ public class ProcessManagerHttpClientsOptions
     public const string SectionName = "ProcessManagerHttpClients";
 
     /// <summary>
+    /// Uri (scope) for which the client must request a token and send as part of the http request.
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string ApplicationIdUri { get; set; } = string.Empty;
+
+    /// <summary>
     /// Address to the general Api hosted in Process Manager.
     /// </summary>
     [Required(AllowEmptyStrings = false)]

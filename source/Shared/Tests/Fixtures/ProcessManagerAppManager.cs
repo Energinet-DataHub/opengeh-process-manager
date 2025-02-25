@@ -82,6 +82,13 @@ public class ProcessManagerAppManager : IAsyncDisposable
             IntegrationTestConfiguration.Credential);
     }
 
+    /// <summary>
+    /// Uri (scope) for which the client must request a token and send as part of the http request.
+    /// In integration tests we use one that we know all identities can get a token for, which
+    /// means we don't test authentication in integration tests (in general).
+    /// </summary>
+    public string ApplicationIdUriForTests => "https://management.azure.com";
+
     public ProcessManagerDatabaseManager DatabaseManager { get; }
 
     public ITestDiagnosticsLogger TestLogger { get; }

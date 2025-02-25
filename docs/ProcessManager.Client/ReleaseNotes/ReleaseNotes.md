@@ -1,5 +1,10 @@
 # ProcessManager.Client Release Notes
 
+## Version 1.4.0
+
+- Extended `ProcessManagerHttpClientsOptions` with `ApplicationIdUri`.
+- Refactored `ProcessManagerClient` to retrieve and add token when calling Process Manager API's.
+
 ## Version 1.3.2
 
 - Update NuGet packages.

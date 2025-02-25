@@ -107,7 +107,8 @@ public static class ProcessManagerExtensions
         // Process Manager Core
         services
             .AddProcessManagerOptions()
-            .AddProcessManagerDatabase();
+            .AddProcessManagerDatabase()
+            .AddFeatureFlags();
 
         // Task Hub connected to Durable Functions
         services.AddTaskHubStorage();

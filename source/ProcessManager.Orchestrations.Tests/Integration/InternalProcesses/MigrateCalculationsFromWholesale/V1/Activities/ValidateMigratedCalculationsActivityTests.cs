@@ -150,9 +150,7 @@ public class ValidateMigratedCalculationsActivityTests : IClassFixture<MigrateCa
                 PeriodEndDate: default,
                 IsInternalCalculation: false));
 
-            orchestrationInstance.CustomState.Value = MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1
-                .GetMigratedWholesaleCalculationIdCustomState(calculation.Id)
-                .Value;
+            orchestrationInstance.CustomState.SetFromInstance(new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState(calculation.Id));
 
             processManagerContext.OrchestrationInstances.Add(orchestrationInstance);
             await processManagerContext.SaveChangesAsync();

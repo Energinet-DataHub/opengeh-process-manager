@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
@@ -202,7 +203,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         // Act
         await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
         var actualOrchestrationInstanceIds = await readDbContext.Database
-            .SqlQuery<Guid>($"SELECT [o].[Id] FROM [pm].[OrchestrationInstance] AS [o] WHERE CAST(JSON_VALUE([o].[SerializedParameterValue],'$.TestInt') AS int) = {expectedTestInt}")
+            .SqlQuery<Guid>($"SELECT [o].[Id] FROM [pm].[OrchestrationInstance] AS [o] WHERE CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}")
             .ToListAsync();
 
         // Assert
@@ -332,7 +333,11 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             transactionId: new TransactionId(Guid.NewGuid().ToString()),
             meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
-        orchestrationInstance.CustomState.Value = "Something new";
+        orchestrationInstance.CustomState.SetFromInstance(new TestOrchestrationInstanceCustomState
+        {
+            TestId = Guid.NewGuid(),
+            TestString = "Something new",
+        });
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {
@@ -404,5 +409,12 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         public string? TestString { get; set; }
 
         public int? TestInt { get; set; }
+    }
+
+    private class TestOrchestrationInstanceCustomState
+    {
+        public Guid TestId { get; set; }
+
+        public string? TestString { get; set; }
     }
 }

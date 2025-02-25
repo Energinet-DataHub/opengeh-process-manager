@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
@@ -48,4 +49,8 @@ internal class BusinessValidationStep(
 
         return new StepOutput(asyncValidationTerminationState, validationResult);
     }
+
+    internal record CustomState(
+        bool IsValid,
+        IReadOnlyCollection<ValidationError> ValidationErrors);
 }

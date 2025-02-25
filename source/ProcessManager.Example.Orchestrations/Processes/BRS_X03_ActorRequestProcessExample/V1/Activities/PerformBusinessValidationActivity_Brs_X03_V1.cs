@@ -43,7 +43,8 @@ internal class PerformBusinessValidationActivity_Brs_X03_V1(
         if (validationErrors.Count > 0)
         {
             var businessValidationStep = orchestrationInstance.GetStep(BusinessValidationStep.StepSequence);
-            businessValidationStep.SetCustomState(JsonSerializer.Serialize(validationErrors));
+            businessValidationStep.CustomState.SetFromInstance(new BusinessValidationStep.CustomState(
+                validationErrors));
 
             await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }

@@ -19,7 +19,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 
-public class TransitionStepToRunningActivity_V1(
+internal class TransitionStepToRunningActivity_V1(
     IClock clock,
     IOrchestrationInstanceProgressRepository repository)
 {
@@ -41,7 +41,7 @@ public class TransitionStepToRunningActivity_V1(
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
-    public record ActivityInput(
+    internal record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
         int StepSequence);
 }

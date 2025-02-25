@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -88,8 +87,8 @@ public class ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesa
         IReadOnlyCollection<OrchestrationInstance> migratedCalculations)
     {
         var migratedCalculationIds = migratedCalculations
-            .Select(oi => oi.CustomState)
-            .Select(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.GetMigratedWholesaleCalculationIdCustomStateGuid)
+            .Select(oi => oi.CustomState.AsType<MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState>())
+            .Select(cs => cs.MigratedWholesaleCalculationId)
             .ToList();
 
         var notMigratedCalculations = wholesaleCalculations
@@ -112,8 +111,9 @@ public class ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesa
 
     private KeyValuePair<Guid, IReadOnlyCollection<string>> GetMigrationErrorsForCalculation(OrchestrationInstance migratedCalculation)
     {
-        var wholesaleCalculationId = MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1
-            .GetMigratedWholesaleCalculationIdCustomStateGuid(migratedCalculation.CustomState);
+        var wholesaleCalculationId = migratedCalculation
+            .CustomState.AsType<MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState>()
+            .MigratedWholesaleCalculationId;
 
         var asTypedDto = migratedCalculation.MapToTypedDto<CalculationInputV1>();
 

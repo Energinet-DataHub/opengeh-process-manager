@@ -27,6 +27,8 @@
     <EmbeddedResource Include="Scripts\202502121453 Remove lifecycle ActorId from OrchestrationInstance.sql" />
     <EmbeddedResource Include="Scripts\202502171057 Add search index to Orchestration Instance.sql" />
     <EmbeddedResource Include="Scripts\202502211500 Add on delete cascade.sql" />
+    <EmbeddedResource Include="Scripts\202502241453 Rename SerializedParameterValue to ParameterValue on OrchestrationInstance.sql" />
+    <EmbeddedResource Include="Scripts\202502241547 Set CustomState to empty on StepInstance.sql" />
   </ItemGroup>
 
 </Project>

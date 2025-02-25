@@ -45,12 +45,12 @@ public static class ClientExtensions
         services.AddHttpClient(HttpClientNames.GeneralApi, (sp, httpClient) =>
         {
             var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
-            ConfigureHttpClient(sp, httpClient, options.GeneralApiBaseAddress);
+            httpClient.BaseAddress = new Uri(options.GeneralApiBaseAddress);
         });
         services.AddHttpClient(HttpClientNames.OrchestrationsApi, (sp, httpClient) =>
         {
             var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
-            ConfigureHttpClient(sp, httpClient, options.OrchestrationsApiBaseAddress);
+            httpClient.BaseAddress = new Uri(options.OrchestrationsApiBaseAddress);
         });
 
         services.TryAddSingleton<IAuthorizationHeaderProvider>(sp =>
@@ -99,13 +99,5 @@ public static class ClientExtensions
         services.AddScoped<IProcessManagerMessageClient, ProcessManagerMessageClient>();
 
         return services;
-    }
-
-    /// <summary>
-    /// Configure http client base address.
-    /// </summary>
-    private static void ConfigureHttpClient(IServiceProvider sp, HttpClient httpClient, string baseAddress)
-    {
-        httpClient.BaseAddress = new Uri(baseAddress);
     }
 }

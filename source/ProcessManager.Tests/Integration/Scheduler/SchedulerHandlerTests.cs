@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;

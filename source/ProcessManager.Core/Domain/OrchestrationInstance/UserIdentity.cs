@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
 namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 

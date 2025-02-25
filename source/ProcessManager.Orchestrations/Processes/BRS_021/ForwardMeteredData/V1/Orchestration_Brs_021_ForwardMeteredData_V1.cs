@@ -76,7 +76,7 @@ public class Orchestration_Brs_021_ForwardMeteredData_V1(
             .ConfigureAwait(false);
 
         // Teriminate step: Forward to Measurements
-        await TerminateStep(orchestrationInstance, ValidatingStep);
+        await TerminateStep(orchestrationInstance, ForwardToMeasurementStep);
 
         // Start Step: Find Receiver
         await StartStep(orchestrationInstance, FindReceiverStep);

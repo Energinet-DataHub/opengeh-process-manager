@@ -21,4 +21,6 @@ public static class Brs_021_ForwardedMeteredData
     public const string Name = "Brs_021_ForwardMeteredData";
 
     public static OrchestrationDescriptionUniqueNameDto V1 { get; } = new(Name, 1);
+
+    public static OrchestrationDescriptionUniqueNameDto V2 { get; } = new(Name, 2);
 }

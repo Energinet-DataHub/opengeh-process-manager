@@ -50,6 +50,8 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
+                = Fixture.ProcessManagerAppManager.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]

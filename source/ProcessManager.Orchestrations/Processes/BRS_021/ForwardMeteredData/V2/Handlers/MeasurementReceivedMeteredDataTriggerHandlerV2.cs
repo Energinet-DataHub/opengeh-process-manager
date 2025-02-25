@@ -30,7 +30,7 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV2(
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
 
-    public async Task Handle(OrchestrationInstanceId orchestrationInstanceId)
+    public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
         var orchestrationInstance = await _progressRepository
             .GetAsync(orchestrationInstanceId)
@@ -66,6 +66,7 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV2(
             },
             MarketActorRecipients: [new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)]);
 
+        // TODO: Do we want to inform our own trigger and not EDI?
         await _enqueueActorMessagesClient.EnqueueAsync(
             orchestration: OrchestrationDescriptionBuilder.UniqueName,
             orchestrationInstanceId: orchestrationInstanceId.Value,

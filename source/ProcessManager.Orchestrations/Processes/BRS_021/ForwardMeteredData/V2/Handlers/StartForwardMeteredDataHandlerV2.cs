@@ -12,14 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 using Microsoft.Extensions.Logging;
 using NodaTime;
+using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Handlers;
 
@@ -72,5 +76,30 @@ public class StartForwardMeteredDataHandlerV2(
 
         // Start Step: Forward to Measurements
         await StepHelper.StartStep(orchestrationInstance, OrchestrationDescriptionBuilder.ForwardToMeasurementStep, clock, ProgressRepository).ConfigureAwait(false);
+
+        // TODO: Do we want to inform our own trigger instead of measurement?
+        await MeasurementsMeteredDataClient.SendAsync(
+            GenerateMeteredData(orchestrationInstanceId, input),
+            CancellationToken.None).ConfigureAwait(false);
     }
+
+#pragma warning disable SA1202
+    public static MeteredDataForMeteringPoint GenerateMeteredData(
+        OrchestrationInstanceId orchestrationInstanceId,
+        MeteredDataForMeteringPointMessageInputV1 input)
+    {
+        return new MeteredDataForMeteringPoint(
+            OrchestrationId: orchestrationInstanceId.Value.ToString(),
+            MeteringPointId: input.MeteringPointId!,
+            TransactionId: input.TransactionId,
+            CreatedAt: InstantPattern.ExtendedIso.Parse(input.RegistrationDateTime).Value,
+            StartDateTime: InstantPattern.ExtendedIso.Parse(input.StartDateTime).Value,
+            EndDateTime: InstantPattern.ExtendedIso.Parse(input.EndDateTime!).Value,
+            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType ?? "production"),
+            Product: input.ProductNumber ?? string.Empty,
+            Unit: MeasurementUnit.FromName(input.MeasureUnit ?? "megawatt"),
+            Resolution: Resolution.FromName(input.Resolution ?? "quarter_hourly"),
+            Points: []);
+    }
+#pragma warning restore SA1202
 }

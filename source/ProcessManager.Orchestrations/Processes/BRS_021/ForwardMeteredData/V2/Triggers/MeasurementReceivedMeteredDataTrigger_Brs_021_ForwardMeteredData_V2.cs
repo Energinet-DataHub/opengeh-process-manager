@@ -39,7 +39,7 @@ public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2
         if (notification == null) throw new InvalidOperationException("Failed to deserialize message");
 
         var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notification.OrchestrationId.Id));
-        await _handler.Handle(orchestrationInstanceId).ConfigureAwait(false);
+        await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
     }
 }
 

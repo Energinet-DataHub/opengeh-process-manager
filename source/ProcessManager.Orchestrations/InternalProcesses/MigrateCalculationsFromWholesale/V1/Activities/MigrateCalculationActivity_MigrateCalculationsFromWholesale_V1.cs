@@ -97,7 +97,18 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
 
     private Task<bool> WasCalculationIdMigratedAsync(Guid wholesaleCalculationId)
     {
-        return _processManagerContext.CreateMigratedCalculationsQuery()
+        return _processManagerContext.OrchestrationDescriptions
+            .AsNoTracking()
+            .Where(
+                od =>
+                    od.UniqueName.Name == Brs_023_027.V1.Name
+                    && od.UniqueName.Version == Brs_023_027.V1.Version)
+            .Join(
+                inner: _processManagerContext.OrchestrationInstances,
+                outerKeySelector: od => od.Id,
+                innerKeySelector: oi => oi.OrchestrationDescriptionId,
+                resultSelector: (od, oi) => oi)
+            .AsNoTracking()
             .Where(x => x.CustomState == GetCustomState(wholesaleCalculationId))
             .AnyAsync();
     }

@@ -7,6 +7,8 @@ or [Miro](https://miro.com/app/board/uXjVLXgfr7o=/)
 
 ## Active feature flags
 
+### Timer triggers
+
 We use
 the [built in functionality](https://learn.microsoft.com/en-us/azure/azure-functions/disable-function?tabs=portal) to
 disable our `TimerTrigger`s used to manage scheduled and recurring orchestrations:
@@ -14,12 +16,25 @@ disable our `TimerTrigger`s used to manage scheduled and recurring orchestration
 - `StartScheduledOrchestrationInstances`
 - `PerformRecurringPlanning`
 
+### Silent mode
+
+The `SilentMode` feature is enabled on dev001, dev002, and test001.
+The feature flag must not for any reason be enabled on pre-prod or prod.
+The feature flag is used to suppress certain non-critical errors
+that could end up polluting the exception log and alerts due to e.g. subsystem tests in other subsystems.
+In particular, the feature flag suppresses the following errors:
+
+- `OrchestrationInstanceManager.NotifyOrchestrationInstanceAsync`: "Orchestration instance (Id={id.Value}) to notify was not found."
+
+Other exceptions can be added to the feature flag if they are deemed non-critical and noisy.
+Do, however, ensure that the exception is logged as a warning to aid debugging and tracing.
+
 ## Architecture
 
-// TODO: Describe important principles, patterns
-// TODO: Describe source code modularization -> static view
-// TODO: Describe the flow -> "user" / runtime view
-// TODO: Describe how artifacts are deployed -> deployment view
+- // TODO: Describe important principles, patterns
+- // TODO: Describe source code modularization → static view
+- // TODO: Describe the flow → "user" / runtime view
+- // TODO: Describe how artifacts are deployed → deployment view
 
 ## Development
 

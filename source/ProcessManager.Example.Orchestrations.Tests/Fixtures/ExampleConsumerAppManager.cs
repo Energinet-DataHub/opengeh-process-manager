@@ -71,11 +71,13 @@ public class ExampleConsumerAppManager : IAsyncDisposable
     /// </summary>
     /// <param name="processManagerTopicResources">Process Manager topic resources used by the app. Will be created if not provided.</param>
     /// <param name="ediTopicResources">EDI topic resources used by the app. Will be created if not provided.</param>
+    /// <param name="processManagerApplicationIdUri">Uri (scope) for which the client must request a token and send as part of the http request.</param>
     /// <param name="processManagerApiUrl">Base URL of the Process Manager general API.</param>
     /// <param name="orchestrationsApiUrl">Base URL of the Orchestrations API.</param>
     public async Task StartAsync(
         ProcessManagerTopicResources? processManagerTopicResources,
         EdiTopicResources? ediTopicResources,
+        string processManagerApplicationIdUri,
         string processManagerApiUrl,
         string orchestrationsApiUrl)
     {
@@ -87,6 +89,7 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             "ProcessManager.Example.Consumer",
             processManagerTopicResources,
             ediTopicResources,
+            processManagerApplicationIdUri,
             processManagerApiUrl,
             orchestrationsApiUrl);
 
@@ -152,6 +155,7 @@ public class ExampleConsumerAppManager : IAsyncDisposable
         string csprojName,
         ProcessManagerTopicResources processManagerTopicResources,
         EdiTopicResources ediTopicResources,
+        string processManagerApplicationIdUri,
         string processManagerGeneralApiBaseUrl,
         string orchestrationApiBaseUrl)
     {
@@ -175,6 +179,9 @@ public class ExampleConsumerAppManager : IAsyncDisposable
 
         // ProcessManager
         // => Process Manager HTTP client
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}",
+            processManagerApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}",
             processManagerGeneralApiBaseUrl);

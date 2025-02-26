@@ -32,12 +32,14 @@ public class OrchestrationDescription
     public OrchestrationDescription(
         OrchestrationDescriptionUniqueName uniqueName,
         bool canBeScheduled,
-        string functionName)
+        string functionName,
+        bool isDurableFunction = true)
     {
         Id = new OrchestrationDescriptionId(Guid.NewGuid());
         UniqueName = uniqueName;
         CanBeScheduled = canBeScheduled;
         FunctionName = functionName;
+        IsDurableFunction = isDurableFunction;
         ParameterDefinition = new();
         HostName = string.Empty;
         IsEnabled = true;
@@ -102,6 +104,11 @@ public class OrchestrationDescription
     /// The name of the Durable Functions orchestration implementation.
     /// </summary>
     public string FunctionName { get; set; }
+
+    /// <summary>
+    /// Specifies if the orchestration is implemented as a Durable Function.
+    /// </summary>
+    public bool IsDurableFunction { get; }
 
     /// <summary>
     /// Defines the Durable Functions orchestration input parameter type.

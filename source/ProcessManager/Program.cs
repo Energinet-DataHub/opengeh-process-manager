@@ -46,7 +46,7 @@ var host = new HostBuilder()
 
         // ProcessManager
         services.AddProcessManagerCore();
-        services.AddProcessManagerAuthentication(context.Configuration); // TODO: PoC => Most likely merge with "AddProcessManagerCore"
+        services.AddProcessManagerAuthentication(context.Configuration);
 
         // Handlers
         services.AddScoped<RecurringPlannerHandler>();

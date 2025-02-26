@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
+using Energinet.DataHub.ProcessManager.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
@@ -36,6 +37,7 @@ var host = new HostBuilder()
 
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
+        services.AddProcessManagerAuthentication(context.Configuration);
 
         // => Add EnqueueActorMessages client
         services.AddServiceBusClientForApplication(context.Configuration);

@@ -79,22 +79,25 @@ public static class ProcessManagerExtensions
             });
 
         // ProcessManager components using interfaces to restrict access to functionality
+        // => Types that implements multiple interfaces
+        services.TryAddScoped<OrchestrationInstanceRepository, OrchestrationInstanceRepository>();
+        services.TryAddScoped<OrchestrationInstanceManager, OrchestrationInstanceManager>();
         // => Scheduling
-        services.TryAddScoped<IScheduledOrchestrationInstancesByInstantQuery, OrchestrationInstanceRepository>();
-        services.TryAddScoped<IStartScheduledOrchestrationInstanceCommand, OrchestrationInstanceManager>();
+        services.TryAddScoped<IScheduledOrchestrationInstancesByInstantQuery>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IStartScheduledOrchestrationInstanceCommand>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         services.TryAddScoped<IRecurringOrchestrationQueries, RecurringOrchestrationQueries>();
         // => Cancellation (manager)
-        services.TryAddScoped<ICancelScheduledOrchestrationInstanceCommand, OrchestrationInstanceManager>();
+        services.TryAddScoped<ICancelScheduledOrchestrationInstanceCommand>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         // => Start instance (manager)
         services.TryAddScoped<IOrchestrationInstanceExecutor, DurableOrchestrationInstanceExecutor>();
         services.TryAddScoped<IOrchestrationRegisterQueries, OrchestrationRegister>();
-        services.TryAddScoped<IOrchestrationInstanceRepository, OrchestrationInstanceRepository>();
-        services.TryAddScoped<IStartOrchestrationInstanceCommands, OrchestrationInstanceManager>();
-        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands, OrchestrationInstanceManager>();
+        services.TryAddScoped<IOrchestrationInstanceRepository>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IStartOrchestrationInstanceCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         // => Notify instance (manager)
-        services.TryAddScoped<INotifyOrchestrationInstanceCommands, OrchestrationInstanceManager>();
+        services.TryAddScoped<INotifyOrchestrationInstanceCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         // => Public queries
-        services.TryAddScoped<IOrchestrationInstanceQueries, OrchestrationInstanceRepository>();
+        services.TryAddScoped<IOrchestrationInstanceQueries>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
 
         return services;
     }

@@ -3,14 +3,8 @@
 BEGIN
     ALTER TABLE [pm].[OrchestrationDescription]
         ADD IsDurableFunction BIT NOT NULL CONSTRAINT D_OrchestrationDescription_IsDurableFunction DEFAULT 1;
-    GO
-
-    ALTER TABLE [pm].[OrchestrationDescription]
-        ALTER COLUMN IsDurableFunction DROP DEFAULT;
-    GO
 
     ALTER TABLE [pm].[OrchestrationDescription]
         DROP CONSTRAINT D_OrchestrationDescription_IsDurableFunction;
-    GO
 END
 GO

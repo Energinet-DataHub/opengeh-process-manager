@@ -32,6 +32,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Options;
@@ -129,6 +130,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
     [NotNull]
     public string? EventHubName { get; private set; }
 
+    [NotNull]
+    public string? ProcessManagerEventhubName { get; private set; }
+
     public WireMockServer MockServer { get; }
 
     public WholesaleDatabaseManager WholesaleDatabaseManager { get; }
@@ -164,6 +168,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
         var eventHubResource = await EventHubResourceProvider.BuildEventHub(_eventHubName).CreateAsync();
         EventHubName = eventHubResource.Name;
 
+        // TODO: Consider making variable for this
+        var processManagerEventhubResource = await EventHubResourceProvider.BuildEventHub("process-manager-event-hub").CreateAsync();
+        ProcessManagerEventhubName = processManagerEventhubResource.Name;
+
         processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
         integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
@@ -176,7 +184,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
             processManagerTopicResources,
             ediTopicResources,
             integrationEventTopicResources,
-            eventHubResource);
+            eventHubResource,
+            processManagerEventhubResource);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -267,7 +276,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         ProcessManagerTopicResources processManagerTopicResources,
         EdiTopicResources ediTopicResources,
         IntegrationEventTopicResources integrationEventTopicResources,
-        EventHubResource eventHubResource)
+        EventHubResource eventHubResource,
+        EventHubResource processManagerEventhubResource)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -389,6 +399,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
             eventHubResource.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}",
+            processManagerEventhubResource.Name);
+        // TODO: This should be hardcoded
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__FullyQualifiedNamespace",
+            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
 
         // Electric Market client
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -490,10 +507,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     public record EdiTopicResources(
         TopicResource EdiTopic,
+        SubscriptionProperties EnqueueBrs021ForwardMeteredDataSubscription,
         SubscriptionProperties EnqueueBrs023027Subscription,
         SubscriptionProperties EnqueueBrs026Subscription,
         SubscriptionProperties EnqueueBrs028Subscription)
     {
+        private const string EnqueueBrs021ForwardMeteredDataSubscriptionName = "enqueue-brs-021-forwardmetereddata-subscription";
         private const string EnqueueBrs023027SubscriptionName = "enqueue-brs-023-027-subscription";
         private const string EnqueueBrs026SubscriptionName = "enqueue-brs-026-subscription";
         private const string EnqueueBrs028SubscriptionName = "enqueue-brs-028-subscription";
@@ -514,6 +533,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
+                .AddSubscription(EnqueueBrs021ForwardMeteredDataSubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(OrchestrationDescriptionBuilder.UniqueName))
                 .AddSubscription(EnqueueBrs023027SubscriptionName)
                     .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
                 .AddSubscription(EnqueueBrs026SubscriptionName)
@@ -532,6 +553,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// </summary>
         public static EdiTopicResources CreateFromTopic(TopicResource topic)
         {
+            var enqueueBrs021ForwardMeteredDataSubscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(EnqueueBrs021ForwardMeteredDataSubscriptionName));
             var enqueueBrs023027Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(EnqueueBrs023027SubscriptionName));
             var enqueueBrs026Subscription = topic.Subscriptions
@@ -541,6 +564,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
             return new EdiTopicResources(
                 EdiTopic: topic,
+                EnqueueBrs021ForwardMeteredDataSubscription: enqueueBrs021ForwardMeteredDataSubscription,
                 EnqueueBrs023027Subscription: enqueueBrs023027Subscription,
                 EnqueueBrs026Subscription: enqueueBrs026Subscription,
                 EnqueueBrs028Subscription: enqueueBrs028Subscription);

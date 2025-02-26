@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Azure.Messaging.EventHubs;
+using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Handlers;
@@ -32,13 +33,16 @@ public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2
     [Function(nameof(MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2))]
     public async Task Run(
         [EventHubTrigger(
-            $"%{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}%%")]
+            $"%{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}%",
+            Connection = MeasurementsMeteredDataClientOptions.SectionName)]
         EventData[] message)
     {
-        var notification = JsonConvert.DeserializeObject<MeasurementReceivedMeteredDataNotification>(message[0].EventBody.ToString());
-        if (notification == null) throw new InvalidOperationException("Failed to deserialize message");
+        var data = PersistSubmittedTransaction.Parser.ParseFrom(message[0].Body.ToArray());
+        if (data == null) throw new InvalidOperationException("Failed to deserialize message");
+        // var notification = JsonConvert.DeserializeObject<MeasurementReceivedMeteredDataNotification>(message[0].EventBody.ToString());
+        // if (notification == null) throw new InvalidOperationException("Failed to deserialize message");
 
-        var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notification.OrchestrationId.Id));
+        var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(data.OrchestrationInstanceId));
         await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
     }
 }

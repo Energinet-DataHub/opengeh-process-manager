@@ -33,12 +33,13 @@ public class EdiEnqueuedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2(
     public async Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions) + "We need a new subscription?"}%",
+            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         string message)
     {
         // TODO: Correct type for which to deserialize to
-        var notification = JsonConvert.DeserializeObject<NotifyOrchestrationInstanceV1>(message);
+        var notification = NotifyOrchestrationInstanceV1.Parser.ParseJson(message);
+        //var notification = JsonConvert.DeserializeObject<NotifyOrchestrationInstanceV1>(message);
         if (notification == null) throw new InvalidOperationException("Failed to deserialize message");
 
         var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notification.OrchestrationInstanceId));

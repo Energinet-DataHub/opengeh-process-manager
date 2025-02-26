@@ -130,6 +130,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
     [NotNull]
     public string? EventHubName { get; private set; }
 
+    [NotNull]
+    public string? ProcessManagerEventhubName { get; private set; }
+
     public WireMockServer MockServer { get; }
 
     public WholesaleDatabaseManager WholesaleDatabaseManager { get; }
@@ -165,6 +168,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
         var eventHubResource = await EventHubResourceProvider.BuildEventHub(_eventHubName).CreateAsync();
         EventHubName = eventHubResource.Name;
 
+        // TODO: Consider making variable for this
+        var processManagerEventhubResource = await EventHubResourceProvider.BuildEventHub("process-manager-event-hub").CreateAsync();
+        ProcessManagerEventhubName = processManagerEventhubResource.Name;
+
         processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
         integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
@@ -177,7 +184,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
             processManagerTopicResources,
             ediTopicResources,
             integrationEventTopicResources,
-            eventHubResource);
+            eventHubResource,
+            processManagerEventhubResource);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -268,7 +276,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         ProcessManagerTopicResources processManagerTopicResources,
         EdiTopicResources ediTopicResources,
         IntegrationEventTopicResources integrationEventTopicResources,
-        EventHubResource eventHubResource)
+        EventHubResource eventHubResource,
+        EventHubResource processManagerEventhubResource)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -390,6 +399,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
             eventHubResource.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}",
+            processManagerEventhubResource.Name);
+        // TODO: This should be hardcoded
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__FullyQualifiedNamespace",
+            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
 
         // Electric Market client
         appHostSettings.ProcessEnvironmentVariables.Add(

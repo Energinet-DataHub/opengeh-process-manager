@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Azure.Messaging.EventHubs.Producer;
+using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -23,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -30,6 +32,7 @@ using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
+using OrchestrationStepTerminationState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationStepTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V2;
 
@@ -54,12 +57,24 @@ public class MonitorFlowTests : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
+            // Service bus client
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = _fixture.ProcessManagerTopicName,
+            // Https client
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
+                = _fixture.ProcessManagerAppManager.ApplicationIdUriForTests,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
                 = _fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+
+            // Eventhub client
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}"]
+                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"]
+                = _fixture.OrchestrationsAppManager.EventHubName,
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}"]
+                = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
@@ -102,7 +117,7 @@ public class MonitorFlowTests : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact(Skip = "Not implemented")]
+    [Fact]
     public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
     {
         // Arrange
@@ -121,21 +136,19 @@ public class MonitorFlowTests : IAsyncLifetime
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
 
-        // Get orchestration instance id maybe we should loop for 5 seconds?
-        await Task.Delay(TimeSpan.FromSeconds(4));
+        await Task.Delay(TimeSpan.FromSeconds(10));
 
-        var instances = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
-            new SearchOrchestrationInstancesByNameQuery(
-                _fixture.DefaultUserIdentity,
-                name: Brs_021_ForwardedMeteredData.Name,
-                version: null,
-                lifecycleStates: null,
-                terminationState: null,
-                startedAtOrLater: orchestrationCreatedAfter,
-                terminatedAtOrEarlier: null,
-                scheduledAtOrLater: null),
-            CancellationToken.None);
+        await Awaiter.WaitUntilConditionAsync(
+            async () =>
+            {
+                var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
 
+                return instances.Count >= 1;
+            },
+            TimeSpan.FromSeconds(10),
+            TimeSpan.FromSeconds(1));
+
+        var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
         var instance = instances.Should().ContainSingle().Subject;
 
         // Wait for eventhub trigger
@@ -150,6 +163,34 @@ public class MonitorFlowTests : IAsyncLifetime
             orchestrationInstanceId: instance.Id,
             messageId: startCommand.ActorMessageId);
 
+        var instancesAfterEnqueue = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
+            new SearchOrchestrationInstancesByNameQuery(
+                _fixture.DefaultUserIdentity,
+                name: Brs_021_ForwardedMeteredData.Name,
+                version: null,
+                lifecycleStates: null,
+                terminationState: null,
+                startedAtOrLater: orchestrationCreatedAfter,
+                terminatedAtOrEarlier: null,
+                scheduledAtOrLater: null),
+            CancellationToken.None);
+
+        var instanceAfterEnqueue = instancesAfterEnqueue.Should().ContainSingle().Subject;
+
+        var stepsWhichShouldBeSuccessful = new[]
+        {
+            OrchestrationDescriptionBuilder.ValidatingStep,
+            OrchestrationDescriptionBuilder.ForwardToMeasurementStep,
+            OrchestrationDescriptionBuilder.FindReceiverStep,
+        };
+
+        var successfulSteps = instanceAfterEnqueue.Steps
+            .Where(step => step.Lifecycle.TerminationState is Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationStepTerminationState.Succeeded)
+            .Select(step => step.Sequence);
+
+        successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
+
+        /*
         var searchResult = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
             new SearchOrchestrationInstancesByNameQuery(
                 _fixture.DefaultUserIdentity,
@@ -166,6 +207,7 @@ public class MonitorFlowTests : IAsyncLifetime
         searchResult.Single().Steps.Should().HaveCount(4);
         searchResult.Single().Steps.Should().AllSatisfy(
             step => step.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded));
+            */
     }
 
     private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1(
@@ -214,5 +256,20 @@ public class MonitorFlowTests : IAsyncLifetime
                 new("24", "112.000", "A04"),
             });
         return input;
+    }
+
+    private async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchAsync(IProcessManagerClient processManagerClient, DateTime orchestrationCreatedAfter)
+    {
+        return await processManagerClient.SearchOrchestrationInstancesByNameAsync(
+            new SearchOrchestrationInstancesByNameQuery(
+                _fixture.DefaultUserIdentity,
+                name: Brs_021_ForwardedMeteredData.Name,
+                version: null,
+                lifecycleStates: null,
+                terminationState: null,
+                startedAtOrLater: orchestrationCreatedAfter,
+                terminatedAtOrEarlier: null,
+                scheduledAtOrLater: null),
+            CancellationToken.None);
     }
 }

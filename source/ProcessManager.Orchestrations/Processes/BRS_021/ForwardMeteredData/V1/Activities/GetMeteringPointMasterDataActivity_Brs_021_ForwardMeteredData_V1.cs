@@ -64,7 +64,7 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
         return new(
             new MeteringPointId(arg.Identification.Value),
             new GridAreaCode(arg.GridAreaCode.Value),
-            new ActorNumber(arg.GridAccessProvider.Value),
+            new ActorNumber(arg.GridAccessProvider),
             MeteringPointMasterDataMapper.ConnectionStateMap.Map(arg.ConnectionState),
             MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(arg.Type),
             MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(arg.SubType),

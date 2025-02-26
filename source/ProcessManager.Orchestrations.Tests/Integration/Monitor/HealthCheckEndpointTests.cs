@@ -14,6 +14,7 @@
 
 using System.Net;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Xunit.Abstractions;
@@ -58,6 +59,9 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [InlineData("status")]
     public async Task FunctionApp_WhenCallingHealthCheck_ReturnOKAndExpectedContent(string healthCheckEndpoint)
     {
+        // Arrange
+        Fixture.OrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
+
         // Act
         using var actualResponse = await Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/{healthCheckEndpoint}");
 

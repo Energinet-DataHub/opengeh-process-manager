@@ -47,7 +47,7 @@ public sealed class ElectricityMarketViewsStub : IElectricityMarketViews
 
         SetProperty(meteringPointMasterData, "Identification", new MeteringPointIdentification("StubId"));
         SetProperty(meteringPointMasterData, "GridAreaCode", new GridAreaCode("ZZZ"));
-        SetProperty(meteringPointMasterData, "GridAccessProvider", new StubActorNumber("1111111111111"));
+        SetProperty(meteringPointMasterData, "GridAccessProvider", "1111111111111");
         SetProperty(meteringPointMasterData, "ConnectionState", ConnectionState.Connected);
         SetProperty(meteringPointMasterData, "Type", MeteringPointType.Consumption);
         SetProperty(meteringPointMasterData, "SubType", MeteringPointSubType.Physical);
@@ -84,14 +84,6 @@ public sealed class ElectricityMarketViewsStub : IElectricityMarketViews
         if (property != null && property.CanWrite)
         {
             property.SetValue(obj, value);
-        }
-    }
-
-    public sealed record StubActorNumber : ActorNumber
-    {
-        public StubActorNumber(string value)
-            : base(value)
-        {
         }
     }
 }

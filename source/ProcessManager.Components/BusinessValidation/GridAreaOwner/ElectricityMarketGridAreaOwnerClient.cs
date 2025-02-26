@@ -1,4 +1,4 @@
-﻿// Copyright 2020 Energinet DataHub A/S
+﻿﻿// Copyright 2020 Energinet DataHub A/S
 //
 // Licensed under the Apache License, Version 2.0 (the "License2");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAre
 /// <summary>
 /// Implementation of <see cref="IGridAreaOwnerClient"/> that uses <see cref="IElectricityMarketViews"/> to get the grid area owner.
 /// <remarks>
-/// Requires <see cref="ApiClientOptions"/> to be registered in app settings.
+/// Requires <see cref="ElectricityMarketClientOptions"/> to be registered in app settings.
 /// </remarks>
 /// </summary>
 public class ElectricityMarketGridAreaOwnerClient(

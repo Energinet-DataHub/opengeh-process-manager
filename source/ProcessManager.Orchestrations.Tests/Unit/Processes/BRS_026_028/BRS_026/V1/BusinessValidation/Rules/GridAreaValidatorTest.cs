@@ -78,7 +78,7 @@ public class GridAreaValidatorTest
                 gridAreaCode,
                 message.RequestedForActorNumber,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .ReturnsAsync(false);
 
         // Act
         var errors = await sut.ValidateAsync(message);

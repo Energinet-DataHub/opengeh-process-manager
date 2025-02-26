@@ -28,6 +28,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -46,12 +47,15 @@ public static class ProcessManagerExtensions
     /// to manage and monitor orchestrations.
     /// Should be used from the Process Manager API / Scheduler application.
     /// </summary>
-    public static IServiceCollection AddProcessManagerCore(this IServiceCollection services)
+    public static IServiceCollection AddProcessManagerCore(this IServiceCollection services, IConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+
         // Process Manager Core
         services
             .AddProcessManagerOptions()
             .AddProcessManagerDatabase()
+            .AddProcessManagerAuthentication(configuration)
             .AddFeatureFlags();
 
         // DurableClient connected to Task Hub
@@ -101,13 +105,17 @@ public static class ProcessManagerExtensions
     /// Should be used from host's that contains Durable Functions orchestrations.
     /// </summary>
     /// <param name="services"></param>
+    /// <param name="configuration"></param>
     /// <param name="assemblyToScan">Specify the host assembly to scan for types implementing <see cref="IOrchestrationDescriptionBuilder"/>.</param>
-    public static IServiceCollection AddProcessManagerForOrchestrations(this IServiceCollection services, Assembly assemblyToScan)
+    public static IServiceCollection AddProcessManagerForOrchestrations(this IServiceCollection services, IConfiguration configuration, Assembly assemblyToScan)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+
         // Process Manager Core
         services
             .AddProcessManagerOptions()
             .AddProcessManagerDatabase()
+            .AddProcessManagerAuthentication(configuration)
             .AddFeatureFlags();
 
         // Task Hub connected to Durable Functions

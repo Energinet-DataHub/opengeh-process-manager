@@ -20,7 +20,7 @@ using Microsoft.IdentityModel.Protocols.Configuration;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 
-public static class AuthenticationExtensions
+internal static class AuthenticationExtensions
 {
     /// <summary>
     /// Register services necessary for enabling an Azure Function App (isolated worker model)
@@ -28,7 +28,7 @@ public static class AuthenticationExtensions
     ///
     /// Expects <see cref="AuthenticationOptions"/> has been configured in <see cref="AuthenticationOptions.SectionName"/>.
     /// </summary>
-    public static IServiceCollection AddProcessManagerAuthentication(this IServiceCollection services, IConfiguration configuration)
+    internal static IServiceCollection AddProcessManagerAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 

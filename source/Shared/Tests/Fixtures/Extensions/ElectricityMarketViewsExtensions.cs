@@ -18,7 +18,7 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 /// <summary>
 /// Extensions for setting up the WireMock server to mock the Electricity Market Views API
@@ -29,13 +29,14 @@ public static class ElectricityMarketViewsExtensions
     {
         var request = Request
             .Create()
-            .WithPath("https://fake.com/api/monitor/live")
+            .WithPath("/api/monitor/live")
             .UsingGet();
 
         var response = Response
             .Create()
             .WithStatusCode(HttpStatusCode.OK)
-            .WithHeader(HeaderNames.ContentType, "application/json");
+            .WithHeader(HeaderNames.ContentType, "application/json")
+            .WithBody("{\"status\":\"Healthy\",\"totalDuration\":\"00:00:00.0028802\",\"entries\":{\"self\":{\"data\":{},\"description\":\"Version: 1.0.0 PR: 131 SHA: 0608532d7fb306928c61a5ec422a5fabad172c22\",\"duration\":\"00:00:00.0011102\",\"status\":\"Healthy\",\"tags\":[]}}");
 
         server
             .Given(request)

@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
@@ -64,22 +65,10 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [InlineData("status")]
     public async Task Given_RunningExampleOrchestrationsApp_When_CallingHealthCheck_Then_ReturnsOKAndExpectedContent(string healthCheckEndpoint)
     {
+        // Arrange
+        Fixture.ExampleOrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
+
         // Act
-        var request = Request
-            .Create()
-            .WithPath("/api/monitor/live")
-            .UsingGet();
-
-        var response = Response
-            .Create()
-            .WithStatusCode(HttpStatusCode.OK)
-            .WithHeader(HeaderNames.ContentType, "application/json")
-            .WithBody("{\"status\":\"Healthy\",\"totalDuration\":\"00:00:00.0028802\",\"entries\":{\"self\":{\"data\":{},\"description\":\"Version: 1.0.0 PR: 131 SHA: 0608532d7fb306928c61a5ec422a5fabad172c22\",\"duration\":\"00:00:00.0011102\",\"status\":\"Healthy\",\"tags\":[]}}");
-
-        Fixture.ExampleOrchestrationsAppManager.MockServer
-            .Given(request)
-            .RespondWith(response);
-
         using var actualResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/{healthCheckEndpoint}");
 
         // Assert

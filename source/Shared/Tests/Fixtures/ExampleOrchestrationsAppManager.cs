@@ -78,7 +78,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         _manageDatabase = manageDatabase;
         _manageAzurite = manageAzurite;
 
-        MockServer = WireMockServer.Start("8013");
+        MockServer = WireMockServer.Start(port: 8013);
         DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();
 
@@ -275,7 +275,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         // Electric Market client
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.BaseUrl)}",
-            "https://fake.com/"); // Replace with mock api if we need to test the Electricity Market client
+            MockServer.Url!);
 
         return appHostSettings;
     }

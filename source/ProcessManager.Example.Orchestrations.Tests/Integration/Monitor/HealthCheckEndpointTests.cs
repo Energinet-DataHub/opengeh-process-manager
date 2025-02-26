@@ -20,6 +20,9 @@ using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Net.Http.Headers;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Monitor;
@@ -62,6 +65,21 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     public async Task Given_RunningExampleOrchestrationsApp_When_CallingHealthCheck_Then_ReturnsOKAndExpectedContent(string healthCheckEndpoint)
     {
         // Act
+        var request = Request
+            .Create()
+            .WithPath("/api/monitor/live")
+            .UsingGet();
+
+        var response = Response
+            .Create()
+            .WithStatusCode(HttpStatusCode.OK)
+            .WithHeader(HeaderNames.ContentType, "application/json")
+            .WithBody("{\"status\":\"Healthy\",\"totalDuration\":\"00:00:00.0028802\",\"entries\":{\"self\":{\"data\":{},\"description\":\"Version: 1.0.0 PR: 131 SHA: 0608532d7fb306928c61a5ec422a5fabad172c22\",\"duration\":\"00:00:00.0011102\",\"status\":\"Healthy\",\"tags\":[]}}");
+
+        Fixture.ExampleOrchestrationsAppManager.MockServer
+            .Given(request)
+            .RespondWith(response);
+
         using var actualResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/{healthCheckEndpoint}");
 
         // Assert

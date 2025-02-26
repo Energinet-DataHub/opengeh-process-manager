@@ -393,7 +393,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // Electric Market client
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.BaseUrl)}",
-            "https://fake.com"); // Replace with mock api if we need to test the Electricity Market client
+            "http://fakelectricitymarket.com:8013");
 
         // => BRS-026
         appHostSettings.ProcessEnvironmentVariables.Add(

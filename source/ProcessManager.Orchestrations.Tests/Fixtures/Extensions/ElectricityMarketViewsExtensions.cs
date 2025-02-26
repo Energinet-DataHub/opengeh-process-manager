@@ -25,6 +25,25 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensi
 /// </summary>
 public static class ElectricityMarketViewsExtensions
 {
+    public static WireMockServer MockElectricityMarketHealthCheck(this WireMockServer server)
+    {
+        var request = Request
+            .Create()
+            .WithPath("https://fake.com/api/monitor/live")
+            .UsingGet();
+
+        var response = Response
+            .Create()
+            .WithStatusCode(HttpStatusCode.OK)
+            .WithHeader(HeaderNames.ContentType, "application/json");
+
+        server
+            .Given(request)
+            .RespondWith(response);
+
+        return server;
+    }
+
     public static WireMockServer MockGetGridAreaOwner(this WireMockServer server, string gridAreaCode)
     {
         var request = Request

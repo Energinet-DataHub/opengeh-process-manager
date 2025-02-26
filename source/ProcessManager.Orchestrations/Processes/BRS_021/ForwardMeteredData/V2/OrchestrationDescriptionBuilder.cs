@@ -27,7 +27,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
     public const int ForwardToMeasurementStep = 2;
     public const int FindReceiverStep = 3;
     public const int EnqueueActorMessagesStep = 4;
-    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = new OrchestrationDescriptionUniqueNameDto("Brs_021_ForwardMeteredData", 2);
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = new("Brs_021_ForwardMeteredData", 2);
 
     public OrchestrationDescription Build()
     {

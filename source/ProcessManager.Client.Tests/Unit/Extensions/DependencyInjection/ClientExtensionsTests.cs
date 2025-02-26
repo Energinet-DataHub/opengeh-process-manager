@@ -25,6 +25,8 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Unit.Extensions.Dependen
 
 public class ClientExtensionsTests
 {
+    private const string ApplicationIdUriForTests = "https://management.azure.com";
+
     private const string GeneralApiBaseAddressFake = "https://www.fake-general.com";
     private const string OrchestrationsApiBaseAddressFake = "https://www.fake-orchestrations.com";
 
@@ -44,6 +46,7 @@ public class ClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = ApplicationIdUriForTests,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
         });
@@ -76,7 +79,8 @@ public class ClientExtensionsTests
                 .WithMessage("DataAnnotation validation failed for 'ProcessManagerHttpClientsOptions'*")
             .And.Failures.Should()
                 .ContainMatch("*GeneralApiBaseAddress field is required*")
-                .And.ContainMatch("*OrchestrationsApiBaseAddress field is required*");
+                .And.ContainMatch("*OrchestrationsApiBaseAddress field is required*")
+                .And.ContainMatch("*ApplicationIdUri field is required*");
     }
 
     [Fact]
@@ -85,6 +89,7 @@ public class ClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = ApplicationIdUriForTests,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
         });

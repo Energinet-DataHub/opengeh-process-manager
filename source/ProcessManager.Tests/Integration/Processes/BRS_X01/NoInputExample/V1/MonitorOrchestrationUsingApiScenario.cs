@@ -19,7 +19,6 @@ using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using FluentAssertions;
@@ -105,6 +104,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             JsonSerializer.Serialize(command),
             Encoding.UTF8,
             "application/json");
+        startRequest.Headers.Authorization = Fixture.CreateAuthorizationHeader();
 
         // Step 1: Start new orchestration instance
         using var response = await Fixture.ProcessManagerAppManager.AppHostManager
@@ -130,6 +130,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
                     JsonSerializer.Serialize(query),
                     Encoding.UTF8,
                     "application/json");
+                queryRequest.Headers.Authorization = Fixture.CreateAuthorizationHeader();
 
                 using var queryResponse = await Fixture.ProcessManagerAppManager.AppHostManager
                     .HttpClient

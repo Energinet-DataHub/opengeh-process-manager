@@ -19,7 +19,6 @@ using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
@@ -114,6 +113,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             JsonSerializer.Serialize(command),
             Encoding.UTF8,
             "application/json");
+        startRequest.Headers.Authorization = Fixture.CreateAuthorizationHeader();
 
         // Step 1: Start new orchestration instance
         using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
@@ -139,6 +139,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
                     JsonSerializer.Serialize(query),
                     Encoding.UTF8,
                     "application/json");
+                queryRequest.Headers.Authorization = Fixture.CreateAuthorizationHeader();
 
                 using var queryResponse = await Fixture.ProcessManagerAppManager.AppHostManager
                     .HttpClient
@@ -181,6 +182,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             JsonSerializer.Serialize(command),
             Encoding.UTF8,
             "application/json");
+        scheduleRequest.Headers.Authorization = Fixture.CreateAuthorizationHeader();
 
         // Step 1: Schedule new orchestration instance
         using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
@@ -209,6 +211,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             JsonSerializer.Serialize(queryByName),
             Encoding.UTF8,
             "application/json");
+        queryByNameRequest.Headers.Authorization = Fixture.CreateAuthorizationHeader();
 
         using var queryByNameResponse = await Fixture.ProcessManagerAppManager.AppHostManager
             .HttpClient
@@ -233,6 +236,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             JsonSerializer.Serialize(customQueryRequest),
             Encoding.UTF8,
             "application/json");
+        customQueryRequest.Headers.Authorization = Fixture.CreateAuthorizationHeader();
 
         using var customQueryResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
             .HttpClient

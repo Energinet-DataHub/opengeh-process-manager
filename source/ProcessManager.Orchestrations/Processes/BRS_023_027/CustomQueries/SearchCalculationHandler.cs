@@ -18,8 +18,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.CustomQueries;
@@ -87,12 +85,15 @@ internal class SearchCalculationHandler(
 
     private bool FilterCalculation(OrchestrationInstance orchestrationInstance, CalculationQuery query)
     {
-        var calculationInput = orchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
+        var calculationParameters = orchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
 
-        return (query.CalculationTypes == null || query.CalculationTypes.Contains(calculationInput.CalculationType)) &&
-                (query.GridAreaCodes == null || calculationInput.GridAreaCodes.Any(query.GridAreaCodes.Contains)) &&
-                (query.PeriodStartDate == null || calculationInput.PeriodStartDate >= query.PeriodStartDate) &&
-                (query.PeriodEndDate == null || calculationInput.PeriodEndDate <= query.PeriodEndDate) &&
-                (query.IsInternalCalculation == null || calculationInput.IsInternalCalculation == query.IsInternalCalculation);
+        return (query.CalculationTypes == null || query.CalculationTypes.Contains(calculationParameters.CalculationType)) &&
+                (query.GridAreaCodes == null || calculationParameters.GridAreaCodes.Any(query.GridAreaCodes.Contains)) &&
+                // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
+                // where a = query and b = calculationParameters.
+                // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
+                (query.PeriodStartDate == null || query.PeriodStartDate < calculationParameters.PeriodEndDate) &&
+                (query.PeriodEndDate == null || calculationParameters.PeriodStartDate < query.PeriodEndDate) &&
+                (query.IsInternalCalculation == null || calculationParameters.IsInternalCalculation == query.IsInternalCalculation);
     }
 }

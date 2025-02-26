@@ -12,12 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Messaging.EventHubs.Producer;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
+using Energinet.DataHub.Measurements.Contracts;
+using FluentAssertions;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V2;
 
-public class EventHubResponseMocking
+public static class EventHubResponseMocking
 {
-    public static Task WaitAndMockEventHubMessageToAndFromMeasurements()
+    public static async Task<bool> AssertAndMockEventHubMessageToAndFromMeasurementsAsync(
+        this EventHubListenerMock eventHubListenerMock,
+        EventHubProducerClient eventHubProducerClient,
+        Guid orchestrationInstanceId,
+        string transactionId)
     {
-        return Task.CompletedTask;
+        var passableEvents = eventHubListenerMock.ReceivedEvents.Where(
+            e => PersistSubmittedTransaction.Parser.ParseFrom(e.Body.ToArray()) != null);
+        var passableEvent = passableEvents.Should().ContainSingle().Subject;
+
+        var persistedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(passableEvent.Body.ToArray());
+
+        var orchestrationIdMatches = persistedTransaction.OrchestrationInstanceId == orchestrationInstanceId.ToString();
+        var transactionIdIdMatches = persistedTransaction.TransactionId == transactionId;
+
+        // TODO: Do not return but mock response.
+        if (!orchestrationIdMatches || !transactionIdIdMatches)
+            return false;
+
+        await eventHubProducerClient.SendAsync([passableEvent], CancellationToken.None).ConfigureAwait(false);
+        return true;
     }
 }

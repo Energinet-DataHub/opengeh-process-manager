@@ -34,4 +34,10 @@ public class MeasurementsMeteredDataClientOptions
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string EventHubName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name of the event hub which the Process Manager receives events on
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string ProcessManagerEventHubName { get; set; } = string.Empty;
 }

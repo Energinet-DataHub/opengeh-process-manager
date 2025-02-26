@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -20,11 +21,14 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V2;
@@ -36,6 +40,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorFlowTests : IAsyncLifetime
 {
+    private const string ProcessManagerEventHubName = "process-manager-event-hub";
+
     private readonly OrchestrationsAppFixture _fixture;
 
     public MonitorFlowTests(
@@ -59,6 +65,21 @@ public class MonitorFlowTests : IAsyncLifetime
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
         services.AddProcessManagerHttpClients();
+        services.AddMeasurementsMeteredDataClient(_fixture.IntegrationTestConfiguration.Credential);
+        services.AddAzureClients(
+            builder =>
+            {
+                builder.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
+                        (_, _, provider) =>
+                        {
+                            var options = provider.GetRequiredService<IOptions<MeasurementsMeteredDataClientOptions>>().Value;
+                            return new EventHubProducerClient(
+                                $"{options.NamespaceName}.servicebus.windows.net",
+                                options.ProcessManagerEventHubName,
+                                _fixture.IntegrationTestConfiguration.Credential);
+                        })
+                    .WithName(ProcessManagerEventHubName);
+            });
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -94,6 +115,7 @@ public class MonitorFlowTests : IAsyncLifetime
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
 
         // Act
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
@@ -117,6 +139,10 @@ public class MonitorFlowTests : IAsyncLifetime
         var instance = instances.Should().ContainSingle().Subject;
 
         // Wait for eventhub trigger
+        _ = _fixture.EventHubListener.AssertAndMockEventHubMessageToAndFromMeasurementsAsync(
+            eventHubProducerClient: eventHubClientFactory.CreateClient(ProcessManagerEventHubName),
+            orchestrationInstanceId: instance.Id,
+            transactionId: input.TransactionId);
 
         // wait for notification from edi.
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(

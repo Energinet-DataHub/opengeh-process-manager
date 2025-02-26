@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Azure.Messaging.EventHubs;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Handlers;
 using Microsoft.Azure.Functions.Worker;
@@ -31,8 +32,7 @@ public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2
     [Function(nameof(MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2))]
     public async Task Run(
         [EventHubTrigger(
-            "%EventHubName%",
-            Connection = "EventHubConnection")]
+            $"%{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}%%")]
         EventData[] message)
     {
         var notification = JsonConvert.DeserializeObject<MeasurementReceivedMeteredDataNotification>(message[0].EventBody.ToString());

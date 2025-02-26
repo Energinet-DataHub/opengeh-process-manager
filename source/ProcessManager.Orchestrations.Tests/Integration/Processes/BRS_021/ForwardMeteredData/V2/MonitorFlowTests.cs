@@ -1,4 +1,4 @@
-// Copyright 2020 Energinet DataHub A/S
+﻿// Copyright 2020 Energinet DataHub A/S
 //
 // Licensed under the Apache License, Version 2.0 (the "License2");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
-using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
@@ -100,7 +99,7 @@ public class MonitorFlowTests : IAsyncLifetime
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
 
-        // Get orchestration instance id maybe we should try for 5 seconds?
+        // Get orchestration instance id maybe we should loop for 5 seconds?
         await Task.Delay(TimeSpan.FromSeconds(4));
 
         var instances = await processManagerClient.SearchOrchestrationInstancesByNameAsync(

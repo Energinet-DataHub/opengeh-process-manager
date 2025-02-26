@@ -16,10 +16,7 @@ using DarkLoop.Azure.Functions.Authorization;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.Configuration;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Energinet.DataHub.ProcessManager.Extensions.DependencyInjection;
 
@@ -50,8 +47,6 @@ public static class AuthenticationExtensions
             {
                 options.Audience = authenticationOptions.ApplicationIdUri;
                 options.Authority = authenticationOptions.Issuer;
-
-                options.TokenValidationParameters = CreateValidationParameters(authenticationOptions);
             });
 
         return services;
@@ -63,31 +58,5 @@ public static class AuthenticationExtensions
             throw new InvalidConfigurationException($"Missing '{nameof(AuthenticationOptions.ApplicationIdUri)}'.");
         if (string.IsNullOrWhiteSpace(authenticationOptions.Issuer))
             throw new InvalidConfigurationException($"Missing '{nameof(AuthenticationOptions.Issuer)}'.");
-    }
-
-    private static TokenValidationParameters CreateValidationParameters(AuthenticationOptions options)
-    {
-        return new TokenValidationParameters
-        {
-            ValidAudience = options.ApplicationIdUri,
-            ValidateAudience = true,
-
-            ValidIssuer = options.Issuer,
-            ValidateIssuer = true,
-
-            ValidateIssuerSigningKey = true,
-
-            ValidateLifetime = true,
-
-            RequireExpirationTime = true,
-
-            RequireSignedTokens = true,
-
-            //// TODO: Remove? When we set Authority we don't need this (it seems)
-            ////ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
-            ////    "https://login.microsoftonline.com/common/.well-known/openid-configuration",
-            ////    new OpenIdConnectConfigurationRetriever(),
-            ////    new HttpDocumentRetriever { RequireHttps = true }),
-        };
     }
 }

@@ -12,22 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 
 public class GridAreaValidationRule(
-    IGridAreaOwnerClient gridAreaOwnerClient)
+    IElectricityMarketViews gridAreaOwnerClient)
         : IBusinessValidationRule<RequestCalculatedWholesaleServicesInputV1>
 {
     private static readonly ValidationError _missingGridAreaCode = new("Netområde er obligatorisk for rollen DDM / Grid area is mandatory for the role DDM.", "D64");
     private static readonly ValidationError _invalidGridArea = new("Ugyldig netområde / Invalid gridarea", "E86");
 
-    private readonly IGridAreaOwnerClient _gridAreaOwnerClient = gridAreaOwnerClient;
+    private readonly IElectricityMarketViews _gridAreaOwnerClient = gridAreaOwnerClient;
 
     private static IList<ValidationError> NoError => [];
 
@@ -45,13 +44,10 @@ public class GridAreaValidationRule(
 
         foreach (var gridArea in subject.GridAreas)
         {
-            var isGridAreaOwner = await _gridAreaOwnerClient.IsCurrentOwnerAsync(
-                    gridArea,
-                    subject.RequestedForActorNumber,
-                    CancellationToken.None)
+            var isGridAreaOwner = await _gridAreaOwnerClient.GetGridAreaOwnerAsync(gridArea)
                 .ConfigureAwait(false);
 
-            if (!isGridAreaOwner)
+            if (isGridAreaOwner == null)
                 return InvalidGridAreaError;
         }
 

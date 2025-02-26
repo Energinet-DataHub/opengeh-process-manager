@@ -21,6 +21,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
+using Energinet.DataHub.ElectricityMarket.Integration.Options;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
@@ -28,6 +29,7 @@ using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Proce
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Options;
+using WireMock.Server;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -76,6 +78,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         _manageDatabase = manageDatabase;
         _manageAzurite = manageAzurite;
 
+        MockServer = WireMockServer.Start("8013");
         DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();
 
@@ -86,6 +89,8 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
     }
+
+    public WireMockServer MockServer { get; set; }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -266,6 +271,11 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.SectionName}__{nameof(OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.WaitForExampleNotifyEventTimeout)}",
             TimeSpan.FromMinutes(10).ToString());
+
+        // Electric Market client
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.BaseUrl)}",
+            "https://fake.com/"); // Replace with mock api if we need to test the Electricity Market client
 
         return appHostSettings;
     }

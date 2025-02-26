@@ -15,9 +15,10 @@
 using System.Diagnostics.CodeAnalysis;
 using AutoFixture.Xunit2;
 using Energinet.DataHub.Core.TestCommon.AutoFixture.Attributes;
+using Energinet.DataHub.ElectricityMarket.Integration;
+using Energinet.DataHub.ElectricityMarket.Integration.Models.GridAreas;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -35,7 +36,7 @@ public class GridAreaValidatorTest
     [Theory]
     [InlineAutoMoqData]
     public async Task Validate_WhenRequesterIsGridOwnerOfRequestedGridArea_ReturnsNoValidationErrors(
-        [Frozen] Mock<IGridAreaOwnerClient> gridAreaOwnerClient,
+        [Frozen] Mock<IElectricityMarketViews> gridAreaOwnerClient,
         GridAreaValidationRule sut)
     {
         // Arrange
@@ -45,11 +46,8 @@ public class GridAreaValidatorTest
             .WithGridArea(gridAreaCode)
             .Build();
 
-        gridAreaOwnerClient.Setup(repo => repo.IsCurrentOwnerAsync(
-                gridAreaCode,
-                message.RequestedForActorNumber,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        gridAreaOwnerClient.Setup(repo => repo.GetGridAreaOwnerAsync(gridAreaCode))
+            .ReturnsAsync(new GridAreaOwnerDto(gridAreaCode));
 
         // Act
         var errors = await sut.ValidateAsync(message);
@@ -61,7 +59,7 @@ public class GridAreaValidatorTest
     [Theory]
     [InlineAutoMoqData]
     public async Task Validate_WhenRequesterIsNotGridOwnerOfRequestedGridArea_ReturnsExpectedValidationError(
-        [Frozen] Mock<IGridAreaOwnerClient> gridAreaOwnerClient,
+        [Frozen] Mock<IElectricityMarketViews> gridAreaOwnerClient,
         GridAreaValidationRule sut)
     {
         // Arrange
@@ -72,11 +70,8 @@ public class GridAreaValidatorTest
             .WithGridArea(gridAreaCode)
             .Build();
 
-        gridAreaOwnerClient.Setup(repo => repo.IsCurrentOwnerAsync(
-                gridAreaCode,
-                message.RequestedForActorNumber,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        gridAreaOwnerClient.Setup(repo => repo.GetGridAreaOwnerAsync(gridAreaCode))
+            .ReturnsAsync((GridAreaOwnerDto?)null!);
 
         // Act
         var errors = await sut.ValidateAsync(message);

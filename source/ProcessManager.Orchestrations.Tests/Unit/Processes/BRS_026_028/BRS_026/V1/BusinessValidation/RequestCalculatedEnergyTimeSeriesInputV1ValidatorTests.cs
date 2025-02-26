@@ -47,8 +47,8 @@ public class RequestCalculatedEnergyTimeSeriesInputV1ValidatorTests
         services.AddTransient<IClock>(s => _clockMock.Object);
 
         // IGridAreaOwnerClient mock must be added before AddBusinessValidation(), to override the default client registration
-        var gridAreaOwnerClientMock = new Mock<IGridAreaOwnerClient>();
-        services.AddScoped<IGridAreaOwnerClient>(_ => gridAreaOwnerClientMock.Object);
+        var gridAreaOwnerClientMock = new Mock<IElectricityMarketViews>();
+        services.AddScoped<IElectricityMarketViews>(_ => gridAreaOwnerClientMock.Object);
 
         var orchestrationsAssembly = typeof(Orchestration_Brs_026_V1).Assembly;
         var orchestrationsAbstractionsAssembly = typeof(RequestCalculatedEnergyTimeSeriesInputV1).Assembly;

@@ -69,6 +69,34 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ExampleOrchestration_WhenStartedWithoutToken_ResponseStatusCodeIsUnauthorized()
+    {
+        var orchestration = Brs_X01_InputExample.V1;
+        var input = new InputV1(
+            ShouldSkipSkippableStep: false);
+
+        var command = new StartInputExampleCommandV1(
+             operatingIdentity: _userIdentity,
+             input);
+
+        using var startRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/command/start/custom/{orchestration.Name}/{orchestration.Version}");
+        startRequest.Content = new StringContent(
+            JsonSerializer.Serialize(command),
+            Encoding.UTF8,
+            "application/json");
+
+        // Act
+        using var response = await Fixture.ExampleOrchestrationsAppManager.AppHostManager
+            .HttpClient
+            .SendAsync(startRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
         var orchestration = Brs_X01_InputExample.V1;

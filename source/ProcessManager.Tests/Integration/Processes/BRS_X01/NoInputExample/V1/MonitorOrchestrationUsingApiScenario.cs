@@ -62,6 +62,33 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ExampleOrchestration_WhenStartedWithoutToken_ResponseStatusCodeIsUnauthorized()
+    {
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorNumber: ActorNumber.Create("1234567890123"),
+            ActorRole: ActorRole.EnergySupplier);
+
+        var command = new StartNoInputExampleCommandV1(userIdentity);
+
+        using var startRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/command/start");
+        startRequest.Content = new StringContent(
+            JsonSerializer.Serialize(command),
+            Encoding.UTF8,
+            "application/json");
+
+        // Act
+        using var response = await Fixture.ProcessManagerAppManager.AppHostManager
+            .HttpClient
+            .SendAsync(startRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
         var userIdentity = new UserIdentityDto(

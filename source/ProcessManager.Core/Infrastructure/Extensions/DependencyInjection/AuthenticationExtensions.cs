@@ -18,7 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Protocols.Configuration;
 
-namespace Energinet.DataHub.ProcessManager.Extensions.DependencyInjection;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 
 public static class AuthenticationExtensions
 {

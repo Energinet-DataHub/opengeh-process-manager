@@ -44,8 +44,4 @@
     </Compile>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="BusinessValidation\GridAreaOwner\" />
-  </ItemGroup>
-
 </Project>

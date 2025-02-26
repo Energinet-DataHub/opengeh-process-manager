@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Net;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Net.Http.Headers;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -22,14 +21,12 @@ using WireMock.Server;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 
 /// <summary>
-/// A collection of extensions methods that provides abstractions on top of
-/// the more technical databricks api extensions in <see cref="DatabricksApiWireMockExtensions"/>
+/// Extensions for setting up the WireMock server to mock the Electricity Market Views API
 /// </summary>
 public static class ElectricityMarketViewsExtensions
 {
-    public static WireMockServer MockGetGridOwner(this WireMockServer server, string gridAreaCode)
+    public static WireMockServer MockGetGridAreaOwner(this WireMockServer server, string gridAreaCode)
     {
-        // using var request = new HttpRequestMessage(HttpMethod.Post, "api/get-grid-area-owner?gridAreaCode=" + gridAreaCode);
         var request = Request
             .Create()
             .WithPath("/api/get-grid-area-owner")
@@ -40,7 +37,7 @@ public static class ElectricityMarketViewsExtensions
             .Create()
             .WithStatusCode(HttpStatusCode.OK)
             .WithHeader(HeaderNames.ContentType, "application/json")
-            .WithBody(BuildJobsListJson(gridAreaCode));
+            .WithBody(BuildGridAreaOwnerDtoJson(gridAreaCode));
 
         server
             .Given(request)
@@ -50,10 +47,9 @@ public static class ElectricityMarketViewsExtensions
     }
 
     /// <summary>
-    /// Creates a '/jobs/list' JSON response with exactly one job
-    /// containing the given job id and job name.
+    /// Creates a payload for a GridAreaOwnerDto
     /// </summary>
-    private static string BuildJobsListJson(string gridAreaCode)
+    private static string BuildGridAreaOwnerDtoJson(string gridAreaCode)
     {
         var json = """
                    {

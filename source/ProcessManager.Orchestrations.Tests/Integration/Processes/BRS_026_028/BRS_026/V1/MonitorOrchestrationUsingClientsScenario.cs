@@ -93,12 +93,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_ValidRequestCalculatedEnergyTimeSeries_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
-        _fixture.OrchestrationsAppManager.MockServer.MockGetGridOwner("804");
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        const string gridAreaCode = "804";
+        _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
         // Step 1: Start new orchestration instance
-        var requestCommand = GivenRequestCalculatedEnergyTimeSeries();
+        var requestCommand = GivenRequestCalculatedEnergyTimeSeries(gridAreaCode);
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
             requestCommand,
@@ -167,12 +168,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_InvalidRequestCalculatedEnergyTimeSeries_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
-        _fixture.OrchestrationsAppManager.MockServer.MockGetGridOwner("804");
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        const string gridAreaCode = "804";
+        _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
         // Step 1: Start new orchestration instance
-        var invalidRequestCommand = GivenRequestCalculatedEnergyTimeSeries(shouldFailBusinessValidation: true);
+        var invalidRequestCommand = GivenRequestCalculatedEnergyTimeSeries(gridAreaCode, shouldFailBusinessValidation: true);
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
             invalidRequestCommand,
@@ -250,6 +252,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     private RequestCalculatedEnergyTimeSeriesCommandV1 GivenRequestCalculatedEnergyTimeSeries(
+        string gridArea,
         bool shouldFailBusinessValidation = false)
     {
         const string energySupplierNumber = "1234567891234";
@@ -270,7 +273,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 // EnergySupplierNumber is required when RequestedByActorRole is EnergySupplier, so the request will fail if not provided.
                 EnergySupplierNumber: !shouldFailBusinessValidation ? energySupplierNumber : null,
                 BalanceResponsibleNumber: null,
-                GridAreas: ["804"],
+                GridAreas: [gridArea],
                 MeteringPointType: null,
                 SettlementMethod: null,
                 SettlementVersion: null),

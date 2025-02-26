@@ -21,11 +21,16 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Energinet.DataHub.ProcessManager.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Scheduler;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication()
+    .ConfigureFunctionsWebApplication(builder =>
+    {
+        // Http => Authorization
+        builder.UseFunctionsAuthorization();
+    })
     .ConfigureServices((context, services) =>
     {
         var azureCredential = new DefaultAzureCredential();
@@ -41,6 +46,7 @@ var host = new HostBuilder()
 
         // ProcessManager
         services.AddProcessManagerCore();
+        services.AddProcessManagerAuthentication(context.Configuration); // TODO: PoC => Most likely merge with "AddProcessManagerCore"
 
         // Handlers
         services.AddScoped<RecurringPlannerHandler>();

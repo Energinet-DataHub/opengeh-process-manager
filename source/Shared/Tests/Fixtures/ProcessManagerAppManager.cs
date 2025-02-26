@@ -89,6 +89,8 @@ public class ProcessManagerAppManager : IAsyncDisposable
     /// </summary>
     public string ApplicationIdUriForTests => "https://management.azure.com";
 
+    public string TokenIssuer => "https://sts.windows.net/f7619355-6c67-4100-9a78-1847f30742e2/";
+
     public ProcessManagerDatabaseManager DatabaseManager { get; }
 
     public ITestDiagnosticsLogger TestLogger { get; }
@@ -233,6 +235,13 @@ public class ProcessManagerAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+        // => Authentication
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.ApplicationIdUri)}",
+            ApplicationIdUriForTests);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
+            TokenIssuer);
 
         // Disable timer triggers (should be manually triggered in tests)
         appHostSettings.ProcessEnvironmentVariables.Add(

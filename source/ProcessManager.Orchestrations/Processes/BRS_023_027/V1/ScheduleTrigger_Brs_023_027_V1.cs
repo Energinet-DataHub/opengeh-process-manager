@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -29,6 +30,7 @@ internal class ScheduleTrigger_Brs_023_027_V1(
     /// Schedule a BRS-023 or BRS-027 calculation and return its id.
     /// </summary>
     [Function(nameof(ScheduleTrigger_Brs_023_027_V1))]
+    [Authorize]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,

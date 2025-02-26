@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -35,6 +36,7 @@ internal class GetOrchestrationInstanceByIdempotencyKeyTrigger(
     /// Get orchestration instance by idempotency key.
     /// </summary>
     [Function(nameof(GetOrchestrationInstanceByIdempotencyKeyTrigger))]
+    [Authorize]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,

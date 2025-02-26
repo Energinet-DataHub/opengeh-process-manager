@@ -326,6 +326,11 @@ internal class OrchestrationInstanceManager(
         OrchestrationDescription orchestrationDescription,
         OrchestrationInstance orchestrationInstance)
     {
+        if (!orchestrationDescription.IsDurableFunction)
+        {
+            return;
+        }
+
         if (orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Pending)
         {
             await _executor

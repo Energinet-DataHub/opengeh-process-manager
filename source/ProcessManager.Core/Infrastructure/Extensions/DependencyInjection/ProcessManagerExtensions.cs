@@ -79,7 +79,7 @@ public static class ProcessManagerExtensions
             });
 
         // ProcessManager components using interfaces to restrict access to functionality
-        // => Types that implements multiple interfaces
+        // => Types that implements multiple interfaces with same scope for all interfaces
         services.TryAddScoped<OrchestrationInstanceRepository, OrchestrationInstanceRepository>();
         services.TryAddScoped<OrchestrationInstanceManager, OrchestrationInstanceManager>();
         // => Scheduling
@@ -142,19 +142,22 @@ public static class ProcessManagerExtensions
             });
 
         // ProcessManager components using interfaces to restrict access to functionality
+        // => Types that implements multiple interfaces with same scope for all interfaces
+        services.TryAddScoped<OrchestrationInstanceRepository, OrchestrationInstanceRepository>();
+        services.TryAddScoped<OrchestrationInstanceManager, OrchestrationInstanceManager>();
         // => Orchestration Descriptions registration during startup
         services.AddOrchestrationDescriptionBuilders(assemblyToScan);
         services.TryAddTransient<IOrchestrationRegister, OrchestrationRegister>();
         // => Start instance (manager)
         services.TryAddScoped<IOrchestrationInstanceExecutor, DurableOrchestrationInstanceExecutor>();
         services.TryAddScoped<IOrchestrationRegisterQueries, OrchestrationRegister>();
-        services.TryAddScoped<IOrchestrationInstanceRepository, OrchestrationInstanceRepository>();
-        services.TryAddScoped<IStartOrchestrationInstanceCommands, OrchestrationInstanceManager>();
-        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands, OrchestrationInstanceManager>();
+        services.TryAddScoped<IOrchestrationInstanceRepository>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IStartOrchestrationInstanceCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         // => Public queries
-        services.TryAddScoped<IOrchestrationInstanceQueries, OrchestrationInstanceRepository>();
+        services.TryAddScoped<IOrchestrationInstanceQueries>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
         // => Public progress repository
-        services.TryAddScoped<IOrchestrationInstanceProgressRepository, OrchestrationInstanceRepository>();
+        services.TryAddScoped<IOrchestrationInstanceProgressRepository>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
         // => Custom handlers
         services.AddCustomHandlersForHttpTriggers(assemblyToScan);
         services.AddCustomHandlersForServiceBusTriggers(assemblyToScan);

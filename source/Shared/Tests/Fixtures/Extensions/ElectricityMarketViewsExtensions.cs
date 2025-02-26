@@ -36,7 +36,7 @@ public static class ElectricityMarketViewsExtensions
             .Create()
             .WithStatusCode(HttpStatusCode.OK)
             .WithHeader(HeaderNames.ContentType, "application/json")
-            .WithBody("{\"status\":\"Healthy\",\"totalDuration\":\"00:00:00.0028802\",\"entries\":{\"self\":{\"data\":{},\"description\":\"Version: 1.0.0 PR: 131 SHA: 0608532d7fb306928c61a5ec422a5fabad172c22\",\"duration\":\"00:00:00.0011102\",\"status\":\"Healthy\",\"tags\":[]}}");
+            .WithBody("{\"status\":\"Healthy\"");
 
         server
             .Given(request)

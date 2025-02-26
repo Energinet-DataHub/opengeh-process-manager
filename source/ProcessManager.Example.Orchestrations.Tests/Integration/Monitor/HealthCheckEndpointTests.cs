@@ -21,9 +21,6 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Net.Http.Headers;
-using WireMock.RequestBuilders;
-using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Monitor;

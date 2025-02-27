@@ -62,6 +62,7 @@ public class StartForwardMeteredDataHandlerV2(
             .ConfigureAwait(false);
 
         // Initialize orchestration instance
+        orchestrationInstance.Lifecycle.TransitionToQueued(clock);
         orchestrationInstance.Lifecycle.TransitionToRunning(clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
@@ -94,10 +95,10 @@ public class StartForwardMeteredDataHandlerV2(
             CreatedAt: InstantPattern.ExtendedIso.Parse(input.RegistrationDateTime).Value,
             StartDateTime: InstantPattern.ExtendedIso.Parse(input.StartDateTime).Value,
             EndDateTime: InstantPattern.ExtendedIso.Parse(input.EndDateTime!).Value,
-            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType ?? "production"),
+            MeteringPointType: MeteringPointType.FromName(MeteringPointType.Production.Name),
             Product: input.ProductNumber ?? string.Empty,
-            Unit: MeasurementUnit.FromName(input.MeasureUnit ?? "megawatt"),
-            Resolution: Resolution.FromName(input.Resolution ?? "quarter_hourly"),
+            Unit: MeasurementUnit.FromName(input.MeasureUnit ?? MeasurementUnit.Megawatt.Name),
+            Resolution: Resolution.FromName(input.Resolution ?? Resolution.Hourly.Name),
             Points: []);
     }
 #pragma warning restore SA1202

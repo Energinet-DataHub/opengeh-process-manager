@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
@@ -152,10 +153,12 @@ public class MonitorFlowTests : IAsyncLifetime
         var instance = instances.Should().ContainSingle().Subject;
 
         // Wait for eventhub trigger
-        _ = _fixture.EventHubListener.AssertAndMockEventHubMessageToAndFromMeasurementsAsync(
+        var success = _fixture.EventHubListener.AssertAndMockEventHubMessageToAndFromMeasurementsAsync(
             eventHubProducerClient: eventHubClientFactory.CreateClient(ProcessManagerEventHubName),
             orchestrationInstanceId: instance.Id,
             transactionId: input.TransactionId);
+
+        success.Should().Be(true);
 
         // wait for notification from edi.
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
@@ -220,12 +223,12 @@ public class MonitorFlowTests : IAsyncLifetime
             ActorRole.GridAccessProvider.Name,
             "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
             withError ? "NoMasterData" : "571313101700011887",
-            "D20",
+            MeteringPointType.Production.Name,
             "8716867000047",
-            "K3",
+            MeasurementUnit.MetricTon.Name,
             "2024-12-03T08:00:00Z",
-            "PT1H",
-            "2024-12-01T23:00Z",
+            Resolution.Hourly.Name,
+            "2024-12-01T23:00:00Z",
             "2024-12-02T23:00:00Z",
             "5790002606892",
             null,

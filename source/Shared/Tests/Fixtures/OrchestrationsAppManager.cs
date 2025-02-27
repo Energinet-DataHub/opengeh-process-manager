@@ -402,7 +402,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}",
             processManagerEventhubResource.Name);
-        // TODO: This should be hardcoded
+        // TODO: This should not be hardcoded
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__FullyQualifiedNamespace",
             IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);

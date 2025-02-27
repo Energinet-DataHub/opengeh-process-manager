@@ -137,8 +137,6 @@ public class MonitorFlowTests : IAsyncLifetime
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
 
-        await Task.Delay(TimeSpan.FromSeconds(10));
-
         await Awaiter.WaitUntilConditionAsync(
             async () =>
             {
@@ -166,6 +164,8 @@ public class MonitorFlowTests : IAsyncLifetime
             orchestrationInstanceId: instance.Id,
             messageId: startCommand.ActorMessageId);
 
+        await Task.Delay(TimeSpan.FromSeconds(5));
+
         var instancesAfterEnqueue = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
             new SearchOrchestrationInstancesByNameQuery(
                 _fixture.DefaultUserIdentity,
@@ -192,6 +192,10 @@ public class MonitorFlowTests : IAsyncLifetime
             .Select(step => step.Sequence);
 
         successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
+        instanceAfterEnqueue.Steps
+            .First(step => step.Sequence == OrchestrationDescriptionBuilder.EnqueueActorMessagesStep)
+            .Lifecycle.State.Should()
+            .Be(StepInstanceLifecycleState.Running);
 
         /*
         var searchResult = await processManagerClient.SearchOrchestrationInstancesByNameAsync(

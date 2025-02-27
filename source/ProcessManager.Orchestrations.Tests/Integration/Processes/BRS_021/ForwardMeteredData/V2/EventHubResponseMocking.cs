@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
 using Energinet.DataHub.Measurements.Contracts;
 using FluentAssertions;
+using Google.Protobuf;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V2;
 
@@ -36,11 +38,11 @@ public static class EventHubResponseMocking
         var orchestrationIdMatches = persistedTransaction.OrchestrationInstanceId == orchestrationInstanceId.ToString();
         var transactionIdIdMatches = persistedTransaction.TransactionId == transactionId;
 
-        // TODO: Do not return but mock response.
         if (!orchestrationIdMatches || !transactionIdIdMatches)
             return false;
 
-        await eventHubProducerClient.SendAsync([passableEvent], CancellationToken.None).ConfigureAwait(false);
+        var data = new EventData(persistedTransaction.ToByteArray());
+        await eventHubProducerClient.SendAsync([data], CancellationToken.None);
         return true;
     }
 }

@@ -76,6 +76,7 @@ var host = new HostBuilder()
         services.AddMeasurementsMeteredDataClient(azureCredential);
 
         services.AddScoped<EdiEnqueuedMeteredDataHandler>();
+        services.AddScoped<MeasurementReceivedMeteredDataTriggerHandlerV2>();
 
         // Wholesale migrations
         services.AddWholesaleDatabase();

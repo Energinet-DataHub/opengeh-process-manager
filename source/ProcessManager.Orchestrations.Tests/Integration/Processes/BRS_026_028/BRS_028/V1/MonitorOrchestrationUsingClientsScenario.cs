@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using AutoFixture;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Components.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Steps;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -54,6 +57,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = _fixture.ProcessManagerTopicName,
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
+                = AuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
@@ -94,9 +99,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        const string gridAreaCode = "804";
+        _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
         // Step 1: Start new orchestration instance
-        var requestCommand = GivenRequestCalculatedWholesaleServices();
+        var requestCommand = GivenRequestCalculatedWholesaleServices(gridAreaCode);
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
             requestCommand,
@@ -106,7 +113,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
             .WaitForStepToBeRunning<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: requestCommand.IdempotencyKey,
-                stepSequence: Orchestration_Brs_028_V1.EnqueueActorMessagesStepSequence);
+                stepSequence: EnqueueActorMessagesStep.StepSequence);
 
         isWaitingForNotify.Should()
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
@@ -133,13 +140,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 EventName: RequestCalculatedWholesaleServicesNotifyEventsV1.EnqueueActorMessagesCompleted),
             CancellationToken.None);
 
-        // Step 4: Query until terminated with succeeded
+        // Step 4: Query until terminated
         var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
             .WaitForOrchestrationInstanceTerminated<RequestCalculatedWholesaleServicesInputV1>(
-                idempotencyKey: requestCommand.IdempotencyKey,
-                terminationState: OrchestrationInstanceTerminationState.Succeeded);
+                idempotencyKey: requestCommand.IdempotencyKey);
 
-        orchestrationTerminatedWithSucceeded.Should().BeTrue("because the orchestration instance should complete within given wait time");
+        orchestrationTerminatedWithSucceeded.Should().BeTrue(
+            "because the orchestration instance should be terminated within given wait time");
 
         // Orchestration instance and all steps should be Succeeded
         using var assertionScope = new AssertionScope();
@@ -166,9 +173,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        const string gridAreaCode = "804";
+        _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
         // Step 1: Start new orchestration instance
-        var invalidRequestCommand = GivenRequestCalculatedWholesaleServices(shouldFailBusinessValidation: true);
+        var invalidRequestCommand = GivenRequestCalculatedWholesaleServices(gridAreaCode, shouldFailBusinessValidation: true);
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
             invalidRequestCommand,
@@ -178,7 +187,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
             .WaitForStepToBeRunning<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: invalidRequestCommand.IdempotencyKey,
-                stepSequence: Orchestration_Brs_028_V1.EnqueueActorMessagesStepSequence);
+                stepSequence: EnqueueActorMessagesStep.StepSequence);
 
         isWaitingForNotify.Should()
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
@@ -211,14 +220,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 EventName: RequestCalculatedWholesaleServicesNotifyEventsV1.EnqueueActorMessagesCompleted),
             CancellationToken.None);
 
-        // Step 4: Query until terminated with failed
+        // Step 4: Query until terminated
         var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
             .WaitForOrchestrationInstanceTerminated<RequestCalculatedWholesaleServicesInputV1>(
-                idempotencyKey: invalidRequestCommand.IdempotencyKey,
-                terminationState: OrchestrationInstanceTerminationState.Failed);
+                idempotencyKey: invalidRequestCommand.IdempotencyKey);
 
         orchestrationTerminatedWithSucceeded.Should().BeTrue(
-            "because the orchestration instance should be failed within the given wait time");
+            "because the orchestration instance should be terminated within the given wait time");
 
         // Orchestration instance and validation steps should be Failed
         using var assertionScope = new AssertionScope();
@@ -246,14 +254,15 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 });
     }
 
-    private static RequestCalculatedWholesaleServicesCommandV1 GivenRequestCalculatedWholesaleServices(
+    private RequestCalculatedWholesaleServicesCommandV1 GivenRequestCalculatedWholesaleServices(
+        string gridAreaCode,
         bool shouldFailBusinessValidation = false)
     {
         const string energySupplierNumber = "1111111111111";
         var energySupplierRole = ActorRole.EnergySupplier.Name;
 
         return new RequestCalculatedWholesaleServicesCommandV1(
-            new ActorIdentityDto(Guid.NewGuid()),
+            _fixture.DefaultActorIdentity,
             new RequestCalculatedWholesaleServicesInputV1(
                 ActorMessageId: Guid.NewGuid().ToString(),
                 TransactionId: Guid.NewGuid().ToString(),
@@ -268,7 +277,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 // EnergySupplierNumber is required when RequestedByActorRole is EnergySupplier, so the request will fail if not provided.
                 EnergySupplierNumber: !shouldFailBusinessValidation ? energySupplierNumber : null,
                 ChargeOwnerNumber: null,
-                GridAreas: ["804"],
+                GridAreas: [gridAreaCode],
                 SettlementVersion: null,
                 ChargeTypes: null),
             idempotencyKey: Guid.NewGuid().ToString());

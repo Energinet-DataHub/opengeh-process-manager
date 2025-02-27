@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Steps;
 using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1;
@@ -32,17 +33,13 @@ internal class StartInputExampleHandlerV1(
     {
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.ShouldSkipSkippableStep
-            ? [Orchestration_Brs_X01_InputExample_V1.SkippableStepSequence]
+            ? [SkippableStep.StepSequence]
             : [];
 
         var orchestrationInstanceId = await _manager
             .StartNewOrchestrationInstanceAsync(
-                identity: new UserIdentity(
-                        new UserId(command.OperatingIdentity.UserId),
-                        new ActorId(command.OperatingIdentity.ActorId)),
-                uniqueName: new OrchestrationDescriptionUniqueName(
-                    command.OrchestrationDescriptionUniqueName.Name,
-                    command.OrchestrationDescriptionUniqueName.Version),
+                identity: UserIdentity.FromDto(command.OperatingIdentity),
+                uniqueName: OrchestrationDescriptionUniqueName.FromDto(command.OrchestrationDescriptionUniqueName),
                 inputParameter: command.InputParameter,
                 skipStepsBySequence: skipStepsBySequence)
             .ConfigureAwait(false);
@@ -54,17 +51,13 @@ internal class StartInputExampleHandlerV1(
     {
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.ShouldSkipSkippableStep
-            ? [Orchestration_Brs_X01_InputExample_V1.SkippableStepSequence]
+            ? [SkippableStep.StepSequence]
             : [];
 
         var orchestrationInstanceId = await _manager
             .ScheduleNewOrchestrationInstanceAsync(
-                identity: new UserIdentity(
-                    new UserId(command.OperatingIdentity.UserId),
-                    new ActorId(command.OperatingIdentity.ActorId)),
-                uniqueName: new OrchestrationDescriptionUniqueName(
-                    command.OrchestrationDescriptionUniqueName.Name,
-                    command.OrchestrationDescriptionUniqueName.Version),
+                identity: UserIdentity.FromDto(command.OperatingIdentity),
+                uniqueName: OrchestrationDescriptionUniqueName.FromDto(command.OrchestrationDescriptionUniqueName),
                 inputParameter: command.InputParameter,
                 runAt: command.RunAt.ToInstant(),
                 skipStepsBySequence: skipStepsBySequence)

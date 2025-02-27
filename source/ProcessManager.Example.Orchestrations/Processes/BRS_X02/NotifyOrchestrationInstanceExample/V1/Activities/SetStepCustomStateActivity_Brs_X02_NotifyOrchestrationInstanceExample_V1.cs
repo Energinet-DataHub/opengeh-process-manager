@@ -14,12 +14,13 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Steps;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Activities;
 
-public class SetStepCustomStateActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1(
+internal class SetStepCustomStateActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1(
     IOrchestrationInstanceProgressRepository repository,
     IClock clock)
 {
@@ -35,7 +36,8 @@ public class SetStepCustomStateActivity_Brs_X02_NotifyOrchestrationInstanceExamp
             .ConfigureAwait(false);
 
         var stepInstance = orchestrationInstance.GetStep(input.StepSequence);
-        stepInstance.SetCustomState(input.CustomState);
+        stepInstance.CustomState.SetFromInstance(new WaitForNotifyEventStep.CustomState(
+            Message: input.CustomStateMessage));
 
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
@@ -43,5 +45,5 @@ public class SetStepCustomStateActivity_Brs_X02_NotifyOrchestrationInstanceExamp
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
         int StepSequence,
-        string CustomState);
+        string CustomStateMessage);
 }

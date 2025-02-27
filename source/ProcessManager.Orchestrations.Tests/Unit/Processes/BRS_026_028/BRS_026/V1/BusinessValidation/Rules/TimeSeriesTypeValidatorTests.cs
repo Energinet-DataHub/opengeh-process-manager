@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 using FluentAssertions;
 
@@ -90,7 +91,7 @@ public class TimeSeriesTypeValidatorTests
     [Theory]
     [InlineData(nameof(MeteringPointType.Exchange))]
     [InlineData(nameof(MeteringPointType.Consumption))]
-    public async Task Validate_AsEnergySupplierAndNoSettlementMethod_ReturnsExceptedValidationErrors(string meteringPointType)
+    public async Task Validate_AsEnergySupplierAndNoSettlementMethod_ReturnsExpectedValidationErrors(string meteringPointType)
     {
         // Arrange
         var message = new RequestCalculatedEnergyTimeSeriesInputV1Builder(

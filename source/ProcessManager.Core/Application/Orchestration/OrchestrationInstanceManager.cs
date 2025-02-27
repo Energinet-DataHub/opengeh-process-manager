@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
@@ -27,7 +29,9 @@ internal class OrchestrationInstanceManager(
     IClock clock,
     IOrchestrationInstanceExecutor executor,
     IOrchestrationRegisterQueries orchestrationRegister,
-    IOrchestrationInstanceRepository repository) :
+    IOrchestrationInstanceRepository repository,
+    IFeatureFlagManager featureFlagManager,
+    ILogger<OrchestrationInstanceManager> logger) :
         IStartOrchestrationInstanceCommands,
         IStartOrchestrationInstanceMessageCommands,
         IStartScheduledOrchestrationInstanceCommand,
@@ -38,6 +42,8 @@ internal class OrchestrationInstanceManager(
     private readonly IOrchestrationInstanceExecutor _executor = executor;
     private readonly IOrchestrationRegisterQueries _orchestrationRegister = orchestrationRegister;
     private readonly IOrchestrationInstanceRepository _repository = repository;
+    private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
+    private readonly ILogger<OrchestrationInstanceManager> _logger = logger;
 
     /// <inheritdoc />
     public async Task<OrchestrationInstanceId> StartNewOrchestrationInstanceAsync(
@@ -89,7 +95,10 @@ internal class OrchestrationInstanceManager(
         OrchestrationDescriptionUniqueName uniqueName,
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence,
-        IdempotencyKey idempotencyKey)
+        IdempotencyKey idempotencyKey,
+        ActorMessageId actorMessageId,
+        TransactionId transactionId,
+        MeteringPointId? meteringPointId)
             where TParameter : class
     {
         var orchestrationDescription = await GuardMatchingOrchestrationDescriptionWithInputAsync(
@@ -104,7 +113,11 @@ internal class OrchestrationInstanceManager(
                 orchestrationDescription,
                 inputParameter,
                 skipStepsBySequence,
-                idempotencyKey: idempotencyKey).ConfigureAwait(false);
+                idempotencyKey: idempotencyKey,
+                actorMessageId: actorMessageId,
+                transactionId: transactionId,
+                meteringPointId: meteringPointId)
+            .ConfigureAwait(false);
 
         await RequestStartOfOrchestrationInstanceIfPendingAsync(
             orchestrationDescription,
@@ -154,7 +167,8 @@ internal class OrchestrationInstanceManager(
             orchestrationDescription,
             inputParameter,
             skipStepsBySequence,
-            runAt).ConfigureAwait(false);
+            runAt)
+            .ConfigureAwait(false);
 
         return orchestrationInstance.Id;
     }
@@ -192,7 +206,16 @@ internal class OrchestrationInstanceManager(
         var orchestrationInstanceToNotify = await _repository.GetOrDefaultAsync(id).ConfigureAwait(false);
 
         if (orchestrationInstanceToNotify is null)
+        {
+            if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.SilentMode).ConfigureAwait(false))
+            {
+                _logger.LogWarning(
+                    $"Notifying orchestration instance with id '{id.Value}' and event name '{eventName}' failed.");
+                return;
+            }
+
             throw new InvalidOperationException($"Orchestration instance (Id={id.Value}) to notify was not found.");
+        }
 
         await _executor.NotifyOrchestrationInstanceAsync(id, eventName, eventData).ConfigureAwait(false);
     }
@@ -258,8 +281,8 @@ internal class OrchestrationInstanceManager(
             identity,
             orchestrationDescription,
             skipStepsBySequence: [],
-            _clock,
-            runAt);
+            clock: _clock,
+            runAt: runAt);
 
         await _repository.AddAsync(orchestrationInstance).ConfigureAwait(false);
         await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
@@ -273,7 +296,10 @@ internal class OrchestrationInstanceManager(
         TParameter inputParameter,
         IReadOnlyCollection<int> skipStepsBySequence,
         Instant? runAt = default,
-        IdempotencyKey? idempotencyKey = default)
+        IdempotencyKey? idempotencyKey = default,
+        ActorMessageId? actorMessageId = default,
+        TransactionId? transactionId = default,
+        MeteringPointId? meteringPointId = default)
             where TParameter : class
     {
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
@@ -282,7 +308,10 @@ internal class OrchestrationInstanceManager(
             skipStepsBySequence,
             _clock,
             runAt,
-            idempotencyKey);
+            idempotencyKey,
+            actorMessageId,
+            transactionId,
+            meteringPointId);
 
         orchestrationInstance.ParameterValue.SetFromInstance(inputParameter);
 
@@ -296,6 +325,11 @@ internal class OrchestrationInstanceManager(
         OrchestrationDescription orchestrationDescription,
         OrchestrationInstance orchestrationInstance)
     {
+        if (!orchestrationDescription.IsDurableFunction)
+        {
+            return;
+        }
+
         if (orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Pending)
         {
             await _executor

@@ -1,5 +1,63 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.3.3
+
+- Update NuGet packages.
+
+## Version 1.3.2
+
+- Update NuGet packages.
+
+## Version 1.3.1
+
+- No functional changes.
+
+## Version 1.3.0
+
+- `CalculationQuery` now takes `IReadOnlyCollection<OrchestrationInstanceLifecycleState>?` instead of `OrchestrationINstanceLifecycleState?`.
+- `CalculationQuery` now takes an additional optional parameter `Instant? scheduledAtOrLater` to filter on scheduled calculations.
+
+## Version 1.2.1
+
+- Add `InternalProcesses/V1/MigrateCalculationsFromWholesale` internal process.
+    - Add `MigrateCalculationsFromWholesaleUniqueName`.
+    - Add `MigrateCalculationsFromWholesaleCommandV1`.
+
+## Version 1.2.0
+
+**Breaking changes:**
+
+- Update `ActorRequestQuery` with `CreatedByActorNumber` and `CreatedByActorRole` instead of `CreatedByActorId`.
+- Update to `ProcessManager.Abstractions` package version 1.2.0, which includes the following breaking changes:
+    - Change `ActorId` to `ActorNumber` and `ActorRole` on `ActorIdentityDto`. This is a breaking change for all commands on `IProcessManagerMessageClient`.
+    - Change `ActorId` to `ActorNumber` and `ActorRole` on `UserIdentityDto`. This is a breaking change for all commands and queries on `IProcessManagerClient`.
+    - Change `OrchestrationStartedByActorId` to `OrchestrationStartedByActor` with `ActorNumber` and `ActorRole` on `EnqueueActorMessagesV1`.
+    - Change `StartedByActorId` to `StartedByActor` with `ActorNumber` and `ActorRole` on `StartOrchestrationInstanceV1`.
+
+## Version 1.1.0
+
+- Add optional `createdByActorId` to filter to `ActorRequestQuery` for BRS-026/028.
+
+## Version 1.0.4
+
+- Update dependent NuGet package.
+
+## Version 1.0.3
+
+- Update dependent NuGet package.
+
+## Version 1.0.2
+
+- Update dependent NuGet package.
+
+## Version 1.0.1
+
+- Update dependent NuGet package.
+
+## Version 1.0.0
+
+- Update dependent NuGet package.
+
 ## Version 0.20.0
 
 - Moved all types from namespace `ValueObjects` to new NuGet package `Energinet.DataHub.ProcessManager.Components.ValueObjects`

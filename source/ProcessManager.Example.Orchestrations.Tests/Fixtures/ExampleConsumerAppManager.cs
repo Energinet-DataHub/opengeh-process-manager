@@ -15,17 +15,16 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
-using Azure.ResourceManager.Resources;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
@@ -177,6 +176,9 @@ public class ExampleConsumerAppManager : IAsyncDisposable
 
         // ProcessManager
         // => Process Manager HTTP client
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}",
+            AuthenticationOptionsForTests.ApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}",
             processManagerGeneralApiBaseUrl);

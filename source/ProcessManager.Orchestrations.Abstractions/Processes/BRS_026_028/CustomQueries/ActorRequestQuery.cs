@@ -14,6 +14,8 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 
@@ -34,10 +36,14 @@ public sealed record ActorRequestQuery
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
     /// <param name="activatedAtOrLater">The time (or later) when the orchestration instances was queued or scheduled to run at.</param>
     /// <param name="activatedAtOrEarlier">The time (or earlier) when the orchestration instances was queued or scheduled to run at.</param>
+    /// <param name="createdByActorNumber">Optional actor number of the actor that created. If not provided, the filter won't be applied.</param>
+    /// <param name="createdByActorRole">Optional actor role of the actor to filter by. If not provided, the filter won't be applied.</param>
     public ActorRequestQuery(
         UserIdentityDto operatingIdentity,
         DateTimeOffset activatedAtOrLater,
-        DateTimeOffset activatedAtOrEarlier)
+        DateTimeOffset activatedAtOrEarlier,
+        ActorNumber? createdByActorNumber,
+        ActorRole? createdByActorRole)
             : base(operatingIdentity)
     {
         OrchestrationDescriptionNames = [
@@ -45,6 +51,8 @@ public sealed record ActorRequestQuery
             Brs_028.Name];
         ActivatedAtOrLater = activatedAtOrLater;
         ActivatedAtOrEarlier = activatedAtOrEarlier;
+        CreatedByActorNumber = createdByActorNumber;
+        CreatedByActorRole = createdByActorRole;
     }
 
     /// <inheritdoc/>
@@ -64,4 +72,14 @@ public sealed record ActorRequestQuery
     /// The time (or earlier) when the orchestration instances was queued or scheduled to run at.
     /// </summary>
     public DateTimeOffset ActivatedAtOrEarlier { get; }
+
+    /// <summary>
+    /// Optional actor number of the actor to filter by. If not provided, the filter won't be applied.
+    /// </summary>
+    public ActorNumber? CreatedByActorNumber { get; }
+
+    /// <summary>
+    /// Optional actor role of the actor to filter by. If not provided, the filter won't be applied.
+    /// </summary>
+    public ActorRole? CreatedByActorRole { get; }
 }

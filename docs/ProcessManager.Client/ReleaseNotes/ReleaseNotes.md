@@ -1,5 +1,54 @@
 # ProcessManager.Client Release Notes
 
+## Version 1.4.0
+
+- Extended `ProcessManagerHttpClientsOptions` with `ApplicationIdUri`.
+- Refactored `ProcessManagerClient` to retrieve and add token when calling Process Manager API's.
+
+## Version 1.3.2
+
+- Update NuGet packages.
+
+## Version 1.3.1
+
+- No functional changes.
+
+## Version 1.3.0
+
+- `IOrchestrationInstanceQueries.SearchAsync` now takes `IReadOnlyCollection<OrchestrationInstanceLifecycleState>?` instead of `OrchestrationINstanceLifecycleState?`.
+- `IOrchestrationInstanceQueries.SearchAsync` now takes and additional optional parameter `Instant? scheduledAtOrLater` to filter on scheduled calculations.
+
+## Version 1.2.0
+
+- Add `ActorNumber`, `ActorRole`, `DataHubRecordType` and `EnumerationRecordType` (moved from `ProcessManager.Components.Abstractions`).
+- Add `ActorRoleV1`.
+
+### Breaking changes
+
+- Change `ActorId` to `ActorNumber` and `ActorRole` on `ActorIdentityDto`. This is a breaking change for all commands on `IProcessManagerMessageClient`.
+- Change `ActorId` to `ActorNumber` and `ActorRole` on `UserIdentityDto`. This is a breaking change for all commands and queries on `IProcessManagerClient`.
+- Change `OrchestrationStartedByActorId` to `OrchestrationStartedByActor` with `ActorNumber` and `ActorRole` on `EnqueueActorMessagesV1`.
+- Change `StartedByActorId` to `StartedByActor` with `ActorNumber` and `ActorRole` on `StartOrchestrationInstanceV1`.
+
+## Version 1.1.1
+
+- Align the package versions for `ProcessManager.Client` and `ProcessManager.Abstractions`:
+    - `Client` was version 1.0.2 (as was the release notes) and `Abstractions` was version 1.1.0.
+    - Both are now version 1.1.1.
+- No functional changes.
+
+## Version 1.0.2
+
+- Add `ActorMessageId`, `TransactionId`, and `MetertingPointId` to `StartOrchestrationInstanceV1`.
+
+## Version 1.0.1
+
+- No functional changes.
+
+## Version 1.0.0
+
+- Moved `BusinessValidation` to NuGet package `ProcessManager.Components.Abstractions`.
+
 ## Version 0.27.1
 
 - No functional changes.

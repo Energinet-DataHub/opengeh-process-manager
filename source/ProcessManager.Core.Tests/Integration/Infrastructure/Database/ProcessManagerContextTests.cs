@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
@@ -25,6 +27,9 @@ namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure
 public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixture>
 {
     private readonly ProcessManagerCoreFixture _fixture;
+    private readonly UserIdentity _userIdentity = new UserIdentity(
+        new UserId(Guid.NewGuid()),
+        new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
     public ProcessManagerContextTests(ProcessManagerCoreFixture fixture)
     {
@@ -198,7 +203,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         // Act
         await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
         var actualOrchestrationInstanceIds = await readDbContext.Database
-            .SqlQuery<Guid>($"SELECT [o].[Id] FROM [pm].[OrchestrationInstance] AS [o] WHERE CAST(JSON_VALUE([o].[SerializedParameterValue],'$.TestInt') AS int) = {expectedTestInt}")
+            .SqlQuery<Guid>($"SELECT [o].[Id] FROM [pm].[OrchestrationInstance] AS [o] WHERE CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}")
             .ToListAsync();
 
         // Assert
@@ -210,14 +215,12 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_UserCanceledOrchestrationInstanceAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
-        var userIdentity = new UserIdentity(new UserId(Guid.NewGuid()), new ActorId(Guid.NewGuid()));
-
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            identity: userIdentity,
+            identity: _userIdentity,
             runAt: SystemClock.Instance.GetCurrentInstant());
-        existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(SystemClock.Instance, userIdentity);
+        existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(SystemClock.Instance, _userIdentity);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -310,25 +313,31 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         return orchestrationDescription;
     }
 
-    private static OrchestrationInstance CreateOrchestrationInstance(
+    private OrchestrationInstance CreateOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
         OperatingIdentity? identity = default,
         Instant? runAt = default,
         int? testInt = default,
         IdempotencyKey? idempotencyKey = default)
     {
-        var operatingIdentity = identity
-            ?? new UserIdentity(
-                new UserId(Guid.NewGuid()),
-                new ActorId(Guid.NewGuid()));
+        var operatingIdentity = identity ?? _userIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,
             orchestrationDescription,
             skipStepsBySequence: [3],
             clock: SystemClock.Instance,
-            runAt,
-            idempotencyKey);
+            runAt: runAt,
+            idempotencyKey: idempotencyKey,
+            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
+
+        orchestrationInstance.CustomState.SetFromInstance(new TestOrchestrationInstanceCustomState
+        {
+            TestId = Guid.NewGuid(),
+            TestString = "Something new",
+        });
 
         orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
         {
@@ -400,5 +409,12 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         public string? TestString { get; set; }
 
         public int? TestInt { get; set; }
+    }
+
+    private class TestOrchestrationInstanceCustomState
+    {
+        public Guid TestId { get; set; }
+
+        public string? TestString { get; set; }
     }
 }

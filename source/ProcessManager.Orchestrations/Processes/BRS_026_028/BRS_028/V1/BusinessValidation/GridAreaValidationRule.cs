@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
-using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
@@ -45,10 +45,9 @@ public class GridAreaValidationRule(
         foreach (var gridArea in subject.GridAreas)
         {
             var isGridAreaOwner = await _gridAreaOwnerClient.IsCurrentOwnerAsync(
-                    gridArea,
-                    subject.RequestedForActorNumber,
-                    CancellationToken.None)
-                .ConfigureAwait(false);
+                gridArea,
+                subject.RequestedForActorNumber,
+                CancellationToken.None).ConfigureAwait(false);
 
             if (!isGridAreaOwner)
                 return InvalidGridAreaError;

@@ -14,6 +14,7 @@
  */
 
 syntax = "proto3";
+import "Contracts/ActorRoleV1.proto";
 
 option csharp_namespace = "Energinet.DataHub.ProcessManager.Abstractions.Contracts";
 
@@ -21,14 +22,25 @@ message StartOrchestrationInstanceV1 {
   string orchestration_name = 1; // The name of the orchestration to start.
   int32 orchestration_version = 2; // The version of the orchestration to start.
 
-  string started_by_actor_id = 4; // The actor id who wants to start the orchestration.
+  reserved 4; // Reserve the "4" number since that was the "string started_by_actor_id = 4" field.
 
   string input = 3; // The input to the orchestration serialized to string.
   StartOrchestrationInstanceInputFormatV1 input_format = 5; // The format the input field is serialized as.
   string input_type = 6; // Name of the input type (example: "RequestCalculatedEnergyTimeSeriesInputV1").
+
+  string actor_message_id = 7; // The id of the actor message that triggered the orchestration.
+  string transaction_id = 8; // The id of the transaction that triggered the orchestration.
+  optional string metering_point_id = 9; // The id of the metering point for which the orchestration is operating.
+
+  StartOrchestrationInstanceActorV1 started_by_actor = 10; // The actor that started the orchestration.
 }
 
 enum StartOrchestrationInstanceInputFormatV1 {
-  Unspecified = 0;
+  UnspecifiedFormat = 0;
   Json = 1;
+}
+
+message StartOrchestrationInstanceActorV1 {
+  string actor_number = 1; // The actor GLN number.
+  ActorRoleV1 actor_role = 2; // The actor role.
 }

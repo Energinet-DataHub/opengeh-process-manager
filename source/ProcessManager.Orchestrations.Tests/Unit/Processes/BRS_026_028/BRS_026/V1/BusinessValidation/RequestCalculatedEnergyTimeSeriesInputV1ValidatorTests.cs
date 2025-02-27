@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1;
 using FluentAssertions;
@@ -45,8 +46,9 @@ public class RequestCalculatedEnergyTimeSeriesInputV1ValidatorTests
         services.AddTransient<DateTimeZone>(s => _timeZone);
         services.AddTransient<IClock>(s => _clockMock.Object);
 
-        var gridAreaOwnerClientMock = new Mock<IGridAreaOwnerClient>();
-        services.AddScoped<IGridAreaOwnerClient>(_ => gridAreaOwnerClientMock.Object);
+        // IGridAreaOwnerClient mock must be added before AddBusinessValidation(), to override the default client registration
+        var gridAreaOwnerClientMock = new Mock<IElectricityMarketViews>();
+        services.AddScoped<IElectricityMarketViews>(_ => gridAreaOwnerClientMock.Object);
 
         var orchestrationsAssembly = typeof(Orchestration_Brs_026_V1).Assembly;
         var orchestrationsAbstractionsAssembly = typeof(RequestCalculatedEnergyTimeSeriesInputV1).Assembly;

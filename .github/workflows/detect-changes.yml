@@ -79,10 +79,10 @@ jobs:
           filters: |
             nuget_packages:
               - 'docs/ProcessManager.Client/**'
-              - 'docs/ProcessManager.Components.ValueObjects/**'
+              - 'docs/ProcessManager.Components.Abstractions/**'
               - 'docs/ProcessManager.Orchestrations.Abstractions/**'
               - 'source/ProcessManager.Client*/**'
               - 'source/ProcessManager.Abstractions*/**'
-              - 'source/ProcessManager.Components.ValueObjects*/**'
+              - 'source/ProcessManager.Components.Abstractions*/**'
               - 'source/ProcessManager.Orchestrations.Abstractions*/**'
               - '.github/workflows/processmanager-client-bundle-publish.yml'

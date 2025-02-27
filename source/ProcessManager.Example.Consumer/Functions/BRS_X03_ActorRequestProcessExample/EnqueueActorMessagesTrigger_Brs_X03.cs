@@ -83,18 +83,47 @@ public class EnqueueActorMessagesTrigger_Brs_X03(
             EnqueueActorMessages = enqueueActorMessagesV1,
         });
 
-        var enqueueData = enqueueActorMessagesV1.ParseData<ActorRequestProcessExampleEnqueueDataV1>();
-
-        using var enqueueDataScope = _logger.BeginScope(new
+        switch (enqueueActorMessagesV1.DataType)
         {
-            EnqueueData = enqueueData,
-        });
+            case nameof(ActorRequestProcessExampleEnqueueDataV1):
+            {
+                var enqueueData = enqueueActorMessagesV1.ParseData<ActorRequestProcessExampleEnqueueDataV1>();
+                using var enqueueDataScope = _logger.BeginScope(new
+                {
+                    EnqueueData = enqueueData,
+                });
 
-        _logger.LogInformation(
-            "Received {Subject} message with message id {MessageId}. Data: {Data}",
-            message.Subject,
-            message.MessageId,
-            enqueueData);
+                _logger.LogInformation(
+                    "Received {Subject} message with message id {MessageId}. Data: {Data}",
+                    message.Subject,
+                    message.MessageId,
+                    enqueueData);
+                break;
+            }
+
+            case nameof(ActorRequestProcessExampleEnqueueRejectedDataV1):
+            {
+                var enqueueRejectedData = enqueueActorMessagesV1.ParseData<ActorRequestProcessExampleEnqueueRejectedDataV1>();
+
+                using var enqueueDataScope = _logger.BeginScope(new
+                {
+                    EnqueueRejectedData = enqueueRejectedData,
+                });
+
+                _logger.LogInformation(
+                    "Received {Subject} reject message with message id {MessageId}. Rejected data: {RejectedData}",
+                    message.Subject,
+                    message.MessageId,
+                    enqueueRejectedData);
+                break;
+            }
+
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(enqueueActorMessagesV1.DataType),
+                    enqueueActorMessagesV1.DataType,
+                    $"Unknown data type on received {nameof(EnqueueActorMessagesV1)}.");
+        }
 
         await _messageClient.NotifyOrchestrationInstanceAsync(
                 new NotifyOrchestrationInstanceEvent(

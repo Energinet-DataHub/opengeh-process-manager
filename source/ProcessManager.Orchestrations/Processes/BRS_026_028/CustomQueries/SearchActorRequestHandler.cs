@@ -51,7 +51,9 @@ internal class SearchActorRequestHandler(
             .SearchAsync(
                 query.OrchestrationDescriptionNames,
                 activatedAtOrLater,
-                activatedAtOrEarlier)
+                activatedAtOrEarlier,
+                query.CreatedByActorNumber,
+                query.CreatedByActorRole)
             .ConfigureAwait(false);
 
         return results

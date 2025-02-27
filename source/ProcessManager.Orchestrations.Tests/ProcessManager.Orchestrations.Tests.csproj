@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Shared\Tests\Fixtures\AuthenticationOptionsForTests.cs" Link="Fixtures\AuthenticationOptionsForTests.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\Extensions\ElectricityMarketViewsExtensions.cs">
+      <Link>Fixtures\Extensions\ElectricityMarketViewsExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ProcessManagerClientExtensions.cs">
       <Link>Fixtures\Extensions\ProcessManagerClientExtensions.cs</Link>
     </Compile>
@@ -17,6 +21,7 @@
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\DatabricksApiWireMockExtensions.cs" Link="Fixtures\Extensions\DatabricksApiWireMockExtensions.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\WholesaleDatabaseManager.cs" Link="Fixtures\WholesaleDatabaseManager.cs" />
     <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs">
       <Link>FluentAssertionsVersionGuard.cs</Link>
     </Compile>
@@ -29,10 +34,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Energinet.DataHub.Core.DurableFunctionApp.TestCommon" Version="7.2.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="WireMock.Net" Version="1.6.11" />
-    <PackageReference Include="xunit" Version="2.9.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.0">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="WireMock.Net" Version="1.7.2" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

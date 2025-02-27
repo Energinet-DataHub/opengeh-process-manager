@@ -19,6 +19,18 @@
     <EmbeddedResource Include="Scripts\202412101700 Add RecurringCronExpression.sql" />
     <EmbeddedResource Include="Scripts\202501131400 Add IdempotencyKey.sql" />
     <EmbeddedResource Include="Scripts\202501311000 Add RowVersion.sql" />
+    <EmbeddedResource Include="Scripts\202502041220 Add ActorMessageId TransactionId MeteringPointId to OrchestrationInstance.sql" />
+    <EmbeddedResource Include="Scripts\202502111403 Add indicies on OrchestrationDescriptionId and OrchestrationInstanceId.sql" />
+    <EmbeddedResource Include="Scripts\202502121450 Add lifecycle ActorNumber and ActorRole to OrchestrationInstance.sql" />
+    <EmbeddedResource Include="Scripts\202502121451 Set created by default values for lifecycle ActorNumber and ActorRole on OrchestrationInstance.sql" />
+    <EmbeddedResource Include="Scripts\202502121452 Set canceled by default values for lifecycle ActorNumber and ActorRole on OrchestrationInstance.sql" />
+    <EmbeddedResource Include="Scripts\202502121453 Remove lifecycle ActorId from OrchestrationInstance.sql" />
+    <EmbeddedResource Include="Scripts\202502171057 Add search index to Orchestration Instance.sql" />
+    <EmbeddedResource Include="Scripts\202502211500 Add on delete cascade.sql" />
+    <EmbeddedResource Include="Scripts\202502241453 Rename SerializedParameterValue to ParameterValue on OrchestrationInstance.sql" />
+    <EmbeddedResource Include="Scripts\202502241547 Set CustomState to empty on StepInstance.sql" />
+    <EmbeddedResource Include="Scripts\202502261006 Add IsDurableFunction to OrchestrationDescription.sql" />
+    <EmbeddedResource Include="Scripts\202502270811 Remove IsDurableFunction from OrchestrationDescription.sql" />
   </ItemGroup>
 
 </Project>

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -20,7 +22,7 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Activities;
 
-public class EnqueueActorMessagesActivity_Brs_X03_V1(
+internal class EnqueueActorMessagesActivity_Brs_X03_V1(
     IOrchestrationInstanceProgressRepository repository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
@@ -37,15 +39,17 @@ public class EnqueueActorMessagesActivity_Brs_X03_V1(
 
         var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<ActorRequestProcessExampleInputV1>();
 
+        var businessReason = BusinessReason.FromName(orchestrationInstanceInput.BusinessReason);
+
         await _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_X03_V1.UniqueName,
             orchestrationInstance.Id.Value,
             orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
             input.IdempotencyKey,
             new ActorRequestProcessExampleEnqueueDataV1(
-                orchestrationInstanceInput.RequestedByActorNumber,
-                orchestrationInstanceInput.RequestedByActorRole,
-                orchestrationInstanceInput.BusinessReason))
+                ActorNumber.Create(orchestrationInstanceInput.RequestedByActorNumber),
+                ActorRole.FromName(orchestrationInstanceInput.RequestedByActorRole),
+                businessReason))
             .ConfigureAwait(false);
 
         return "Success";

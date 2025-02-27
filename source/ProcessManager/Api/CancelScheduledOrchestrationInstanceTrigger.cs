@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -34,6 +35,7 @@ internal class CancelScheduledOrchestrationInstanceTrigger(
     /// Cancel a scheduled orchestration instance
     /// </summary>
     [Function(nameof(CancelScheduledOrchestrationInstanceTrigger))]
+    [Authorize]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
@@ -48,7 +50,7 @@ internal class CancelScheduledOrchestrationInstanceTrigger(
             .CancelScheduledOrchestrationInstanceAsync(
                 new UserIdentity(
                     new UserId(command.OperatingIdentity.UserId),
-                    new ActorId(command.OperatingIdentity.ActorId)),
+                    new Actor(command.OperatingIdentity.ActorNumber, command.OperatingIdentity.ActorRole)),
                 new OrchestrationInstanceId(command.Id))
             .ConfigureAwait(false);
 

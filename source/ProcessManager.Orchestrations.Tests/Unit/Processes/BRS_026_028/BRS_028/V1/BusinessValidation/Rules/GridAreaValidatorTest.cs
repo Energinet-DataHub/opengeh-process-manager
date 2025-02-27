@@ -15,9 +15,9 @@
 using System.Diagnostics.CodeAnalysis;
 using AutoFixture.Xunit2;
 using Energinet.DataHub.Core.TestCommon.AutoFixture.Attributes;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
-using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -69,7 +69,6 @@ public class GridAreaValidatorTest
         var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.GridAccessProvider)
             .WithGridArea(gridArea)
             .Build();
-
         gridAreaOwnerClient.Setup(repo => repo.IsCurrentOwnerAsync(
                 gridArea,
                 message.RequestedForActorNumber,

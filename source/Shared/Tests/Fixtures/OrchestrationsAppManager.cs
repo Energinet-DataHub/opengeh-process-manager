@@ -22,6 +22,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
+using Energinet.DataHub.ElectricityMarket.Integration.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
@@ -114,6 +115,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.Credential);
 
         MockServer = WireMockServer.Start(port: wireMockServerPort);
+
+        WholesaleDatabaseManager = new WholesaleDatabaseManager("Wholesale");
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -127,6 +130,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public string? EventHubName { get; private set; }
 
     public WireMockServer MockServer { get; }
+
+    public WholesaleDatabaseManager WholesaleDatabaseManager { get; }
 
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
@@ -163,6 +168,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
         integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
 
+        await WholesaleDatabaseManager.CreateDatabaseAsync();
+
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
@@ -189,6 +196,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         await ServiceBusResourceProvider.DisposeAsync();
         await EventHubResourceProvider.DisposeAsync();
         MockServer.Dispose();
+
+        await WholesaleDatabaseManager.DeleteDatabaseAsync();
     }
 
     /// <summary>
@@ -316,6 +325,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+        // => Authentication
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.ApplicationIdUri)}",
+            AuthenticationOptionsForTests.ApplicationIdUri);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
+            AuthenticationOptionsForTests.Issuer);
 
         // => Service Bus
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -381,6 +397,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
             eventHubResource.Name);
 
+        // Electric Market client
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.BaseUrl)}",
+            MockServer.Url!);
+
         // => BRS-026
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_026_V1.SectionName}__{nameof(OrchestrationOptions_Brs_026_V1.EnqueueActorMessagesTimeout)}",
@@ -390,6 +411,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_028_V1.SectionName}__{nameof(OrchestrationOptions_Brs_028_V1.EnqueueActorMessagesTimeout)}",
             TimeSpan.FromSeconds(60).ToString());
+
+        // => Wholesale migration (database)
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{WholesaleDatabaseOptions.SectionName}__{nameof(WholesaleDatabaseOptions.SqlDatabaseConnectionString)}",
+            WholesaleDatabaseManager.ConnectionString);
 
         return appHostSettings;
     }

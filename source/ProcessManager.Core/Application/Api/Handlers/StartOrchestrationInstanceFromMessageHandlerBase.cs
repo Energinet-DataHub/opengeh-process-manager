@@ -57,7 +57,13 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         }
     }
 
-    protected abstract Task StartOrchestrationInstanceAsync(ActorIdentity actorIdentity, TInputParameterDto input, string idempotencyKey);
+    protected abstract Task StartOrchestrationInstanceAsync(
+        ActorIdentity actorIdentity,
+        TInputParameterDto input,
+        string idempotencyKey,
+        string actorMessageId,
+        string transactionId,
+        string? meteringPointId);
 
     private async Task HandleV1(ServiceBusReceivedMessage message)
     {
@@ -71,26 +77,27 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
                 startOrchestration.OrchestrationVersion,
                 OperatingIdentity = new
                 {
-                    ActorId = startOrchestration.StartedByActorId,
+                    Actor = startOrchestration.StartedByActor,
                 },
                 startOrchestration.InputFormat,
+                startOrchestration.ActorMessageId,
+                startOrchestration.TransactionId,
+                startOrchestration.MeteringPointId,
             },
         });
 
         var inputParameterDto = startOrchestration.ParseInput<TInputParameterDto>();
 
-        if (!Guid.TryParse(startOrchestration.StartedByActorId, out var actorId))
-        {
-            throw new ArgumentOutOfRangeException(
-                paramName: nameof(StartOrchestrationInstanceV1.StartedByActorId),
-                actualValue: startOrchestration.StartedByActorId,
-                message: $"Unable to parse {nameof(startOrchestration.StartedByActorId)} to guid (MessageId={message.MessageId}, Subject={message.Subject})");
-        }
-
         await StartOrchestrationInstanceAsync(
-            new ActorIdentity(new ActorId(actorId)),
-            inputParameterDto,
-            idempotencyKey: message.GetIdempotencyKey())
+            actorIdentity: new ActorIdentity(
+                Actor.From(
+                    startOrchestration.StartedByActor.ActorNumber,
+                    startOrchestration.StartedByActor.ActorRole)),
+            input: inputParameterDto,
+            idempotencyKey: message.GetIdempotencyKey(),
+            actorMessageId: startOrchestration.ActorMessageId,
+            transactionId: startOrchestration.TransactionId,
+            meteringPointId: startOrchestration.HasMeteringPointId ? startOrchestration.MeteringPointId : null)
             .ConfigureAwait(false);
     }
 }

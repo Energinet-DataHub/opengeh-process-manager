@@ -14,6 +14,7 @@
 
 using DurableTask.Core.Exceptions;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
@@ -192,13 +193,16 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
     {
         var operatingIdentity = new UserIdentity(
             new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
+            new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,
             brsX01NoInputDescription,
             skipStepsBySequence: [],
-            clock: SystemClock.Instance);
+            clock: SystemClock.Instance,
+            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
         // Ensure orchestration instance can be set to Running later
         orchestrationInstance.Lifecycle.TransitionToQueued(SystemClock.Instance);

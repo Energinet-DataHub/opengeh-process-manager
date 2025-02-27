@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
@@ -80,8 +79,19 @@ public class ProcessManagerMessageClient(
         {
             OrchestrationName = command.OrchestrationDescriptionUniqueName.Name,
             OrchestrationVersion = command.OrchestrationDescriptionUniqueName.Version,
-            StartedByActorId = command.OperatingIdentity.ActorId.ToString(),
+            StartedByActor = new StartOrchestrationInstanceActorV1
+            {
+                ActorNumber = command.OperatingIdentity.ActorNumber.Value,
+                ActorRole = command.OperatingIdentity.ActorRole.ToActorRoleV1(),
+            },
+            ActorMessageId = command.ActorMessageId,
+            TransactionId = command.TransactionId,
         };
+
+        if (command.MeteringPointId is not null)
+        {
+            startOrchestration.MeteringPointId = command.MeteringPointId;
+        }
 
         startOrchestration.SetInput(command.InputParameter);
 

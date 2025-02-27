@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.EntityFrameworkCore;
@@ -48,7 +49,17 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                         lb.Ignore(ct => ct.Value);
 
                         lb.Property(ct => ct.IdentityType);
-                        lb.Property(ct => ct.ActorId);
+
+                        lb.Property(ct => ct.ActorNumber)
+                            .HasConversion(
+                                actorNumber => actorNumber != null ? actorNumber.Value : null,
+                                dbValue => dbValue != null ? ActorNumber.Create(dbValue) : null);
+
+                        lb.Property(ct => ct.ActorRole)
+                            .HasConversion(
+                                actorRole => actorRole != null ? actorRole.Name : null,
+                                dbValue => dbValue != null ? ActorRole.FromName(dbValue) : null);
+
                         lb.Property(ct => ct.UserId);
                     });
 
@@ -65,7 +76,17 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                         lb.Ignore(ct => ct.Value);
 
                         lb.Property(ct => ct.IdentityType);
-                        lb.Property(ct => ct.ActorId);
+
+                        lb.Property(ct => ct.ActorNumber)
+                            .HasConversion(
+                                actorNumber => actorNumber != null ? actorNumber.Value : null,
+                                dbValue => dbValue != null ? ActorNumber.Create(dbValue) : null);
+
+                        lb.Property(ct => ct.ActorRole)
+                            .HasConversion(
+                                actorRole => actorRole != null ? actorRole.Name : null,
+                                dbValue => dbValue != null ? ActorRole.FromName(dbValue) : null);
+
                         lb.Property(ct => ct.UserId);
                     });
             });
@@ -74,8 +95,8 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
             o => o.ParameterValue,
             b =>
             {
-                b.Property(l => l.SerializedParameterValue)
-                    .HasColumnName(nameof(OrchestrationInstance.ParameterValue.SerializedParameterValue));
+                b.Property(l => l.SerializedValue)
+                    .HasColumnName(nameof(OrchestrationInstance.ParameterValue));
             });
 
         builder.OwnsMany(
@@ -93,24 +114,28 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
 
                 b.OwnsOne(
                     o => o.Lifecycle,
-                    b =>
+                    lb =>
                     {
-                        b.Property(l => l.State);
-                        b.Property(l => l.TerminationState);
+                        lb.Property(l => l.State);
+                        lb.Property(l => l.TerminationState);
 
-                        b.Property(l => l.StartedAt);
-                        b.Property(l => l.TerminatedAt);
+                        lb.Property(l => l.StartedAt);
+                        lb.Property(l => l.TerminatedAt);
 
-                        b.Property(l => l.CanBeSkipped);
+                        lb.Property(l => l.CanBeSkipped);
                     });
 
                 b.Property(s => s.Description);
                 b.Property(s => s.Sequence);
 
-                b.Property(s => s.CustomState)
-                    .HasConversion(
-                        state => state.Value,
-                        dbValue => new StepInstanceCustomState(dbValue));
+                // Cannot use .ComplexProperty() in a nested configuration builder, so we have to use .OwnsOne().
+                b.OwnsOne(
+                    s => s.CustomState,
+                    csb =>
+                    {
+                        csb.Property(cs => cs.SerializedValue)
+                            .HasColumnName(nameof(StepInstance.CustomState));
+                    });
 
                 // Relation to parent
                 b.Property(s => s.OrchestrationInstanceId)
@@ -121,10 +146,13 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                 b.WithOwner().HasForeignKey(s => s.OrchestrationInstanceId);
             });
 
-        builder.Property(o => o.CustomState)
-            .HasConversion(
-                state => state.Value,
-                dbValue => new OrchestrationInstanceCustomState(dbValue));
+        builder.ComplexProperty(
+            o => o.CustomState,
+            csb =>
+            {
+                csb.Property(cs => cs.SerializedValue)
+                    .HasColumnName(nameof(OrchestrationInstance.CustomState));
+            });
 
         builder.Property(o => o.IdempotencyKey)
             .HasConversion(
@@ -144,5 +172,32 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
             .HasConversion(
                 id => id.Value,
                 dbValue => new OrchestrationDescriptionId(dbValue));
+
+        builder.Property(o => o.ActorMessageId)
+            .HasConversion(
+                state => state == null
+                    ? null
+                    : state.Value,
+                dbValue => dbValue == null
+                    ? null
+                    : new ActorMessageId(dbValue));
+
+        builder.Property(o => o.TransactionId)
+            .HasConversion(
+                state => state == null
+                    ? null
+                    : state.Value,
+                dbValue => dbValue == null
+                    ? null
+                    : new TransactionId(dbValue));
+
+        builder.Property(o => o.MeteringPointId)
+            .HasConversion(
+                state => state == null
+                    ? null
+                    : state.Value,
+                dbValue => dbValue == null
+                    ? null
+                    : new MeteringPointId(dbValue));
     }
 }

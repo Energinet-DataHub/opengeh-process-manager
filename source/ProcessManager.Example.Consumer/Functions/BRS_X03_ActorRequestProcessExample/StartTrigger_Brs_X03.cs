@@ -13,7 +13,9 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
@@ -40,14 +42,18 @@ public class StartTrigger_Brs_X03(
         StartTriggerInput input,
         FunctionContext executionContext)
     {
+        var actorNumber = ActorNumber.Create("1234567890123");
+        var actorRole = ActorRole.EnergySupplier;
         return _messageClient.StartNewOrchestrationInstanceAsync(
             new StartActorRequestProcessExampleV1(
-                operatingIdentity: new ActorIdentityDto(Guid.NewGuid()),
+                operatingIdentity: new ActorIdentityDto(actorNumber, actorRole),
                 inputParameter: new ActorRequestProcessExampleInputV1(
-                    RequestedByActorNumber: "1234567890123",
-                    RequestedByActorRole: "EnergySupplier",
+                    RequestedByActorNumber: actorNumber.Value,
+                    RequestedByActorRole: actorRole.Name,
                     BusinessReason: input.BusinessReason),
-                idempotencyKey: input.IdempotencyKey),
+                idempotencyKey: input.IdempotencyKey,
+                actorMessageId: Guid.NewGuid().ToString(),
+                transactionId: Guid.NewGuid().ToString()),
             CancellationToken.None);
     }
 

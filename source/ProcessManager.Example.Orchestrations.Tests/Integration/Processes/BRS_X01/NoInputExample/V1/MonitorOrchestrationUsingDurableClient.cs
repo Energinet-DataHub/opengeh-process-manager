@@ -14,11 +14,13 @@
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
@@ -41,6 +43,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
+                = AuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
@@ -81,7 +85,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
+            ActorNumber: ActorNumber.Create("1234567891234"),
+            ActorRole: ActorRole.EnergySupplier);
 
         // Start new orchestration instance
         var orchestrationInstanceId = await processManagerClient
@@ -102,24 +107,22 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             .Select(item => item.ToObject<OrchestrationHistoryItem>())
             .ToList();
 
-        var expectedHistory = new List<OrchestrationHistoryItem>()
-        {
+        activities.Should().NotBeNull().And.Equal(
+        [
             new("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
-            new("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
+            new("TaskCompleted", FunctionName: "PerformCalculationActivity_Brs_X01_NoInputExample_V1"),
             new("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
             new("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),
             new("ExecutionCompleted"),
-        };
-
-        activities.Should().NotBeNull().And.Equal(expectedHistory);
+        ]);
 
         // => Verify that the durable function completed successfully
         var last = completeOrchestrationStatus.History
             .OrderBy(item => item["Timestamp"])
             .Last();
         last.Value<string>("EventType").Should().Be("ExecutionCompleted");
-        last.Value<string>("Result").Should().Be("Success");
+        last.Value<string>("Result").Should().Be("Success (example step result: 42)", "because the orchestration should succeed and the example step result (42) should be written to the output");
     }
 }

@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1;
 
@@ -34,9 +35,9 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.ParameterDefinition.SetFromType<InputV1>();
 
-        description.AppendStepDescription("Example step 1");
+        description.AppendStepDescription(FirstStep.StepDescription);
         description.AppendStepDescription(
-            "Example step 2, can be skipped",
+            SkippableStep.StepDescription,
             canBeSkipped: true,
             skipReason: "Can be skipped based on input");
 

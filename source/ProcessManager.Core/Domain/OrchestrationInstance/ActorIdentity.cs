@@ -19,11 +19,11 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 /// <summary>
 /// An actor identity performing a Process Manager operation.
 /// </summary>
-public record ActorIdentity(ActorId ActorId)
+public record ActorIdentity(Actor Actor)
     : OperatingIdentity
 {
     public override IOperatingIdentityDto ToDto()
     {
-        return new ActorIdentityDto(ActorId.Value);
+        return new ActorIdentityDto(Actor.Number, Actor.Role);
     }
 }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
@@ -19,6 +20,8 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
+using OrchestrationInstanceLifecycleState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
+using OrchestrationInstanceTerminationState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 
@@ -75,10 +78,11 @@ internal class OrchestrationInstanceRepository(
     public async Task<IReadOnlyCollection<OrchestrationInstance>> SearchAsync(
         string name,
         int? version = default,
-        OrchestrationInstanceLifecycleState? lifecycleState = default,
+        IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates = default,
         OrchestrationInstanceTerminationState? terminationState = default,
         Instant? startedAtOrLater = default,
-        Instant? terminatedAtOrEarlier = default)
+        Instant? terminatedAtOrEarlier = default,
+        Instant? scheduledAtOrLater = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
@@ -91,10 +95,11 @@ internal class OrchestrationInstanceRepository(
                 description => description.Id,
                 instance => instance.OrchestrationDescriptionId,
                 (_, instance) => instance)
-            .Where(x => lifecycleState == null || x.Lifecycle.State == lifecycleState)
+            .Where(x => lifecycleStates == null || lifecycleStates.Contains(x.Lifecycle.State))
             .Where(x => terminationState == null || x.Lifecycle.TerminationState == terminationState)
-            .Where(x => startedAtOrLater == null || x.Lifecycle.StartedAt >= startedAtOrLater)
-            .Where(x => terminatedAtOrEarlier == null || x.Lifecycle.TerminatedAt <= terminatedAtOrEarlier);
+            .Where(x => startedAtOrLater == null || startedAtOrLater <= x.Lifecycle.StartedAt)
+            .Where(x => terminatedAtOrEarlier == null || x.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
+            .Where(x => scheduledAtOrLater == null || scheduledAtOrLater <= x.Lifecycle.ScheduledToRunAt);
 
         return await query.ToListAsync().ConfigureAwait(false);
     }
@@ -103,7 +108,9 @@ internal class OrchestrationInstanceRepository(
     public async Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
         Instant activatedAtOrLater,
-        Instant activatedAtOrEarlier)
+        Instant activatedAtOrEarlier,
+        ActorNumber? createdByActorNumber,
+        ActorRole? createdByActorRole)
     {
         var query = _context
             .OrchestrationDescriptions
@@ -113,6 +120,8 @@ internal class OrchestrationInstanceRepository(
                 description => description.Id,
                 instance => instance.OrchestrationDescriptionId,
                 (description, instance) => new { description.UniqueName, instance })
+            .Where(x => createdByActorNumber == null || x.instance.Lifecycle.CreatedBy.ActorNumber == createdByActorNumber)
+            .Where(x => createdByActorRole == null || x.instance.Lifecycle.CreatedBy.ActorRole == createdByActorRole)
             .Where(x =>
                 (x.instance.Lifecycle.QueuedAt >= activatedAtOrLater && x.instance.Lifecycle.QueuedAt <= activatedAtOrEarlier)
                 || (x.instance.Lifecycle.ScheduledToRunAt >= activatedAtOrLater && x.instance.Lifecycle.ScheduledToRunAt <= activatedAtOrEarlier))

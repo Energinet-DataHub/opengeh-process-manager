@@ -12,8 +12,8 @@
   </ItemGroup>
   <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
-        <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="6.1.2" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.0" />
+        <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="6.1.3" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.1" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
         <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="14.0.2" />
     </ItemGroup>
@@ -25,6 +25,12 @@
 
     <ItemGroup>
         <Compile Include="..\Shared\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
+        <Compile Include="..\Shared\Processes\Activities\StepExecutor.cs">
+          <Link>Processes\Shared\Activities\StepExecutor.cs</Link>
+        </Compile>
+        <Compile Include="..\Shared\Processes\Activities\TransitionOrchestrationAndStepToFailedActivity_V1.cs">
+          <Link>Processes\Shared\Activities\TransitionOrchestrationAndStepToFailedActivity_V1.cs</Link>
+        </Compile>
         <Compile Include="..\Shared\Processes\Activities\TransitionOrchestrationToRunningActivity_V1.cs" Link="Processes\Shared\Activities\TransitionOrchestrationToRunningActivity_V1.cs" />
         <Compile Include="..\Shared\Processes\Activities\TransitionOrchestrationToTerminatedActivity_V1.cs" Link="Processes\Shared\Activities\TransitionOrchestrationToTerminatedActivity_V1.cs" />
         <Compile Include="..\Shared\Processes\Activities\TransitionStepToRunningActivity_V1.cs" Link="Processes\Shared\Activities\TransitionStepToRunningActivity_V1.cs" />

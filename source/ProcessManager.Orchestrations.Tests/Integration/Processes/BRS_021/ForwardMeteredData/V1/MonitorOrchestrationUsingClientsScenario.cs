@@ -12,17 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using AutoFixture;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Components.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -54,6 +56,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = _fixture.ProcessManagerTopicName,
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
+                = AuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
@@ -92,7 +96,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
 
         var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(input.AuthenticatedActorId),
+            new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -158,7 +162,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = CreateMeteredDataForMeteringPointMessageInputV1(true);
 
         var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(input.AuthenticatedActorId),
+            new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             "test-message-id");
 
@@ -242,7 +246,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
 
         var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(input.AuthenticatedActorId),
+            new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -251,17 +255,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             CancellationToken.None);
 
         // Step 2: Query until terminated with succeeded
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
                 var orchestrationInstance = await processManagerClient
                     .GetOrchestrationInstanceByIdempotencyKeyAsync<MeteredDataForMeteringPointMessageInputV1>(
                         new GetOrchestrationInstanceByIdempotencyKeyQuery(
-                            userIdentity,
+                            _fixture.DefaultUserIdentity,
                             startCommand.IdempotencyKey),
                         CancellationToken.None);
 
@@ -283,7 +283,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             "MessageId",
             Guid.NewGuid(),
             "1111111111111",
-            ActorRole.GridAccessProvider.Code,
+            ActorRole.GridAccessProvider.Name,
             "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
             withError ? "NoMasterData" : "571313101700011887",
             "D20",

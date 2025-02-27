@@ -14,11 +14,13 @@
 
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
 using FluentAssertions;
@@ -31,6 +33,11 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 {
+    private readonly UserIdentityDto _userIdentity = new UserIdentityDto(
+        UserId: Guid.NewGuid(),
+        ActorNumber: ActorNumber.Create("1234567890123"),
+        ActorRole: ActorRole.EnergySupplier);
+
     public MonitorOrchestrationUsingDurableClient(
         ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
@@ -41,6 +48,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
+                = AuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
@@ -75,17 +84,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Start new orchestration instance
         var input = new InputV1(
             ShouldSkipSkippableStep: false);
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartInputExampleCommandV1(
-                    userIdentity,
+                    _userIdentity,
                     input),
                 CancellationToken.None);
 
@@ -106,7 +111,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_InputExample_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "GetOrchestrationInstanceContextActivity_Brs_X01_InputExample_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
@@ -128,17 +133,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     {
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        var userIdentity = new UserIdentityDto(
-            UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
-
         // Start new orchestration instance
         var input = new InputV1(
             ShouldSkipSkippableStep: true);
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartInputExampleCommandV1(
-                    userIdentity,
+                    _userIdentity,
                     input),
                 CancellationToken.None);
 
@@ -159,7 +160,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         [
             new OrchestrationHistoryItem("ExecutionStarted", FunctionName: "Orchestration_Brs_X01_InputExample_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToRunningActivity_V1"),
-            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "OrchestrationInitializeActivity_Brs_X01_InputExample_V1"),
+            new OrchestrationHistoryItem("TaskCompleted", FunctionName: "GetOrchestrationInstanceContextActivity_Brs_X01_InputExample_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToRunningActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionStepToTerminatedActivity_V1"),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: "TransitionOrchestrationToTerminatedActivity_V1"),

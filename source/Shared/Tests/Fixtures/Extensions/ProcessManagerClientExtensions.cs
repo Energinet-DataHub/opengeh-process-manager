@@ -15,6 +15,7 @@
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -46,7 +47,8 @@ public static class ProcessManagerClientExtensions
                         new GetOrchestrationInstanceByIdempotencyKeyQuery(
                             new UserIdentityDto(
                                 UserId: Guid.NewGuid(),
-                                ActorId: Guid.NewGuid()),
+                                ActorNumber: ActorNumber.Create("1234567891234"),
+                                ActorRole: ActorRole.EnergySupplier),
                             idempotencyKey),
                         CancellationToken.None);
 
@@ -71,14 +73,16 @@ public static class ProcessManagerClientExtensions
     public static Task<(bool Succes, OrchestrationInstanceTypedDto<TInput>? OrchestrationInstance)> WaitForOrchestrationInstanceTerminated<TInput>(
         this IProcessManagerClient client,
         string idempotencyKey,
-        OrchestrationInstanceTerminationState terminationState)
+        OrchestrationInstanceTerminationState? terminationState = null)
         where TInput : class, IInputParameterDto
     {
         return client.TryWaitForOrchestrationInstance<TInput>(
             idempotencyKey,
             (orchestrationInstance) =>
                 orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
-                && orchestrationInstance.Lifecycle.TerminationState == terminationState);
+                && (
+                    terminationState is null
+                    || orchestrationInstance.Lifecycle.TerminationState == terminationState));
     }
 
     /// <summary>

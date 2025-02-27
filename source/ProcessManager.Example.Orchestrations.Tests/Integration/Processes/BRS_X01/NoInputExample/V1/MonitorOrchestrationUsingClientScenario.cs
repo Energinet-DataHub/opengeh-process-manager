@@ -15,12 +15,14 @@
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +47,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
+                = AuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
@@ -81,7 +85,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
-            ActorId: Guid.NewGuid());
+            ActorNumber: ActorNumber.Create("1234567891234"),
+            ActorRole: ActorRole.EnergySupplier);
 
         // Step 1: Start new orchestration instance
         var orchestrationInstanceId = await processManagerClient
@@ -102,8 +107,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                         CancellationToken.None);
 
                 return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
+                    orchestrationInstance.Lifecycle is
+                    {
+                        State: OrchestrationInstanceLifecycleState.Terminated,
+                        TerminationState: OrchestrationInstanceTerminationState.Succeeded
+                    };
             },
             timeLimit: TimeSpan.FromSeconds(60),
             delay: TimeSpan.FromSeconds(3));
@@ -117,12 +125,18 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                     userIdentity,
                     name: Brs_X01_NoInputExample.Name,
                     version: null,
-                    lifecycleState: OrchestrationInstanceLifecycleState.Terminated,
+                    lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
                     terminationState: OrchestrationInstanceTerminationState.Succeeded,
                     startedAtOrLater: null,
-                    terminatedAtOrEarlier: null),
+                    terminatedAtOrEarlier: null,
+                    scheduledAtOrLater: null),
                 CancellationToken.None);
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
+        orchestrationInstancesGeneralSearch.Should().ContainSingle();
+        var orchestrationInstance = orchestrationInstancesGeneralSearch.Single();
+        orchestrationInstance.ActorMessageId.Should().BeNull();
+        orchestrationInstance.TransactionId.Should().BeNull();
+        orchestrationInstance.MeteringPointId.Should().BeNull();
     }
 }

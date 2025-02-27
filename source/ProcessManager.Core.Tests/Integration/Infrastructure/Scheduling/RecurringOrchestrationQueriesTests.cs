@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -28,6 +29,10 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
     private readonly ProcessManagerCoreFixture _fixture;
     private readonly ProcessManagerContext _dbContext;
     private readonly RecurringOrchestrationQueries _sut;
+
+    private readonly UserIdentity _userIdentity = new UserIdentity(
+        new UserId(Guid.NewGuid()),
+        new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
     public RecurringOrchestrationQueriesTests(ProcessManagerCoreFixture fixture)
     {
@@ -112,9 +117,7 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
             runAt: currentInstant.PlusMinutes(10));
         scheduledToRunIn10ButUserCanceled.Lifecycle.TransitionToUserCanceled(
             SystemClock.Instance,
-            new UserIdentity(
-                new UserId(Guid.NewGuid()),
-                new ActorId(Guid.NewGuid())));
+            _userIdentity);
 
         var existingOrchestrationDescription02 = CreateOrchestrationDescription(
             new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1));
@@ -168,20 +171,19 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
         return orchestrationDescription;
     }
 
-    private static OrchestrationInstance CreateOrchestrationInstance(
+    private OrchestrationInstance CreateOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
         Instant? runAt = default)
     {
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            new ActorId(Guid.NewGuid()));
-
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-            userIdentity,
+            _userIdentity,
             orchestrationDescription,
             skipStepsBySequence: [],
             clock: SystemClock.Instance,
-            runAt: runAt);
+            runAt: runAt,
+            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
         return orchestrationInstance;
     }

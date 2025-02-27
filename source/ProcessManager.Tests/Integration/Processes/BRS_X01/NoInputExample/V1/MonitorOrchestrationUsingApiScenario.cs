@@ -18,6 +18,7 @@ using System.Text.Json;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using FluentAssertions;
@@ -60,12 +61,14 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
+    public async Task ExampleOrchestration_WhenStartedWithoutToken_ResponseStatusCodeIsUnauthorized()
     {
-        var command = new StartNoInputExampleCommandV1(
-             operatingIdentity: new UserIdentityDto(
-                 Guid.NewGuid(),
-                 Guid.NewGuid()));
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorNumber: ActorNumber.Create("1234567890123"),
+            ActorRole: ActorRole.EnergySupplier);
+
+        var command = new StartNoInputExampleCommandV1(userIdentity);
 
         using var startRequest = new HttpRequestMessage(
             HttpMethod.Post,
@@ -74,6 +77,34 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             JsonSerializer.Serialize(command),
             Encoding.UTF8,
             "application/json");
+
+        // Act
+        using var response = await Fixture.ProcessManagerAppManager.AppHostManager
+            .HttpClient
+            .SendAsync(startRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
+    {
+        var userIdentity = new UserIdentityDto(
+            UserId: Guid.NewGuid(),
+            ActorNumber: ActorNumber.Create("1234567890123"),
+            ActorRole: ActorRole.EnergySupplier);
+
+        var command = new StartNoInputExampleCommandV1(userIdentity);
+
+        using var startRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/command/start");
+        startRequest.Content = new StringContent(
+            JsonSerializer.Serialize(command),
+            Encoding.UTF8,
+            "application/json");
+        startRequest.Headers.Authorization = Fixture.CreateAuthorizationHeader();
 
         // Step 1: Start new orchestration instance
         using var response = await Fixture.ProcessManagerAppManager.AppHostManager
@@ -86,9 +117,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
 
         // Step 2: Query until terminated with succeeded
         var query = new GetOrchestrationInstanceByIdQuery(
-            new UserIdentityDto(
-                Guid.NewGuid(),
-                Guid.NewGuid()),
+            userIdentity,
             orchestrationInstanceId);
 
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
@@ -101,6 +130,7 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
                     JsonSerializer.Serialize(query),
                     Encoding.UTF8,
                     "application/json");
+                queryRequest.Headers.Authorization = Fixture.CreateAuthorizationHeader();
 
                 using var queryResponse = await Fixture.ProcessManagerAppManager.AppHostManager
                     .HttpClient

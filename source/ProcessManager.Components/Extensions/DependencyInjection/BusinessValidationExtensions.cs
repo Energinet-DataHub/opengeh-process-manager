@@ -45,10 +45,9 @@ public static class BusinessValidationExtensions
 
         services.TryAddTransient<PeriodValidationHelper>();
 
-        // ElectricityMarketModule requires the app setting ApiClientOptions__BaseUrl to be set
+        // ElectricityMarketModule requires the app setting ElectricityMarketClientOptions__BaseUrl to be set
+        services.AddTransient<IGridAreaOwnerClient, ElectricityMarketGridAreaOwnerClient>();
         services.AddElectricityMarketModule();
-
-        services.TryAddTransient<IGridAreaOwnerClient, ElectricityMarketGridAreaOwnerClient>();
 
         return services;
     }

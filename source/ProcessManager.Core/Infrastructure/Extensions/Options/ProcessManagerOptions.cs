@@ -33,5 +33,5 @@ public class ProcessManagerOptions
     /// Allow the orchestration register to update the orchestration description with breaking changes.
     /// </summary>
     [Required]
-    public bool AllowOrchestrationDescriptionBreakingChanges { get; set; } = true; // TODO: Change to false before using in production
+    public bool AllowOrchestrationDescriptionBreakingChanges { get; set; } = false;
 }

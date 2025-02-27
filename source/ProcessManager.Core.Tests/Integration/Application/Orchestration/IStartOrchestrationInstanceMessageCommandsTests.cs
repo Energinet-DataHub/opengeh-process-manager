@@ -194,8 +194,7 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
         var orchestrationDescription = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1),
             canBeScheduled: true,
-            functionName: "TestOrchestrationFunction",
-            isDurableFunction: isDurableFunction);
+            functionName: isDurableFunction ? "TestOrchestrationFunction" : string.Empty);
 
         orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
 

@@ -90,7 +90,7 @@ public class MonitorFlowTests : IAsyncLifetime
                         {
                             var options = provider.GetRequiredService<IOptions<MeasurementsMeteredDataClientOptions>>().Value;
                             return new EventHubProducerClient(
-                                $"{options.NamespaceName}.servicebus.windows.net",
+                                $"{options.NamespaceName}",
                                 options.ProcessManagerEventHubName,
                                 _fixture.IntegrationTestConfiguration.Credential);
                         })
@@ -153,7 +153,7 @@ public class MonitorFlowTests : IAsyncLifetime
         var instance = instances.Should().ContainSingle().Subject;
 
         // Wait for eventhub trigger
-        var success = _fixture.EventHubListener.AssertAndMockEventHubMessageToAndFromMeasurementsAsync(
+        var success = await _fixture.EventHubListener.AssertAndMockEventHubMessageToAndFromMeasurementsAsync(
             eventHubProducerClient: eventHubClientFactory.CreateClient(ProcessManagerEventHubName),
             orchestrationInstanceId: instance.Id,
             transactionId: input.TransactionId);

@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +62,9 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [InlineData("status")]
     public async Task Given_RunningExampleOrchestrationsApp_When_CallingHealthCheck_Then_ReturnsOKAndExpectedContent(string healthCheckEndpoint)
     {
+        // Arrange
+        Fixture.ExampleOrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
+
         // Act
         using var actualResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/{healthCheckEndpoint}");
 

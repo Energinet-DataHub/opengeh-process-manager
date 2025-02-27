@@ -201,6 +201,19 @@ public class ProcessManagerAppManager : IAsyncDisposable
             "APPLICATIONINSIGHTS_CONNECTION_STRING",
             IntegrationTestConfiguration.ApplicationInsightsConnectionString);
 
+        // Logging
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "Logging__LogLevel__Default",
+            "Information");
+        // => Disable extensive logging from EF Core
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "Logging__LogLevel__Microsoft.EntityFrameworkCore",
+            "Warning");
+        // => Disable extensive logging when using Azure Storage
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "Logging__LogLevel__Azure.Core",
+            "Error");
+
         // Service Bus
         // => Service Bus Client
         appHostSettings.ProcessEnvironmentVariables.Add(

@@ -325,6 +325,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+        // => Authentication
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.ApplicationIdUri)}",
+            AuthenticationOptionsForTests.ApplicationIdUri);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
+            AuthenticationOptionsForTests.Issuer);
 
         // => Service Bus
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -392,8 +399,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // Electric Market client
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{nameof(ApiClientOptions)}__{nameof(ApiClientOptions.BaseUrl)}",
-            "http://DUMMY.VALUE"); // Replace with mock api if we need to test the Electricity Market client
+            $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.BaseUrl)}",
+            MockServer.Url!);
 
         // => BRS-026
         appHostSettings.ProcessEnvironmentVariables.Add(

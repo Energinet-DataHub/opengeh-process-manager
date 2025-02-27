@@ -82,13 +82,6 @@ public class ProcessManagerAppManager : IAsyncDisposable
             IntegrationTestConfiguration.Credential);
     }
 
-    /// <summary>
-    /// Uri (scope) for which the client must request a token and send as part of the http request.
-    /// In integration tests we use one that we know all identities can get a token for, which
-    /// means we don't test authentication in integration tests (in general).
-    /// </summary>
-    public string ApplicationIdUriForTests => "https://management.azure.com";
-
     public ProcessManagerDatabaseManager DatabaseManager { get; }
 
     public ITestDiagnosticsLogger TestLogger { get; }
@@ -233,6 +226,13 @@ public class ProcessManagerAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+        // => Authentication
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.ApplicationIdUri)}",
+            AuthenticationOptionsForTests.ApplicationIdUri);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
+            AuthenticationOptionsForTests.Issuer);
 
         // Disable timer triggers (should be manually triggered in tests)
         appHostSettings.ProcessEnvironmentVariables.Add(

@@ -26,6 +26,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Steps;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -57,7 +58,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = _fixture.ProcessManagerTopicName,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                = _fixture.ProcessManagerAppManager.ApplicationIdUriForTests,
+                = AuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
@@ -98,9 +99,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        const string gridAreaCode = "804";
+        _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
         // Step 1: Start new orchestration instance
-        var requestCommand = GivenRequestCalculatedWholesaleServices();
+        var requestCommand = GivenRequestCalculatedWholesaleServices(gridAreaCode);
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
             requestCommand,
@@ -170,9 +173,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        const string gridAreaCode = "804";
+        _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
         // Step 1: Start new orchestration instance
-        var invalidRequestCommand = GivenRequestCalculatedWholesaleServices(shouldFailBusinessValidation: true);
+        var invalidRequestCommand = GivenRequestCalculatedWholesaleServices(gridAreaCode, shouldFailBusinessValidation: true);
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
             invalidRequestCommand,
@@ -250,6 +255,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     private RequestCalculatedWholesaleServicesCommandV1 GivenRequestCalculatedWholesaleServices(
+        string gridAreaCode,
         bool shouldFailBusinessValidation = false)
     {
         const string energySupplierNumber = "1111111111111";
@@ -271,7 +277,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 // EnergySupplierNumber is required when RequestedByActorRole is EnergySupplier, so the request will fail if not provided.
                 EnergySupplierNumber: !shouldFailBusinessValidation ? energySupplierNumber : null,
                 ChargeOwnerNumber: null,
-                GridAreas: ["804"],
+                GridAreas: [gridAreaCode],
                 SettlementVersion: null,
                 ChargeTypes: null),
             idempotencyKey: Guid.NewGuid().ToString());

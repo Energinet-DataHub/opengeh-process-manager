@@ -22,9 +22,9 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -164,17 +164,24 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
         // Services we want to mock MUST be registered before we call Process Manager DI extensions because we always use "TryAdd" within those
         services.AddScoped<IOrchestrationInstanceExecutor>(_ => executorMock.Object);
 
-        services.AddInMemoryConfiguration(
-            new Dictionary<string, string?>
+        // App settings
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 [$"{ProcessManagerOptions.SectionName}:{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}"]
-                    = fixture.DatabaseManager.ConnectionString,
+                        = fixture.DatabaseManager.ConnectionString,
                 [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString)}"]
-                    = "Not used, but cannot be empty",
+                        = "Not used, but cannot be empty",
                 [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName)}"]
-                    = "Not used, but cannot be empty",
-            });
-        services.AddProcessManagerCore();
+                        = "Not used, but cannot be empty",
+                [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.ApplicationIdUri)}"]
+                        = "Not used, but cannot be empty",
+                [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.Issuer)}"]
+                        = "Not used, but cannot be empty",
+            }).Build();
+        services.AddScoped<IConfiguration>(_ => configuration);
+
+        services.AddProcessManagerCore(configuration);
 
         // Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
         services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();
@@ -187,8 +194,7 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
         var orchestrationDescription = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1),
             canBeScheduled: true,
-            functionName: "TestOrchestrationFunction",
-            isDurableFunction: isDurableFunction);
+            functionName: isDurableFunction ? "TestOrchestrationFunction" : string.Empty);
 
         orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
 

@@ -22,11 +22,11 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Scheduler;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NodaTime;
@@ -224,16 +224,24 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
         // Services we want to mock MUST be registered before we call Process Manager DI extensions because we always use "TryAdd" within those
         services.AddScoped<IOrchestrationInstanceExecutor>(_ => executorMock.Object);
 
-        services.AddInMemoryConfiguration(new Dictionary<string, string?>
-        {
-            [$"{ProcessManagerOptions.SectionName}:{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}"]
-                = fixture.DatabaseManager.ConnectionString,
-            [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString)}"]
-                = "Not used, but cannot be empty",
-            [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName)}"]
-                = "Not used, but cannot be empty",
-        });
-        services.AddProcessManagerCore();
+        // App settings
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [$"{ProcessManagerOptions.SectionName}:{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}"]
+                        = fixture.DatabaseManager.ConnectionString,
+                [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString)}"]
+                        = "Not used, but cannot be empty",
+                [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName)}"]
+                        = "Not used, but cannot be empty",
+                [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.ApplicationIdUri)}"]
+                        = "Not used, but cannot be empty",
+                [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.Issuer)}"]
+                        = "Not used, but cannot be empty",
+            }).Build();
+        services.AddScoped<IConfiguration>(_ => configuration);
+
+        services.AddProcessManagerCore(configuration);
 
         // Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
         services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();

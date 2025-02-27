@@ -69,7 +69,6 @@ public class GridAreaValidatorTest
         var message = new RequestCalculatedWholesaleServicesInputV1Builder(ActorRole.GridAccessProvider)
             .WithGridArea(gridArea)
             .Build();
-
         gridAreaOwnerClient.Setup(repo => repo.IsCurrentOwnerAsync(
                 gridArea,
                 message.RequestedForActorNumber,

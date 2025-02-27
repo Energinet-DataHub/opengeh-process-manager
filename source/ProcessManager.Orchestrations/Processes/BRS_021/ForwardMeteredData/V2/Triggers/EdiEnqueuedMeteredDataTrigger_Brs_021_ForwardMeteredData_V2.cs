@@ -33,7 +33,7 @@ public class EdiEnqueuedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2(
     public async Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}%",
+            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         string message)
     {

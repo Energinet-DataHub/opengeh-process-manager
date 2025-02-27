@@ -71,9 +71,9 @@ public class MonitorFlowTests : IAsyncLifetime
             // Eventhub client
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}"]
                 = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"]
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"]
                 = _fixture.OrchestrationsAppManager.EventHubName,
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}"]
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}"]
                 = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
         });
         services.AddAzureClients(

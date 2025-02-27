@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ElectricityMarket.Integration;
+using Energinet.DataHub.ElectricityMarket.Integration.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
@@ -20,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwn
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -34,14 +36,18 @@ public class RequestCalculatedWholesaleServicesInputV1ValidatorTests
     public RequestCalculatedWholesaleServicesInputV1ValidatorTests()
     {
         IServiceCollection services = new ServiceCollection();
-
+        services.AddInMemoryConfiguration(
+            new Dictionary<string, string?>
+            {
+                { $"{nameof(ElectricityMarketClientOptions)}:{nameof(ElectricityMarketClientOptions.BaseUrl)}", "https://fake.com" },
+            });
         services.AddLogging();
         services.AddTransient<DateTimeZone>(s => DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
         services.AddTransient<IClock>(s => SystemClock.Instance);
 
         // IGridAreaOwnerClient mock must be added before AddBusinessValidation(), to override the default client registration
-        var gridAreaOwnerClientMock = new Mock<IElectricityMarketViews>();
-        services.AddScoped<IElectricityMarketViews>(_ => gridAreaOwnerClientMock.Object);
+        var gridAreaOwnerClientMock = new Mock<IGridAreaOwnerClient>();
+        services.AddScoped<IGridAreaOwnerClient>(_ => gridAreaOwnerClientMock.Object);
 
         var orchestrationsAssembly = typeof(Orchestration_Brs_028_V1).Assembly;
         var orchestrationsAbstractionsAssembly = typeof(RequestCalculatedWholesaleServicesInputV1).Assembly;

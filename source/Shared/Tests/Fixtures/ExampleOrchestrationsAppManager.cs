@@ -283,6 +283,9 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.BaseUrl)}",
             MockServer.Url!);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.ApplicationIdUri)}",
+            AuthenticationOptionsForTests.ApplicationIdUri);
 
         return appHostSettings;
     }

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -29,6 +30,7 @@ internal class SearchTrigger_Brs_X01_InputExample(
     /// Search for instances of BRS-X01.
     /// </summary>
     [Function(nameof(SearchTrigger_Brs_X01_InputExample))]
+    [Authorize]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,

@@ -14,30 +14,26 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 
 /// <summary>
-/// Options for the configuration of Process Manager HTTP clients using the Process Manager API.
+/// Contains options for validating the JWT bearer tokens that must be sent as
+/// part of any http request for protected http endpoints.
 /// </summary>
-public class ProcessManagerHttpClientsOptions
+public class AuthenticationOptions
 {
-    public const string SectionName = "ProcessManagerHttpClients";
+    public const string SectionName = "Auth";
 
     /// <summary>
-    /// Uri (scope) for which the client must request a token and send as part of the http request.
+    /// Uri (scope) which must match the audience of the token.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string ApplicationIdUri { get; set; } = string.Empty;
 
     /// <summary>
-    /// Address to the general Api hosted in Process Manager.
+    /// Issuer (tenant) which must match the issuer of the token.
+    /// Also used to configure Authority in JWT validation.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string GeneralApiBaseAddress { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Address to the specific Api hosted in Process Manager Orchestrations.
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string OrchestrationsApiBaseAddress { get; set; } = string.Empty;
+    public string Issuer { get; set; } = string.Empty;
 }

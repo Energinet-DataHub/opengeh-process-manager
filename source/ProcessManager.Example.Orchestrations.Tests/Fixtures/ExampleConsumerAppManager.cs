@@ -24,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
@@ -175,6 +176,9 @@ public class ExampleConsumerAppManager : IAsyncDisposable
 
         // ProcessManager
         // => Process Manager HTTP client
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}",
+            AuthenticationOptionsForTests.ApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}",
             processManagerGeneralApiBaseUrl);

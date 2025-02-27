@@ -226,6 +226,13 @@ public class ProcessManagerAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+        // => Authentication
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.ApplicationIdUri)}",
+            AuthenticationOptionsForTests.ApplicationIdUri);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
+            AuthenticationOptionsForTests.Issuer);
 
         // Disable timer triggers (should be manually triggered in tests)
         appHostSettings.ProcessEnvironmentVariables.Add(

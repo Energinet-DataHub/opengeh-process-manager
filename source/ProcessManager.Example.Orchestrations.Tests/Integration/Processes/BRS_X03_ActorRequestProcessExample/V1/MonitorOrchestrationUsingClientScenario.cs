@@ -24,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Proce
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.BusinessValidation.ValidationRules;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -50,6 +51,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             // Process Manager HTTP client
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
+                = AuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]

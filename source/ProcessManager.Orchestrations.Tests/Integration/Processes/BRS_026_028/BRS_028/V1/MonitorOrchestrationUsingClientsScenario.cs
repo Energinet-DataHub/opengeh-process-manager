@@ -99,9 +99,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        const string gridAreaCode = "804";
+        _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
         // Step 1: Start new orchestration instance
-        var requestCommand = GivenRequestCalculatedWholesaleServices();
+        var requestCommand = GivenRequestCalculatedWholesaleServices(gridAreaCode);
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
             requestCommand,
@@ -171,9 +173,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        const string gridAreaCode = "804";
+        _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
         // Step 1: Start new orchestration instance
-        var invalidRequestCommand = GivenRequestCalculatedWholesaleServices(shouldFailBusinessValidation: true);
+        var invalidRequestCommand = GivenRequestCalculatedWholesaleServices(gridAreaCode, shouldFailBusinessValidation: true);
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
             invalidRequestCommand,
@@ -251,6 +255,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     private RequestCalculatedWholesaleServicesCommandV1 GivenRequestCalculatedWholesaleServices(
+        string gridAreaCode,
         bool shouldFailBusinessValidation = false)
     {
         const string energySupplierNumber = "1111111111111";
@@ -272,7 +277,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 // EnergySupplierNumber is required when RequestedByActorRole is EnergySupplier, so the request will fail if not provided.
                 EnergySupplierNumber: !shouldFailBusinessValidation ? energySupplierNumber : null,
                 ChargeOwnerNumber: null,
-                GridAreas: ["804"],
+                GridAreas: [gridAreaCode],
                 SettlementVersion: null,
                 ChargeTypes: null),
             idempotencyKey: Guid.NewGuid().ToString());

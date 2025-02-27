@@ -74,8 +74,7 @@ var host = new HostBuilder()
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers
-        services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
-        services.AddProcessManagerAuthentication(context.Configuration);
+        services.AddProcessManagerForOrchestrations(context.Configuration, typeof(Program).Assembly);
 
         // Measurements
         services.AddMeasurementsMeteredDataClient(azureCredential);

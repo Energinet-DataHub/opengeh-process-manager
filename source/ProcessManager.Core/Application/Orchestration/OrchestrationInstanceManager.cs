@@ -217,6 +217,29 @@ internal class OrchestrationInstanceManager(
             throw new InvalidOperationException($"Orchestration instance (Id={id.Value}) to notify was not found.");
         }
 
+        var orchestrationDescription = await _orchestrationRegister
+            .GetAsync(orchestrationInstanceToNotify.OrchestrationDescriptionId)
+            .ConfigureAwait(false);
+
+        if (orchestrationDescription is null)
+        {
+            if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.SilentMode).ConfigureAwait(false))
+            {
+                _logger.LogWarning(
+                    $"Unable to find orchestration description '{orchestrationInstanceToNotify.OrchestrationDescriptionId}' for orchestration instance '{id.Value}' and event name '{eventName}'.");
+
+                return;
+            }
+
+            throw new InvalidOperationException(
+                $"Orchestration description (Id={orchestrationInstanceToNotify.OrchestrationDescriptionId.Value}) was not found.");
+        }
+
+        if (!orchestrationDescription.IsDurableFunction)
+        {
+            return;
+        }
+
         await _executor.NotifyOrchestrationInstanceAsync(id, eventName, eventData).ConfigureAwait(false);
     }
 

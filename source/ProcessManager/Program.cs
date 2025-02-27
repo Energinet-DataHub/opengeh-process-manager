@@ -45,8 +45,7 @@ var host = new HostBuilder()
         services.AddNotifyOrchestrationInstance(azureCredential);
 
         // ProcessManager
-        services.AddProcessManagerCore();
-        services.AddProcessManagerAuthentication(context.Configuration);
+        services.AddProcessManagerCore(context.Configuration);
 
         // Handlers
         services.AddScoped<RecurringPlannerHandler>();

@@ -23,12 +23,17 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication()
+    .ConfigureFunctionsWebApplication(builder =>
+    {
+        // Http => Authorization
+        builder.UseFunctionsAuthorization();
+    })
     .ConfigureServices((context, services) =>
     {
         services.AddTransient<IConfiguration>(_ => context.Configuration);
@@ -70,6 +75,7 @@ var host = new HostBuilder()
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
+        services.AddProcessManagerAuthentication(context.Configuration);
 
         // Measurements
         services.AddMeasurementsMeteredDataClient(azureCredential);

@@ -235,6 +235,13 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+        // => Authentication
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.ApplicationIdUri)}",
+            AuthenticationOptionsForTests.ApplicationIdUri);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
+            AuthenticationOptionsForTests.Issuer);
 
         // => Process Manager topic
         appHostSettings.ProcessEnvironmentVariables.Add(

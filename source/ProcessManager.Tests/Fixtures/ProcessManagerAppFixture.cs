@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Net.Http.Headers;
+using Azure.Core;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
@@ -108,5 +110,13 @@ public class ProcessManagerAppFixture : IAsyncLifetime
     {
         ExampleOrchestrationsAppManager.SetTestOutputHelper(testOutputHelper);
         ProcessManagerAppManager.SetTestOutputHelper(testOutputHelper);
+    }
+
+    public AuthenticationHeaderValue CreateAuthorizationHeader(string applicationIdUri = AuthenticationOptionsForTests.ApplicationIdUri)
+    {
+        var tokenResponse = IntegrationTestConfiguration.Credential.GetToken(
+            new TokenRequestContext([applicationIdUri]), CancellationToken.None);
+
+        return new AuthenticationHeaderValue("Bearer", tokenResponse.Token);
     }
 }

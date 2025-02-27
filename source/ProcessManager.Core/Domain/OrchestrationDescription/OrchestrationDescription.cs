@@ -106,7 +106,7 @@ public class OrchestrationDescription
     /// <summary>
     /// Specifies if the orchestration is implemented as a Durable Function.
     /// </summary>
-    public bool IsDurableFunction => string.IsNullOrWhiteSpace(FunctionName);
+    public bool IsDurableFunction => !string.IsNullOrWhiteSpace(FunctionName);
 
     /// <summary>
     /// Defines the Durable Functions orchestration input parameter type.

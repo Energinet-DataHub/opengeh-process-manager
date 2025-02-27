@@ -192,7 +192,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
         var orchestrationDescription = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1),
             canBeScheduled: true,
-            functionName: isDurableFunction ? string.Empty : "TestOrchestrationFunction");
+            functionName: isDurableFunction ? "TestOrchestrationFunction" : string.Empty);
 
         orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
 

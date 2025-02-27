@@ -199,7 +199,7 @@ public class SearchCalculationHandlerTests : IClassFixture<ProcessManagerDatabas
             End: new DateTimeOffset(2025, 02, 21, 23, 00, 00, TimeSpan.Zero));
 
         var calculation3 = (
-            // 23/2/2025 - 25/2/2025
+            // 23/2/2025 - 25/2/2025 (not inclusive)
             Start: new DateTimeOffset(2025, 02, 22, 23, 00, 00, TimeSpan.Zero),
             End: new DateTimeOffset(2025, 02, 24, 23, 00, 00, TimeSpan.Zero));
 

@@ -31,10 +31,10 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
             canBeScheduled: true,
             functionName: nameof(Orchestration_Brs_021_ElectricalHeatingCalculation_V1));
 
-        // DISABLED for now because ElectricalHeatingJob is currently failing
         description.RecurringCronExpression = string.Empty;
-        ////// Runs at 12:00 and 17:00 every day
-        ////description.RecurringCronExpression = "0 12,17 * * *";
+        // Runs at 12:00 and 17:00 every day
+        // description.RecurringCronExpression = "0 12,17 * * *";
+        description.RecurringCronExpression = "*/10 * * * *";
 
         foreach (var step in Orchestration_Brs_021_ElectricalHeatingCalculation_V1.Steps)
         {

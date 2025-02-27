@@ -40,8 +40,7 @@ var host = new HostBuilder()
         services.AddNodaTimeForApplication();
 
         // => Auto register Orchestration Descriptions builders and custom handlers
-        services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
-        services.AddProcessManagerAuthentication(context.Configuration);
+        services.AddProcessManagerForOrchestrations(context.Configuration, typeof(Program).Assembly);
 
         // => Add EnqueueActorMessages client
         services.AddServiceBusClientForApplication(context.Configuration);

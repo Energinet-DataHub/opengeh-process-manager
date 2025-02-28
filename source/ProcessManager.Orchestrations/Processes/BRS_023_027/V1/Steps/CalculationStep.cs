@@ -48,7 +48,7 @@ internal class CalculationStep(
                 orchestrationInstanceContext.UserId),
             DefaultRetryOptions);
 
-        // TODO: We currently have removed the following functionality compared to the orchestration in Wholesale:
+        // We currently have removed the following functionality compared to the orchestration in Wholesale:
         //  - Updating job status in SQL database; it can be found in durable function monitor if we need to
         //  - "Restart" the calculation job if it was canceled; not sure this is a valid feature anymore
         var expiryTime = Context.CurrentUtcDateTime

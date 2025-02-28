@@ -34,7 +34,7 @@ internal class ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
             .ConfigureAwait(false);
 
         await CompleteStepAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.ValidatingStep,
+                OrchestrationDescriptionBuilderV1.ValidatingStep,
                 orchestrationInstance)
             .ConfigureAwait(false);
 

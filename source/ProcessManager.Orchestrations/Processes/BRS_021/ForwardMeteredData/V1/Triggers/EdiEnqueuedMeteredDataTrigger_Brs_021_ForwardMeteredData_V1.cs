@@ -15,13 +15,12 @@
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Handlers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
-using Newtonsoft.Json;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Triggers;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
-public class EdiEnqueuedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2(
+public class EdiEnqueuedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
     EdiEnqueuedMeteredDataHandler ediEnqueuedMeteredDataHandler)
 {
     private readonly EdiEnqueuedMeteredDataHandler _ediEnqueuedMeteredDataHandler = ediEnqueuedMeteredDataHandler;
@@ -29,7 +28,7 @@ public class EdiEnqueuedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2(
     /// <summary>
     /// Terminate a BRS-021 ForwardMeteredData.
     /// </summary>
-    [Function(nameof(EdiEnqueuedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2))]
+    [Function(nameof(EdiEnqueuedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",

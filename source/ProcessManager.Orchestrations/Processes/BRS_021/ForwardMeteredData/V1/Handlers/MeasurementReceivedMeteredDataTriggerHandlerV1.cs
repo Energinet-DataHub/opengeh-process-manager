@@ -18,11 +18,12 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Handlers;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
-public class MeasurementReceivedMeteredDataTriggerHandlerV2(
+public class MeasurementReceivedMeteredDataTriggerHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
@@ -38,27 +39,27 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV2(
 
         await StepHelper.TerminateStep(
                 orchestrationInstance,
-                OrchestrationDescriptionBuilder.ForwardToMeasurementStep,
+                OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
                 clock,
                 _progressRepository)
             .ConfigureAwait(false);
 
         await StepHelper.StartStep(
                 orchestrationInstance,
-                OrchestrationDescriptionBuilder.FindReceiverStep,
+                OrchestrationDescriptionBuilderV1.FindReceiverStep,
                 clock,
                 _progressRepository)
             .ConfigureAwait(false);
         await StepHelper.TerminateStep(
                 orchestrationInstance,
-                OrchestrationDescriptionBuilder.FindReceiverStep,
+                OrchestrationDescriptionBuilderV1.FindReceiverStep,
                 clock,
                 _progressRepository)
             .ConfigureAwait(false);
 
         await StepHelper.StartStep(
                 orchestrationInstance,
-                OrchestrationDescriptionBuilder.EnqueueActorMessagesStep,
+                OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
                 clock,
                 _progressRepository)
             .ConfigureAwait(false);
@@ -82,7 +83,7 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV2(
 
         // TODO: Do we want to inform our own trigger and not EDI?
         await _enqueueActorMessagesClient.EnqueueAsync(
-            orchestration: OrchestrationDescriptionBuilder.UniqueName,
+            orchestration: OrchestrationDescriptionBuilderV1.UniqueName,
             orchestrationInstanceId: orchestrationInstanceId.Value,
             orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
             idempotencyKey: Guid.NewGuid(), // TODO: fix this

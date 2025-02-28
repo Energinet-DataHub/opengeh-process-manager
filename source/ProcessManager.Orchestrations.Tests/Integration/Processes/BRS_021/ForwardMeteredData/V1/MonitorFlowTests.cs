@@ -25,7 +25,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -34,7 +34,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V2;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
 /// <summary>
 /// Test collection that verifies the Process Manager clients can be used to start a
@@ -181,9 +181,9 @@ public class MonitorFlowTests : IAsyncLifetime
 
         var stepsWhichShouldBeSuccessful = new[]
         {
-            OrchestrationDescriptionBuilder.ValidatingStep,
-            OrchestrationDescriptionBuilder.ForwardToMeasurementStep,
-            OrchestrationDescriptionBuilder.FindReceiverStep,
+            OrchestrationDescriptionBuilderV1.ValidatingStep,
+            OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
+            OrchestrationDescriptionBuilderV1.FindReceiverStep,
         };
 
         var successfulSteps = instanceAfterEnqueue.Steps
@@ -192,7 +192,7 @@ public class MonitorFlowTests : IAsyncLifetime
 
         successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
         instanceAfterEnqueue.Steps
-            .First(step => step.Sequence == OrchestrationDescriptionBuilder.EnqueueActorMessagesStep)
+            .First(step => step.Sequence == OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep)
             .Lifecycle.State.Should()
             .Be(StepInstanceLifecycleState.Running);
 

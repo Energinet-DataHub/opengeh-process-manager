@@ -41,7 +41,7 @@ internal class EnqueueRejectMessageActivity_Brs_021_V1(
             .ConfigureAwait(false);
 
         orchestrationInstance.TransitionStepToRunning(
-            Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueActorMessagesStep,
+            OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
             _clock);
 
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
@@ -51,7 +51,7 @@ internal class EnqueueRejectMessageActivity_Brs_021_V1(
 
     private Task EnqueueRejectMessageAsync(OperatingIdentity orchestrationCreatedBy, ActivityInput input) =>
         _enqueueActorMessagesClient.EnqueueAsync(
-            Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName,
+            OrchestrationDescriptionBuilderV1.UniqueName,
             input.InstanceId.Value,
             orchestrationCreatedBy.ToDto(),
             input.IdempotencyKey,

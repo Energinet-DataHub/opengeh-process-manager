@@ -19,7 +19,7 @@ using Energinet.DataHub.Measurements.Contracts;
 using FluentAssertions;
 using Google.Protobuf;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V2;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
 public static class EventHubResponseMocking
 {

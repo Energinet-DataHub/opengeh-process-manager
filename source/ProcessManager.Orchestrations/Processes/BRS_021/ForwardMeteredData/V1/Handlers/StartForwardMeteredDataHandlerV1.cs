@@ -20,14 +20,15 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using NodaTime.Text;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Handlers;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
-public class StartForwardMeteredDataHandlerV2(
-    ILogger<StartForwardMeteredDataHandlerV2> logger,
+public class StartForwardMeteredDataHandlerV1(
+    ILogger<StartForwardMeteredDataHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands,
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
@@ -48,7 +49,7 @@ public class StartForwardMeteredDataHandlerV2(
     {
         var orchestrationInstanceId = await commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
-                OrchestrationDescriptionUniqueName.FromDto(OrchestrationDescriptionBuilder.UniqueName),
+                OrchestrationDescriptionUniqueName.FromDto(OrchestrationDescriptionBuilderV1.UniqueName),
                 input,
                 skipStepsBySequence: [],
                 new IdempotencyKey(idempotencyKey),
@@ -67,15 +68,15 @@ public class StartForwardMeteredDataHandlerV2(
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         // Start Step: Validate Metered Data
-        await StepHelper.StartStep(orchestrationInstance, OrchestrationDescriptionBuilder.ValidatingStep, clock, ProgressRepository).ConfigureAwait(false);
+        await StepHelper.StartStep(orchestrationInstance, OrchestrationDescriptionBuilderV1.ValidatingStep, clock, ProgressRepository).ConfigureAwait(false);
 
         // Fetch Metered Data and store received data used to find receiver later in the orchestration
         // Validate Metered Data
         // Terminate Step: Validate Metered Data
-        await StepHelper.TerminateStep(orchestrationInstance, OrchestrationDescriptionBuilder.ValidatingStep, clock, ProgressRepository).ConfigureAwait(false);
+        await StepHelper.TerminateStep(orchestrationInstance, OrchestrationDescriptionBuilderV1.ValidatingStep, clock, ProgressRepository).ConfigureAwait(false);
 
         // Start Step: Forward to Measurements
-        await StepHelper.StartStep(orchestrationInstance, OrchestrationDescriptionBuilder.ForwardToMeasurementStep, clock, ProgressRepository).ConfigureAwait(false);
+        await StepHelper.StartStep(orchestrationInstance, OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep, clock, ProgressRepository).ConfigureAwait(false);
 
         // TODO: Do we want to inform our own trigger instead of measurement?
         await MeasurementsMeteredDataClient.SendAsync(

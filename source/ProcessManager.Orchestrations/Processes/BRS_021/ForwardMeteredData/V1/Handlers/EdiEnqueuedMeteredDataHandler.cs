@@ -14,9 +14,10 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Handlers;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
 public class EdiEnqueuedMeteredDataHandler(
     IOrchestrationInstanceProgressRepository progressRepository,
@@ -33,7 +34,7 @@ public class EdiEnqueuedMeteredDataHandler(
 
         await StepHelper.TerminateStep(
                 orchestrationInstance,
-                OrchestrationDescriptionBuilder.ForwardToMeasurementStep,
+                OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
                 _clock,
                 _progressRepository)
             .ConfigureAwait(false);

@@ -16,21 +16,20 @@ using Azure.Messaging.EventHubs;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Handlers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
-using Newtonsoft.Json;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V2.Triggers;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
-public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2(
-    MeasurementReceivedMeteredDataTriggerHandlerV2 handler)
+public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
+    MeasurementReceivedMeteredDataTriggerHandlerV1 handler)
 {
-    private readonly MeasurementReceivedMeteredDataTriggerHandlerV2 _handler = handler;
+    private readonly MeasurementReceivedMeteredDataTriggerHandlerV1 _handler = handler;
 
     /// <summary>
     /// Enqueue Messages for BRS-021.
     /// </summary>
-    [Function(nameof(MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V2))]
+    [Function(nameof(MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [EventHubTrigger(
             $"%{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}%",

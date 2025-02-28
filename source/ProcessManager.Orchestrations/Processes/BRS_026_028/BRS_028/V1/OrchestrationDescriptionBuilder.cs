@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Steps;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
 
@@ -24,7 +25,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
     public OrchestrationDescription Build()
     {
         var description = new OrchestrationDescription(
-            uniqueName: OrchestrationDescriptionUniqueName.FromDto(Orchestration_Brs_028_V1.UniqueName),
+            uniqueName: Orchestration_Brs_028_V1.UniqueName.MapToDomain(),
             canBeScheduled: false,
             functionName: nameof(Orchestration_Brs_028_V1));
 

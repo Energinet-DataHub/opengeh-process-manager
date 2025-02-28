@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
@@ -56,7 +57,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
 
             var brs_023_027_V1_description = await _processManagerContext.OrchestrationDescriptions
                 .AsNoTracking()
-                .SingleAsync(x => x.UniqueName == OrchestrationDescriptionUniqueName.FromDto(Brs_023_027.V1))
+                .SingleAsync(x => x.UniqueName == Brs_023_027.V1.MapToDomain())
                 .ConfigureAwait(false);
 
             var orchestrationInstance = MigrateCalculationToOrchestrationInstance(wholesaleCalculation, brs_023_027_V1_description);

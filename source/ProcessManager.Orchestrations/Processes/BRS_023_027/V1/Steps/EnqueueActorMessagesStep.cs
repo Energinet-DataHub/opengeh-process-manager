@@ -24,7 +24,7 @@ using Microsoft.Extensions.Logging;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
 
 [SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "ConfigureAwait must not be used in durable function code")]
-internal class EnqueueMessagesStep(
+internal class EnqueueActorMessagesStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceContext orchestrationInstanceContext)

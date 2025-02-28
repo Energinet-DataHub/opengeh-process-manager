@@ -70,11 +70,13 @@ public class MonitorFlowTests : IAsyncLifetime
 
             // Eventhub client
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}"]
-                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+                = _fixture.IntegrationTestConfiguration.EventHubNamespaceName,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"]
                 = _fixture.OrchestrationsAppManager.EventHubName,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}"]
                 = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"]
+                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
@@ -89,7 +91,7 @@ public class MonitorFlowTests : IAsyncLifetime
                         {
                             var options = provider.GetRequiredService<IOptions<MeasurementsMeteredDataClientOptions>>().Value;
                             return new EventHubProducerClient(
-                                $"{options.NamespaceName}",
+                                $"{options.FullyQualifiedNamespace}",
                                 options.ProcessManagerEventHubName,
                                 _fixture.IntegrationTestConfiguration.Credential);
                         })
@@ -153,7 +155,8 @@ public class MonitorFlowTests : IAsyncLifetime
         var success = await _fixture.EventHubListener.AssertAndMockEventHubMessageToAndFromMeasurementsAsync(
             eventHubProducerClient: eventHubClientFactory.CreateClient(ProcessManagerEventHubName),
             orchestrationInstanceId: instance.Id,
-            transactionId: input.TransactionId);
+            transactionId: input.TransactionId,
+            shouldSendNotify: true);
 
         success.Should().Be(true);
 

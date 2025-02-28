@@ -332,7 +332,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         orchestrationInstance.Lifecycle.TerminationState.Should().Be(OrchestrationInstanceTerminationState.Failed);
         orchestrationInstance.Steps
-            .Single(step => step.Sequence == EnqueueMessagesStep.EnqueueActorMessagesStepSequence)
+            .Single(step => step.Sequence == EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence)
             .Lifecycle.TerminationState
             .Should().Be(OrchestrationStepTerminationState.Failed);
     }

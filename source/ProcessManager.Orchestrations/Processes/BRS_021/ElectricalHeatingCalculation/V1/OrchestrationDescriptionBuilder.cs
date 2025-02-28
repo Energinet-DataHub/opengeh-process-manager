@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1;
 
@@ -22,7 +22,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 {
     public OrchestrationDescription Build()
     {
-        var orchestrationDescriptionUniqueName = Brs_021_ElectricalHeatingCalculation.V1;
+        var orchestrationDescriptionUniqueName = Orchestration_Brs_021_ElectricalHeatingCalculation_V1.UniqueName;
 
         var description = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
@@ -35,10 +35,8 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
         // Runs at 12:00 and 17:00 every day
         description.RecurringCronExpression = "0 12,17 * * *";
 
-        foreach (var step in Orchestration_Brs_021_ElectricalHeatingCalculation_V1.Steps)
-        {
-            description.AppendStepDescription(step.Name);
-        }
+        description.AppendStepDescription(CalculationStep.StepDescription);
+        description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
 
         return description;
     }

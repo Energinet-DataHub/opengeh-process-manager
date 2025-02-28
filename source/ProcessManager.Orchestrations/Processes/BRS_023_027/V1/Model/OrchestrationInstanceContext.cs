@@ -25,8 +25,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.
 /// <param name="CalculationId">The ID of the databricks calculation.</param>
 /// <param name="UserId">User id of the user that created and thereby started the orchestration.</param>
 /// <param name="OrchestrationInstanceId">The id of the orchestration instance</param>
-/// <param name="SkippedStepsBySequence">Contains the sequence number of any skipped steps. This allows us to handle decision about activities to skip within
-/// the orchestration instead of within activities.</param>
+/// <param name="SkippedStepsBySequence">Contains the sequence number of any skipped steps.
+/// This allows us to handle decision about activities to skip within the orchestration instead
+/// of within activities.</param>
 public record OrchestrationInstanceContext(
     OrchestrationOptions_Brs_023_027_V1 OrchestrationOptions,
     Guid CalculationId,

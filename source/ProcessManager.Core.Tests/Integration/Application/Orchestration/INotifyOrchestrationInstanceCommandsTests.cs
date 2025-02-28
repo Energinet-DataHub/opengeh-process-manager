@@ -89,37 +89,6 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
         _executorMock.VerifyNoOtherCalls();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Given_UnknownOrchestrationDescription_When_NotifyOrchestrationInstanceAsync_Then_ThrowException(
-        bool isDurableFunction)
-    {
-        // Creating an instance from a description is the easiest way to make one.
-        // We have, however, not persisted the description and as such it does not exist.
-        var orchestrationDescription = CreateOrchestrationDescription(isDurableFunction);
-
-        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-            _actorIdentity,
-            orchestrationDescription,
-            [],
-            SystemClock.Instance);
-
-        await _orchestrationInstanceRepository.AddAsync(orchestrationInstance);
-
-        var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
-            orchestrationInstance.Id,
-            "anyEvent",
-            new TestOrchestrationParameter("inputString"));
-
-        await act.Should()
-            .ThrowAsync<InvalidOperationException>()
-            .WithMessage("Orchestration instance (Id=*) to notify was not found.");
-
-        _executorMock.Invocations.Should().BeEmpty();
-        _executorMock.VerifyNoOtherCalls();
-    }
-
     [Fact]
     public async Task Given_NonDurableFunctionInstance_When_NotifyOrchestrationInstanceAsync_Then_NothingHappens()
     {

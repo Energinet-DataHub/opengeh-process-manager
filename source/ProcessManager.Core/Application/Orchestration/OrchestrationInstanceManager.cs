@@ -221,22 +221,9 @@ internal class OrchestrationInstanceManager(
             .GetAsync(orchestrationInstanceToNotify.OrchestrationDescriptionId)
             .ConfigureAwait(false);
 
-        if (orchestrationDescription is null)
-        {
-            if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.SilentMode).ConfigureAwait(false))
-            {
-                _logger.LogWarning(
-                    $"Unable to find orchestration description '{orchestrationInstanceToNotify.OrchestrationDescriptionId}' for orchestration instance '{id.Value}' and event name '{eventName}'.");
-
-                return;
-            }
-
-            throw new InvalidOperationException(
-                $"Orchestration description (Id={orchestrationInstanceToNotify.OrchestrationDescriptionId.Value}) was not found.");
-        }
-
         if (!orchestrationDescription.IsDurableFunction)
         {
+            // TODO: Add handling of non-durable functions
             return;
         }
 

@@ -402,9 +402,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}",
             processManagerEventhubResource.Name);
-        // TODO: This should not be hardcoded
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{MeasurementsMeteredDataClientOptions.SectionName}__FullyQualifiedNamespace",
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
 
         // Electric Market client

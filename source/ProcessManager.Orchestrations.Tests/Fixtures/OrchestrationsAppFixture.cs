@@ -119,7 +119,8 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     public UserIdentityDto DefaultUserIdentity => new UserIdentityDto(
         Guid.NewGuid(),
         DefaultActorIdentity.ActorNumber,
-        DefaultActorIdentity.ActorRole);
+        DefaultActorIdentity.ActorRole,
+        UserPermissions: []);
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 

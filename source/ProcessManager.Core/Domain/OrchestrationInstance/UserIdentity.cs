@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
 namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
@@ -25,7 +24,11 @@ public record UserIdentity(UserId UserId, Actor Actor)
 {
     public override IOperatingIdentityDto ToDto()
     {
-        return new UserIdentityDto(UserId.Value, Actor.Number, Actor.Role);
+        return new UserIdentityDto(
+            UserId.Value,
+            Actor.Number,
+            Actor.Role,
+            UserPermissions: []);
     }
 
     public static UserIdentity FromDto(UserIdentityDto dto)

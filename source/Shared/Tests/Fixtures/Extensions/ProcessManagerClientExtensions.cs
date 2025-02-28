@@ -48,7 +48,8 @@ public static class ProcessManagerClientExtensions
                             new UserIdentityDto(
                                 UserId: Guid.NewGuid(),
                                 ActorNumber: ActorNumber.Create("1234567891234"),
-                                ActorRole: ActorRole.EnergySupplier),
+                                ActorRole: ActorRole.EnergySupplier,
+                                UserPermissions: []),
                             idempotencyKey),
                         CancellationToken.None);
 

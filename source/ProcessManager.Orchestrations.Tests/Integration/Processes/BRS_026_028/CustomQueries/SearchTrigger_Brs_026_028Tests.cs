@@ -174,7 +174,8 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
             new UserIdentityDto(
                 UserId: Guid.NewGuid(),
                 ActorNumber: energySupplierActorIdentity.ActorNumber,
-                ActorRole: energySupplierActorIdentity.ActorRole),
+                ActorRole: energySupplierActorIdentity.ActorRole,
+                UserPermissions: []),
             activatedAtOrLater: now,
             activatedAtOrEarlier: now.AddMinutes(1),
             createdByActorNumber: energySupplierActorIdentity.ActorNumber,

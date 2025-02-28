@@ -119,7 +119,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
     {
         // Orchestration Instance => Created + Queued
         IReadOnlyCollection<int> skipStepsBySequence = wholesaleCalculation.IsInternalCalculation
-            ? [EnqueueMessagesStep.EnqueueActorMessagesStepSequence]
+            ? [EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence]
             : [];
 
         var orchestrationInstance = _orchestrationInstanceFactory.CreateQueuedOrchestrationInstance(

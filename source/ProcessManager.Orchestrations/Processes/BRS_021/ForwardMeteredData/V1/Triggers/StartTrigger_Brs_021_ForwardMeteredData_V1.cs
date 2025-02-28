@@ -41,6 +41,13 @@ public class StartTrigger_Brs_021_ForwardMeteredData_V1(
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
+    // public async Task Run(
+    //     [ServiceBusTrigger(
+    //         $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.TopicName)}%",
+    //         $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}%",
+    //         Connection = ServiceBusNamespaceOptions.SectionName)]
+    //     ServiceBusReceivedMessage message)
+    // {
         await _handler.HandleAsync(message).ConfigureAwait(false);
     }
 }

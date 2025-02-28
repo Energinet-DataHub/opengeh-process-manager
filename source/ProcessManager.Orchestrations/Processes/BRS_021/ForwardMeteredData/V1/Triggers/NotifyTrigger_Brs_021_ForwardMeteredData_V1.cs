@@ -20,7 +20,7 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
-public class EdiEnqueuedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
+public class NotifyTrigger_Brs_021_ForwardMeteredData_V1(
     EdiEnqueuedMeteredDataHandler ediEnqueuedMeteredDataHandler)
 {
     private readonly EdiEnqueuedMeteredDataHandler _ediEnqueuedMeteredDataHandler = ediEnqueuedMeteredDataHandler;
@@ -28,11 +28,11 @@ public class EdiEnqueuedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
     /// <summary>
     /// Terminate a BRS-021 ForwardMeteredData.
     /// </summary>
-    [Function(nameof(EdiEnqueuedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(NotifyTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ServiceBusTrigger(
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}%",
+            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.TopicName)}%",
+            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         string message)
     {

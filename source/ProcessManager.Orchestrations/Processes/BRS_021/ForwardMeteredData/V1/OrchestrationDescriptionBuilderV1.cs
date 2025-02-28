@@ -38,8 +38,7 @@ internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuil
                 orchestrationDescriptionUniqueName.Name,
                 orchestrationDescriptionUniqueName.Version),
             canBeScheduled: false,
-            functionName: string.Empty,
-            isDurableFunction: false);
+            functionName: string.Empty);
 
         description.ParameterDefinition.SetFromType<MeteredDataForMeteringPointMessageInputV1>();
         description.AppendStepDescription("Asynkron validering");

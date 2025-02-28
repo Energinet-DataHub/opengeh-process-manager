@@ -27,6 +27,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjec
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.Azure;
@@ -62,7 +63,7 @@ public class MonitorFlowTests : IAsyncLifetime
                 = _fixture.ProcessManagerTopicName,
             // Https client
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                = _fixture.ProcessManagerAppManager.ApplicationIdUriForTests,
+                = AuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]

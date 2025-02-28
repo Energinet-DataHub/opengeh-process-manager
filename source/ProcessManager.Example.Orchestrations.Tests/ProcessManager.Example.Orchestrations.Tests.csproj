@@ -8,7 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="..\Shared\Tests\Fixtures\AuthenticationOptionsForTests.cs" Link="Fixtures\AuthenticationOptionsForTests.cs" />
         <Compile Include="..\Shared\Tests\Fixtures\ExampleOrchestrationsAppManager.cs" Link="Fixtures\ExampleOrchestrationsAppManager.cs" />
+        <Compile Include="..\Shared\Tests\Fixtures\Extensions\ElectricityMarketViewsExtensions.cs">
+          <Link>Fixtures\Extensions\ElectricityMarketViewsExtensions.cs</Link>
+        </Compile>
         <Compile Include="..\Shared\Tests\Fixtures\Extensions\ProcessManagerClientExtensions.cs">
           <Link>Fixtures\Extensions\ProcessManagerClientExtensions.cs</Link>
         </Compile>

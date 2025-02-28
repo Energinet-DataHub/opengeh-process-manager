@@ -16,14 +16,14 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 
-public class WholesaleDatabaseFixture : IAsyncLifetime
+public class ProcessManagerDatabaseFixture : IAsyncLifetime
 {
-    public WholesaleDatabaseFixture()
+    public ProcessManagerDatabaseFixture()
     {
-        DatabaseManager = new WholesaleDatabaseManager("Wholesale");
+        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManager");
     }
 
-    public WholesaleDatabaseManager DatabaseManager { get; }
+    public ProcessManagerDatabaseManager DatabaseManager { get; }
 
     public async Task InitializeAsync()
     {

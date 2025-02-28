@@ -16,7 +16,6 @@ using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 
@@ -216,6 +215,16 @@ internal class OrchestrationInstanceManager(
             }
 
             throw new InvalidOperationException($"Orchestration instance (Id={id.Value}) to notify was not found.");
+        }
+
+        var orchestrationDescription = await _orchestrationRegister
+            .GetAsync(orchestrationInstanceToNotify.OrchestrationDescriptionId)
+            .ConfigureAwait(false);
+
+        if (!orchestrationDescription.IsDurableFunction)
+        {
+            // TODO: Add handling of non-durable functions
+            return;
         }
 
         await _executor.NotifyOrchestrationInstanceAsync(id, eventName, eventData).ConfigureAwait(false);

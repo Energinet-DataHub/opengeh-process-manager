@@ -24,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
@@ -71,13 +72,11 @@ public class ExampleConsumerAppManager : IAsyncDisposable
     /// </summary>
     /// <param name="processManagerTopicResources">Process Manager topic resources used by the app. Will be created if not provided.</param>
     /// <param name="ediTopicResources">EDI topic resources used by the app. Will be created if not provided.</param>
-    /// <param name="processManagerApplicationIdUri">Uri (scope) for which the client must request a token and send as part of the http request.</param>
     /// <param name="processManagerApiUrl">Base URL of the Process Manager general API.</param>
     /// <param name="orchestrationsApiUrl">Base URL of the Orchestrations API.</param>
     public async Task StartAsync(
         ProcessManagerTopicResources? processManagerTopicResources,
         EdiTopicResources? ediTopicResources,
-        string processManagerApplicationIdUri,
         string processManagerApiUrl,
         string orchestrationsApiUrl)
     {
@@ -89,7 +88,6 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             "ProcessManager.Example.Consumer",
             processManagerTopicResources,
             ediTopicResources,
-            processManagerApplicationIdUri,
             processManagerApiUrl,
             orchestrationsApiUrl);
 
@@ -155,7 +153,6 @@ public class ExampleConsumerAppManager : IAsyncDisposable
         string csprojName,
         ProcessManagerTopicResources processManagerTopicResources,
         EdiTopicResources ediTopicResources,
-        string processManagerApplicationIdUri,
         string processManagerGeneralApiBaseUrl,
         string orchestrationApiBaseUrl)
     {
@@ -177,11 +174,24 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             "APPLICATIONINSIGHTS_CONNECTION_STRING",
             IntegrationTestConfiguration.ApplicationInsightsConnectionString);
 
+        // Logging
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "Logging__LogLevel__Default",
+            "Information");
+        // => Disable extensive logging from EF Core
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "Logging__LogLevel__Microsoft.EntityFrameworkCore",
+            "Warning");
+        // => Disable extensive logging when using Azure Storage
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "Logging__LogLevel__Azure.Core",
+            "Error");
+
         // ProcessManager
         // => Process Manager HTTP client
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}",
-            processManagerApplicationIdUri);
+            AuthenticationOptionsForTests.ApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}",
             processManagerGeneralApiBaseUrl);

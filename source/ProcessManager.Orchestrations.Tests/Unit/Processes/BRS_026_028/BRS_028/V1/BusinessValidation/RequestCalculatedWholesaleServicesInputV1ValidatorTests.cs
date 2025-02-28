@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
+using Energinet.DataHub.ElectricityMarket.Integration.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
@@ -19,6 +21,8 @@ using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwn
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -33,7 +37,12 @@ public class RequestCalculatedWholesaleServicesInputV1ValidatorTests
     public RequestCalculatedWholesaleServicesInputV1ValidatorTests()
     {
         IServiceCollection services = new ServiceCollection();
-
+        services.AddInMemoryConfiguration(
+            new Dictionary<string, string?>
+            {
+                { $"{nameof(ElectricityMarketClientOptions)}:{nameof(ElectricityMarketClientOptions.BaseUrl)}", "https://fake.com" },
+                { $"{nameof(ElectricityMarketClientOptions)}:{nameof(ElectricityMarketClientOptions.ApplicationIdUri)}", AuthenticationOptionsForTests.ApplicationIdUri },
+            });
         services.AddLogging();
         services.AddTransient<DateTimeZone>(s => DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
         services.AddTransient<IClock>(s => SystemClock.Instance);

@@ -22,15 +22,17 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Application.Orchestration;
 
-public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
+public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerCoreFixture _fixture;
 
@@ -39,10 +41,11 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
     private readonly Mock<IOrchestrationInstanceExecutor> _executorMock;
     private readonly ServiceProvider _serviceProvider;
     private readonly IOrchestrationRegister _orchestrationRegister;
+    private readonly IOrchestrationInstanceRepository _orchestrationInstanceRepository;
 
-    private readonly IStartOrchestrationInstanceMessageCommands _sut;
+    private readonly INotifyOrchestrationInstanceCommands _sut;
 
-    public IStartOrchestrationInstanceMessageCommandsTests(ProcessManagerCoreFixture fixture)
+    public INotifyOrchestrationInstanceCommandsTests(ProcessManagerCoreFixture fixture)
     {
         _fixture = fixture;
 
@@ -54,7 +57,8 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
         _serviceProvider = services.BuildServiceProvider();
 
         _orchestrationRegister = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
-        _sut = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceMessageCommands>();
+        _orchestrationInstanceRepository = _serviceProvider.GetRequiredService<IOrchestrationInstanceRepository>();
+        _sut = _serviceProvider.GetRequiredService<INotifyOrchestrationInstanceCommands>();
     }
 
     public Task InitializeAsync() => Task.CompletedTask;
@@ -70,84 +74,76 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
     }
 
     [Fact]
-    public async Task
-        Given_MeteringPointId_When_StartNewOrchestrationInstanceAsync_Then_OrchestrationInstanceContainsMeteringPointId()
+    public async Task Given_UnknownOrchestrationInstance_When_NotifyOrchestrationInstanceAsync_Then_ThrowException()
     {
-        var orchestrationDescription = CreateOrchestrationDescription();
-        await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
+        var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
+            new OrchestrationInstanceId(Guid.NewGuid()),
+            "anyEvent",
+            new TestOrchestrationParameter("inputString"));
 
-        var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
-            _actorIdentity,
-            orchestrationDescription.UniqueName,
-            new TestOrchestrationParameter("inputString"),
-            [],
-            new IdempotencyKey(Guid.NewGuid().ToString()),
-            new ActorMessageId("actorMessageId"),
-            new TransactionId("transactionId"),
-            new MeteringPointId("meteringPointId"));
+        await act.Should()
+            .ThrowAsync<InvalidOperationException>()
+            .WithMessage("Orchestration instance (Id=*) to notify was not found.");
 
-        orchestrationInstanceId.Value.Should().NotBeEmpty();
-        _executorMock.Verify(
-            x => x.StartNewOrchestrationInstanceAsync(
-                It.Is<OrchestrationDescription>(od => od.UniqueName == orchestrationDescription.UniqueName),
-                It.Is<OrchestrationInstance>(
-                    oi => oi.ActorMessageId!.Value == "actorMessageId"
-                          && oi.TransactionId!.Value == "transactionId"
-                          && oi.MeteringPointId!.Value == "meteringPointId")),
-            Times.Once);
-
+        _executorMock.Invocations.Should().BeEmpty();
         _executorMock.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task
-        Given_NoMeteringPointId_When_StartNewOrchestrationInstanceAsync_Then_OrchestrationInstanceContainsNoMeteringPointId()
-    {
-        var orchestrationDescription = CreateOrchestrationDescription();
-        await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
-
-        var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
-            _actorIdentity,
-            orchestrationDescription.UniqueName,
-            new TestOrchestrationParameter("inputString"),
-            [],
-            new IdempotencyKey(Guid.NewGuid().ToString()),
-            new ActorMessageId("actorMessageId"),
-            new TransactionId("transactionId"),
-            null);
-
-        orchestrationInstanceId.Value.Should().NotBeEmpty();
-        _executorMock.Verify(
-            x => x.StartNewOrchestrationInstanceAsync(
-                It.Is<OrchestrationDescription>(od => od.UniqueName == orchestrationDescription.UniqueName),
-                It.Is<OrchestrationInstance>(
-                    oi => oi.ActorMessageId!.Value == "actorMessageId"
-                          && oi.TransactionId!.Value == "transactionId"
-                          && oi.MeteringPointId == null)),
-            Times.Once);
-
-        _executorMock.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task
-        Given_NonDurableFunctionDescription_When_StartNewOrchestrationInstanceAsync_Then_ExecutorIsNotInvoked()
+    public async Task Given_NonDurableFunctionInstance_When_NotifyOrchestrationInstanceAsync_Then_NothingHappens()
     {
         var orchestrationDescription = CreateOrchestrationDescription(false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
-        var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
+        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             _actorIdentity,
-            orchestrationDescription.UniqueName,
-            new TestOrchestrationParameter("inputString"),
+            orchestrationDescription,
             [],
-            new IdempotencyKey(Guid.NewGuid().ToString()),
-            new ActorMessageId("actorMessageId"),
-            new TransactionId("transactionId"),
-            new MeteringPointId("meteringPointId"));
+            SystemClock.Instance);
 
-        orchestrationInstanceId.Value.Should().NotBeEmpty();
+        await _orchestrationInstanceRepository.AddAsync(orchestrationInstance);
+        await _orchestrationInstanceRepository.UnitOfWork.CommitAsync(CancellationToken.None);
+
+        var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
+            orchestrationInstance.Id,
+            "anyEvent",
+            new TestOrchestrationParameter("inputString"));
+
+        await act.Should().NotThrowAsync();
+
         _executorMock.Invocations.Should().BeEmpty();
+        _executorMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Given_DurableFunctionInstance_When_NotifyOrchestrationInstanceAsync_Then_ExecutorIsInvoked()
+    {
+        var orchestrationDescription = CreateOrchestrationDescription();
+        await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
+
+        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
+            _actorIdentity,
+            orchestrationDescription,
+            [],
+            SystemClock.Instance);
+
+        await _orchestrationInstanceRepository.AddAsync(orchestrationInstance);
+        await _orchestrationInstanceRepository.UnitOfWork.CommitAsync(CancellationToken.None);
+
+        var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
+            orchestrationInstance.Id,
+            "anyEvent",
+            new TestOrchestrationParameter("inputString"));
+
+        await act.Should().NotThrowAsync();
+
+        _executorMock.Verify(
+            x => x.NotifyOrchestrationInstanceAsync(
+                orchestrationInstance.Id,
+                "anyEvent",
+                It.Is<TestOrchestrationParameter>(p => p.InputString == "inputString")),
+            Times.Once);
+
         _executorMock.VerifyNoOtherCalls();
     }
 
@@ -166,21 +162,23 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
 
         // App settings
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                [$"{ProcessManagerOptions.SectionName}:{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}"]
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    [$"{ProcessManagerOptions.SectionName}:{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}"]
                         = fixture.DatabaseManager.ConnectionString,
-                [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString)}"]
+                    [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString)}"]
                         = "Not used, but cannot be empty",
-                [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName)}"]
+                    [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName)}"]
                         = "Not used, but cannot be empty",
-                [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.ApplicationIdUri)}"]
+                    [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.ApplicationIdUri)}"]
                         = "Not used, but cannot be empty",
-                [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.Issuer)}"]
+                    [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.Issuer)}"]
                         = "Not used, but cannot be empty",
-            }).Build();
-        services.AddScoped<IConfiguration>(_ => configuration);
+                })
+            .Build();
 
+        services.AddScoped<IConfiguration>(_ => configuration);
         services.AddProcessManagerCore(configuration);
 
         // Additional registration to ensure we can keep the database consistent by adding orchestration descriptions

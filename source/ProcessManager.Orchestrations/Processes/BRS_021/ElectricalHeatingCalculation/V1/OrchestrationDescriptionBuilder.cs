@@ -37,7 +37,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
         ////description.RecurringCronExpression = "0 12,17 * * *";
 
         description.AppendStepDescription(CalculationStep.StepDescription);
-        // TODO - Alex: Append step 2
+        description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
 
         return description;
     }

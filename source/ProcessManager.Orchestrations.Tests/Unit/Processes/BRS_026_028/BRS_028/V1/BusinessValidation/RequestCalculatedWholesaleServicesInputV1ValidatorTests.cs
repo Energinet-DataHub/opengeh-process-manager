@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwn
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,6 +41,7 @@ public class RequestCalculatedWholesaleServicesInputV1ValidatorTests
             new Dictionary<string, string?>
             {
                 { $"{nameof(ElectricityMarketClientOptions)}:{nameof(ElectricityMarketClientOptions.BaseUrl)}", "https://fake.com" },
+                { $"{nameof(ElectricityMarketClientOptions)}:{nameof(ElectricityMarketClientOptions.ApplicationIdUri)}", AuthenticationOptionsForTests.ApplicationIdUri },
             });
         services.AddLogging();
         services.AddTransient<DateTimeZone>(s => DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);

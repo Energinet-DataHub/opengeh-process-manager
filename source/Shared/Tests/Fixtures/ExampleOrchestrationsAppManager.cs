@@ -228,6 +228,19 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             "AzureFunctionsJobHost__extensions__durableTask__storageProvider__maxQueuePollingInterval",
             "00:00:01");
 
+        // Logging
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "Logging__LogLevel__Default",
+            "Information");
+        // => Disable extensive logging from EF Core
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "Logging__LogLevel__Microsoft.EntityFrameworkCore",
+            "Warning");
+        // => Disable extensive logging when using Azure Storage
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "Logging__LogLevel__Azure.Core",
+            "Error");
+
         // ProcessManager
         // => Task Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -283,6 +296,9 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.BaseUrl)}",
             MockServer.Url!);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.ApplicationIdUri)}",
+            AuthenticationOptionsForTests.ApplicationIdUri);
 
         return appHostSettings;
     }

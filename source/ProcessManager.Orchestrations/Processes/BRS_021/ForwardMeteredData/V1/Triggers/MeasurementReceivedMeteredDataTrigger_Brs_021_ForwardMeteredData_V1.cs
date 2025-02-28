@@ -15,7 +15,6 @@
 using Azure.Messaging.EventHubs;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
 
@@ -57,5 +56,3 @@ public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1
         await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
     }
 }
-
-public record MeasurementReceivedMeteredDataNotification(OrchestrationInstanceId OrchestrationId);

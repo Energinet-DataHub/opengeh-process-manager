@@ -66,8 +66,4 @@
     </Protobuf>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Processes\BRS_021\ForwardMeteredData\V2\" />
-  </ItemGroup>
-
 </Project>

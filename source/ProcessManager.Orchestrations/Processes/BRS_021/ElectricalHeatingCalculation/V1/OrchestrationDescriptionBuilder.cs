@@ -33,8 +33,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.RecurringCronExpression = string.Empty;
         // Runs at 12:00 and 17:00 every day
-        // description.RecurringCronExpression = "0 12,17 * * *";
-        description.RecurringCronExpression = "*/10 * * * *";
+        description.RecurringCronExpression = "0 12,17 * * *";
 
         foreach (var step in Orchestration_Brs_021_ElectricalHeatingCalculation_V1.Steps)
         {

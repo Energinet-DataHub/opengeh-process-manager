@@ -15,9 +15,10 @@
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
 // TODO: We have decided to route on the "name" part of the "orchestration description unique name",
 // meaning not including the "version" part; this will minimize how often we need to adjust infrastructure
@@ -40,7 +41,13 @@ public class StartTrigger_Brs_021_ForwardMeteredData_V1(
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        await _handler.HandleAsync(message)
-            .ConfigureAwait(false);
+    // public async Task Run(
+    //     [ServiceBusTrigger(
+    //         $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}%",
+    //         $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}%",
+    //         Connection = ServiceBusNamespaceOptions.SectionName)]
+    //     ServiceBusReceivedMessage message)
+    // {
+        await _handler.HandleAsync(message).ConfigureAwait(false);
     }
 }

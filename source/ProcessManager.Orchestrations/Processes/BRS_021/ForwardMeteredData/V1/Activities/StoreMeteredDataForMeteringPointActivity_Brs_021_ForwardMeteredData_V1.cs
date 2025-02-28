@@ -43,7 +43,7 @@ internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredDa
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.StoringMeteredDataStep,
+                OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
                 orchestrationInstance)
             .ConfigureAwait(false);
 

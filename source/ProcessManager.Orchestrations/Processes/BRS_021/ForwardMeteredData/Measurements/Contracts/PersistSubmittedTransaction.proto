@@ -19,6 +19,7 @@ package google.protobuf;
 
 import "google/protobuf/timestamp.proto";
 import "Processes/BRS_021/ForwardMeteredData/Measurements/Contracts/DecimalValue.proto";
+import "Processes/BRS_021/ForwardMeteredData/Measurements/Contracts/OrchestrationType.proto";
 
 option csharp_namespace = "Energinet.DataHub.Measurements.Contracts";
 
@@ -41,11 +42,6 @@ message Point {
   int32 position = 1;
   DecimalValue quantity = 2;
   Quality quality = 3;
-}
-
-enum OrchestrationType {
-  OT_UNSPECIFIED = 0;
-  OT_SUBMITTED_MEASURE_DATA = 1;
 }
 
 enum Quality {

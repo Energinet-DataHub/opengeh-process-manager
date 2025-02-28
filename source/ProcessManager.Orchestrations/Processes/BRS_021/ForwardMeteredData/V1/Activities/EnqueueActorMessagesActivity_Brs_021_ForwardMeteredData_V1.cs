@@ -45,7 +45,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueActorMessagesStep,
+                OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
                 orchestrationInstance)
             .ConfigureAwait(false);
 
@@ -80,7 +80,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
             MarketActorRecipients: [receiver]);
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-            Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName,
+            OrchestrationDescriptionBuilderV1.UniqueName,
             activityInput.OrchestrationInstanceId.Value,
             orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
             activityInput.IdempotencyKey,

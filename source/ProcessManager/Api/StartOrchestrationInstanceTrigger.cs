@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Api.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -49,8 +50,8 @@ internal class StartOrchestrationInstanceTrigger(
     {
         var orchestrationInstanceId = await _manager
             .StartNewOrchestrationInstanceAsync(
-                identity: UserIdentity.FromDto(command.OperatingIdentity),
-                uniqueName: OrchestrationDescriptionUniqueName.FromDto(command.OrchestrationDescriptionUniqueName))
+                identity: command.OperatingIdentity.MapToDomain(),
+                uniqueName: command.OrchestrationDescriptionUniqueName.MapToDomain())
             .ConfigureAwait(false);
 
         return new OkObjectResult(orchestrationInstanceId.Value);

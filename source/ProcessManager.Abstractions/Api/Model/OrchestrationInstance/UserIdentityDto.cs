@@ -16,8 +16,19 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
+/// <summary>
+/// The intention of this record is to carry information about the user/system that
+/// initiated the operation.
+/// The information must be extracted by DataHub 3 "boundary subsystems", and used
+/// by Process Manager API's to further filter data or validate requests.
+/// </summary>
+/// <param name="UserId"></param>
+/// <param name="ActorNumber"></param>
+/// <param name="ActorRole"></param>
+/// <param name="UserPermissions">Contains what would be similar to "roles" in access tokens.</param>
 public record UserIdentityDto(
     Guid UserId,
     ActorNumber ActorNumber,
-    ActorRole ActorRole)
+    ActorRole ActorRole,
+    IReadOnlyCollection<string> UserPermissions)
         : IOperatingIdentityDto;

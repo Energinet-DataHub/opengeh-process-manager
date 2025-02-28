@@ -66,7 +66,8 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorNumber: ActorNumber.Create("1234567890123"),
-            ActorRole: ActorRole.EnergySupplier);
+            ActorRole: ActorRole.EnergySupplier,
+            UserPermissions: []);
 
         var command = new StartNoInputExampleCommandV1(userIdentity);
 
@@ -93,7 +94,8 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorNumber: ActorNumber.Create("1234567890123"),
-            ActorRole: ActorRole.EnergySupplier);
+            ActorRole: ActorRole.EnergySupplier,
+            UserPermissions: []);
 
         var command = new StartNoInputExampleCommandV1(userIdentity);
 

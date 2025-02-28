@@ -117,7 +117,8 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var userIdentityDto = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorNumber: ActorNumber.Create("0000000000000"),
-            ActorRole: ActorRole.DataHubAdministrator);
+            ActorRole: ActorRole.DataHubAdministrator,
+            UserPermissions: []);
 
         var orchestrationInstanceId = await ProcessManagerClient.StartNewOrchestrationInstanceAsync(
             new MigrateCalculationsFromWholesaleCommandV1(

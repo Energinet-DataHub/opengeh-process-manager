@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Steps;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1;
 
@@ -23,7 +24,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
     public OrchestrationDescription Build()
     {
         var description = new OrchestrationDescription(
-            uniqueName: OrchestrationDescriptionUniqueName.FromDto(Orchestration_MigrateCalculationsFromWholesale_V1.UniqueName),
+            uniqueName: Orchestration_MigrateCalculationsFromWholesale_V1.UniqueName.MapToDomain(),
             canBeScheduled: false,
             functionName: nameof(Orchestration_MigrateCalculationsFromWholesale_V1));
 

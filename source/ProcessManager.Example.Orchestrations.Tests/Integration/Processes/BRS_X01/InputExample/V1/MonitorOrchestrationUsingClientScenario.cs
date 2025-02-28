@@ -42,7 +42,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     private readonly UserIdentityDto _userIdentity = new UserIdentityDto(
         UserId: Guid.NewGuid(),
         ActorNumber: ActorNumber.Create("1234567890123"),
-        ActorRole: ActorRole.EnergySupplier);
+        ActorRole: ActorRole.EnergySupplier,
+        UserPermissions: []);
 
     public MonitorOrchestrationUsingClientScenario(
         ExampleOrchestrationsAppFixture fixture,

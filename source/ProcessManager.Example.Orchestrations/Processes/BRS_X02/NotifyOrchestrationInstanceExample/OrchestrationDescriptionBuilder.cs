@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Proce
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Steps;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
 
@@ -28,7 +29,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
         var orchestrationDescriptionUniqueName = Brs_X02_NotifyOrchestrationInstanceExample.V1;
 
         var description = new OrchestrationDescription(
-            uniqueName: OrchestrationDescriptionUniqueName.FromDto(orchestrationDescriptionUniqueName),
+            uniqueName: orchestrationDescriptionUniqueName.MapToDomain(),
             canBeScheduled: true,
             functionName: nameof(Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1));
 

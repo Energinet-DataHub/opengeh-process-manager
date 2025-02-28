@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Activities;
@@ -72,7 +73,7 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
         return _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_026_V1.UniqueName,
             input.InstanceId.Value,
-            orchestrationCreatedBy.ToDto(),
+            orchestrationCreatedBy.MapToDto(),
             input.IdempotencyKey,
             rejectedMessage);
     }

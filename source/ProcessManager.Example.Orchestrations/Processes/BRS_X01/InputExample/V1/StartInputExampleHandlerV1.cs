@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Steps;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1;
@@ -38,8 +39,8 @@ internal class StartInputExampleHandlerV1(
 
         var orchestrationInstanceId = await _manager
             .StartNewOrchestrationInstanceAsync(
-                identity: UserIdentity.FromDto(command.OperatingIdentity),
-                uniqueName: OrchestrationDescriptionUniqueName.FromDto(command.OrchestrationDescriptionUniqueName),
+                identity: command.OperatingIdentity.MapToDomain(),
+                uniqueName: command.OrchestrationDescriptionUniqueName.MapToDomain(),
                 inputParameter: command.InputParameter,
                 skipStepsBySequence: skipStepsBySequence)
             .ConfigureAwait(false);
@@ -56,8 +57,8 @@ internal class StartInputExampleHandlerV1(
 
         var orchestrationInstanceId = await _manager
             .ScheduleNewOrchestrationInstanceAsync(
-                identity: UserIdentity.FromDto(command.OperatingIdentity),
-                uniqueName: OrchestrationDescriptionUniqueName.FromDto(command.OrchestrationDescriptionUniqueName),
+                identity: command.OperatingIdentity.MapToDomain(),
+                uniqueName: command.OrchestrationDescriptionUniqueName.MapToDomain(),
                 inputParameter: command.InputParameter,
                 runAt: command.RunAt.ToInstant(),
                 skipStepsBySequence: skipStepsBySequence)

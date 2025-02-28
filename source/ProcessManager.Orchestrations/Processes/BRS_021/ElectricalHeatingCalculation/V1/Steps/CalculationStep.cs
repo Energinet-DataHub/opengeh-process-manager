@@ -12,17 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities.CalculationStep;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Steps;
 
-[SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "ConfigureAwait must not be used in durable function code")]
 internal class CalculationStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
@@ -41,24 +39,19 @@ internal class CalculationStep(
     {
         // Start calculation (Databricks)
         var jobRunId = await Context.CallActivityAsync<JobRunId>(
-            nameof(CalculationStepStartJobActivity_Brs_023_027_V1),
-            new CalculationStepStartJobActivity_Brs_023_027_V1.ActivityInput(
-                orchestrationInstanceContext.OrchestrationInstanceId,
-                orchestrationInstanceContext.CalculationId,
-                orchestrationInstanceContext.UserId),
+            nameof(CalculationStepStartJobActivity_Brs_021_ElectricalHeatingCalculation_V1),
+            new CalculationStepStartJobActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                orchestrationInstanceContext.OrchestrationInstanceId),
             DefaultRetryOptions);
 
-        // We currently have removed the following functionality compared to the orchestration in Wholesale:
-        //  - Updating job status in SQL database; it can be found in durable function monitor if we need to
-        //  - "Restart" the calculation job if it was canceled; not sure this is a valid feature anymore
         var expiryTime = Context.CurrentUtcDateTime
             .AddSeconds(orchestrationInstanceContext.OrchestrationOptions.CalculationJobStatusExpiryTimeInSeconds);
         while (Context.CurrentUtcDateTime < expiryTime)
         {
             // Monitor calculation (Databricks)
             var jobRunStatus = await Context.CallActivityAsync<JobRunStatus>(
-                nameof(CalculationStepGetJobRunStatusActivity_Brs_023_027_V1),
-                new CalculationStepGetJobRunStatusActivity_Brs_023_027_V1.ActivityInput(
+                nameof(CalculationStepGetJobRunStatusActivity_Brs_021_ElectricalHeatingCalculation_V1),
+                new CalculationStepGetJobRunStatusActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
                     jobRunId),
                 DefaultRetryOptions);
 

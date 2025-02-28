@@ -46,16 +46,6 @@ var host = new HostBuilder()
         services.AddNodaTimeForApplication();
         services.AddServiceBusClientForApplication(context.Configuration);
 
-        // TODO (ID-283)
-        // if (context.HostingEnvironment.IsEnvironment("IntegrationTests"))
-        // {
-        //     services.AddSingleton<IElectricityMarketViews>(new ElectricityMarketViewsStub());
-        // }
-        // else
-        // {
-        //     services.AddElectricityMarketModule();
-        // }
-
         // Databricks Workspaces
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Wholesale);
         services.AddDatabricksJobs(DatabricksWorkspaceNames.Measurements);

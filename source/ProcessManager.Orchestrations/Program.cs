@@ -30,7 +30,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication((context, builder) =>
+    .ConfigureFunctionsWebApplication(builder =>
     {
         // Http => Authorization
         builder.UseFunctionsAuthorization();
@@ -41,9 +41,6 @@ var host = new HostBuilder()
             (settings, _) =>
             {
                 settings.Mode = DfmMode.ReadOnly;
-
-                if (context.HostingEnvironment.IsDevelopment())
-                    settings.DisableAuthentication = true;
             });
     })
     .ConfigureServices((context, services) =>

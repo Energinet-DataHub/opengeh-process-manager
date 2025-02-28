@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using NodaTime.Text;
@@ -93,8 +94,8 @@ public class StartForwardMeteredDataHandlerV1(
             MeteringPointId: input.MeteringPointId!,
             TransactionId: input.TransactionId,
             CreatedAt: InstantPattern.ExtendedIso.Parse(input.RegistrationDateTime).Value,
-            StartDateTime: InstantPattern.ExtendedIso.Parse(input.StartDateTime).Value,
-            EndDateTime: InstantPattern.ExtendedIso.Parse(input.EndDateTime!).Value,
+            StartDateTime: InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value,
+            EndDateTime: InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value,
             MeteringPointType: MeteringPointType.FromName(MeteringPointType.Production.Name),
             Product: input.ProductNumber ?? string.Empty,
             Unit: MeasurementUnit.FromName(input.MeasureUnit ?? MeasurementUnit.Megawatt.Name),

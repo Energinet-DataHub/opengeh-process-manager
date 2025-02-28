@@ -59,9 +59,9 @@ internal class Orchestration_Brs_023_027_V1
             .ExecuteAsync();
 
         // Step: Enqueue messages
-        if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueMessagesStep.EnqueueActorMessagesStepSequence))
+        if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence))
         {
-            await new EnqueueMessagesStep(
+            await new EnqueueActorMessagesStep(
                 context,
                 _defaultRetryOptions,
                 orchestrationInstanceContext)

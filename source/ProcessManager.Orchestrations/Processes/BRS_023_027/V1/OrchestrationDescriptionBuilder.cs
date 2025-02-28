@@ -36,7 +36,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         description.AppendStepDescription(CalculationStep.StepDescription);
         description.AppendStepDescription(
-            EnqueueMessagesStep.StepDescription,
+            EnqueueActorMessagesStep.StepDescription,
             canBeSkipped: true,
             skipReason: "Do not perform this step for an internal calculation.");
 

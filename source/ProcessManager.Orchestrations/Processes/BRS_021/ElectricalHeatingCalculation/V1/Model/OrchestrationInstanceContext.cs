@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
@@ -21,8 +22,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 /// By returning it from the first activity we get key information stored in the orchestration history.
 /// </summary>
 /// <param name="OrchestrationOptions">Options for configuration of the orchestration execution.</param>
-/// <param name="SkippedStepsBySequence">Contains the sequence number of any skipped steps. This allow us to handle decision about activities to skip within
-/// the orchestration instead of within activities.</param>
-public record OrchestrationExecutionContext(
+/// <param name="CalculationId">The ID of the databricks calculation.</param>
+/// <param name="OrchestrationInstanceId">The id of the orchestration instance</param>
+public record OrchestrationInstanceContext(
     OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1 OrchestrationOptions,
-    IReadOnlyCollection<int> SkippedStepsBySequence);
+    Guid CalculationId,
+    OrchestrationInstanceId OrchestrationInstanceId);

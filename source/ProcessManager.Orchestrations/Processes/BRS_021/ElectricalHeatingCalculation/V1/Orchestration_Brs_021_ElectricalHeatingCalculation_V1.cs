@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Steps;
+using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
@@ -25,141 +27,80 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 // TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
 internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
 {
-    private readonly TaskOptions _defaultRetryOptions;
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_021_ElectricalHeatingCalculation.V1;
+
+    private readonly TaskRetryOptions _defaultRetryOptions;
+
+    private readonly TaskOptions _defaultTaskOptions;
 
     public Orchestration_Brs_021_ElectricalHeatingCalculation_V1()
     {
-        _defaultRetryOptions = CreateDefaultRetryOptions();
+        // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
+        // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
+        _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(
+            new RetryPolicy(
+                maxNumberOfAttempts: 8,
+                firstRetryInterval: TimeSpan.FromSeconds(30),
+                backoffCoefficient: 2.0));
+
+        _defaultTaskOptions = new TaskOptions(_defaultRetryOptions);
     }
-
-    internal static StepIdentifierDto[] Steps => [CalculationStep, EnqueueActorMessagesStep];
-
-    internal static StepIdentifierDto CalculationStep => new(1, "Beregning");
-
-    internal static StepIdentifierDto EnqueueActorMessagesStep => new(2, "Besked dannelse");
 
     [Function(nameof(Orchestration_Brs_021_ElectricalHeatingCalculation_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
+        var orchestrationInstanceContext = await InitializeOrchestrationAsync(context);
 
-        // Initialize
-        var executionContext = await context.CallActivityAsync<OrchestrationExecutionContext>(
-            nameof(OrchestrationInitializeActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            new OrchestrationInitializeActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                instanceId),
-            _defaultRetryOptions);
+        await new CalculationStep(
+                context,
+                _defaultRetryOptions,
+                orchestrationInstanceContext)
+            .ExecuteAsync();
 
-        // Step: Calculation
-        await context.CallActivityAsync(
-            nameof(TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            new TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                instanceId,
-                CalculationStep.Sequence),
-            _defaultRetryOptions);
+        // TODO - Alex: Call step 2
 
-        // Start calculation (Databricks)
-        var jobRunId = await context.CallActivityAsync<JobRunId>(
-            nameof(CalculationStepStartJobActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            new CalculationStepStartJobActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                instanceId),
-            _defaultRetryOptions);
-
-        var continueCalculationMonitor = true;
-        var expiryTime = context.CurrentUtcDateTime
-            .AddSeconds(executionContext.OrchestrationOptions.CalculationJobStatusExpiryTimeInSeconds);
-        while (continueCalculationMonitor && context.CurrentUtcDateTime < expiryTime)
-        {
-            // Monitor calculation (Databricks)
-            var jobRunStatus = await context.CallActivityAsync<JobRunStatus>(
-                nameof(CalculationStepGetJobRunStatusActivity_Brs_021_ElectricalHeatingCalculation_V1),
-                new CalculationStepGetJobRunStatusActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                    jobRunId),
-                _defaultRetryOptions);
-
-            switch (jobRunStatus)
-            {
-                case JobRunStatus.Pending:
-                case JobRunStatus.Queued:
-                case JobRunStatus.Running:
-                    // Wait for the next checkpoint
-                    var nextCheckpoint = context.CurrentUtcDateTime
-                        .AddSeconds(executionContext.OrchestrationOptions.CalculationJobStatusPollingIntervalInSeconds);
-                    await context.CreateTimer(nextCheckpoint, CancellationToken.None);
-                    break;
-
-                case JobRunStatus.Completed:
-                    // Suceeded
-                    await context.CallActivityAsync(
-                        nameof(TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1),
-                        new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                            instanceId,
-                            CalculationStep.Sequence,
-                            OrchestrationStepTerminationState.Succeeded),
-                        _defaultRetryOptions);
-
-                    continueCalculationMonitor = false;
-                    break;
-
-                case JobRunStatus.Failed:
-                case JobRunStatus.Canceled:
-                    // Failed
-                    await context.CallActivityAsync(
-                        nameof(TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1),
-                        new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                            instanceId,
-                            CalculationStep.Sequence,
-                            OrchestrationStepTerminationState.Failed),
-                        _defaultRetryOptions);
-                    await context.CallActivityAsync(
-                        nameof(OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
-                        new OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                            instanceId,
-                            OrchestrationInstanceTerminationState.Failed),
-                        _defaultRetryOptions);
-
-                    // Quit orchestration
-                    return $"Error: Job run status '{jobRunStatus}'";
-                default:
-                    throw new InvalidOperationException("Unknown job run status '{jobRunStatus}'.");
-            }
-        }
-
-        // Step: Enqueue messages
-        if (!executionContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.Sequence))
-        {
-            await context.CallActivityAsync(
-                nameof(TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1),
-                new TransitionStepToRunningActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                    instanceId,
-                    EnqueueActorMessagesStep.Sequence),
-                _defaultRetryOptions);
-            await context.CallActivityAsync(
-                nameof(TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1),
-                new TransitionStepToTerminatedActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                    instanceId,
-                    EnqueueActorMessagesStep.Sequence,
-                    OrchestrationStepTerminationState.Succeeded),
-                _defaultRetryOptions);
-        }
-
-        // Terminate
-        await context.CallActivityAsync(
-            nameof(OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            new OrchestrationTerminateActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                instanceId,
-                OrchestrationInstanceTerminationState.Succeeded),
-            _defaultRetryOptions);
-
-        return "Success";
+        return await SetTerminateOrchestrationAsync(
+            context,
+            orchestrationInstanceContext.OrchestrationInstanceId,
+            success: true);
     }
 
-    private static TaskOptions CreateDefaultRetryOptions()
+    private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
     {
-        return TaskOptions.FromRetryPolicy(new RetryPolicy(
-            maxNumberOfAttempts: 5,
-            firstRetryInterval: TimeSpan.FromSeconds(30),
-            backoffCoefficient: 2.0));
+        var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
+
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToRunningActivity_V1),
+            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
+                instanceId),
+            _defaultTaskOptions);
+
+        var instanceContext = await context.CallActivityAsync<OrchestrationInstanceContext>(
+            nameof(GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1),
+            new GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                instanceId),
+            _defaultTaskOptions);
+
+        return instanceContext;
+    }
+
+    private async Task<string> SetTerminateOrchestrationAsync(
+    TaskOrchestrationContext context,
+    OrchestrationInstanceId instanceId,
+    bool success)
+    {
+        var orchestrationTerminationState = success
+            ? OrchestrationInstanceTerminationState.Succeeded
+            : OrchestrationInstanceTerminationState.Failed;
+
+        await context.CallActivityAsync(
+            nameof(TransitionOrchestrationToTerminatedActivity_V1),
+            new TransitionOrchestrationToTerminatedActivity_V1.ActivityInput(
+                instanceId,
+                orchestrationTerminationState),
+            _defaultTaskOptions);
+
+        return "Success";
     }
 }

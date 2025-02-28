@@ -27,7 +27,8 @@ public static class EventHubResponseMocking
         this EventHubListenerMock eventHubListenerMock,
         EventHubProducerClient eventHubProducerClient,
         Guid orchestrationInstanceId,
-        string transactionId)
+        string transactionId,
+        bool shouldSendNotify = false)
     {
         var passableEvents = eventHubListenerMock.ReceivedEvents.Where(
             e => PersistSubmittedTransaction.Parser.ParseFrom(e.Body.ToArray()) != null);
@@ -41,7 +42,23 @@ public static class EventHubResponseMocking
         if (!orchestrationIdMatches || !transactionIdIdMatches)
             return false;
 
-        var data = new EventData(persistedTransaction.ToByteArray());
+        EventData? data;
+        if (shouldSendNotify)
+        {
+            var notify = new SubmittedTransactionPersisted()
+            {
+                Version = "1",
+                OrchestrationInstanceId = persistedTransaction.OrchestrationInstanceId,
+                OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
+            };
+
+            data = new EventData(notify.ToByteArray());
+        }
+        else
+        {
+            data = new EventData(persistedTransaction.ToByteArray());
+        }
+
         await eventHubProducerClient.SendAsync([data], CancellationToken.None);
         return true;
     }

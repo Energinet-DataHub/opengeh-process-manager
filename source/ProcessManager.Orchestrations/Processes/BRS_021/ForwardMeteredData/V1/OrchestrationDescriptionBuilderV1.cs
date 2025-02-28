@@ -31,7 +31,7 @@ internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuil
 
     public OrchestrationDescription Build()
     {
-        var orchestrationDescriptionUniqueName = Brs_021_ForwardedMeteredData.V2;
+        var orchestrationDescriptionUniqueName = Brs_021_ForwardedMeteredData.V1;
 
         var description = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(

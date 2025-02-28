@@ -36,12 +36,20 @@ public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1
             Connection = MeasurementsMeteredDataClientOptions.SectionName)]
         EventData[] message)
     {
+        var notify = SubmittedTransactionPersisted.Parser.ParseFrom(message[0].Body.ToArray());
+
+        // TODO: Remove data, since we want to transition to notify?
         var data = PersistSubmittedTransaction.Parser.ParseFrom(message[0].Body.ToArray());
-        if (data == null) throw new InvalidOperationException("Failed to deserialize message");
+        if (data == null && notify == null)
+        {
+            throw new InvalidOperationException("Failed to deserialize message");
+        }
+
         // var notification = JsonConvert.DeserializeObject<MeasurementReceivedMeteredDataNotification>(message[0].EventBody.ToString());
         // if (notification == null) throw new InvalidOperationException("Failed to deserialize message");
+        var id = data?.OrchestrationInstanceId ?? notify.OrchestrationInstanceId;
 
-        var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(data.OrchestrationInstanceId));
+        var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(id));
         await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
     }
 }

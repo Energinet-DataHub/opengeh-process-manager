@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "BRS_023_027": {
+    "Orchestrations.FunctionApp": {
       "commandName": "Project",
       "commandLineArgs": "--port 7213",
       "launchBrowser": false

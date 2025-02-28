@@ -217,6 +217,16 @@ internal class OrchestrationInstanceManager(
             throw new InvalidOperationException($"Orchestration instance (Id={id.Value}) to notify was not found.");
         }
 
+        var orchestrationDescription = await _orchestrationRegister
+            .GetAsync(orchestrationInstanceToNotify.OrchestrationDescriptionId)
+            .ConfigureAwait(false);
+
+        if (!orchestrationDescription.IsDurableFunction)
+        {
+            // TODO: Add handling of non-durable functions
+            return;
+        }
+
         await _executor.NotifyOrchestrationInstanceAsync(id, eventName, eventData).ConfigureAwait(false);
     }
 

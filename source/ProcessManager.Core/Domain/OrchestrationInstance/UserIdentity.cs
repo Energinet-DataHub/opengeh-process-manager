@@ -20,21 +20,4 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 /// A user identity performing a Process Manager operation.
 /// </summary>
 public record UserIdentity(UserId UserId, Actor Actor)
-    : OperatingIdentity
-{
-    public override IOperatingIdentityDto ToDto()
-    {
-        return new UserIdentityDto(
-            UserId.Value,
-            Actor.Number,
-            Actor.Role,
-            UserPermissions: []);
-    }
-
-    public static UserIdentity FromDto(UserIdentityDto dto)
-    {
-        return new UserIdentity(
-            new UserId(dto.UserId),
-            new Actor(dto.ActorNumber, dto.ActorRole));
-    }
-}
+    : OperatingIdentity;

@@ -23,10 +23,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 /// </summary>
 /// <param name="OrchestrationOptions">Options for configuration of the orchestration execution.</param>
 /// <param name="CalculationId">The ID of the databricks calculation.</param>
-/// <param name="UserId">User id of the user that created and thereby started the orchestration.</param>
 /// <param name="OrchestrationInstanceId">The id of the orchestration instance</param>
 public record OrchestrationInstanceContext(
     OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1 OrchestrationOptions,
     Guid CalculationId,
-    Guid UserId,
     OrchestrationInstanceId OrchestrationInstanceId);

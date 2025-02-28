@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
-using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Options;
 
@@ -41,13 +39,9 @@ internal class GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeating
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        // Calculation must have been started by a User identity, so we know we can cast to it here
-        var userIdentityDto = (UserIdentityDto)orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto();
-
         return new OrchestrationInstanceContext(
             _orchestrationOptions,
             CalculationId: input.InstanceId.Value,
-            userIdentityDto.UserId,
             input.InstanceId);
     }
 

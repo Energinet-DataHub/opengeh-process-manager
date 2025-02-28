@@ -40,7 +40,7 @@ var host = new HostBuilder()
         builder.UseDurableFunctionsMonitor(
             (settings, _) =>
             {
-                settings.Mode = DfmMode.Normal;
+                settings.Mode = DfmMode.ReadOnly;
 
                 if (context.HostingEnvironment.IsDevelopment())
                     settings.DisableAuthentication = true;

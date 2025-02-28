@@ -32,13 +32,19 @@ public class Brs021ForwardMeteredDataTopicOptions
     /// Name of the ProcessManager Service Bus topic
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string TopicName { get; set; } = string.Empty;
+    public string StartTopicName { get; set; } = string.Empty;
 
     /// <summary>
     /// Name of the subscription used to start BRS021 processes
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string StartSubscriptionName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name of the ProcessManager Service Bus topic
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string NotifyTopicName { get; set; } = string.Empty;
 
     /// <summary>
     /// Name of the subscription used to notify BRS021 processes

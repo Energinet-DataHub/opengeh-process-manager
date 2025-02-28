@@ -80,12 +80,20 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV1(
             },
             MarketActorRecipients: [new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)]);
 
-        // TODO: Do we want to inform our own trigger and not EDI?
-        await _enqueueActorMessagesClient.EnqueueAsync(
-            orchestration: OrchestrationDescriptionBuilderV1.UniqueName,
-            orchestrationInstanceId: orchestrationInstanceId.Value,
-            orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
-            idempotencyKey: Guid.NewGuid(), // TODO: fix this
-            data: data).ConfigureAwait(false);
+        var shouldInformItself = false;
+
+        if (shouldInformItself)
+        {
+            // TODO: Delete this when the load test has completed.
+        }
+        else
+        {
+            await _enqueueActorMessagesClient.EnqueueAsync(
+                orchestration: OrchestrationDescriptionBuilderV1.UniqueName,
+                orchestrationInstanceId: orchestrationInstanceId.Value,
+                orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
+                idempotencyKey: Guid.NewGuid(), // TODO: fix this
+                data: data).ConfigureAwait(false);
+        }
     }
 }

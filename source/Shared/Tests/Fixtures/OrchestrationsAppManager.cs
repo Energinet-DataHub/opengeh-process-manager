@@ -386,11 +386,15 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // brs 21 topic
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.TopicName)}",
-            brs21TopicResources.Brs21Topic.Name);
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",
+            brs21TopicResources.Brs21StartTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}",
             brs21TopicResources.StartSubscription.SubscriptionName);
+
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}",
+            brs21TopicResources.Brs21NotifyTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}",
             brs21TopicResources.NotifySubscription.SubscriptionName);
@@ -430,12 +434,22 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
             "20");
         // Measurements Metered Data Event Hub
+        // appHostSettings.ProcessEnvironmentVariables.Add(
+        //     $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}",
+        //     IntegrationTestConfiguration.EventHubNamespaceName);
+        // appHostSettings.ProcessEnvironmentVariables.Add(
+        //     $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
+        //     eventHubResource.Name);
+        // We enforce that the measurement client sends to the process manager event hub
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}",
             IntegrationTestConfiguration.EventHubNamespaceName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
-            eventHubResource.Name);
+            processManagerEventhubResource.Name);
+        /***************************************/
+        /*        enforce stops here           */
+        /***************************************/
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}",
             processManagerEventhubResource.Name);
@@ -614,8 +628,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// Brs21 topic resources.
     /// </summary>
     public record Brs21TopicResources(
-        TopicResource Brs21Topic,
+        TopicResource Brs21StartTopic,
         SubscriptionProperties StartSubscription,
+        TopicResource Brs21NotifyTopic,
         SubscriptionProperties NotifySubscription)
     {
         private const string StartSubscriptionName = "brs-021-start-subscription";
@@ -623,22 +638,28 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         public static async Task<Brs21TopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
         {
-            var brs21TopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-topic");
-            AddSubscriptionsToTopicBuilder(brs21TopicBuilder);
+            var brs21StartTopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-start-topic");
+            AddSubscriptionsToTopicBuilder(brs21StartTopicBuilder, StartSubscriptionName);
+            var brs21StartTopic = await brs21StartTopicBuilder.CreateAsync();
 
-            var brs21Topic = await brs21TopicBuilder.CreateAsync();
+            var brs21NotifyTopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-notify-topic");
+            AddSubscriptionsToTopicBuilder(brs21NotifyTopicBuilder, NotifySubscriptionName);
+            var brs21NotifyTopic = await brs21NotifyTopicBuilder.CreateAsync();
 
-            return CreateFromTopic(brs21Topic);
+            return new Brs21TopicResources(
+                Brs21StartTopic: brs21StartTopic,
+                StartSubscription: GetSubscription(brs21StartTopic, StartSubscriptionName),
+                Brs21NotifyTopic: brs21NotifyTopic,
+                NotifySubscription: GetSubscription(brs21NotifyTopic, NotifySubscriptionName));
         }
 
         /// <summary>
         /// Add Brs21 subscriptions to the Brs21 topic.
         /// </summary>
-        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
+        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder, string subscriptionName)
         {
             builder
-                .AddSubscription(StartSubscriptionName)
-                .AddSubscription(NotifySubscriptionName);
+                .AddSubscription(subscriptionName);
 
             return builder;
         }
@@ -649,17 +670,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
         /// </remarks>
         /// </summary>
-        public static Brs21TopicResources CreateFromTopic(TopicResource topic)
+        public static SubscriptionProperties GetSubscription(TopicResource topic, string subscriptionName)
         {
-            var startSubscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(StartSubscriptionName));
-            var notifySubscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(NotifySubscriptionName));
-
-            return new Brs21TopicResources(
-                Brs21Topic: topic,
-                StartSubscription: startSubscription,
-                NotifySubscription: notifySubscription);
+            return topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(subscriptionName));
         }
     }
 

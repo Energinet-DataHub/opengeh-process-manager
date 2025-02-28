@@ -2,7 +2,7 @@
 
 ## Version 1.5.0
 
-- Extended `UserIdentityDto` with `UserPermissions`.
+- Extended `UserIdentityDto` with `UserPermissions`. This is a breaking change for all commands and queries on `IProcessManagerClient`.
 
 ## Version 1.4.0
 

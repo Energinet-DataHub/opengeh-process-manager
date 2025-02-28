@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 1.5.0
+
+- Extended `UserIdentityDto` with `UserPermissions`.
+
 ## Version 1.4.0
 
 - Extended `ProcessManagerHttpClientsOptions` with `ApplicationIdUri`.

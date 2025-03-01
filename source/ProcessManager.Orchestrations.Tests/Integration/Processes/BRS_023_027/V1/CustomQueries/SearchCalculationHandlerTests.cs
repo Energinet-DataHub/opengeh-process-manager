@@ -37,8 +37,7 @@ public class SearchCalculationHandlerTests : IClassFixture<ProcessManagerDatabas
     private readonly UserIdentityDto _userIdentity = new UserIdentityDto(
         UserId: Guid.NewGuid(),
         ActorNumber: ActorNumber.Create("1111111111111"),
-        ActorRole: ActorRole.DataHubAdministrator,
-        UserPermissions: []);
+        ActorRole: ActorRole.DataHubAdministrator);
 
     public SearchCalculationHandlerTests(ProcessManagerDatabaseFixture fixture)
     {

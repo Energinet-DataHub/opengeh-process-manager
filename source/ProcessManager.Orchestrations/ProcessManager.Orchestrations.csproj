@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
+    <Compile Include="..\Shared\Api\Mappers\DtoMapperExtensions.cs" Link="Api\Mappers\DtoMapperExtensions.cs" />
     <Compile Include="..\Shared\Processes\Activities\StepExecutor.cs">
       <Link>Processes\Shared\Activities\StepExecutor.cs</Link>
     </Compile>
@@ -56,7 +57,7 @@
     <Compile Include="..\Shared\Processes\Activities\TransitionStepToTerminatedActivity_V1.cs" Link="Processes\Shared\Activities\TransitionStepToTerminatedActivity_V1.cs" />
   </ItemGroup>
 
-  <ItemGroup>
+    <ItemGroup>
     <Protobuf Include="./**/Contracts/**/*.proto">
       <GrpcServices>None</GrpcServices>
       <Access>Public</Access>

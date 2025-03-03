@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.NotifyActorMessagesEnqueued;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
@@ -100,7 +101,7 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV1(
             await _enqueueActorMessagesClient.EnqueueAsync(
                 orchestration: OrchestrationDescriptionBuilderV1.UniqueName,
                 orchestrationInstanceId: orchestrationInstanceId.Value,
-                orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
+                orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
                 idempotencyKey: Guid.NewGuid(), // TODO: fix this
                 data: data).ConfigureAwait(false);
         }

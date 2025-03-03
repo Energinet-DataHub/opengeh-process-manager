@@ -66,17 +66,16 @@ public class StartForwardMeteredDataHandlerV1(
             .ConfigureAwait(false);
 
         // Initialize orchestration instance
-        orchestrationInstance.Lifecycle.TransitionToQueued(clock);
         orchestrationInstance.Lifecycle.TransitionToRunning(clock);
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         // Start Step: Validate Metered Data
-        await StepHelper.StartStep(orchestrationInstance, OrchestrationDescriptionBuilderV1.ValidatingStep, clock, ProgressRepository).ConfigureAwait(false);
+        await StepHelper.StartStep(orchestrationInstance, OrchestrationDescriptionBuilderV1.ValidationStep, clock, ProgressRepository).ConfigureAwait(false);
 
         // Fetch Metered Data and store received data used to find receiver later in the orchestration
         // Validate Metered Data
         // Terminate Step: Validate Metered Data
-        await StepHelper.TerminateStep(orchestrationInstance, OrchestrationDescriptionBuilderV1.ValidatingStep, clock, ProgressRepository).ConfigureAwait(false);
+        await StepHelper.TerminateStep(orchestrationInstance, OrchestrationDescriptionBuilderV1.ValidationStep, clock, ProgressRepository).ConfigureAwait(false);
 
         // Start Step: Forward to Measurements
         await StepHelper.StartStep(orchestrationInstance, OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep, clock, ProgressRepository).ConfigureAwait(false);

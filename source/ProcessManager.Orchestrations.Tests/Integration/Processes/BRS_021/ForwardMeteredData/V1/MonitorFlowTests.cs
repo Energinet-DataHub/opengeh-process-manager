@@ -191,39 +191,38 @@ public class MonitorFlowTests : IAsyncLifetime
 
         var stepsWhichShouldBeSuccessful = new[]
         {
-            OrchestrationDescriptionBuilderV1.ValidatingStep,
+            OrchestrationDescriptionBuilderV1.ValidationStep,
             OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
             OrchestrationDescriptionBuilderV1.FindReceiverStep,
+            OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
         };
 
         var successfulSteps = instanceAfterEnqueue.Steps
-            .Where(step => step.Lifecycle.TerminationState is Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationStepTerminationState.Succeeded)
+            .Where(step => step.Lifecycle.TerminationState is OrchestrationStepTerminationState.Succeeded)
             .Select(step => step.Sequence);
 
         successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
         instanceAfterEnqueue.Steps
             .First(step => step.Sequence == OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep)
             .Lifecycle.State.Should()
-            .Be(StepInstanceLifecycleState.Running);
+            .Be(StepInstanceLifecycleState.Terminated);
 
-        /*
         var searchResult = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
-            new SearchOrchestrationInstancesByNameQuery(
-                _fixture.DefaultUserIdentity,
-                name: Brs_021_ForwardedMeteredData.Name,
-                version: null,
-                lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
-                terminationState: OrchestrationInstanceTerminationState.Succeeded,
-                startedAtOrLater: orchestrationCreatedAfter,
-                terminatedAtOrEarlier: null,
-                scheduledAtOrLater: null),
-            CancellationToken.None);
+             new SearchOrchestrationInstancesByNameQuery(
+                 _fixture.DefaultUserIdentity,
+                 name: Brs_021_ForwardedMeteredData.Name,
+                 version: null,
+                 lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
+                 terminationState: OrchestrationInstanceTerminationState.Succeeded,
+                 startedAtOrLater: orchestrationCreatedAfter,
+                 terminatedAtOrEarlier: null,
+                 scheduledAtOrLater: null),
+             CancellationToken.None);
 
         searchResult.Should().NotBeNull().And.ContainSingle();
         searchResult.Single().Steps.Should().HaveCount(4);
         searchResult.Single().Steps.Should().AllSatisfy(
-            step => step.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded));
-            */
+         step => step.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded));
     }
 
     private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1(

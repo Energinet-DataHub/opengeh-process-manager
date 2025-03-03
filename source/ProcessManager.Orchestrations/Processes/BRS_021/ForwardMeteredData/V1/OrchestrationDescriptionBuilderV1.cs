@@ -23,7 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuilder
 {
     // TODO: Move to another class
-    public const int ValidatingStep = 1;
+    public const int ValidationStep = 1;
     public const int ForwardToMeasurementStep = 2;
     public const int FindReceiverStep = 3;
     public const int EnqueueActorMessagesStep = 4;
@@ -44,7 +44,7 @@ internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuil
         description.AppendStepDescription("Asynkron validering");
         description.AppendStepDescription("Gemmer");
         description.AppendStepDescription("Finder modtagere");
-        description.AppendStepDescription("Udsend beskeder");
+        description.AppendStepDescription("Udsender beskeder");
 
         return description;
     }

@@ -31,9 +31,10 @@ public class EdiEnqueuedMeteredDataHandler(
             .GetAsync(orchestrationInstanceId)
             .ConfigureAwait(false);
 
+        // TODO: OrchestrationInstance should be running and enqueue actor messages step should be started
         await StepHelper.TerminateStep(
                 orchestrationInstance,
-                OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
+                OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
                 _clock,
                 _progressRepository)
             .ConfigureAwait(false);

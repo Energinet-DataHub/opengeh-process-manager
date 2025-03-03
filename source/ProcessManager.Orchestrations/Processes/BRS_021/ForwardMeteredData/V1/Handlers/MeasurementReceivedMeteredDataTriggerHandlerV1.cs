@@ -41,6 +41,7 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV1(
             .GetAsync(orchestrationInstanceId)
             .ConfigureAwait(false);
 
+        // TODO: OrchestrationInstance should be running and forward to measurement step should be started
         await StepHelper.TerminateStep(
                 orchestrationInstance,
                 OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
@@ -92,7 +93,7 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV1(
             // TODO: Delete this when the load test has completed.
             await _notifyToProcessManagerClient.Notify(
                 new NotifyOrchestrationInstanceEvent(
-                    OrchestrationInstanceId: orchestrationInstance.Id.ToString(),
+                    OrchestrationInstanceId: orchestrationInstance.Id.Value.ToString(),
                     EventName: MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1.MeteredDataForMeteringPointMessagesEnqueuedCompleted))
                     .ConfigureAwait(false);
         }

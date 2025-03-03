@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
@@ -82,7 +83,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
         await _enqueueActorMessagesClient.EnqueueAsync(
             OrchestrationDescriptionBuilderV1.UniqueName,
             activityInput.OrchestrationInstanceId.Value,
-            orchestrationInstance.Lifecycle.CreatedBy.Value.ToDto(),
+            orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
             activityInput.IdempotencyKey,
             data).ConfigureAwait(false);
     }

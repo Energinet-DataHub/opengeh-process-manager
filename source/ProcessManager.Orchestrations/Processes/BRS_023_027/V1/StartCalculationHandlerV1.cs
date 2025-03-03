@@ -14,10 +14,9 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
 using NodaTime.Extensions;
 
@@ -38,13 +37,13 @@ internal class StartCalculationHandlerV1(
 
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
-            ? [EnqueueMessagesStep.EnqueueActorMessagesStepSequence]
+            ? [EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence]
             : [];
 
         var orchestrationInstanceId = await _manager
             .StartNewOrchestrationInstanceAsync(
-                identity: UserIdentity.FromDto(command.OperatingIdentity),
-                uniqueName: OrchestrationDescriptionUniqueName.FromDto(command.OrchestrationDescriptionUniqueName),
+                identity: command.OperatingIdentity.MapToDomain(),
+                uniqueName: command.OrchestrationDescriptionUniqueName.MapToDomain(),
                 inputParameter: command.InputParameter,
                 skipStepsBySequence: skipStepsBySequence)
             .ConfigureAwait(false);
@@ -58,13 +57,13 @@ internal class StartCalculationHandlerV1(
 
         // Here we show how its possible, based on input, to decide certain steps should be skipped by the orchestration.
         IReadOnlyCollection<int> skipStepsBySequence = command.InputParameter.IsInternalCalculation
-            ? [EnqueueMessagesStep.EnqueueActorMessagesStepSequence]
+            ? [EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence]
             : [];
 
         var orchestrationInstanceId = await _manager
             .ScheduleNewOrchestrationInstanceAsync(
-                identity: UserIdentity.FromDto(command.OperatingIdentity),
-                uniqueName: OrchestrationDescriptionUniqueName.FromDto(command.OrchestrationDescriptionUniqueName),
+                identity: command.OperatingIdentity.MapToDomain(),
+                uniqueName: command.OrchestrationDescriptionUniqueName.MapToDomain(),
                 inputParameter: command.InputParameter,
                 runAt: command.RunAt.ToInstant(),
                 skipStepsBySequence: skipStepsBySequence)

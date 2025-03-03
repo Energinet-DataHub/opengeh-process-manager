@@ -25,6 +25,7 @@
 
     <ItemGroup>
         <Compile Include="..\Shared\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
+        <Compile Include="..\Shared\Api\Mappers\DtoMapperExtensions.cs" Link="Api\Mappers\DtoMapperExtensions.cs" />
         <Compile Include="..\Shared\Processes\Activities\StepExecutor.cs">
           <Link>Processes\Shared\Activities\StepExecutor.cs</Link>
         </Compile>
@@ -40,7 +41,7 @@
     <ItemGroup>
         <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests" />
     </ItemGroup>
-    
+
     <ItemGroup>
         <None Update="host.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

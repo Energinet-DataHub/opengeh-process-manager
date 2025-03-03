@@ -24,7 +24,6 @@ using Microsoft.DurableTask;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 
-// TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
 internal class Orchestration_Brs_023_027_V1
 {
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_023_027.V1;
@@ -59,9 +58,9 @@ internal class Orchestration_Brs_023_027_V1
             .ExecuteAsync();
 
         // Step: Enqueue messages
-        if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueMessagesStep.EnqueueActorMessagesStepSequence))
+        if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence))
         {
-            await new EnqueueMessagesStep(
+            await new EnqueueActorMessagesStep(
                 context,
                 _defaultRetryOptions,
                 orchestrationInstanceContext)

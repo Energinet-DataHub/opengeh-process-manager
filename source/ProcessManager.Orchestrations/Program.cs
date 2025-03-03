@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Azure.Identity;
+using DurableFunctionsMonitor.DotNetIsolated;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
@@ -35,6 +36,14 @@ var host = new HostBuilder()
     {
         // Http => Authorization
         builder.UseFunctionsAuthorization();
+
+        // Host Durable Function Monitor as a part of this app.
+        // The Durable Function Monitor can be accessed at: {host url}/api/durable-functions-monitor
+        builder.UseDurableFunctionsMonitor(
+            (settings, _) =>
+            {
+                settings.Mode = DfmMode.ReadOnly;
+            });
     })
     .ConfigureServices((context, services) =>
     {

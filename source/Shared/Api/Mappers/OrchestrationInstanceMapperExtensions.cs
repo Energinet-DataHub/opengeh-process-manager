@@ -81,7 +81,22 @@ internal static class OrchestrationInstanceMapperExtensions
     public static ApiModel.OrchestrationInstance.IOperatingIdentityDto MapToDto(
         this DomainModel.OperatingIdentity entity)
     {
-        return entity.ToDto();
+        switch (entity)
+        {
+            case DomainModel.ActorIdentity actorIdentity:
+                return new ApiModel.OrchestrationInstance.ActorIdentityDto(
+                    ActorNumber: actorIdentity.Actor.Number,
+                    ActorRole: actorIdentity.Actor.Role);
+
+            case DomainModel.UserIdentity userIdentity:
+                return new ApiModel.OrchestrationInstance.UserIdentityDto(
+                    UserId: userIdentity.UserId.Value,
+                    ActorNumber: userIdentity.Actor.Number,
+                    ActorRole: userIdentity.Actor.Role);
+
+            default:
+                throw new InvalidOperationException($"Invalid type '{entity.GetType()}'; cannot be mapped.");
+        }
     }
 
     public static ApiModel.OrchestrationInstance.StepInstanceDto MapToDto(

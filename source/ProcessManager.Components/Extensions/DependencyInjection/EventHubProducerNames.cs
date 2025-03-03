@@ -25,4 +25,10 @@ public static class EventHubProducerClientNames
     /// Event hub producer for sending events on the measurements event hub.
     /// </summary>
     public const string MeasurementsEventHub = "MeasurementsEventHub";
+
+    /// <summary>
+    /// TODO Remove this after performance test
+    /// Event hub producer for sending events on the process manager event hub.
+    /// </summary>
+    public const string ProcessManagerEventHub = "ProcessManagerEventHub";
 }

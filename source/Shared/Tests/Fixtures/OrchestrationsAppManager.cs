@@ -433,14 +433,19 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
             "20");
+
+        // Process Manager Event Hub
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.NamespaceName)}",
+            IntegrationTestConfiguration.EventHubNamespaceName);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.NotificationEventHubName)}",
+            processManagerEventhubResource.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}",
+            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
+
         // Measurements Metered Data Event Hub
-        // appHostSettings.ProcessEnvironmentVariables.Add(
-        //     $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}",
-        //     IntegrationTestConfiguration.EventHubNamespaceName);
-        // appHostSettings.ProcessEnvironmentVariables.Add(
-        //     $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
-        //     eventHubResource.Name);
-        // We enforce that the measurement client sends to the process manager event hub
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}",
             IntegrationTestConfiguration.EventHubNamespaceName);
@@ -450,9 +455,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /***************************************/
         /*        enforce stops here           */
         /***************************************/
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}",
-            processManagerEventhubResource.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);

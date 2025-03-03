@@ -31,28 +31,18 @@ public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1
     [Function(nameof(MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [EventHubTrigger(
-            $"%{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}%",
-            Connection = MeasurementsMeteredDataClientOptions.SectionName)]
+            $"%{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.NotificationEventHubName)}%",
+            Connection = ProcessManagerEventHubOptions.SectionName)]
         EventData[] message)
     {
         var notify = SubmittedTransactionPersisted.Parser.ParseFrom(message[0].Body.ToArray());
-
-        // TODO: Remove data, since we want to transition to notify?
-        var data = PersistSubmittedTransaction.Parser.ParseFrom(message[0].Body.ToArray());
-        if (data == null && notify == null)
+        if (notify == null)
         {
             throw new InvalidOperationException("Failed to deserialize message");
         }
 
-        // var notification = JsonConvert.DeserializeObject<MeasurementReceivedMeteredDataNotification>(message[0].EventBody.ToString());
-        // if (notification == null) throw new InvalidOperationException("Failed to deserialize message");
-        var id = data?.OrchestrationInstanceId?.Length > 1
-            ? data?.OrchestrationInstanceId
-            : notify.OrchestrationInstanceId;
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(id);
-
-        var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(id));
+        var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(
+            Guid.Parse(notify.OrchestrationInstanceId));
         await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
     }
 }

@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
@@ -44,8 +45,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorFlowTests : IAsyncLifetime
 {
-    private const string ProcessManagerEventHubName = "process-manager-event-hub";
-
     private readonly OrchestrationsAppFixture _fixture;
 
     public MonitorFlowTests(
@@ -69,14 +68,20 @@ public class MonitorFlowTests : IAsyncLifetime
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
                 = _fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
 
-            // Eventhub client
+            // Measurements Eventhub client
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}"]
                 = _fixture.IntegrationTestConfiguration.EventHubNamespaceName,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"]
                 = _fixture.OrchestrationsAppManager.EventHubName,
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.ProcessManagerEventHubName)}"]
-                = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"]
+                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+
+            // Process Manager Eventhub client
+            [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.NamespaceName)}"]
+                = _fixture.IntegrationTestConfiguration.EventHubNamespaceName,
+            [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.NotificationEventHubName)}"]
+                = _fixture.OrchestrationsAppManager.EventHubName,
+            [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}"]
                 = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
         });
         services.AddAzureClients(
@@ -93,10 +98,26 @@ public class MonitorFlowTests : IAsyncLifetime
                             var options = provider.GetRequiredService<IOptions<MeasurementsMeteredDataClientOptions>>().Value;
                             return new EventHubProducerClient(
                                 $"{options.FullyQualifiedNamespace}",
-                                options.ProcessManagerEventHubName,
+                                options.EventHubName,
                                 _fixture.IntegrationTestConfiguration.Credential);
                         })
-                    .WithName(ProcessManagerEventHubName);
+                    .WithName(EventHubProducerClientNames.MeasurementsEventHub);
+            });
+
+        // TODO: Remove this after performance test
+        services.AddAzureClients(
+            builder =>
+            {
+                builder.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
+                        (_, _, provider) =>
+                        {
+                            var options = provider.GetRequiredService<IOptions<ProcessManagerEventHubOptions>>().Value;
+                            return new EventHubProducerClient(
+                                $"{options.FullyQualifiedNamespace}",
+                                options.NotificationEventHubName,
+                                _fixture.IntegrationTestConfiguration.Credential);
+                        })
+                    .WithName(EventHubProducerClientNames.ProcessManagerEventHub);
             });
         ServiceProvider = services.BuildServiceProvider();
     }

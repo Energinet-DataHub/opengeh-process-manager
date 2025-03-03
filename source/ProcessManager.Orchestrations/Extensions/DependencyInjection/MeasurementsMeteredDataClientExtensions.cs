@@ -51,6 +51,24 @@ public static class MeasurementsMeteredDataClientExtensions
                     .WithName(EventHubProducerClientNames.MeasurementsEventHub);
             });
 
+        // TODO: Remove this after performance test
+        services
+            .AddOptions<ProcessManagerEventHubOptions>()
+            .BindConfiguration(ProcessManagerEventHubOptions.SectionName)
+            .ValidateDataAnnotations();
+
+        services.AddAzureClients(
+            builder =>
+            {
+                builder.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
+                        (_, _, provider) =>
+                        {
+                            var options = provider.GetRequiredService<IOptions<ProcessManagerEventHubOptions>>().Value;
+                            return new EventHubProducerClient($"{options.NamespaceName}.servicebus.windows.net", options.NotificationEventHubName, azureCredential);
+                        })
+                    .WithName(EventHubProducerClientNames.ProcessManagerEventHub);
+            });
+
         services.AddTransient<IMeasurementsMeteredDataClient, MeasurementsMeteredDataClient>();
 
         services.AddHealthChecks()

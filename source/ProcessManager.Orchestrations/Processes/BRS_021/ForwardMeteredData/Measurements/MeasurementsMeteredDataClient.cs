@@ -31,11 +31,29 @@ public class MeasurementsMeteredDataClient(
     IAzureClientFactory<EventHubProducerClient> eventHubClientFactory)
         : IMeasurementsMeteredDataClient
 {
-    private readonly EventHubProducerClient _eventHubProducerClient =
+    private readonly EventHubProducerClient _measurementEventHubProducerClient =
         eventHubClientFactory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub);
+
+    // TODO: Remove this after performance test
+    private readonly EventHubProducerClient _processManagerEventHubProducerClient =
+        eventHubClientFactory.CreateClient(EventHubProducerClientNames.ProcessManagerEventHub);
 
     public async Task SendAsync(MeteredDataForMeteringPoint meteredDataForMeteringPoint, CancellationToken cancellationToken)
     {
+        // Avoid sending data to measurement for performance test by sending notify to us self instead.
+        var avoidForwardToMeasurements = true;
+        if (avoidForwardToMeasurements)
+        {
+            var notify = new SubmittedTransactionPersisted()
+            {
+                OrchestrationInstanceId = meteredDataForMeteringPoint.OrchestrationId,
+            };
+
+            var notifyEventData = new EventData(notify.ToByteArray());
+            await _processManagerEventHubProducerClient.SendAsync([notifyEventData], cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
         var data = new PersistSubmittedTransaction()
         {
             OrchestrationInstanceId = meteredDataForMeteringPoint.OrchestrationId,
@@ -60,7 +78,7 @@ public class MeasurementsMeteredDataClient(
 
         // Serialize the data to a byte array
         var eventData = new EventData(data.ToByteArray());
-        await _eventHubProducerClient.SendAsync([eventData], cancellationToken).ConfigureAwait(false);
+        await _measurementEventHubProducerClient.SendAsync([eventData], cancellationToken).ConfigureAwait(false);
     }
 
     private Timestamp MapDateTime(Instant instant)

@@ -86,7 +86,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorNumber: ActorNumber.Create("1234567891234"),
-            ActorRole: ActorRole.EnergySupplier);
+            ActorRole: ActorRole.EnergySupplier,
+            UserPermissions: []);
 
         // Step 1: Start new orchestration instance
         var orchestrationInstanceId = await processManagerClient

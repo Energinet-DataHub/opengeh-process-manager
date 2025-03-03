@@ -92,7 +92,8 @@ internal static class OrchestrationInstanceMapperExtensions
                 return new ApiModel.OrchestrationInstance.UserIdentityDto(
                     UserId: userIdentity.UserId.Value,
                     ActorNumber: userIdentity.Actor.Number,
-                    ActorRole: userIdentity.Actor.Role);
+                    ActorRole: userIdentity.Actor.Role,
+                    UserPermissions: []);
 
             default:
                 throw new InvalidOperationException($"Invalid type '{entity.GetType()}'; cannot be mapped.");

@@ -41,70 +41,68 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV1(
             .GetAsync(orchestrationInstanceId)
             .ConfigureAwait(false);
 
-        // TODO: OrchestrationInstance should be running and forward to measurement step should be started
-        await StepHelper.TerminateStep(
-                orchestrationInstance,
-                OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
-                clock,
-                _progressRepository)
-            .ConfigureAwait(false);
+        if (orchestrationInstance.Lifecycle.State != OrchestrationInstanceLifecycleState.Running)
+            return;
 
-        await StepHelper.StartStep(
-                orchestrationInstance,
-                OrchestrationDescriptionBuilderV1.FindReceiverStep,
-                clock,
-                _progressRepository)
-            .ConfigureAwait(false);
-        await StepHelper.TerminateStep(
-                orchestrationInstance,
-                OrchestrationDescriptionBuilderV1.FindReceiverStep,
-                clock,
-                _progressRepository)
-            .ConfigureAwait(false);
+        // Terminate Step: Forward metered data step
+        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
+        await StepHelper.TerminateStep(forwardToMeasurementStep, clock, _progressRepository).ConfigureAwait(false);
 
-        await StepHelper.StartStep(
-                orchestrationInstance,
-                OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
-                clock,
-                _progressRepository)
-            .ConfigureAwait(false);
+        // Start Step: Find receiver step
+        var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiverStep);
+        await StepHelper.StartStep(findReceiverStep, clock, _progressRepository).ConfigureAwait(false);
 
-        var data = new MeteredDataForMeteringPointAcceptedV1(
-            MessageId: "MessageId",
-            MeteringPointId: "MeteringPointId",
-            MeteringPointType: MeteringPointType.Production,
-            OriginalTransactionId: "OriginalTransactionId",
-            ProductNumber: "productNumber",
-            MeasureUnit: MeasurementUnit.Megawatt,
-            RegistrationDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
-            Resolution: Resolution.QuarterHourly,
-            StartDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
-            EndDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
-            AcceptedEnergyObservations: new List<AcceptedEnergyObservation>
-            {
-                new(1, 1, Quality.Calculated),
-            },
-            MarketActorRecipients: [new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)]);
-
-        var shouldInformItself = true;
-
-        if (shouldInformItself)
+        if (findReceiverStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
-            // TODO: Delete this when the load test has completed.
-            await _notifyToProcessManagerClient.Notify(
-                new NotifyOrchestrationInstanceEvent(
-                    OrchestrationInstanceId: orchestrationInstance.Id.Value.ToString(),
-                    EventName: MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1.MeteredDataForMeteringPointMessagesEnqueuedCompleted))
-                    .ConfigureAwait(false);
+            // Find Receivers
         }
-        else
+
+        // Terminate Step: Find receiver step
+        await StepHelper.TerminateStep(findReceiverStep, clock, _progressRepository).ConfigureAwait(false);
+
+        // Start Step: Enqueue actor messages step
+        var enqueueActorMessagesStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+        await StepHelper.StartStep(enqueueActorMessagesStep, clock, _progressRepository).ConfigureAwait(false);
+
+        if (enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
-            await _enqueueActorMessagesClient.EnqueueAsync(
-                orchestration: OrchestrationDescriptionBuilderV1.UniqueName,
-                orchestrationInstanceId: orchestrationInstanceId.Value,
-                orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
-                idempotencyKey: Guid.NewGuid(), // TODO: fix this
-                data: data).ConfigureAwait(false);
+            var data = new MeteredDataForMeteringPointAcceptedV1(
+                MessageId: "MessageId",
+                MeteringPointId: "MeteringPointId",
+                MeteringPointType: MeteringPointType.Production,
+                OriginalTransactionId: "OriginalTransactionId",
+                ProductNumber: "productNumber",
+                MeasureUnit: MeasurementUnit.Megawatt,
+                RegistrationDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
+                Resolution: Resolution.QuarterHourly,
+                StartDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
+                EndDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
+                AcceptedEnergyObservations: new List<AcceptedEnergyObservation>
+                {
+                    new(1, 1, Quality.Calculated),
+                },
+                MarketActorRecipients: [new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)]);
+
+            var shouldInformItself = true;
+
+            if (shouldInformItself)
+            {
+                // TODO: Delete this when the load test has completed.
+                await _notifyToProcessManagerClient.Notify(
+                    new NotifyOrchestrationInstanceEvent(
+                        OrchestrationInstanceId: orchestrationInstance.Id.Value.ToString(),
+                        EventName: MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1.MeteredDataForMeteringPointMessagesEnqueuedCompleted))
+                        .ConfigureAwait(false);
+            }
+            else
+            {
+                await _enqueueActorMessagesClient.EnqueueAsync(
+                    orchestration: OrchestrationDescriptionBuilderV1.UniqueName,
+                    orchestrationInstanceId: orchestrationInstanceId.Value,
+                    orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
+                    idempotencyKey: Guid.NewGuid(), // TODO: fix this
+                    data: data).ConfigureAwait(false);
+            }
         }
     }
 }

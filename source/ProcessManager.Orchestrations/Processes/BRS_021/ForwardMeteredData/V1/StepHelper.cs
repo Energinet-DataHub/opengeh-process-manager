@@ -20,21 +20,19 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public static class StepHelper
 {
-    public static async Task StartStep(OrchestrationInstance orchestrationInstance, int step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
+    public static async Task StartStep(StepInstance step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
     {
-        orchestrationInstance.TransitionStepToRunning(
-            step,
-            clock);
-
+        if (step.Lifecycle.State == StepInstanceLifecycleState.Pending)
+            step.Lifecycle.TransitionToRunning(clock);
         await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
-    public static async Task TerminateStep(OrchestrationInstance orchestrationInstance, int step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
+    public static async Task TerminateStep(StepInstance step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
     {
-        orchestrationInstance.TransitionStepToTerminated(
-            step,
-            OrchestrationStepTerminationState.Succeeded,
-            clock);
+        if (step.Lifecycle.State != StepInstanceLifecycleState.Running)
+            throw new InvalidOperationException("Can only terminate a running step");
+
+        step.Lifecycle.TransitionToTerminated(clock, OrchestrationStepTerminationState.Succeeded);
 
         await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }

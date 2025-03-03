@@ -31,13 +31,12 @@ public class EdiEnqueuedMeteredDataHandler(
             .GetAsync(orchestrationInstanceId)
             .ConfigureAwait(false);
 
-        // TODO: OrchestrationInstance should be running and enqueue actor messages step should be started
-        await StepHelper.TerminateStep(
-                orchestrationInstance,
-                OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
-                _clock,
-                _progressRepository)
-            .ConfigureAwait(false);
+        if (orchestrationInstance.Lifecycle.State != OrchestrationInstanceLifecycleState.Running)
+            return;
+
+        // Terminate Step: Enqueue actor messages step
+        var enqueueActorMessagesStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+        await StepHelper.TerminateStep(enqueueActorMessagesStep, _clock, _progressRepository).ConfigureAwait(false);
 
         orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);

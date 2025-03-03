@@ -1,0 +1,173 @@
+{
+  "configuration" : {
+    "scope" : "SoftwareSystem"
+  },
+  "description" : "Description",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedAgent" : "structurizr-ui",
+  "lastModifiedDate" : "2024-11-19T11:32:39Z",
+  "model" : {
+    "softwareSystems" : [ {
+      "containers" : [ {
+        "documentation" : { },
+        "id" : "2",
+        "name" : "Web Application",
+        "properties" : {
+          "structurizr.dsl.identifier" : "processmanager.webapp"
+        },
+        "relationships" : [ {
+          "description" : "writes to start orchestrations",
+          "destinationId" : "5",
+          "id" : "6",
+          "sourceId" : "2",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Reads from and writes to",
+          "destinationId" : "4",
+          "id" : "7",
+          "sourceId" : "2",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Schedual orchestrations",
+          "destinationId" : "5",
+          "id" : "8",
+          "sourceId" : "2",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,web application"
+      }, {
+        "documentation" : { },
+        "id" : "3",
+        "name" : "Orchestrations",
+        "properties" : {
+          "structurizr.dsl.identifier" : "processmanager.orchestrations"
+        },
+        "relationships" : [ {
+          "description" : "Reads from and writes to",
+          "destinationId" : "4",
+          "id" : "9",
+          "sourceId" : "3",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Reads from and writes to, internal state",
+          "destinationId" : "5",
+          "id" : "10",
+          "sourceId" : "3",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,Azure function,C#"
+      }, {
+        "documentation" : { },
+        "id" : "4",
+        "name" : "Database Schema",
+        "properties" : {
+          "structurizr.dsl.identifier" : "processmanager.db"
+        },
+        "tags" : "Element,Container,Database"
+      }, {
+        "documentation" : { },
+        "id" : "5",
+        "name" : "Blob Storage",
+        "properties" : {
+          "structurizr.dsl.identifier" : "processmanager.blobstorage"
+        },
+        "tags" : "Element,Container,Azure Blob Storage"
+      } ],
+      "documentation" : { },
+      "id" : "1",
+      "location" : "Unspecified",
+      "name" : "Process Manager",
+      "properties" : {
+        "structurizr.dsl.identifier" : "processmanager"
+      },
+      "tags" : "Element,Software System"
+    } ]
+  },
+  "name" : "Name",
+  "properties" : {
+    "structurizr.dsl" : "d29ya3NwYWNlICJOYW1lIiAiRGVzY3JpcHRpb24iIHsKCiAgICAhaWRlbnRpZmllcnMgaGllcmFyY2hpY2FsCgogICAgbW9kZWwgewogICAgICAgIHByb2Nlc3NNYW5hZ2VyID0gc29mdHdhcmVTeXN0ZW0gIlByb2Nlc3MgTWFuYWdlciIgewogICAgICAgICAgICB3ZWJBcHAgPSBjb250YWluZXIgIldlYiBBcHBsaWNhdGlvbiIgewogICAgICAgICAgICAgICAgdGFncyAid2ViIGFwcGxpY2F0aW9uIgogICAgICAgICAgICB9CiAgICAgICAgICAgIG9yY2hlc3RyYXRpb25zID0gY29udGFpbmVyICJPcmNoZXN0cmF0aW9ucyIgewogICAgICAgICAgICAgICAgdGFncyAiQXp1cmUgZnVuY3Rpb24sIEMjIgogICAgICAgICAgICB9CiAgICAgICAgICAgIGRiID0gY29udGFpbmVyICJEYXRhYmFzZSBTY2hlbWEiIHsKICAgICAgICAgICAgICAgIHRhZ3MgIkRhdGFiYXNlIgogICAgICAgICAgICB9CiAgICAgICAgICAgIEJsb2JTdG9yYWdlID0gY29udGFpbmVyICJCbG9iIFN0b3JhZ2UiIHsKICAgICAgICAgICAgICAgIHRhZ3MgIkF6dXJlIEJsb2IgU3RvcmFnZSIKICAgICAgICAgICAgfQogICAgICAgICAgICB3ZWJBcHAgLT4gQmxvYlN0b3JhZ2UgIndyaXRlcyB0byBzdGFydCBvcmNoZXN0cmF0aW9ucyIKICAgICAgICB9CiAgICAgICAgcHJvY2Vzc01hbmFnZXIud2ViQXBwIC0+IHByb2Nlc3NNYW5hZ2VyLmRiICJSZWFkcyBmcm9tIGFuZCB3cml0ZXMgdG8iCiAgICAgICAgcHJvY2Vzc01hbmFnZXIud2ViQXBwIC0+IHByb2Nlc3NNYW5hZ2VyLkJsb2JTdG9yYWdlICJTY2hlZHVhbCBvcmNoZXN0cmF0aW9ucyIKCiAgICAgICAgcHJvY2Vzc01hbmFnZXIub3JjaGVzdHJhdGlvbnMgLT4gcHJvY2Vzc01hbmFnZXIuZGIgIlJlYWRzIGZyb20gYW5kIHdyaXRlcyB0byIKICAgICAgICBwcm9jZXNzTWFuYWdlci5vcmNoZXN0cmF0aW9ucyAtPiBwcm9jZXNzTWFuYWdlci5CbG9iU3RvcmFnZSAiUmVhZHMgZnJvbSBhbmQgd3JpdGVzIHRvLCBpbnRlcm5hbCBzdGF0ZSIKCiAgICB9CgogICAgdmlld3MgewoKICAgICAgICBjb250YWluZXIgcHJvY2Vzc01hbmFnZXIgInByb2Nlc3NfbWFuYWdlciIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICAgICAgYXV0b2xheW91dCBscgogICAgICAgIH0KCiAgICAgICAgc3R5bGVzIHsKICAgICAgICAgICAgZWxlbWVudCAiRWxlbWVudCIgewogICAgICAgICAgICAgICAgY29sb3IgI2ZmZmZmZgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIlBlcnNvbiIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjYmExZTc1CiAgICAgICAgICAgICAgICBzaGFwZSBwZXJzb24KICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJTb2Z0d2FyZSBTeXN0ZW0iIHsKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgI2Q5MjM4OQogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkNvbnRhaW5lciIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjZjgyODljCiAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIGVsZW1lbnQgIkRhdGFiYXNlIiB7CiAgICAgICAgICAgICAgICBzaGFwZSBjeWxpbmRlcgogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQoKICAgIGNvbmZpZ3VyYXRpb24gewogICAgICAgIHNjb3BlIHNvZnR3YXJlc3lzdGVtCiAgICB9Cgp9"
+  },
+  "views" : {
+    "configuration" : {
+      "branding" : { },
+      "lastSavedView" : "process_manager",
+      "metadataSymbols" : "SquareBrackets",
+      "styles" : {
+        "elements" : [ {
+          "color" : "#ffffff",
+          "tag" : "Element"
+        }, {
+          "background" : "#ba1e75",
+          "shape" : "Person",
+          "tag" : "Person"
+        }, {
+          "background" : "#d92389",
+          "tag" : "Software System"
+        }, {
+          "background" : "#f8289c",
+          "tag" : "Container"
+        }, {
+          "shape" : "Cylinder",
+          "tag" : "Database"
+        } ]
+      },
+      "terminology" : { }
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "applied" : true,
+        "edgeSeparation" : 0,
+        "implementation" : "Graphviz",
+        "nodeSeparation" : 300,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 300,
+        "vertices" : false
+      },
+      "dimensions" : {
+        "height" : 1420,
+        "width" : 1640
+      },
+      "elements" : [ {
+        "id" : "2",
+        "x" : 220,
+        "y" : 228
+      }, {
+        "id" : "3",
+        "x" : 220,
+        "y" : 828
+      }, {
+        "id" : "4",
+        "x" : 970,
+        "y" : 828
+      }, {
+        "id" : "5",
+        "x" : 970,
+        "y" : 228
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "process_manager",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "10"
+      }, {
+        "id" : "6",
+        "vertices" : [ {
+          "x" : 820,
+          "y" : 528
+        } ]
+      }, {
+        "id" : "7"
+      }, {
+        "id" : "8",
+        "vertices" : [ {
+          "x" : 820,
+          "y" : 228
+        } ]
+      }, {
+        "id" : "9"
+      } ],
+      "softwareSystemId" : "1"
+    } ]
+  }
+}

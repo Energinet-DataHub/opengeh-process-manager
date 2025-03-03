@@ -30,7 +30,8 @@ public class ProcessManagerMessageClient(
     /// </summary>
     private const string NotifyOrchestrationInstanceSubject = "NotifyOrchestration";
 
-    private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.ProcessManagerTopic);
+    private readonly ServiceBusSender _generalServiceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.ProcessManagerTopic);
+    private readonly ServiceBusSender _brs021ServiceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.Brs021Topic);
 
     public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
         StartOrchestrationInstanceMessageCommand<TInputParameterDto> command,
@@ -127,7 +128,7 @@ public class ProcessManagerMessageClient(
         ServiceBusMessage serviceBusMessage,
         CancellationToken cancellationToken)
     {
-        await _serviceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken)
+        await _generalServiceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken)
             .ConfigureAwait(false);
     }
 }

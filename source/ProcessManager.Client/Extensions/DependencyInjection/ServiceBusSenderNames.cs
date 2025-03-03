@@ -19,10 +19,15 @@ namespace Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection
 /// <summary>
 /// Constants used for naming <see cref="ServiceBusSender"/> instances
 /// </summary>
-public static class ServiceBusSenderNames
+internal static class ServiceBusSenderNames
 {
     /// <summary>
     /// Service Bus sender for sending messages on the process manager service bus topic
     /// </summary>
     public const string ProcessManagerTopic = "ProcessManagerTopic";
+
+    /// <summary>
+    /// Service Bus sender for sending messages on the BRS 021 service bus topic
+    /// </summary>
+    public const string Brs021Topic = "Brs021Topic";
 }

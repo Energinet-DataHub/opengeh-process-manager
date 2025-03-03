@@ -28,4 +28,10 @@ public class ProcessManagerServiceBusClientOptions
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string TopicName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name of the topic which the Process Manager receives BRS-021 service bus messages on
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string Brs021TopicName { get; set; } = string.Empty;
 }

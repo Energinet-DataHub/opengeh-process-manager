@@ -2,7 +2,7 @@
 
 ## Version 1.4.0
 
-- Update NuGet packages.
+- `ActorRequestQuery` now uses `UserIdentityDto` for filtering, and the properties `CreatedByActorNumber` and `CreatedByActorRole` has been removed.
 
 ## Version 1.3.3
 

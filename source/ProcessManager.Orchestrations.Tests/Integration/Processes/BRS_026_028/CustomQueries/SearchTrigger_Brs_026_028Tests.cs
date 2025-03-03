@@ -177,9 +177,7 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
                 ActorRole: energySupplierActorIdentity.ActorRole,
                 UserPermissions: []),
             activatedAtOrLater: now,
-            activatedAtOrEarlier: now.AddMinutes(1),
-            createdByActorNumber: energySupplierActorIdentity.ActorNumber,
-            createdByActorRole: energySupplierActorIdentity.ActorRole);
+            activatedAtOrEarlier: now.AddMinutes(1));
 
         // Act
         var actual = await ProcessManagerClient

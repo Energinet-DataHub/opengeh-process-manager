@@ -38,7 +38,7 @@ internal class SearchActorRequestHandler(
         //
         // NOTICE:
         // The query also carries information about the user executing the query,
-        // so if necessary we can validate their data access.
+        // which we use to validate/filter their data request.
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
@@ -47,13 +47,16 @@ internal class SearchActorRequestHandler(
         var activatedAtOrLater = Instant.FromDateTimeOffset(query.ActivatedAtOrLater);
         var activatedAtOrEarlier = Instant.FromDateTimeOffset(query.ActivatedAtOrEarlier);
 
+        // Admins are allowed to view all actor requests
+        var canViewAllActorRequests = query.OperatingIdentity.UserPermissions.Contains("calculations:manage");
+
         var results = await _queries
             .SearchAsync(
                 query.OrchestrationDescriptionNames,
                 activatedAtOrLater,
                 activatedAtOrEarlier,
-                query.CreatedByActorNumber,
-                query.CreatedByActorRole)
+                createdByActorNumber: canViewAllActorRequests ? null : query.OperatingIdentity.ActorNumber,
+                createdByActorRole: canViewAllActorRequests ? null : query.OperatingIdentity.ActorRole)
             .ConfigureAwait(false);
 
         return results

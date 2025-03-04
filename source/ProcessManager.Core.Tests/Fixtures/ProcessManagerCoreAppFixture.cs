@@ -16,8 +16,6 @@ using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
 
@@ -59,11 +57,6 @@ public class ProcessManagerCoreAppFixture : IAsyncLifetime
         DurableTaskManager = new DurableTaskManager(
             "AzuriteConnectionString",
             AzuriteManager.FullConnectionString);
-
-        ServiceBusResourceProvider = new ServiceBusResourceProvider(
-            ExampleOrchestrationsAppManager.TestLogger,
-            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
-            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -75,19 +68,11 @@ public class ProcessManagerCoreAppFixture : IAsyncLifetime
     [NotNull]
     public IDurableClient? DurableClient { get; private set; }
 
-    [NotNull]
-    public TopicResource? ProcessManagerTopic { get; private set; }
-
-    [NotNull]
-    public TopicResource? EdiTopic { get; private set; }
-
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
     private AzuriteManager AzuriteManager { get; }
 
     private DurableTaskManager DurableTaskManager { get; }
-
-    private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     public async Task InitializeAsync()
     {
@@ -96,20 +81,8 @@ public class ProcessManagerCoreAppFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        var processManagerTopicBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
-        ExampleOrchestrationsAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
-        ProcessManagerAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
-        ProcessManagerTopic = await processManagerTopicBuilder.CreateAsync();
-
-        var ediTopicBuilder = ServiceBusResourceProvider.BuildTopic("edi-topic");
-        EdiTopic = await ediTopicBuilder.CreateAsync();
-
-        await ExampleOrchestrationsAppManager.StartAsync(
-            ExampleOrchestrationsAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic),
-            ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(EdiTopic));
-
-        await ProcessManagerAppManager.StartAsync(
-            ProcessManagerAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic));
+        await ExampleOrchestrationsAppManager.StartAsync(ediTopicResources: null);
+        await ProcessManagerAppManager.StartAsync();
 
         // Create durable client when TaskHub has been created
         DurableClient = DurableTaskManager.CreateClient(taskHubName: TaskHubName);
@@ -121,7 +94,6 @@ public class ProcessManagerCoreAppFixture : IAsyncLifetime
         await ProcessManagerAppManager.DisposeAsync();
         await DurableTaskManager.DisposeAsync();
         await DatabaseManager.DeleteDatabaseAsync();
-        await ServiceBusResourceProvider.DisposeAsync();
 
         AzuriteManager.Dispose();
     }

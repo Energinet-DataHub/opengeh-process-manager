@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Azure.Core;
+using Energinet.DataHub.Core.App.Common.Diagnostics.HealthChecks;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Builder;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
@@ -54,7 +55,8 @@ public static class ProcessManagerTopicExtensions
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.Brs026SubscriptionName,
                 tokenCredentialFactory: _ => credential,
-                name: "BRS-026 Dead-letter")
+                name: "BRS-026 Dead-letter",
+                [HealthChecksConstants.StatusHealthCheckTag])
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.TopicName,
@@ -66,7 +68,8 @@ public static class ProcessManagerTopicExtensions
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.Brs028SubscriptionName,
                 tokenCredentialFactory: _ => credential,
-                name: "BRS-028 Dead-letter");
+                name: "BRS-028 Dead-letter",
+                [HealthChecksConstants.StatusHealthCheckTag]);
 
         return services;
     }

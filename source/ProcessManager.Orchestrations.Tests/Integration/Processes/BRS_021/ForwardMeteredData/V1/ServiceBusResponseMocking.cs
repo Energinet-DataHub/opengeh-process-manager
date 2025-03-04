@@ -25,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 
 public static class ServiceBusResponseMocking
 {
-    public static async Task WaitAndMockServiceBusMessageToAndFromEdi(
+    public static async Task WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
         this ServiceBusListenerMock serviceBusListenerMock,
         IProcessManagerMessageClient processManagerMessageClient,
         Guid orchestrationInstanceId,

@@ -14,13 +14,14 @@
 
 using Azure.Messaging.EventHubs;
 using Energinet.DataHub.Measurements.Contracts;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
-public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
+public class EnqueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
     MeasurementReceivedMeteredDataTriggerHandlerV1 handler)
 {
     private readonly MeasurementReceivedMeteredDataTriggerHandlerV1 _handler = handler;
@@ -28,15 +29,15 @@ public class MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1
     /// <summary>
     /// Enqueue Messages for BRS-021.
     /// </summary>
-    [Function(nameof(MeasurementReceivedMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(EnqueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [EventHubTrigger(
-            $"%{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.NotificationEventHubName)}%",
+            $"%{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.EventHubName)}%",
             Connection = ProcessManagerEventHubOptions.SectionName)]
         EventData[] message)
     {
-        var notify = SubmittedTransactionPersisted.Parser.ParseFrom(message[0].Body.ToArray());
-        if (notify == null)
+        var notify = NotifyBrs021.Parser.ParseFrom(message[0].Body.ToArray());
+        if (notify == null || notify.OrchestrationType != OrchestrationType.OtSubmittedMeasureData)
         {
             throw new InvalidOperationException("Failed to deserialize message");
         }

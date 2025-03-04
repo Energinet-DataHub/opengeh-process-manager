@@ -32,16 +32,10 @@ public static class MeasurementsMeteredDataClientExtensions
     /// <summary>
     /// Register Measurements metered data client.
     /// </summary>
-    public static void AddMeasurementsMeteredDataClient(
+    public static IServiceCollection AddMeasurementsMeteredDataClient(
         this IServiceCollection services,
         TokenCredential azureCredential)
     {
-        // TODO: should be moved!
-        services
-            .AddOptions<ProcessManagerEventHubOptions>()
-            .BindConfiguration(ProcessManagerEventHubOptions.SectionName)
-            .ValidateDataAnnotations();
-
         services
             .AddOptions<MeasurementsMeteredDataClientOptions>()
             .BindConfiguration(MeasurementsMeteredDataClientOptions.SectionName)
@@ -66,5 +60,6 @@ public static class MeasurementsMeteredDataClientExtensions
                 clientFactory: sp => sp.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>().CreateClient(EventHubProducerClientNames.MeasurementsEventHub),
                 name: EventHubProducerClientNames.MeasurementsEventHub,
                 HealthStatus.Unhealthy);
+        return services;
     }
 }

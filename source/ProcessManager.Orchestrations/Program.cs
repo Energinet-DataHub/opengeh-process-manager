@@ -89,7 +89,7 @@ var host = new HostBuilder()
         // Measurements
         services.AddMeasurementsMeteredDataClient(azureCredential);
 
-        services.AddScoped<EdiEnqueuedMeteredDataHandler>()
+        services.AddScoped<TerminateForwardMeteredDataHandlerV1>()
             .AddScoped<MeasurementReceivedMeteredDataTriggerHandlerV1>();
 
         // Wholesale migrations

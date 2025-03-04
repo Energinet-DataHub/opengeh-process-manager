@@ -34,8 +34,8 @@ public class ProcessManagerEventHubOptions
     public string FullyQualifiedNamespace { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the notification event hub name which the Process Manager connects to
+    /// Name of the event hub name which the Process Manager connects to
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string NotificationEventHubName { get; set; } = string.Empty;
+    public string EventHubName { get; set; } = string.Empty;
 }

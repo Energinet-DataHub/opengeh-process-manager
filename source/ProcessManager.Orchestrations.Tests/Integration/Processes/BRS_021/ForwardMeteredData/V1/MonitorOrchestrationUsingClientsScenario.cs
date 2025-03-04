@@ -21,10 +21,8 @@ using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -43,11 +41,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 /// forward metered data flow
 /// </summary>
 [Collection(nameof(OrchestrationsAppCollection))]
-public class MonitorFlowTests : IAsyncLifetime
+public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
     private readonly OrchestrationsAppFixture _fixture;
+    private readonly string _processManagerEventHubProducerClientName = "ProcessManagerEventHubProducerClient";
 
-    public MonitorFlowTests(
+    public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
@@ -75,7 +74,7 @@ public class MonitorFlowTests : IAsyncLifetime
                 = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
 
             // Process Manager Eventhub client to simulate the notification event from measurements
-            [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.NotificationEventHubName)}"]
+            [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.EventHubName)}"]
                 = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
             [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}"]
                 = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
@@ -84,7 +83,11 @@ public class MonitorFlowTests : IAsyncLifetime
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
         services.AddProcessManagerHttpClients();
-        services.AddMeasurementsMeteredDataClient(_fixture.IntegrationTestConfiguration.Credential);
+
+        services
+            .AddOptions<ProcessManagerEventHubOptions>()
+            .BindConfiguration(ProcessManagerEventHubOptions.SectionName)
+            .ValidateDataAnnotations();
 
         // Add event hub producer client for ProcessManagerEventHub to simulate the notification event from measurements
         services.AddAzureClients(
@@ -97,10 +100,10 @@ public class MonitorFlowTests : IAsyncLifetime
                                 .Value;
                             return new EventHubProducerClient(
                                 $"{options.FullyQualifiedNamespace}",
-                                options.NotificationEventHubName,
+                                options.EventHubName,
                                 _fixture.IntegrationTestConfiguration.Credential);
                         })
-                    .WithName("ProcessManagerEventHubProducerClient");
+                    .WithName(_processManagerEventHubProducerClientName);
             });
         ServiceProvider = services.BuildServiceProvider();
     }
@@ -157,16 +160,15 @@ public class MonitorFlowTests : IAsyncLifetime
         var instance = instances.Should().ContainSingle().Subject;
 
         // Wait for eventhub trigger
-        var success = await _fixture.EventHubListener.AssertAndMockEventHubMessageToAndFromMeasurementsAsync(
-            eventHubProducerClient: eventHubClientFactory.CreateClient("ProcessManagerEventHubProducerClient"),
+        var success = await _fixture.EventHubListener.FindEventHubMessageToAndFromMeasurementsAsync(
+            eventHubProducerClient: eventHubClientFactory.CreateClient(_processManagerEventHubProducerClientName),
             orchestrationInstanceId: instance.Id,
-            transactionId: input.TransactionId,
-            shouldSendNotify: true);
+            transactionId: input.TransactionId);
 
         success.Should().Be(true);
 
         // wait for notification from edi.
-        await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
+        await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
             processManagerMessageClient: processManagerMessageClient,
             orchestrationInstanceId: instance.Id,
             messageId: startCommand.ActorMessageId);

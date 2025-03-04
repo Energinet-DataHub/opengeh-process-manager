@@ -385,15 +385,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // brs 21 topic
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.TopicName)}",
             brs21TopicResources.Brs21StartTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}",
             brs21TopicResources.StartSubscription.SubscriptionName);
-
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}",
-            brs21TopicResources.Brs21NotifyTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}",
             brs21TopicResources.NotifySubscription.SubscriptionName);
@@ -435,7 +431,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // Process Manager Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.NotificationEventHubName)}",
+            $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.EventHubName)}",
             processManagerEventhubResource.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}",

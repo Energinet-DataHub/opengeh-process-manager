@@ -21,9 +21,9 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
 public class NotifyTrigger_Brs_021_ForwardMeteredData_V1(
-    EdiEnqueuedMeteredDataHandler ediEnqueuedMeteredDataHandler)
+    TerminateForwardMeteredDataHandlerV1 terminateForwardMeteredDataHandlerV1)
 {
-    private readonly EdiEnqueuedMeteredDataHandler _ediEnqueuedMeteredDataHandler = ediEnqueuedMeteredDataHandler;
+    private readonly TerminateForwardMeteredDataHandlerV1 _terminateForwardMeteredDataHandlerV1 = terminateForwardMeteredDataHandlerV1;
 
     /// <summary>
     /// Terminate a BRS-021 ForwardMeteredData.
@@ -31,17 +31,18 @@ public class NotifyTrigger_Brs_021_ForwardMeteredData_V1(
     [Function(nameof(NotifyTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ServiceBusTrigger(
-            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}%",
+            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.TopicName)}%",
             $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         string message)
     {
-        // TODO: Correct type for which to deserialize to
-        var notification = NotifyOrchestrationInstanceV1.Parser.ParseJson(message);
-        //var notification = JsonConvert.DeserializeObject<NotifyOrchestrationInstanceV1>(message);
-        if (notification == null) throw new InvalidOperationException("Failed to deserialize message");
+        var notify = NotifyOrchestrationInstanceV1.Parser.ParseJson(message);
+        if (notify == null || notify.EventName != nameof(NotifyTrigger_Brs_021_ForwardMeteredData_V1))
+        {
+            throw new InvalidOperationException("Failed to deserialize message");
+        }
 
-        var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notification.OrchestrationInstanceId));
-        await _ediEnqueuedMeteredDataHandler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
+        var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notify.OrchestrationInstanceId));
+        await _terminateForwardMeteredDataHandlerV1.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
     }
 }

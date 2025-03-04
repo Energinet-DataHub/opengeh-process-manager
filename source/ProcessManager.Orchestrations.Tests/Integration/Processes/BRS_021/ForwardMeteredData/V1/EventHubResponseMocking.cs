@@ -23,12 +23,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 
 public static class EventHubResponseMocking
 {
-    public static async Task<bool> AssertAndMockEventHubMessageToAndFromMeasurementsAsync(
+    public static async Task<bool> FindEventHubMessageToAndFromMeasurementsAsync(
         this EventHubListenerMock eventHubListenerMock,
         EventHubProducerClient eventHubProducerClient,
         Guid orchestrationInstanceId,
-        string transactionId,
-        bool shouldSendNotify = false)
+        string transactionId)
     {
         var passableEvents = eventHubListenerMock.ReceivedEvents.Where(
             e => PersistSubmittedTransaction.Parser.ParseFrom(e.Body.ToArray()) != null);
@@ -42,22 +41,14 @@ public static class EventHubResponseMocking
         if (!orchestrationIdMatches || !transactionIdMatches)
             return false;
 
-        EventData? data;
-        if (shouldSendNotify)
+        var notify = new NotifyBrs021()
         {
-            var notify = new SubmittedTransactionPersisted()
-            {
-                Version = "1",
-                OrchestrationInstanceId = persistedTransaction.OrchestrationInstanceId,
-                OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
-            };
+            Version = "1",
+            OrchestrationInstanceId = persistedTransaction.OrchestrationInstanceId,
+            OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
+        };
 
-            data = new EventData(notify.ToByteArray());
-        }
-        else
-        {
-            data = new EventData(persistedTransaction.ToByteArray());
-        }
+        var data = new EventData(notify.ToByteArray());
 
         await eventHubProducerClient.SendAsync([data], CancellationToken.None);
         return true;

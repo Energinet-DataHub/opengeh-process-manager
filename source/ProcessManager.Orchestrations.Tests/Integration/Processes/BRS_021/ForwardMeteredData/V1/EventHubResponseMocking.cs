@@ -41,7 +41,7 @@ public static class EventHubResponseMocking
         if (!orchestrationIdMatches || !transactionIdMatches)
             return false;
 
-        var notify = new NotifyBrs021()
+        var notify = new SubmittedTransactionsNotification()
         {
             Version = "1",
             OrchestrationInstanceId = persistedTransaction.OrchestrationInstanceId,

@@ -20,7 +20,7 @@ import "Processes/BRS_021/ForwardMeteredData/Measurements/Contracts/Orchestratio
 
 option csharp_namespace = "Energinet.DataHub.Measurements.Contracts";
 
-message NotifyBrs021 {
+message SubmittedTransactionsNotification {
   string version = 1;
   string orchestration_instance_id = 2;
   OrchestrationType orchestration_type = 3;

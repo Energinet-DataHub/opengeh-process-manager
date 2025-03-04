@@ -14,7 +14,6 @@
 
 using Azure.Messaging.EventHubs;
 using Energinet.DataHub.Measurements.Contracts;
-using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
@@ -33,10 +32,11 @@ public class EnqueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
     public async Task Run(
         [EventHubTrigger(
             $"%{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.EventHubName)}%",
+            IsBatched = false,
             Connection = ProcessManagerEventHubOptions.SectionName)]
-        EventData[] message)
+        EventData message)
     {
-        var notify = NotifyBrs021.Parser.ParseFrom(message[0].Body.ToArray());
+        var notify = SubmittedTransactionsNotification.Parser.ParseFrom(message.EventBody);
         if (notify == null || notify.OrchestrationType != OrchestrationType.OtSubmittedMeasureData)
         {
             throw new InvalidOperationException("Failed to deserialize message");

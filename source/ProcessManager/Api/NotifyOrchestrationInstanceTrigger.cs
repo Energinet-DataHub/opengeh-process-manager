@@ -24,12 +24,12 @@ using Newtonsoft.Json;
 
 namespace Energinet.DataHub.ProcessManager.Api;
 
-public class NotifyOrchestrationInstanceTriggerV2(
+public class NotifyOrchestrationInstanceTrigger(
     INotifyOrchestrationInstanceCommands notifyOrchestrationCommands)
 {
     private readonly INotifyOrchestrationInstanceCommands _notifyOrchestrationCommands = notifyOrchestrationCommands;
 
-    [Function(nameof(NotifyOrchestrationInstanceTriggerV2))]
+    [Function(nameof(NotifyOrchestrationInstanceTrigger))]
     public Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerNotifyTopicOptions.SectionName}:{nameof(ProcessManagerNotifyTopicOptions.TopicName)}%",

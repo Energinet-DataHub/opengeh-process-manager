@@ -47,4 +47,9 @@ public interface IOrchestrationInstanceTypedDto<out TInputParameterDto>
     /// A value used by the Process Manager to ensure idempotency for a message command.
     /// </summary>
     string? IdempotencyKey { get; }
+
+    /// <summary>
+    /// The custom state of the orchestration instance represented as a JSON string.
+    /// </summary>
+    string CustomState { get; }
 }

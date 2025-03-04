@@ -15,7 +15,6 @@
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Extensions.Azure;
 
@@ -30,7 +29,7 @@ public class ProcessManagerMessageClient(
     /// </summary>
     private const string NotifyOrchestrationInstanceSubject = "NotifyOrchestration";
 
-    private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.ProcessManagerTopic);
+    private readonly IAzureClientFactory<ServiceBusSender> _serviceBusFactory = serviceBusFactory;
 
     public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
         StartOrchestrationInstanceMessageCommand<TInputParameterDto> command,
@@ -40,6 +39,7 @@ public class ProcessManagerMessageClient(
         var serviceBusMessage = CreateStartOrchestrationInstanceServiceBusMessage(command);
 
         return SendServiceBusMessage(
+                command.SenderRouteName,
                 serviceBusMessage,
                 cancellationToken);
     }
@@ -53,6 +53,7 @@ public class ProcessManagerMessageClient(
             data: null);
 
         return SendServiceBusMessage(
+            notifyEvent.SenderRouteName,
             serviceBusMessage,
             cancellationToken);
     }
@@ -67,6 +68,7 @@ public class ProcessManagerMessageClient(
             data: notifyEvent.Data);
 
         return SendServiceBusMessage(
+            notifyEvent.SenderRouteName,
             serviceBusMessage,
             cancellationToken);
     }
@@ -124,10 +126,12 @@ public class ProcessManagerMessageClient(
     }
 
     private async Task SendServiceBusMessage(
+        string senderRouteName,
         ServiceBusMessage serviceBusMessage,
         CancellationToken cancellationToken)
     {
-        await _serviceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken)
+        var serviceBusSender = _serviceBusFactory.CreateClient(senderRouteName);
+        await serviceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken)
             .ConfigureAwait(false);
     }
 }

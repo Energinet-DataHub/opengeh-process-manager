@@ -84,17 +84,25 @@ public static class ClientExtensions
         services.AddAzureClients(
             builder =>
             {
-                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
-                    (_, _, provider) =>
+                builder
+                    .AddClient<ServiceBusSender, ServiceBusClientOptions>((_, _, provider) =>
                     {
-                        var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
-                        var serviceBusSender = provider
+                        var options = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
+                        return provider
                             .GetRequiredService<ServiceBusClient>()
-                            .CreateSender(serviceBusOptions.TopicName);
-
-                        return serviceBusSender;
+                            .CreateSender(options.TopicName);
                     })
                     .WithName(ServiceBusSenderNames.ProcessManagerTopic);
+
+                builder
+                    .AddClient<ServiceBusSender, ServiceBusClientOptions>((_, _, provider) =>
+                    {
+                        var options = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
+                        return provider
+                            .GetRequiredService<ServiceBusClient>()
+                            .CreateSender(options.Brs021TopicName);
+                    })
+                    .WithName(ServiceBusSenderNames.Brs021Topic);
             });
 
         services.AddScoped<IProcessManagerMessageClient, ProcessManagerMessageClient>();

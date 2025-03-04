@@ -30,13 +30,30 @@ public class StartTrigger_Brs_026_V1(
     private readonly RequestCalculatedEnergyTimeSeriesHandlerV1 _handler = handler;
 
     /// <summary>
+    /// TODO: Delete when "StartTrigger_Brs_026_V1" is used from other subsystems
+    ///
+    /// Start a BRS-026 request.
+    /// </summary>
+    [Function("StartTrigger_Brs_026_V1_Obsolete")]
+    public async Task RunObsolete(
+        [ServiceBusTrigger(
+            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",
+            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}%",
+            Connection = ServiceBusNamespaceOptions.SectionName)]
+        ServiceBusReceivedMessage message)
+    {
+        await _handler.HandleAsync(message)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Start a BRS-026 request.
     /// </summary>
     [Function(nameof(StartTrigger_Brs_026_V1))]
     public async Task Run(
         [ServiceBusTrigger(
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}%",
+            $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.TopicName)}%",
+            $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.Brs026SubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {

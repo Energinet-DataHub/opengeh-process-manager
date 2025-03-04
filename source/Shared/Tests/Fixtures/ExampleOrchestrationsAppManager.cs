@@ -261,20 +261,20 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
             AuthenticationOptionsForTests.Issuer);
 
-        // => Process Manager topic
+        // => Process Manager Start topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.TopicName)}",
+            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.TopicName)}",
             processManagerTopicResources.ProcessManagerTopic.Name);
 
-        // => Process Manager topic subscriptions
+        // => Process Manager Start topic -> subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.BrsX02SubscriptionName)}",
+            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX02SubscriptionName)}",
             processManagerTopicResources.BrsX02Subscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.BrsX03SubscriptionName)}",
+            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX03SubscriptionName)}",
             processManagerTopicResources.BrsX03Subscription.SubscriptionName);
 
         // => Edi topic

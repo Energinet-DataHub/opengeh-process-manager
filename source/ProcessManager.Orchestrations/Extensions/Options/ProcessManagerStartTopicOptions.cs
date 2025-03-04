@@ -29,19 +29,19 @@ public class ProcessManagerStartTopicOptions
     public const string SectionName = "ProcessManagerStartTopic";
 
     /// <summary>
-    /// Name of the ProcessManager Service Bus topic
+    /// Name of the Process Manager Start topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string TopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription for BRS026 to the ProcessManager Service Bus topic
+    /// Name of the subscription for BRS026 to the Process Manager Start topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string Brs026SubscriptionName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription for BRS026 to the ProcessManager Service Bus topic
+    /// Name of the subscription for BRS026 to the Process Manager Start topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string Brs028SubscriptionName { get; set; } = string.Empty;

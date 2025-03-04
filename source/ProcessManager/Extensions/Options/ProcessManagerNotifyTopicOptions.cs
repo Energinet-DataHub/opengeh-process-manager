@@ -29,7 +29,7 @@ public class ProcessManagerNotifyTopicOptions
     public const string SectionName = "ProcessManagerNotifyTopic";
 
     /// <summary>
-    /// Name of the Process Manager Notify topic
+    /// Name of the Process Manager Notify topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string TopicName { get; set; } = string.Empty;

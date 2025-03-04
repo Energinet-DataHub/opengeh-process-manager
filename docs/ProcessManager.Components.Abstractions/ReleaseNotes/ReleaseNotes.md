@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 1.3.4
+
+- Update dependent NuGet package.
+
 ## Version 1.3.3
 
 - Update NuGet packages.

@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.InternalProcesses.MigrateCalculationsFromWholesale.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
@@ -38,7 +39,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
 
     public static SerializedValueType GetCustomState(Guid wholesaleCalculationId)
     {
-        return SerializedValueType.CreateWithValue(new CustomState(wholesaleCalculationId));
+        return SerializedValueType.CreateWithValue(new MigrateCalculationsFromWholesaleCustomStateV1(wholesaleCalculationId));
     }
 
     [Function(nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1))]
@@ -130,7 +131,7 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
             wholesaleCalculation.ScheduledAt,
             skipStepsBySequence);
 
-        orchestrationInstance.CustomState.SetFromInstance(new CustomState(wholesaleCalculation.Id));
+        orchestrationInstance.CustomState.SetFromInstance(new MigrateCalculationsFromWholesaleCustomStateV1(wholesaleCalculation.Id));
 
         var calculationInput = new CalculationInputV1(
             CalculationType: ToCalculationType(wholesaleCalculation.CalculationType),
@@ -182,7 +183,4 @@ internal class MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1(
 
     public record ActivityInput(
         Guid CalculationToMigrateId);
-
-    public record CustomState(
-        Guid MigratedWholesaleCalculationId);
 }

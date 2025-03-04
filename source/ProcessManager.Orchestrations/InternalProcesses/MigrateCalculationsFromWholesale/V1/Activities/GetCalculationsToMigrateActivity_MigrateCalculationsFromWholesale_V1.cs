@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.InternalProcesses.MigrateCalculationsFromWholesale.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Models;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 using Microsoft.Azure.Functions.Worker;
@@ -43,7 +44,7 @@ internal class GetCalculationsToMigrateActivity_MigrateCalculationsFromWholesale
             .ConfigureAwait(false);
 
         var alreadyMigratedCalculationIds = alreadyMigratedCalculations
-            .Select(oi => oi.CustomState.AsType<MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState>())
+            .Select(oi => oi.CustomState.AsType<MigrateCalculationsFromWholesaleCustomStateV1>())
             .Select(cs => cs.MigratedWholesaleCalculationId)
             .ToList();
 

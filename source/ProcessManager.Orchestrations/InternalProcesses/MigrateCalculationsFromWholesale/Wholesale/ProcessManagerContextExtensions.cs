@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.InternalProcesses.MigrateCalculationsFromWholesale.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,6 @@ public static class ProcessManagerContextExtensions
             .AsNoTracking()
             .Where(
                 oi => oi.CustomState.SerializedValue
-                    .Contains(nameof(MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState.MigratedWholesaleCalculationId)));
+                    .Contains(nameof(MigrateCalculationsFromWholesaleCustomStateV1.MigratedWholesaleCalculationId)));
     }
 }

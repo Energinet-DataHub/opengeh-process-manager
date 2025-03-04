@@ -14,9 +14,9 @@
 
 using Azure.Core;
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.Messaging.Communication.Extensions.Builder;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Extensions.Options;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -55,7 +55,13 @@ public static class ServiceBusExtensions
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<NotifyOrchestrationInstanceOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<NotifyOrchestrationInstanceOptions>>().Value.NotifyOrchestrationInstanceSubscriptionName,
                 tokenCredentialFactory: _ => azureCredential,
-                name: "NotifyOrchestrationInstance Subscription");
+                name: "NotifyOrchestrationInstance Subscription")
+            .AddServiceBusTopicSubscriptionDeadLetter(
+                fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<NotifyOrchestrationInstanceOptions>>().Value.TopicName,
+                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<NotifyOrchestrationInstanceOptions>>().Value.NotifyOrchestrationInstanceSubscriptionName,
+                tokenCredentialFactory: _ => azureCredential,
+                name: "NotifyOrchestrationInstance Dead-letter");
 
         return serviceCollection;
     }

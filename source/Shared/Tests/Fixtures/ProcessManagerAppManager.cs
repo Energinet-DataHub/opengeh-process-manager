@@ -109,8 +109,8 @@ public class ProcessManagerAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        var obsoleteNotifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
-        var notifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        var obsoleteNotifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider, "pm-notify-topic-obsolete");
+        var notifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider, "pm-notify-topic");
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings("ProcessManager", notifyTopicResources, obsoleteNotifyTopicResources);
@@ -279,9 +279,11 @@ public class ProcessManagerAppManager : IAsyncDisposable
     {
         private const string NotifySubscriptionName = "notify-subscription";
 
-        internal static async Task<ProcessManagerTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<ProcessManagerTopicResources> CreateNewAsync(
+            ServiceBusResourceProvider serviceBusResourceProvider,
+            string topicNamePrefix)
         {
-            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-notify-topic");
+            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic(topicNamePrefix);
             AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
 
             var processManagerTopic = await processManagerTopicBuilder.CreateAsync();

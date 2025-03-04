@@ -30,10 +30,10 @@ public static class EventHubResponseMocking
         string transactionId)
     {
         var passableEvents = eventHubListenerMock.ReceivedEvents.Where(
-            e => PersistSubmittedTransaction.Parser.ParseFrom(e.Body.ToArray()) != null);
+            e => PersistSubmittedTransaction.Parser.ParseFrom(e.EventBody) != null);
         var passableEvent = passableEvents.Should().ContainSingle().Subject;
 
-        var persistedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(passableEvent.Body.ToArray());
+        var persistedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(passableEvent.EventBody);
 
         var orchestrationIdMatches = persistedTransaction.OrchestrationInstanceId == orchestrationInstanceId.ToString();
         var transactionIdMatches = persistedTransaction.TransactionId == transactionId;

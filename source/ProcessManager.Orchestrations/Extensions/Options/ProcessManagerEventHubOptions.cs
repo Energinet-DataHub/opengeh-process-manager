@@ -34,12 +34,6 @@ public class ProcessManagerEventHubOptions
     public string FullyQualifiedNamespace { get; set; } = string.Empty;
 
     /// <summary>
-    /// The namespace name of the event hub which the Process Manager connects to
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string NamespaceName { get; set; } = string.Empty;
-
-    /// <summary>
     /// Name of the notification event hub name which the Process Manager connects to
     /// </summary>
     [Required(AllowEmptyStrings = false)]

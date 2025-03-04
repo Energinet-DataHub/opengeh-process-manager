@@ -69,18 +69,14 @@ public class MonitorFlowTests : IAsyncLifetime
                 = _fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
 
             // Measurements Eventhub client
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}"]
-                = _fixture.IntegrationTestConfiguration.EventHubNamespaceName,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"]
-                = _fixture.OrchestrationsAppManager.EventHubName,
+                = _fixture.OrchestrationsAppManager.MeasurementEventHubName,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"]
                 = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
 
-            // Process Manager Eventhub client
-            [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.NamespaceName)}"]
-                = _fixture.IntegrationTestConfiguration.EventHubNamespaceName,
+            // Process Manager Eventhub client to simulate the notification event from measurements
             [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.NotificationEventHubName)}"]
-                = _fixture.OrchestrationsAppManager.EventHubName,
+                = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
             [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}"]
                 = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
         });
@@ -89,35 +85,22 @@ public class MonitorFlowTests : IAsyncLifetime
         services.AddProcessManagerMessageClient();
         services.AddProcessManagerHttpClients();
         services.AddMeasurementsMeteredDataClient(_fixture.IntegrationTestConfiguration.Credential);
-        services.AddAzureClients(
-            builder =>
-            {
-                builder.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
-                        (_, _, provider) =>
-                        {
-                            var options = provider.GetRequiredService<IOptions<MeasurementsMeteredDataClientOptions>>().Value;
-                            return new EventHubProducerClient(
-                                $"{options.FullyQualifiedNamespace}",
-                                options.EventHubName,
-                                _fixture.IntegrationTestConfiguration.Credential);
-                        })
-                    .WithName(EventHubProducerClientNames.MeasurementsEventHub);
-            });
 
-        // TODO: Remove this after performance test
+        // Add event hub producer client for ProcessManagerEventHub to simulate the notification event from measurements
         services.AddAzureClients(
             builder =>
             {
                 builder.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
                         (_, _, provider) =>
                         {
-                            var options = provider.GetRequiredService<IOptions<ProcessManagerEventHubOptions>>().Value;
+                            var options = provider.GetRequiredService<IOptions<ProcessManagerEventHubOptions>>()
+                                .Value;
                             return new EventHubProducerClient(
                                 $"{options.FullyQualifiedNamespace}",
                                 options.NotificationEventHubName,
                                 _fixture.IntegrationTestConfiguration.Credential);
                         })
-                    .WithName(EventHubProducerClientNames.ProcessManagerEventHub);
+                    .WithName("ProcessManagerEventHubProducerClient");
             });
         ServiceProvider = services.BuildServiceProvider();
     }
@@ -172,13 +155,10 @@ public class MonitorFlowTests : IAsyncLifetime
 
         var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
         var instance = instances.Should().ContainSingle().Subject;
-        /************************************************************************************************/
-        /* The following should be added, when the process manager does not send instructions to itself */
-        /************************************************************************************************ /
 
         // Wait for eventhub trigger
         var success = await _fixture.EventHubListener.AssertAndMockEventHubMessageToAndFromMeasurementsAsync(
-            eventHubProducerClient: eventHubClientFactory.CreateClient(ProcessManagerEventHubName),
+            eventHubProducerClient: eventHubClientFactory.CreateClient("ProcessManagerEventHubProducerClient"),
             orchestrationInstanceId: instance.Id,
             transactionId: input.TransactionId,
             shouldSendNotify: true);
@@ -190,10 +170,7 @@ public class MonitorFlowTests : IAsyncLifetime
             processManagerMessageClient: processManagerMessageClient,
             orchestrationInstanceId: instance.Id,
             messageId: startCommand.ActorMessageId);
-        */
-        /******************************/
-        /* The "following" stops here */
-        /******************************/
+
         await Task.Delay(TimeSpan.FromSeconds(5));
 
         var instancesAfterEnqueue = await processManagerClient.SearchOrchestrationInstancesByNameAsync(

@@ -32,8 +32,15 @@ public static class MeasurementsMeteredDataClientExtensions
     /// <summary>
     /// Register Measurements metered data client.
     /// </summary>
-    public static IServiceCollection AddMeasurementsMeteredDataClient(this IServiceCollection services, TokenCredential azureCredential)
+    public static void AddMeasurementsMeteredDataClient(
+        this IServiceCollection services,
+        TokenCredential azureCredential)
     {
+        services
+            .AddOptions<ProcessManagerEventHubOptions>()
+            .BindConfiguration(ProcessManagerEventHubOptions.SectionName)
+            .ValidateDataAnnotations();
+
         services
             .AddOptions<MeasurementsMeteredDataClientOptions>()
             .BindConfiguration(MeasurementsMeteredDataClientOptions.SectionName)
@@ -46,27 +53,9 @@ public static class MeasurementsMeteredDataClientExtensions
                         (_, _, provider) =>
                         {
                             var options = provider.GetRequiredService<IOptions<MeasurementsMeteredDataClientOptions>>().Value;
-                            return new EventHubProducerClient($"{options.NamespaceName}.servicebus.windows.net", options.EventHubName, azureCredential);
+                            return new EventHubProducerClient($"{options.FullyQualifiedNamespace}", options.EventHubName, azureCredential);
                         })
                     .WithName(EventHubProducerClientNames.MeasurementsEventHub);
-            });
-
-        // TODO: Remove this after performance test
-        services
-            .AddOptions<ProcessManagerEventHubOptions>()
-            .BindConfiguration(ProcessManagerEventHubOptions.SectionName)
-            .ValidateDataAnnotations();
-
-        services.AddAzureClients(
-            builder =>
-            {
-                builder.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
-                        (_, _, provider) =>
-                        {
-                            var options = provider.GetRequiredService<IOptions<ProcessManagerEventHubOptions>>().Value;
-                            return new EventHubProducerClient($"{options.NamespaceName}.servicebus.windows.net", options.NotificationEventHubName, azureCredential);
-                        })
-                    .WithName(EventHubProducerClientNames.ProcessManagerEventHub);
             });
 
         services.AddTransient<IMeasurementsMeteredDataClient, MeasurementsMeteredDataClient>();
@@ -76,6 +65,5 @@ public static class MeasurementsMeteredDataClientExtensions
                 clientFactory: sp => sp.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>().CreateClient(EventHubProducerClientNames.MeasurementsEventHub),
                 name: EventHubProducerClientNames.MeasurementsEventHub,
                 HealthStatus.Unhealthy);
-        return services;
     }
 }

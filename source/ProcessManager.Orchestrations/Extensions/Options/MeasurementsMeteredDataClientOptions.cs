@@ -26,17 +26,8 @@ public class MeasurementsMeteredDataClientOptions
     /// <summary>
     /// The fully qualified namespace of the event hub which the Process Manager sends events on
     /// </summary>
-    /// <remarks>
-    /// This is nearly the same as "NamespaceName"
-    /// </remarks>
     [Required(AllowEmptyStrings = false)]
     public string FullyQualifiedNamespace { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The namespace name of the event hub which the Process Manager sends events on
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string NamespaceName { get; set; } = string.Empty;
 
     /// <summary>
     /// Name of the event hub which the Process Manager sends events on

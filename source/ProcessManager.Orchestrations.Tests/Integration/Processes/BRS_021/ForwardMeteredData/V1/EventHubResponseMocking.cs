@@ -37,9 +37,9 @@ public static class EventHubResponseMocking
         var persistedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(passableEvent.Body.ToArray());
 
         var orchestrationIdMatches = persistedTransaction.OrchestrationInstanceId == orchestrationInstanceId.ToString();
-        var transactionIdIdMatches = persistedTransaction.TransactionId == transactionId;
+        var transactionIdMatches = persistedTransaction.TransactionId == transactionId;
 
-        if (!orchestrationIdMatches || !transactionIdIdMatches)
+        if (!orchestrationIdMatches || !transactionIdMatches)
             return false;
 
         EventData? data;

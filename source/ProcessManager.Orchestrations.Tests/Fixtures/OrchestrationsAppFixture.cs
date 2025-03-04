@@ -54,7 +54,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             manageAzurite: false,
             // TODO (ID-283)
             environment: "IntegrationTests",
-            eventHubName: MeasurementEventHubName);
+            measurementMeasurementEventHubName: MeasurementEventHubName);
 
         ProcessManagerAppManager = new ProcessManagerAppManager(
             DatabaseManager,
@@ -187,7 +187,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         EventHubListener = new EventHubListenerMock(
             new TestDiagnosticsLogger(),
             IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
-            eventHubName: OrchestrationsAppManager.EventHubName,
+            eventHubName: OrchestrationsAppManager.MeasurementEventHubName,
             AzuriteManager.BlobStorageServiceUri,
             blobContainerName: "container-01",
             IntegrationTestConfiguration.Credential);

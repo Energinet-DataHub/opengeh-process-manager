@@ -58,7 +58,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private readonly bool _manageAzurite;
     // TODO (ID-283)
     private readonly string? _environment;
-    private readonly string _eventHubName;
+    private readonly string _measurementEventHubName;
 
     public OrchestrationsAppManager()
         : this(
@@ -72,7 +72,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             manageAzurite: true,
             // TODO (ID-283)
             environment: null,
-            eventHubName: "eventhub_pm")
+            measurementMeasurementEventHubName: "eventhub_measurement")
     {
     }
 
@@ -87,7 +87,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         bool manageAzurite,
         // TODO (ID-283)
         string? environment,
-        string eventHubName)
+        string measurementMeasurementEventHubName)
     {
         _taskHubName = string.IsNullOrWhiteSpace(taskHubName)
             ? throw new ArgumentException("Cannot be null or whitespace.", nameof(taskHubName))
@@ -97,7 +97,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         _manageAzurite = manageAzurite;
         // TODO (ID-283)
         _environment = environment;
-        _eventHubName = eventHubName;
+        _measurementEventHubName = measurementMeasurementEventHubName;
 
         DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();
@@ -128,7 +128,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public FunctionAppHostManager? AppHostManager { get; private set; }
 
     [NotNull]
-    public string? EventHubName { get; private set; }
+    public string? MeasurementEventHubName { get; private set; }
 
     [NotNull]
     public string? ProcessManagerEventhubName { get; private set; }
@@ -167,10 +167,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        var eventHubResource = await EventHubResourceProvider.BuildEventHub(_eventHubName).CreateAsync();
-        EventHubName = eventHubResource.Name;
+        var measurementEventHubResource = await EventHubResourceProvider.BuildEventHub(_measurementEventHubName).CreateAsync();
+        MeasurementEventHubName = measurementEventHubResource.Name;
 
-        // TODO: Consider making variable for this
         var processManagerEventhubResource = await EventHubResourceProvider.BuildEventHub("process-manager-event-hub").CreateAsync();
         ProcessManagerEventhubName = processManagerEventhubResource.Name;
 
@@ -189,7 +188,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             ediTopicResources,
             brs21TopicResource,
             integrationEventTopicResources,
-            eventHubResource,
+            measurementEventHubResource,
             processManagerEventhubResource);
 
         // Create and start host
@@ -436,9 +435,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // Process Manager Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.NamespaceName)}",
-            IntegrationTestConfiguration.EventHubNamespaceName);
-        appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.NotificationEventHubName)}",
             processManagerEventhubResource.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -447,11 +443,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // Measurements Metered Data Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}",
-            IntegrationTestConfiguration.EventHubNamespaceName);
-        appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
-            processManagerEventhubResource.Name);
+            MeasurementEventHubName);
         /***************************************/
         /*        enforce stops here           */
         /***************************************/

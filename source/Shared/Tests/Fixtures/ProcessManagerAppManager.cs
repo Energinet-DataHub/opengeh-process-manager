@@ -180,7 +180,10 @@ public class ProcessManagerAppManager : IAsyncDisposable
 #endif
     }
 
-    private FunctionAppHostSettings CreateAppHostSettings(string csprojName, ProcessManagerTopicResources notifyTopicResources, ProcessManagerTopicResources obsoleteNotifyTopicResources)
+    private FunctionAppHostSettings CreateAppHostSettings(
+        string csprojName,
+        ProcessManagerTopicResources notifyTopicResources,
+        ProcessManagerTopicResources obsoleteNotifyTopicResources)
     {
         var buildConfiguration = GetBuildConfiguration();
 

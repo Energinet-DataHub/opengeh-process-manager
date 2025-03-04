@@ -57,6 +57,11 @@ public abstract record StartOrchestrationInstanceMessageCommand<TInputParameterD
     }
 
     /// <summary>
+    /// A sender name used to route the request to the correct trigger.
+    /// </summary>
+    public virtual string SenderRouteName => "ProcessManagerTopic";
+
+    /// <summary>
     /// A value used by the Process Manager to ensure idempotency for a message command.
     /// The producer of the <see cref="StartOrchestrationInstanceMessageCommand{TInputParameterDto}"/> should
     /// create a key that is unique per command.

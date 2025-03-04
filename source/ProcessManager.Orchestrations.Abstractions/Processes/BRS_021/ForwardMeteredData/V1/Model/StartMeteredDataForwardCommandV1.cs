@@ -46,4 +46,6 @@ public record StartForwardMeteredDataCommandV1
                 inputParameter.MeteringPointId)
     {
     }
+
+    public override string SenderRouteName => "Brs021Topic";
 }

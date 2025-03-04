@@ -19,9 +19,11 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// </summary>
 /// <param name="OrchestrationInstanceId">The orchestration instance id to notify</param>
 /// <param name="EventName">The notify event name (an example could be "EnqueueMessagesCompleted").</param>
+/// <param name="SenderRouteName">A sender name used to route the request to the correct trigger.</param>
 public record NotifyOrchestrationInstanceEvent(
     string OrchestrationInstanceId,
-    string EventName) : IOrchestrationInstanceRequest;
+    string EventName,
+    string SenderRouteName = "ProcessManagerTopic") : IOrchestrationInstanceRequest;
 
 /// <summary>
 /// Event (with data) for notifying to an orchestration instance.
@@ -35,4 +37,6 @@ public record NotifyOrchestrationInstanceEvent<TNotifyData>(
     string EventName,
     TNotifyData Data)
         : NotifyOrchestrationInstanceEvent(OrchestrationInstanceId, EventName)
-        where TNotifyData : INotifyDataDto;
+        where TNotifyData : INotifyDataDto
+{
+}

@@ -25,7 +25,7 @@ public class ProcessManagerNotifyTopicOptions
     /// <summary>
     /// Name of the section in the <see cref="IConfiguration"/> / appsettings.json file
     /// </summary>
-    public const string SectionName = "NotifyOrchestrationInstanceV2";
+    public const string SectionName = "ProcessManagerNotifyTopic";
 
     /// <summary>
     /// Name of the Process Manager Notify topic

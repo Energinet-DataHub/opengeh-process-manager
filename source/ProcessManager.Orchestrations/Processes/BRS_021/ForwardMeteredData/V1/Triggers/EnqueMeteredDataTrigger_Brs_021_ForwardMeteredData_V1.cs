@@ -36,7 +36,7 @@ public class EnqueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
             Connection = ProcessManagerEventHubOptions.SectionName)]
         EventData message)
     {
-        var notify = SubmittedTransactionsNotification.Parser.ParseFrom(message.EventBody);
+        var notify = SubmittedTransactionsNotification.Parser.ParseFrom(message.EventBody.ToArray());
         if (notify == null || notify.OrchestrationType != OrchestrationType.OtSubmittedMeasureData)
         {
             throw new InvalidOperationException("Failed to deserialize message");

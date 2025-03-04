@@ -24,7 +24,7 @@ using Newtonsoft.Json;
 
 namespace Energinet.DataHub.ProcessManager.Api;
 
-// TODO: Delete when "V2" is released
+// TODO: Delete when "NotifyOrchestrationInstanceTrigger" is used from other subsystems
 public class NotifyOrchestrationInstanceTriggerObsolete(
     INotifyOrchestrationInstanceCommands notifyOrchestrationCommands)
 {

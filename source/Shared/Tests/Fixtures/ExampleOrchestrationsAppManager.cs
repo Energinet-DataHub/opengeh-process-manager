@@ -108,10 +108,8 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     /// <summary>
     /// Start the example orchestration app.
     /// </summary>
-    /// <param name="processManagerTopicResources">Process Manager topic resources used by the app. Will be created if not provided.</param>
     /// <param name="ediTopicResources">EDI topic resources used by the app. Will be created if not provided.</param>
     public async Task StartAsync(
-        ProcessManagerTopicResources? processManagerTopicResources,
         EdiTopicResources? ediTopicResources)
     {
         if (_manageAzurite)
@@ -123,13 +121,13 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
+        var startTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Example.Orchestrations",
-            processManagerTopicResources,
+            startTopicResources,
             ediTopicResources);
 
         // Create and start host
@@ -199,7 +197,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        ProcessManagerTopicResources processManagerTopicResources,
+        ProcessManagerTopicResources startTopicResources,
         EdiTopicResources ediTopicResources)
     {
         var buildConfiguration = GetBuildConfiguration();
@@ -267,15 +265,15 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.TopicName)}",
-            processManagerTopicResources.ProcessManagerTopic.Name);
+            startTopicResources.StartTopic.Name);
 
         // => Process Manager Start topic -> subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX02SubscriptionName)}",
-            processManagerTopicResources.BrsX02Subscription.SubscriptionName);
+            startTopicResources.BrsX02Subscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX03SubscriptionName)}",
-            processManagerTopicResources.BrsX03Subscription.SubscriptionName);
+            startTopicResources.BrsX03Subscription.SubscriptionName);
 
         // => Edi topic
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -307,16 +305,16 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     /// Process Manager topic and subscription resources used by the Example Orchestrations app.
     /// </summary>
     public record ProcessManagerTopicResources(
-        TopicResource ProcessManagerTopic,
+        TopicResource StartTopic,
         SubscriptionProperties BrsX02Subscription,
         SubscriptionProperties BrsX03Subscription)
     {
         private const string BrsX02SubscriptionName = "brs-x02-subscription";
         private const string BrsX03SubscriptionName = "brs-x03-subscription";
 
-        public static async Task<ProcessManagerTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<ProcessManagerTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
-            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
+            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-start-topic");
             AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
 
             var processManagerTopic = await processManagerTopicBuilder.CreateAsync();
@@ -327,7 +325,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         /// <summary>
         /// Add the subscriptions used by the Example Orchestrations app to the topic builder.
         /// </summary>
-        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
+        private static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
                 .AddSubscription(BrsX02SubscriptionName)
@@ -346,7 +344,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         /// This requires the Example Orchestrations app subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
         /// </remarks>
         /// </summary>
-        public static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
+        private static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
         {
             var brsX02Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(BrsX02SubscriptionName));
@@ -355,7 +353,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
                 .Single(x => x.SubscriptionName.Equals(BrsX03SubscriptionName));
 
             return new ProcessManagerTopicResources(
-                ProcessManagerTopic: topic,
+                StartTopic: topic,
                 BrsX02Subscription: brsX02Subscription,
                 BrsX03Subscription: brsX03Subscription);
         }

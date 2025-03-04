@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.InternalProcesses.MigrateCalculationsFromWholesale.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.V1.Activities;
@@ -150,7 +151,7 @@ public class ValidateMigratedCalculationsActivityTests : IClassFixture<MigrateCa
                 PeriodEndDate: default,
                 IsInternalCalculation: false));
 
-            orchestrationInstance.CustomState.SetFromInstance(new MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState(calculation.Id));
+            orchestrationInstance.CustomState.SetFromInstance(new MigrateCalculationsFromWholesaleCustomStateV1(calculation.Id));
 
             processManagerContext.OrchestrationInstances.Add(orchestrationInstance);
             await processManagerContext.SaveChangesAsync();

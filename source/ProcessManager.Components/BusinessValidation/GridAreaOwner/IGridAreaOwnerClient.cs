@@ -15,20 +15,10 @@
 namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
 
 /// <summary>
-/// Placeholder / mock until we can get grid area owners from Market Participant.
-/// TODO: Replace with market participant client.
+/// A wrapper communication with ElectricityMarket, that can check if a given actor is the current owner of a grid area.
 /// </summary>
 public interface IGridAreaOwnerClient
 {
-    // TODO: Remove or reintroduce GetCurrentOwnerAsync() implementation instead of IsCurrentOwnerAsync()
-    // Task<GridAreaOwner?> GetCurrentOwnerAsync(string gridArea, CancellationToken cancellationToken);
-    // public record GridAreaOwner(
-    //     Guid Id,
-    //     string GridAreaCode,
-    //     string OwnerActorNumber,
-    //     Instant ValidFrom,
-    //     int SequenceNumber);
-
     /// <summary>
     /// Check if the given <paramref name="actorNumber"/> is the current owner of the given <paramref name="gridArea"/>.
     /// </summary>

@@ -50,11 +50,11 @@ internal class GetOrchestrationInstanceContextActivity_Brs_023_027_V1(
         .ToList();
 
         return new OrchestrationInstanceContext(
-            _orchestrationOptions,
+            OrchestrationOptions: _orchestrationOptions,
             CalculationId: input.InstanceId.Value,
-            userIdentityDto.UserId,
-            input.InstanceId,
-            stepsSkippedBySequence);
+            UserId: userIdentityDto.UserId,
+            OrchestrationInstanceId: input.InstanceId,
+            SkippedStepsBySequence: stepsSkippedBySequence);
     }
 
     public record ActivityInput(

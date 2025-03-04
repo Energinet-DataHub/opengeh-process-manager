@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.InternalProcesses.MigrateCalculationsFromWholesale.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale;
 using Energinet.DataHub.ProcessManager.Orchestrations.InternalProcesses.MigrateCalculationsFromWholesale.Wholesale.Model;
@@ -87,7 +88,7 @@ public class ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesa
         IReadOnlyCollection<OrchestrationInstance> migratedCalculations)
     {
         var migratedCalculationIds = migratedCalculations
-            .Select(oi => oi.CustomState.AsType<MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState>())
+            .Select(oi => oi.CustomState.AsType<MigrateCalculationsFromWholesaleCustomStateV1>())
             .Select(cs => cs.MigratedWholesaleCalculationId)
             .ToList();
 
@@ -112,7 +113,7 @@ public class ValidateMigratedCalculationsActivity_MigrateCalculationsFromWholesa
     private KeyValuePair<Guid, IReadOnlyCollection<string>> GetMigrationErrorsForCalculation(OrchestrationInstance migratedCalculation)
     {
         var wholesaleCalculationId = migratedCalculation
-            .CustomState.AsType<MigrateCalculationActivity_MigrateCalculationsFromWholesale_V1.CustomState>()
+            .CustomState.AsType<MigrateCalculationsFromWholesaleCustomStateV1>()
             .MigratedWholesaleCalculationId;
 
         var asTypedDto = migratedCalculation.MapToTypedDto<CalculationInputV1>();

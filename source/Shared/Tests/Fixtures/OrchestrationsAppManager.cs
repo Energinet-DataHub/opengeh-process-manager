@@ -56,8 +56,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private readonly int _appPort;
     private readonly bool _manageDatabase;
     private readonly bool _manageAzurite;
-    // TODO (ID-283)
-    private readonly string? _environment;
     private readonly string _measurementEventHubName;
 
     public OrchestrationsAppManager()
@@ -71,7 +69,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
             manageDatabase: true,
             manageAzurite: true,
             // TODO (ID-283)
-            environment: null,
             measurementEventHubName: "eventhub_measurement")
     {
     }
@@ -85,8 +82,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         int wireMockServerPort,
         bool manageDatabase,
         bool manageAzurite,
-        // TODO (ID-283)
-        string? environment,
         string measurementEventHubName)
     {
         _taskHubName = string.IsNullOrWhiteSpace(taskHubName)
@@ -95,8 +90,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         _appPort = appPort;
         _manageDatabase = manageDatabase;
         _manageAzurite = manageAzurite;
-        // TODO (ID-283)
-        _environment = environment;
         _measurementEventHubName = measurementEventHubName;
 
         DatabaseManager = databaseManager;
@@ -294,24 +287,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // It seems the host + worker is not ready if we use the default startup log message, so we override it here
         appHostSettings.HostStartedEvent = "Host lock lease acquired";
-
-        // TODO (ID-283): This is a temporary workaround to enable stubbing/mocking of external integrations.
-        //  Please do not copy, duplicate, or otherwise get inspired by this code.
-        //  The stubbing is achieved by changing the dependency injection
-        //  to either use the real implementation or a stub based on the host environment.
-        //  All relevant places in the code base for this workaround are marked with 'ID-283'.
-        if (_environment is not null)
-        {
-            appHostSettings.ProcessEnvironmentVariables.Add(
-                "ASPNETCORE_ENVIRONMENT",
-                _environment);
-            appHostSettings.ProcessEnvironmentVariables.Add(
-                "DOTNET_ENVIRONMENT",
-                _environment);
-            appHostSettings.ProcessEnvironmentVariables.Add(
-                "AZURE_FUNCTIONS_ENVIRONMENT",
-                _environment);
-        }
 
         appHostSettings.ProcessEnvironmentVariables.Add(
             "FUNCTIONS_WORKER_RUNTIME",

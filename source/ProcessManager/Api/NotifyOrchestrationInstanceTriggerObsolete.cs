@@ -24,13 +24,13 @@ using Newtonsoft.Json;
 
 namespace Energinet.DataHub.ProcessManager.Api;
 
-// TODO: Delete when V2 is released
-public class NotifyOrchestrationInstanceTrigger(
+// TODO: Delete when "V2" is released
+public class NotifyOrchestrationInstanceTriggerObsolete(
     INotifyOrchestrationInstanceCommands notifyOrchestrationCommands)
 {
     private readonly INotifyOrchestrationInstanceCommands _notifyOrchestrationCommands = notifyOrchestrationCommands;
 
-    [Function(nameof(NotifyOrchestrationInstanceTrigger))]
+    [Function(nameof(NotifyOrchestrationInstanceTriggerObsolete))]
     public Task Run(
         [ServiceBusTrigger(
             $"%{NotifyOrchestrationInstanceOptions.SectionName}:{nameof(NotifyOrchestrationInstanceOptions.TopicName)}%",

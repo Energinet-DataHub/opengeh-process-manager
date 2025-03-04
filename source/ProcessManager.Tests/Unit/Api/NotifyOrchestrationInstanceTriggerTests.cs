@@ -66,7 +66,7 @@ public class NotifyOrchestrationInstanceTriggerTests
                     raisedNotifyEventData = data;
                 });
 
-        var notifyOrchestrationInstanceTrigger = new NotifyOrchestrationInstanceTrigger(notifyCommandsMock.Object);
+        var notifyOrchestrationInstanceTrigger = new NotifyOrchestrationInstanceTriggerObsolete(notifyCommandsMock.Object);
 
         // When triggered
         await notifyOrchestrationInstanceTrigger.Run(receivedServiceBusMessage);

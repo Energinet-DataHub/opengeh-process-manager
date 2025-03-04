@@ -122,7 +122,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             await DatabaseManager.CreateDatabaseAsync();
 
         var startTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
-        ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
+        ediTopicResources ??= await EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
@@ -365,7 +365,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     public record EdiTopicResources(
         TopicResource EdiTopic)
     {
-        public static async Task<EdiTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
+        public static async Task<EdiTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var ediTopicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
 

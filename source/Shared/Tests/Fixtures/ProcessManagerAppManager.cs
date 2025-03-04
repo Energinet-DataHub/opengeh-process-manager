@@ -98,8 +98,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
     /// <summary>
     /// Start the app.
     /// </summary>
-    /// <param name="processManagerTopicResources">The required service bus resources. If not provided then the method will create them.</param>
-    public async Task StartAsync(ProcessManagerTopicResources? processManagerTopicResources)
+    public async Task StartAsync()
     {
         if (_manageAzurite)
         {
@@ -110,10 +109,11 @@ public class ProcessManagerAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
+        var obsoleteNotifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        var notifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
         // Prepare host settings
-        var appHostSettings = CreateAppHostSettings("ProcessManager", processManagerTopicResources);
+        var appHostSettings = CreateAppHostSettings("ProcessManager", notifyTopicResources, obsoleteNotifyTopicResources);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -129,6 +129,8 @@ public class ProcessManagerAppManager : IAsyncDisposable
 
         if (_manageDatabase)
             await DatabaseManager.DeleteDatabaseAsync();
+
+        await ServiceBusResourceProvider.DisposeAsync();
     }
 
     /// <summary>
@@ -178,7 +180,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
 #endif
     }
 
-    private FunctionAppHostSettings CreateAppHostSettings(string csprojName, ProcessManagerTopicResources processManagerTopicResources)
+    private FunctionAppHostSettings CreateAppHostSettings(string csprojName, ProcessManagerTopicResources notifyTopicResources, ProcessManagerTopicResources obsoleteNotifyTopicResources)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -222,17 +224,17 @@ public class ProcessManagerAppManager : IAsyncDisposable
         // => NotifyOrchestrationInstance topic/subscription
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{NotifyOrchestrationInstanceOptions.SectionName}__{nameof(NotifyOrchestrationInstanceOptions.TopicName)}",
-            processManagerTopicResources.ProcessManagerTopic.Name);
+            obsoleteNotifyTopicResources.NotifyTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{NotifyOrchestrationInstanceOptions.SectionName}__{nameof(NotifyOrchestrationInstanceOptions.NotifyOrchestrationInstanceSubscriptionName)}",
-            processManagerTopicResources.NotifyOrchestrationInstanceSubscription.SubscriptionName);
+            obsoleteNotifyTopicResources.NotifySubscription.SubscriptionName);
         // => New "Notify" topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerNotifyTopicOptions.SectionName}__{nameof(ProcessManagerNotifyTopicOptions.TopicName)}",
-            processManagerTopicResources.ProcessManagerTopic.Name);
+            notifyTopicResources.NotifyTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerNotifyTopicOptions.SectionName}__{nameof(ProcessManagerNotifyTopicOptions.SubscriptionName)}",
-            processManagerTopicResources.NotifyOrchestrationInstanceSubscription.SubscriptionName);
+            notifyTopicResources.NotifySubscription.SubscriptionName);
 
         // ProcessManager
         // => Task Hub
@@ -266,15 +268,14 @@ public class ProcessManagerAppManager : IAsyncDisposable
     }
 
     public record ProcessManagerTopicResources(
-        TopicResource ProcessManagerTopic,
-        SubscriptionProperties NotifyOrchestrationInstanceSubscription)
+        TopicResource NotifyTopic,
+        SubscriptionProperties NotifySubscription)
     {
-        private const string NotifyOrchestrationInstanceSubscriptionName = "notify-orchestration-instance-subscription";
+        private const string NotifySubscriptionName = "notify-subscription";
 
-        public static async Task<ProcessManagerTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<ProcessManagerTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
-            // Process Manager topic & subscriptions
-            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
+            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-notify-topic");
             AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
 
             var processManagerTopic = await processManagerTopicBuilder.CreateAsync();
@@ -285,10 +286,10 @@ public class ProcessManagerAppManager : IAsyncDisposable
         /// <summary>
         /// Add the subscriptions used by the Process Manager app to the topic builder.
         /// </summary>
-        public static TopicSubscriptionBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
+        private static TopicSubscriptionBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             return builder
-                .AddSubscription(NotifyOrchestrationInstanceSubscriptionName)
+                .AddSubscription(NotifySubscriptionName)
                     .AddSubjectFilter("NotifyOrchestration");
         }
 
@@ -298,10 +299,10 @@ public class ProcessManagerAppManager : IAsyncDisposable
         /// This requires the Process Manager subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
         /// </remarks>
         /// </summary>
-        public static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
+        private static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
         {
             var notifyOrchestrationInstanceSubscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(NotifyOrchestrationInstanceSubscriptionName));
+                .Single(x => x.SubscriptionName.Equals(NotifySubscriptionName));
 
             return new ProcessManagerTopicResources(
                 topic,

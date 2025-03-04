@@ -18,17 +18,15 @@ using Microsoft.Extensions.Configuration;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 
 /// <summary>
-/// TODO: Delete when "ProcessManagerStartTopicOptions" has been released.
-///
 /// Contains options required for the orchestrations app to connect to the
-/// ProcessManager Service Bus topic.
+/// Process Manager Start topic and subscriptions.
 /// </summary>
-public class ProcessManagerTopicOptions
+public class ProcessManagerStartTopicOptions
 {
     /// <summary>
     /// Name of the section in the <see cref="IConfiguration"/> / appsettings.json file
     /// </summary>
-    public const string SectionName = "ProcessManagerTopic";
+    public const string SectionName = "ProcessManagerStartTopic";
 
     /// <summary>
     /// Name of the ProcessManager Service Bus topic
@@ -47,10 +45,4 @@ public class ProcessManagerTopicOptions
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string Brs028SubscriptionName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Name of the subscription for BRS021 ForwardMeteredData to the ProcessManager Service Bus topic
-    /// </summary>
-    //[Required(AllowEmptyStrings = false)] // TODO: Removed required for now since tests cannot be run (yet)
-    public string Brs021ForwardMeteredDataSubscriptionName { get; set; } = string.Empty;
 }

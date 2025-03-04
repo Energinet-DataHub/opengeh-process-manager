@@ -54,7 +54,7 @@ public static class ServiceBusExtensions
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<NotifyOrchestrationInstanceOptions>>().Value.TopicName,
                 tokenCredentialFactory: _ => azureCredential,
-                name: "Process Manager Topic V1")
+                name: "Process Manager Notify Topic V1")
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<NotifyOrchestrationInstanceOptions>>().Value.TopicName,
@@ -65,7 +65,7 @@ public static class ServiceBusExtensions
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.TopicName,
                 tokenCredentialFactory: _ => azureCredential,
-                name: "Process Manager Topic")
+                name: "Process Manager Notify Topic")
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.TopicName,

@@ -18,7 +18,8 @@ using Microsoft.Extensions.Configuration;
 namespace Energinet.DataHub.ProcessManager.Extensions.Options;
 
 /// <summary>
-/// Contains options required for connection to the "Notify Orchestration Instance" subscription on the Process Manager Notify topic.
+/// Contains options required for connection to the "Notify Orchestration Instance"
+/// subscription on the Process Manager Notify topic.
 /// </summary>
 public class ProcessManagerNotifyTopicOptions
 {

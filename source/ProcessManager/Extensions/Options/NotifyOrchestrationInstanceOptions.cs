@@ -18,7 +18,7 @@ using Microsoft.Extensions.Configuration;
 namespace Energinet.DataHub.ProcessManager.Extensions.Options;
 
 /// <summary>
-/// TODO: Delete when "ProcessManagerNotifyTopicOptions" is released
+/// TODO: Delete when "ProcessManagerNotifyTopicOptions" has been released
 ///
 /// Contains options required for connection to the NotifyOrchestrationInstance subscription on the Process Manager topic.
 /// </summary>

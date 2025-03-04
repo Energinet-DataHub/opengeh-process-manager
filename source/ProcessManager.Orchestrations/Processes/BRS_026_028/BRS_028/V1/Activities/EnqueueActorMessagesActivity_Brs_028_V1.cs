@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 using NodaTime.Text;
@@ -97,7 +98,7 @@ internal class EnqueueActorMessagesActivity_Brs_028_V1(
         return _enqueueActorMessagesClient.EnqueueAsync(
             Orchestration_Brs_028_V1.UniqueName,
             input.InstanceId.Value,
-            enqueuedBy.ToDto(),
+            enqueuedBy.MapToDto(),
             input.IdempotencyKey,
             acceptedData);
     }

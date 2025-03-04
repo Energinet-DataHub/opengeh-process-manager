@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.CustomQueries;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
@@ -304,7 +305,7 @@ public class SearchCalculationHandlerTests : IClassFixture<ProcessManagerDatabas
             period =>
             {
                 var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-                    identity: UserIdentity.FromDto(_userIdentity),
+                    identity: _userIdentity.MapToDomain(),
                     description: orchestrationDescription,
                     skipStepsBySequence: [],
                     clock: SystemClock.Instance);

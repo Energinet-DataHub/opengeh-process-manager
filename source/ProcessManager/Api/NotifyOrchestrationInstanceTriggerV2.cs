@@ -32,8 +32,8 @@ public class NotifyOrchestrationInstanceTriggerV2(
     [Function(nameof(NotifyOrchestrationInstanceTriggerV2))]
     public Task Run(
         [ServiceBusTrigger(
-            $"%{NotifyOrchestrationInstanceOptionsV2.SectionName}:{nameof(NotifyOrchestrationInstanceOptionsV2.TopicName)}%",
-            $"%{NotifyOrchestrationInstanceOptionsV2.SectionName}:{nameof(NotifyOrchestrationInstanceOptionsV2.SubscriptionName)}%",
+            $"%{ProcessManagerNotifyTopicOptions.SectionName}:{nameof(ProcessManagerNotifyTopicOptions.TopicName)}%",
+            $"%{ProcessManagerNotifyTopicOptions.SectionName}:{nameof(ProcessManagerNotifyTopicOptions.SubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {

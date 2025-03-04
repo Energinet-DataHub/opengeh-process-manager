@@ -26,7 +26,7 @@ public static class ServiceBusExtensions
     /// <summary>
     /// Add required services for handling notify orchestration instance Service Bus messages.
     /// <remarks>
-    /// Requires <see cref="NotifyOrchestrationInstanceOptions"/> and <see cref="NotifyOrchestrationInstanceOptionsV2"/>
+    /// Requires <see cref="NotifyOrchestrationInstanceOptions"/> and <see cref="ProcessManagerNotifyTopicOptions"/>
     /// to be present in the app settings.
     /// Requires a <see cref="ServiceBusClient"/> to already be registered in the service collection.
     /// </remarks>
@@ -44,8 +44,8 @@ public static class ServiceBusExtensions
             .ValidateDataAnnotations();
 
         serviceCollection
-            .AddOptions<NotifyOrchestrationInstanceOptionsV2>()
-            .BindConfiguration(NotifyOrchestrationInstanceOptionsV2.SectionName)
+            .AddOptions<ProcessManagerNotifyTopicOptions>()
+            .BindConfiguration(ProcessManagerNotifyTopicOptions.SectionName)
             .ValidateDataAnnotations();
 
         serviceCollection
@@ -63,13 +63,13 @@ public static class ServiceBusExtensions
                 name: "NotifyOrchestrationInstance Subscription V1")
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<NotifyOrchestrationInstanceOptionsV2>>().Value.TopicName,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.TopicName,
                 tokenCredentialFactory: _ => azureCredential,
                 name: "Process Manager Topic")
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<NotifyOrchestrationInstanceOptionsV2>>().Value.TopicName,
-                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<NotifyOrchestrationInstanceOptionsV2>>().Value.SubscriptionName,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.TopicName,
+                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.SubscriptionName,
                 tokenCredentialFactory: _ => azureCredential,
                 name: "NotifyOrchestrationInstance Subscription");
 

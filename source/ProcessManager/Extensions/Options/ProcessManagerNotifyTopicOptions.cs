@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Extensions.Options;
 /// <summary>
 /// Contains options required for connection to the "Notify Orchestration Instance" subscription on the Process Manager Notify topic.
 /// </summary>
-public class NotifyOrchestrationInstanceOptionsV2
+public class ProcessManagerNotifyTopicOptions
 {
     /// <summary>
     /// Name of the section in the <see cref="IConfiguration"/> / appsettings.json file

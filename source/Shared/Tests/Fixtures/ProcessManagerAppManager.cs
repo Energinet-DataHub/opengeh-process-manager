@@ -270,6 +270,9 @@ public class ProcessManagerAppManager : IAsyncDisposable
         return appHostSettings;
     }
 
+    /// <summary>
+    /// Process Manager topic and subscription resources used by the Process Manager Core app.
+    /// </summary>
     public record ProcessManagerTopicResources(
         TopicResource NotifyTopic,
         SubscriptionProperties NotifySubscription)

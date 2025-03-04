@@ -18,26 +18,24 @@ using Microsoft.Extensions.Configuration;
 namespace Energinet.DataHub.ProcessManager.Extensions.Options;
 
 /// <summary>
-/// TODO: Delete when V2 is released
-///
-/// Contains options required for connection to the NotifyOrchestrationInstance subscription on the Process Manager topic.
+/// Contains options required for connection to the "Notify Orchestration Instance" subscription on the Process Manager Notify topic.
 /// </summary>
-public class NotifyOrchestrationInstanceOptions
+public class NotifyOrchestrationInstanceOptionsV2
 {
     /// <summary>
     /// Name of the section in the <see cref="IConfiguration"/> / appsettings.json file
     /// </summary>
-    public const string SectionName = "NotifyOrchestrationInstance";
+    public const string SectionName = "NotifyOrchestrationInstanceV2";
 
     /// <summary>
-    /// Name of the ProcessManager Service Bus topic
+    /// Name of the Process Manager Notify topic
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string TopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription for NotifyOrchestrationInstance on the ProcessManager Service Bus topic
+    /// Name of the subscription on the Process Manager Notify topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string NotifyOrchestrationInstanceSubscriptionName { get; set; } = string.Empty;
+    public string SubscriptionName { get; set; } = string.Empty;
 }

@@ -222,9 +222,15 @@ public class ProcessManagerAppManager : IAsyncDisposable
         // => NotifyOrchestrationInstance topic/subscription
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{NotifyOrchestrationInstanceOptions.SectionName}__{nameof(NotifyOrchestrationInstanceOptions.TopicName)}",
-            processManagerTopicResources.ProcessManagerTopic.Name);
+            "Not used in tests anymore, but cannot be empty");
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{NotifyOrchestrationInstanceOptions.SectionName}__{nameof(NotifyOrchestrationInstanceOptions.NotifyOrchestrationInstanceSubscriptionName)}",
+            "Not used in tests anymore, but cannot be empty");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{NotifyOrchestrationInstanceOptionsV2.SectionName}__{nameof(NotifyOrchestrationInstanceOptionsV2.TopicName)}",
+            processManagerTopicResources.ProcessManagerTopic.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{NotifyOrchestrationInstanceOptionsV2.SectionName}__{nameof(NotifyOrchestrationInstanceOptionsV2.SubscriptionName)}",
             processManagerTopicResources.NotifyOrchestrationInstanceSubscription.SubscriptionName);
 
         // ProcessManager

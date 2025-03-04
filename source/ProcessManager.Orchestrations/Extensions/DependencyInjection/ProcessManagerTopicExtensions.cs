@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using Azure.Core;
+using Energinet.DataHub.Core.App.Common.Diagnostics.HealthChecks;
+using Energinet.DataHub.Core.Messaging.Communication.Extensions.Builder;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
@@ -70,12 +72,26 @@ public static class ProcessManagerTopicExtensions
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.Brs026SubscriptionName,
                 tokenCredentialFactory: _ => credential,
                 name: "BRS-026 Subscription")
+            .AddServiceBusTopicSubscriptionDeadLetter(
+                fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.TopicName,
+                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.Brs026SubscriptionName,
+                tokenCredentialFactory: _ => credential,
+                name: "BRS-026 Dead-letter",
+                [HealthChecksConstants.StatusHealthCheckTag])
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.Brs028SubscriptionName,
                 tokenCredentialFactory: _ => credential,
-                name: "BRS-028 Subscription");
+                name: "BRS-028 Subscription")
+            .AddServiceBusTopicSubscriptionDeadLetter(
+                fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.TopicName,
+                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.Brs028SubscriptionName,
+                tokenCredentialFactory: _ => credential,
+                name: "BRS-028 Dead-letter",
+                [HealthChecksConstants.StatusHealthCheckTag]);
 
         return services;
     }

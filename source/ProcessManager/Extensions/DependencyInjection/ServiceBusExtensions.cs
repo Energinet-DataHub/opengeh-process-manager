@@ -14,6 +14,8 @@
 
 using Azure.Core;
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.App.Common.Diagnostics.HealthChecks;
+using Energinet.DataHub.Core.Messaging.Communication.Extensions.Builder;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,7 +73,14 @@ public static class ServiceBusExtensions
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.SubscriptionName,
                 tokenCredentialFactory: _ => azureCredential,
-                name: "NotifyOrchestrationInstance Subscription");
+                name: "NotifyOrchestrationInstance Subscription")
+            .AddServiceBusTopicSubscriptionDeadLetter(
+                fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.TopicName,
+                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.SubscriptionName,
+                tokenCredentialFactory: _ => azureCredential,
+                name: "NotifyOrchestrationInstance Dead-letter",
+                tags: [HealthChecksConstants.StatusHealthCheckTag]);
 
         return serviceCollection;
     }

@@ -226,6 +226,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{NotifyOrchestrationInstanceOptions.SectionName}__{nameof(NotifyOrchestrationInstanceOptions.NotifyOrchestrationInstanceSubscriptionName)}",
             processManagerTopicResources.NotifyOrchestrationInstanceSubscription.SubscriptionName);
+        // => New "Notify" topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerNotifyTopicOptions.SectionName}__{nameof(ProcessManagerNotifyTopicOptions.TopicName)}",
             processManagerTopicResources.ProcessManagerTopic.Name);

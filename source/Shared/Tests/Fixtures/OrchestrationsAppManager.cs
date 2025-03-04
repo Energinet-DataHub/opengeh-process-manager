@@ -325,21 +325,28 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
 
-        // => Process Manager topic
+        // => Process Manager Start topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.TopicName)}",
             processManagerTopicResources.ProcessManagerTopic.Name);
-
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}",
             processManagerTopicResources.Brs021ForwardMeteredDataSubscription.SubscriptionName);
-
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs026SubscriptionName)}",
             processManagerTopicResources.Brs026Subscription.SubscriptionName);
-
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerTopicOptions.SectionName}__{nameof(ProcessManagerTopicOptions.Brs028SubscriptionName)}",
+            processManagerTopicResources.Brs028Subscription.SubscriptionName);
+        // => New "Start" topic
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.TopicName)}",
+            processManagerTopicResources.ProcessManagerTopic.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs026SubscriptionName)}",
+            processManagerTopicResources.Brs026Subscription.SubscriptionName);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs028SubscriptionName)}",
             processManagerTopicResources.Brs028Subscription.SubscriptionName);
 
         // => EDI topic

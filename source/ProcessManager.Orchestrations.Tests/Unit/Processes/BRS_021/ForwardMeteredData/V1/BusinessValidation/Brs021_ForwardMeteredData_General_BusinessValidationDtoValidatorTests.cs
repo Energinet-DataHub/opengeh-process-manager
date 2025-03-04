@@ -31,7 +31,7 @@ public class Brs021_ForwardMeteredData_General_BusinessValidationDtoValidatorTes
 
         services.AddLogging();
 
-        var orchestrationsAssembly = typeof(Orchestration_Brs_021_ForwardMeteredData_V1).Assembly;
+        var orchestrationsAssembly = typeof(OrchestrationDescriptionBuilderV1).Assembly;
         var orchestrationsAbstractionsAssembly =
             typeof(Brs021_ForwardMeteredData_General_BusinessValidationDto).Assembly;
         services.AddBusinessValidation(assembliesToScan: [orchestrationsAssembly, orchestrationsAbstractionsAssembly]);

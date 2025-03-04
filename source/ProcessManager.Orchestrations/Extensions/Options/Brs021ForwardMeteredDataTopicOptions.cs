@@ -13,25 +13,36 @@
 // limitations under the License.
 
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Configuration;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 
 /// <summary>
-/// Options for the configuration of Measurements metered data event hub producer clients.
+/// Contains options required for the orchestration app to connect to the
+/// Brs021ForwardMeteredData service bus topic.
 /// </summary>
-public class MeasurementsMeteredDataClientOptions
+public class Brs021ForwardMeteredDataTopicOptions
 {
-    public const string SectionName = "MeasurementsEventHub";
+    /// <summary>
+    /// Name of the section in the <see cref="IConfiguration"/> / appsettings.json file
+    /// </summary>
+    public const string SectionName = "Brs021ForwardMeteredDataTopic";
 
     /// <summary>
-    /// The fully qualified namespace of the event hub which the Process Manager sends events on
+    /// Name of the ProcessManager Service Bus topic
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string FullyQualifiedNamespace { get; set; } = string.Empty;
+    public string TopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the event hub which the Process Manager sends events on
+    /// Name of the subscription used to start BRS021 processes
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string EventHubName { get; set; } = string.Empty;
+    public string StartSubscriptionName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name of the subscription used to notify BRS021 processes
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string NotifySubscriptionName { get; set; } = string.Empty;
 }

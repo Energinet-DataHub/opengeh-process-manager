@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using AutoFixture;
-using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
@@ -21,28 +20,31 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
-using FluentAssertions.Execution;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
 /// <summary>
 /// Test collection that verifies the Process Manager clients can be used to start a
-/// forward metered data orchestration and monitor its status during its lifetime.
+/// forward metered data flow
 /// </summary>
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
     private readonly OrchestrationsAppFixture _fixture;
+    private readonly string _processManagerEventHubProducerClientName = "ProcessManagerEventHubProducerClient";
 
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
@@ -54,19 +56,55 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
+            // Service bus client
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
                 = _fixture.ProcessManagerTopicName,
+            // Https client
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
                 = AuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
                 = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
                 = _fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+
+            // Measurements Eventhub client
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"]
+                = _fixture.OrchestrationsAppManager.MeasurementEventHubName,
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"]
+                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+
+            // Process Manager Eventhub client to simulate the notification event from measurements
+            [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.EventHubName)}"]
+                = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
+            [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}"]
+                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
         services.AddProcessManagerHttpClients();
+
+        services
+            .AddOptions<ProcessManagerEventHubOptions>()
+            .BindConfiguration(ProcessManagerEventHubOptions.SectionName)
+            .ValidateDataAnnotations();
+
+        // Add event hub producer client for ProcessManagerEventHub to simulate the notification event from measurements
+        services.AddAzureClients(
+            builder =>
+            {
+                builder.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
+                        (_, _, provider) =>
+                        {
+                            var options = provider.GetRequiredService<IOptions<ProcessManagerEventHubOptions>>()
+                                .Value;
+                            return new EventHubProducerClient(
+                                $"{options.FullyQualifiedNamespace}",
+                                options.EventHubName,
+                                _fixture.IntegrationTestConfiguration.Credential);
+                        })
+                    .WithName(_processManagerEventHubProducerClientName);
+            });
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -89,7 +127,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact(Skip = "Because Electricity Market is not enabled.")]
+    [Fact]
     public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
     {
         // Arrange
@@ -101,179 +139,92 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             idempotencyKey: Guid.NewGuid().ToString());
 
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
 
         // Act
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
 
-        // Assert
-        var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
-            orchestrationCreatedAfter,
-            name: nameof(Orchestration_Brs_021_ForwardMeteredData_V1));
-        var inputToken = JToken.FromObject(input);
-        orchestration.Input.ToString().Should().BeEquivalentTo(inputToken.ToString(Newtonsoft.Json.Formatting.None));
-
-        var completeOrchestrationStatus = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
-            orchestration.InstanceId);
-
-        // => Assert expected history
-        using var assertionScope = new AssertionScope();
-
-        var activities = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Select(item => item.ToObject<OrchestrationHistoryItem>())
-            .ToList();
-
-        activities.Should()
-            .NotBeNull()
-            .And.Equal(
-                new OrchestrationHistoryItem(
-                    "ExecutionStarted",
-                    FunctionName: "Orchestration_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "TransitionStepToRunningActivity_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "FindReceiversActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "TransitionStepToTerminatedActivity_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem("ExecutionCompleted"));
-
-        // => Verify that the durable function completed successfully
-        var last = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Last();
-        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
-        last.Value<string>("Result").Should().Be("Success");
-    }
-
-    [Fact(Skip = "Because flow is not implemented.")]
-    public async Task ForwardMeteredData_WhenStartedWithFaultyInput_ThenExecutedErrorPath()
-    {
-        // Arrange
-        var input = CreateMeteredDataForMeteringPointMessageInputV1(true);
-
-        var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
-            input,
-            "test-message-id");
-
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-5);
-
-        // Act
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
-
-        var orchestration = await _fixture.DurableClient.WaitForOrchestationStartedAsync(
-            orchestrationCreatedAfter,
-            name: "Orchestration_Brs_021_ForwardMeteredData_V1");
-
-        var inputToken = JToken.FromObject(input);
-        orchestration.Input.ToString().Should().BeEquivalentTo(inputToken.ToString(Newtonsoft.Json.Formatting.None));
-
-        var completeOrchestrationStatus = await _fixture.DurableClient.WaitForOrchestrationCompletedAsync(
-            orchestration.InstanceId);
-
-        // => Assert expected history
-        using var assertionScope = new AssertionScope();
-
-        var activities = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Select(item => item.ToObject<OrchestrationHistoryItem>())
-            .ToList();
-
-        activities.Should()
-            .NotBeNull()
-            .And.Equal(
-                new OrchestrationHistoryItem(
-                    "ExecutionStarted",
-                    FunctionName: "Orchestration_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "OrchestrationInitializeActivity_Brs_021_ForwardMeteredData_V1"),
-                // new OrchestrationHistoryItem(
-                //     "TaskCompleted",
-                //     FunctionName: "GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "PerformValidationActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "ValidationStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "EnqueueRejectMessageActivity_Brs_021_V1"),
-                new OrchestrationHistoryItem("TimerCreated"),
-                new OrchestrationHistoryItem("TimerFired"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem(
-                    "TaskCompleted",
-                    FunctionName: "OrchestrationTerminateActivity_Brs_021_ForwardMeteredData_V1"),
-                new OrchestrationHistoryItem("ExecutionCompleted"));
-
-        // => Verify that the durable function completed successfully
-        var last = completeOrchestrationStatus.History
-            .OrderBy(item => item["Timestamp"])
-            .Last();
-        last.Value<string>("EventType").Should().Be("ExecutionCompleted");
-        last.Value<string>("Result").Should().Be("Success");
-    }
-
-    /// <summary>
-    /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
-    /// </summary>
-    [Fact]
-    public async Task ForwardMeteredData_WhenStarted_CanMonitorLifecycle()
-    {
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
-        // Step 1: Start new orchestration instance
-        var input = CreateMeteredDataForMeteringPointMessageInputV1();
-
-        var startCommand = new StartForwardMeteredDataCommandV1(
-            new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
-            input,
-            idempotencyKey: Guid.NewGuid().ToString());
-
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
-            startCommand,
-            CancellationToken.None);
-
-        // Step 2: Query until terminated with succeeded
-        var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
+        await Awaiter.WaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
-                    .GetOrchestrationInstanceByIdempotencyKeyAsync<MeteredDataForMeteringPointMessageInputV1>(
-                        new GetOrchestrationInstanceByIdempotencyKeyQuery(
-                            _fixture.DefaultUserIdentity,
-                            startCommand.IdempotencyKey),
-                        CancellationToken.None);
+                var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
 
-                return
-                    orchestrationInstance != null
-                    && orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
+                return instances.Count >= 1;
             },
-            timeLimit: TimeSpan.FromSeconds(20),
-            delay: TimeSpan.FromSeconds(3));
+            TimeSpan.FromSeconds(10),
+            TimeSpan.FromSeconds(1));
 
-        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+        var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
+        var instance = instances.Should().ContainSingle().Subject;
+
+        // Wait for eventhub trigger
+        var success = await _fixture.EventHubListener.FindEventHubMessageToAndFromMeasurementsAsync(
+            eventHubProducerClient: eventHubClientFactory.CreateClient(_processManagerEventHubProducerClientName),
+            orchestrationInstanceId: instance.Id,
+            transactionId: input.TransactionId);
+
+        success.Should().Be(true);
+
+        // wait for notification from edi.
+        await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
+            processManagerMessageClient: processManagerMessageClient,
+            orchestrationInstanceId: instance.Id,
+            messageId: startCommand.ActorMessageId);
+
+        // TODO: Fetch the terminated instance and assert that it has been terminated successfully
+        await Task.Delay(TimeSpan.FromSeconds(5));
+
+        var simulateTheTerminatedInstance = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
+            new SearchOrchestrationInstancesByNameQuery(
+                _fixture.DefaultUserIdentity,
+                name: Brs_021_ForwardedMeteredData.Name,
+                version: null,
+                lifecycleStates: null,
+                terminationState: null,
+                startedAtOrLater: orchestrationCreatedAfter,
+                terminatedAtOrEarlier: null,
+                scheduledAtOrLater: null),
+            CancellationToken.None);
+
+        var instanceAfterEnqueue = simulateTheTerminatedInstance.Should().ContainSingle().Subject;
+
+        var stepsWhichShouldBeSuccessful = new[]
+        {
+            OrchestrationDescriptionBuilderV1.ValidationStep,
+            OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
+            OrchestrationDescriptionBuilderV1.FindReceiverStep,
+            // TODO: re-enable when the Process Manager Client can send notifications to the Brs021 topic
+            //OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
+        };
+
+        var successfulSteps = instanceAfterEnqueue.Steps
+            .Where(step => step.Lifecycle.TerminationState is OrchestrationStepTerminationState.Succeeded)
+            .Select(step => step.Sequence);
+
+        successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
+
+        var searchResult = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
+             new SearchOrchestrationInstancesByNameQuery(
+                 _fixture.DefaultUserIdentity,
+                 name: Brs_021_ForwardedMeteredData.Name,
+                 version: null,
+                 // TODO: switch to lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated] when the Process Manager Client can send notifications to the Brs021 topic
+                 lifecycleStates: [OrchestrationInstanceLifecycleState.Running],
+                 // TODO: switch to terminationState: OrchestrationInstanceTerminationState.Succeeded when the Process Manager Client can send notifications to the Brs021 topic
+                 terminationState: null,
+                 startedAtOrLater: orchestrationCreatedAfter,
+                 terminatedAtOrEarlier: null,
+                 scheduledAtOrLater: null),
+             CancellationToken.None);
+
+        searchResult.Should().NotBeNull().And.ContainSingle();
+        searchResult.Single().Steps.Should().HaveCount(4);
+        // TODO: re-enable when the Process Manager Client can send notifications to the Brs021 topic
+        // searchResult.Single().Steps.Should().AllSatisfy(
+        //  step => step.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded));
+        // TODO: Assert that the orchestration instance has been terminated successfully
     }
 
     private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1(
@@ -286,12 +237,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ActorRole.GridAccessProvider.Name,
             "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
             withError ? "NoMasterData" : "571313101700011887",
-            "D20",
+            MeteringPointType.Production.Name,
             "8716867000047",
-            "K3",
+            MeasurementUnit.MetricTon.Name,
             "2024-12-03T08:00:00Z",
-            "PT1H",
-            "2024-12-01T23:00Z",
+            Resolution.Hourly.Name,
+            "2024-12-01T23:00:00Z",
             "2024-12-02T23:00:00Z",
             "5790002606892",
             null,
@@ -324,8 +275,18 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         return input;
     }
 
-    public record OrchestrationHistoryItem(
-        string? EventType,
-        string? Name = null,
-        string? FunctionName = null);
+    private async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchAsync(IProcessManagerClient processManagerClient, DateTime orchestrationCreatedAfter)
+    {
+        return await processManagerClient.SearchOrchestrationInstancesByNameAsync(
+            new SearchOrchestrationInstancesByNameQuery(
+                _fixture.DefaultUserIdentity,
+                name: Brs_021_ForwardedMeteredData.Name,
+                version: null,
+                lifecycleStates: null,
+                terminationState: null,
+                startedAtOrLater: orchestrationCreatedAfter,
+                terminatedAtOrEarlier: null,
+                scheduledAtOrLater: null),
+            CancellationToken.None);
+    }
 }

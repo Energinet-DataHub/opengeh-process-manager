@@ -14,34 +14,31 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Microsoft.Azure.Functions.Worker;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
-internal class EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
-    IClock clock,
-    IOrchestrationInstanceProgressRepository progressRepository)
+public class TerminateForwardMeteredDataHandlerV1(
+    IOrchestrationInstanceProgressRepository progressRepository,
+    IClock clock)
 {
-    private readonly IClock _clock = clock;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IClock _clock = clock;
 
-    [Function(nameof(EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run([ActivityTrigger] ActivityInput activityInput)
+    public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
         var orchestrationInstance = await _progressRepository
-            .GetAsync(activityInput.OrchestrationInstanceId)
+            .GetAsync(orchestrationInstanceId)
             .ConfigureAwait(false);
 
-        orchestrationInstance.TransitionStepToTerminated(
-            OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
-            activityInput.TerminationState,
-            _clock);
+        if (orchestrationInstance.Lifecycle.State != OrchestrationInstanceLifecycleState.Running)
+            return;
 
+        // Terminate Step: Enqueue actor messages step
+        var enqueueActorMessagesStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+        await StepHelper.TerminateStep(enqueueActorMessagesStep, _clock, _progressRepository).ConfigureAwait(false);
+
+        orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
-
-    public sealed record ActivityInput(
-        OrchestrationInstanceId OrchestrationInstanceId,
-        OrchestrationStepTerminationState TerminationState);
 }

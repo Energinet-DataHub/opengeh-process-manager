@@ -52,7 +52,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             wireMockServerPort: 8112,
             manageDatabase: false,
             manageAzurite: false,
-            eventHubName: MeasurementEventHubName);
+            measurementEventHubName: MeasurementEventHubName);
 
         ProcessManagerAppManager = new ProcessManagerAppManager(
             DatabaseManager,
@@ -68,6 +68,10 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
 
+        EnqueueBrs021ForwardMeteredDataServiceBusListener = new ServiceBusListenerMock(
+            OrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
         EnqueueBrs023027ServiceBusListener = new ServiceBusListenerMock(
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
@@ -101,6 +105,8 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
     [NotNull]
     public string? ProcessManagerTopicName { get; private set; }
+
+    public ServiceBusListenerMock EnqueueBrs021ForwardMeteredDataServiceBusListener { get; }
 
     public ServiceBusListenerMock EnqueueBrs023027ServiceBusListener { get; }
 
@@ -150,7 +156,11 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         // Create EDI topic resources
         var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.CreateNew(ServiceBusResourceProvider);
+        var brs21TopicResources = await OrchestrationsAppManager.Brs21TopicResources.CreateNew(ServiceBusResourceProvider);
 
+        await EnqueueBrs021ForwardMeteredDataServiceBusListener.AddTopicSubscriptionListenerAsync(
+            ediTopicResources.EnqueueBrs021ForwardMeteredDataSubscription.TopicName,
+            ediTopicResources.EnqueueBrs021ForwardMeteredDataSubscription.SubscriptionName);
         await EnqueueBrs023027ServiceBusListener.AddTopicSubscriptionListenerAsync(
             ediTopicResources.EnqueueBrs023027Subscription.TopicName,
             ediTopicResources.EnqueueBrs023027Subscription.SubscriptionName);
@@ -167,7 +177,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             integrationEventTopicResources.SharedTopic.Name,
             integrationEventTopicResources.Subscription.SubscriptionName);
 
-        await OrchestrationsAppManager.StartAsync(orchestrationsProcessManagerTopicResources, ediTopicResources, integrationEventTopicResources);
+        await OrchestrationsAppManager.StartAsync(orchestrationsProcessManagerTopicResources, ediTopicResources, brs21TopicResources, integrationEventTopicResources);
         await ProcessManagerAppManager.StartAsync(processManagerAppProcessManagerTopicResources);
 
         ProcessManagerTopicName = orchestrationsProcessManagerTopicResources.ProcessManagerTopic.Name;
@@ -175,7 +185,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         EventHubListener = new EventHubListenerMock(
             new TestDiagnosticsLogger(),
             IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
-            eventHubName: OrchestrationsAppManager.EventHubName,
+            eventHubName: OrchestrationsAppManager.MeasurementEventHubName,
             AzuriteManager.BlobStorageServiceUri,
             blobContainerName: "container-01",
             IntegrationTestConfiguration.Credential);

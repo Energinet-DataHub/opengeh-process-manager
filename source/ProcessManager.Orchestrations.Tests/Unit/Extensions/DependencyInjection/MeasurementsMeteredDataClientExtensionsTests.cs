@@ -29,7 +29,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Extensions.
 public class MeasurementsMeteredDataClientExtensionsTests
 {
     private const string EventHubName = "event-hub-name";
-    private const string EventHubNamespace = "namespace.eventhub.windows.net";
+    private const string FullyQualifiedNamespace = "namespace.eventhub.windows.net";
 
     private static readonly TokenCredential _azureCredential = new DefaultAzureCredential();
 
@@ -41,7 +41,7 @@ public class MeasurementsMeteredDataClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}"] = EventHubNamespace,
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"] = EventHubName,
         });
 
@@ -72,7 +72,7 @@ public class MeasurementsMeteredDataClientExtensionsTests
             .Throw<OptionsValidationException>()
                 .WithMessage("DataAnnotation validation failed for 'MeasurementsMeteredDataClientOptions'*")
             .And.Failures.Should()
-                .ContainMatch("*NamespaceName field is required*")
+                .ContainMatch("*FullyQualifiedNamespace field is required*")
                 .And.ContainMatch("*The EventHubName field is required*");
     }
 
@@ -82,7 +82,7 @@ public class MeasurementsMeteredDataClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}"] = EventHubNamespace,
+            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"] = EventHubName,
         });
         Services.AddMeasurementsMeteredDataClient(_azureCredential);

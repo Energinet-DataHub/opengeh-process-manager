@@ -365,7 +365,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     public record EdiTopicResources(
         TopicResource EdiTopic)
     {
-        public static async Task<EdiTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<EdiTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var ediTopicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
 
@@ -377,7 +377,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         /// <summary>
         /// Get the <see cref="ExampleOrchestrationsAppManager.EdiTopicResources"/> used by the Orchestrations app.
         /// </summary>
-        public static EdiTopicResources CreateFromTopic(TopicResource topic)
+        private static EdiTopicResources CreateFromTopic(TopicResource topic)
         {
             return new EdiTopicResources(
                 EdiTopic: topic);

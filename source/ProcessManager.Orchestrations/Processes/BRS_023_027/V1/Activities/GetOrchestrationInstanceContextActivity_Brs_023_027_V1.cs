@@ -49,8 +49,6 @@ internal class GetOrchestrationInstanceContextActivity_Brs_023_027_V1(
             .Select(step => step.Sequence)
         .ToList();
 
-        orchestrationInstance.CustomState.
-
         return new OrchestrationInstanceContext(
             OrchestrationOptions: _orchestrationOptions,
             CalculationId: input.InstanceId.Value,

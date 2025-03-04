@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.NotifyActorMessagesEnqueued;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
 
@@ -28,12 +26,10 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class MeasurementReceivedMeteredDataTriggerHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
-    IEnqueueActorMessagesClient enqueueActorMessagesClient,
-    INotifyToProcessManagerClient notifyToProcessManagerClient)
+    IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
-    private readonly INotifyToProcessManagerClient _notifyToProcessManagerClient = notifyToProcessManagerClient;
 
     public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
@@ -83,26 +79,12 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV1(
                 },
                 MarketActorRecipients: [new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)]);
 
-            var shouldInformItself = true;
-
-            if (shouldInformItself)
-            {
-                // TODO: Delete this when the load test has completed.
-                await _notifyToProcessManagerClient.Notify(
-                    new NotifyOrchestrationInstanceEvent(
-                        OrchestrationInstanceId: orchestrationInstance.Id.Value.ToString(),
-                        EventName: MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1.MeteredDataForMeteringPointMessagesEnqueuedCompleted))
-                        .ConfigureAwait(false);
-            }
-            else
-            {
-                await _enqueueActorMessagesClient.EnqueueAsync(
-                    orchestration: OrchestrationDescriptionBuilderV1.UniqueName,
-                    orchestrationInstanceId: orchestrationInstanceId.Value,
-                    orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
-                    idempotencyKey: Guid.NewGuid(), // TODO: fix this
-                    data: data).ConfigureAwait(false);
-            }
+            await _enqueueActorMessagesClient.EnqueueAsync(
+                orchestration: OrchestrationDescriptionBuilderV1.UniqueName,
+                orchestrationInstanceId: orchestrationInstanceId.Value,
+                orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
+                idempotencyKey: Guid.NewGuid(), // TODO: fix this
+                data: data).ConfigureAwait(false);
         }
     }
 }

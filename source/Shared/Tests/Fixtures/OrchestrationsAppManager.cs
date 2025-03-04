@@ -72,7 +72,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             manageAzurite: true,
             // TODO (ID-283)
             environment: null,
-            measurementMeasurementEventHubName: "eventhub_measurement")
+            measurementEventHubName: "eventhub_measurement")
     {
     }
 
@@ -87,7 +87,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         bool manageAzurite,
         // TODO (ID-283)
         string? environment,
-        string measurementMeasurementEventHubName)
+        string measurementEventHubName)
     {
         _taskHubName = string.IsNullOrWhiteSpace(taskHubName)
             ? throw new ArgumentException("Cannot be null or whitespace.", nameof(taskHubName))
@@ -97,7 +97,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         _manageAzurite = manageAzurite;
         // TODO (ID-283)
         _environment = environment;
-        _measurementEventHubName = measurementMeasurementEventHubName;
+        _measurementEventHubName = measurementEventHubName;
 
         DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();

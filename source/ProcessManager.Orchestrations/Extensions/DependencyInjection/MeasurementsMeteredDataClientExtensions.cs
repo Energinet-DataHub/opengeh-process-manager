@@ -36,6 +36,7 @@ public static class MeasurementsMeteredDataClientExtensions
         this IServiceCollection services,
         TokenCredential azureCredential)
     {
+        // TODO: should be moved!
         services
             .AddOptions<ProcessManagerEventHubOptions>()
             .BindConfiguration(ProcessManagerEventHubOptions.SectionName)

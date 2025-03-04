@@ -54,7 +54,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             manageAzurite: false,
             // TODO (ID-283)
             environment: "IntegrationTests",
-            measurementMeasurementEventHubName: MeasurementEventHubName);
+            measurementEventHubName: MeasurementEventHubName);
 
         ProcessManagerAppManager = new ProcessManagerAppManager(
             DatabaseManager,

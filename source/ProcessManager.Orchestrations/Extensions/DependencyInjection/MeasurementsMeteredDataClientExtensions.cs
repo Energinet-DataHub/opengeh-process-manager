@@ -53,11 +53,12 @@ public static class MeasurementsMeteredDataClientExtensions
 
         services.AddTransient<IMeasurementsMeteredDataClient, MeasurementsMeteredDataClient>();
 
-        services.AddHealthChecks()
-            .AddAzureEventHub(
-                clientFactory: sp => sp.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>().CreateClient(EventHubProducerClientNames.MeasurementsEventHub),
-                name: EventHubProducerClientNames.MeasurementsEventHub,
-                HealthStatus.Unhealthy);
+        // TODO: Temporarily disabled due to missing health check, since this is not in production yet.
+        // services.AddHealthChecks()
+        //     .AddAzureEventHub(
+        //         clientFactory: sp => sp.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>().CreateClient(EventHubProducerClientNames.MeasurementsEventHub),
+        //         name: EventHubProducerClientNames.MeasurementsEventHub,
+        //         HealthStatus.Unhealthy);
         return services;
     }
 }

@@ -26,7 +26,7 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
     public Task<ActivityOutput> Run([ActivityTrigger] ActivityInput activityInput)
     {
         var result = new ActivityOutput(
-            new MeteredDataForMeteringPointRejectedV1(
+            new ForwardMeteredDataRejectedV1(
                 Guid.NewGuid().ToString("N"),
                 BusinessReason.PeriodicMetering,
                 activityInput.Recipient,
@@ -63,9 +63,9 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
         string InputMessageId,
         string InputTransactionId,
         string InputProcessType,
-        MarketActorRecipient Recipient,
+        MarketActorRecipientV1 Recipient,
         IReadOnlyCollection<ValidationError> GeneralErrors,
         IReadOnlyCollection<ValidationError> SeriesErrors);
 
-    public sealed record ActivityOutput(MeteredDataForMeteringPointRejectedV1 RejectMessage);
+    public sealed record ActivityOutput(ForwardMeteredDataRejectedV1 RejectMessage);
 }

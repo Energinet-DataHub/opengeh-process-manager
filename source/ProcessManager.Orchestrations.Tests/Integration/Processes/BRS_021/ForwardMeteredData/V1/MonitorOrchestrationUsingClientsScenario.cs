@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -23,17 +26,23 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
+using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
+using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
@@ -160,15 +169,38 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
         var instance = instances.Should().ContainSingle().Subject;
 
-        // Wait for eventhub trigger
-        var success = await _fixture.EventHubListener.FindEventHubMessageToAndMockResponseFromMeasurementsAsync(
-            eventHubProducerClient: eventHubClientFactory.CreateClient(_processManagerEventHubProducerClientName),
-            orchestrationInstanceId: instance.Id,
-            transactionId: input.TransactionId);
+        // Verify that an persistSubmittedTransaction event is sent on the event hub
+        var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
+                (message) =>
+                {
+                    if (!message.TryParseAsPersistSubmittedTransaction(out var persistSubmittedTransaction))
+                        return false;
 
-        success.Should().Be(true);
+                    var orchestrationIdMatches = persistSubmittedTransaction.OrchestrationInstanceId == instance.Id.ToString();
+                    var transactionIdMatches = persistSubmittedTransaction.TransactionId == input.TransactionId;
+
+                    return orchestrationIdMatches && transactionIdMatches;
+                })
+            .VerifyCountAsync(1);
+
+        var persistSubmittedTransactionEventFound = verifyForwardMeteredDataToMeasurementsEvent.Wait(TimeSpan.FromSeconds(30));
+        persistSubmittedTransactionEventFound.Should().BeTrue($"because a {nameof(PersistSubmittedTransaction)} event should have been sent");
+
+        // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
+        var notify = new SubmittedTransactionsNotification()
+        {
+            Version = "1",
+            OrchestrationInstanceId = instance.Id.ToString(),
+            OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
+        };
+
+        var data = new EventData(notify.ToByteArray());
+        var processManagerEventHubProducerClient =
+            eventHubClientFactory.CreateClient(_processManagerEventHubProducerClientName);
+        await processManagerEventHubProducerClient.SendAsync([data], CancellationToken.None);
 
         // wait for notification from edi.
+        // TODO: Refactor this to use _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When()
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
             processManagerMessageClient: processManagerMessageClient,
             orchestrationInstanceId: instance.Id,

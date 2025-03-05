@@ -29,12 +29,9 @@ using Point = Energinet.DataHub.Measurements.Contracts.Point;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 
 public class MeasurementsMeteredDataClient(
-    IAzureClientFactory<EventHubProducerClient> eventHubClientFactory,
-    ILogger<MeasurementsMeteredDataClient> logger)
+    IAzureClientFactory<EventHubProducerClient> eventHubClientFactory)
         : IMeasurementsMeteredDataClient
 {
-    private readonly ILogger<MeasurementsMeteredDataClient> _logger = logger;
-
     private readonly EventHubProducerClient _measurementEventHubProducerClient =
         eventHubClientFactory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub);
 
@@ -64,7 +61,6 @@ public class MeasurementsMeteredDataClient(
 
         // Serialize the data to a byte array
         var eventData = new EventData(data.ToByteArray());
-        _logger.LogInformation($"_measurementEventHubProducerClient namespace: {_measurementEventHubProducerClient.FullyQualifiedNamespace} and event hub: {_measurementEventHubProducerClient.EventHubName}");
         await _measurementEventHubProducerClient.SendAsync([eventData], cancellationToken).ConfigureAwait(false);
     }
 

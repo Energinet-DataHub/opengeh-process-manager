@@ -51,10 +51,10 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV1(
         if (findReceiverStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
             // Find Receivers
-        }
 
-        // Terminate Step: Find receiver step
-        await StepHelper.TerminateStep(findReceiverStep, clock, _progressRepository).ConfigureAwait(false);
+            // Terminate Step: Find receiver step
+            await StepHelper.TerminateStep(findReceiverStep, clock, _progressRepository).ConfigureAwait(false);
+        }
 
         // Start Step: Enqueue actor messages step
         var enqueueActorMessagesStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);

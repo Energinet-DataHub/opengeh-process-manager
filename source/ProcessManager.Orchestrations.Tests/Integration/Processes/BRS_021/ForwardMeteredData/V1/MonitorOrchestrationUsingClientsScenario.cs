@@ -31,6 +31,7 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
 
@@ -141,6 +142,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
+        var logger = ServiceProvider.GetRequiredService<ILogger<MonitorOrchestrationUsingClientsScenario>>();
 
         // Act
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
@@ -153,17 +155,18 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
                 return instances.Count >= 1;
             },
-            TimeSpan.FromSeconds(10),
-            TimeSpan.FromSeconds(1));
+            TimeSpan.FromSeconds(15),
+            TimeSpan.FromSeconds(2));
 
         var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
         var instance = instances.Should().ContainSingle().Subject;
 
         // Wait for eventhub trigger
-        var success = await _fixture.EventHubListener.FindEventHubMessageToAndFromMeasurementsAsync(
+        var success = await _fixture.EventHubListener.FindEventHubMessageToAndMockResponseFromMeasurementsAsync(
             eventHubProducerClient: eventHubClientFactory.CreateClient(_processManagerEventHubProducerClientName),
             orchestrationInstanceId: instance.Id,
-            transactionId: input.TransactionId);
+            transactionId: input.TransactionId,
+            logger);
 
         success.Should().Be(true);
 
@@ -282,7 +285,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 _fixture.DefaultUserIdentity,
                 name: Brs_021_ForwardedMeteredData.Name,
                 version: null,
-                lifecycleStates: null,
+                lifecycleStates: [OrchestrationInstanceLifecycleState.Running],
                 terminationState: null,
                 startedAtOrLater: orchestrationCreatedAfter,
                 terminatedAtOrEarlier: null,

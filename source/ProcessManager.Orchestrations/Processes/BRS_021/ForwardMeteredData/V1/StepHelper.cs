@@ -23,8 +23,10 @@ public static class StepHelper
     public static async Task StartStep(StepInstance step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
     {
         if (step.Lifecycle.State == StepInstanceLifecycleState.Pending)
+        {
             step.Lifecycle.TransitionToRunning(clock);
-        await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+            await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        }
     }
 
     public static async Task TerminateStep(StepInstance step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
@@ -33,7 +35,6 @@ public static class StepHelper
             throw new InvalidOperationException("Can only terminate a running step");
 
         step.Lifecycle.TransitionToTerminated(clock, OrchestrationStepTerminationState.Succeeded);
-
         await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 }

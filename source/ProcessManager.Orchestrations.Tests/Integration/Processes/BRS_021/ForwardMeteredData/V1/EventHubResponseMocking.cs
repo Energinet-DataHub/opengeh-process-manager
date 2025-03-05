@@ -18,17 +18,20 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
 using Energinet.DataHub.Measurements.Contracts;
 using FluentAssertions;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
 public static class EventHubResponseMocking
 {
-    public static async Task<bool> FindEventHubMessageToAndFromMeasurementsAsync(
+    public static async Task<bool> FindEventHubMessageToAndMockResponseFromMeasurementsAsync(
         this EventHubListenerMock eventHubListenerMock,
         EventHubProducerClient eventHubProducerClient,
         Guid orchestrationInstanceId,
-        string transactionId)
+        string transactionId,
+        ILogger<MonitorOrchestrationUsingClientsScenario> logger)
     {
+        logger.LogError($"EventHubListener namespace: {eventHubListenerMock.EventHubFullyQualifiedNamespace} and EventHubName: {eventHubListenerMock.EventHubName}");
         var passableEvents = eventHubListenerMock.ReceivedEvents.Where(
             e => PersistSubmittedTransaction.Parser.ParseFrom(e.EventBody.ToArray()) != null);
         var passableEvent = passableEvents.Should().ContainSingle().Subject;

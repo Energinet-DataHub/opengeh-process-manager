@@ -187,7 +187,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         persistSubmittedTransactionEventFound.Should().BeTrue($"because a {nameof(PersistSubmittedTransaction)} event should have been sent");
 
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
-        var notify = new SubmittedTransactionsNotification()
+        var notify = new Brs021ForwardMeteredDataNotify()
         {
             Version = "1",
             OrchestrationInstanceId = instance.Id.ToString(),

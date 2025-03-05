@@ -31,7 +31,7 @@ public class NotifyTrigger_Brs_021_ForwardMeteredData_V1(
     [Function(nameof(NotifyTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ServiceBusTrigger(
-            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.TopicName)}%",
+            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}%",
             $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         string message)

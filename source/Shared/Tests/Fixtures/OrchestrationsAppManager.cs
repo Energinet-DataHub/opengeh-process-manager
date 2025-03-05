@@ -360,8 +360,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // brs 21 topic
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.TopicName)}",
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",
             brs21TopicResources.Brs21StartTopic.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}",
+            brs21TopicResources.Brs21NotifyTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}",
             brs21TopicResources.StartSubscription.SubscriptionName);

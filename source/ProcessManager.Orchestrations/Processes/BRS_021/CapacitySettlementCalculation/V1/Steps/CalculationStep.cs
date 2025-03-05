@@ -41,7 +41,9 @@ internal class CalculationStep(
         var jobRunId = await Context.CallActivityAsync<JobRunId>(
             nameof(CalculationStepStartJobActivity_Brs_021_CapacitySettlementCalculation_V1),
             new CalculationStepStartJobActivity_Brs_021_CapacitySettlementCalculation_V1.ActivityInput(
-                orchestrationInstanceContext.OrchestrationInstanceId),
+                orchestrationInstanceContext.OrchestrationInstanceId,
+                orchestrationInstanceContext.CalculationYear,
+                orchestrationInstanceContext.CalculationMonth),
             DefaultRetryOptions);
 
         var expiryTime = Context.CurrentUtcDateTime

@@ -27,4 +27,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Capa
 public record OrchestrationInstanceContext(
     OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1 OrchestrationOptions,
     Guid CalculationId,
-    OrchestrationInstanceId OrchestrationInstanceId);
+    OrchestrationInstanceId OrchestrationInstanceId,
+    int CalculationYear,
+    int CalculationMonth);

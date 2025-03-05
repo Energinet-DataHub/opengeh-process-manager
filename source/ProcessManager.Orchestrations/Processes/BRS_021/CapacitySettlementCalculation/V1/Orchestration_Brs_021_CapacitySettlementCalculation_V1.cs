@@ -73,6 +73,10 @@ internal class Orchestration_Brs_021_CapacitySettlementCalculation_V1
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
+        // TODO AJW
+        var calculationYear = 2021;
+        var calculationMonth = 1;
+
         await context.CallActivityAsync(
             nameof(TransitionOrchestrationToRunningActivity_V1),
             new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
@@ -82,7 +86,9 @@ internal class Orchestration_Brs_021_CapacitySettlementCalculation_V1
         var instanceContext = await context.CallActivityAsync<OrchestrationInstanceContext>(
             nameof(GetOrchestrationInstanceContextActivity_Brs_021_CapacitySettlementCalculation_V1),
             new GetOrchestrationInstanceContextActivity_Brs_021_CapacitySettlementCalculation_V1.ActivityInput(
-                instanceId),
+                instanceId,
+                calculationYear,
+                calculationMonth),
             _defaultTaskOptions);
 
         return instanceContext;

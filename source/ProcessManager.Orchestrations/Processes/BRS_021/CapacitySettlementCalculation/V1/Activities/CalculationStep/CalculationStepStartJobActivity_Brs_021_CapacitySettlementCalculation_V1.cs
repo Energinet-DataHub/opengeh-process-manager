@@ -33,11 +33,13 @@ internal class CalculationStepStartJobActivity_Brs_021_CapacitySettlementCalcula
         var jobParameters = new List<string>
         {
             $"--orchestration-instance-id={input.InstanceId.Value}",
+            $"--calculation-year={input.CalculationYear}",
+            $"--calculation-month={input.CalculationMonth}",
         };
 
         return await _client.StartJobAsync("CapacitySettlement", jobParameters).ConfigureAwait(false);
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId InstanceId);
+        OrchestrationInstanceId InstanceId, int CalculationYear, int CalculationMonth);
 }

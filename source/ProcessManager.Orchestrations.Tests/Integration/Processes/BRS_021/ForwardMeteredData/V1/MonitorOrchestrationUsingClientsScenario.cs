@@ -95,7 +95,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Arrange
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
 
-        var startCommand = new StartForwardMeteredDataCommandV1(
+        var startCommand = new ForwardMeteredDataCommandV1(
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
@@ -161,7 +161,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Arrange
         var input = CreateMeteredDataForMeteringPointMessageInputV1(true);
 
-        var startCommand = new StartForwardMeteredDataCommandV1(
+        var startCommand = new ForwardMeteredDataCommandV1(
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             "test-message-id");
@@ -245,7 +245,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 1: Start new orchestration instance
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
 
-        var startCommand = new StartForwardMeteredDataCommandV1(
+        var startCommand = new ForwardMeteredDataCommandV1(
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
@@ -259,7 +259,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             async () =>
             {
                 var orchestrationInstance = await processManagerClient
-                    .GetOrchestrationInstanceByIdempotencyKeyAsync<MeteredDataForMeteringPointMessageInputV1>(
+                    .GetOrchestrationInstanceByIdempotencyKeyAsync<ForwardMeteredDataInputV1>(
                         new GetOrchestrationInstanceByIdempotencyKeyQuery(
                             _fixture.DefaultUserIdentity,
                             startCommand.IdempotencyKey),
@@ -276,10 +276,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
     }
 
-    private static MeteredDataForMeteringPointMessageInputV1 CreateMeteredDataForMeteringPointMessageInputV1(
+    private static ForwardMeteredDataInputV1 CreateMeteredDataForMeteringPointMessageInputV1(
         bool withError = false)
     {
-        var input = new MeteredDataForMeteringPointMessageInputV1(
+        var input = new ForwardMeteredDataInputV1(
             "MessageId",
             Guid.NewGuid(),
             "1111111111111",
@@ -295,8 +295,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             "2024-12-02T23:00:00Z",
             "5790002606892",
             null,
-            new List<EnergyObservation>()
-            {
+            [
                 new("1", "112.000", "A04"),
                 new("2", "112.000", "A04"),
                 new("3", "112.000", "A04"),
@@ -320,7 +319,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 new("22", "112.000", "A04"),
                 new("23", "112.000", "A04"),
                 new("24", "112.000", "A04"),
-            });
+            ]);
         return input;
     }
 

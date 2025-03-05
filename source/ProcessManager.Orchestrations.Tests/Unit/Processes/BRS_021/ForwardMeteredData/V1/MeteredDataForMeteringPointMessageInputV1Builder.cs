@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 
 public class MeteredDataForMeteringPointMessageInputV1Builder
 {
-    public static MeteredDataForMeteringPointMessageInputV1 Build() =>
+    public static ForwardMeteredDataInputV1 Build() =>
         new(
             MessageId: "MessageId",
             AuthenticatedActorId: Guid.NewGuid(),

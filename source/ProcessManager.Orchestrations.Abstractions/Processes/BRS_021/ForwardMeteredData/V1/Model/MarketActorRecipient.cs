@@ -13,8 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-public sealed record MarketActorRecipient(string ActorId, ActorRole ActorRole);
+public sealed record MarketActorRecipient(ActorNumber ActorNumber, ActorRole ActorRole);

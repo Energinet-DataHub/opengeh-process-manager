@@ -53,7 +53,7 @@ internal class PerformGeneralBusinessValidationActivity_Brs_021_ForwardMeteredDa
 
     public sealed record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        MeteredDataForMeteringPointMessageInputV1 RequestInput,
+        ForwardMeteredDataInputV1 RequestInput,
         int StepSequence,
         IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
 

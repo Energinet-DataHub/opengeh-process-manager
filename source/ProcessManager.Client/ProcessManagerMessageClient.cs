@@ -30,7 +30,7 @@ public class ProcessManagerMessageClient(
     /// </summary>
     private const string NotifyOrchestrationInstanceSubject = "NotifyOrchestration";
 
-    private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.ProcessManagerTopic);
+    private readonly IAzureClientFactory<ServiceBusSender> _serviceBusFactory = serviceBusFactory;
 
     public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
         StartOrchestrationInstanceMessageCommand<TInputParameterDto> command,
@@ -39,9 +39,8 @@ public class ProcessManagerMessageClient(
     {
         var serviceBusMessage = CreateStartOrchestrationInstanceServiceBusMessage(command);
 
-        return SendServiceBusMessage(
-                serviceBusMessage,
-                cancellationToken);
+        var serviceBusSender = _serviceBusFactory.CreateClient(ServiceBusSenderNames.ProcessManagerStartSender);
+        return serviceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 
     public Task NotifyOrchestrationInstanceAsync(
@@ -52,9 +51,8 @@ public class ProcessManagerMessageClient(
             notifyEvent,
             data: null);
 
-        return SendServiceBusMessage(
-            serviceBusMessage,
-            cancellationToken);
+        var serviceBusSender = _serviceBusFactory.CreateClient(ServiceBusSenderNames.ProcessManagerNotifySender);
+        return serviceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 
     public Task NotifyOrchestrationInstanceAsync<TNotifyDataDto>(
@@ -66,9 +64,8 @@ public class ProcessManagerMessageClient(
             notifyEvent,
             data: notifyEvent.Data);
 
-        return SendServiceBusMessage(
-            serviceBusMessage,
-            cancellationToken);
+        var serviceBusSender = _serviceBusFactory.CreateClient(ServiceBusSenderNames.ProcessManagerNotifySender);
+        return serviceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 
     private ServiceBusMessage CreateStartOrchestrationInstanceServiceBusMessage<TInputParameterDto>(
@@ -121,13 +118,5 @@ public class ProcessManagerMessageClient(
             idempotencyKey: Guid.NewGuid().ToString());
 
         return serviceBusMessage;
-    }
-
-    private async Task SendServiceBusMessage(
-        ServiceBusMessage serviceBusMessage,
-        CancellationToken cancellationToken)
-    {
-        await _serviceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken)
-            .ConfigureAwait(false);
     }
 }

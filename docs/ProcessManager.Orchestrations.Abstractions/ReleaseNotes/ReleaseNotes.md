@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.4.1
+
+- Update NuGet packages.
+
 ## Version 1.4.0
 
 - Add `MigrateCalculationsFromWholesaleCustomStateV1`.

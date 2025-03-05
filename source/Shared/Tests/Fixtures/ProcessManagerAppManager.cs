@@ -89,6 +89,9 @@ public class ProcessManagerAppManager : IAsyncDisposable
     [NotNull]
     public FunctionAppHostManager? AppHostManager { get; private set; }
 
+    [NotNull]
+    public TopicResource? ProcessManagerNotifyTopic { get; private set; }
+
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
     private AzuriteManager AzuriteManager { get; }
@@ -110,7 +113,9 @@ public class ProcessManagerAppManager : IAsyncDisposable
             await DatabaseManager.CreateDatabaseAsync();
 
         var obsoleteNotifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider, "pm-notify-topic-obsolete");
+        // Notify topic
         var notifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider, "pm-notify-topic");
+        ProcessManagerNotifyTopic = notifyTopicResources.NotifyTopic;
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings("ProcessManager", notifyTopicResources, obsoleteNotifyTopicResources);

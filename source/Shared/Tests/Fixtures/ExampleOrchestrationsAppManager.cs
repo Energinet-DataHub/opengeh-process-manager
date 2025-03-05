@@ -99,6 +99,9 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     [NotNull]
     public FunctionAppHostManager? AppHostManager { get; private set; }
 
+    [NotNull]
+    public TopicResource? ProcessManagerStartTopic { get; private set; }
+
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
     private AzuriteManager AzuriteManager { get; }
@@ -121,7 +124,10 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
+        // Start topic
         var startTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        ProcessManagerStartTopic = startTopicResources.StartTopic;
+        // EDI topic
         ediTopicResources ??= await EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
         // Prepare host settings
@@ -365,7 +371,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     public record EdiTopicResources(
         TopicResource EdiTopic)
     {
-        internal static async Task<EdiTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        public static async Task<EdiTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var ediTopicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
 
@@ -377,7 +383,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         /// <summary>
         /// Get the <see cref="ExampleOrchestrationsAppManager.EdiTopicResources"/> used by the Orchestrations app.
         /// </summary>
-        private static EdiTopicResources CreateFromTopic(TopicResource topic)
+        public static EdiTopicResources CreateFromTopic(TopicResource topic)
         {
             return new EdiTopicResources(
                 EdiTopic: topic);

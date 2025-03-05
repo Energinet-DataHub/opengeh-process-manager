@@ -17,30 +17,23 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Azure.Functions.Worker;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 
-// TODO: We have decided to route on the "name" part of the "orchestration description unique name",
-// meaning not including the "version" part; this will minimize how often we need to adjust infrastructure
-// with regards to "subscriptions". Hence this trigger should not be located within the "V1".
-// Also we need a generic way to first parse the "version" of a command and then direct the message to
-// the correct "version handler."
-public class StartTrigger_Brs_021_ForwardMeteredData_V1(
-    StartForwardMeteredDataHandlerV1 handler)
+public class NotifyTrigger_Brs_021_ForwardMeteredData_V1()
 {
-    private readonly StartForwardMeteredDataHandlerV1 _handler = handler;
-
     /// <summary>
     /// Start a BRS-021 ForwardMeteredData.
     /// </summary>
-    [Function(nameof(StartTrigger_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(NotifyTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ServiceBusTrigger(
             $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.TopicName)}%",
-            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}%",
+            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        await _handler.HandleAsync(message)
-            .ConfigureAwait(false);
+        // TODO: Handle notify for BRS-021 forward metered data
     }
 }

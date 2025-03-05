@@ -46,7 +46,7 @@ public static class MeasurementsMeteredDataClientExtensions
                         (_, _, provider) =>
                         {
                             var options = provider.GetRequiredService<IOptions<MeasurementsMeteredDataClientOptions>>().Value;
-                            return new EventHubProducerClient($", options.EventHubName, azureCredential);
+                            return new EventHubProducerClient($"{options.NamespaceName}.servicebus.windows.net", options.EventHubName, azureCredential);
                         })
                     .WithName(EventHubProducerClientNames.MeasurementsEventHub);
             });

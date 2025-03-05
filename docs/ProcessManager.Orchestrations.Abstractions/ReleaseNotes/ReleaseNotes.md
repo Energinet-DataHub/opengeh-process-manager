@@ -1,5 +1,20 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.5.0
+
+- Rename `StartForwardMeteredDataCommandV1` to `ForwardMeteredDataCommandV1`.
+- Rename `MeteredDataForMeteringPointMessageInputV1` to `ForwardMeteredDataInputV1`.
+- Rename `MeteredDataForMeteringPointAcceptedV1` to `ForwardMeteredDataAcceptedV1` and update properties.
+- Rename `MeteredDataForMeteringPointRejectedV1` to `ForwardMeteredDataRejectedV1`.
+- Rename `MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1` to `ForwardMeteredDataNotifyEventsV1`.
+- Rename `MarketActorRecipient` to `MarketActorRecipientV1`.
+- Use `ActorNumber` value object in `MarketActorRecipient` and rename `ActorId` to `ActorNumber`.
+- Move `AcceptedEnergyObservation` to `ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation`.
+
+## Version 1.4.1
+
+- Update NuGet packages.
+
 ## Version 1.4.0
 
 - Add `MigrateCalculationsFromWholesaleCustomStateV1`.

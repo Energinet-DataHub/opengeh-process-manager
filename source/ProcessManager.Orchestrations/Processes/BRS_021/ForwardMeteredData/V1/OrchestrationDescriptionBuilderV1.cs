@@ -40,7 +40,7 @@ internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuil
             canBeScheduled: false,
             functionName: string.Empty);
 
-        description.ParameterDefinition.SetFromType<MeteredDataForMeteringPointMessageInputV1>();
+        description.ParameterDefinition.SetFromType<ForwardMeteredDataInputV1>();
         description.AppendStepDescription("Asynkron validering");
         description.AppendStepDescription("Gemmer");
         description.AppendStepDescription("Finder modtagere");

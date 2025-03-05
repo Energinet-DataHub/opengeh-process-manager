@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
@@ -37,7 +38,7 @@ public class NotifyTrigger_Brs_021_ForwardMeteredData_V1(
         string message)
     {
         var notify = NotifyOrchestrationInstanceV1.Parser.ParseJson(message);
-        if (notify == null || notify.EventName != nameof(NotifyTrigger_Brs_021_ForwardMeteredData_V1))
+        if (notify is not { EventName: ForwardMeteredDataNotifyEventsV1.EnqueueActorMessagesCompleted })
         {
             throw new InvalidOperationException("Failed to deserialize message");
         }

@@ -41,9 +41,9 @@ public static class ServiceBusResponseMocking
                     var body = EnqueueActorMessagesV1
                         .Parser.ParseJson(message.Body.ToString())!;
 
-                    var meteredDateForMeringPointAccepted = JsonSerializer.Deserialize<MeteredDataForMeteringPointAcceptedV1>(body.Data);
+                    var meteredDateForMeringPointAccepted = JsonSerializer.Deserialize<ForwardMeteredDataAcceptedV1>(body.Data);
 
-                    var messageIdMatches = meteredDateForMeringPointAccepted?.MessageId == messageId;
+                    var messageIdMatches = meteredDateForMeringPointAccepted?.OriginalActorMessageId == messageId;
                     var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationInstanceId.ToString();
 
                     return messageIdMatches && orchestrationIdMatches;
@@ -55,7 +55,7 @@ public static class ServiceBusResponseMocking
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceEvent(
                 OrchestrationInstanceId: orchestrationInstanceId.ToString(),
-                EventName: MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1.MeteredDataForMeteringPointMessagesEnqueuedCompleted),
+                EventName: ForwardMeteredDataNotifyEventsV1.EnqueueActorMessagesCompleted),
             CancellationToken.None);
     }
 }

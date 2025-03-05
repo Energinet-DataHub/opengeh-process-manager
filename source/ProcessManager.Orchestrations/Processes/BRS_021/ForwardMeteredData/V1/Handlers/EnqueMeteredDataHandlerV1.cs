@@ -62,8 +62,8 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV1(
 
         if (enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
-            var data = new MeteredDataForMeteringPointAcceptedV1(
-                MessageId: "MessageId",
+            var data = new ForwardMeteredDataAcceptedV1(
+                OriginalActorMessageId: "MessageId",
                 MeteringPointId: "MeteringPointId",
                 MeteringPointType: MeteringPointType.Production,
                 OriginalTransactionId: "OriginalTransactionId",
@@ -73,11 +73,11 @@ public class MeasurementReceivedMeteredDataTriggerHandlerV1(
                 Resolution: Resolution.QuarterHourly,
                 StartDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
                 EndDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
-                AcceptedEnergyObservations: new List<AcceptedEnergyObservation>
+                AcceptedEnergyObservations: new List<ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation>
                 {
                     new(1, 1, Quality.Calculated),
                 },
-                MarketActorRecipients: [new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)]);
+                MarketActorRecipients: [new MarketActorRecipientV1(ActorNumber.Create("8100000000115"), ActorRole.EnergySupplier)]);
 
             await _enqueueActorMessagesClient.EnqueueAsync(
                 orchestration: OrchestrationDescriptionBuilderV1.UniqueName,

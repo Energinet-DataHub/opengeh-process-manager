@@ -19,29 +19,29 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Opt
 
 /// <summary>
 /// Contains options required for the orchestrations app to connect to the
-/// ProcessManager Service Bus topic.
+/// Process Manager Start topic and subscriptions.
 /// </summary>
-public class ProcessManagerTopicOptions
+public class ProcessManagerStartTopicOptions
 {
     /// <summary>
     /// Name of the section in the <see cref="IConfiguration"/> / appsettings.json file
     /// </summary>
-    public const string SectionName = "ProcessManagerTopic";
+    public const string SectionName = "ProcessManagerStartTopic";
 
     /// <summary>
-    /// Name of the ProcessManager Service Bus topic
+    /// Name of the Process Manager Start topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string TopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription for BRS-X02 to the ProcessManager Service Bus topic
+    /// Name of the subscription for BRS-X02 to the Process Manager Start topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string BrsX02SubscriptionName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription for BRS-X03 to the ProcessManager Service Bus topic
+    /// Name of the subscription for BRS-X03 to the Process Manager Start topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string BrsX03SubscriptionName { get; set; } = string.Empty;

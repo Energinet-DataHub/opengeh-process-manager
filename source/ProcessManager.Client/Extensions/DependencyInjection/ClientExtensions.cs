@@ -88,13 +88,21 @@ public static class ClientExtensions
                     (_, _, provider) =>
                     {
                         var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
-                        var serviceBusSender = provider
+                        return provider
                             .GetRequiredService<ServiceBusClient>()
-                            .CreateSender(serviceBusOptions.TopicName);
-
-                        return serviceBusSender;
+                            .CreateSender(serviceBusOptions.StartTopicName);
                     })
-                    .WithName(ServiceBusSenderNames.ProcessManagerTopic);
+                    .WithName(ServiceBusSenderNames.ProcessManagerStartSender);
+
+                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
+                    (_, _, provider) =>
+                    {
+                        var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
+                        return provider
+                            .GetRequiredService<ServiceBusClient>()
+                            .CreateSender(serviceBusOptions.NotifyTopicName);
+                    })
+                    .WithName(ServiceBusSenderNames.ProcessManagerNotifySender);
             });
 
         services.AddScoped<IProcessManagerMessageClient, ProcessManagerMessageClient>();

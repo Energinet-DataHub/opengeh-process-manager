@@ -60,6 +60,6 @@ internal class EnqueueRejectMessageActivity_Brs_021_V1(
 
     public record ActivityInput(
         OrchestrationInstanceId InstanceId,
-        MeteredDataForMeteringPointRejectedV1 RejectMessage,
+        ForwardMeteredDataRejectedV1 RejectMessage,
         Guid IdempotencyKey);
 }

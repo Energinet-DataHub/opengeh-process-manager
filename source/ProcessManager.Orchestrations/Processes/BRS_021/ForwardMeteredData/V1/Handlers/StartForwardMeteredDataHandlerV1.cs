@@ -34,7 +34,7 @@ public class StartForwardMeteredDataHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
     IMeasurementsMeteredDataClient measurementsMeteredDataClient)
-        : StartOrchestrationInstanceFromMessageHandlerBase<MeteredDataForMeteringPointMessageInputV1>(logger)
+        : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private IOrchestrationInstanceProgressRepository ProgressRepository { get; } = progressRepository;
 
@@ -44,7 +44,7 @@ public class StartForwardMeteredDataHandlerV1(
     // TODO: Hence we need to commit after the event/message has been sent
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,
-        MeteredDataForMeteringPointMessageInputV1 input,
+        ForwardMeteredDataInputV1 input,
         string idempotencyKey,
         string actorMessageId,
         string transactionId,
@@ -104,7 +104,7 @@ public class StartForwardMeteredDataHandlerV1(
 #pragma warning disable SA1202
     public static MeteredDataForMeteringPoint GenerateMeteredData(
         OrchestrationInstanceId orchestrationInstanceId,
-        MeteredDataForMeteringPointMessageInputV1 input)
+        ForwardMeteredDataInputV1 input)
     {
         return new MeteredDataForMeteringPoint(
             OrchestrationId: orchestrationInstanceId.Value.ToString(),

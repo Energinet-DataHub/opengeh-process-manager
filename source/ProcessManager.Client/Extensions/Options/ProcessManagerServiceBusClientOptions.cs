@@ -24,8 +24,14 @@ public class ProcessManagerServiceBusClientOptions
     public const string SectionName = "ProcessManagerServiceBusClient";
 
     /// <summary>
-    /// Name of the topic which the Process Manager receives service bus messages on
+    /// Name of the topic which the Process Manager receives start commands (service bus messages) on.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string TopicName { get; set; } = string.Empty;
+    public string StartTopicName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name of the topic which the Process Manager receives notify events (service bus messages) on.
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string NotifyTopicName { get; set; } = string.Empty;
 }

@@ -62,7 +62,6 @@ internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredDa
             ParseDateTime(input.ForwardMeteredDataInput.StartDateTime),
             ParseDateTime(input.ForwardMeteredDataInput.EndDateTime),
             ParseMeteringPointType(input.ForwardMeteredDataInput.MeteringPointType),
-            input.ForwardMeteredDataInput.ProductNumber!,
             ParseMeasureUnit(input.ForwardMeteredDataInput.MeasureUnit),
             ParseResolution(input.ForwardMeteredDataInput.Resolution),
             points);

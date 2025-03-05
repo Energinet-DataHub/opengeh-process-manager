@@ -31,7 +31,8 @@ public class ClientExtensionsTests
     private const string OrchestrationsApiBaseAddressFake = "https://www.fake-orchestrations.com";
 
     private const string ServiceBusNamespace = "namespace.servicebus.windows.net";
-    private const string ServiceBusTopicName = "topic-name";
+    private const string ServiceBusStartTopicName = "start-topic-name";
+    private const string ServiceBusNotifyTopicName = "notify-topic-name";
 
     public ClientExtensionsTests()
     {
@@ -121,7 +122,8 @@ public class ClientExtensionsTests
 
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"] = ServiceBusTopicName,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"] = ServiceBusStartTopicName,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"] = ServiceBusNotifyTopicName,
         });
 
         // Act
@@ -154,7 +156,8 @@ public class ClientExtensionsTests
             .Throw<OptionsValidationException>()
                 .WithMessage("DataAnnotation validation failed for 'ProcessManagerServiceBusClientOptions'*")
             .And.Failures.Should()
-                .ContainMatch("*TopicName field is required*");
+                .ContainMatch("*StartTopicName field is required*")
+                .And.ContainMatch("*NotifyTopicName field is required*");
     }
 
     [Fact]
@@ -163,7 +166,8 @@ public class ClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"] = ServiceBusTopicName,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"] = ServiceBusStartTopicName,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"] = ServiceBusNotifyTopicName,
         });
 
         // Act

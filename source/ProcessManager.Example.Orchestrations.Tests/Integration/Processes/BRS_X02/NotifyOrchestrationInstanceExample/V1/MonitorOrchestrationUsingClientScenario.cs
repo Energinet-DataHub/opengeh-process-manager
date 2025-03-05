@@ -61,8 +61,10 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
 
             // Process Manager message client
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.TopicName)}"]
-                = Fixture.ProcessManagerTopic.Name,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
+                = Fixture.ProcessManagerStartTopic.Name,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
+                = Fixture.ProcessManagerNotifyTopic.Name,
         });
 
         // Process Manager HTTP client

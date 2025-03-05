@@ -68,25 +68,29 @@ public class ExampleConsumerAppManager : IAsyncDisposable
     private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     /// <summary>
-    /// Start the example orchestration app.
+    /// Start the example consumer app.
     /// </summary>
-    /// <param name="processManagerTopicResources">Process Manager topic resources used by the app. Will be created if not provided.</param>
+    /// <param name="processManagerStartTopicResources">Process Manager Start topic.
+    /// Used by consumer app to configure Process Manager Message Client.</param>
+    /// <param name="processManagerNotifyTopicResources">Process Manager Notify topic.
+    /// Used by consumer app to configure Process Manager Message Client.</param>
     /// <param name="ediTopicResources">EDI topic resources used by the app. Will be created if not provided.</param>
     /// <param name="processManagerApiUrl">Base URL of the Process Manager general API.</param>
     /// <param name="orchestrationsApiUrl">Base URL of the Orchestrations API.</param>
     public async Task StartAsync(
-        ProcessManagerTopicResources? processManagerTopicResources,
+        TopicResource processManagerStartTopicResources,
+        TopicResource processManagerNotifyTopicResources,
         EdiTopicResources? ediTopicResources,
         string processManagerApiUrl,
         string orchestrationsApiUrl)
     {
-        processManagerTopicResources ??= await ProcessManagerTopicResources.CreateNew(ServiceBusResourceProvider);
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Example.Consumer",
-            processManagerTopicResources,
+            processManagerStartTopicResources,
+            processManagerNotifyTopicResources,
             ediTopicResources,
             processManagerApiUrl,
             orchestrationsApiUrl);
@@ -151,7 +155,8 @@ public class ExampleConsumerAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        ProcessManagerTopicResources processManagerTopicResources,
+        TopicResource processManagerStartTopicResources,
+        TopicResource processManagerNotifyTopicResources,
         EdiTopicResources ediTopicResources,
         string processManagerGeneralApiBaseUrl,
         string orchestrationApiBaseUrl)
@@ -204,8 +209,11 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.TopicName)}",
-            processManagerTopicResources.ProcessManagerTopic.Name);
+            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}",
+            processManagerStartTopicResources.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}",
+            processManagerNotifyTopicResources.Name);
 
         // => Edi topic
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -218,31 +226,6 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             ediTopicResources.EnqueueBrsX03Subscription.SubscriptionName);
 
         return appHostSettings;
-    }
-
-    /// <summary>
-    /// Process Manager topic and subscription resources used by the Example Orchestrations app.
-    /// </summary>
-    public record ProcessManagerTopicResources(
-        TopicResource ProcessManagerTopic)
-    {
-        public static async Task<ProcessManagerTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
-        {
-            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-topic");
-
-            var processManagerTopic = await processManagerTopicBuilder.CreateAsync();
-
-            return CreateFromTopic(processManagerTopic);
-        }
-
-        /// <summary>
-        /// Get the <see cref="ExampleConsumerAppManager.ProcessManagerTopicResources"/> used by the Orchestrations app.
-        /// </summary>
-        public static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
-        {
-            return new ProcessManagerTopicResources(
-                ProcessManagerTopic: topic);
-        }
     }
 
     /// <summary>

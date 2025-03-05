@@ -1,5 +1,11 @@
 # ProcessManager.Client Release Notes
 
+## Version 2.0.0
+
+- This version is a breaking change for use of `IProcessManagerMessageClient`.
+- Refactored `ProcessManagerMessageClient` to send notify events to a specific "notify" topic, and start commands to a specific "start" topic.
+- Refactored `ProcessManagerServiceBusClientOptions` to have options `StartTopicName` and `NotifyTopicName`.
+
 ## Version 1.5.0
 
 - Add `CustomState` to `IOrchestrationInstanceTypedDto`.

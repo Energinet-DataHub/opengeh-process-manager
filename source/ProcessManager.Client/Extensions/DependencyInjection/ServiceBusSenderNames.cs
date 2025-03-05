@@ -17,12 +17,17 @@ using Azure.Messaging.ServiceBus;
 namespace Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 
 /// <summary>
-/// Constants used for naming <see cref="ServiceBusSender"/> instances
+/// Constants used for naming <see cref="ServiceBusSender"/> instances.
 /// </summary>
 public static class ServiceBusSenderNames
 {
     /// <summary>
-    /// Service Bus sender for sending messages on the process manager service bus topic
+    /// Service Bus sender for sending start commands (service bus messages) to the Process Manager.
     /// </summary>
-    public const string ProcessManagerTopic = "ProcessManagerTopic";
+    public const string ProcessManagerStartSender = "ProcessManagerStartSender";
+
+    /// <summary>
+    /// Service Bus sender for sending notify events (service bus messages) to the Process Manager.
+    /// </summary>
+    public const string ProcessManagerNotifySender = "ProcessManagerNotifySender";
 }

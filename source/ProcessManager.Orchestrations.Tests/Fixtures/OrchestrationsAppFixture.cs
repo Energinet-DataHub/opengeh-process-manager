@@ -99,9 +99,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     [NotNull]
     public IDurableClient? DurableClient { get; private set; }
 
-    [NotNull]
-    public string? ProcessManagerTopicName { get; private set; }
-
     public ServiceBusListenerMock EnqueueBrs023027ServiceBusListener { get; }
 
     public ServiceBusListenerMock EnqueueBrs026ServiceBusListener { get; }
@@ -136,21 +133,11 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         DurableClient = DurableTaskManager.CreateClient(TaskHubName);
 
-        // Create a shared Process Manager topic with subscriptions for both Orchestrations and Process Manager apps.
-        var processManagerTopicResourceBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
-        OrchestrationsAppManager.ProcessManagerTopicResources.AddOrchestrationsAppSubscriptions(processManagerTopicResourceBuilder);
-        ProcessManagerAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicResourceBuilder);
-        var processManagerTopicResource = await processManagerTopicResourceBuilder.CreateAsync();
-
-        // Get resources from the created Process Manager topic for both Orchestrations and Process Manager apps.
-        var orchestrationsProcessManagerTopicResources = OrchestrationsAppManager.ProcessManagerTopicResources
-            .CreateFromTopic(processManagerTopicResource);
-        var processManagerAppProcessManagerTopicResources = ProcessManagerAppManager.ProcessManagerTopicResources
-            .CreateFromTopic(processManagerTopicResource);
+        // Process Manager Notify topic
+        await ProcessManagerAppManager.StartAsync();
 
         // Create EDI topic resources
         var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.CreateNew(ServiceBusResourceProvider);
-
         await EnqueueBrs023027ServiceBusListener.AddTopicSubscriptionListenerAsync(
             ediTopicResources.EnqueueBrs023027Subscription.TopicName,
             ediTopicResources.EnqueueBrs023027Subscription.SubscriptionName);
@@ -167,10 +154,10 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             integrationEventTopicResources.SharedTopic.Name,
             integrationEventTopicResources.Subscription.SubscriptionName);
 
-        await OrchestrationsAppManager.StartAsync(orchestrationsProcessManagerTopicResources, ediTopicResources, integrationEventTopicResources);
-        await ProcessManagerAppManager.StartAsync(processManagerAppProcessManagerTopicResources);
-
-        ProcessManagerTopicName = orchestrationsProcessManagerTopicResources.ProcessManagerTopic.Name;
+        // Process Manager Start topic
+        await OrchestrationsAppManager.StartAsync(
+            ediTopicResources,
+            integrationEventTopicResources);
 
         EventHubListener = new EventHubListenerMock(
             new TestDiagnosticsLogger(),

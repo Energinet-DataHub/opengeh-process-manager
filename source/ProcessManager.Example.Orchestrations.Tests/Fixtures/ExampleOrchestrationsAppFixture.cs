@@ -83,9 +83,6 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
     public IDurableClient? DurableClient { get; private set; }
 
     [NotNull]
-    public TopicResource? ProcessManagerTopic { get; private set; }
-
-    [NotNull]
     public TopicResource? EdiTopic { get; private set; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -103,24 +100,20 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        var processManagerTopicBuilder = ServiceBusResourceProvider.BuildTopic("pm-topic");
-        ExampleOrchestrationsAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
-        ProcessManagerAppManager.ProcessManagerTopicResources.AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
-        ProcessManagerTopic = await processManagerTopicBuilder.CreateAsync();
+        // Process Manager Notify topic
+        await ProcessManagerAppManager.StartAsync();
 
         var ediTopicBuilder = ServiceBusResourceProvider.BuildTopic("edi-topic");
         ExampleConsumerAppManager.EdiTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
         EdiTopic = await ediTopicBuilder.CreateAsync();
 
+        // Process Manager Start topic
         await ExampleOrchestrationsAppManager.StartAsync(
-            ExampleOrchestrationsAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic),
             ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(EdiTopic));
 
-        await ProcessManagerAppManager.StartAsync(
-            ProcessManagerAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic));
-
         await ExampleConsumerAppManager.StartAsync(
-            ExampleConsumerAppManager.ProcessManagerTopicResources.CreateFromTopic(ProcessManagerTopic),
+            ExampleOrchestrationsAppManager.ProcessManagerStartTopic,
+            ProcessManagerAppManager.ProcessManagerNotifyTopic,
             ExampleConsumerAppManager.EdiTopicResources.CreateFromTopic(EdiTopic),
             processManagerApiUrl: ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri,
             orchestrationsApiUrl: ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri);

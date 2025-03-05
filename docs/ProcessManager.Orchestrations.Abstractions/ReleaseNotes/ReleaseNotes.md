@@ -11,6 +11,10 @@
 - Use `ActorNumber` value object in `MarketActorRecipient` and rename `ActorId` to `ActorNumber`.
 - Move `AcceptedEnergyObservation` to `ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation`.
 
+## Version 1.4.1
+
+- Update NuGet packages.
+
 ## Version 1.4.0
 
 - Add `MigrateCalculationsFromWholesaleCustomStateV1`.

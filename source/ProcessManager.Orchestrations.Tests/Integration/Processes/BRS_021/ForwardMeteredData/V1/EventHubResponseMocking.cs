@@ -28,13 +28,11 @@ public static class EventHubResponseMocking
         this EventHubListenerMock eventHubListenerMock,
         EventHubProducerClient eventHubProducerClient,
         Guid orchestrationInstanceId,
-        string transactionId,
-        ILogger<MonitorOrchestrationUsingClientsScenario> logger)
+        string transactionId)
     {
-        logger.LogError($"EventHubListener namespace: {eventHubListenerMock.EventHubFullyQualifiedNamespace} and EventHubName: {eventHubListenerMock.EventHubName}");
         var passableEvents = eventHubListenerMock.ReceivedEvents.Where(
             e => PersistSubmittedTransaction.Parser.ParseFrom(e.EventBody.ToArray()) != null);
-        var passableEvent = passableEvents.Should().ContainSingle().Subject;
+        var passableEvent = passableEvents.Should().ContainSingle($"EventHubListener namespace: {eventHubListenerMock.EventHubFullyQualifiedNamespace} and EventHubName: {eventHubListenerMock.EventHubName}").Subject;
 
         var persistedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(passableEvent.EventBody.ToArray());
 

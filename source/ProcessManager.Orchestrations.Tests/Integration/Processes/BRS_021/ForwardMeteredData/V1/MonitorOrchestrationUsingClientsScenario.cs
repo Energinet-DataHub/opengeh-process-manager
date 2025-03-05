@@ -142,7 +142,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
-        var logger = ServiceProvider.GetRequiredService<ILogger<MonitorOrchestrationUsingClientsScenario>>();
 
         // Act
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
@@ -165,8 +164,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var success = await _fixture.EventHubListener.FindEventHubMessageToAndMockResponseFromMeasurementsAsync(
             eventHubProducerClient: eventHubClientFactory.CreateClient(_processManagerEventHubProducerClientName),
             orchestrationInstanceId: instance.Id,
-            transactionId: input.TransactionId,
-            logger);
+            transactionId: input.TransactionId);
 
         success.Should().Be(true);
 

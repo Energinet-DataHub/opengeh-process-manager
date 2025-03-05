@@ -99,12 +99,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     [NotNull]
     public IDurableClient? DurableClient { get; private set; }
 
-    [NotNull]
-    public TopicResource? ProcessManagerStartTopic { get; private set; }
-
-    [NotNull]
-    public TopicResource? ProcessManagerNotifyTopic { get; private set; }
-
     public ServiceBusListenerMock EnqueueBrs023027ServiceBusListener { get; }
 
     public ServiceBusListenerMock EnqueueBrs026ServiceBusListener { get; }
@@ -141,7 +135,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         // Process Manager Notify topic
         await ProcessManagerAppManager.StartAsync();
-        ProcessManagerNotifyTopic = ProcessManagerAppManager.ProcessManagerNotifyTopic;
 
         // Create EDI topic resources
         var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.CreateNew(ServiceBusResourceProvider);
@@ -165,7 +158,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await OrchestrationsAppManager.StartAsync(
             ediTopicResources,
             integrationEventTopicResources);
-        ProcessManagerStartTopic = OrchestrationsAppManager.ProcessManagerStartTopic;
 
         EventHubListener = new EventHubListenerMock(
             new TestDiagnosticsLogger(),

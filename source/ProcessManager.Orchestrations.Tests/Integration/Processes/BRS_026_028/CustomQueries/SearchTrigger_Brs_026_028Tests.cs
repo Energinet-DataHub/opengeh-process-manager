@@ -61,9 +61,9 @@ public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
 
             // Process Manager message client
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
-                = Fixture.ProcessManagerStartTopic.Name,
+                = Fixture.OrchestrationsAppManager.ProcessManagerStartTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
-                = Fixture.ProcessManagerNotifyTopic.Name,
+                = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
         });
         services.AddProcessManagerHttpClients();
         services.AddAzureClients(

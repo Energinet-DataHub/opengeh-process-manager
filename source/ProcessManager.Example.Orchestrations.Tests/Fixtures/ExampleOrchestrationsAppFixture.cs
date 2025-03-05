@@ -83,12 +83,6 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
     public IDurableClient? DurableClient { get; private set; }
 
     [NotNull]
-    public TopicResource? ProcessManagerStartTopic { get; private set; }
-
-    [NotNull]
-    public TopicResource? ProcessManagerNotifyTopic { get; private set; }
-
-    [NotNull]
     public TopicResource? EdiTopic { get; private set; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -108,7 +102,6 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
         // Process Manager Notify topic
         await ProcessManagerAppManager.StartAsync();
-        ProcessManagerNotifyTopic = ProcessManagerAppManager.ProcessManagerNotifyTopic;
 
         var ediTopicBuilder = ServiceBusResourceProvider.BuildTopic("edi-topic");
         ExampleConsumerAppManager.EdiTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
@@ -117,11 +110,10 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         // Process Manager Start topic
         await ExampleOrchestrationsAppManager.StartAsync(
             ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(EdiTopic));
-        ProcessManagerStartTopic = ExampleOrchestrationsAppManager.ProcessManagerStartTopic;
 
         await ExampleConsumerAppManager.StartAsync(
-            ProcessManagerStartTopic,
-            ProcessManagerNotifyTopic,
+            ExampleOrchestrationsAppManager.ProcessManagerStartTopic,
+            ProcessManagerAppManager.ProcessManagerNotifyTopic,
             ExampleConsumerAppManager.EdiTopicResources.CreateFromTopic(EdiTopic),
             processManagerApiUrl: ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri,
             orchestrationsApiUrl: ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri);

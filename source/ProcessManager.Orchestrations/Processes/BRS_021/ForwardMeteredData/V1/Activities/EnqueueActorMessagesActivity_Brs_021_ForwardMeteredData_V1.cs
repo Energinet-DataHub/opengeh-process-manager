@@ -56,17 +56,17 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
 
         var acceptedEnergyObservations = messageInput.EnergyObservations
             .Select(
-                x => new MeteredDataForMeteringPointAcceptedV1.AcceptedEnergyObservation(
+                x => new ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation(
                     int.Parse(x.Position!),
                     decimal.Parse(x.EnergyQuantity!),
                     Quality.FromName(x.QuantityQuality!)))
             .ToList();
 
         var receiver = activityInput.ForwardMeteredDataInputV1.TransactionId.Contains("perf_test")
-            ? new MarketActorRecipient(ActorNumber.Create("8100000000115"), ActorRole.EnergySupplier)
-            : new MarketActorRecipient(ActorNumber.Create("5790000282425"), ActorRole.EnergySupplier);
+            ? new MarketActorRecipientV1(ActorNumber.Create("8100000000115"), ActorRole.EnergySupplier)
+            : new MarketActorRecipientV1(ActorNumber.Create("5790000282425"), ActorRole.EnergySupplier);
 
-        var data = new MeteredDataForMeteringPointAcceptedV1(
+        var data = new ForwardMeteredDataAcceptedV1(
             OriginalActorMessageId: messageInput.MessageId,
             OriginalTransactionId: activityInput.ForwardMeteredDataInputV1.TransactionId,
             MeteringPointId: messageInput.MeteringPointId!,

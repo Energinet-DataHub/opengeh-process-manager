@@ -1,5 +1,13 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.5.0
+
+- Rename `StartForwardMeteredDataCommandV1` to `ForwardMeteredDataCommandV1`.
+- Rename `MeteredDataForMeteringPointMessageInputV1` to `ForwardMeteredDataInputV1`.
+- Use `ActorNumber` value object in `MarketActorRecipient` and rename `ActorId` to `ActorNumber`.
+- Refactor `MeteredDataForMeteringPointAcceptedV1`
+- Move ``.
+
 ## Version 1.4.0
 
 - Add `MigrateCalculationsFromWholesaleCustomStateV1`.

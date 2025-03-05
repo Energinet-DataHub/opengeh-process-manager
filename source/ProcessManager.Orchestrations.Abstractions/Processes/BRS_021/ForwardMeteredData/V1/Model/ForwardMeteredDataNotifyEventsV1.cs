@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-public sealed record MarketActorRecipient(ActorNumber ActorNumber, ActorRole ActorRole);
+public static class ForwardMeteredDataNotifyEventsV1
+{
+    public const string EnqueueActorMessagesCompleted = "EnqueueActorMessagesCompleted";
+}

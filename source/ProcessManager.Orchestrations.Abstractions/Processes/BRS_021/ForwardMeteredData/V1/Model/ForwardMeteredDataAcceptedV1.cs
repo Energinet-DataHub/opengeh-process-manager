@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <summary>
 /// A model containing the data required for notifying market actors when new metered data has been accepted.
 /// </summary>
-public record MeteredDataForMeteringPointAcceptedV1(
+public record ForwardMeteredDataAcceptedV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
     string MeteringPointId,
@@ -31,8 +31,8 @@ public record MeteredDataForMeteringPointAcceptedV1(
     Resolution Resolution,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
-    IReadOnlyCollection<MeteredDataForMeteringPointAcceptedV1.AcceptedEnergyObservation> AcceptedEnergyObservations,
-    IReadOnlyCollection<MarketActorRecipient> MarketActorRecipients)
+    IReadOnlyCollection<ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation> AcceptedEnergyObservations,
+    IReadOnlyCollection<MarketActorRecipientV1> MarketActorRecipients)
     : IInputParameterDto
 {
     public record AcceptedEnergyObservation(

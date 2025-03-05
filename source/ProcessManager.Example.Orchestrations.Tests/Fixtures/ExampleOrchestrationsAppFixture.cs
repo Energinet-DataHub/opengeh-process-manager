@@ -106,6 +106,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
+        // Process Manager Notify topic
         await ProcessManagerAppManager.StartAsync();
         ProcessManagerNotifyTopic = ProcessManagerAppManager.ProcessManagerNotifyTopic;
 
@@ -113,6 +114,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         ExampleConsumerAppManager.EdiTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
         EdiTopic = await ediTopicBuilder.CreateAsync();
 
+        // Process Manager Start topic
         await ExampleOrchestrationsAppManager.StartAsync(
             ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(EdiTopic));
         ProcessManagerStartTopic = ExampleOrchestrationsAppManager.ProcessManagerStartTopic;

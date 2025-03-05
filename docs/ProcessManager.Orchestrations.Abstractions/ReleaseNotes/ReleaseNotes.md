@@ -4,9 +4,12 @@
 
 - Rename `StartForwardMeteredDataCommandV1` to `ForwardMeteredDataCommandV1`.
 - Rename `MeteredDataForMeteringPointMessageInputV1` to `ForwardMeteredDataInputV1`.
+- Rename `MeteredDataForMeteringPointAcceptedV1` to `ForwardMeteredDataAcceptedV1` and update properties.
+- Rename `MeteredDataForMeteringPointRejectedV1` to `ForwardMeteredDataRejectedV1`.
+- Rename `MeteredDataForMeteringPointMessagesEnqueuedNotifyEventsV1` to `ForwardMeteredDataNotifyEventsV1`.
+- Rename `MarketActorRecipient` to `MarketActorRecipientV1`.
 - Use `ActorNumber` value object in `MarketActorRecipient` and rename `ActorId` to `ActorNumber`.
-- Refactor `MeteredDataForMeteringPointAcceptedV1`
-- Move ``.
+- Move `AcceptedEnergyObservation` to `ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation`.
 
 ## Version 1.4.0
 

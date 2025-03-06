@@ -38,7 +38,7 @@ public class NotifyTrigger_Brs_021_ForwardMeteredData_V1(
         string message)
     {
         var notify = NotifyOrchestrationInstanceV1.Parser.ParseJson(message);
-        if (notify is not { EventName: ForwardMeteredDataNotifyEventsV1.EnqueueActorMessagesCompleted })
+        if (notify is not { EventName: ForwardMeteredDataNotifyEventsV1.OrchestrationInstanceEventName })
         {
             throw new InvalidOperationException("Failed to deserialize message");
         }

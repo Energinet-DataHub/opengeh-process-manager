@@ -122,7 +122,7 @@ internal class OrchestrationRegister(
 
         if (propertiesWithBreakingChanges.Any() && (_options.AllowOrchestrationDescriptionBreakingChanges || newDescription.IsUnderDevelopment))
         {
-            _logger.LogInformation("Updating orchestration description with breaking changes"
+            _logger.LogWarning("Updating orchestration description with breaking changes"
                 + $" (Id={existingDescription.IsEnabled}, UniqueName={existingDescription.UniqueName.Name}, Version={existingDescription.UniqueName.Version},"
                 + $" ChangedProperties={string.Join(",", propertiesWithBreakingChanges)}).");
             return true;

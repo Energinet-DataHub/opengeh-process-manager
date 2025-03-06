@@ -134,8 +134,8 @@ public class HealthCheckEndpointTests : IAsyncLifetime
             var orchestrationDescription = await dbContext
                 .OrchestrationDescriptions
                 .FirstAsync(od => od.UniqueName == uniqueName);
-            orchestrationDescription.FunctionName = "Breaking change!";
-            orchestrationDescription.AppendStepDescription("Breaking change!");
+            orchestrationDescription.FunctionName = "Breaking change on orchestration under development!";
+            orchestrationDescription.AppendStepDescription("Breaking change on orchestration under development!");
             await dbContext.SaveChangesAsync();
         }
 

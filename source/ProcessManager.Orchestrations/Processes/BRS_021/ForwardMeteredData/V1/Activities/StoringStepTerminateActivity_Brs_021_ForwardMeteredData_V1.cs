@@ -35,7 +35,7 @@ internal class StoringStepTerminateActivity_Brs_021_ForwardMeteredData_V1(
             .ConfigureAwait(false);
 
         await CompleteStepAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.StoringMeteredDataStep,
+                OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
                 orchestrationInstance)
             .ConfigureAwait(false);
 

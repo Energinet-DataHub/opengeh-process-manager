@@ -335,18 +335,16 @@ internal class OrchestrationInstanceManager(
         OrchestrationDescription orchestrationDescription,
         OrchestrationInstance orchestrationInstance)
     {
-        if (!orchestrationDescription.IsDurableFunction)
-        {
-            return;
-        }
-
         if (orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Pending)
         {
-            await _executor
+            if (orchestrationDescription.IsDurableFunction)
+            {
+                await _executor
                 .StartNewOrchestrationInstanceAsync(
                     orchestrationDescription,
                     orchestrationInstance)
                 .ConfigureAwait(false);
+            }
 
             orchestrationInstance.Lifecycle.TransitionToQueued(_clock);
             await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);

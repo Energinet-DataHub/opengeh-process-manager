@@ -24,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,6 +78,9 @@ var host = new HostBuilder()
 
         // Measurements
         services.AddMeasurementsMeteredDataClient(azureCredential);
+
+        services.AddScoped<TerminateForwardMeteredDataHandlerV1>()
+            .AddScoped<EnqueueMeteredDataHandlerV1>();
 
         // Wholesale migrations
         services.AddWholesaleDatabase();

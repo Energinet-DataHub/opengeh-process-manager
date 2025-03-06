@@ -58,13 +58,11 @@ public class MeasurementsMeteredDataClientTests
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
             NodaTime.Instant.FromDateTimeUtc(DateTime.UtcNow),
             Components.Abstractions.ValueObjects.MeteringPointType.Consumption,
-            "test-product",
             MeasurementUnit.KilowattHour,
             Components.Abstractions.ValueObjects.Resolution.QuarterHourly,
-            new List<Point>
-            {
+            [
                 new(1, 100, Components.Abstractions.ValueObjects.Quality.AsProvided),
-            });
+            ]);
 
         var expectedData = new PersistSubmittedTransaction
         {
@@ -76,7 +74,6 @@ public class MeasurementsMeteredDataClientTests
             StartDatetime = Timestamp.FromDateTimeOffset(meteredData.StartDateTime.ToDateTimeOffset()),
             EndDatetime = Timestamp.FromDateTimeOffset(meteredData.EndDateTime.ToDateTimeOffset()),
             MeteringPointType = DataHub.Measurements.Contracts.MeteringPointType.MptConsumption,
-            Product = meteredData.Product,
             Unit = DataHub.Measurements.Contracts.Unit.UKwh,
             Resolution = DataHub.Measurements.Contracts.Resolution.RPt15M,
         };

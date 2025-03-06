@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Text.Json;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
@@ -64,6 +63,13 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
                 = Fixture.ExampleOrchestrationsAppManager.ProcessManagerStartTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
+                = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
+
+            // TODO: Do we need to have specific "BRS-021 FMD" topics for the example apps?
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
+                = Fixture.ExampleOrchestrationsAppManager.ProcessManagerStartTopic.Name,
+            // TODO: Do we need to have specific "BRS-021 FMD" topics for the example apps?
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
                 = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
         });
 

@@ -43,6 +43,8 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     {
         Fixture.ExampleOrchestrationsAppManager.AppHostManager.ClearHostLog();
 
+        Fixture.ExampleOrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
+
         return Task.CompletedTask;
     }
 
@@ -62,9 +64,6 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [InlineData("status")]
     public async Task Given_RunningExampleOrchestrationsApp_When_CallingHealthCheck_Then_ReturnsOKAndExpectedContent(string healthCheckEndpoint)
     {
-        // Arrange
-        Fixture.ExampleOrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
-
         // Act
         using var actualResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/{healthCheckEndpoint}");
 
@@ -81,7 +80,6 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [Fact]
     public async Task Given_OrchestrationDescriptionBreakingChanges_When_CallingHealthCheck_Then_IsUnhealthy()
     {
-        Fixture.ExampleOrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
         UseDisallowOrchestrationDescriptionBreakingChanges();
 
         var uniqueName = BreakingChangesOrchestrationDescriptionBuilder.UniqueName;
@@ -125,7 +123,6 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [Fact]
     public async Task Given_OrchestrationDescriptionUnderDevelopmentWithBreakingChanges_When_CallingHealthCheck_Then_IsHealthy()
     {
-        Fixture.ExampleOrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
         UseDisallowOrchestrationDescriptionBreakingChanges();
 
         var uniqueName = UnderDevelopmentOrchestrationDescriptionBuilder.UniqueName;

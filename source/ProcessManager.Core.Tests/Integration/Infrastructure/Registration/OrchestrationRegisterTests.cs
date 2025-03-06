@@ -204,7 +204,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task
         Given_ExistingOrchestrationDescription_AndGiven_IsUnderDevelopment_When_OrchestrationDescriptionsSynchronized_Then_PropertiesAreUpdated()
     {
-        // Given existing orchestration description & allow breaking changes
+        // Given existing orchestration description
         var loggerMock = new Mock<ILogger<IOrchestrationRegister>>();
         var optionsMock = new Mock<IOptions<ProcessManagerOptions>>();
         const string hostName = "test-host";
@@ -288,7 +288,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task
         Given_ExistingOrchestrationDescription_AndGiven_DisallowBreakingChanges_When_OrchestrationDescriptionsSynchronized_Then_ExceptionIsThrown()
     {
-        // Given existing orchestration description & allow breaking changes
+        // Given existing orchestration description
         var loggerMock = new Mock<ILogger<IOrchestrationRegister>>();
         var optionsMock = new Mock<IOptions<ProcessManagerOptions>>();
         const string hostName = "test-host";

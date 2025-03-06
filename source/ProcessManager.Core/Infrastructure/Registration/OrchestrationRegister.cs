@@ -135,7 +135,7 @@ internal class OrchestrationRegister(
                 + $" ChangedProperties={string.Join(",", propertiesWithBreakingChanges)}).");
         }
 
-        return existingDescription.RecurringCronExpression != newDescription.RecurringCronExpression &&
+        return existingDescription.RecurringCronExpression != newDescription.RecurringCronExpression ||
                existingDescription.IsUnderDevelopment != newDescription.IsUnderDevelopment;
     }
 

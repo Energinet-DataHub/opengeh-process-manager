@@ -68,6 +68,8 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
             functionName: functionName,
             canBeScheduled: true);
 
+        newOrchestrationDescription.IsUnderDevelopment = true;
+
         newOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefinitionString>();
 
         const string step1Description = "Step 1";
@@ -97,6 +99,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         Assert.Equal(expected: newOrchestrationDescription.Id, actual: actualOrchestrationDescription.Id);
         Assert.Equal(expected: functionName, actual: actualOrchestrationDescription.FunctionName);
         Assert.True(actualOrchestrationDescription.CanBeScheduled);
+        Assert.True(actualOrchestrationDescription.IsUnderDevelopment);
         Assert.Equal(
             expected: JsonSchema.FromType<ParameterDefinitionString>().ToJson(),
             actual: actualOrchestrationDescription.ParameterDefinition.SerializedParameterDefinition);
@@ -180,6 +183,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
         Assert.Equal(expected: existingOrchestrationDescription.Id, actual: actualOrchestrationDescription.Id);
         Assert.Equal(expected: functionNameBreakingChange, actual: actualOrchestrationDescription.FunctionName);
         Assert.False(actualOrchestrationDescription.CanBeScheduled);
+        Assert.False(actualOrchestrationDescription.IsUnderDevelopment);
         Assert.Equal(
             expected: JsonSchema.FromType<ParameterDefinitionInt>().ToJson(),
             actual: actualOrchestrationDescription.ParameterDefinition.SerializedParameterDefinition);

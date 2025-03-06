@@ -21,9 +21,9 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
 public class EnqueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
-    MeasurementReceivedMeteredDataTriggerHandlerV1 handler)
+    EnqueueMeteredDataHandlerV1 handler)
 {
-    private readonly MeasurementReceivedMeteredDataTriggerHandlerV1 _handler = handler;
+    private readonly EnqueueMeteredDataHandlerV1 _handler = handler;
 
     /// <summary>
     /// Enqueue Messages for BRS-021.

@@ -23,7 +23,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
-public class MeasurementReceivedMeteredDataTriggerHandlerV1(
+public class EnqueueMeteredDataHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)

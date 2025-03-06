@@ -22,7 +22,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuilder
 {
-    // TODO: Move to another class
     public const int ValidationStep = 1;
     public const int ForwardToMeasurementStep = 2;
     public const int FindReceiverStep = 3;
@@ -41,8 +40,8 @@ internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuil
             functionName: string.Empty);
 
         description.ParameterDefinition.SetFromType<ForwardMeteredDataInputV1>();
-        description.AppendStepDescription("Asynkron validering");
-        description.AppendStepDescription("Gemmer");
+        description.AppendStepDescription("Forretningsvalidering");
+        description.AppendStepDescription("Gemmer måledata");
         description.AppendStepDescription("Finder modtagere");
         description.AppendStepDescription("Udsender beskeder");
 

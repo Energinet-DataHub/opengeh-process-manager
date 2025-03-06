@@ -26,19 +26,15 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
@@ -156,9 +152,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
 
         // Act
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
 
+        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await Awaiter.WaitUntilConditionAsync(
             async () =>
             {
@@ -176,8 +172,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
                 (message) =>
                 {
-                    if (!message.TryParseAsPersistSubmittedTransaction(out var persistSubmittedTransaction))
-                        return false;
+                    var persistSubmittedTransaction =
+                        PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
 
                     var orchestrationIdMatches = persistSubmittedTransaction.OrchestrationInstanceId == instance.Id.ToString();
                     var transactionIdMatches = persistSubmittedTransaction.TransactionId == input.TransactionId;

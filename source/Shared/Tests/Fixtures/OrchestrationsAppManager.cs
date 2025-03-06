@@ -68,7 +68,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
             wireMockServerPort: 8012,
             manageDatabase: true,
             manageAzurite: true,
-            // TODO (ID-283)
             measurementEventHubName: "eventhub_measurement")
     {
     }
@@ -431,9 +430,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
             MeasurementEventHubName);
-        /***************************************/
-        /*        enforce stops here           */
-        /***************************************/
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);

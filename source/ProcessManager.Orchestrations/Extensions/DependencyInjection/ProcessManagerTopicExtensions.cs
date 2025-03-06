@@ -34,33 +34,11 @@ public static class ProcessManagerTopicExtensions
             .ValidateDataAnnotations();
 
         services
-            .AddOptions<ProcessManagerTopicOptions>()
-            .BindConfiguration(ProcessManagerTopicOptions.SectionName)
-            .ValidateDataAnnotations();
-
-        services
             .AddOptions<ProcessManagerStartTopicOptions>()
             .BindConfiguration(ProcessManagerStartTopicOptions.SectionName)
             .ValidateDataAnnotations();
 
         services.AddHealthChecks()
-            .AddAzureServiceBusTopic(
-                fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.TopicName,
-                tokenCredentialFactory: _ => credential,
-                name: "Process Manager Start Topic V1")
-            .AddAzureServiceBusSubscription(
-                fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.TopicName,
-                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.Brs026SubscriptionName,
-                tokenCredentialFactory: _ => credential,
-                name: "BRS-026 Subscription V1")
-            .AddAzureServiceBusSubscription(
-                fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.TopicName,
-                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerTopicOptions>>().Value.Brs028SubscriptionName,
-                tokenCredentialFactory: _ => credential,
-                name: "BRS-028 Subscription V1")
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.TopicName,

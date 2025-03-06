@@ -241,7 +241,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     /// <summary>
     /// Showing how we can orchestrate and monitor an orchestration instance only using clients.
     /// </summary>
-    [Fact]
+    [Fact(Skip = "Because the trigger is currently disabled until we have moved to new specific topics")]
     public async Task ForwardMeteredData_WhenStarted_CanMonitorLifecycle()
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();

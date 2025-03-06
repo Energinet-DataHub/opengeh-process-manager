@@ -73,13 +73,13 @@ internal class CalculationStep(
 
                 case JobRunStatus.Failed:
                 case JobRunStatus.Canceled:
-                    throw new Exception($"Databricks job with id: {jobRunId} had status {jobRunStatus}");
+                    throw new Exception($"Databricks job with id: {jobRunId} had status {jobRunStatus}.");
 
                 default:
                     throw new InvalidOperationException($"Unknown job run status '{jobRunStatus}' for jobRunId: {jobRunId}.");
             }
         }
 
-        throw new Exception($"Databricks job with id: {jobRunId} did not finish within giving time");
+        throw new Exception($"Databricks job with id: {jobRunId} did not finish within giving time.");
     }
 }

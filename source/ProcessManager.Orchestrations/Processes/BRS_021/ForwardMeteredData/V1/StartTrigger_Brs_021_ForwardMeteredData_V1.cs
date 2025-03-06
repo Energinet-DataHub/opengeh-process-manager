@@ -14,7 +14,6 @@
 
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
@@ -29,18 +28,19 @@ public class StartTrigger_Brs_021_ForwardMeteredData_V1(
 {
     private readonly StartForwardMeteredDataHandlerV1 _handler = handler;
 
-    /// <summary>
-    /// Start a BRS-021 ForwardMeteredData.
-    /// </summary>
-    [Function(nameof(StartTrigger_Brs_021_ForwardMeteredData_V1))]
-    public async Task Run(
-        [ServiceBusTrigger(
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}%",
-            Connection = ServiceBusNamespaceOptions.SectionName)]
-        ServiceBusReceivedMessage message)
-    {
-        await _handler.HandleAsync(message)
-            .ConfigureAwait(false);
-    }
+    // TODO: Update to use Brs021ForwardMeteredData specific topic/subscription
+    /////// <summary>
+    /////// Start a BRS-021 ForwardMeteredData.
+    /////// </summary>
+    ////[Function(nameof(StartTrigger_Brs_021_ForwardMeteredData_V1))]
+    ////public async Task Run(
+    ////    [ServiceBusTrigger(
+    ////        $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",
+    ////        $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}%",
+    ////        Connection = ServiceBusNamespaceOptions.SectionName)]
+    ////    ServiceBusReceivedMessage message)
+    ////{
+    ////    await _handler.HandleAsync(message)
+    ////        .ConfigureAwait(false);
+    ////}
 }

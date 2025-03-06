@@ -152,8 +152,8 @@ public class ClientExtensionsTests
         // => Sender clients
         var processManagerStartSenderClient = senderClientFactory.CreateClient(StartSenderClientNames.ProcessManagerStartSender);
         var processManagerNotifySenderClient = senderClientFactory.CreateClient(NotifySenderClientNames.ProcessManagerNotifySender);
-        var brs021fwdStartSenderClient = senderClientFactory.CreateClient(StartSenderClientNames.Brs021ForwardMeteredDataStartSender);
-        var brs021fwdNotifySenderClient = senderClientFactory.CreateClient(NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender);
+        var brs021fmdStartSenderClient = senderClientFactory.CreateClient(StartSenderClientNames.Brs021ForwardMeteredDataStartSender);
+        var brs021fmdNotifySenderClient = senderClientFactory.CreateClient(NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender);
     }
 
     [Fact]

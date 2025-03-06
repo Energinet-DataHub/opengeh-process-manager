@@ -114,8 +114,6 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         await ExampleConsumerAppManager.StartAsync(
             ExampleOrchestrationsAppManager.ProcessManagerStartTopic,
             ProcessManagerAppManager.ProcessManagerNotifyTopic,
-            ExampleOrchestrationsAppManager.ProcessManagerStartTopic, // TODO: Do we need to have specific "BRS-021 FMD" topics for the example apps?
-            ProcessManagerAppManager.ProcessManagerNotifyTopic, // TODO: Do we need to have specific "BRS-021 FMD" topics for the example apps?
             ExampleConsumerAppManager.EdiTopicResources.CreateFromTopic(EdiTopic),
             processManagerApiUrl: ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri,
             orchestrationsApiUrl: ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri);

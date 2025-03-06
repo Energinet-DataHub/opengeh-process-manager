@@ -36,9 +36,10 @@ public class StartForwardMeteredDataHandlerV1(
     IMeasurementsMeteredDataClient measurementsMeteredDataClient)
         : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
-    private IOrchestrationInstanceProgressRepository ProgressRepository { get; } = progressRepository;
-
-    private IMeasurementsMeteredDataClient MeasurementsMeteredDataClient { get; } = measurementsMeteredDataClient;
+    private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
+    private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IClock _clock = clock;
+    private readonly IMeasurementsMeteredDataClient _measurementsMeteredDataClient = measurementsMeteredDataClient;
 
     // TODO: This method is not idempotent, Since we can not set a "running" step to "running"
     // TODO: Hence we need to commit after the event/message has been sent
@@ -50,7 +51,7 @@ public class StartForwardMeteredDataHandlerV1(
         string transactionId,
         string? meteringPointId)
     {
-        var orchestrationInstanceId = await commands.StartNewOrchestrationInstanceAsync(
+        var orchestrationInstanceId = await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
                 OrchestrationDescriptionBuilderV1.UniqueName.MapToDomain(),
                 input,
@@ -61,15 +62,15 @@ public class StartForwardMeteredDataHandlerV1(
                 meteringPointId is not null ? new MeteringPointId(meteringPointId) : null)
             .ConfigureAwait(false);
 
-        var orchestrationInstance = await ProgressRepository
+        var orchestrationInstance = await _progressRepository
             .GetAsync(orchestrationInstanceId)
             .ConfigureAwait(false);
 
         // Initialize orchestration instance
         if (orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Queued)
         {
-            orchestrationInstance.Lifecycle.TransitionToRunning(clock);
-            await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+            orchestrationInstance.Lifecycle.TransitionToRunning(_clock);
+            await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
 
         if (orchestrationInstance.Lifecycle.State != OrchestrationInstanceLifecycleState.Running)
@@ -77,7 +78,7 @@ public class StartForwardMeteredDataHandlerV1(
 
         // Start Step: Validate Metered Data
         var validationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ValidationStep);
-        await StepHelper.StartStep(validationStep, clock, ProgressRepository).ConfigureAwait(false);
+        await StepHelper.StartStep(validationStep, _clock, _progressRepository).ConfigureAwait(false);
 
         if (validationStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
@@ -85,39 +86,39 @@ public class StartForwardMeteredDataHandlerV1(
             // Validate Metered Data
 
             // Terminate Step: Validate Metered Data
-            await StepHelper.TerminateStep(validationStep, clock, ProgressRepository).ConfigureAwait(false);
+            await StepHelper.TerminateStep(validationStep, _clock, _progressRepository).ConfigureAwait(false);
         }
 
         // Start Step: Forward to Measurements
         var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
-        await StepHelper.StartStep(forwardToMeasurementStep, clock, ProgressRepository).ConfigureAwait(false);
+        await StepHelper.StartStep(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
 
         if (forwardToMeasurementStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
-            await MeasurementsMeteredDataClient.SendAsync(
-                    GenerateMeteredData(orchestrationInstanceId, input),
+            await _measurementsMeteredDataClient.SendAsync(
+                    MapInputToMeasurements(orchestrationInstanceId, input),
                     CancellationToken.None)
                 .ConfigureAwait(false);
         }
     }
 
-#pragma warning disable SA1202
-    public static MeteredDataForMeteringPoint GenerateMeteredData(
+    private static MeteredDataForMeteringPoint MapInputToMeasurements(
         OrchestrationInstanceId orchestrationInstanceId,
-        ForwardMeteredDataInputV1 input)
-    {
-        return new MeteredDataForMeteringPoint(
+        ForwardMeteredDataInputV1 input) =>
+        new(
             OrchestrationId: orchestrationInstanceId.Value.ToString(),
             MeteringPointId: input.MeteringPointId!,
             TransactionId: input.TransactionId,
             CreatedAt: InstantPattern.ExtendedIso.Parse(input.RegistrationDateTime).Value,
             StartDateTime: InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value,
             EndDateTime: InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value,
-            MeteringPointType: MeteringPointType.FromName(MeteringPointType.Production.Name),
-            Product: input.ProductNumber ?? string.Empty,
-            Unit: MeasurementUnit.FromName(input.MeasureUnit ?? MeasurementUnit.Megawatt.Name),
-            Resolution: Resolution.FromName(input.Resolution ?? Resolution.Hourly.Name),
-            Points: []);
-    }
-#pragma warning restore SA1202
+            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+            Unit: MeasurementUnit.FromName(input.MeasureUnit!),
+            Resolution: Resolution.FromName(input.Resolution!),
+            Points: input.EnergyObservations.Select(
+                    eo => new Point(
+                        int.Parse(eo.Position!),
+                        decimal.Parse(eo.EnergyQuantity!),
+                        Quality.FromName(eo.QuantityQuality!)))
+                .ToList());
 }

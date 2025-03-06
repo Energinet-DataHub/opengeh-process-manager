@@ -25,7 +25,6 @@ public record MeteredDataForMeteringPoint(
     Instant StartDateTime,
     Instant EndDateTime,
     MeteringPointType MeteringPointType,
-    string Product,
     MeasurementUnit Unit,
     Resolution Resolution,
     IReadOnlyCollection<Point> Points);

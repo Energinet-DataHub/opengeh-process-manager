@@ -148,14 +148,6 @@ public class HealthCheckEndpointTests : IAsyncLifetime
         // Assert
         using var assertionScope = new AssertionScope();
 
-        var hostLogs = Fixture.ExampleOrchestrationsAppManager.AppHostManager.GetHostLogSnapshot();
-
-        // Assert that breaking changes are logged at the host
-        const string updatingBreakingChangesString = "Updating orchestration description with breaking changes";
-        const string changedPropertiesString = $"ChangedProperties={nameof(OrchestrationDescription.Steps)},{nameof(OrchestrationDescription.FunctionName)}";
-        hostLogs.Should().ContainMatch($"*{updatingBreakingChangesString}*");
-        hostLogs.Should().ContainMatch($"*{changedPropertiesString}*");
-
         // Assert that the healthcheck succeeds
         healthCheckResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }

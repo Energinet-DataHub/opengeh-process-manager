@@ -202,6 +202,89 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
 
     [Fact]
     public async Task
+        Given_ExistingOrchestrationDescription_AndGiven_IsUnderDevelopment_When_OrchestrationDescriptionsSynchronized_Then_PropertiesAreUpdated()
+    {
+        // Given existing orchestration description & allow breaking changes
+        var loggerMock = new Mock<ILogger<IOrchestrationRegister>>();
+        var optionsMock = new Mock<IOptions<ProcessManagerOptions>>();
+        const string hostName = "test-host";
+
+        optionsMock
+            .Setup(o => o.Value)
+            .Returns(new ProcessManagerOptions
+            {
+                AllowOrchestrationDescriptionBreakingChanges = false,
+            });
+
+        var uniqueName = new OrchestrationDescriptionUniqueName("TestOrchestration", 1);
+        var existingOrchestrationDescription = new OrchestrationDescription(
+            uniqueName,
+            functionName: "TestFunctionV1",
+            canBeScheduled: true) { HostName = hostName, };
+
+        existingOrchestrationDescription.ParameterDefinition.SetFromType<ParameterDefinitionString>();
+        existingOrchestrationDescription.AppendStepDescription("Step 1a");
+        existingOrchestrationDescription.AppendStepDescription("Step 2a");
+
+        await using (var createContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            createContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            await createContext.SaveChangesAsync();
+        }
+
+        // When synchronized
+        const string functionNameBreakingChange = "TestFunctionBreakingChangeV1";
+        await using (var updateContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            var orchestrationRegister = new OrchestrationRegister(
+                optionsMock.Object,
+                loggerMock.Object,
+                updateContext);
+
+            var orchestrationDescriptionUnderDevelopment = new OrchestrationDescription(
+                uniqueName,
+                functionName: functionNameBreakingChange,
+                canBeScheduled: false) { IsUnderDevelopment = true, };
+
+            orchestrationDescriptionUnderDevelopment.ParameterDefinition.SetFromType<ParameterDefinitionInt>();
+            orchestrationDescriptionUnderDevelopment.AppendStepDescription("Step 1b");
+            orchestrationDescriptionUnderDevelopment.AppendStepDescription("Step 2b");
+
+            // Save changes is called inside SynchronizeAsync()
+            await orchestrationRegister.SynchronizeAsync(
+                hostName,
+                newDescriptions: [orchestrationDescriptionUnderDevelopment]);
+        }
+
+        // Then existing orchestration description is updated
+        await using var queryContext = _fixture.DatabaseManager.CreateDbContext();
+        var actualOrchestrationDescription = queryContext.OrchestrationDescriptions.Single(od => od.UniqueName == uniqueName);
+
+        Assert.Equal(expected: existingOrchestrationDescription.Id, actual: actualOrchestrationDescription.Id);
+        Assert.Equal(expected: functionNameBreakingChange, actual: actualOrchestrationDescription.FunctionName);
+        Assert.False(actualOrchestrationDescription.CanBeScheduled);
+        Assert.Equal(
+            expected: JsonSchema.FromType<ParameterDefinitionInt>().ToJson(),
+            actual: actualOrchestrationDescription.ParameterDefinition.SerializedParameterDefinition);
+        Assert.Collection(
+            collection: actualOrchestrationDescription.Steps.OrderBy(s => s.Sequence),
+            elementInspectors:
+            [
+                step =>
+                {
+                    Assert.Equal(1, step.Sequence);
+                    Assert.Equal("Step 1b", step.Description);
+                },
+                step =>
+                {
+                    Assert.Equal(2, step.Sequence);
+                    Assert.Equal("Step 2b", step.Description);
+                },
+            ]);
+    }
+
+    [Fact]
+    public async Task
         Given_ExistingOrchestrationDescription_AndGiven_DisallowBreakingChanges_When_OrchestrationDescriptionsSynchronized_Then_ExceptionIsThrown()
     {
         // Given existing orchestration description & allow breaking changes

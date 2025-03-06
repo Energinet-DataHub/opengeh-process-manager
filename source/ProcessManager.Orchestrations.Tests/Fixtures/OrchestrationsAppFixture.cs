@@ -143,7 +143,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await ProcessManagerAppManager.StartAsync();
 
         // Create EDI topic resources
-        var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.CreateNew(ServiceBusResourceProvider);
+        var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         var brs21TopicResources = await OrchestrationsAppManager.Brs21TopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
         await EnqueueBrs021ForwardMeteredDataServiceBusListener.AddTopicSubscriptionListenerAsync(

@@ -23,13 +23,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Capa
 internal class CalculationStepGetJobRunStatusActivity_Brs_021_CapacitySettlementCalculation_V1(
     [FromKeyedServices(DatabricksWorkspaceNames.Measurements)] IDatabricksJobsClient client)
 {
-    private readonly IDatabricksJobsClient _client = client;
-
     [Function(nameof(CalculationStepGetJobRunStatusActivity_Brs_021_CapacitySettlementCalculation_V1))]
     public async Task<JobRunStatus> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        return await _client.GetJobRunStatusAsync(input.RunId).ConfigureAwait(false);
+        return await client.GetJobRunStatusAsync(input.RunId).ConfigureAwait(false);
     }
 
     public record ActivityInput(

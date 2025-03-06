@@ -41,7 +41,6 @@ internal class GetOrchestrationInstanceContextActivity_Brs_021_CapacitySettlemen
 
         return new OrchestrationInstanceContext(
             _orchestrationOptions,
-            CalculationId: input.InstanceId.Value,
             input.InstanceId,
             input.CalculationYear,
             input.CalculationMonth);

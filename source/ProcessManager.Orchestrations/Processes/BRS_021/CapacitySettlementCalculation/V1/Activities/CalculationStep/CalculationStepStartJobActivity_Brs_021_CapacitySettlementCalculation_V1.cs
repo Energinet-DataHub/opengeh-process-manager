@@ -24,8 +24,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Capa
 internal class CalculationStepStartJobActivity_Brs_021_CapacitySettlementCalculation_V1(
     [FromKeyedServices(DatabricksWorkspaceNames.Measurements)] IDatabricksJobsClient client)
 {
-    private readonly IDatabricksJobsClient _client = client;
-
     [Function(nameof(CalculationStepStartJobActivity_Brs_021_CapacitySettlementCalculation_V1))]
     public async Task<JobRunId> Run(
         [ActivityTrigger] ActivityInput input)
@@ -37,7 +35,7 @@ internal class CalculationStepStartJobActivity_Brs_021_CapacitySettlementCalcula
             $"--calculation-month={input.CalculationMonth}",
         };
 
-        return await _client.StartJobAsync("CapacitySettlement", jobParameters).ConfigureAwait(false);
+        return await client.StartJobAsync("CapacitySettlement", jobParameters).ConfigureAwait(false);
     }
 
     public record ActivityInput(

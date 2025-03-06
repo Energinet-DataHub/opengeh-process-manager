@@ -47,9 +47,11 @@ internal class Orchestration_Brs_021_CapacitySettlementCalculation_V1
 
     [Function(nameof(Orchestration_Brs_021_CapacitySettlementCalculation_V1))]
     public async Task<string> Run(
-        [OrchestrationTrigger] TaskOrchestrationContext context)
+        [OrchestrationTrigger] TaskOrchestrationContext context,
+        int year,
+        int month)
     {
-        var orchestrationInstanceContext = await InitializeOrchestrationAsync(context);
+        var orchestrationInstanceContext = await InitializeOrchestrationAsync(context, year, month);
 
         await new CalculationStep(
                 context,
@@ -69,13 +71,12 @@ internal class Orchestration_Brs_021_CapacitySettlementCalculation_V1
             success: true);
     }
 
-    private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
+    private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(
+        TaskOrchestrationContext context,
+        int calculationYear,
+        int calculationMonth)
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
-
-        // TODO AJW
-        var calculationYear = 2021;
-        var calculationMonth = 1;
 
         await context.CallActivityAsync(
             nameof(TransitionOrchestrationToRunningActivity_V1),

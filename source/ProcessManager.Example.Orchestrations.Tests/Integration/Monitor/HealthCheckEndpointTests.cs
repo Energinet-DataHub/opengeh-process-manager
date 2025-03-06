@@ -81,6 +81,7 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [Fact]
     public async Task Given_OrchestrationDescriptionBreakingChanges_When_CallingHealthCheck_Then_IsUnhealthy()
     {
+        Fixture.ExampleOrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
         UseDisallowOrchestrationDescriptionBreakingChanges();
 
         var uniqueName = BreakingChangesOrchestrationDescriptionBuilder.UniqueName;
@@ -124,6 +125,7 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [Fact]
     public async Task Given_OrchestrationDescriptionUnderDevelopmentWithBreakingChanges_When_CallingHealthCheck_Then_IsHealthy()
     {
+        Fixture.ExampleOrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
         UseDisallowOrchestrationDescriptionBreakingChanges();
 
         var uniqueName = UnderDevelopmentOrchestrationDescriptionBuilder.UniqueName;
@@ -134,8 +136,8 @@ public class HealthCheckEndpointTests : IAsyncLifetime
             var orchestrationDescription = await dbContext
                 .OrchestrationDescriptions
                 .FirstAsync(od => od.UniqueName == uniqueName);
-            orchestrationDescription.FunctionName = "Breaking change on orchestration under development!";
-            orchestrationDescription.AppendStepDescription("Breaking change on orchestration under development!");
+            orchestrationDescription.FunctionName = "Breaking change!";
+            orchestrationDescription.AppendStepDescription("Breaking change!");
             await dbContext.SaveChangesAsync();
         }
 

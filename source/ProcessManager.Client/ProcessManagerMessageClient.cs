@@ -22,7 +22,7 @@ using Microsoft.Extensions.Azure;
 namespace Energinet.DataHub.ProcessManager.Client;
 
 public class ProcessManagerMessageClient(
-    IAzureClientFactory<ServiceBusSender> serviceBusFactory)
+    IAzureClientFactory<ServiceBusSender> senderClientFactory)
         : IProcessManagerMessageClient
 {
     /// <summary>
@@ -30,7 +30,7 @@ public class ProcessManagerMessageClient(
     /// </summary>
     private const string NotifyOrchestrationInstanceSubject = "NotifyOrchestration";
 
-    private readonly IAzureClientFactory<ServiceBusSender> _serviceBusFactory = serviceBusFactory;
+    private readonly IAzureClientFactory<ServiceBusSender> _senderClientFactory = senderClientFactory;
 
     public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
         StartOrchestrationInstanceMessageCommand<TInputParameterDto> command,
@@ -122,7 +122,7 @@ public class ProcessManagerMessageClient(
         ServiceBusMessage serviceBusMessage,
         CancellationToken cancellationToken)
     {
-        var serviceBusSender = _serviceBusFactory.CreateClient(senderClientNameTag.SenderClientName);
+        var serviceBusSender = _senderClientFactory.CreateClient(senderClientNameTag.SenderClientName);
         return serviceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 }

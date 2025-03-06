@@ -141,9 +141,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 3: Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent(
-                OrchestrationInstanceId: orchestrationInstance!.Id.ToString(),
-                EventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
+            new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
+                OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
             CancellationToken.None);
 
         // Step 4: Query until terminated
@@ -221,9 +220,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 3: Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent(
-                OrchestrationInstanceId: orchestrationInstance!.Id.ToString(),
-                EventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
+            new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
+                OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
             CancellationToken.None);
 
         // Step 4: Query until terminated

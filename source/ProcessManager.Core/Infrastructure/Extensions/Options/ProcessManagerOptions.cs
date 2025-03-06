@@ -32,7 +32,6 @@ public class ProcessManagerOptions
     /// <summary>
     /// Allow the orchestration register to update the orchestration description with breaking changes.
     /// </summary>
-    /// // TODO: A breaking change in to brs021 description. Will be rollback in next release.
     [Required]
-    public bool AllowOrchestrationDescriptionBreakingChanges { get; set; } = true;
+    public bool AllowOrchestrationDescriptionBreakingChanges { get; set; } = false;
 }

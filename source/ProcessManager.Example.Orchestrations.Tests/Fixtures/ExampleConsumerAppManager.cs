@@ -219,16 +219,16 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}",
+            $"{ProcessManagerMessageClientOptions.SectionName}__{nameof(ProcessManagerMessageClientOptions.StartTopicName)}",
             processManagerStartTopicResources.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}",
+            $"{ProcessManagerMessageClientOptions.SectionName}__{nameof(ProcessManagerMessageClientOptions.NotifyTopicName)}",
             processManagerNotifyTopicResources.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}",
+            $"{ProcessManagerMessageClientOptions.SectionName}__{nameof(ProcessManagerMessageClientOptions.Brs021ForwardMeteredDataStartTopicName)}",
             brs021fmdStartTopicResources.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}",
+            $"{ProcessManagerMessageClientOptions.SectionName}__{nameof(ProcessManagerMessageClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}",
             brs021fmdNotifyTopicResources.Name);
 
         // => Edi topic

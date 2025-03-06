@@ -128,22 +128,30 @@ public class DatabricksWorkspaceExtensionsTests
         var measurementsSectionName = "Measurements";
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
+            [$"{DatabricksWorkspaceOptions.SectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"] = BaseUrlFake,
+            [$"{DatabricksWorkspaceOptions.SectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = TokenFake,
             [$"{wholesaleSectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"] = "https://www.wholesale.com",
             [$"{wholesaleSectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = TokenFake,
             [$"{measurementsSectionName}:{nameof(DatabricksWorkspaceOptions.BaseUrl)}"] = "https://www.measurements.com",
             [$"{measurementsSectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = TokenFake,
         });
 
+        Services.AddDatabricksJobs();
         Services.AddDatabricksJobs(configSectionPath: wholesaleSectionName);
         Services.AddDatabricksJobs(configSectionPath: measurementsSectionName);
 
         // Act
+        Services.AddTransient<DefaultClientStub>();
         Services.AddTransient<WholesaleClientStub>();
         Services.AddTransient<MeasurementsClientStub>();
 
         // Assert
         using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
+
+        // => Default
+        var actualDefaultClient = serviceProvider.GetRequiredService<DefaultClientStub>();
+        actualDefaultClient.Client.Should().NotBeNull();
 
         // => Wholesale
         var actualWholesaleClient = serviceProvider.GetRequiredService<WholesaleClientStub>();
@@ -152,6 +160,19 @@ public class DatabricksWorkspaceExtensionsTests
         // => Measurements
         var actualMeasurementsClient = serviceProvider.GetRequiredService<MeasurementsClientStub>();
         actualMeasurementsClient.Client.Should().NotBeNull();
+    }
+
+    public class DefaultClientStub
+    {
+        /// <summary>
+        /// No "key" is specified.
+        /// </summary>
+        public DefaultClientStub(IDatabricksJobsClient client)
+        {
+            Client = client;
+        }
+
+        public IDatabricksJobsClient Client { get; }
     }
 
     public class WholesaleClientStub

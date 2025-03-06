@@ -60,16 +60,9 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
 
             // Process Manager message client
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.StartTopicName)}"]
                 = Fixture.ExampleOrchestrationsAppManager.ProcessManagerStartTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
-                = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-
-            // TODO: Do we need to have specific "BRS-021 FMD" topics for the example apps?
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
-                = Fixture.ExampleOrchestrationsAppManager.ProcessManagerStartTopic.Name,
-            // TODO: Do we need to have specific "BRS-021 FMD" topics for the example apps?
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.NotifyTopicName)}"]
                 = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
         });
 

@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Abstractions.Client;
+namespace Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 
-public static class NotifySenderClientNames
+internal static class ServiceBusSenderNameSuffix
 {
     /// <summary>
-    /// Service Bus sender for sending notify events (service bus messages) to the Process Manager.
+    /// Name suffix for Service Bus sender used for sending start commands (service bus messages) to the Process Manager.
     /// </summary>
-    public const string ProcessManagerNotifySender = "ProcessManagerNotifySender";
+    public const string StartSender = "StartSender";
 
     /// <summary>
-    /// Service Bus sender for sending BRS-021 Forward Metered Data notify events (service bus messages) to the Process Manager.
+    /// Name suffix for Service Bus sender used for sending notify events (service bus messages) to the Process Manager.
     /// </summary>
-    public const string Brs021ForwardMeteredDataNotifySender = "Brs021ForwardMeteredDataNotifySender";
+    public const string NotifySender = "NotifySender";
 }

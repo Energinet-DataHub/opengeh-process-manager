@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Abstractions.Client;
+namespace Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 
-public static class StartSenderClientNames
+/// <summary>
+/// Constants used for the registration of special Process Manager message clients.
+/// </summary>
+public static class MessageClientNames
 {
     /// <summary>
-    /// Service Bus sender for sending start commands (service bus messages) to the Process Manager.
+    /// Used for configuration section name when configuring the BRS-021 Forward Metered Data
+    /// message client, and as "key" when injecting the <see cref="IProcessManagerMessageClient"/>.
     /// </summary>
-    public const string ProcessManagerStartSender = "ProcessManagerStartSender";
-
-    /// <summary>
-    /// Service Bus sender for sending BRS-021 Forward Metered Data start commands (service bus messages) to the Process Manager.
-    /// </summary>
-    public const string Brs021ForwardMeteredDataStartSender = "Brs021ForwardMeteredDataStartSender";
+    public const string Brs021ForwardMeteredData = "Brs021ForwardMeteredDataMessageClient";
 }

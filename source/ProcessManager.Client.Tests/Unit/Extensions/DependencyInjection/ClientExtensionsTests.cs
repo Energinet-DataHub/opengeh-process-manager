@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Messaging.ServiceBus;
-using Energinet.DataHub.ProcessManager.Abstractions.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -118,7 +116,7 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void ServiceBusClientIsRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_ClientAndOptionsAndSenderClientsCanBeCreated()
+    public void ServiceBusClientIsRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_DefaultClientCanBeCreated()
     {
         // Arrange
         Services.AddAzureClients(
@@ -126,10 +124,8 @@ public class ClientExtensionsTests
 
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"] = ProcessManagerStartTopicName,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"] = ProcessManagerNotifyTopicName,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"] = Brs021ForwardMeteredDataStartTopicName,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"] = Brs021ForwardMeteredDataNotifyTopicName,
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.StartTopicName)}"] = ProcessManagerStartTopicName,
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.NotifyTopicName)}"] = ProcessManagerNotifyTopicName,
         });
 
         // Act
@@ -138,26 +134,12 @@ public class ClientExtensionsTests
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
 
-        // => Client
         var actualClient = serviceProvider.GetRequiredService<IProcessManagerMessageClient>();
         actualClient.Should().BeOfType<ProcessManagerMessageClient>();
-
-        // => Options
-        var actualOptions = serviceProvider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>();
-        actualOptions.Value.Should().NotBeNull();
-
-        // => Factory for creating actual sender clients
-        var senderClientFactory = serviceProvider.GetRequiredService<IAzureClientFactory<ServiceBusSender>>();
-
-        // => Sender clients
-        var processManagerStartSenderClient = senderClientFactory.CreateClient(StartSenderClientNames.ProcessManagerStartSender);
-        var processManagerNotifySenderClient = senderClientFactory.CreateClient(NotifySenderClientNames.ProcessManagerNotifySender);
-        var brs021fmdStartSenderClient = senderClientFactory.CreateClient(StartSenderClientNames.Brs021ForwardMeteredDataStartSender);
-        var brs021fmdNotifySenderClient = senderClientFactory.CreateClient(NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender);
     }
 
     [Fact]
-    public void ServiceBusClientIsRegisteredAndOptionsAreNotConfigured_WhenAddProcessManagerMessageClient_ExceptionIsThrownWhenRequestingOptions()
+    public void ServiceBusClientIsRegisteredAndOptionsAreNotConfigured_WhenAddProcessManagerMessageClient_ExceptionIsThrownWhenRequestingDefaultClient()
     {
         // Arrange
         Services.AddAzureClients(
@@ -171,27 +153,23 @@ public class ClientExtensionsTests
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
 
-        var optionsAct = () => serviceProvider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
-        optionsAct.Should()
+        var clientAct = () => serviceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        clientAct.Should()
             .Throw<OptionsValidationException>()
-                .WithMessage("DataAnnotation validation failed for 'ProcessManagerServiceBusClientOptions'*")
+                .WithMessage("DataAnnotation validation failed for 'ProcessManagerMessageClientOptions'*")
             .And.Failures.Should()
                 .ContainMatch("* StartTopicName field is required*")
-                .And.ContainMatch("* NotifyTopicName field is required*")
-                .And.ContainMatch("* Brs021ForwardMeteredDataStartTopicName field is required*")
-                .And.ContainMatch("* Brs021ForwardMeteredDataNotifyTopicName field is required*");
+                .And.ContainMatch("* NotifyTopicName field is required*");
     }
 
     [Fact]
-    public void ServiceBusClientIsNotRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_ExceptionIsThrownWhenRequestingSenderClient()
+    public void ServiceBusClientIsNotRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_ExceptionIsThrownWhenRequestingDefaultClient()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"] = ProcessManagerStartTopicName,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"] = ProcessManagerNotifyTopicName,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"] = Brs021ForwardMeteredDataStartTopicName,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"] = Brs021ForwardMeteredDataNotifyTopicName,
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.StartTopicName)}"] = ProcessManagerStartTopicName,
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.NotifyTopicName)}"] = ProcessManagerNotifyTopicName,
         });
 
         // Act
@@ -200,13 +178,70 @@ public class ClientExtensionsTests
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
 
-        // => Factory for creating actual sender clients
-        var senderClientFactory = serviceProvider.GetRequiredService<IAzureClientFactory<ServiceBusSender>>();
-
-        // => Sender client
-        var senderClientAct = () => senderClientFactory.CreateClient(StartSenderClientNames.ProcessManagerStartSender);
-        senderClientAct.Should()
+        var clientAct = () => serviceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        clientAct.Should()
             .Throw<InvalidOperationException>()
                 .WithMessage("No service for type 'Azure.Messaging.ServiceBus.ServiceBusClient' has been registered*");
+    }
+
+    [Fact]
+    public void ServiceBusClientIsRegisteredAndOptionsAreConfigured_WhenMultipleAddProcessManagerMessageClient_CanUseFromKeyedServicesToInjectClients()
+    {
+        // Arrange
+        Services.AddAzureClients(
+            builder => builder.AddServiceBusClientWithNamespace(ServiceBusNamespace));
+
+        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
+        {
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.StartTopicName)}"] = ProcessManagerStartTopicName,
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.NotifyTopicName)}"] = ProcessManagerNotifyTopicName,
+            [$"{MessageClientNames.Brs021ForwardMeteredData}:{nameof(ProcessManagerMessageClientOptions.StartTopicName)}"] = Brs021ForwardMeteredDataStartTopicName,
+            [$"{MessageClientNames.Brs021ForwardMeteredData}:{nameof(ProcessManagerMessageClientOptions.NotifyTopicName)}"] = Brs021ForwardMeteredDataNotifyTopicName,
+        });
+
+        Services.AddProcessManagerMessageClient();
+        Services.AddProcessManagerMessageClient(configSectionPath: MessageClientNames.Brs021ForwardMeteredData);
+
+        // Act
+        Services.AddTransient<DefaultClientStub>();
+        Services.AddTransient<Brs021ForwardMeteredDataClientStub>();
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        var serviceProvider = Services.BuildServiceProvider();
+
+        // => Default
+        var actualDefaultClient = serviceProvider.GetRequiredService<DefaultClientStub>();
+        actualDefaultClient.Client.Should().NotBeNull();
+
+        // => BRS-021 Forward Metered Data
+        var actualBrs021FMDClient = serviceProvider.GetRequiredService<Brs021ForwardMeteredDataClientStub>();
+        actualBrs021FMDClient.Client.Should().NotBeNull();
+    }
+
+    public class DefaultClientStub
+    {
+        /// <summary>
+        /// No "key" is specified.
+        /// </summary>
+        public DefaultClientStub(IProcessManagerMessageClient client)
+        {
+            Client = client;
+        }
+
+        public IProcessManagerMessageClient Client { get; }
+    }
+
+    public class Brs021ForwardMeteredDataClientStub
+    {
+        /// <summary>
+        /// The "key" must match the configuration section name give during registration.
+        /// </summary>
+        public Brs021ForwardMeteredDataClientStub([FromKeyedServices(MessageClientNames.Brs021ForwardMeteredData)] IProcessManagerMessageClient client)
+        {
+            Client = client;
+        }
+
+        public IProcessManagerMessageClient Client { get; }
     }
 }

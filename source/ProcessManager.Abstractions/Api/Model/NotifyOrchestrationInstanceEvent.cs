@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Client;
-
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
@@ -24,14 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 public abstract record NotifyOrchestrationInstanceEvent(
     string OrchestrationInstanceId,
     string EventName) :
-        IOrchestrationInstanceRequest,
-        ISenderClientNameTag
-{
-    /// <summary>
-    /// A sender client name used to route the command to the correct Process Manager trigger.
-    /// </summary>
-    public virtual string SenderClientName => NotifySenderClientNames.ProcessManagerNotifySender;
-}
+        IOrchestrationInstanceRequest;
 
 /// <summary>
 /// Event (with data) for notifying to an orchestration instance.

@@ -71,13 +71,13 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
 
             // Process Manager message client
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.StartTopicName)}"]
                 = Fixture.OrchestrationsAppManager.ProcessManagerStartTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.NotifyTopicName)}"]
                 = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
                 = Fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
+            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
                 = Fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
         });
         services.AddAzureClients(

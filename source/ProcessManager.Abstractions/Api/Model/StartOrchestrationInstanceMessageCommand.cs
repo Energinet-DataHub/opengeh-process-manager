@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Abstractions.Client;
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
@@ -24,8 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// </summary>
 /// <typeparam name="TInputParameterDto">Must be a serializable type.</typeparam>
 public abstract record StartOrchestrationInstanceMessageCommand<TInputParameterDto> :
-    StartOrchestrationInstanceCommand<ActorIdentityDto, TInputParameterDto>,
-    ISenderClientNameTag
+    StartOrchestrationInstanceCommand<ActorIdentityDto, TInputParameterDto>
         where TInputParameterDto : IInputParameterDto
 {
     /// <summary>
@@ -83,9 +81,4 @@ public abstract record StartOrchestrationInstanceMessageCommand<TInputParameterD
     /// Max length is 36 characters.
     /// </summary>
     public string? MeteringPointId { get; }
-
-    /// <summary>
-    /// A sender client name used to route the command to the correct Process Manager trigger.
-    /// </summary>
-    public virtual string SenderClientName => StartSenderClientNames.ProcessManagerStartSender;
 }

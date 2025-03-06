@@ -19,31 +19,19 @@ namespace Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 /// <summary>
 /// Options for configuration of Process Manager Service Bus clients using the Process Manager.
 /// </summary>
-public class ProcessManagerServiceBusClientOptions
+public class ProcessManagerMessageClientOptions
 {
-    public const string SectionName = "ProcessManagerServiceBusClient";
+    public const string SectionName = "ProcessManagerMessageClient";
 
     /// <summary>
-    /// Name of the topic which the Process Manager receives start commands (service bus messages) on.
+    /// Name of the topic on which the Process Manager receives start commands (service bus messages).
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string StartTopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the topic which the Process Manager receives notify events (service bus messages) on.
+    /// Name of the topic on which the Process Manager receives notify events (service bus messages).
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string NotifyTopicName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Name of the topic which the Process Manager receives BRS-021 Forward Metered Data start commands (service bus messages) on.
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string Brs021ForwardMeteredDataStartTopicName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Name of the topic which the Process Manager receives BRS-021 Forward Metered Data notify events (service bus messages) on.
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string Brs021ForwardMeteredDataNotifyTopicName { get; set; } = string.Empty;
 }

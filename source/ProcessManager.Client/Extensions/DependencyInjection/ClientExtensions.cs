@@ -14,7 +14,6 @@
 
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
-using Energinet.DataHub.ProcessManager.Abstractions.Client;
 using Energinet.DataHub.ProcessManager.Client.Authorization;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Microsoft.AspNetCore.Http;
@@ -72,14 +71,74 @@ public static class ClientExtensions
     }
 
     /// <summary>
-    /// Register Process Manager message client for use in applications.
-    /// <remarks>The application must register the <see cref="ServiceBusClient"/> and contain configuration for <see cref="ProcessManagerServiceBusClientOptions"/></remarks>
+    /// Register Process Manager default message client for use in applications.
+    /// Options are read from the default configuration section name.
+    /// <remarks>The application must register the <see cref="ServiceBusClient"/> and contain configuration for <see cref="ProcessManagerMessageClientOptions"/></remarks>
     /// </summary>
     public static IServiceCollection AddProcessManagerMessageClient(this IServiceCollection services)
     {
         services
-            .AddOptions<ProcessManagerServiceBusClientOptions>()
-            .BindConfiguration(ProcessManagerServiceBusClientOptions.SectionName)
+            .AddOptions<ProcessManagerMessageClientOptions>()
+            .BindConfiguration(ProcessManagerMessageClientOptions.SectionName)
+            .ValidateDataAnnotations();
+
+        services.AddAzureClients(
+            builder =>
+            {
+                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
+                    (_, _, sp) =>
+                    {
+                        var options = sp.GetRequiredService<IOptions<ProcessManagerMessageClientOptions>>().Value;
+                        return sp
+                            .GetRequiredService<ServiceBusClient>()
+                            .CreateSender(options.StartTopicName);
+                    })
+                    .WithName($"{ProcessManagerMessageClientOptions.SectionName}{ServiceBusSenderNameSuffix.StartSender}");
+
+                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
+                    (_, _, sp) =>
+                    {
+                        var options = sp.GetRequiredService<IOptions<ProcessManagerMessageClientOptions>>().Value;
+                        return sp
+                            .GetRequiredService<ServiceBusClient>()
+                            .CreateSender(options.NotifyTopicName);
+                    })
+                    .WithName($"{ProcessManagerMessageClientOptions.SectionName}{ServiceBusSenderNameSuffix.NotifySender}");
+            });
+
+        services.AddTransient<IProcessManagerMessageClient>(sp =>
+        {
+            var senderClientFactory = sp.GetRequiredService<IAzureClientFactory<ServiceBusSender>>();
+            var startSender = senderClientFactory.CreateClient($"{ProcessManagerMessageClientOptions.SectionName}{ServiceBusSenderNameSuffix.StartSender}");
+            var notifySender = senderClientFactory.CreateClient($"{ProcessManagerMessageClientOptions.SectionName}{ServiceBusSenderNameSuffix.NotifySender}");
+
+            return new ProcessManagerMessageClient(startSender, notifySender);
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Register Process Manager special message client <see cref="MessageClientNames"/> for use in applications.
+    /// Options are read from the <paramref name="configSectionPath"/> configuration section name.
+    /// <remarks>
+    /// The application must register the <see cref="ServiceBusClient"/> and contain configuration for <see cref="ProcessManagerMessageClientOptions"/>
+    ///
+    /// By using different <paramref name="configSectionPath"/> it is possible to register
+    /// services for multiple special clients in the same application.
+    /// Services are registered using Keyed services (https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection#keyed-services).
+    /// The "key" used is the value given in <paramref name="configSectionPath"/>.
+    /// </remarks>
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configSectionPath">Name of the config section from which we read options.</param>
+    public static IServiceCollection AddProcessManagerMessageClient(this IServiceCollection services, string configSectionPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(configSectionPath);
+
+        services
+            .AddOptions<ProcessManagerMessageClientOptions>(name: configSectionPath)
+            .BindConfiguration(configSectionPath)
             .ValidateDataAnnotations();
 
         services.AddAzureClients(
@@ -88,45 +147,34 @@ public static class ClientExtensions
                 builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
                     (_, _, provider) =>
                     {
-                        var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
+                        var snapshot = provider.GetRequiredService<IOptionsSnapshot<ProcessManagerMessageClientOptions>>();
+                        var options = snapshot.Get(configSectionPath);
                         return provider
                             .GetRequiredService<ServiceBusClient>()
-                            .CreateSender(serviceBusOptions.StartTopicName);
+                            .CreateSender(options.StartTopicName);
                     })
-                    .WithName(StartSenderClientNames.ProcessManagerStartSender);
+                    .WithName($"{configSectionPath}{ServiceBusSenderNameSuffix.StartSender}");
 
                 builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
                     (_, _, provider) =>
                     {
-                        var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
+                        var snapshot = provider.GetRequiredService<IOptionsSnapshot<ProcessManagerMessageClientOptions>>();
+                        var options = snapshot.Get(configSectionPath);
                         return provider
                             .GetRequiredService<ServiceBusClient>()
-                            .CreateSender(serviceBusOptions.NotifyTopicName);
+                            .CreateSender(options.NotifyTopicName);
                     })
-                    .WithName(NotifySenderClientNames.ProcessManagerNotifySender);
-
-                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
-                    (_, _, provider) =>
-                    {
-                        var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
-                        return provider
-                            .GetRequiredService<ServiceBusClient>()
-                            .CreateSender(serviceBusOptions.Brs021ForwardMeteredDataStartTopicName);
-                    })
-                    .WithName(StartSenderClientNames.Brs021ForwardMeteredDataStartSender);
-
-                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
-                    (_, _, provider) =>
-                    {
-                        var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
-                        return provider
-                            .GetRequiredService<ServiceBusClient>()
-                            .CreateSender(serviceBusOptions.Brs021ForwardMeteredDataNotifyTopicName);
-                    })
-                    .WithName(NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender);
+                    .WithName($"{configSectionPath}{ServiceBusSenderNameSuffix.NotifySender}");
             });
 
-        services.AddScoped<IProcessManagerMessageClient, ProcessManagerMessageClient>();
+        services.AddKeyedTransient<IProcessManagerMessageClient>(serviceKey: configSectionPath, (sp, key) =>
+        {
+            var senderClientFactory = sp.GetRequiredService<IAzureClientFactory<ServiceBusSender>>();
+            var startSender = senderClientFactory.CreateClient($"{key}{ServiceBusSenderNameSuffix.StartSender}");
+            var notifySender = senderClientFactory.CreateClient($"{key}{ServiceBusSenderNameSuffix.NotifySender}");
+
+            return new ProcessManagerMessageClient(startSender, notifySender);
+        });
 
         return services;
     }

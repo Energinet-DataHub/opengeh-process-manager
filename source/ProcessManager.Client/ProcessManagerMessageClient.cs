@@ -14,15 +14,14 @@
 
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Abstractions.Client;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
-using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Client;
 
 public class ProcessManagerMessageClient(
-    IAzureClientFactory<ServiceBusSender> senderClientFactory)
+    ServiceBusSender startSender,
+    ServiceBusSender notifySender)
         : IProcessManagerMessageClient
 {
     /// <summary>
@@ -30,7 +29,8 @@ public class ProcessManagerMessageClient(
     /// </summary>
     private const string NotifyOrchestrationInstanceSubject = "NotifyOrchestration";
 
-    private readonly IAzureClientFactory<ServiceBusSender> _senderClientFactory = senderClientFactory;
+    private readonly ServiceBusSender _startSender = startSender;
+    private readonly ServiceBusSender _notifySender = notifySender;
 
     public Task StartNewOrchestrationInstanceAsync<TInputParameterDto>(
         StartOrchestrationInstanceMessageCommand<TInputParameterDto> command,
@@ -39,7 +39,7 @@ public class ProcessManagerMessageClient(
     {
         var serviceBusMessage = CreateStartOrchestrationInstanceServiceBusMessage(command);
 
-        return SendMessageAsync(command, serviceBusMessage, cancellationToken);
+        return _startSender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 
     public Task NotifyOrchestrationInstanceAsync(
@@ -50,7 +50,7 @@ public class ProcessManagerMessageClient(
             notifyEvent,
             data: null);
 
-        return SendMessageAsync(notifyEvent, serviceBusMessage, cancellationToken);
+        return _notifySender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 
     public Task NotifyOrchestrationInstanceAsync<TNotifyDataDto>(
@@ -62,7 +62,7 @@ public class ProcessManagerMessageClient(
             notifyEvent,
             data: notifyEvent.Data);
 
-        return SendMessageAsync(notifyEvent, serviceBusMessage, cancellationToken);
+        return _notifySender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 
     private ServiceBusMessage CreateStartOrchestrationInstanceServiceBusMessage<TInputParameterDto>(
@@ -115,14 +115,5 @@ public class ProcessManagerMessageClient(
             idempotencyKey: Guid.NewGuid().ToString());
 
         return serviceBusMessage;
-    }
-
-    private Task SendMessageAsync(
-        ISenderClientNameTag senderClientNameTag,
-        ServiceBusMessage serviceBusMessage,
-        CancellationToken cancellationToken)
-    {
-        var serviceBusSender = _senderClientFactory.CreateClient(senderClientNameTag.SenderClientName);
-        return serviceBusSender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 }

@@ -53,7 +53,7 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     /// <summary>
     /// Verify the response contains JSON in a format that the Health Checks UI supports.
     /// </summary>
-    [Theory(Skip = "Temporarily disabled. Will be enabled in a next release.")]
+    [Theory]
     [InlineData("live")]
     [InlineData("ready")]
     [InlineData("status")]

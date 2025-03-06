@@ -16,16 +16,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 
-public record CalculationEnqueueActorMessagesCompletedNotifyEventV1(
-    string OrchestrationInstanceId,
-    CalculationEnqueueActorMessagesCompletedNotifyEventDataV1 Data)
-    : NotifyOrchestrationInstanceEvent<CalculationEnqueueActorMessagesCompletedNotifyEventDataV1>(
-        OrchestrationInstanceId,
-        EventName: OrchestrationInstanceEventName,
-        Data)
-{
-    /// <summary>
-    /// The event name which the orchestration instance expects (is waiting for).
-    /// </summary>
-    public const string OrchestrationInstanceEventName = "CalculationEnqueueActorMessagesCompletedNotifyEventV1";
-}
+/// <summary>
+/// The data which should be sent with a <see cref="CalculationEnqueueActorMessagesCompletedNotifyEventV1"/>.
+/// </summary>
+public record CalculationEnqueueActorMessagesCompletedNotifyEventDataV1(
+    bool Success)
+    : INotifyDataDto;

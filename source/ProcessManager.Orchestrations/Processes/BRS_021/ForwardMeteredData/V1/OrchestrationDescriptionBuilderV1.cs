@@ -43,7 +43,7 @@ internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuil
         description.AppendStepDescription("Forretningsvalidering");
         description.AppendStepDescription("Gemmer måledata");
         description.AppendStepDescription("Finder modtagere");
-        description.AppendStepDescription("Danner beskeder");
+        description.AppendStepDescription("Danner beskeder (TEST)");
 
         description.IsUnderDevelopment = true;
 

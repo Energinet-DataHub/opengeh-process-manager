@@ -123,6 +123,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public TopicResource? ProcessManagerStartTopic { get; private set; }
 
     [NotNull]
+    public TopicResource? Brs021ForwardMeteredDataStartTopic { get; private set; }
+
+    [NotNull]
+    public TopicResource? Brs021ForwardMeteredDataNotifyTopic { get; private set; }
+
+    [NotNull]
     public string? MeasurementEventHubName { get; private set; }
 
     [NotNull]
@@ -170,11 +176,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         var startTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         ProcessManagerStartTopic = startTopicResources.StartTopic;
         // EDI topic
-        ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
-        brs21TopicResource ??= await Brs21TopicResources.CreateNew(ServiceBusResourceProvider);
+        ediTopicResources ??= await EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        brs21TopicResource ??= await Brs21TopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
         // Integration event topic
-        integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
+        integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
         await WholesaleDatabaseManager.CreateDatabaseAsync();
 
@@ -534,7 +540,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         private const string EnqueueBrs026SubscriptionName = "enqueue-brs-026-subscription";
         private const string EnqueueBrs028SubscriptionName = "enqueue-brs-028-subscription";
 
-        public static async Task<EdiTopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
+        public static async Task<EdiTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var ediTopicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
             AddSubscriptionsToTopicBuilder(ediTopicBuilder);
@@ -600,7 +606,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         private const string StartSubscriptionName = "brs-021-start-subscription";
         private const string NotifySubscriptionName = "brs-021-notify-subscription";
 
-        public static async Task<Brs21TopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
+        public static async Task<Brs21TopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var brs21StartTopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-start-topic");
             AddSubscriptionsToTopicBuilder(brs21StartTopicBuilder, StartSubscriptionName);
@@ -647,7 +653,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     {
         private const string SubscriptionName = "integration-event-subscription";
 
-        public static async Task<IntegrationEventTopicResources> CreateNew(
+        public static async Task<IntegrationEventTopicResources> CreateNewAsync(
             ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var integrationEventTopicBuilder = serviceBusResourceProvider.BuildTopic("integration-event-topic");

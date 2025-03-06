@@ -18,10 +18,10 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 
 public readonly record struct TimeInterval(DateTimeOffset Start, DateTimeOffset End);
 
-public sealed record MeteredDataForMeteringPointRejectedV1(
+public sealed record ForwardMeteredDataRejectedV1(
     string EventId,
     BusinessReason BusinessReason,
-    MarketActorRecipient MarketActorRecipient,
+    MarketActorRecipientV1 MarketActorRecipient,
     Guid ProcessId,
     Guid ExternalId,
     AcknowledgementV1 AcknowledgementV1);

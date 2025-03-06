@@ -141,9 +141,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         // Step 3: Send ExampleNotifyEvent event
         const string expectedEventDataMessage = "This is a notification data example";
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
+            new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent!.Id.ToString(),
-                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
                 Data: new ExampleNotifyEventDataV1(expectedEventDataMessage)),
             CancellationToken.None);
 
@@ -210,18 +209,16 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         // Step 3a: Send first ExampleNotifyEvent event
         var expectedEventDataMessage = "The expected data message";
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
+            new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent!.Id.ToString(),
-                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
                 Data: new ExampleNotifyEventDataV1(expectedEventDataMessage)),
             CancellationToken.None);
 
         // Step 3b: Send another ExampleNotifyEvent event
         var ignoredEventDataMessage = "An incorrect data message";
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
+            new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent.Id.ToString(),
-                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
                 Data: new ExampleNotifyEventDataV1(ignoredEventDataMessage)),
             CancellationToken.None);
 

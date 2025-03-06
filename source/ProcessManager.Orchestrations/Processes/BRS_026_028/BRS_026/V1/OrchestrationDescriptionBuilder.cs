@@ -34,6 +34,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
         description.AppendStepDescription(BusinessValidationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
 
+        // TODO: REMOVE AFTER TESTING ON D002
         description.IsUnderDevelopment = true;
 
         return description;

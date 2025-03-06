@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
@@ -19,8 +20,14 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 
-internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
+internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuilder
 {
+    public const int ValidationStep = 1;
+    public const int ForwardToMeasurementStep = 2;
+    public const int FindReceiverStep = 3;
+    public const int EnqueueActorMessagesStep = 4;
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = new("Brs_021_ForwardMeteredData", 1);
+
     public OrchestrationDescription Build()
     {
         var orchestrationDescriptionUniqueName = Brs_021_ForwardedMeteredData.V1;
@@ -30,13 +37,13 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
                 orchestrationDescriptionUniqueName.Name,
                 orchestrationDescriptionUniqueName.Version),
             canBeScheduled: false,
-            functionName: nameof(Orchestration_Brs_021_ForwardMeteredData_V1));
+            functionName: string.Empty);
 
         description.ParameterDefinition.SetFromType<ForwardMeteredDataInputV1>();
-        description.AppendStepDescription("Asynkron validering");
-        description.AppendStepDescription("Gemmer");
+        description.AppendStepDescription("Forretningsvalidering");
+        description.AppendStepDescription("Gemmer måledata");
         description.AppendStepDescription("Finder modtagere");
-        description.AppendStepDescription("Udsend beskeder");
+        description.AppendStepDescription("Danner beskeder");
 
         return description;
     }

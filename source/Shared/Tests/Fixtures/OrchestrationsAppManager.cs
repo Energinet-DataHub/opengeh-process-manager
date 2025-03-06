@@ -32,6 +32,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Options;
@@ -55,7 +56,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private readonly int _appPort;
     private readonly bool _manageDatabase;
     private readonly bool _manageAzurite;
-    private readonly string _eventHubName;
+    private readonly string _measurementEventHubName;
 
     public OrchestrationsAppManager()
         : this(
@@ -67,7 +68,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             wireMockServerPort: 8012,
             manageDatabase: true,
             manageAzurite: true,
-            eventHubName: "eventhub_pm")
+            measurementEventHubName: "eventhub_measurement")
     {
     }
 
@@ -80,7 +81,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         int wireMockServerPort,
         bool manageDatabase,
         bool manageAzurite,
-        string eventHubName)
+        string measurementEventHubName)
     {
         _taskHubName = string.IsNullOrWhiteSpace(taskHubName)
             ? throw new ArgumentException("Cannot be null or whitespace.", nameof(taskHubName))
@@ -88,7 +89,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         _appPort = appPort;
         _manageDatabase = manageDatabase;
         _manageAzurite = manageAzurite;
-        _eventHubName = eventHubName;
+        _measurementEventHubName = measurementEventHubName;
 
         DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();
@@ -122,7 +123,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public TopicResource? ProcessManagerStartTopic { get; private set; }
 
     [NotNull]
-    public string? EventHubName { get; private set; }
+    public string? MeasurementEventHubName { get; private set; }
+
+    [NotNull]
+    public string? ProcessManagerEventhubName { get; private set; }
 
     public WireMockServer MockServer { get; }
 
@@ -140,9 +144,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// Start the orchestration app
     /// </summary>
     /// <param name="ediTopicResources">The required EDI topic resources. New resources will be created if not provided.</param>
+    /// <param name="brs21TopicResource">The required Brs 21 topic resources. New resources will be created if not provided.</param>
     /// <param name="integrationEventTopicResources">The required shared integration event topic resources. New resources will be created if not provided.</param>
     public async Task StartAsync(
         EdiTopicResources? ediTopicResources,
+        Brs21TopicResources? brs21TopicResource,
         IntegrationEventTopicResources? integrationEventTopicResources)
     {
         if (_manageAzurite)
@@ -154,14 +160,19 @@ public class OrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        var eventHubResource = await EventHubResourceProvider.BuildEventHub(_eventHubName).CreateAsync();
-        EventHubName = eventHubResource.Name;
+        var measurementEventHubResource = await EventHubResourceProvider.BuildEventHub(_measurementEventHubName).CreateAsync();
+        MeasurementEventHubName = measurementEventHubResource.Name;
+
+        var processManagerEventhubResource = await EventHubResourceProvider.BuildEventHub("process-manager-event-hub").CreateAsync();
+        ProcessManagerEventhubName = processManagerEventhubResource.Name;
 
         // Start topic
         var startTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         ProcessManagerStartTopic = startTopicResources.StartTopic;
         // EDI topic
         ediTopicResources ??= await EdiTopicResources.CreateNew(ServiceBusResourceProvider);
+        brs21TopicResource ??= await Brs21TopicResources.CreateNew(ServiceBusResourceProvider);
+
         // Integration event topic
         integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
 
@@ -172,8 +183,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
             "ProcessManager.Orchestrations",
             startTopicResources,
             ediTopicResources,
+            brs21TopicResource,
             integrationEventTopicResources,
-            eventHubResource);
+            measurementEventHubResource,
+            processManagerEventhubResource);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -263,8 +276,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
         string csprojName,
         ProcessManagerTopicResources processManagerTopicResources,
         EdiTopicResources ediTopicResources,
+        Brs21TopicResources brs21TopicResources,
         IntegrationEventTopicResources integrationEventTopicResources,
-        EventHubResource eventHubResource)
+        EventHubResource eventHubResource,
+        EventHubResource processManagerEventhubResource)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -341,6 +356,20 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs028SubscriptionName)}",
             processManagerTopicResources.Brs028Subscription.SubscriptionName);
 
+        // brs 21 topic
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",
+            brs21TopicResources.Brs21StartTopic.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}",
+            brs21TopicResources.Brs21NotifyTopic.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}",
+            brs21TopicResources.StartSubscription.SubscriptionName);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}",
+            brs21TopicResources.NotifySubscription.SubscriptionName);
+
         // => EDI topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
@@ -375,13 +404,22 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
             "20");
+
+        // Process Manager Event Hub
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.EventHubName)}",
+            processManagerEventhubResource.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}",
+            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
+
         // Measurements Metered Data Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.NamespaceName)}",
-            IntegrationTestConfiguration.EventHubNamespaceName);
-        appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
-            eventHubResource.Name);
+            MeasurementEventHubName);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}",
+            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
 
         // Electric Market client
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -486,10 +524,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     public record EdiTopicResources(
         TopicResource EdiTopic,
+        SubscriptionProperties EnqueueBrs021ForwardMeteredDataSubscription,
         SubscriptionProperties EnqueueBrs023027Subscription,
         SubscriptionProperties EnqueueBrs026Subscription,
         SubscriptionProperties EnqueueBrs028Subscription)
     {
+        private const string EnqueueBrs021ForwardMeteredDataSubscriptionName = "enqueue-brs-021-forwardmetereddata-subscription";
         private const string EnqueueBrs023027SubscriptionName = "enqueue-brs-023-027-subscription";
         private const string EnqueueBrs026SubscriptionName = "enqueue-brs-026-subscription";
         private const string EnqueueBrs028SubscriptionName = "enqueue-brs-028-subscription";
@@ -510,6 +550,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
+                .AddSubscription(EnqueueBrs021ForwardMeteredDataSubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(OrchestrationDescriptionBuilderV1.UniqueName))
                 .AddSubscription(EnqueueBrs023027SubscriptionName)
                     .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
                 .AddSubscription(EnqueueBrs026SubscriptionName)
@@ -528,6 +570,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// </summary>
         public static EdiTopicResources CreateFromTopic(TopicResource topic)
         {
+            var enqueueBrs021ForwardMeteredDataSubscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(EnqueueBrs021ForwardMeteredDataSubscriptionName));
             var enqueueBrs023027Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(EnqueueBrs023027SubscriptionName));
             var enqueueBrs026Subscription = topic.Subscriptions
@@ -537,9 +581,63 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
             return new EdiTopicResources(
                 EdiTopic: topic,
+                EnqueueBrs021ForwardMeteredDataSubscription: enqueueBrs021ForwardMeteredDataSubscription,
                 EnqueueBrs023027Subscription: enqueueBrs023027Subscription,
                 EnqueueBrs026Subscription: enqueueBrs026Subscription,
                 EnqueueBrs028Subscription: enqueueBrs028Subscription);
+        }
+    }
+
+    /// <summary>
+    /// Brs21 topic resources.
+    /// </summary>
+    public record Brs21TopicResources(
+        TopicResource Brs21StartTopic,
+        SubscriptionProperties StartSubscription,
+        TopicResource Brs21NotifyTopic,
+        SubscriptionProperties NotifySubscription)
+    {
+        private const string StartSubscriptionName = "brs-021-start-subscription";
+        private const string NotifySubscriptionName = "brs-021-notify-subscription";
+
+        public static async Task<Brs21TopicResources> CreateNew(ServiceBusResourceProvider serviceBusResourceProvider)
+        {
+            var brs21StartTopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-start-topic");
+            AddSubscriptionsToTopicBuilder(brs21StartTopicBuilder, StartSubscriptionName);
+            var brs21StartTopic = await brs21StartTopicBuilder.CreateAsync();
+
+            var brs21NotifyTopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-notify-topic");
+            AddSubscriptionsToTopicBuilder(brs21NotifyTopicBuilder, NotifySubscriptionName);
+            var brs21NotifyTopic = await brs21NotifyTopicBuilder.CreateAsync();
+
+            return new Brs21TopicResources(
+                Brs21StartTopic: brs21StartTopic,
+                StartSubscription: GetSubscription(brs21StartTopic, StartSubscriptionName),
+                Brs21NotifyTopic: brs21NotifyTopic,
+                NotifySubscription: GetSubscription(brs21NotifyTopic, NotifySubscriptionName));
+        }
+
+        /// <summary>
+        /// Add Brs21 subscriptions to the Brs21 topic.
+        /// </summary>
+        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder, string subscriptionName)
+        {
+            builder
+                .AddSubscription(subscriptionName);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Get the <see cref="OrchestrationsAppManager.Brs21TopicResources"/> used by the Orchestrations app.
+        /// <remarks>
+        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
+        /// </remarks>
+        /// </summary>
+        public static SubscriptionProperties GetSubscription(TopicResource topic, string subscriptionName)
+        {
+            return topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(subscriptionName));
         }
     }
 

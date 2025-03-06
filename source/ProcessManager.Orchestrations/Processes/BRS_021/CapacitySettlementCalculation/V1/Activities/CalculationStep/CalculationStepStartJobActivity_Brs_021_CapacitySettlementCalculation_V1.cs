@@ -35,6 +35,9 @@ internal class CalculationStepStartJobActivity_Brs_021_CapacitySettlementCalcula
             $"--calculation-month={input.CalculationMonth}",
         };
 
+        // TODO AJW. If the orch. instance retries this activity, the job might fail because there is already a job running.
+        // Only one job can run at a time.
+
         return await client.StartJobAsync("CapacitySettlement", jobParameters).ConfigureAwait(false);
     }
 

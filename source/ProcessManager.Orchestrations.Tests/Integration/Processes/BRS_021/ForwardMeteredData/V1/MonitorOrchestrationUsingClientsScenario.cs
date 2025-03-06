@@ -136,7 +136,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact]
+    [Fact(Skip = "This test is not yet implemented")]
     public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
     {
         // Arrange

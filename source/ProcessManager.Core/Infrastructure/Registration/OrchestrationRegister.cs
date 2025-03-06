@@ -120,7 +120,7 @@ internal class OrchestrationRegister(
         // Breaking changes for the orchestration description (should only be allowed in dev/test):
         var propertiesWithBreakingChanges = GetPropertiesWithBreakingChanges(existingDescription, newDescription);
 
-        if (propertiesWithBreakingChanges.Any() && _options.AllowOrchestrationDescriptionBreakingChanges)
+        if (propertiesWithBreakingChanges.Any() && (_options.AllowOrchestrationDescriptionBreakingChanges || newDescription.IsUnderDevelopment))
         {
             _logger.LogInformation("Updating orchestration description with breaking changes"
                 + $" (Id={existingDescription.IsEnabled}, UniqueName={existingDescription.UniqueName.Name}, Version={existingDescription.UniqueName.Version},"
@@ -195,8 +195,9 @@ internal class OrchestrationRegister(
     {
         existingDescription.RecurringCronExpression = newDescription.RecurringCronExpression;
 
-        // Breaking changes for the orchestration description (should only be allowed in dev/test):
-        if (_options.AllowOrchestrationDescriptionBreakingChanges)
+        // Breaking changes for the orchestration description should only be allowed in dev/test or if
+        // the orchestration description is under development
+        if (_options.AllowOrchestrationDescriptionBreakingChanges || newDescription.IsUnderDevelopment)
         {
             var changedProperties = GetPropertiesWithBreakingChanges(existingDescription, newDescription);
 

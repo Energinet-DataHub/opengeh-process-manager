@@ -121,6 +121,45 @@ public class HealthCheckEndpointTests : IAsyncLifetime
         healthCheckContent.Should().Contain(changedPropertiesString);
     }
 
+    [Fact]
+    public async Task Given_OrchestrationDescriptionUnderDevelopmentWithBreakingChanges_When_CallingHealthCheck_Then_IsHealthy()
+    {
+        UseDisallowOrchestrationDescriptionBreakingChanges();
+
+        var uniqueName = UnderDevelopmentOrchestrationDescriptionBuilder.UniqueName;
+        await using (var dbContext = Fixture.ProcessManagerAppManager.DatabaseManager.CreateDbContext())
+        {
+            // Change existing orchestration description so there is breaking changes next time the
+            // synchronization is run (orchestration register synchronization runs at application startup).
+            var orchestrationDescription = await dbContext
+                .OrchestrationDescriptions
+                .FirstAsync(od => od.UniqueName == uniqueName);
+            orchestrationDescription.FunctionName = "Breaking change!";
+            orchestrationDescription.AppendStepDescription("Breaking change!");
+            await dbContext.SaveChangesAsync();
+        }
+
+        // Restart app to perform synchronization again
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.RestartHost();
+
+        using var healthCheckResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient
+            .GetAsync($"api/monitor/ready");
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+
+        var hostLogs = Fixture.ExampleOrchestrationsAppManager.AppHostManager.GetHostLogSnapshot();
+
+        // Assert that breaking changes are logged at the host
+        const string updatingBreakingChangesString = "Updating orchestration description with breaking changes";
+        const string changedPropertiesString = $"ChangedProperties={nameof(OrchestrationDescription.Steps)},{nameof(OrchestrationDescription.FunctionName)}";
+        hostLogs.Should().ContainMatch($"*{updatingBreakingChangesString}*");
+        hostLogs.Should().ContainMatch($"*{changedPropertiesString}*");
+
+        // Assert that the healthcheck succeeds
+        healthCheckResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
     private void UseDisallowOrchestrationDescriptionBreakingChanges()
     {
         Fixture.ExampleOrchestrationsAppManager.AppHostManager.RestartHostIfChanges(new Dictionary<string, string>

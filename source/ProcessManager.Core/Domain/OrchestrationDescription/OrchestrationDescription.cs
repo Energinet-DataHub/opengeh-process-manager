@@ -119,6 +119,12 @@ public class OrchestrationDescription
     public IReadOnlyCollection<StepDescription> Steps => _steps.AsReadOnly();
 
     /// <summary>
+    /// Whether the orchestration description is under development. If true, then the orchestration register allows
+    /// updating properties that otherwise would be considered breaking changes.
+    /// </summary>
+    public bool IsUnderDevelopment { get; set; }
+
+    /// <summary>
     /// This is set by the framework when synchronizing with the orchestration register during startup.
     /// The name of the host where the orchestration is implemented.
     /// </summary>

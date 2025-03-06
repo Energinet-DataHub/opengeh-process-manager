@@ -12,9 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
 
-public class ActorRequestProcessExampleNotifyEventsV1
+public record ActorRequestProcessExampleNotifyEventV1(
+    string OrchestrationInstanceId)
+    : NotifyOrchestrationInstanceEvent(
+        OrchestrationInstanceId,
+        EventName: OrchestrationInstanceEventName)
 {
-    public const string ActorMessagesEnqueued = "ActorMessagesEnqueued";
+    /// <summary>
+    /// The event name which the orchestration instance expects (is waiting for).
+    /// </summary>
+    public const string OrchestrationInstanceEventName = "ActorMessagesEnqueued";
 }

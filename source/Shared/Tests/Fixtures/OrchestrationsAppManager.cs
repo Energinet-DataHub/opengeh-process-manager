@@ -150,11 +150,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// Start the orchestration app
     /// </summary>
     /// <param name="ediTopicResources">The required EDI topic resources. New resources will be created if not provided.</param>
-    /// <param name="brs21TopicResource">The required Brs 21 topic resources. New resources will be created if not provided.</param>
     /// <param name="integrationEventTopicResources">The required shared integration event topic resources. New resources will be created if not provided.</param>
     public async Task StartAsync(
         EdiTopicResources? ediTopicResources,
-        Brs21TopicResources? brs21TopicResource,
         IntegrationEventTopicResources? integrationEventTopicResources)
     {
         if (_manageAzurite)
@@ -172,12 +170,15 @@ public class OrchestrationsAppManager : IAsyncDisposable
         var processManagerEventhubResource = await EventHubResourceProvider.BuildEventHub("process-manager-event-hub").CreateAsync();
         ProcessManagerEventhubName = processManagerEventhubResource.Name;
 
-        // Start topic
+        // Orchestrations service bus topics
         var startTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         ProcessManagerStartTopic = startTopicResources.StartTopic;
+        var brs21TopicResource = await Brs21TopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        Brs021ForwardMeteredDataStartTopic = brs21TopicResource.Brs21StartTopic;
+        Brs021ForwardMeteredDataNotifyTopic = brs21TopicResource.Brs21NotifyTopic;
+
         // EDI topic
         ediTopicResources ??= await EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
-        brs21TopicResource ??= await Brs21TopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
         // Integration event topic
         integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNewAsync(ServiceBusResourceProvider);
@@ -468,7 +469,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         private const string Brs026SubscriptionName = "brs-026-subscription";
         private const string Brs028SubscriptionName = "brs-028-subscription";
 
-        public static async Task<ProcessManagerTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<ProcessManagerTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-start-topic");
             AddOrchestrationsAppSubscriptions(processManagerTopicBuilder);
@@ -481,7 +482,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// <summary>
         /// Add the subscriptions used by the Orchestrations app to the topic builder.
         /// </summary>
-        public static TopicResourceBuilder AddOrchestrationsAppSubscriptions(TopicResourceBuilder builder)
+        internal static TopicResourceBuilder AddOrchestrationsAppSubscriptions(TopicResourceBuilder builder)
         {
             builder
                 .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
@@ -502,7 +503,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddOrchestrationsAppSubscriptions"/>.
         /// </remarks>
         /// </summary>
-        public static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
+        internal static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
         {
             var brs021ForwardMeteredDataSubscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs021ForwardMeteredDataSubscriptionName));

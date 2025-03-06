@@ -28,22 +28,13 @@ public class StartTrigger_Brs_021_ForwardMeteredData_V1(
     /// <summary>
     /// Start a BRS-021 ForwardMeteredData.
     /// </summary>
-    [Function(nameof(StartTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ServiceBusTrigger(
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.TopicName)}%",
-            $"%{ProcessManagerTopicOptions.SectionName}:{nameof(ProcessManagerTopicOptions.Brs021ForwardMeteredDataSubscriptionName)}%",
+            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}%",
+            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        // TODO: Enable below when Process Manager client can route to the new topic
-    // public async Task Run(
-    //     [ServiceBusTrigger(
-    //         $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}%",
-    //         $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}%",
-    //         Connection = ServiceBusNamespaceOptions.SectionName)]
-    //     ServiceBusReceivedMessage message)
-    // {
         await _handler.HandleAsync(message).ConfigureAwait(false);
     }
 }

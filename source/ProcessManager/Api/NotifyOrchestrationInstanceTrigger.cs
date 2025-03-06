@@ -29,31 +29,6 @@ public class NotifyOrchestrationInstanceTrigger(
 {
     private readonly INotifyOrchestrationInstanceCommands _notifyOrchestrationCommands = notifyOrchestrationCommands;
 
-    // TODO: Delete when "NotifyOrchestrationInstanceTrigger" is used from other subsystems
-    [Function("NotifyOrchestrationInstanceTriggerObsolete")]
-    public Task RunObsolete(
-        [ServiceBusTrigger(
-            $"%{NotifyOrchestrationInstanceOptions.SectionName}:{nameof(NotifyOrchestrationInstanceOptions.TopicName)}%",
-            $"%{NotifyOrchestrationInstanceOptions.SectionName}:{nameof(NotifyOrchestrationInstanceOptions.NotifyOrchestrationInstanceSubscriptionName)}%",
-            Connection = ServiceBusNamespaceOptions.SectionName)]
-        ServiceBusReceivedMessage message)
-    {
-        var majorVersion = message.GetMajorVersion();
-        var (orchestrationInstanceId, eventName, eventData) = majorVersion switch
-        {
-            NotifyOrchestrationInstanceV1.MajorVersion => HandleV1(message),
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(majorVersion),
-                majorVersion,
-                $"Unhandled major version in received notify service bus message (MessageId={message.MessageId})"),
-        };
-
-        return _notifyOrchestrationCommands.NotifyOrchestrationInstanceAsync(
-            new OrchestrationInstanceId(Guid.Parse(orchestrationInstanceId)),
-            eventName,
-            eventData);
-    }
-
     [Function(nameof(NotifyOrchestrationInstanceTrigger))]
     public Task Run(
         [ServiceBusTrigger(

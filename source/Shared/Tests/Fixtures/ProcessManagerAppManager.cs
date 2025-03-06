@@ -229,14 +229,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
-        // => NotifyOrchestrationInstance topic/subscription
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{NotifyOrchestrationInstanceOptions.SectionName}__{nameof(NotifyOrchestrationInstanceOptions.TopicName)}",
-            obsoleteNotifyTopicResources.NotifyTopic.Name);
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{NotifyOrchestrationInstanceOptions.SectionName}__{nameof(NotifyOrchestrationInstanceOptions.NotifyOrchestrationInstanceSubscriptionName)}",
-            obsoleteNotifyTopicResources.NotifySubscription.SubscriptionName);
-        // => New "Notify" topic
+        // => Notify topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerNotifyTopicOptions.SectionName}__{nameof(ProcessManagerNotifyTopicOptions.TopicName)}",
             notifyTopicResources.NotifyTopic.Name);

@@ -87,14 +87,15 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 = _fixture.OrchestrationsAppManager.ProcessManagerStartTopic.Name,
             [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.NotifyTopicName)}"]
                 = _fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
+            [$"{MessageClientNames.Brs021ForwardMeteredData}:{nameof(ProcessManagerMessageClientOptions.StartTopicName)}"]
                 = _fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
-            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
+            [$"{MessageClientNames.Brs021ForwardMeteredData}:{nameof(ProcessManagerMessageClientOptions.NotifyTopicName)}"]
                 = _fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
+        services.AddProcessManagerMessageClient(MessageClientNames.Brs021ForwardMeteredData);
         services.AddProcessManagerHttpClients();
 
         services
@@ -151,7 +152,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerMessageClient = ServiceProvider.GetRequiredKeyedService<IProcessManagerMessageClient>(serviceKey: MessageClientNames.Brs021ForwardMeteredData);
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
 

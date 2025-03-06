@@ -75,10 +75,6 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 = Fixture.OrchestrationsAppManager.ProcessManagerStartTopic.Name,
             [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.NotifyTopicName)}"]
                 = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
-                = Fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
-            [$"{ProcessManagerMessageClientOptions.SectionName}:{nameof(ProcessManagerMessageClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
-                = Fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));

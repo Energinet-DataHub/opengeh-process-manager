@@ -262,6 +262,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
 
         Assert.Equal(expected: existingOrchestrationDescription.Id, actual: actualOrchestrationDescription.Id);
         Assert.Equal(expected: functionNameBreakingChange, actual: actualOrchestrationDescription.FunctionName);
+        Assert.True(actualOrchestrationDescription.IsUnderDevelopment);
         Assert.False(actualOrchestrationDescription.CanBeScheduled);
         Assert.Equal(
             expected: JsonSchema.FromType<ParameterDefinitionInt>().ToJson(),

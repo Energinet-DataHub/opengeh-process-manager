@@ -135,7 +135,8 @@ internal class OrchestrationRegister(
                 + $" ChangedProperties={string.Join(",", propertiesWithBreakingChanges)}).");
         }
 
-        return existingDescription.RecurringCronExpression != newDescription.RecurringCronExpression;
+        return existingDescription.RecurringCronExpression != newDescription.RecurringCronExpression &&
+               existingDescription.IsUnderDevelopment != newDescription.IsUnderDevelopment;
     }
 
     /// <summary>
@@ -194,6 +195,7 @@ internal class OrchestrationRegister(
         OrchestrationDescription newDescription)
     {
         existingDescription.RecurringCronExpression = newDescription.RecurringCronExpression;
+        existingDescription.IsUnderDevelopment = newDescription.IsUnderDevelopment;
 
         // Breaking changes for the orchestration description should only be allowed in dev/test or if
         // the orchestration description is under development

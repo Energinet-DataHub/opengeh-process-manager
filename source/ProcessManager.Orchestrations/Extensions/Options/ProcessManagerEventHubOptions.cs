@@ -17,20 +17,24 @@ using System.ComponentModel.DataAnnotations;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 
 /// <summary>
-/// Options for the configuration of Measurements metered data event hub producer clients.
+/// Options for the configuration of Process Manager to connect to the
+/// ProcessManager Event hub.
 /// </summary>
-public class MeasurementsMeteredDataClientOptions
+public class ProcessManagerEventHubOptions
 {
-    public const string SectionName = "MeasurementsEventHub";
+    public const string SectionName = "ProcessManagerEventHub";
 
     /// <summary>
-    /// The fully qualified namespace of the event hub which the Process Manager sends events on
+    /// The fully qualified namespace of the event hub which the Process Manager connects to
     /// </summary>
+    /// <remarks>
+    /// This is nearly the same as "NamespaceName"
+    /// </remarks>
     [Required(AllowEmptyStrings = false)]
     public string FullyQualifiedNamespace { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the event hub which the Process Manager sends events on
+    /// Name of the event hub name which the Process Manager connects to
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string EventHubName { get; set; } = string.Empty;

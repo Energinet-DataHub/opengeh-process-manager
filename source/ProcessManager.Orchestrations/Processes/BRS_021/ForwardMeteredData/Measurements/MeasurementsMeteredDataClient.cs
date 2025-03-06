@@ -22,6 +22,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 using Point = Energinet.DataHub.Measurements.Contracts.Point;
 
@@ -31,12 +32,14 @@ public class MeasurementsMeteredDataClient(
     IAzureClientFactory<EventHubProducerClient> eventHubClientFactory)
         : IMeasurementsMeteredDataClient
 {
-    private readonly EventHubProducerClient _eventHubProducerClient =
+    private readonly EventHubProducerClient _measurementEventHubProducerClient =
         eventHubClientFactory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub);
 
-    public async Task SendAsync(MeteredDataForMeteringPoint meteredDataForMeteringPoint, CancellationToken cancellationToken)
+    public async Task SendAsync(
+        MeteredDataForMeteringPoint meteredDataForMeteringPoint,
+        CancellationToken cancellationToken)
     {
-        var data = new PersistSubmittedTransaction()
+        var data = new PersistSubmittedTransaction
         {
             OrchestrationInstanceId = meteredDataForMeteringPoint.OrchestrationId,
             OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
@@ -46,25 +49,23 @@ public class MeasurementsMeteredDataClient(
             StartDatetime = MapDateTime(meteredDataForMeteringPoint.StartDateTime),
             EndDatetime = MapDateTime(meteredDataForMeteringPoint.EndDateTime),
             MeteringPointType = MeteredDataToMeasurementMapper.MeteringPointType.Map(meteredDataForMeteringPoint.MeteringPointType),
-            Product = meteredDataForMeteringPoint.Product,
             Unit = MeteredDataToMeasurementMapper.MeasurementUnit.Map(meteredDataForMeteringPoint.Unit),
             Resolution = MeteredDataToMeasurementMapper.Resolution.Map(meteredDataForMeteringPoint.Resolution),
         };
 
-        data.Points.AddRange(meteredDataForMeteringPoint.Points.Select(p => new Point()
-        {
-            Position = p.Position,
-            Quantity = DecimalValueMapper.Map(p.Quantity),
-            Quality = MeteredDataToMeasurementMapper.Quality.Map(p.Quality),
-        }));
+        data.Points.AddRange(
+            meteredDataForMeteringPoint.Points.Select(
+                p => new Point
+                {
+                    Position = p.Position,
+                    Quantity = DecimalValueMapper.Map(p.Quantity),
+                    Quality = MeteredDataToMeasurementMapper.Quality.Map(p.Quality),
+                }));
 
         // Serialize the data to a byte array
         var eventData = new EventData(data.ToByteArray());
-        await _eventHubProducerClient.SendAsync([eventData], cancellationToken).ConfigureAwait(false);
+        await _measurementEventHubProducerClient.SendAsync([eventData], cancellationToken).ConfigureAwait(false);
     }
 
-    private Timestamp MapDateTime(Instant instant)
-    {
-        return Timestamp.FromDateTimeOffset(instant.ToDateTimeOffset());
-    }
+    private static Timestamp MapDateTime(Instant instant) => Timestamp.FromDateTimeOffset(instant.ToDateTimeOffset());
 }

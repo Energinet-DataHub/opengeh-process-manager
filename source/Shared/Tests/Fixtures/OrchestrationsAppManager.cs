@@ -281,7 +281,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        ProcessManagerTopicResources processManagerTopicResources,
+        ProcessManagerTopicResources startTopicResources,
         EdiTopicResources ediTopicResources,
         Brs21TopicResources brs21TopicResources,
         IntegrationEventTopicResources integrationEventTopicResources,
@@ -355,15 +355,15 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // => Process Manager Start topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.TopicName)}",
-            processManagerTopicResources.StartTopic.Name);
+            startTopicResources.StartTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs026SubscriptionName)}",
-            processManagerTopicResources.Brs026Subscription.SubscriptionName);
+            startTopicResources.Brs026Subscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs028SubscriptionName)}",
-            processManagerTopicResources.Brs028Subscription.SubscriptionName);
+            startTopicResources.Brs028Subscription.SubscriptionName);
 
-        // brs 21 topic
+        // => BRS-021 Forward Metered Data topics
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",
             brs21TopicResources.Brs21StartTopic.Name);
@@ -607,7 +607,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         private const string StartSubscriptionName = "brs-021-start-subscription";
         private const string NotifySubscriptionName = "brs-021-notify-subscription";
 
-        public static async Task<Brs21TopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<Brs21TopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var brs21StartTopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-start-topic");
             AddSubscriptionsToTopicBuilder(brs21StartTopicBuilder, StartSubscriptionName);
@@ -627,7 +627,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// <summary>
         /// Add Brs21 subscriptions to the Brs21 topic.
         /// </summary>
-        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder, string subscriptionName)
+        internal static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder, string subscriptionName)
         {
             builder
                 .AddSubscription(subscriptionName);
@@ -641,7 +641,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
         /// </remarks>
         /// </summary>
-        public static SubscriptionProperties GetSubscription(TopicResource topic, string subscriptionName)
+        internal static SubscriptionProperties GetSubscription(TopicResource topic, string subscriptionName)
         {
             return topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(subscriptionName));

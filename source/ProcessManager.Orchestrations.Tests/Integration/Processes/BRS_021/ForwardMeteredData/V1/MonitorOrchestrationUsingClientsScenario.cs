@@ -152,12 +152,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
-        var processManagerMessageClient = ServiceProvider.GetRequiredKeyedService<IProcessManagerMessageClient>(serviceKey: MessageClientNames.Brs021ForwardMeteredData);
+        var brs021FmdMessageClient = ServiceProvider.GetRequiredKeyedService<IProcessManagerMessageClient>(serviceKey: MessageClientNames.Brs021ForwardMeteredData);
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
 
         // Act
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
+        await brs021FmdMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
 
         var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
         await Awaiter.WaitUntilConditionAsync(
@@ -204,7 +204,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // wait for notification from edi.
         // TODO: Refactor this to use _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When()
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
-            processManagerMessageClient: processManagerMessageClient,
+            processManagerMessageClient: brs021FmdMessageClient,
             orchestrationInstanceId: instance.Id,
             messageId: startCommand.ActorMessageId);
 

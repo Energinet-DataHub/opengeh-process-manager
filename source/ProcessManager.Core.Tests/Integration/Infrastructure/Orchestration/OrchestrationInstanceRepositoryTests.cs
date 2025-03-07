@@ -635,6 +635,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         orchestrationDescription.AppendStepDescription("Test step 2");
         orchestrationDescription.AppendStepDescription("Test step 3");
 
+        orchestrationDescription.IsUnderDevelopment = true;
+
         return orchestrationDescription;
     }
 

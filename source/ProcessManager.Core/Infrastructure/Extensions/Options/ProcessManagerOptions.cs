@@ -34,4 +34,10 @@ public class ProcessManagerOptions
     /// </summary>
     [Required]
     public bool AllowOrchestrationDescriptionBreakingChanges { get; set; } = false;
+
+    /// <summary>
+    /// Allow the orchestration instance manager to start/schedule orchestration descriptions under development.
+    /// </summary>
+    [Required]
+    public bool AllowStartingOrchestrationsUnderDevelopment { get; set; } = true;
 }

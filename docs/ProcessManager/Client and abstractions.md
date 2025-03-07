@@ -18,15 +18,16 @@ Mermaid syntax for [class diagrams](https://mermaid.js.org/syntax/classDiagram.h
 
 ```mermaid
 classDiagram
-direction TD
 
 %%
 %% Classes
 %%
 
 namespace Legend {
-    class AbstractClass["Abstract Class"]:::abstract
-    class Interface["Interface"]:::interface{
+    class AbstractClass["Abstract Class"]{
+        <<abstract>>
+    }
+    class Interface["Interface"]{
         <<interface>>
     }
     class ImplementingClass["Implementing Class"]
@@ -40,30 +41,65 @@ namespace Legend {
 AbstractClass <|-- ImplementingClass : inheritance
 Interface <|.. ImplementingClass : realization
 ClientClass ..> Interface : dependency
-
-%%
-%% Styles
-%%
-
-classDef abstract fill:#555
-classDef interface fill:#555
 ```
 
 ### Diagram
 
 ```mermaid
 classDiagram
-    class Client {
-        +connect()
-        +disconnect()
-        +sendData(data)
-        +receiveData()
+
+%%
+%% Classes
+%%
+
+    %%
+    %% Operating Identity
+    %%
+
+    class IOperatingIdentityDto:::interface{
+        <<interface>>
     }
 
-    class Abstraction {
-        +operation1()
-        +operation2()
+    class UserIdentityDto {
+        +Guid UserId
+        +ActorNumber ActorNumber
+        +ActorRole ActorRole
+    }
+    IOperatingIdentityDto <|.. UserIdentityDto
+
+    class ActorIdentityDto {
+        +ActorNumber ActorNumber
+        +ActorRole ActorRole
+    }
+    IOperatingIdentityDto <|.. ActorIdentityDto
+
+    %%
+    %% Requests
+    %%
+
+    class IOrchestrationInstanceRequest:::interface{
+        <<interface>>
     }
 
-    Client --> Abstraction : uses
+    class OrchestrationInstanceRequest~TOperatingIdentity~{
+        <<abstract>>
+        +TOperatingIdentity OperatingIdentity
+    }
+    IOrchestrationInstanceRequest <|.. OrchestrationInstanceRequest~TOperatingIdentity~
+    OrchestrationInstanceRequest~TOperatingIdentity~ --> IOperatingIdentityDto
+
+    class NotifyOrchestrationInstanceEvent{
+        <<abstract>>
+        +String OrchestrationInstanceId
+        +String EventName
+    }
+    IOrchestrationInstanceRequest <|.. NotifyOrchestrationInstanceEvent
+
+    class NotifyOrchestrationInstanceEventX~TNotifyData~{
+        <<abstract>>
+        +String OrchestrationInstanceId
+        +String EventName
+        +TNotifyData Data
+    }
+    NotifyOrchestrationInstanceEvent <|-- NotifyOrchestrationInstanceEventX~TNotifyData~
 ```

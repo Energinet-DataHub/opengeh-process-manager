@@ -64,7 +64,6 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 = Fixture.ExampleOrchestrationsAppManager.ProcessManagerStartTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
                 = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
                 = Fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]

@@ -13,31 +13,31 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1.Options;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Options;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1.Activities;
 
 /// <summary>
 /// Get the <see cref="OrchestrationInstanceContext"/> for the orchestration instance.
 /// </summary>
-internal class GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1(
-    IOptions<OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1> orchestrationOptions)
+internal class GetOrchestrationInstanceContextActivity_Brs_021_CapacitySettlementCalculation_V1(
+    IOptions<OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1> orchestrationOptions)
 {
-    private readonly OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1 _orchestrationOptions = orchestrationOptions.Value;
+    private readonly OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1 _orchestrationOptions = orchestrationOptions.Value;
 
-    [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1))]
+    [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_021_CapacitySettlementCalculation_V1))]
     public Task<OrchestrationInstanceContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
+        // Orchestration options are added to storage in order have them available later and in the orchestration history.
+        // The idea is to include the options early in order 1) to have them available and 2) to use the correct values.
         return Task.FromResult(new OrchestrationInstanceContext(
             _orchestrationOptions,
-            CalculationId: input.InstanceId.Value,
             input.InstanceId));
     }
 
-    public record ActivityInput(
-        OrchestrationInstanceId InstanceId);
+    public record ActivityInput(OrchestrationInstanceId InstanceId);
 }

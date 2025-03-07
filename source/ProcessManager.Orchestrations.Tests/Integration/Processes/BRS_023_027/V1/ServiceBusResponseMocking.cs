@@ -14,7 +14,6 @@
 
 using System.Text.Json;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
@@ -55,10 +54,9 @@ public static class ServiceBusResponseMocking
         messageFound.Should().BeTrue("because EDI should have been asked to enqueue messages");
 
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent<CalculationEnqueueActorMessagesCompletedNotifyEventV1>(
+            new CalculationEnqueueActorMessagesCompletedNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceId.ToString(),
-                EventName: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName,
-                Data: new CalculationEnqueueActorMessagesCompletedNotifyEventV1 { Success = successfulResponse }),
+                Data: new CalculationEnqueueActorMessagesCompletedNotifyEventDataV1(Success: successfulResponse)),
             CancellationToken.None);
     }
 

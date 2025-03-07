@@ -64,7 +64,7 @@ internal class EnqueueActorMessagesStep(
 
         // If wait timeout is reached, an exception will be thrown, and the StepExecutorBase will fail the orchestration.
         await Context.WaitForExternalEvent<int?>(
-            eventName: ActorRequestProcessExampleNotifyEventsV1.ActorMessagesEnqueued,
+            eventName: ActorRequestProcessExampleNotifyEventV1.OrchestrationInstanceEventName,
             timeout: waitTimeout);
 
         return OrchestrationStepTerminationState.Succeeded;

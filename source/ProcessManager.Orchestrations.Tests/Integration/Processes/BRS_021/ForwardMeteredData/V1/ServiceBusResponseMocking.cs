@@ -53,7 +53,7 @@ public static class ServiceBusResponseMocking
         messageFound.Should().BeTrue("because EDI should have been asked to enqueue messages");
 
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new ForwardMeteredDataNotifyEventsV1(
+            new ForwardMeteredDataNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceId.ToString()),
             CancellationToken.None);
     }

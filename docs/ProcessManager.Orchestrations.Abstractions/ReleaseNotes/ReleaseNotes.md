@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.7.0
+
+- Add BRS-021 Capacity Settlement command.
+
 ## Version 1.6.0
 
 - Implemented specific events for notify. Previously we used one generic event implementation and used magic strings as input for the event name.

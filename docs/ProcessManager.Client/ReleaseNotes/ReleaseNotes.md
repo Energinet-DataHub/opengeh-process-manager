@@ -3,7 +3,7 @@
 ## Version 2.1.0
 
 - Refactored `NotifyOrchestrationInstanceEvent` to be `abstract` and thereby require each event to be its own record (similar to what we do for commands).
-- Refactored dependency injection extensions `AddProcessManagerMessageClient` and options `ProcessManagerMessageClientOptions` for registering Process Manager Message clients, 
+- Refactored dependency injection extensions `AddProcessManagerMessageClient` and options `ProcessManagerMessageClientOptions` for registering Process Manager Message clients,
 so its possible to register multiple (named) clients. Using this it is possible to register a specific client for use with BRS-021 Forward Metered Data.
 
 ## Version 2.0.0

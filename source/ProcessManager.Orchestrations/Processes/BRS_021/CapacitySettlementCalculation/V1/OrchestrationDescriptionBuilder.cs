@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1;
@@ -30,6 +31,9 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
                 orchestrationDescriptionUniqueName.Version),
             canBeScheduled: false,
             functionName: nameof(Orchestration_Brs_021_CapacitySettlementCalculation_V1));
+
+        // Added inputs (parameters) from the HTTP request to the description so that the framework knows that inputs are used.
+        description.ParameterDefinition.SetFromType<CalculationInputV1>();
 
         description.AppendStepDescription(CalculationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);

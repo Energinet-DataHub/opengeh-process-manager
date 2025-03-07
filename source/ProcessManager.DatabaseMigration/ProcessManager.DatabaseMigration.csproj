@@ -32,6 +32,7 @@
     <EmbeddedResource Include="Scripts\202502261006 Add IsDurableFunction to OrchestrationDescription.sql" />
     <EmbeddedResource Include="Scripts\202502270811 Remove IsDurableFunction from OrchestrationDescription.sql" />
     <EmbeddedResource Include="Scripts\202503061332 Add IsUnderDevelopment to OrchestrationDescription.sql" />
+    <EmbeddedResource Include="Scripts\202503061331 D002 ONLY - Remove IsUnderDevelopment and default constraint from OrchestrationDescription.sql" />
   </ItemGroup>
 
 </Project>

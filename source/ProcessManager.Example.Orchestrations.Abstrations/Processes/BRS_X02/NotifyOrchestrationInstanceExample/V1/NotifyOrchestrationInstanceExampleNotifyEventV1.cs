@@ -12,12 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 
 /// <summary>
-/// The notify event names for BRS_X02_NotifyOrchestrationInstanceExample V1.
+/// The notify event for BRS_X02_NotifyOrchestrationInstanceExample V1.
 /// </summary>
-public static class NotifyOrchestrationInstanceExampleNotifyEventsV1
+public record NotifyOrchestrationInstanceExampleNotifyEventV1(
+    string OrchestrationInstanceId,
+    ExampleNotifyEventDataV1 Data)
+    : NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
+        OrchestrationInstanceId,
+        EventName: OrchestrationInstanceEventName,
+        Data)
 {
-    public const string ExampleNotifyEvent = "ExampleNotifyEvent";
+    /// <summary>
+    /// The event name which the orchestration instance expects (is waiting for).
+    /// </summary>
+    public const string OrchestrationInstanceEventName = "ExampleNotifyEvent";
 }

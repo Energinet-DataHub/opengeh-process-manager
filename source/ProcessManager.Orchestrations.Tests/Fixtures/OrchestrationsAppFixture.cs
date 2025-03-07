@@ -143,8 +143,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await ProcessManagerAppManager.StartAsync();
 
         // Create EDI topic resources
-        var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.CreateNew(ServiceBusResourceProvider);
-        var brs21TopicResources = await OrchestrationsAppManager.Brs21TopicResources.CreateNew(ServiceBusResourceProvider);
+        var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
         await EnqueueBrs021ForwardMeteredDataServiceBusListener.AddTopicSubscriptionListenerAsync(
             ediTopicResources.EnqueueBrs021ForwardMeteredDataSubscription.TopicName,
@@ -160,13 +159,13 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             ediTopicResources.EnqueueBrs028Subscription.SubscriptionName);
 
         // Create Integration Event topic resources
-        var integrationEventTopicResources = await OrchestrationsAppManager.IntegrationEventTopicResources.CreateNew(ServiceBusResourceProvider);
+        var integrationEventTopicResources = await OrchestrationsAppManager.IntegrationEventTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         await IntegrationEventServiceBusListener.AddTopicSubscriptionListenerAsync(
             integrationEventTopicResources.SharedTopic.Name,
             integrationEventTopicResources.Subscription.SubscriptionName);
 
         // Process Manager Orchestration Start topic
-        await OrchestrationsAppManager.StartAsync(ediTopicResources, brs21TopicResources, integrationEventTopicResources);
+        await OrchestrationsAppManager.StartAsync(ediTopicResources, integrationEventTopicResources);
 
         EventHubListener = new EventHubListenerMock(
             new TestDiagnosticsLogger(),

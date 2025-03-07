@@ -12,9 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 
-public static class RequestCalculatedEnergyTimeSeriesNotifyEventsV1
+public record RequestCalculatedEnergyTimeSeriesNotifyEventV1(
+    string OrchestrationInstanceId)
+    : NotifyOrchestrationInstanceEvent(
+        OrchestrationInstanceId,
+        EventName: OrchestrationInstanceEventName)
 {
-    public const string EnqueueActorMessagesCompleted = "EnqueueActorMessagesCompleted";
+    /// <summary>
+    /// The event name which the orchestration instance expects (is waiting for).
+    /// </summary>
+    public const string OrchestrationInstanceEventName = "EnqueueActorMessagesCompleted";
 }

@@ -56,8 +56,8 @@ internal class EnqueueActorMessagesStep(
 
         try
         {
-            var enqueueEvent = await Context.WaitForExternalEvent<CalculationEnqueueActorMessagesCompletedNotifyEventV1>(
-                eventName: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName,
+            var enqueueEvent = await Context.WaitForExternalEvent<CalculationEnqueueActorMessagesCompletedNotifyEventDataV1>(
+                eventName: CalculationEnqueueActorMessagesCompletedNotifyEventV1.OrchestrationInstanceEventName,
                 timeout: timeout);
 
             if (enqueueEvent.Success)

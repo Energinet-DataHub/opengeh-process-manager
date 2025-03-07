@@ -12,9 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-public static class ForwardMeteredDataNotifyEventsV1
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
+
+public record ActorRequestProcessExampleNotifyEventV1(
+    string OrchestrationInstanceId)
+    : NotifyOrchestrationInstanceEvent(
+        OrchestrationInstanceId,
+        EventName: OrchestrationInstanceEventName)
 {
-    public const string EnqueueActorMessagesCompleted = "EnqueueActorMessagesCompleted";
+    /// <summary>
+    /// The event name which the orchestration instance expects (is waiting for).
+    /// </summary>
+    public const string OrchestrationInstanceEventName = "ActorMessagesEnqueued";
 }

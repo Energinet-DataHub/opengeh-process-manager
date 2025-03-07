@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-public record ForwardMeteredDataNotifyEventsV1(
+public record ForwardMeteredDataNotifyEventV1(
     string OrchestrationInstanceId)
     : NotifyOrchestrationInstanceEvent(
         OrchestrationInstanceId,

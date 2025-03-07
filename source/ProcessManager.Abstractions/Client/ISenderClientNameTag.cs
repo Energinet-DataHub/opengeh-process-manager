@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Client;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
-
-/// <summary>
-/// The data which should be sent with a <see cref="NotifyOrchestrationInstanceExampleNotifyEventV1"/>.
-/// </summary>
-public record ExampleNotifyEventDataV1(
-    string Message)
-    : INotifyDataDto;
+public interface ISenderClientNameTag
+{
+    /// <summary>
+    /// A sender client name used to route the service bus message to the correct Process Manager trigger.
+    /// </summary>
+    string SenderClientName { get; }
+}

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Text.Json;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
@@ -65,6 +64,10 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 = Fixture.ExampleOrchestrationsAppManager.ProcessManagerStartTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
                 = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
+                = Fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
+                = Fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
         });
 
         // Process Manager HTTP client
@@ -141,9 +144,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         // Step 3: Send ExampleNotifyEvent event
         const string expectedEventDataMessage = "This is a notification data example";
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
+            new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent!.Id.ToString(),
-                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
                 Data: new ExampleNotifyEventDataV1(expectedEventDataMessage)),
             CancellationToken.None);
 
@@ -210,18 +212,16 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         // Step 3a: Send first ExampleNotifyEvent event
         var expectedEventDataMessage = "The expected data message";
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
+            new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent!.Id.ToString(),
-                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
                 Data: new ExampleNotifyEventDataV1(expectedEventDataMessage)),
             CancellationToken.None);
 
         // Step 3b: Send another ExampleNotifyEvent event
         var ignoredEventDataMessage = "An incorrect data message";
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent<ExampleNotifyEventDataV1>(
+            new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent.Id.ToString(),
-                EventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
                 Data: new ExampleNotifyEventDataV1(ignoredEventDataMessage)),
             CancellationToken.None);
 

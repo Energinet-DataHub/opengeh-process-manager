@@ -12,9 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-public static class RequestCalculatedWholesaleServicesNotifyEventsV1
-{
-    public const string EnqueueActorMessagesCompleted = "EnqueueActorMessagesCompleted";
-}
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+
+/// <summary>
+/// The data which should be sent with a <see cref="CalculationEnqueueActorMessagesCompletedNotifyEventV1"/>.
+/// </summary>
+public record CalculationEnqueueActorMessagesCompletedNotifyEventDataV1(
+    bool Success)
+    : INotifyDataDto;

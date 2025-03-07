@@ -1,5 +1,12 @@
 # ProcessManager.Client Release Notes
 
+## Version 2.1.0
+
+- Refactored `NotifyOrchestrationInstanceEvent` to be `abstract` and thereby require each event to be its own record (similar to what we do for commands).
+- Implemented `ISenderClientNameTag` which commands and events implements to be able to decide which sender client, and thereby topic, to use.
+- Refactored dependency injection extensions `AddProcessManagerMessageClient` and options `ProcessManagerServiceBusClientOptions` for registering Process Manager Message clients,
+so its possible to route commands and events to a BRS-021 Forward Metered Data topic.
+
 ## Version 2.0.0
 
 - This version is a breaking change for use of `IProcessManagerMessageClient`.

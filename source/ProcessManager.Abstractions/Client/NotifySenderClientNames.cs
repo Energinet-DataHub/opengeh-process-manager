@@ -12,13 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Client;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
+public static class NotifySenderClientNames
+{
+    /// <summary>
+    /// Service Bus sender for sending notify events (service bus messages) to the Process Manager.
+    /// </summary>
+    public const string ProcessManagerNotifySender = "ProcessManagerNotifySender";
 
-/// <summary>
-/// The data which should be sent with a <see cref="NotifyOrchestrationInstanceExampleNotifyEventV1"/>.
-/// </summary>
-public record ExampleNotifyEventDataV1(
-    string Message)
-    : INotifyDataDto;
+    /// <summary>
+    /// Service Bus sender for sending BRS-021 Forward Metered Data notify events (service bus messages) to the Process Manager.
+    /// </summary>
+    public const string Brs021ForwardMeteredDataNotifySender = "Brs021ForwardMeteredDataNotifySender";
+}

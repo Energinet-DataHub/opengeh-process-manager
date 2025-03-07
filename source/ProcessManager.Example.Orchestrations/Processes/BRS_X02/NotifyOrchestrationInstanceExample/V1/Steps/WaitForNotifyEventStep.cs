@@ -43,9 +43,9 @@ internal class WaitForNotifyEventStep(
         ExampleNotifyEventDataV1? notifyData = null;
         try
         {
-            // Wait for the NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent notify event.
+            // Wait for the notify event.
             notifyData = await Context.WaitForExternalEvent<ExampleNotifyEventDataV1>(
-                eventName: NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent,
+                eventName: NotifyOrchestrationInstanceExampleNotifyEventV1.OrchestrationInstanceEventName,
                 timeout: _exampleNotifyEventTimeout);
         }
         catch (TaskCanceledException)

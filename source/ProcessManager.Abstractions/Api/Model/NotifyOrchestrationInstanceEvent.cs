@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Client;
+
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
@@ -19,9 +21,17 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 /// </summary>
 /// <param name="OrchestrationInstanceId">The orchestration instance id to notify</param>
 /// <param name="EventName">The notify event name (an example could be "EnqueueMessagesCompleted").</param>
-public record NotifyOrchestrationInstanceEvent(
+public abstract record NotifyOrchestrationInstanceEvent(
     string OrchestrationInstanceId,
-    string EventName) : IOrchestrationInstanceRequest;
+    string EventName) :
+        IOrchestrationInstanceRequest,
+        ISenderClientNameTag
+{
+    /// <summary>
+    /// A sender client name used to route the command to the correct Process Manager trigger.
+    /// </summary>
+    public virtual string SenderClientName => NotifySenderClientNames.ProcessManagerNotifySender;
+}
 
 /// <summary>
 /// Event (with data) for notifying to an orchestration instance.
@@ -30,9 +40,9 @@ public record NotifyOrchestrationInstanceEvent(
 /// <param name="EventName">The notify event name (an example could be "EnqueueActorMessagesCompleted").</param>
 /// <param name="Data">Data to send with the notify event (which should be serializable).</param>
 /// <typeparam name="TNotifyData">Must be a serializable type.</typeparam>
-public record NotifyOrchestrationInstanceEvent<TNotifyData>(
+public abstract record NotifyOrchestrationInstanceEvent<TNotifyData>(
     string OrchestrationInstanceId,
     string EventName,
     TNotifyData Data)
         : NotifyOrchestrationInstanceEvent(OrchestrationInstanceId, EventName)
-        where TNotifyData : INotifyDataDto;
+            where TNotifyData : INotifyDataDto;

@@ -68,6 +68,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 = _fixture.OrchestrationsAppManager.ProcessManagerStartTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
                 = _fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
+                = _fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
+                = _fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
@@ -141,9 +145,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 3: Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent(
-                OrchestrationInstanceId: orchestrationInstance!.Id.ToString(),
-                EventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
+            new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
+                OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
             CancellationToken.None);
 
         // Step 4: Query until terminated
@@ -221,9 +224,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 3: Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new NotifyOrchestrationInstanceEvent(
-                OrchestrationInstanceId: orchestrationInstance!.Id.ToString(),
-                EventName: RequestCalculatedEnergyTimeSeriesNotifyEventsV1.EnqueueActorMessagesCompleted),
+            new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
+                OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
             CancellationToken.None);
 
         // Step 4: Query until terminated

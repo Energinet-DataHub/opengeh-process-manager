@@ -102,6 +102,12 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     [NotNull]
     public TopicResource? ProcessManagerStartTopic { get; private set; }
 
+    [NotNull]
+    public TopicResource? Brs021ForwardMeteredDataStartTopic { get; private set; }
+
+    [NotNull]
+    public TopicResource? Brs021ForwardMeteredDataNotifyTopic { get; private set; }
+
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
     private AzuriteManager AzuriteManager { get; }
@@ -124,9 +130,13 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        // Start topic
+        // Orchestrations service bus topics
         var startTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         ProcessManagerStartTopic = startTopicResources.StartTopic;
+        var brs21TopicResource = await Brs21TopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        Brs021ForwardMeteredDataStartTopic = brs21TopicResource.Brs21StartTopic;
+        Brs021ForwardMeteredDataNotifyTopic = brs21TopicResource.Brs21NotifyTopic;
+
         // EDI topic
         ediTopicResources ??= await EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
@@ -134,7 +144,8 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Example.Orchestrations",
             startTopicResources,
-            ediTopicResources);
+            ediTopicResources,
+            brs21TopicResource);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -204,7 +215,8 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
         ProcessManagerTopicResources startTopicResources,
-        EdiTopicResources ediTopicResources)
+        EdiTopicResources ediTopicResources,
+        Brs21TopicResources brs21TopicResources)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -265,14 +277,15 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
             AuthenticationOptionsForTests.Issuer);
 
-        // => Process Manager Start topic
+        // => Service Bus
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
+
+        // => Process Manager Start topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.TopicName)}",
             startTopicResources.StartTopic.Name);
-
         // => Process Manager Start topic -> subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX02SubscriptionName)}",
@@ -280,6 +293,20 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX03SubscriptionName)}",
             startTopicResources.BrsX03Subscription.SubscriptionName);
+
+        // => BRS-021 Forward Metered Data topics
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",
+            brs21TopicResources.Brs21StartTopic.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}",
+            brs21TopicResources.Brs21NotifyTopic.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}",
+            brs21TopicResources.StartSubscription.SubscriptionName);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}",
+            brs21TopicResources.NotifySubscription.SubscriptionName);
 
         // => Edi topic
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -387,6 +414,59 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         {
             return new EdiTopicResources(
                 EdiTopic: topic);
+        }
+    }
+
+    /// <summary>
+    /// Brs21 topic resources.
+    /// </summary>
+    public record Brs21TopicResources(
+        TopicResource Brs21StartTopic,
+        SubscriptionProperties StartSubscription,
+        TopicResource Brs21NotifyTopic,
+        SubscriptionProperties NotifySubscription)
+    {
+        private const string StartSubscriptionName = "brs-021-start-subscription";
+        private const string NotifySubscriptionName = "brs-021-notify-subscription";
+
+        internal static async Task<Brs21TopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        {
+            var brs21StartTopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-start-topic");
+            AddSubscriptionsToTopicBuilder(brs21StartTopicBuilder, StartSubscriptionName);
+            var brs21StartTopic = await brs21StartTopicBuilder.CreateAsync();
+
+            var brs21NotifyTopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-notify-topic");
+            AddSubscriptionsToTopicBuilder(brs21NotifyTopicBuilder, NotifySubscriptionName);
+            var brs21NotifyTopic = await brs21NotifyTopicBuilder.CreateAsync();
+
+            return new Brs21TopicResources(
+                Brs21StartTopic: brs21StartTopic,
+                StartSubscription: GetSubscription(brs21StartTopic, StartSubscriptionName),
+                Brs21NotifyTopic: brs21NotifyTopic,
+                NotifySubscription: GetSubscription(brs21NotifyTopic, NotifySubscriptionName));
+        }
+
+        /// <summary>
+        /// Add Brs21 subscriptions to the Brs21 topic.
+        /// </summary>
+        internal static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder, string subscriptionName)
+        {
+            builder
+                .AddSubscription(subscriptionName);
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Get the <see cref="ExampleOrchestrationsAppManager.Brs21TopicResources"/> used by the Orchestrations app.
+        /// <remarks>
+        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
+        /// </remarks>
+        /// </summary>
+        internal static SubscriptionProperties GetSubscription(TopicResource topic, string subscriptionName)
+        {
+            return topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(subscriptionName));
         }
     }
 }

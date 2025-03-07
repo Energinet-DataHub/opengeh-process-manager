@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Client;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
@@ -46,4 +47,6 @@ public record ForwardMeteredDataCommandV1
                 inputParameter.MeteringPointId)
     {
     }
+
+    public override string SenderClientName => StartSenderClientNames.Brs021ForwardMeteredDataStartSender;
 }

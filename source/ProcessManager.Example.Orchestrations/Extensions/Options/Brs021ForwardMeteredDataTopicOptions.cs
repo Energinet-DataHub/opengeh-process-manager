@@ -13,37 +13,42 @@
 // limitations under the License.
 
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Configuration;
 
-namespace Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
 
 /// <summary>
-/// Options for configuration of Process Manager Service Bus clients using the Process Manager.
+/// Contains options required for the example orchestration app to connect to the
+/// Brs021ForwardMeteredData service bus topic.
 /// </summary>
-public class ProcessManagerServiceBusClientOptions
+public class Brs021ForwardMeteredDataTopicOptions
 {
-    public const string SectionName = "ProcessManagerServiceBusClient";
+    /// <summary>
+    /// Name of the section in the <see cref="IConfiguration"/> / appsettings.json file
+    /// </summary>
+    public const string SectionName = "Brs021ForwardMeteredDataTopic";
 
     /// <summary>
-    /// Name of the topic which the Process Manager receives start commands (service bus messages) on.
+    /// Name of the ProcessManager Service Bus topic
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string StartTopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the topic which the Process Manager receives notify events (service bus messages) on.
+    /// Name of the ProcessManager Service Bus topic
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string NotifyTopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the topic which the Process Manager receives BRS-021 Forward Metered Data start commands (service bus messages) on.
+    /// Name of the subscription used to start BRS021 processes
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string Brs021ForwardMeteredDataStartTopicName { get; set; } = string.Empty;
+    public string StartSubscriptionName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the topic which the Process Manager receives BRS-021 Forward Metered Data notify events (service bus messages) on.
+    /// Name of the subscription used to notify BRS021 processes
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string Brs021ForwardMeteredDataNotifyTopicName { get; set; } = string.Empty;
+    public string NotifySubscriptionName { get; set; } = string.Empty;
 }

@@ -114,6 +114,8 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         await ExampleConsumerAppManager.StartAsync(
             ExampleOrchestrationsAppManager.ProcessManagerStartTopic,
             ProcessManagerAppManager.ProcessManagerNotifyTopic,
+            ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic,
+            ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic,
             ExampleConsumerAppManager.EdiTopicResources.CreateFromTopic(EdiTopic),
             processManagerApiUrl: ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri,
             orchestrationsApiUrl: ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri);

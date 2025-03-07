@@ -14,6 +14,7 @@
 
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.ProcessManager.Abstractions.Client;
 using Energinet.DataHub.ProcessManager.Client.Authorization;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Microsoft.AspNetCore.Http;
@@ -92,7 +93,7 @@ public static class ClientExtensions
                             .GetRequiredService<ServiceBusClient>()
                             .CreateSender(serviceBusOptions.StartTopicName);
                     })
-                    .WithName(ServiceBusSenderNames.ProcessManagerStartSender);
+                    .WithName(StartSenderClientNames.ProcessManagerStartSender);
 
                 builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
                     (_, _, provider) =>
@@ -102,7 +103,27 @@ public static class ClientExtensions
                             .GetRequiredService<ServiceBusClient>()
                             .CreateSender(serviceBusOptions.NotifyTopicName);
                     })
-                    .WithName(ServiceBusSenderNames.ProcessManagerNotifySender);
+                    .WithName(NotifySenderClientNames.ProcessManagerNotifySender);
+
+                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
+                    (_, _, provider) =>
+                    {
+                        var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
+                        return provider
+                            .GetRequiredService<ServiceBusClient>()
+                            .CreateSender(serviceBusOptions.Brs021ForwardMeteredDataStartTopicName);
+                    })
+                    .WithName(StartSenderClientNames.Brs021ForwardMeteredDataStartSender);
+
+                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
+                    (_, _, provider) =>
+                    {
+                        var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
+                        return provider
+                            .GetRequiredService<ServiceBusClient>()
+                            .CreateSender(serviceBusOptions.Brs021ForwardMeteredDataNotifyTopicName);
+                    })
+                    .WithName(NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender);
             });
 
         services.AddScoped<IProcessManagerMessageClient, ProcessManagerMessageClient>();

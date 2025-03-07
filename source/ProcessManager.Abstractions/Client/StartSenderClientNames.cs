@@ -12,14 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Messaging.ServiceBus;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Client;
 
-namespace Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-
-/// <summary>
-/// Constants used for naming <see cref="ServiceBusSender"/> instances.
-/// </summary>
-public static class ServiceBusSenderNames
+public static class StartSenderClientNames
 {
     /// <summary>
     /// Service Bus sender for sending start commands (service bus messages) to the Process Manager.
@@ -27,7 +22,7 @@ public static class ServiceBusSenderNames
     public const string ProcessManagerStartSender = "ProcessManagerStartSender";
 
     /// <summary>
-    /// Service Bus sender for sending notify events (service bus messages) to the Process Manager.
+    /// Service Bus sender for sending BRS-021 Forward Metered Data start commands (service bus messages) to the Process Manager.
     /// </summary>
-    public const string ProcessManagerNotifySender = "ProcessManagerNotifySender";
+    public const string Brs021ForwardMeteredDataStartSender = "Brs021ForwardMeteredDataStartSender";
 }

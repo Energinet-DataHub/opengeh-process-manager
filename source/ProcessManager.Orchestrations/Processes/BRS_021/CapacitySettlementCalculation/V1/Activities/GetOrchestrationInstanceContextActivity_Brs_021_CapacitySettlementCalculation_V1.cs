@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1.Options;
@@ -25,29 +24,20 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Capa
 /// Get the <see cref="OrchestrationInstanceContext"/> for the orchestration instance.
 /// </summary>
 internal class GetOrchestrationInstanceContextActivity_Brs_021_CapacitySettlementCalculation_V1(
-    IOrchestrationInstanceProgressRepository repository,
     IOptions<OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1> orchestrationOptions)
 {
-    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1 _orchestrationOptions = orchestrationOptions.Value;
 
     [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_021_CapacitySettlementCalculation_V1))]
-    public async Task<OrchestrationInstanceContext> Run(
+    public Task<OrchestrationInstanceContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await _repository
-            .GetAsync(input.InstanceId)
-            .ConfigureAwait(false);
-
-        return new OrchestrationInstanceContext(
+        // Orchestration options are added to storage in order have them available later and in the orchestration history.
+        // The idea is to include the options early in order 1) to have them available and 2) to use the correct values.
+        return Task.FromResult(new OrchestrationInstanceContext(
             _orchestrationOptions,
-            input.InstanceId,
-            input.CalculationYear,
-            input.CalculationMonth);
+            input.InstanceId));
     }
 
-    public record ActivityInput(
-        OrchestrationInstanceId InstanceId,
-        int CalculationYear,
-        int CalculationMonth);
+    public record ActivityInput(OrchestrationInstanceId InstanceId);
 }

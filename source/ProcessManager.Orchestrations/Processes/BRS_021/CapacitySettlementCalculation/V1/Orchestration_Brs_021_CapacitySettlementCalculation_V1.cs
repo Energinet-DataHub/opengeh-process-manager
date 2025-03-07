@@ -47,11 +47,9 @@ internal class Orchestration_Brs_021_CapacitySettlementCalculation_V1
 
     [Function(nameof(Orchestration_Brs_021_CapacitySettlementCalculation_V1))]
     public async Task<string> Run(
-        [OrchestrationTrigger] TaskOrchestrationContext context,
-        int year,
-        int month)
+        [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var orchestrationInstanceContext = await InitializeOrchestrationAsync(context, year, month);
+        var orchestrationInstanceContext = await InitializeOrchestrationAsync(context);
 
         await new CalculationStep(
                 context,
@@ -71,10 +69,7 @@ internal class Orchestration_Brs_021_CapacitySettlementCalculation_V1
             success: true);
     }
 
-    private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(
-        TaskOrchestrationContext context,
-        int calculationYear,
-        int calculationMonth)
+    private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
@@ -87,9 +82,7 @@ internal class Orchestration_Brs_021_CapacitySettlementCalculation_V1
         var instanceContext = await context.CallActivityAsync<OrchestrationInstanceContext>(
             nameof(GetOrchestrationInstanceContextActivity_Brs_021_CapacitySettlementCalculation_V1),
             new GetOrchestrationInstanceContextActivity_Brs_021_CapacitySettlementCalculation_V1.ActivityInput(
-                instanceId,
-                calculationYear,
-                calculationMonth),
+                instanceId),
             _defaultTaskOptions);
 
         return instanceContext;

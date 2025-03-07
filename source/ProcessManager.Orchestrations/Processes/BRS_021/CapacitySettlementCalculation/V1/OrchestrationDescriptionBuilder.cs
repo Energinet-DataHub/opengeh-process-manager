@@ -28,14 +28,8 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
             uniqueName: new OrchestrationDescriptionUniqueName(
                 orchestrationDescriptionUniqueName.Name,
                 orchestrationDescriptionUniqueName.Version),
-            canBeScheduled: true,
-            functionName: nameof(Orchestration_Brs_021_CapacitySettlementCalculation_V1))
-        {
-            RecurringCronExpression = string.Empty,
-        };
-
-        // Runs at 12:00 and 17:00 every day
-        description.RecurringCronExpression = "0 12,17 * * *";
+            canBeScheduled: false,
+            functionName: nameof(Orchestration_Brs_021_CapacitySettlementCalculation_V1));
 
         description.AppendStepDescription(CalculationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);

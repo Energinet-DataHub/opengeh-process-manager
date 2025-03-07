@@ -23,10 +23,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Capa
 /// </summary>
 /// <param name="OrchestrationOptions">Options for configuration of the orchestration execution.</param>
 /// <param name="OrchestrationInstanceId">The id of the orchestration instance.</param>
-/// <param name="CalculationYear">The start year of the calculation.</param>
-/// <param name="CalculationMonth">The start month of the calculation.></param>
 public record OrchestrationInstanceContext(
     OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1 OrchestrationOptions,
-    OrchestrationInstanceId OrchestrationInstanceId,
-    int CalculationYear,
-    int CalculationMonth);
+    OrchestrationInstanceId OrchestrationInstanceId);

@@ -14,7 +14,9 @@
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,25 +24,32 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1.Activities.CalculationStep;
 
 internal class CalculationStepStartJobActivity_Brs_021_CapacitySettlementCalculation_V1(
+    IOrchestrationInstanceProgressRepository repository,
     [FromKeyedServices(DatabricksWorkspaceNames.Measurements)] IDatabricksJobsClient client)
 {
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
+    private readonly IDatabricksJobsClient _client = client;
+
     [Function(nameof(CalculationStepStartJobActivity_Brs_021_CapacitySettlementCalculation_V1))]
     public async Task<JobRunId> Run(
         [ActivityTrigger] ActivityInput input)
     {
+        var orchestrationInstance = await _repository
+            .GetAsync(input.OrchestrationInstanceId)
+            .ConfigureAwait(false);
+
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<CalculationInputV1>();
+
         var jobParameters = new List<string>
         {
-            $"--orchestration-instance-id={input.InstanceId.Value}",
-            $"--calculation-year={input.CalculationYear}",
-            $"--calculation-month={input.CalculationMonth}",
+            $"--orchestration-instance-id={input.OrchestrationInstanceId.Value}",
+            $"--calculation-year={orchestrationInstanceInput.Year}",
+            $"--calculation-month={orchestrationInstanceInput.Month}",
         };
 
-        // TODO AJW. If the orch. instance retries this activity, the job might fail because there is already a job running.
-        // Only one job can run at a time.
-
-        return await client.StartJobAsync("CapacitySettlement", jobParameters).ConfigureAwait(false);
+        return await _client.StartJobAsync("CapacitySettlement", jobParameters).ConfigureAwait(false);
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId InstanceId, int CalculationYear, int CalculationMonth);
+        OrchestrationInstanceId OrchestrationInstanceId);
 }

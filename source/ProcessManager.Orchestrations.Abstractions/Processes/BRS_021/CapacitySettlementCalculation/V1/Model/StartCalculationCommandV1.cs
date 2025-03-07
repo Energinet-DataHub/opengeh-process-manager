@@ -18,21 +18,24 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model;
 
 /// <summary>
-/// Command for starting a BRS-021 capacity settlement calculation.
+/// Command for starting a BRS-021 Capacity Settlement calculation.
 /// Must be JSON serializable.
 /// </summary>
-public sealed record StartCapacitySettlementCalculationCommandV1
-    : StartOrchestrationInstanceCommand<UserIdentityDto>
+public sealed record StartCalculationCommandV1
+    : StartOrchestrationInstanceCommand<UserIdentityDto, CalculationInputV1>
 {
     /// <summary>
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    public StartCapacitySettlementCalculationCommandV1(
-        UserIdentityDto operatingIdentity)
+    /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
+    public StartCalculationCommandV1(
+        UserIdentityDto operatingIdentity,
+        CalculationInputV1 inputParameter)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: Brs_021_CapacitySettlementCalculation.V1)
+                orchestrationDescriptionUniqueName: Brs_021_CapacitySettlementCalculation.V1,
+                inputParameter)
     {
     }
 }

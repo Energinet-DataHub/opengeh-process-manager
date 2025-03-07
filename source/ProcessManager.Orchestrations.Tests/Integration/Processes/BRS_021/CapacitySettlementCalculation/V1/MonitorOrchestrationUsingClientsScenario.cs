@@ -97,8 +97,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 1: Start new calculation orchestration instance
         var orchestrationInstanceId = await processManagerClient
             .StartNewOrchestrationInstanceAsync(
-                new StartCapacitySettlementCalculationCommandV1(
-                    Fixture.DefaultUserIdentity),
+                new StartCalculationCommandV1(
+                    Fixture.DefaultUserIdentity,
+                    new CalculationInputV1(2020, 1)),
                 CancellationToken.None);
 
         // Step 2: Query until terminated with succeeded

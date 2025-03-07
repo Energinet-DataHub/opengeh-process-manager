@@ -22,7 +22,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.Logging;
 using NodaTime;
 using Point = Energinet.DataHub.Measurements.Contracts.Point;
 
@@ -41,6 +40,8 @@ public class MeasurementsMeteredDataClient(
     {
         var data = new PersistSubmittedTransaction
         {
+            // TODO: Missing version field?
+            Version = "1",
             OrchestrationInstanceId = meteredDataForMeteringPoint.OrchestrationId,
             OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
             MeteringPointId = meteredDataForMeteringPoint.MeteringPointId,

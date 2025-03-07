@@ -27,6 +27,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -38,6 +39,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
+using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
@@ -140,7 +142,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact(Skip = "This test is not yet implemented")]
+    [Fact]
     public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
     {
         // Arrange
@@ -192,6 +194,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
         var notify = new Brs021ForwardMeteredDataNotifyV1()
         {
+            Version = "1",
             OrchestrationInstanceId = instance.Id.ToString(),
         };
 
@@ -201,36 +204,31 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await processManagerEventHubProducerClient.SendAsync([data], CancellationToken.None);
 
         // wait for notification from edi.
-        // TODO: Refactor this to use _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When()
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
             processManagerMessageClient: processManagerMessageClient,
             orchestrationInstanceId: instance.Id,
             messageId: startCommand.ActorMessageId);
 
-        // TODO: Fetch the terminated instance and assert that it has been terminated successfully
-        await Task.Delay(TimeSpan.FromSeconds(5));
-
-        var simulateTheTerminatedInstance = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
+        var searchResult = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
             new SearchOrchestrationInstancesByNameQuery(
                 _fixture.DefaultUserIdentity,
                 name: Brs_021_ForwardedMeteredData.Name,
                 version: null,
-                lifecycleStates: null,
-                terminationState: null,
+                lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
+                terminationState: OrchestrationInstanceTerminationState.Succeeded,
                 startedAtOrLater: orchestrationCreatedAfter,
                 terminatedAtOrEarlier: null,
                 scheduledAtOrLater: null),
             CancellationToken.None);
 
-        var instanceAfterEnqueue = simulateTheTerminatedInstance.Should().ContainSingle().Subject;
+        var instanceAfterEnqueue = searchResult.Should().ContainSingle().Subject;
 
         var stepsWhichShouldBeSuccessful = new[]
         {
             OrchestrationDescriptionBuilderV1.ValidationStep,
             OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
             OrchestrationDescriptionBuilderV1.FindReceiverStep,
-            // TODO: re-enable when the Process Manager Client can send notifications to the Brs021 topic
-            //OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
+            OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
         };
 
         var successfulSteps = instanceAfterEnqueue.Steps
@@ -239,26 +237,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
 
-        var searchResult = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
-             new SearchOrchestrationInstancesByNameQuery(
-                 _fixture.DefaultUserIdentity,
-                 name: Brs_021_ForwardedMeteredData.Name,
-                 version: null,
-                 // TODO: switch to lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated] when the Process Manager Client can send notifications to the Brs021 topic
-                 lifecycleStates: [OrchestrationInstanceLifecycleState.Running],
-                 // TODO: switch to terminationState: OrchestrationInstanceTerminationState.Succeeded when the Process Manager Client can send notifications to the Brs021 topic
-                 terminationState: null,
-                 startedAtOrLater: orchestrationCreatedAfter,
-                 terminatedAtOrEarlier: null,
-                 scheduledAtOrLater: null),
-             CancellationToken.None);
-
         searchResult.Should().NotBeNull().And.ContainSingle();
         searchResult.Single().Steps.Should().HaveCount(4);
-        // TODO: re-enable when the Process Manager Client can send notifications to the Brs021 topic
-        // searchResult.Single().Steps.Should().AllSatisfy(
-        //  step => step.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded));
-        // TODO: Assert that the orchestration instance has been terminated successfully
+        searchResult.Single().Steps.Should().AllSatisfy(
+         step => step.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded));
     }
 
     private static ForwardMeteredDataInputV1 CreateMeteredDataForMeteringPointMessageInputV1(
@@ -281,29 +263,29 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             "5790002606892",
             null,
             [
-                new("1", "112.000", "A04"),
-                new("2", "112.000", "A04"),
-                new("3", "112.000", "A04"),
-                new("4", "112.000", "A04"),
-                new("5", "112.000", "A04"),
-                new("6", "112.000", "A04"),
-                new("7", "112.000", "A04"),
-                new("8", "112.000", "A04"),
-                new("9", "112.000", "A04"),
-                new("10", "112.000", "A04"),
-                new("12", "112.000", "A04"),
-                new("12", "112.000", "A04"),
-                new("13", "112.000", "A04"),
-                new("14", "112.000", "A04"),
-                new("15", "112.000", "A04"),
-                new("16", "112.000", "A04"),
-                new("18", "112.000", "A04"),
-                new("19", "112.000", "A04"),
-                new("20", "112.000", "A04"),
-                new("21", "112.000", "A04"),
-                new("22", "112.000", "A04"),
-                new("23", "112.000", "A04"),
-                new("24", "112.000", "A04"),
+                new("1", "112.000", Quality.AsProvided.Name),
+                new("2", "112.000", Quality.AsProvided.Name),
+                new("3", "112.000", Quality.AsProvided.Name),
+                new("4", "112.000", Quality.AsProvided.Name),
+                new("5", "112.000", Quality.AsProvided.Name),
+                new("6", "112.000", Quality.AsProvided.Name),
+                new("7", "112.000", Quality.AsProvided.Name),
+                new("8", "112.000", Quality.AsProvided.Name),
+                new("9", "112.000", Quality.AsProvided.Name),
+                new("10", "112.000", Quality.AsProvided.Name),
+                new("12", "112.000", Quality.AsProvided.Name),
+                new("12", "112.000", Quality.AsProvided.Name),
+                new("13", "112.000", Quality.AsProvided.Name),
+                new("14", "112.000", Quality.AsProvided.Name),
+                new("15", "112.000", Quality.AsProvided.Name),
+                new("16", "112.000", Quality.AsProvided.Name),
+                new("18", "112.000", Quality.AsProvided.Name),
+                new("19", "112.000", Quality.AsProvided.Name),
+                new("20", "112.000", Quality.AsProvided.Name),
+                new("21", "112.000", Quality.AsProvided.Name),
+                new("22", "112.000", Quality.AsProvided.Name),
+                new("23", "112.000", Quality.AsProvided.Name),
+                new("24", "112.000", Quality.AsProvided.Name),
             ]);
         return input;
     }

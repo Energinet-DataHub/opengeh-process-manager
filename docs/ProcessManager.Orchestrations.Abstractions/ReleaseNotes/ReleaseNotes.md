@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.6.0
+
+- Implemented specific events for notify. Previously we used one generic event implementation and used magic strings as input for the event name.
+
 ## Version 1.5.0
 
 - Rename `StartForwardMeteredDataCommandV1` to `ForwardMeteredDataCommandV1`.

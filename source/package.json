@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "azure-functions-core-tools": "^4.0.5455",
-    "azurite": "^3.33.0"
-  }
-}

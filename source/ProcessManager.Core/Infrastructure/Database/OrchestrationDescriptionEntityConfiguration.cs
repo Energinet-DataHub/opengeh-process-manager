@@ -58,6 +58,8 @@ internal class OrchestrationDescriptionEntityConfiguration : IEntityTypeConfigur
         builder.Property(o => o.RowVersion)
             .IsRowVersion();
 
+        builder.Property(o => o.IsUnderDevelopment);
+
         builder.OwnsMany<StepDescription>(
             OrchestrationDescription.StepsPrivatePropertyName,
             b =>

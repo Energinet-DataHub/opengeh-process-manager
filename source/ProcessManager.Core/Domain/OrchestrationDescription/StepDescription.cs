@@ -50,6 +50,10 @@ public class StepDescription
 
     public StepDescriptionId Id { get; }
 
+    /// <summary>
+    /// The step description is only used for developers to understand the purpose of the step.
+    /// It is saved in the database, but not used in the UI.
+    /// </summary>
     public string Description { get; }
 
     /// <summary>
@@ -59,7 +63,7 @@ public class StepDescription
     public int Sequence { get; }
 
     /// <summary>
-    /// Specifies if the step supports beeing skipped.
+    /// Specifies if the step supports being skipped.
     /// If <see langword="false"/> then the step cannot be transitioned
     /// to the Skipped state.
     /// </summary>

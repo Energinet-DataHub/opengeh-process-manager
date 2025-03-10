@@ -31,6 +31,7 @@
     <EmbeddedResource Include="Scripts\202502241547 Set CustomState to empty on StepInstance.sql" />
     <EmbeddedResource Include="Scripts\202502261006 Add IsDurableFunction to OrchestrationDescription.sql" />
     <EmbeddedResource Include="Scripts\202502270811 Remove IsDurableFunction from OrchestrationDescription.sql" />
+    <EmbeddedResource Include="Scripts\202503061333 Add IsUnderDevelopment to OrchestrationDescription.sql" />
   </ItemGroup>
 
 </Project>

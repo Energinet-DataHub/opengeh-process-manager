@@ -13,9 +13,9 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1.Options;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1.Model;
 
 /// <summary>
 /// The purpose of this record is to give the orchestration key information about the execution.
@@ -24,5 +24,5 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 /// <param name="OrchestrationOptions">Options for configuration of the orchestration execution.</param>
 /// <param name="OrchestrationInstanceId">The id of the orchestration instance</param>
 public record OrchestrationInstanceContext(
-    OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1 OrchestrationOptions,
+    OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1 OrchestrationOptions,
     OrchestrationInstanceId OrchestrationInstanceId);

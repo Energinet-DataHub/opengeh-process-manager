@@ -15,27 +15,24 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.NetConsumptionCalculation.V1.Model;
 
 /// <summary>
-/// Command for starting a BRS-021 capacity settlement calculation.
+/// Command for starting a BRS-021 net consumption (group six) calculation.
 /// Must be JSON serializable.
 /// </summary>
-public sealed record StartCalculationCommandV1
-    : StartOrchestrationInstanceCommand<UserIdentityDto, CalculationInputV1>
+public sealed record StartNetConsumptionCalculationCommandV1
+    : StartOrchestrationInstanceCommand<UserIdentityDto>
 {
     /// <summary>
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
-    public StartCalculationCommandV1(
-        UserIdentityDto operatingIdentity,
-        CalculationInputV1 inputParameter)
+    public StartNetConsumptionCalculationCommandV1(
+        UserIdentityDto operatingIdentity)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: Brs_021_CapacitySettlementCalculation.V1,
-                inputParameter)
+                orchestrationDescriptionUniqueName: Brs_021_NetConsumptionCalculation.V1)
     {
     }
 }

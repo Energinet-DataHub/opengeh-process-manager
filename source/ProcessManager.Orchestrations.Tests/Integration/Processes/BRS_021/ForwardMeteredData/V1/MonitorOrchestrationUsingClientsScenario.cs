@@ -209,19 +209,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             orchestrationInstanceId: instance.Id,
             messageId: startCommand.ActorMessageId);
 
-        var searchResult = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
-            new SearchOrchestrationInstancesByNameQuery(
-                _fixture.DefaultUserIdentity,
-                name: Brs_021_ForwardedMeteredData.Name,
-                version: null,
-                lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
-                terminationState: OrchestrationInstanceTerminationState.Succeeded,
-                startedAtOrLater: orchestrationCreatedAfter,
-                terminatedAtOrEarlier: null,
-                scheduledAtOrLater: null),
-            CancellationToken.None);
+        // Query until terminated
+        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
+            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
+                idempotencyKey: startCommand.IdempotencyKey);
 
-        var instanceAfterEnqueue = searchResult.Should().ContainSingle().Subject;
+        orchestrationTerminatedWithSucceeded.Should().BeTrue(
+            "because the orchestration instance should be terminated within given wait time");
 
         var stepsWhichShouldBeSuccessful = new[]
         {
@@ -231,15 +225,15 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
         };
 
-        var successfulSteps = instanceAfterEnqueue.Steps
+        var successfulSteps = terminatedOrchestrationInstance!.Steps
             .Where(step => step.Lifecycle.TerminationState is OrchestrationStepTerminationState.Succeeded)
             .Select(step => step.Sequence);
 
         successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
 
-        searchResult.Should().NotBeNull().And.ContainSingle();
-        searchResult.Single().Steps.Should().HaveCount(4);
-        searchResult.Single().Steps.Should().AllSatisfy(
+        terminatedOrchestrationInstance.Should().NotBeNull();
+        terminatedOrchestrationInstance.Steps.Should().HaveCount(4);
+        terminatedOrchestrationInstance.Steps.Should().AllSatisfy(
          step => step.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded));
     }
 

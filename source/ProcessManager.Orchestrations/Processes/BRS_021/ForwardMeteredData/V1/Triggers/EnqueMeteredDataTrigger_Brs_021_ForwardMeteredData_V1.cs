@@ -13,8 +13,8 @@
 // limitations under the License.
 
 using Azure.Messaging.EventHubs;
-using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
 
@@ -36,6 +36,13 @@ public class EnqueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
             Connection = ProcessManagerEventHubOptions.SectionName)]
         EventData message)
     {
+        var brs021ForwardMeteredDataNotifyVersion = Brs021ForwardMeteredDataNotifyVersion.Parser.ParseFrom(message.EventBody.ToArray());
+
+        if (brs021ForwardMeteredDataNotifyVersion is not { Version: "1" })
+        {
+            throw new InvalidOperationException("Failed to deserialize message");
+        }
+
         var notify = Brs021ForwardMeteredDataNotifyV1.Parser.ParseFrom(message.EventBody.ToArray());
         if (notify == null)
         {

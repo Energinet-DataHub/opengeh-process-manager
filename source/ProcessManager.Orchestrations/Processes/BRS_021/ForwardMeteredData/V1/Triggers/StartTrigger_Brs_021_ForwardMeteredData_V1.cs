@@ -28,6 +28,7 @@ public class StartTrigger_Brs_021_ForwardMeteredData_V1(
     /// <summary>
     /// Start a BRS-021 ForwardMeteredData.
     /// </summary>
+    [Function(nameof(StartTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ServiceBusTrigger(
             $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}%",

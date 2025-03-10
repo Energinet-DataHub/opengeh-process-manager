@@ -66,6 +66,7 @@ public class MeasurementsMeteredDataClientTests
 
         var expectedData = new PersistSubmittedTransaction
         {
+            Version = "1",
             OrchestrationInstanceId = meteredData.OrchestrationId,
             OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
             MeteringPointId = meteredData.MeteringPointId,

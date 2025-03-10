@@ -32,7 +32,9 @@ public static class MeasurementsMeteredDataClientExtensions
     /// <summary>
     /// Register Measurements metered data client.
     /// </summary>
-    public static IServiceCollection AddMeasurementsMeteredDataClient(this IServiceCollection services, TokenCredential azureCredential)
+    public static IServiceCollection AddMeasurementsMeteredDataClient(
+        this IServiceCollection services,
+        TokenCredential azureCredential)
     {
         services
             .AddOptions<MeasurementsMeteredDataClientOptions>()
@@ -46,7 +48,7 @@ public static class MeasurementsMeteredDataClientExtensions
                         (_, _, provider) =>
                         {
                             var options = provider.GetRequiredService<IOptions<MeasurementsMeteredDataClientOptions>>().Value;
-                            return new EventHubProducerClient($"{options.NamespaceName}.servicebus.windows.net", options.EventHubName, azureCredential);
+                            return new EventHubProducerClient($"{options.FullyQualifiedNamespace}", options.EventHubName, azureCredential);
                         })
                     .WithName(EventHubProducerClientNames.MeasurementsEventHub);
             });

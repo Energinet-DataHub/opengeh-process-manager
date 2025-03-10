@@ -65,7 +65,7 @@ internal class EnqueueActorMessagesStep(
         // If the timeout is reached, an exception will be thrown, and StepExecutor will fail the step and orchestration instance.
         // If we later need a more complex handling of the timeout, we can try/catch the TaskCanceledException here and handle it manually.
         await Context.WaitForExternalEvent<int?>(
-            eventName: RequestCalculatedWholesaleServicesNotifyEventsV1.EnqueueActorMessagesCompleted,
+            eventName: RequestCalculatedWholesaleServicesNotifyEventV1.OrchestrationInstanceEventName,
             timeout: _actorMessagesEnqueuedTimeout);
 
         return OrchestrationStepTerminationState.Succeeded;

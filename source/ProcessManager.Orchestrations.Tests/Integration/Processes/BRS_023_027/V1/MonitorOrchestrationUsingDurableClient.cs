@@ -75,6 +75,10 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
                 = Fixture.OrchestrationsAppManager.ProcessManagerStartTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
                 = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
+                = Fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
+                = Fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
@@ -165,7 +169,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToRunningActivity_V1)),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(EnqueueActorMessagesActivity_Brs_023_027_V1)),
             new OrchestrationHistoryItem("TimerCreated"),
-            new OrchestrationHistoryItem("EventRaised",   Name: CalculationEnqueueActorMessagesCompletedNotifyEventV1.EventName),
+            new OrchestrationHistoryItem("EventRaised",   Name: CalculationEnqueueActorMessagesCompletedNotifyEventV1.OrchestrationInstanceEventName),
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(TransitionStepToTerminatedActivity_V1)),
 
             new OrchestrationHistoryItem("TaskCompleted", FunctionName: nameof(PublishCalculationEnqueueCompletedActivity_brs_023_027_V1)),

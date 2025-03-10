@@ -43,11 +43,11 @@ internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredDa
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.StoringMeteredDataStep,
+                OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
                 orchestrationInstance)
             .ConfigureAwait(false);
 
-        var points = input.MeteredDataForMeteringPointMessageInput.EnergyObservations
+        var points = input.ForwardMeteredDataInput.EnergyObservations
             .Select(x => new Point(
                 ParsePosition(x.Position),
                 ParseQuantity(x.EnergyQuantity),
@@ -56,15 +56,14 @@ internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredDa
 
         var meteredData = new MeteredDataForMeteringPoint(
             input.OrchestrationInstanceId.ToString(),
-            input.MeteredDataForMeteringPointMessageInput.MeteringPointId!,
-            input.MeteredDataForMeteringPointMessageInput.TransactionId,
-            ParseDateTime(input.MeteredDataForMeteringPointMessageInput.RegistrationDateTime),
-            ParseDateTime(input.MeteredDataForMeteringPointMessageInput.StartDateTime),
-            ParseDateTime(input.MeteredDataForMeteringPointMessageInput.EndDateTime),
-            ParseMeteringPointType(input.MeteredDataForMeteringPointMessageInput.MeteringPointType),
-            input.MeteredDataForMeteringPointMessageInput.ProductNumber!,
-            ParseMeasureUnit(input.MeteredDataForMeteringPointMessageInput.MeasureUnit),
-            ParseResolution(input.MeteredDataForMeteringPointMessageInput.Resolution),
+            input.ForwardMeteredDataInput.MeteringPointId!,
+            input.ForwardMeteredDataInput.TransactionId,
+            ParseDateTime(input.ForwardMeteredDataInput.RegistrationDateTime),
+            ParseDateTime(input.ForwardMeteredDataInput.StartDateTime),
+            ParseDateTime(input.ForwardMeteredDataInput.EndDateTime),
+            ParseMeteringPointType(input.ForwardMeteredDataInput.MeteringPointType),
+            ParseMeasureUnit(input.ForwardMeteredDataInput.MeasureUnit),
+            ParseResolution(input.ForwardMeteredDataInput.Resolution),
             points);
 
         await _measurementsMeteredDataClient.SendAsync(meteredData, CancellationToken.None).ConfigureAwait(false);
@@ -147,5 +146,5 @@ internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredDa
 
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        MeteredDataForMeteringPointMessageInputV1 MeteredDataForMeteringPointMessageInput);
+        ForwardMeteredDataInputV1 ForwardMeteredDataInput);
 }

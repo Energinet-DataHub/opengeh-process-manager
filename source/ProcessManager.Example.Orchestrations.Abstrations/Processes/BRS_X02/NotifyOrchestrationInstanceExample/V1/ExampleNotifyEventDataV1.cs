@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
 
 /// <summary>
-/// The data which should be sent with a <see cref="NotifyOrchestrationInstanceExampleNotifyEventsV1.ExampleNotifyEvent"/>.
+/// The data which should be sent with a <see cref="NotifyOrchestrationInstanceExampleNotifyEventV1"/>.
 /// </summary>
 public record ExampleNotifyEventDataV1(
     string Message)

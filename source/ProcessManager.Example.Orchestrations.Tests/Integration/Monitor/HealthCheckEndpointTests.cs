@@ -43,6 +43,8 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     {
         Fixture.ExampleOrchestrationsAppManager.AppHostManager.ClearHostLog();
 
+        Fixture.ExampleOrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
+
         return Task.CompletedTask;
     }
 
@@ -62,9 +64,6 @@ public class HealthCheckEndpointTests : IAsyncLifetime
     [InlineData("status")]
     public async Task Given_RunningExampleOrchestrationsApp_When_CallingHealthCheck_Then_ReturnsOKAndExpectedContent(string healthCheckEndpoint)
     {
-        // Arrange
-        Fixture.ExampleOrchestrationsAppManager.MockServer.MockElectricityMarketHealthCheck();
-
         // Act
         using var actualResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.GetAsync($"api/monitor/{healthCheckEndpoint}");
 
@@ -119,6 +118,37 @@ public class HealthCheckEndpointTests : IAsyncLifetime
         healthCheckContent.Should().StartWith("{\"status\":\"Unhealthy\"");
         healthCheckContent.Should().Contain(breakingChangesNotAllowedString);
         healthCheckContent.Should().Contain(changedPropertiesString);
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationDescriptionUnderDevelopmentWithBreakingChanges_When_CallingHealthCheck_Then_IsHealthy()
+    {
+        UseDisallowOrchestrationDescriptionBreakingChanges();
+
+        var uniqueName = UnderDevelopmentOrchestrationDescriptionBuilder.UniqueName;
+        await using (var dbContext = Fixture.ProcessManagerAppManager.DatabaseManager.CreateDbContext())
+        {
+            // Change existing orchestration description so there is breaking changes next time the
+            // synchronization is run (orchestration register synchronization runs at application startup).
+            var orchestrationDescription = await dbContext
+                .OrchestrationDescriptions
+                .FirstAsync(od => od.UniqueName == uniqueName);
+            orchestrationDescription.FunctionName = "Breaking change!";
+            orchestrationDescription.AppendStepDescription("Breaking change!");
+            await dbContext.SaveChangesAsync();
+        }
+
+        // Restart app to perform synchronization again
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.RestartHost();
+
+        using var healthCheckResponse = await Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient
+            .GetAsync($"api/monitor/ready");
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+
+        // Assert that the healthcheck succeeds
+        healthCheckResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     private void UseDisallowOrchestrationDescriptionBreakingChanges()

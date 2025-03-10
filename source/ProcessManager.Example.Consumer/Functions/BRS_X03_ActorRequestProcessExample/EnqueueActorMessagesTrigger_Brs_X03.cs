@@ -126,9 +126,8 @@ public class EnqueueActorMessagesTrigger_Brs_X03(
         }
 
         await _messageClient.NotifyOrchestrationInstanceAsync(
-                new NotifyOrchestrationInstanceEvent(
-                    OrchestrationInstanceId: enqueueActorMessagesV1.OrchestrationInstanceId,
-                    EventName: ActorRequestProcessExampleNotifyEventsV1.ActorMessagesEnqueued),
+                new ActorRequestProcessExampleNotifyEventV1(
+                    OrchestrationInstanceId: enqueueActorMessagesV1.OrchestrationInstanceId),
                 CancellationToken.None)
             .ConfigureAwait(false);
     }

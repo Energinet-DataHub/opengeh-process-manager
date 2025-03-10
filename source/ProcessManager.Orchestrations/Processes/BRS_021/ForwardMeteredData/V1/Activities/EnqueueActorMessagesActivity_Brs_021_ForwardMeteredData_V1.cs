@@ -46,31 +46,31 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
             .ConfigureAwait(false);
 
         await TransitionStepToRunningAsync(
-                Orchestration_Brs_021_ForwardMeteredData_V1.EnqueueActorMessagesStep,
+                OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
                 orchestrationInstance)
             .ConfigureAwait(false);
 
         await ProgressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
-        var messageInput = activityInput.MeteredDataForMeteringPointMessageInputV1;
+        var messageInput = activityInput.ForwardMeteredDataInputV1;
 
         var acceptedEnergyObservations = messageInput.EnergyObservations
             .Select(
-                x => new AcceptedEnergyObservation(
+                x => new ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation(
                     int.Parse(x.Position!),
                     decimal.Parse(x.EnergyQuantity!),
                     Quality.FromName(x.QuantityQuality!)))
             .ToList();
 
-        var receiver = activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId.Contains("perf_test")
-            ? new MarketActorRecipient("8100000000115", ActorRole.EnergySupplier)
-            : new MarketActorRecipient("5790000282425", ActorRole.EnergySupplier);
+        var receiver = activityInput.ForwardMeteredDataInputV1.TransactionId.Contains("perf_test")
+            ? new MarketActorRecipientV1(ActorNumber.Create("8100000000115"), ActorRole.EnergySupplier)
+            : new MarketActorRecipientV1(ActorNumber.Create("5790000282425"), ActorRole.EnergySupplier);
 
-        var data = new MeteredDataForMeteringPointAcceptedV1(
-            MessageId: messageInput.MessageId,
+        var data = new ForwardMeteredDataAcceptedV1(
+            OriginalActorMessageId: messageInput.MessageId,
+            OriginalTransactionId: activityInput.ForwardMeteredDataInputV1.TransactionId,
             MeteringPointId: messageInput.MeteringPointId!,
             MeteringPointType: MeteringPointType.FromName(messageInput.MeteringPointType!),
-            activityInput.MeteredDataForMeteringPointMessageInputV1.TransactionId,
             ProductNumber: messageInput.ProductNumber!,
             MeasureUnit: MeasurementUnit.FromName(messageInput.MeasureUnit!),
             RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(messageInput.RegistrationDateTime).Value.ToDateTimeOffset(),
@@ -81,7 +81,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
             MarketActorRecipients: [receiver]);
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-            Orchestration_Brs_021_ForwardMeteredData_V1.UniqueName,
+            OrchestrationDescriptionBuilderV1.UniqueName,
             activityInput.OrchestrationInstanceId.Value,
             orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
             activityInput.IdempotencyKey,
@@ -90,6 +90,6 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
 
     public sealed record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        MeteredDataForMeteringPointMessageInputV1 MeteredDataForMeteringPointMessageInputV1,
+        ForwardMeteredDataInputV1 ForwardMeteredDataInputV1,
         Guid IdempotencyKey);
 }

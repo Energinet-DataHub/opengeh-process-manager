@@ -2,7 +2,7 @@
 
 ## Version 1.8.0
 
-- Add BRS-021 Net Consumption command.
+- Add BRS-021 Net Consumption (group 6) command.
 
 ## Version 1.7.0
 

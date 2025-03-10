@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.NetConsumptionCalculation.V1.Model;
 
 /// <summary>
-/// Command for starting a BRS-021 net consumption calculation.
+/// Command for starting a BRS-021 net consumption (group six) calculation.
 /// Must be JSON serializable.
 /// </summary>
 public sealed record StartNetConsumptionCalculationCommandV1

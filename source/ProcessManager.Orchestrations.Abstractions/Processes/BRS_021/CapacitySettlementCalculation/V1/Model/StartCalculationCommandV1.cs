@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model;
 
 /// <summary>
-/// Command for starting a BRS-021 Capacity Settlement calculation.
+/// Command for starting a BRS-021 capacity settlement calculation.
 /// Must be JSON serializable.
 /// </summary>
 public sealed record StartCalculationCommandV1

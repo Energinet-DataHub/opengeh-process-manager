@@ -45,6 +45,8 @@ internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuil
         description.AppendStepDescription("Finder modtagere");
         description.AppendStepDescription("Danner beskeder");
 
+        description.IsUnderDevelopment = true;
+
         return description;
     }
 }

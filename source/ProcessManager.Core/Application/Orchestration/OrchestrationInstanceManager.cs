@@ -16,7 +16,9 @@ using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
@@ -31,6 +33,7 @@ internal class OrchestrationInstanceManager(
     IOrchestrationRegisterQueries orchestrationRegister,
     IOrchestrationInstanceRepository repository,
     IFeatureFlagManager featureFlagManager,
+    IOptions<ProcessManagerOptions> options,
     ILogger<OrchestrationInstanceManager> logger) :
         IStartOrchestrationInstanceCommands,
         IStartOrchestrationInstanceMessageCommands,
@@ -43,6 +46,7 @@ internal class OrchestrationInstanceManager(
     private readonly IOrchestrationRegisterQueries _orchestrationRegister = orchestrationRegister;
     private readonly IOrchestrationInstanceRepository _repository = repository;
     private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
+    private readonly ProcessManagerOptions _options = options.Value;
     private readonly ILogger<OrchestrationInstanceManager> _logger = logger;
 
     /// <inheritdoc />
@@ -236,10 +240,16 @@ internal class OrchestrationInstanceManager(
     private async Task<OrchestrationDescription> GuardMatchingOrchestrationDescriptionAsync(
         OrchestrationDescriptionUniqueName uniqueName)
     {
-        var orchestrationDescription = await _orchestrationRegister.GetOrDefaultAsync(uniqueName, isEnabled: true).ConfigureAwait(false);
-        return orchestrationDescription == null
-            ? throw new InvalidOperationException($"No enabled orchestration description matches UniqueName='{uniqueName}'.")
-            : orchestrationDescription;
+        var orchestrationDescription = await _orchestrationRegister.GetOrDefaultAsync(uniqueName, isEnabled: true).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"No enabled orchestration description matches UniqueName='{uniqueName.Name}' and Version='{uniqueName.Version}'.");
+
+        if (orchestrationDescription.IsUnderDevelopment && !_options.AllowStartingOrchestrationsUnderDevelopment)
+        {
+            throw new InvalidOperationException(
+                $"Orchestration description (UniqueName='{uniqueName.Name}, Version='{uniqueName.Version}') is under development and is not allowed to be started");
+        }
+
+        return orchestrationDescription;
     }
 
     /// <summary>
@@ -251,9 +261,7 @@ internal class OrchestrationInstanceManager(
         IReadOnlyCollection<int> skipStepsBySequence)
             where TParameter : class
     {
-        var orchestrationDescription = await _orchestrationRegister.GetOrDefaultAsync(uniqueName, isEnabled: true).ConfigureAwait(false);
-        if (orchestrationDescription == null)
-            throw new InvalidOperationException($"No enabled orchestration description matches UniqueName='{uniqueName}'.");
+        var orchestrationDescription = await GuardMatchingOrchestrationDescriptionAsync(uniqueName).ConfigureAwait(false);
 
         var isValidParameterValue = await orchestrationDescription.ParameterDefinition.IsValidParameterValueAsync(inputParameter).ConfigureAwait(false);
         if (isValidParameterValue == false)

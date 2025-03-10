@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ProcessManager.Client\ProcessManager.Client.csproj" />
     <ProjectReference Include="..\ProcessManager.Orchestrations\ProcessManager.Orchestrations.csproj" />
     <ProjectReference Include="..\ProcessManager\ProcessManager.csproj" />
   </ItemGroup>
@@ -40,10 +41,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Fixtures\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs">
+      <Link>Fixtures\Extensions\ServiceCollectionExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs">
       <Link>FluentAssertionsVersionGuard.cs</Link>
     </Compile>

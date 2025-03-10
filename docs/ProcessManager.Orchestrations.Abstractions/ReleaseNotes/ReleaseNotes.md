@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.8.0
+
+- Add BRS-021 Net Consumption command.
+
 ## Version 1.7.0
 
 - Add BRS-021 Capacity Settlement command.

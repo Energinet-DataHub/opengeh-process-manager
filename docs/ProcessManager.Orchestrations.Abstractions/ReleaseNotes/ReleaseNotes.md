@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.9.0
+
+- Remove internal process: Migrate Calculations From Wholesale.
+
 ## Version 1.8.0
 
 - Add BRS-021 Net Consumption (group 6) command.

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
@@ -68,7 +69,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                     new MeteringPointMasterData(
                         MeteringPointId: new MeteringPointId(input.MeteringPointId!),
                         GridAreaCode: new GridAreaCode("804"),
-                        GridAccessProvider: new ActorNumber(input.GridAccessProviderNumber),
+                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
                         ConnectionState: ConnectionState.Connected,
                         MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
                         MeteringPointSubType: MeteringPointSubType.Physical,
@@ -92,7 +93,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                     new MeteringPointMasterData(
                         MeteringPointId: new MeteringPointId(input.MeteringPointId!),
                         GridAreaCode: new GridAreaCode("804"),
-                        GridAccessProvider: new ActorNumber(input.GridAccessProviderNumber),
+                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
                         ConnectionState: ConnectionState.Connected,
                         MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
                         MeteringPointSubType: MeteringPointSubType.Physical,

@@ -33,7 +33,6 @@ using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using NodaTime.Text;
-using ActorNumber = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ActorNumber;
 using GridAreaCode = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode;
 using MeteringPointMasterData = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
@@ -257,17 +256,31 @@ public class StartForwardMeteredDataHandlerV1(
         // Only perform the step if it is now in running state (idempotency/retry check).
         if (enqueueStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
+            // Ensure always using the same idempotency key
+            Guid idempotencyKey;
+            if (enqueueStep.CustomState.IsEmpty)
+            {
+                idempotencyKey = Guid.NewGuid();
+                enqueueStep.CustomState.SetFromInstance(new EnqueueActorMessagesCustomStateV1(idempotencyKey));
+                await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                idempotencyKey = enqueueStep.CustomState.AsType<EnqueueActorMessagesCustomStateV1>().IdempotencyKey;
+            }
+
             await _enqueueActorMessagesClient.EnqueueAsync(
                     OrchestrationDescriptionBuilderV1.UniqueName,
                     orchestrationInstance.Id.Value,
                     new ActorIdentityDto(
-                        ProcessManager.Abstractions.Core.ValueObjects.ActorNumber.Create(
-                            forwardMeteredDataInput.ActorNumber),
+                        ActorNumber.Create(forwardMeteredDataInput.ActorNumber),
                         ActorRole.FromName(forwardMeteredDataInput.ActorRole)),
-                    Guid.NewGuid(),
+                    idempotencyKey,
                     new ForwardMeteredDataRejectedV1(
                         forwardMeteredDataInput.ActorMessageId,
                         forwardMeteredDataInput.TransactionId,
+                        ActorNumber.Create(forwardMeteredDataInput.ActorNumber),
+                        ActorRole.FromName(forwardMeteredDataInput.ActorRole),
                         validationErrors
                             .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))
                             .ToList()))
@@ -304,7 +317,7 @@ public class StartForwardMeteredDataHandlerV1(
             .Select(mpt => new MeteringPointMasterData(
                 new MeteringPointId(mpt.Identification.Value),
                 new GridAreaCode(mpt.GridAreaCode.Value),
-                new ActorNumber(mpt.GridAccessProvider),
+                ActorNumber.Create(mpt.GridAccessProvider),
                 MeteringPointMasterDataMapper.ConnectionStateMap.Map(mpt.ConnectionState),
                 MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(mpt.Type),
                 MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(mpt.SubType),

@@ -20,9 +20,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 
 public class ForwardMeteredDataInputV1Builder
 {
+    private const string ActorNumber = "1234567890123";
+
     private string _actorMessageId = "MessageId";
     private string _transactionId = "TransactionId";
-    private string _actorNumber = "1111111111111";
+    private string _actorNumber = ActorNumber;
     private string _actorRole = ActorRole.GridAccessProvider.Name;
     private string _meteringPointId = "MeteringPointId";
     private string _meteringPointType = MeteringPointType.Production.Name;
@@ -32,7 +34,7 @@ public class ForwardMeteredDataInputV1Builder
     private string _resolution = Resolution.QuarterHourly.Name;
     private string _startDateTime = "2024-12-31T23:00:00Z";
     private string? _endDateTime = "2025-12-31T23:15:00Z";
-    private string _gridAccessProviderNumber = "GridAccessProviderNumber";
+    private string _gridAccessProviderNumber = ActorNumber;
     private IReadOnlyCollection<ForwardMeteredDataInputV1.EnergyObservation> _energyObservations =
     [
         new("1", "1024", Quality.AsProvided.Name),

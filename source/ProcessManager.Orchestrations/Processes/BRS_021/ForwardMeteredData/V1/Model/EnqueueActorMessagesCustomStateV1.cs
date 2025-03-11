@@ -12,19 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-public record MeteringPointMasterData(
-    MeteringPointId MeteringPointId,
-    GridAreaCode GridAreaCode,
-    ActorNumber GridAccessProvider,
-    ConnectionState ConnectionState,
-    MeteringPointType MeteringPointType,
-    MeteringPointSubType MeteringPointSubType,
-    MeasurementUnit MeasurementUnit);
-
-public record GridAreaCode(string Value);
+public record EnqueueActorMessagesCustomStateV1(
+    Guid IdempotencyKey);

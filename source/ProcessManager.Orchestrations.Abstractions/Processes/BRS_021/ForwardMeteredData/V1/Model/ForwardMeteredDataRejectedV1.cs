@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -19,6 +20,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public record ForwardMeteredDataRejectedV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
+    ActorNumber ForwardedByActorNumber,
+    ActorRole ForwardedByActorRole,
     List<ValidationErrorDto> ValidationErrors);
 
 // TODO: Reimplement/update rejected models to no longer be CIM specific.

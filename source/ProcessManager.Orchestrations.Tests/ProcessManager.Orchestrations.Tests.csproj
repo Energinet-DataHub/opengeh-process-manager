@@ -21,7 +21,6 @@
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\DatabricksApiWireMockExtensions.cs" Link="Fixtures\Extensions\DatabricksApiWireMockExtensions.cs" />
-    <Compile Include="..\Shared\Tests\Fixtures\WholesaleDatabaseManager.cs" Link="Fixtures\WholesaleDatabaseManager.cs" />
     <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs">
       <Link>FluentAssertionsVersionGuard.cs</Link>
     </Compile>
@@ -62,5 +61,9 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Integration\InternalProcesses\" />
   </ItemGroup>
 </Project>

@@ -13,22 +13,22 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1.Options;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Options;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1.Activities;
 
 /// <summary>
 /// Get the <see cref="OrchestrationInstanceContext"/> for the orchestration instance.
 /// </summary>
-internal class GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1(
-    IOptions<OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1> orchestrationOptions)
+internal class GetOrchestrationInstanceContextActivity_Brs_021_NetConsumptionCalculation_V1(
+    IOptions<OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1> orchestrationOptions)
 {
-    private readonly OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1 _orchestrationOptions = orchestrationOptions.Value;
+    private readonly OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1 _orchestrationOptions = orchestrationOptions.Value;
 
-    [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1))]
+    [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_021_NetConsumptionCalculation_V1))]
     public Task<OrchestrationInstanceContext> Run(
         [ActivityTrigger] ActivityInput input)
     {

@@ -35,7 +35,7 @@ internal class CalculationStepStartJobActivity_Brs_021_NetConsumptionCalculation
             $"--orchestration-instance-id={input.InstanceId.Value}",
         };
 
-        return await _client.StartJobAsync("ElectricalHeatingNetConsumptionForGroup6", jobParameters).ConfigureAwait(false);
+        return await _client.StartJobAsync("NetConsumptionGroup6", jobParameters).ConfigureAwait(false);
     }
 
     public record ActivityInput(

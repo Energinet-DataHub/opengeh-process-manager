@@ -116,9 +116,17 @@ public class StartForwardMeteredDataHandlerV1(
             Unit: MeasurementUnit.FromName(input.MeasureUnit!),
             Resolution: Resolution.FromName(input.Resolution!),
             Points: input.EnergyObservations.Select(
-                    eo => new Point(
-                        int.Parse(eo.Position!),
-                        decimal.Parse(eo.EnergyQuantity!),
-                        Quality.FromName(eo.QuantityQuality!)))
+                    MapPoints)
                 .ToList());
+
+    private static Point MapPoints(ForwardMeteredDataInputV1.EnergyObservation eo)
+    {
+        var quality = string.IsNullOrWhiteSpace(eo.QuantityQuality)
+            ? Quality.NotAvailable
+            : Quality.FromName(eo.QuantityQuality);
+        return new Point(
+            int.Parse(eo.Position!),
+            decimal.Parse(eo.EnergyQuantity!),
+            quality);
+    }
 }

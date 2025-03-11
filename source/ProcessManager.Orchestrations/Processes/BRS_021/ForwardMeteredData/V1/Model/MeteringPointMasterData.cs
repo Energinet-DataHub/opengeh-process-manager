@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
@@ -24,8 +25,6 @@ public record MeteringPointMasterData(
     MeteringPointType MeteringPointType,
     MeteringPointSubType MeteringPointSubType,
     MeasurementUnit MeasurementUnit);
-
-public record MeteringPointId(string Value);
 
 public record GridAreaCode(string Value);
 

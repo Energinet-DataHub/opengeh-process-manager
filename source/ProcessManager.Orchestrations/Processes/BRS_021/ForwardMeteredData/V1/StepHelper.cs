@@ -20,7 +20,14 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public static class StepHelper
 {
-    public static async Task StartStep(StepInstance step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
+    /// <summary>
+    /// Start a step if it is pending and commit the change.
+    /// <remarks>Does nothing if the step lifecycle isn't pending.</remarks>
+    /// </summary>
+    /// <param name="step"></param>
+    /// <param name="clock"></param>
+    /// <param name="progressRepository"></param>
+    public static async Task StartStepAndCommitIfPending(StepInstance step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
     {
         if (step.Lifecycle.State == StepInstanceLifecycleState.Pending)
         {
@@ -29,12 +36,25 @@ public static class StepHelper
         }
     }
 
-    public static async Task TerminateStep(StepInstance step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
+    /// <summary>
+    /// Terminate a step if it is running and commit the change.
+    /// </summary>
+    /// <param name="step"></param>
+    /// <param name="clock"></param>
+    /// <param name="progressRepository"></param>
+    /// <param name="terminationState">The termination state of the step, defaulting to <see cref="OrchestrationStepTerminationState.Succeeded"/>.</param>
+    /// <exception cref="InvalidOperationException">Throws an invalid operation exception if the step isn't running.</exception>
+    public static async Task TerminateStepAndCommit(
+        StepInstance step,
+        IClock clock,
+        IOrchestrationInstanceProgressRepository progressRepository,
+        OrchestrationStepTerminationState terminationState = OrchestrationStepTerminationState.Succeeded)
     {
+        // TODO: Why doesn't this work like the "start step" method? Shouldn't it just do nothing, to guard against idempotency/retries.
         if (step.Lifecycle.State != StepInstanceLifecycleState.Running)
-            throw new InvalidOperationException("Can only terminate a running step");
+            throw new InvalidOperationException($"Can only terminate a running step (Step.Id={step.Id}, Step.State={step.Lifecycle.State}).");
 
-        step.Lifecycle.TransitionToTerminated(clock, OrchestrationStepTerminationState.Succeeded);
+        step.Lifecycle.TransitionToTerminated(clock, terminationState);
         await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 }

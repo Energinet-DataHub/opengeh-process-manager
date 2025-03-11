@@ -21,11 +21,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
-public class Brs021_ForwardMeteredData_Series_BusinessValidationDtoValidatorTests
+public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 {
-    private readonly BusinessValidator<Brs021_ForwardMeteredData_Series_BusinessValidationDto> _sut;
+    private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _sut;
 
-    public Brs021_ForwardMeteredData_Series_BusinessValidationDtoValidatorTests()
+    public ForwardMeteredDataBusinessValidatedDtoValidatorTests()
     {
         IServiceCollection services = new ServiceCollection();
 
@@ -33,13 +33,13 @@ public class Brs021_ForwardMeteredData_Series_BusinessValidationDtoValidatorTest
 
         var orchestrationsAssembly = typeof(OrchestrationDescriptionBuilderV1).Assembly;
         var orchestrationsAbstractionsAssembly =
-            typeof(Brs021_ForwardMeteredData_Series_BusinessValidationDto).Assembly;
+            typeof(ForwardMeteredDataBusinessValidatedDto).Assembly;
         services.AddBusinessValidation(assembliesToScan: [orchestrationsAssembly, orchestrationsAbstractionsAssembly]);
 
         var serviceProvider = services.BuildServiceProvider();
 
         _sut = serviceProvider
-            .GetRequiredService<BusinessValidator<Brs021_ForwardMeteredData_Series_BusinessValidationDto>>();
+            .GetRequiredService<BusinessValidator<ForwardMeteredDataBusinessValidatedDto>>();
     }
 
     [Fact]

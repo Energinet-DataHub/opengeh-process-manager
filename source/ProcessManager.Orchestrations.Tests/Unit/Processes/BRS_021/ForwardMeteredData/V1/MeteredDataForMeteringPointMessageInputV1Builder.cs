@@ -22,11 +22,10 @@ public class MeteredDataForMeteringPointMessageInputV1Builder
 {
     public static ForwardMeteredDataInputV1 Build() =>
         new(
-            MessageId: "MessageId",
-            AuthenticatedActorId: Guid.NewGuid(),
+            ActorMessageId: "MessageId",
+            TransactionId: "TransactionId",
             ActorNumber: "1111111111111",
             ActorRole: ActorRole.GridAccessProvider.Name,
-            TransactionId: "TransactionId",
             MeteringPointId: "MeteringPointId",
             MeteringPointType: MeteringPointType.Production.Name,
             ProductNumber: "ProductNumber",

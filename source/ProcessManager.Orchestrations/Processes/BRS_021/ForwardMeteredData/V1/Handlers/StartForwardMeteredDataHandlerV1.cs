@@ -12,19 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using NodaTime.Text;
+using GridAreaCode = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode;
+using MeteringPointMasterData = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData;
+using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
+using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
@@ -33,13 +41,17 @@ public class StartForwardMeteredDataHandlerV1(
     IStartOrchestrationInstanceMessageCommands commands,
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
-    IMeasurementsMeteredDataClient measurementsMeteredDataClient)
+    IMeasurementsMeteredDataClient measurementsMeteredDataClient,
+    BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
+    ElectricityMarket.Integration.IElectricityMarketViews electricityMarketViews)
         : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
     private readonly IMeasurementsMeteredDataClient _measurementsMeteredDataClient = measurementsMeteredDataClient;
+    private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
+    private readonly ElectricityMarket.Integration.IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
     // TODO: This method is not idempotent, Since we can not set a "running" step to "running"
     // TODO: Hence we need to commit after the event/message has been sent
@@ -77,32 +89,120 @@ public class StartForwardMeteredDataHandlerV1(
             return;
 
         // Start Step: Validate Metered Data
-        var validationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ValidationStep);
-        await StepHelper.StartStep(validationStep, _clock, _progressRepository).ConfigureAwait(false);
+        var validationErrors = await PerformBusinessValidation(orchestrationInstance).ConfigureAwait(false);
 
-        if (validationStep.Lifecycle.State == StepInstanceLifecycleState.Running)
+        var validationSuccess = validationErrors.Count == 0;
+        if (validationSuccess)
         {
-            // Fetch Metered Data and store received data used to find receiver later in the orchestration
-            // Validate Metered Data
+            // Start Step: Forward to Measurements
+            var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
+            await StepHelper.StartStepAndCommitIfPending(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
 
-            // Terminate Step: Validate Metered Data
-            await StepHelper.TerminateStep(validationStep, _clock, _progressRepository).ConfigureAwait(false);
+            if (forwardToMeasurementStep.Lifecycle.State == StepInstanceLifecycleState.Running)
+            {
+                await _measurementsMeteredDataClient.SendAsync(
+                        MapInputToMeasurements(orchestrationInstanceId, input),
+                        CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
         }
-
-        // Start Step: Forward to Measurements
-        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
-        await StepHelper.StartStep(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
-
-        if (forwardToMeasurementStep.Lifecycle.State == StepInstanceLifecycleState.Running)
+        else
         {
-            await _measurementsMeteredDataClient.SendAsync(
-                    MapInputToMeasurements(orchestrationInstanceId, input),
-                    CancellationToken.None)
-                .ConfigureAwait(false);
+            // TODO: Enqueue reject message in EDI
         }
     }
 
-    private static MeteredDataForMeteringPoint MapInputToMeasurements(
+    private async Task<IReadOnlyCollection<ValidationError>> PerformBusinessValidation(OrchestrationInstance orchestrationInstance)
+    {
+        var validationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ValidationStep);
+        await StepHelper.StartStepAndCommitIfPending(validationStep, _clock, _progressRepository).ConfigureAwait(false);
+
+        IReadOnlyCollection<ValidationError> validationErrors;
+        if (validationStep.Lifecycle.State == StepInstanceLifecycleState.Running)
+        {
+            var input = orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>();
+
+            // Fetch Metered Data and store received data used to find receiver later in the orchestration
+            // TODO: Use master data from the orchestration instance custom state instead
+            var meteringPointMasterDataList = await GetMeteringPointMasterData(
+                    input.MeteringPointId,
+                    input.StartDateTime,
+                    input.EndDateTime)
+                .ConfigureAwait(false);
+
+            // Validate Metered Data
+            validationErrors = await _validator.ValidateAsync(
+                    new ForwardMeteredDataBusinessValidatedDto(
+                        Input: input,
+                        MeteringPointMasterData: meteringPointMasterDataList))
+                .ConfigureAwait(false);
+
+            var validationSuccess = validationErrors.Count == 0;
+
+            if (!validationSuccess)
+                validationStep.CustomState.SetFromInstance(validationErrors);
+
+            var validationStepTerminationState = validationSuccess
+                ? OrchestrationStepTerminationState.Succeeded
+                : OrchestrationStepTerminationState.Failed;
+
+            // Terminate Step: Validate Metered Data
+            await StepHelper.TerminateStepAndCommit(validationStep, _clock, _progressRepository, validationStepTerminationState).ConfigureAwait(false);
+        }
+        else
+        {
+            if (validationStep.Lifecycle.State is not StepInstanceLifecycleState.Terminated)
+                throw new InvalidOperationException($"Validation step is not running or terminated (Step.Id={validationStep.Id}, Step.State={validationStep.Lifecycle.State}).");
+
+            if (validationStep.Lifecycle.TerminationState == OrchestrationStepTerminationState.Failed && validationStep.CustomState.IsEmpty)
+                throw new InvalidOperationException("Validation step shouldn't be able to fail without any validation errors.");
+
+            validationErrors = validationStep.CustomState.IsEmpty
+                ? []
+                : validationStep.CustomState.AsType<IReadOnlyCollection<ValidationError>>();
+        }
+
+        return validationErrors;
+    }
+
+    private async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMeteringPointMasterData(
+        string? meteringPointIdentification,
+        string startDateTime,
+        string? endDateTime)
+    {
+        if (meteringPointIdentification is null || endDateTime is null)
+        {
+            return [];
+        }
+
+        var id = new ElectricityMarket.Integration.Models.MasterData.MeteringPointIdentification(meteringPointIdentification);
+        var parsedStartDateTime = InstantPatternWithOptionalSeconds.Parse(startDateTime);
+        var parsedEndDateTime = InstantPatternWithOptionalSeconds.Parse(endDateTime);
+
+        if (!parsedStartDateTime.Success || !parsedEndDateTime.Success)
+        {
+            return [];
+        }
+
+        var meteringPointMasterData = await _electricityMarketViews
+            .GetMeteringPointMasterDataChangesAsync(
+                new MeteringPointIdentification(meteringPointIdentification),
+                new Interval(parsedStartDateTime.Value, parsedEndDateTime.Value))
+            .ConfigureAwait(false);
+
+        return meteringPointMasterData
+            .Select(mpt => new MeteringPointMasterData(
+                new MeteringPointId(mpt.Identification.Value),
+                new GridAreaCode(mpt.GridAreaCode.Value),
+                new ActorNumber(mpt.GridAccessProvider),
+                MeteringPointMasterDataMapper.ConnectionStateMap.Map(mpt.ConnectionState),
+                MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(mpt.Type),
+                MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(mpt.SubType),
+                MeteringPointMasterDataMapper.MeasureUnitMap.Map(mpt.Unit)))
+            .ToList();
+    }
+
+    private MeteredDataForMeteringPoint MapInputToMeasurements(
         OrchestrationInstanceId orchestrationInstanceId,
         ForwardMeteredDataInputV1 input) =>
         new(

@@ -36,7 +36,7 @@ public class TerminateForwardMeteredDataHandlerV1(
 
         // Terminate Step: Enqueue actor messages step
         var enqueueActorMessagesStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
-        await StepHelper.TerminateStep(enqueueActorMessagesStep, _clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.TerminateStepAndCommit(enqueueActorMessagesStep, _clock, _progressRepository).ConfigureAwait(false);
 
         orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);

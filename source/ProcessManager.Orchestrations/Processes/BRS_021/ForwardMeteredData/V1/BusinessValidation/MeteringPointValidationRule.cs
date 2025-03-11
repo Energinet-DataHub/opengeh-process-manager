@@ -18,12 +18,23 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
 public class MeteringPointValidationRule
-    : IBusinessValidationRule<Brs021_ForwardMeteredData_Series_BusinessValidationDto>
+    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
+    private static IList<ValidationError> NoError => [];
+
+    private static IList<ValidationError> MeteringPointDoesntExistsError => [new(
+        Message: "Målepunktet findes ikke / The metering point does not exist",
+        ErrorCode: "E10")];
+
     public Task<IList<ValidationError>> ValidateAsync(
-        Brs021_ForwardMeteredData_Series_BusinessValidationDto subject) =>
-        Task.FromResult<IList<ValidationError>>(
-            subject.MeteringPointMasterData.Count <= 0
-                ? [new("Målepunktet findes ikke / The metering point does not exist", "E10")]
-                : new List<ValidationError>());
+        ForwardMeteredDataBusinessValidatedDto subject)
+    {
+        // This validation rule always succeeds, since Electricity Market doesn't contain data on dev environments.
+        // TODO: Reimplement this validation rule when the Electricity Market has data on all environments.
+        return Task.FromResult(NoError);
+        // if (subject.MeteringPointMasterData.Count == 0)
+        //     return Task.FromResult(MeteringPointDoesntExistsError);
+        //
+        // return Task.FromResult(NoError);
+    }
 }

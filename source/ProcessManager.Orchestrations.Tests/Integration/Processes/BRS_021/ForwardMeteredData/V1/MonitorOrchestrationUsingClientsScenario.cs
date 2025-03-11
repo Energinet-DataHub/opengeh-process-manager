@@ -51,8 +51,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
+    private const string ProcessManagerEventHubProducerClientName = "ProcessManagerEventHubProducerClient";
     private readonly OrchestrationsAppFixture _fixture;
-    private readonly string _processManagerEventHubProducerClientName = "ProcessManagerEventHubProducerClient";
 
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
@@ -118,7 +118,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                                 options.EventHubName,
                                 _fixture.IntegrationTestConfiguration.Credential);
                         })
-                    .WithName(_processManagerEventHubProducerClientName);
+                    .WithName(ProcessManagerEventHubProducerClientName);
             });
         ServiceProvider = services.BuildServiceProvider();
     }
@@ -143,10 +143,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
+    public async Task Given_ValidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         // Arrange
-        var input = CreateMeteredDataForMeteringPointMessageInputV1();
+        var input = CreateForwardMeteredDataInputV1();
 
         var startCommand = new ForwardMeteredDataCommandV1(
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
@@ -200,7 +200,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var data = new EventData(notify.ToByteArray());
         var processManagerEventHubProducerClient =
-            eventHubClientFactory.CreateClient(_processManagerEventHubProducerClientName);
+            eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
         await processManagerEventHubProducerClient.SendAsync([data], CancellationToken.None);
 
         // wait for notification from edi.
@@ -237,25 +237,25 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
          step => step.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded));
     }
 
-    private static ForwardMeteredDataInputV1 CreateMeteredDataForMeteringPointMessageInputV1(
+    private static ForwardMeteredDataInputV1 CreateForwardMeteredDataInputV1(
         bool withError = false)
     {
         var input = new ForwardMeteredDataInputV1(
-            "MessageId",
-            Guid.NewGuid(),
-            "1111111111111",
-            ActorRole.GridAccessProvider.Name,
-            "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
-            withError ? "NoMasterData" : "571313101700011887",
-            MeteringPointType.Production.Name,
-            "8716867000047",
-            MeasurementUnit.MetricTon.Name,
-            "2024-12-03T08:00:00Z",
-            Resolution.Hourly.Name,
-            "2024-12-01T23:00:00Z",
-            "2024-12-02T23:00:00Z",
-            "5790002606892",
-            null,
+            ActorMessageId: "MessageId",
+            TransactionId: "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
+            ActorNumber: "1111111111111",
+            ActorRole: ActorRole.GridAccessProvider.Name,
+            MeteringPointId: withError ? "NoMasterData" : "571313101700011887",
+            MeteringPointType: MeteringPointType.Production.Name,
+            ProductNumber: "8716867000047",
+            MeasureUnit: MeasurementUnit.MetricTon.Name,
+            RegistrationDateTime: "2024-12-03T08:00:00Z",
+            Resolution: Resolution.Hourly.Name,
+            StartDateTime: "2024-12-01T23:00:00Z",
+            EndDateTime: "2024-12-02T23:00:00Z",
+            GridAccessProviderNumber: "5790002606892",
+            DelegatedGridAreaCodes: null,
+            EnergyObservations:
             [
                 new("1", "112.000", Quality.AsProvided.Name),
                 new("2", "112.000", Quality.AsProvided.Name),

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
@@ -61,7 +62,7 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
 
     private static MeteringPointMasterData Map(ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData arg)
     {
-        return new(
+        return new MeteringPointMasterData(
             new MeteringPointId(arg.Identification.Value),
             new GridAreaCode(arg.GridAreaCode.Value),
             new ActorNumber(arg.GridAccessProvider),

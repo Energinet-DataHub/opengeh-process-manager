@@ -42,23 +42,23 @@ public class EnqueueMeteredDataHandlerV1(
 
         // Terminate Step: Forward metered data step
         var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
-        await StepHelper.TerminateStep(forwardToMeasurementStep, clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, clock, _progressRepository).ConfigureAwait(false);
 
         // Start Step: Find receiver step
         var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiverStep);
-        await StepHelper.StartStep(findReceiverStep, clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.StartStepAndCommitIfPending(findReceiverStep, clock, _progressRepository).ConfigureAwait(false);
 
         if (findReceiverStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
             // Find Receivers
 
             // Terminate Step: Find receiver step
-            await StepHelper.TerminateStep(findReceiverStep, clock, _progressRepository).ConfigureAwait(false);
+            await StepHelper.TerminateStepAndCommit(findReceiverStep, clock, _progressRepository).ConfigureAwait(false);
         }
 
         // Start Step: Enqueue actor messages step
         var enqueueActorMessagesStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
-        await StepHelper.StartStep(enqueueActorMessagesStep, clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.StartStepAndCommitIfPending(enqueueActorMessagesStep, clock, _progressRepository).ConfigureAwait(false);
 
         if (enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {

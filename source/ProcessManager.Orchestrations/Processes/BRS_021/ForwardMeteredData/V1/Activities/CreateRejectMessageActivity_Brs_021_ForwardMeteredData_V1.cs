@@ -25,35 +25,35 @@ internal class CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1
     [Function(nameof(CreateRejectMessageActivity_Brs_021_ForwardMeteredData_V1))]
     public Task<ActivityOutput> Run([ActivityTrigger] ActivityInput activityInput)
     {
-        var result = new ActivityOutput(
-            new ForwardMeteredDataRejectedV1(
-                Guid.NewGuid().ToString("N"),
-                BusinessReason.PeriodicMetering,
-                activityInput.Recipient,
-                activityInput.OrchestrationInstanceId.Value,
-                Guid.NewGuid(),
-                /*
-                 * For `AcknowledgementV1` only `received_MarketDocument.mRID`
-                 * and `received_MarketDocument.process.processType` should be set.
-                 * The remaining properties should be null.
-                 */
-                new AcknowledgementV1(
-                    null,
-                    activityInput.InputMessageId,
-                    activityInput.InputProcessType,
-                    null,
-                    null,
-                    null,
-                    activityInput.GeneralErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message)).ToList(),
-                    [],
-                    [
-                        new SeriesV1(
-                            activityInput.InputTransactionId,
-                            activityInput.SeriesErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message))
-                                .ToList()),
-                    ],
-                    [],
-                    [])));
+        var result = new ActivityOutput(null!);
+            // new ForwardMeteredDataRejectedV1(
+            //     Guid.NewGuid().ToString("N"),
+            //     BusinessReason.PeriodicMetering,
+            //     activityInput.Recipient,
+            //     activityInput.OrchestrationInstanceId.Value,
+            //     Guid.NewGuid(),
+            //     /*
+            //      * For `AcknowledgementV1` only `received_MarketDocument.mRID`
+            //      * and `received_MarketDocument.process.processType` should be set.
+            //      * The remaining properties should be null.
+            //      */
+            //     new AcknowledgementV1(
+            //         null,
+            //         activityInput.InputMessageId,
+            //         activityInput.InputProcessType,
+            //         null,
+            //         null,
+            //         null,
+            //         activityInput.GeneralErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message)).ToList(),
+            //         [],
+            //         [
+            //             new SeriesV1(
+            //                 activityInput.InputTransactionId,
+            //                 activityInput.SeriesErrors.Select(err => new ReasonV1(err.ErrorCode, err.Message))
+            //                     .ToList()),
+            //         ],
+            //         [],
+            //         []));
 
         return Task.FromResult(result);
     }

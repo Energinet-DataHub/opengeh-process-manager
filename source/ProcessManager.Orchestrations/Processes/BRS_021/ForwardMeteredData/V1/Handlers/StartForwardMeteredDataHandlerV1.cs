@@ -180,6 +180,8 @@ public class StartForwardMeteredDataHandlerV1(
         await StepHelper.StartStepAndCommitIfPending(validationStep, _clock, _progressRepository).ConfigureAwait(false);
 
         IReadOnlyCollection<ValidationError> validationErrors;
+
+        // Only perform the step if it is now in running state (idempotency/retry check).
         if (validationStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
             // Fetch Metered Data and store received data used to find receiver later in the orchestration
@@ -217,6 +219,7 @@ public class StartForwardMeteredDataHandlerV1(
             if (validationStep.Lifecycle.TerminationState == OrchestrationStepTerminationState.Failed && validationStep.CustomState.IsEmpty)
                 throw new InvalidOperationException("Validation step shouldn't be able to fail without any validation errors.");
 
+            // Get existing validation errors if the step is already terminated.
             validationErrors = validationStep.CustomState.IsEmpty
                 ? []
                 : validationStep.CustomState.AsType<IReadOnlyCollection<ValidationError>>();
@@ -233,6 +236,7 @@ public class StartForwardMeteredDataHandlerV1(
         var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
         await StepHelper.StartStepAndCommitIfPending(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
 
+        // Only perform the step if it is now in running state (idempotency/retry check).
         if (forwardToMeasurementStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
             await _measurementsMeteredDataClient.SendAsync(
@@ -250,21 +254,25 @@ public class StartForwardMeteredDataHandlerV1(
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
         await StepHelper.StartStepAndCommitIfPending(enqueueStep, _clock, _progressRepository).ConfigureAwait(false);
 
-        await _enqueueActorMessagesClient.EnqueueAsync(
-                OrchestrationDescriptionBuilderV1.UniqueName,
-                orchestrationInstance.Id.Value,
-                new ActorIdentityDto(
-                    ProcessManager.Abstractions.Core.ValueObjects.ActorNumber.Create(
-                        forwardMeteredDataInput.ActorNumber),
-                    ActorRole.FromName(forwardMeteredDataInput.ActorRole)),
-                Guid.NewGuid(),
-                new ForwardMeteredDataRejectedV1(
-                    forwardMeteredDataInput.ActorMessageId,
-                    forwardMeteredDataInput.TransactionId,
-                    validationErrors
-                        .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))
-                        .ToList()))
-            .ConfigureAwait(false);
+        // Only perform the step if it is now in running state (idempotency/retry check).
+        if (enqueueStep.Lifecycle.State == StepInstanceLifecycleState.Running)
+        {
+            await _enqueueActorMessagesClient.EnqueueAsync(
+                    OrchestrationDescriptionBuilderV1.UniqueName,
+                    orchestrationInstance.Id.Value,
+                    new ActorIdentityDto(
+                        ProcessManager.Abstractions.Core.ValueObjects.ActorNumber.Create(
+                            forwardMeteredDataInput.ActorNumber),
+                        ActorRole.FromName(forwardMeteredDataInput.ActorRole)),
+                    Guid.NewGuid(),
+                    new ForwardMeteredDataRejectedV1(
+                        forwardMeteredDataInput.ActorMessageId,
+                        forwardMeteredDataInput.TransactionId,
+                        validationErrors
+                            .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))
+                            .ToList()))
+                .ConfigureAwait(false);
+        }
     }
 
     private async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMeteringPointMasterData(

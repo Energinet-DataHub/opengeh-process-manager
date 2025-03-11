@@ -232,7 +232,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
-        // Arrange
+        // Given
         var invalidInput = CreateForwardMeteredDataInputV1() with { EndDateTime = null };
 
         var invalidForwardCommand = new ForwardMeteredDataCommandV1(
@@ -243,10 +243,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        // Act
+        // When
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(invalidForwardCommand, CancellationToken.None);
 
-        // Step 2a: Query until waiting for EnqueueActorMessagesCompleted notify event (a reject message should be enqueued)
+        // Then
+        // Query until waiting for EnqueueActorMessagesCompleted notify event (a reject message should be enqueued)
         var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
             .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
                 invalidForwardCommand.IdempotencyKey,

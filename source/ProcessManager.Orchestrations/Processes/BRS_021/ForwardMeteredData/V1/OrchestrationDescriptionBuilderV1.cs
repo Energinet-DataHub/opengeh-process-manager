@@ -41,8 +41,8 @@ internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuil
 
         description.ParameterDefinition.SetFromType<ForwardMeteredDataInputV1>();
         description.AppendStepDescription("Forretningsvalidering");
-        description.AppendStepDescription("Gemmer måledata");
-        description.AppendStepDescription("Finder modtagere");
+        description.AppendStepDescription("Gemmer måledata", canBeSkipped: true, skipReason: "Skipped if business validation fails");
+        description.AppendStepDescription("Finder modtagere", canBeSkipped: true, skipReason: "Skipped if business validation fails");
         description.AppendStepDescription("Danner beskeder");
 
         description.IsUnderDevelopment = true;

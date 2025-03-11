@@ -38,7 +38,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
-    private const string CalculationJobName = "NetConsumption";
+    private const string CalculationJobName = "ElectricalHeatingNetConsumptionForGroup6";
 
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,

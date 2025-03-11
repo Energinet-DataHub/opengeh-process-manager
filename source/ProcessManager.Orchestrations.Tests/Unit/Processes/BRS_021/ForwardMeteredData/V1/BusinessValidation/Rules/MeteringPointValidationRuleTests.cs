@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using FluentAssertions;
-using ActorNumber =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ActorNumber;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation.Rules;
 
@@ -50,12 +51,19 @@ public class MeteringPointValidationRuleTests
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("id"),
+                        SystemClock.Instance.GetCurrentInstant(),
+                        SystemClock.Instance.GetCurrentInstant(),
                         new GridAreaCode("111"),
-                        new ActorNumber("1111111111111"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
                         ConnectionState.Connected,
                         MeteringPointType.Production,
                         MeteringPointSubType.Physical,
-                        MeasurementUnit.KilowattHour),
+                        Resolution.Hourly,
+                        MeasurementUnit.KilowattHour,
+                        "product",
+                        null,
+                        ActorNumber.Create("1111111111112")),
                 ]));
 
         result.Should().BeEmpty();

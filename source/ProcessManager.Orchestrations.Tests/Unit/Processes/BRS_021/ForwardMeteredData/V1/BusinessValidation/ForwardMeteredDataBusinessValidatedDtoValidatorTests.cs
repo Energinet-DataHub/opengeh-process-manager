@@ -17,21 +17,32 @@ using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
 public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 {
+    private readonly Mock<IClock> _clockMock = new Mock<IClock>();
+    private readonly DateTimeZone _timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
+
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _sut;
 
     public ForwardMeteredDataBusinessValidatedDtoValidatorTests()
     {
+        _clockMock.Setup(c => c.GetCurrentInstant())
+            .Returns(Instant.FromUtc(2024, 11, 15, 16, 46, 43));
+
         IServiceCollection services = new ServiceCollection();
 
         services.AddLogging();
+        services.AddTransient<DateTimeZone>(s => _timeZone);
+        services.AddTransient<IClock>(s => _clockMock.Object);
 
         var orchestrationsAssembly = typeof(OrchestrationDescriptionBuilderV1).Assembly;
         var orchestrationsAbstractionsAssembly =
@@ -47,7 +58,8 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     [Fact]
     public async Task Given_ValidForwardMeteredDataBusinessValidatedDto_When_Validate_Then_NoValidationError()
     {
-        var input = MeteredDataForMeteringPointMessageInputV1Builder.Build();
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
 
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
@@ -66,10 +78,37 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         result.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task Given_InvalidEndDate_When_Validate_Then_InvalidEndDateValidationError()
+    {
+        var input = new ForwardMeteredDataInputV1Builder()
+            .WithEndDateTime(null)
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                Input: input,
+                MeteringPointMasterData: [
+                    new MeteringPointMasterData(
+                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+                        GridAreaCode: new GridAreaCode("804"),
+                        GridAccessProvider: new ActorNumber(input.GridAccessProviderNumber),
+                        ConnectionState: ConnectionState.Connected,
+                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+                        MeteringPointSubType: MeteringPointSubType.Physical,
+                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!)),
+                ]));
+
+        result.Should()
+            .ContainSingle()
+            .And.ContainEquivalentOf(PeriodValidationRule.InvalidEndDate);
+    }
+
     [Fact(Skip = "'Metering point doesn't exists' validation is currently disabled")]
     public async Task Given_NoMasterData_When_Validate_Then_ValidationError()
     {
-        var input = MeteredDataForMeteringPointMessageInputV1Builder.Build();
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
 
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
@@ -77,7 +116,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                 MeteringPointMasterData: []));
 
         result.Should()
-            .NotBeEmpty()
+            .ContainSingle()
             .And.Contain(
                 ve => ve.ErrorCode == "E10"
                       && ve.Message == "Målepunktet findes ikke / The metering point does not exist");

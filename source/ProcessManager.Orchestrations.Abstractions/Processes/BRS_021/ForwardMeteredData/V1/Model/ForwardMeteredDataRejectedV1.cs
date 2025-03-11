@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 public record ForwardMeteredDataRejectedV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
-    BusinessReason BusinessReason);
+    List<ValidationErrorDto> ValidationErrors);
 
 // TODO: Reimplement/update rejected models to no longer be CIM specific.
 // public readonly record struct TimeInterval(DateTimeOffset Start, DateTimeOffset End);

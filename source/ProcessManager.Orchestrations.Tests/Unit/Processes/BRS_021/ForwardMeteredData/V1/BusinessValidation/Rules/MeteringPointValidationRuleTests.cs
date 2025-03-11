@@ -29,7 +29,8 @@ public class MeteringPointValidationRuleTests
     [Fact]
     public async Task Given_MeteringPointMasterData_When_Validate_Then_NoValidationError()
     {
-        var input = MeteredDataForMeteringPointMessageInputV1Builder.Build();
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
 
         var result = await _sut.ValidateAsync(
             new(
@@ -51,7 +52,8 @@ public class MeteringPointValidationRuleTests
     [Fact(Skip = "'Metering point doesn't exists' validation is currently disabled")]
     public async Task Given_NoMeteringPointMasterData_When_Validate_Then_ValidationError()
     {
-        var input = MeteredDataForMeteringPointMessageInputV1Builder.Build();
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
 
         var result = await _sut.ValidateAsync(new(input, []));
 

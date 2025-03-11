@@ -63,8 +63,8 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
     /// <summary>
-    /// This method has a lot of commits to the database, to immediately transition lifecycles. This means that
-    /// we must implement a lot of custom logic to ensure idempotency in case of retries and/or the same message
+    /// This method has multiple commits to the database, to immediately transition lifecycles. This means that
+    /// we must implement custom logic to ensure idempotency in case of retries and/or the same message
     /// being received more than once.
     /// </summary>
     protected override async Task StartOrchestrationInstanceAsync(

@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using FluentAssertions;
@@ -43,11 +45,36 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     }
 
     [Fact]
+    public async Task Given_ValidForwardMeteredDataBusinessValidatedDto_When_Validate_Then_NoValidationError()
+    {
+        var input = MeteredDataForMeteringPointMessageInputV1Builder.Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                Input: input,
+                MeteringPointMasterData: [
+                    new MeteringPointMasterData(
+                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+                        GridAreaCode: new GridAreaCode("804"),
+                        GridAccessProvider: new ActorNumber(input.GridAccessProviderNumber),
+                        ConnectionState: ConnectionState.Connected,
+                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+                        MeteringPointSubType: MeteringPointSubType.Physical,
+                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!)),
+                ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact(Skip = "'Metering point doesn't exists' validation is currently disabled")]
     public async Task Given_NoMasterData_When_Validate_Then_ValidationError()
     {
         var input = MeteredDataForMeteringPointMessageInputV1Builder.Build();
 
-        var result = await _sut.ValidateAsync(new(input, []));
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                Input: input,
+                MeteringPointMasterData: []));
 
         result.Should()
             .NotBeEmpty()

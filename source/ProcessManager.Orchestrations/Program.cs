@@ -81,9 +81,6 @@ var host = new HostBuilder()
 
         services.AddScoped<TerminateForwardMeteredDataHandlerV1>()
             .AddScoped<EnqueueMeteredDataHandlerV1>();
-
-        // Wholesale migrations
-        services.AddWholesaleDatabase();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

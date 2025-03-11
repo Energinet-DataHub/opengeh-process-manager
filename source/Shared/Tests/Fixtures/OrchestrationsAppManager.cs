@@ -108,8 +108,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.Credential);
 
         MockServer = WireMockServer.Start(port: wireMockServerPort);
-
-        WholesaleDatabaseManager = new WholesaleDatabaseManager("Wholesale");
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -135,8 +133,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public string? ProcessManagerEventhubName { get; private set; }
 
     public WireMockServer MockServer { get; }
-
-    public WholesaleDatabaseManager WholesaleDatabaseManager { get; }
 
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
@@ -183,8 +179,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // Integration event topic
         integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
-        await WholesaleDatabaseManager.CreateDatabaseAsync();
-
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
@@ -213,8 +207,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         await ServiceBusResourceProvider.DisposeAsync();
         await EventHubResourceProvider.DisposeAsync();
         MockServer.Dispose();
-
-        await WholesaleDatabaseManager.DeleteDatabaseAsync();
     }
 
     /// <summary>

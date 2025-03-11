@@ -20,11 +20,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class MeteringPointValidationRule
     : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
-    private static IList<ValidationError> NoError => [];
-
-    private static IList<ValidationError> MeteringPointDoesntExistsError => [new(
+    public static IList<ValidationError> MeteringPointDoesntExistsError => [new(
         Message: "Målepunktet findes ikke / The metering point does not exist",
         ErrorCode: "E10")];
+
+    private static IList<ValidationError> NoError => [];
 
     public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)

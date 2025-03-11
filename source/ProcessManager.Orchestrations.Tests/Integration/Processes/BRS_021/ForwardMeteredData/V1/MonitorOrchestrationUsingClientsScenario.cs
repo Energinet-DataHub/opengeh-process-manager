@@ -167,7 +167,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await processManagerClient
             .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
                 forwardCommand.IdempotencyKey,
-                OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
+                OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
 
         isWaitingForMeasurementsNotify.Should()
             .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
@@ -311,7 +311,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 s =>
                 {
                     // Forward to measurements step should be skipped
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()

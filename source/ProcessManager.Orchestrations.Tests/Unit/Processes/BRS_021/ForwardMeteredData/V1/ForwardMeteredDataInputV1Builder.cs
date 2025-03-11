@@ -30,10 +30,10 @@ public class ForwardMeteredDataInputV1Builder
     private string _meteringPointType = MeteringPointType.Production.Name;
     private string _productNumber = "ProductNumber";
     private string _measureUnit = MeasurementUnit.KilowattHour.Name;
-    private string _registrationDateTime = "2024-12-31T23:00:00Z";
+    private string _registrationDateTime = "2024-12-31T23:00Z";
     private string _resolution = Resolution.QuarterHourly.Name;
-    private string _startDateTime = "2024-12-31T23:00:00Z";
-    private string? _endDateTime = "2025-12-31T23:15:00Z";
+    private string _startDateTime = "2024-12-31T23:00Z"; // Seconds are optional, so we test with and without them.
+    private string? _endDateTime = "2025-12-31T23:15:00Z"; // Seconds are optional, so we test with and without them.
     private string _gridAccessProviderNumber = ActorNumber;
     private IReadOnlyCollection<ForwardMeteredDataInputV1.EnergyObservation> _energyObservations =
     [

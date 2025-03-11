@@ -118,8 +118,6 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 
         result.Should()
             .ContainSingle()
-            .And.Contain(
-                ve => ve.ErrorCode == "E10"
-                      && ve.Message == "Målepunktet findes ikke / The metering point does not exist");
+            .And.BeEquivalentTo(MeteringPointValidationRule.MeteringPointDoesntExistsError);
     }
 }

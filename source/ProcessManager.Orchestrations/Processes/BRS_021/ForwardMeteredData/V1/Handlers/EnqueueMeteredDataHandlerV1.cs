@@ -41,7 +41,7 @@ public class EnqueueMeteredDataHandlerV1(
             return;
 
         // Terminate Step: Forward metered data step
-        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
+        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
         await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, clock, _progressRepository).ConfigureAwait(false);
 
         // Start Step: Find receiver step

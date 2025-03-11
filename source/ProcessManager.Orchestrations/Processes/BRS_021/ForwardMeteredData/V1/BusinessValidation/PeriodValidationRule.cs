@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using NodaTime;
 using NodaTime.Text;
@@ -67,7 +68,7 @@ public class PeriodValidationRule(
         if (dateTime is null)
             return null;
 
-        var parseResult = InstantPattern.General.Parse(dateTime);
+        var parseResult = InstantPatternWithOptionalSeconds.Parse(dateTime);
 
         if (!parseResult.Success)
             return null;

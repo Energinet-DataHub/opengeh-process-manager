@@ -2,7 +2,7 @@
 
 ## Version 1.9.0
 
-- Remove internal process Migrate Calculations From Wholesale command.
+- Remove internal process: Migrate Calculations From Wholesale.
 
 ## Version 1.8.0
 

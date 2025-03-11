@@ -75,6 +75,8 @@ public class StartForwardMeteredDataHandlerV1(
         string transactionId,
         string? meteringPointId)
     {
+        // Creates an orchestration instance if it doesn't already exist. The orchestration instance
+        // should either be in the "terminated" or "running" state.
         var orchestrationInstance = await InitializeOrchestrationInstance(
                 actorIdentity,
                 input,

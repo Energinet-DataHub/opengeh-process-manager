@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Net;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
@@ -37,6 +38,9 @@ using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
 using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
@@ -145,6 +149,54 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
     {
+        var request = Request
+            .Create()
+            .WithPath("/api/get-metering-point-master-data")
+            .WithBody(_ => true)
+            .UsingPost();
+
+        var body = """
+                   {
+                     "Identification": {
+                       "Value": "123456789"
+                     },
+                     "ValidFrom": "2023-11-29T12:34:56Z",
+                     "ValidTo": "2024-11-29T12:34:56Z",
+                     "GridAreaCode": {
+                       "Value": "804"
+                     },
+                     "GridAccessProvider": "ProviderName",
+                     "NeighborGridAreaOwners": [
+                       "Owner1",
+                       "Owner2"
+                     ],
+                     "ConnectionState": "Connected",
+                     "Type": "Consumption",
+                     "SubType": "Physical",
+                     "Resolution": "Hourly",
+                     "Unit": "KWh",
+                     "ProductId": {
+                       "Value": "Product123"
+                     },
+                     "ParentIdentification": null,
+                     "EnergySuppliers": [
+                       {
+                         "SupplierId": "Supplier1",
+                         "StartDate": "2023-11-29T12:34:56Z"
+                       }
+                     ]
+                   }
+                   """;
+
+        // IEnumerable<MeteringPointMasterData>
+        var response = Response
+            .Create()
+            .WithStatusCode(HttpStatusCode.OK)
+            .WithHeader(HeaderNames.ContentType, "application/json")
+            .WithBody($"[{body}]");
+
+        _fixture.OrchestrationsAppManager.MockServer.Given(request).RespondWith(response);
+
         // Arrange
         var input = CreateMeteredDataForMeteringPointMessageInputV1();
 
@@ -228,6 +280,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var successfulSteps = terminatedOrchestrationInstance!.Steps
             .Where(step => step.Lifecycle.TerminationState is OrchestrationStepTerminationState.Succeeded)
             .Select(step => step.Sequence);
+
+        _fixture.OrchestrationsAppManager.MockServer.LogEntries.Should().BeEmpty();
+        terminatedOrchestrationInstance.CustomState.Should().BeEmpty();
 
         successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
 

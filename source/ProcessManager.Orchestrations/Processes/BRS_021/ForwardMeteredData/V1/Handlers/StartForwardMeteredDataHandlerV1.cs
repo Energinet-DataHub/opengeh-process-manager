@@ -247,6 +247,9 @@ public class StartForwardMeteredDataHandlerV1(
         ForwardMeteredDataInputV1 forwardMeteredDataInput,
         IReadOnlyCollection<ValidationError> validationErrors)
     {
+        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+        await StepHelper.StartStepAndCommitIfPending(enqueueStep, _clock, _progressRepository).ConfigureAwait(false);
+
         await _enqueueActorMessagesClient.EnqueueAsync(
                 OrchestrationDescriptionBuilderV1.UniqueName,
                 orchestrationInstance.Id.Value,

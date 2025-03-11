@@ -50,11 +50,20 @@ public static class StepHelper
         IOrchestrationInstanceProgressRepository progressRepository,
         OrchestrationStepTerminationState terminationState = OrchestrationStepTerminationState.Succeeded)
     {
-        // TODO: Why doesn't this work like the "start step" method? Shouldn't it just do nothing, to guard against idempotency/retries.
         if (step.Lifecycle.State != StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Can only terminate a running step (Step.Id={step.Id}, Step.State={step.Lifecycle.State}).");
 
         step.Lifecycle.TransitionToTerminated(clock, terminationState);
+        await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Skip a step if it is pending and commit the change.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Throws an exception if the step isn't pending (thrown by the step lifecycle).</exception>
+    public static async Task SkipStepAndCommitIfPending(StepInstance step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
+    {
+        step.Lifecycle.TransitionToTerminated(clock, OrchestrationStepTerminationState.Skipped);
         await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 }

@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuilder
 {
-    public const int ValidationStep = 1;
+    public const int BusinessValidationStep = 1;
     public const int ForwardToMeasurementStep = 2;
     public const int FindReceiverStep = 3;
     public const int EnqueueActorMessagesStep = 4;

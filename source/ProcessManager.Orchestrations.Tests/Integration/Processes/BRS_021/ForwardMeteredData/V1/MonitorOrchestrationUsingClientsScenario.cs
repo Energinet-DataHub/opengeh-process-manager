@@ -300,7 +300,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 s =>
                 {
                     // Validation step should be failed
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.ValidationStep);
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.BusinessValidationStep);
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()

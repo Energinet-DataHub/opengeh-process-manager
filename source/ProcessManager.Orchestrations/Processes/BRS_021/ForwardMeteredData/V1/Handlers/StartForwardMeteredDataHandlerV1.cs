@@ -13,8 +13,12 @@
 // limitations under the License.
 
 using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -29,10 +33,14 @@ using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using NodaTime.Text;
+using ActorNumber = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ActorNumber;
 using GridAreaCode = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode;
 using MeteringPointMasterData = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointMasterData;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
+using OrchestrationInstanceLifecycleState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
+using OrchestrationStepTerminationState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationStepTerminationState;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
+using StepInstanceLifecycleState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.StepInstanceLifecycleState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
@@ -43,7 +51,8 @@ public class StartForwardMeteredDataHandlerV1(
     IClock clock,
     IMeasurementsMeteredDataClient measurementsMeteredDataClient,
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
-    ElectricityMarket.Integration.IElectricityMarketViews electricityMarketViews)
+    ElectricityMarket.Integration.IElectricityMarketViews electricityMarketViews,
+    IEnqueueActorMessagesClient enqueueActorMessagesClient)
         : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
@@ -52,10 +61,85 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IMeasurementsMeteredDataClient _measurementsMeteredDataClient = measurementsMeteredDataClient;
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
     private readonly ElectricityMarket.Integration.IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
+    private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
     // TODO: This method is not idempotent, Since we can not set a "running" step to "running"
     // TODO: Hence we need to commit after the event/message has been sent
     protected override async Task StartOrchestrationInstanceAsync(
+        ActorIdentity actorIdentity,
+        ForwardMeteredDataInputV1 input,
+        string idempotencyKey,
+        string actorMessageId,
+        string transactionId,
+        string? meteringPointId)
+    {
+        var orchestrationInstance = await InitializeOrchestrationInstance(
+                actorIdentity,
+                input,
+                idempotencyKey,
+                actorMessageId,
+                transactionId,
+                meteringPointId)
+            .ConfigureAwait(false);
+
+        // If the orchestration instance isn't running, do nothing (idempotency/retry check).
+        if (orchestrationInstance.Lifecycle.State != OrchestrationInstanceLifecycleState.Running)
+            return;
+
+        var forwardMeteredDataInput = orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>();
+
+        // Perform step: Business validation
+        var validationErrors = await PerformBusinessValidation(
+                orchestrationInstance: orchestrationInstance,
+                input: forwardMeteredDataInput)
+            .ConfigureAwait(false);
+
+        var validationSuccess = validationErrors.Count == 0;
+        if (validationSuccess)
+        {
+            // Perform step: Forward to Measurements
+            await ForwardToMeasurements(
+                    input,
+                    orchestrationInstance)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            // Skip step: Forward to Measurements
+            var forwardStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
+
+            // If the step is already skipped, do nothing (idempotency/retry check).
+            if (forwardStep.Lifecycle.TerminationState != OrchestrationStepTerminationState.Skipped)
+            {
+                // If the step isn't skipped, it should still be in "pending", else an exception will be thrown.
+                await StepHelper.SkipStepAndCommitIfPending(forwardStep, _clock, _progressRepository)
+                    .ConfigureAwait(false);
+            }
+
+            // Skip step: Find receiver
+            var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiverStep);
+
+            // If the step is already skipped, do nothing (idempotency/retry check).
+            if (findReceiverStep.Lifecycle.TerminationState != OrchestrationStepTerminationState.Skipped)
+            {
+                // If the step isn't skipped, it should still be in "pending", else an exception will be thrown.
+                await StepHelper.SkipStepAndCommitIfPending(findReceiverStep, _clock, _progressRepository)
+                    .ConfigureAwait(false);
+            }
+
+            await EnqueueRejectedActorMessage(
+                    orchestrationInstance,
+                    forwardMeteredDataInput,
+                    validationErrors)
+                .ConfigureAwait(false);
+        }
+
+        // The orchestration instance is now in a state where it either:
+        // - Waits for a notify response from measurements on the event hub.
+        // - Waits for a rejected actor messages enqueued notify response on the service bus.
+    }
+
+    private async Task<OrchestrationInstance> InitializeOrchestrationInstance(
         ActorIdentity actorIdentity,
         ForwardMeteredDataInputV1 input,
         string idempotencyKey,
@@ -85,43 +169,19 @@ public class StartForwardMeteredDataHandlerV1(
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
 
-        if (orchestrationInstance.Lifecycle.State != OrchestrationInstanceLifecycleState.Running)
-            return;
-
-        // Start Step: Validate Metered Data
-        var validationErrors = await PerformBusinessValidation(orchestrationInstance).ConfigureAwait(false);
-
-        var validationSuccess = validationErrors.Count == 0;
-        if (validationSuccess)
-        {
-            // Start Step: Forward to Measurements
-            var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
-            await StepHelper.StartStepAndCommitIfPending(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
-
-            if (forwardToMeasurementStep.Lifecycle.State == StepInstanceLifecycleState.Running)
-            {
-                await _measurementsMeteredDataClient.SendAsync(
-                        MapInputToMeasurements(orchestrationInstanceId, input),
-                        CancellationToken.None)
-                    .ConfigureAwait(false);
-            }
-        }
-        else
-        {
-            // TODO: Enqueue reject message in EDI
-        }
+        return orchestrationInstance;
     }
 
-    private async Task<IReadOnlyCollection<ValidationError>> PerformBusinessValidation(OrchestrationInstance orchestrationInstance)
+    private async Task<IReadOnlyCollection<ValidationError>> PerformBusinessValidation(
+        OrchestrationInstance orchestrationInstance,
+        ForwardMeteredDataInputV1 input)
     {
-        var validationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ValidationStep);
+        var validationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.BusinessValidationStep);
         await StepHelper.StartStepAndCommitIfPending(validationStep, _clock, _progressRepository).ConfigureAwait(false);
 
         IReadOnlyCollection<ValidationError> validationErrors;
         if (validationStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
-            var input = orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>();
-
             // Fetch Metered Data and store received data used to find receiver later in the orchestration
             // TODO: Use master data from the orchestration instance custom state instead
             var meteringPointMasterDataList = await GetMeteringPointMasterData(
@@ -163,6 +223,45 @@ public class StartForwardMeteredDataHandlerV1(
         }
 
         return validationErrors;
+    }
+
+    private async Task ForwardToMeasurements(
+        ForwardMeteredDataInputV1 input,
+        OrchestrationInstance orchestrationInstance)
+    {
+        // Start Step: Forward to Measurements
+        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
+        await StepHelper.StartStepAndCommitIfPending(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
+
+        if (forwardToMeasurementStep.Lifecycle.State == StepInstanceLifecycleState.Running)
+        {
+            await _measurementsMeteredDataClient.SendAsync(
+                    MapInputToMeasurements(orchestrationInstance.Id, input),
+                    CancellationToken.None)
+                .ConfigureAwait(false);
+        }
+    }
+
+    private async Task EnqueueRejectedActorMessage(
+        OrchestrationInstance orchestrationInstance,
+        ForwardMeteredDataInputV1 forwardMeteredDataInput,
+        IReadOnlyCollection<ValidationError> validationErrors)
+    {
+        await _enqueueActorMessagesClient.EnqueueAsync(
+                OrchestrationDescriptionBuilderV1.UniqueName,
+                orchestrationInstance.Id.Value,
+                new ActorIdentityDto(
+                    ProcessManager.Abstractions.Core.ValueObjects.ActorNumber.Create(
+                        forwardMeteredDataInput.ActorNumber),
+                    ActorRole.FromName(forwardMeteredDataInput.ActorRole)),
+                Guid.NewGuid(),
+                new ForwardMeteredDataRejectedV1(
+                    forwardMeteredDataInput.ActorMessageId,
+                    forwardMeteredDataInput.TransactionId,
+                    validationErrors
+                        .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))
+                        .ToList()))
+            .ConfigureAwait(false);
     }
 
     private async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMeteringPointMasterData(

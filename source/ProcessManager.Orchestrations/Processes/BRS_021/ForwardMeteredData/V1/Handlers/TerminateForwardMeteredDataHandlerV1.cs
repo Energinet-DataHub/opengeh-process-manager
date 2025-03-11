@@ -31,14 +31,37 @@ public class TerminateForwardMeteredDataHandlerV1(
             .GetAsync(orchestrationInstanceId)
             .ConfigureAwait(false);
 
-        if (orchestrationInstance.Lifecycle.State != OrchestrationInstanceLifecycleState.Running)
+        // Do nothing if the orchestration instance is already terminated
+        if (orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated)
             return;
 
-        // Terminate Step: Enqueue actor messages step
-        var enqueueActorMessagesStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
-        await StepHelper.TerminateStepAndCommit(enqueueActorMessagesStep, _clock, _progressRepository).ConfigureAwait(false);
+        // Throw if the orchestration instance is not running (it should not be possible to be in pending/queued state at this point).
+        if (orchestrationInstance.Lifecycle.State != OrchestrationInstanceLifecycleState.Running)
+            throw new InvalidOperationException($"Received notify but the orchestration instance {orchestrationInstanceId} is not running.");
 
-        orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
+        await TerminateEnqueueActorMessagesStep(orchestrationInstance).ConfigureAwait(false);
+
+        await TerminateOrchestrationInstance(orchestrationInstance).ConfigureAwait(false);
+    }
+
+    private async Task TerminateOrchestrationInstance(OrchestrationInstance orchestrationInstance)
+    {
+        var businessValidationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.BusinessValidationStep);
+
+        var succeededBusinessValidation = businessValidationStep.Lifecycle is { TerminationState: OrchestrationStepTerminationState.Succeeded };
+        if (succeededBusinessValidation)
+            orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
+        else
+            orchestrationInstance.Lifecycle.TransitionToFailed(_clock);
+
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    private async Task TerminateEnqueueActorMessagesStep(OrchestrationInstance orchestrationInstance)
+    {
+        var enqueueActorMessagesStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+
+        if (enqueueActorMessagesStep.Lifecycle.State != StepInstanceLifecycleState.Terminated)
+            await StepHelper.TerminateStepAndCommit(enqueueActorMessagesStep, _clock, _progressRepository).ConfigureAwait(false);
     }
 }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
@@ -20,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
+using ActorNumber = Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects.ActorNumber;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
@@ -30,6 +32,7 @@ public class EnqueueMeteredDataHandlerV1(
 {
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly IClock _clock = clock;
 
     public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
@@ -42,23 +45,23 @@ public class EnqueueMeteredDataHandlerV1(
 
         // Terminate Step: Forward metered data step
         var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
-        await StepHelper.TerminateStep(forwardToMeasurementStep, clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.TerminateStep(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
 
         // Start Step: Find receiver step
         var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiverStep);
-        await StepHelper.StartStep(findReceiverStep, clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.StartStep(findReceiverStep, _clock, _progressRepository).ConfigureAwait(false);
 
         if (findReceiverStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
             // Find Receivers
 
             // Terminate Step: Find receiver step
-            await StepHelper.TerminateStep(findReceiverStep, clock, _progressRepository).ConfigureAwait(false);
+            await StepHelper.TerminateStep(findReceiverStep, _clock, _progressRepository).ConfigureAwait(false);
         }
 
         // Start Step: Enqueue actor messages step
         var enqueueActorMessagesStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
-        await StepHelper.StartStep(enqueueActorMessagesStep, clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.StartStep(enqueueActorMessagesStep, _clock, _progressRepository).ConfigureAwait(false);
 
         if (enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
@@ -69,10 +72,10 @@ public class EnqueueMeteredDataHandlerV1(
                 OriginalTransactionId: "OriginalTransactionId",
                 ProductNumber: "productNumber",
                 MeasureUnit: MeasurementUnit.Megawatt,
-                RegistrationDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
+                RegistrationDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
                 Resolution: Resolution.QuarterHourly,
-                StartDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
-                EndDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
+                StartDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
+                EndDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
                 AcceptedEnergyObservations: new List<ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation>
                 {
                     new(1, 1, Quality.Calculated),

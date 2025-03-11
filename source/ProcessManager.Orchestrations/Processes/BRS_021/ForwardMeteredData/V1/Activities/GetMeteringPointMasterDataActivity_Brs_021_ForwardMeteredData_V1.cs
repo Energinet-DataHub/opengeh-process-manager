@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
@@ -55,20 +58,32 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
             .ConfigureAwait(false);
         return new(
             meteringPointMasterData
-                .Select(Map)
+                .SelectMany(Map)
                 .ToList());
     }
 
-    private static MeteringPointMasterData Map(ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData arg)
+    private static IReadOnlyCollection<MeteringPointMasterData> Map(
+        ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData arg)
     {
-        return new(
-            new MeteringPointId(arg.Identification.Value),
-            new GridAreaCode(arg.GridAreaCode.Value),
-            new ActorNumber(arg.GridAccessProvider),
-            MeteringPointMasterDataMapper.ConnectionStateMap.Map(arg.ConnectionState),
-            MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(arg.Type),
-            MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(arg.SubType),
-            MeteringPointMasterDataMapper.MeasureUnitMap.Map(arg.Unit));
+        return arg.EnergySuppliers
+            .Select(
+                x => new MeteringPointMasterData(
+                    new MeteringPointId(arg.Identification.Value),
+                    x.StartDate,
+                    x.EndDate,
+                    new GridAreaCode(arg.GridAreaCode.Value),
+                    ActorNumber.Create(arg.GridAccessProvider),
+                    arg.NeighborGridAreaOwners,
+                    MeteringPointMasterDataMapper.ConnectionStateMap.Map(arg.ConnectionState),
+                    MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(arg.Type),
+                    MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(arg.SubType),
+                    Resolution.Hourly,
+                    MeteringPointMasterDataMapper.MeasureUnitMap.Map(arg.Unit),
+                    arg.ProductId.ToString(),
+                    arg.ParentIdentification is null ? null : new MeteringPointId(arg.ParentIdentification.Value),
+                    ActorNumber.Create(x.EnergySupplier)))
+            .ToList()
+            .AsReadOnly();
     }
 
     public sealed record ActivityInput(string? MeteringPointIdentification, string StartDateTime, string? EndDateTime);

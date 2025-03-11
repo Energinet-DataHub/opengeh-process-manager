@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
@@ -21,6 +22,8 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Thingies;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 using NodaTime;
@@ -33,13 +36,15 @@ public class StartForwardMeteredDataHandlerV1(
     IStartOrchestrationInstanceMessageCommands commands,
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
-    IMeasurementsMeteredDataClient measurementsMeteredDataClient)
+    IMeasurementsMeteredDataClient measurementsMeteredDataClient,
+    IElectricityMarketViews electricityMarketViews)
         : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
     private readonly IMeasurementsMeteredDataClient _measurementsMeteredDataClient = measurementsMeteredDataClient;
+    private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
     // TODO: This method is not idempotent, Since we can not set a "running" step to "running"
     // TODO: Hence we need to commit after the event/message has been sent
@@ -75,6 +80,19 @@ public class StartForwardMeteredDataHandlerV1(
 
         if (orchestrationInstance.Lifecycle.State != OrchestrationInstanceLifecycleState.Running)
             return;
+
+        // Fetch metering point master data and store if needed
+        if (orchestrationInstance.CustomState.IsEmpty)
+        {
+            var meteringPointMasterData = await new MeteringPointMasterDataSteamRoller(_electricityMarketViews)
+                .GetAndSteamRollMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
+                .ConfigureAwait(false);
+
+            orchestrationInstance.CustomState.SetFromInstance(
+                new Brs021_ForwardMeteredData_CustomState(meteringPointMasterData));
+        }
+
+        var customState = orchestrationInstance.CustomState.AsType<Brs021_ForwardMeteredData_CustomState>();
 
         // Start Step: Validate Metered Data
         var validationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ValidationStep);

@@ -446,11 +446,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{OrchestrationOptions_Brs_028_V1.SectionName}__{nameof(OrchestrationOptions_Brs_028_V1.EnqueueActorMessagesTimeout)}",
             TimeSpan.FromSeconds(60).ToString());
 
-        // => Wholesale migration (database)
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{WholesaleDatabaseOptions.SectionName}__{nameof(WholesaleDatabaseOptions.SqlDatabaseConnectionString)}",
-            WholesaleDatabaseManager.ConnectionString);
-
         return appHostSettings;
     }
 

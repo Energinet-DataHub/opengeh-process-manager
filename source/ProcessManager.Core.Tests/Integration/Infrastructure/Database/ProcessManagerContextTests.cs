@@ -265,6 +265,11 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
     }
 
+    /// <summary>
+    /// Beware that we use Update on the database context, which is why the OrchestrationInstance RowVersion is updated
+    /// even if we change the steps. We have additional, and more precise tests of optimistic concurrency, in the
+    /// "OrchestrationInstanceRepositoryTests".
+    /// </summary>
     [Fact]
     public async Task Given_OrchestrationInstanceChangedFromMultipleConsumers_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {

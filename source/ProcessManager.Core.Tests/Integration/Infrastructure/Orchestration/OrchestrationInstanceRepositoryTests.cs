@@ -144,7 +144,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         using var dbContext02 = _fixture.DatabaseManager.CreateDbContext();
         var sut02 = new OrchestrationInstanceRepository(dbContext02);
         var actual02 = await sut02.GetAsync(existingOrchestrationInstance.Id);
-        actual02.TransitionStepToTerminated(1, OrchestrationStepTerminationState.Skipped, SystemClock.Instance);
+        actual02.TransitionStepToRunning(1, SystemClock.Instance);
 
         await _sut.UnitOfWork.CommitAsync();
 

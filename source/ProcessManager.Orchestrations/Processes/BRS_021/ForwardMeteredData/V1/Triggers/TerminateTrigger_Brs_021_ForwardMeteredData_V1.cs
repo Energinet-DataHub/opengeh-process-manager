@@ -21,7 +21,7 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
-public class NotifyTrigger_Brs_021_ForwardMeteredData_V1(
+public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
     TerminateForwardMeteredDataHandlerV1 terminateForwardMeteredDataHandlerV1)
 {
     private readonly TerminateForwardMeteredDataHandlerV1 _terminateForwardMeteredDataHandlerV1 = terminateForwardMeteredDataHandlerV1;
@@ -29,7 +29,7 @@ public class NotifyTrigger_Brs_021_ForwardMeteredData_V1(
     /// <summary>
     /// Terminate a BRS-021 ForwardMeteredData.
     /// </summary>
-    [Function(nameof(NotifyTrigger_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(TerminateTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ServiceBusTrigger(
             $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}%",

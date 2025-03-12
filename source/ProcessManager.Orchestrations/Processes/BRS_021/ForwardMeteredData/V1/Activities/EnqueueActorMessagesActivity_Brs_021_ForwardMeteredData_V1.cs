@@ -67,7 +67,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
             : new MarketActorRecipientV1(ActorNumber.Create("5790000282425"), ActorRole.EnergySupplier);
 
         var data = new ForwardMeteredDataAcceptedV1(
-            OriginalActorMessageId: messageInput.MessageId,
+            OriginalActorMessageId: messageInput.ActorMessageId,
             OriginalTransactionId: activityInput.ForwardMeteredDataInputV1.TransactionId,
             MeteringPointId: messageInput.MeteringPointId!,
             MeteringPointType: MeteringPointType.FromName(messageInput.MeteringPointType!),

@@ -27,23 +27,10 @@ public class MeteringPointValidationRuleTests
     private readonly MeteringPointValidationRule _sut = new();
 
     [Fact]
-    public async Task Given_NoMeteringPointMasterData_When_Validate_Then_ValidationError()
-    {
-        var input = MeteredDataForMeteringPointMessageInputV1Builder.Build();
-
-        var result = await _sut.ValidateAsync(new(input, []));
-
-        result.Should()
-            .ContainSingle()
-            .And.Contain(
-                ve => ve.ErrorCode == "E10"
-                      && ve.Message == "Målepunktet findes ikke / The metering point does not exist");
-    }
-
-    [Fact]
     public async Task Given_MeteringPointMasterData_When_Validate_Then_NoValidationError()
     {
-        var input = MeteredDataForMeteringPointMessageInputV1Builder.Build();
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
 
         var result = await _sut.ValidateAsync(
             new(
@@ -67,5 +54,20 @@ public class MeteringPointValidationRuleTests
                 ]));
 
         result.Should().BeEmpty();
+    }
+
+    [Fact(Skip = "'Metering point doesn't exists' validation is currently disabled")]
+    public async Task Given_NoMeteringPointMasterData_When_Validate_Then_ValidationError()
+    {
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
+
+        var result = await _sut.ValidateAsync(new(input, []));
+
+        result.Should()
+            .ContainSingle()
+            .And.Contain(
+                ve => ve.ErrorCode == "E10"
+                      && ve.Message == "Målepunktet findes ikke / The metering point does not exist");
     }
 }

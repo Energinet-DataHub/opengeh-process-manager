@@ -44,24 +44,29 @@ public class EnqueueMeteredDataHandlerV1(
             return;
 
         // Terminate Step: Forward metered data step
-        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep);
-        await StepHelper.TerminateStep(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
+        var forwardToMeasurementStep =
+            orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+        await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository)
+            .ConfigureAwait(false);
 
         // Start Step: Find receiver step
         var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiverStep);
-        await StepHelper.StartStep(findReceiverStep, _clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.StartStepAndCommitIfPending(findReceiverStep, _clock, _progressRepository)
+            .ConfigureAwait(false);
 
         if (findReceiverStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
             // Find Receivers
 
             // Terminate Step: Find receiver step
-            await StepHelper.TerminateStep(findReceiverStep, _clock, _progressRepository).ConfigureAwait(false);
+            await StepHelper.TerminateStepAndCommit(findReceiverStep, _clock, _progressRepository)
+                .ConfigureAwait(false);
         }
 
         // Start Step: Enqueue actor messages step
         var enqueueActorMessagesStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
-        await StepHelper.StartStep(enqueueActorMessagesStep, _clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.StartStepAndCommitIfPending(enqueueActorMessagesStep, _clock, _progressRepository)
+            .ConfigureAwait(false);
 
         if (enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {

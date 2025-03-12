@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Client;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 /// <summary>
-/// Command for starting a BRS-021-ForwardMeteredData.
+/// Command for starting a BRS-021 forward metered data.
 /// Must be JSON serializable.
 /// </summary>
 public record ForwardMeteredDataCommandV1
@@ -42,7 +42,7 @@ public record ForwardMeteredDataCommandV1
                 orchestrationDescriptionUniqueName: Brs_021_ForwardedMeteredData.V1,
                 inputParameter,
                 idempotencyKey,
-                inputParameter.MessageId,
+                inputParameter.ActorMessageId,
                 inputParameter.TransactionId,
                 inputParameter.MeteringPointId)
     {

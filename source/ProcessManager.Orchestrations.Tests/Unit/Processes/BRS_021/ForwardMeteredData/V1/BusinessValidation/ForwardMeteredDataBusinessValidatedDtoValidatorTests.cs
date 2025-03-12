@@ -1,0 +1,140 @@
+﻿// Copyright 2020 Energinet DataHub A/S
+//
+// Licensed under the Apache License, Version 2.0 (the "License2");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using NodaTime;
+
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.
+    BusinessValidation;
+
+public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
+{
+    private readonly Mock<IClock> _clockMock = new Mock<IClock>();
+    private readonly DateTimeZone _timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
+
+    private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _sut;
+
+    public ForwardMeteredDataBusinessValidatedDtoValidatorTests()
+    {
+        _clockMock.Setup(c => c.GetCurrentInstant())
+            .Returns(Instant.FromUtc(2024, 11, 15, 16, 46, 43));
+
+        IServiceCollection services = new ServiceCollection();
+
+        services.AddLogging();
+        services.AddTransient<DateTimeZone>(s => _timeZone);
+        services.AddTransient<IClock>(s => _clockMock.Object);
+
+        var orchestrationsAssembly = typeof(OrchestrationDescriptionBuilderV1).Assembly;
+        var orchestrationsAbstractionsAssembly =
+            typeof(ForwardMeteredDataBusinessValidatedDto).Assembly;
+        services.AddBusinessValidation(assembliesToScan: [orchestrationsAssembly, orchestrationsAbstractionsAssembly]);
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        _sut = serviceProvider
+            .GetRequiredService<BusinessValidator<ForwardMeteredDataBusinessValidatedDto>>();
+    }
+
+    [Fact]
+    public async Task Given_ValidForwardMeteredDataBusinessValidatedDto_When_Validate_Then_NoValidationError()
+    {
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                Input: input,
+                MeteringPointMasterData:
+                [
+                    new MeteringPointMasterData(
+                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+                        GridAreaCode: new GridAreaCode("804"),
+                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+                        ConnectionState: ConnectionState.Connected,
+                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+                        MeteringPointSubType: MeteringPointSubType.Physical,
+                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        NeighborGridAreaOwners: [],
+                        Resolution: Resolution.Hourly,
+                        ProductId: "product",
+                        ParentMeteringPointId: null,
+                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Given_InvalidEndDate_When_Validate_Then_InvalidEndDateValidationError()
+    {
+        var input = new ForwardMeteredDataInputV1Builder()
+            .WithEndDateTime(null)
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                Input: input,
+                MeteringPointMasterData:
+                [
+                    new MeteringPointMasterData(
+                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+                        GridAreaCode: new GridAreaCode("804"),
+                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+                        ConnectionState: ConnectionState.Connected,
+                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+                        MeteringPointSubType: MeteringPointSubType.Physical,
+                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        NeighborGridAreaOwners: [],
+                        Resolution: Resolution.Hourly,
+                        ProductId: "product",
+                        ParentMeteringPointId: null,
+                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                ]));
+
+        result.Should()
+            .ContainSingle()
+            .And.ContainEquivalentOf(PeriodValidationRule.InvalidEndDate);
+    }
+
+    [Fact(Skip = "'Metering point doesn't exists' validation is currently disabled")]
+    public async Task Given_NoMasterData_When_Validate_Then_ValidationError()
+    {
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                Input: input,
+                MeteringPointMasterData: []));
+
+        result.Should()
+            .ContainSingle()
+            .And.BeEquivalentTo(MeteringPointValidationRule.MeteringPointDoesntExistsError);
+    }
+}

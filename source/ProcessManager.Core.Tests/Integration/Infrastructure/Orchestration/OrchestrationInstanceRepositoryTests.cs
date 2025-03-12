@@ -90,6 +90,38 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
+    public async Task Given_OrchestrationInstanceChangedFromMultipleConsumer_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        using var dbContext02 = _fixture.DatabaseManager.CreateDbContext();
+        var sut02 = new OrchestrationInstanceRepository(dbContext02);
+
+        var actual01 = await _sut.GetAsync(existingOrchestrationInstance.Id);
+        actual01.TransitionStepToRunning(1, SystemClock.Instance);
+
+        var actual02 = await sut02.GetAsync(existingOrchestrationInstance.Id);
+        actual02.TransitionStepToRunning(1, SystemClock.Instance);
+
+        await _sut.UnitOfWork.CommitAsync();
+
+        // Act
+        var act = () => sut02.UnitOfWork.CommitAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
+    }
+
+    [Fact]
     public async Task Given_OrchestrationInstanceNotInDatabase_When_GetByIdempotencyKey_Then_ReturnsNull()
     {
         // Arrange

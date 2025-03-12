@@ -14,7 +14,7 @@
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
         <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="6.1.3" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.1" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.1" />
         <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="14.0.2" />
     </ItemGroup>
     <ItemGroup>

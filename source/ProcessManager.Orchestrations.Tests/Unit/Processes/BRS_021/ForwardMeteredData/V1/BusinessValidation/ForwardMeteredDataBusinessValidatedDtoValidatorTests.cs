@@ -25,8 +25,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.
-    BusinessValidation;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
 public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 {

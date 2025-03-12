@@ -66,10 +66,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IClock _clock = clock;
     private readonly IMeasurementsMeteredDataClient _measurementsMeteredDataClient = measurementsMeteredDataClient;
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
-
-    private readonly ElectricityMarket.Integration.IElectricityMarketViews _electricityMarketViews =
-        electricityMarketViews;
-
+    private readonly ElectricityMarket.Integration.IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
     /// <summary>
@@ -141,8 +138,7 @@ public class StartForwardMeteredDataHandlerV1(
         else
         {
             // Skip step: Forward to Measurements
-            var forwardStep =
-                orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+            var forwardStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
 
             // If the step is already skipped, do nothing (idempotency/retry check).
             if (forwardStep.Lifecycle.TerminationState is not OrchestrationStepTerminationState.Skipped)
@@ -270,12 +266,7 @@ public class StartForwardMeteredDataHandlerV1(
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
 
-        await StepHelper.TerminateStepAndCommit(
-                validationStep,
-                _clock,
-                _progressRepository,
-                validationStepTerminationState)
-            .ConfigureAwait(false);
+        await StepHelper.TerminateStepAndCommit(validationStep, _clock, _progressRepository, validationStepTerminationState).ConfigureAwait(false);
 
         return validationErrors;
     }
@@ -285,15 +276,13 @@ public class StartForwardMeteredDataHandlerV1(
         OrchestrationInstance orchestrationInstance)
     {
         // Start Step: Forward to Measurements
-        var forwardToMeasurementsStep =
-            orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+        var forwardToMeasurementsStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (forwardToMeasurementsStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
             return;
 
-        await StepHelper.StartStepAndCommitIfPending(forwardToMeasurementsStep, _clock, _progressRepository)
-            .ConfigureAwait(false);
+        await StepHelper.StartStepAndCommitIfPending(forwardToMeasurementsStep, _clock, _progressRepository).ConfigureAwait(false);
 
         // If we reach this point, the step should be running, so this check is just an extra safeguard.
         if (forwardToMeasurementsStep.Lifecycle.State is not StepInstanceLifecycleState.Running)

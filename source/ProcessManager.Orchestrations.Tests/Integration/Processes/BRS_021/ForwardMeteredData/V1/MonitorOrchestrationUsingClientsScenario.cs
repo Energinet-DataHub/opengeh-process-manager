@@ -233,11 +233,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
                 (message) =>
                 {
-                    var persistSubmittedTransaction =
-                        PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
+                    var persistSubmittedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
 
-                    var orchestrationIdMatches = persistSubmittedTransaction.OrchestrationInstanceId
-                                                 == orchestrationInstance!.Id.ToString();
+                    var orchestrationIdMatches = persistSubmittedTransaction.OrchestrationInstanceId == orchestrationInstance!.Id.ToString();
+
                     var transactionIdMatches = persistSubmittedTransaction.TransactionId == input.TransactionId;
 
                     return orchestrationIdMatches && transactionIdMatches;
@@ -250,12 +249,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
         var notifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
         {
-            Version = "1", OrchestrationInstanceId = orchestrationInstance!.Id.ToString(),
+            Version = "1",
+            OrchestrationInstanceId = orchestrationInstance!.Id.ToString(),
         };
 
         var eventHubEventData = new EventData(notifyFromMeasurements.ToByteArray());
-        var processManagerEventHubProducerClient =
-            eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
+        var processManagerEventHubProducerClient = eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
         await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
 
         // Wait for enqueue messages sent to EDI and send mock notify response to Process Manager
@@ -290,16 +289,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task
-        Given_InvalidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
+    public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
         // Given
         var invalidInput = CreateForwardMeteredDataInputV1() with { EndDateTime = null };
 
         var invalidForwardCommand = new ForwardMeteredDataCommandV1(
-            new ActorIdentityDto(
-                ActorNumber.Create(invalidInput.ActorNumber),
-                ActorRole.FromName(invalidInput.ActorRole)),
+            new ActorIdentityDto(ActorNumber.Create(invalidInput.ActorNumber), ActorRole.FromName(invalidInput.ActorRole)),
             invalidInput,
             idempotencyKey: Guid.NewGuid().ToString());
 
@@ -307,9 +303,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
         // When
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
-            invalidForwardCommand,
-            CancellationToken.None);
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(invalidForwardCommand, CancellationToken.None);
 
         // Then
         // Query until waiting for EnqueueActorMessagesCompleted notify event (a reject message should be enqueued)
@@ -322,16 +316,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
 
         // Verify an enqueue actor messages event is sent on the service bus
-        var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener
-            .When(
-                message =>
+        var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When(
+                (message) =>
                 {
-                    if (!message.TryParseAsEnqueueActorMessages(
-                            Brs_021_ForwardedMeteredData.Name,
-                            out var enqueueActorMessagesV1))
-                    {
+                    if (!message.TryParseAsEnqueueActorMessages(Brs_021_ForwardedMeteredData.Name, out var enqueueActorMessagesV1))
                         return false;
-                    }
 
                     var forwardMeteredDataRejectedV1 = enqueueActorMessagesV1.ParseData<ForwardMeteredDataRejectedV1>();
 
@@ -339,14 +328,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         .HaveCount(1)
                         .And.ContainSingle(
                             (e) => e.Message.Equals(PeriodValidationRule.InvalidEndDate.Message));
-                    return forwardMeteredDataRejectedV1.OriginalTransactionId
-                           == invalidForwardCommand.InputParameter.TransactionId;
+                    return forwardMeteredDataRejectedV1.OriginalTransactionId == invalidForwardCommand.InputParameter.TransactionId;
                 })
             .VerifyCountAsync(1);
 
         var enqueueMessageFound = verifyEnqueueRejectedActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
-        enqueueMessageFound.Should()
-            .BeTrue($"because a {nameof(ForwardMeteredDataRejectedV1)} service bus message should have been sent");
+        enqueueMessageFound.Should().BeTrue($"because a {nameof(ForwardMeteredDataRejectedV1)} service bus message should have been sent");
 
         // Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
@@ -359,9 +346,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
                 idempotencyKey: invalidForwardCommand.IdempotencyKey);
 
-        orchestrationTerminatedWithSucceeded.Should()
-            .BeTrue(
-                "because the orchestration instance should be terminated within given wait time");
+        orchestrationTerminatedWithSucceeded.Should().BeTrue("because the orchestration instance should be terminated within given wait time");
 
         // Orchestration instance and validation steps should be Failed
         using var assertionScope = new AssertionScope();

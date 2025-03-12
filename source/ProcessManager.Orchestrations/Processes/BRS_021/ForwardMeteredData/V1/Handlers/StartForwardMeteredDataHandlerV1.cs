@@ -312,6 +312,7 @@ public class StartForwardMeteredDataHandlerV1(
                     forwardMeteredDataInput.TransactionId,
                     ActorNumber.Create(forwardMeteredDataInput.ActorNumber),
                     ActorRole.FromName(forwardMeteredDataInput.ActorRole),
+                    BusinessReason.FromName(forwardMeteredDataInput.BusinessReason),
                     validationErrors
                         .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))
                         .ToList()))

@@ -110,7 +110,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         actual01.TransitionStepToRunning(1, SystemClock.Instance);
 
         var actual02 = await sut02.GetAsync(existingOrchestrationInstance.Id);
-        actual02.TransitionStepToRunning(1, SystemClock.Instance);
+        actual02.TransitionStepToRunning(2, SystemClock.Instance);
 
         await _sut.UnitOfWork.CommitAsync();
 

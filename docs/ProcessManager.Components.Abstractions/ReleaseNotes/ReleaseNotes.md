@@ -1,9 +1,5 @@
 # ProcessManager.Components.Abstractions Release Notes
 
-## Version 1.3.7
-
-- Dummy bump to enable prerelease. DELETE BEFORE MERGING PR.
-
 ## Version 1.3.6
 
 - Update NuGet packages.

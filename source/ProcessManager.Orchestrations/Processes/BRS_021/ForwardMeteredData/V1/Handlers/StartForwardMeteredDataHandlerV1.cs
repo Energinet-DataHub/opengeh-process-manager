@@ -121,6 +121,7 @@ public class StartForwardMeteredDataHandlerV1(
 
     private static Point MapPoints(ForwardMeteredDataInputV1.EnergyObservation eo)
     {
+        // TODO: temporary solution until we have business validation rules for quality
         var quality = string.IsNullOrWhiteSpace(eo.QuantityQuality) || eo.QuantityQuality == Quality.Incomplete.Name
             ? Quality.NotAvailable
             : Quality.FromName(eo.QuantityQuality);

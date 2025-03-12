@@ -29,6 +29,7 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
     /// Enqueue Messages for BRS-021.
     /// </summary>
     [Function(nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
+    [ExponentialBackoffRetry(5, "00:00:01", "00:01:00")]
     public async Task Run(
         [EventHubTrigger(
             $"%{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.EventHubName)}%",

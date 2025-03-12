@@ -21,8 +21,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public sealed record MeteringPointMasterData(
     MeteringPointId MeteringPointId,
-    Instant ValidFrom,
-    Instant ValidTo,
+    DateTimeOffset ValidFrom,
+    DateTimeOffset ValidTo,
     GridAreaCode GridAreaCode,
     ActorNumber GridAccessProvider,
     IReadOnlyCollection<string> NeighborGridAreaOwners,

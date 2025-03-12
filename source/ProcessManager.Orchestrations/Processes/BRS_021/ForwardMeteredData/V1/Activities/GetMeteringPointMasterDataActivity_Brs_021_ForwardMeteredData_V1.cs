@@ -69,8 +69,8 @@ internal sealed class GetMeteringPointMasterDataActivity_Brs_021_ForwardMeteredD
             .Select(
                 x => new MeteringPointMasterData(
                     new MeteringPointId(arg.Identification.Value),
-                    x.StartDate,
-                    x.EndDate,
+                    x.StartDate.ToDateTimeOffset(),
+                    x.EndDate.ToDateTimeOffset(),
                     new GridAreaCode(arg.GridAreaCode.Value),
                     ActorNumber.Create(arg.GridAccessProvider),
                     arg.NeighborGridAreaOwners,

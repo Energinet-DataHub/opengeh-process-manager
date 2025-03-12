@@ -51,8 +51,8 @@ public class MeteringPointValidationRuleTests
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("id"),
-                        SystemClock.Instance.GetCurrentInstant(),
-                        SystemClock.Instance.GetCurrentInstant(),
+                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
                         new GridAreaCode("111"),
                         ActorNumber.Create("1111111111111"),
                         [],

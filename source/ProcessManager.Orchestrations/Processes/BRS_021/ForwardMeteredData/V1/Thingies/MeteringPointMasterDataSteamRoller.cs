@@ -64,8 +64,8 @@ public class MeteringPointMasterDataSteamRoller(IElectricityMarketViews electric
             .Select(
                 meteringPointEnergySupplier => new PMMeteringPointMasterData(
                     new MeteringPointId(meteringPointMasterData.Identification.Value),
-                    meteringPointEnergySupplier.StartDate,
-                    meteringPointEnergySupplier.EndDate,
+                    meteringPointEnergySupplier.StartDate.ToDateTimeOffset(),
+                    meteringPointEnergySupplier.EndDate.ToDateTimeOffset(),
                     new PMGridAreaCode(meteringPointMasterData.GridAreaCode.Value),
                     ActorNumber.Create(meteringPointMasterData.GridAccessProvider),
                     meteringPointMasterData.NeighborGridAreaOwners,

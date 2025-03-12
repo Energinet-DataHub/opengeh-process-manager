@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Net;
+using System.Text.RegularExpressions;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
@@ -165,24 +166,27 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                      "GridAreaCode": {
                        "Value": "804"
                      },
-                     "GridAccessProvider": "ProviderName",
+                     "GridAccessProvider": "2222222222222",
                      "NeighborGridAreaOwners": [
                        "Owner1",
                        "Owner2"
                      ],
-                     "ConnectionState": "Connected",
-                     "Type": "Consumption",
-                     "SubType": "Physical",
-                     "Resolution": "Hourly",
-                     "Unit": "KWh",
-                     "ProductId": {
-                       "Value": "Product123"
+                     "ConnectionState": 4,
+                     "Type": 0,
+                     "SubType": 0,
+                     "Resolution": {
+                       "Value": "Hourly"
                      },
-                     "ParentIdentification": null,
+                     "Unit": 3,
+                     "ProductId": 0,
                      "EnergySuppliers": [
                        {
-                         "SupplierId": "Supplier1",
-                         "StartDate": "2023-11-29T12:34:56Z"
+                         "Identification": {
+                           "Value": "123456789"
+                         },
+                         "EnergySupplier": "1111111111111",
+                         "StartDate": "2023-11-29T12:34:56Z",
+                         "EndDate": "2023-11-29T12:34:56Z"
                        }
                      ]
                    }
@@ -281,8 +285,50 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .Where(step => step.Lifecycle.TerminationState is OrchestrationStepTerminationState.Succeeded)
             .Select(step => step.Sequence);
 
-        _fixture.OrchestrationsAppManager.MockServer.LogEntries.Should().BeEmpty();
-        terminatedOrchestrationInstance.CustomState.Should().BeEmpty();
+        terminatedOrchestrationInstance.CustomState.Should()
+            .BeEquivalentTo(
+                Regex.Replace(
+                """
+                {
+                  "MeteringPointMasterData": [
+                    {
+                      "MeteringPointId": {
+                        "Value": "123456789"
+                      },
+                      "ValidFrom": "2023-11-29T12:34:56+00:00",
+                      "ValidTo": "2023-11-29T12:34:56+00:00",
+                      "GridAreaCode": {
+                        "Value": "804"
+                      },
+                      "GridAccessProvider": {
+                        "Value": "2222222222222"
+                      },
+                      "NeighborGridAreaOwners": [
+                        "Owner1",
+                        "Owner2"
+                      ],
+                      "ConnectionState": 4,
+                      "MeteringPointType": {
+                        "Name": "Consumption"
+                      },
+                      "MeteringPointSubType": 0,
+                      "Resolution": {
+                        "Name": "Hourly"
+                      },
+                      "MeasurementUnit": {
+                        "Name": "KilowattHour"
+                      },
+                      "ProductId": "Tariff",
+                      "ParentMeteringPointId": null,
+                      "EnergySupplier": {
+                        "Value": "1111111111111"
+                      }
+                    }
+                  ]
+                }
+                """,
+                @"\s+",
+                string.Empty));
 
         successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
 

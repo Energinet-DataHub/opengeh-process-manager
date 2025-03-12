@@ -22,8 +22,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuilder
 {
-    public const int ValidationStep = 1;
-    public const int ForwardToMeasurementStep = 2;
+    public const int BusinessValidationStep = 1;
+    public const int ForwardToMeasurementsStep = 2;
     public const int FindReceiverStep = 3;
     public const int EnqueueActorMessagesStep = 4;
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = new("Brs_021_ForwardMeteredData", 1);
@@ -41,8 +41,8 @@ internal class OrchestrationDescriptionBuilderV1 : IOrchestrationDescriptionBuil
 
         description.ParameterDefinition.SetFromType<ForwardMeteredDataInputV1>();
         description.AppendStepDescription("Forretningsvalidering");
-        description.AppendStepDescription("Gemmer måledata");
-        description.AppendStepDescription("Finder modtagere");
+        description.AppendStepDescription("Gemmer måledata", canBeSkipped: true, skipReason: "Skipped if business validation fails");
+        description.AppendStepDescription("Finder modtagere", canBeSkipped: true, skipReason: "Skipped if business validation fails");
         description.AppendStepDescription("Danner beskeder");
 
         description.IsUnderDevelopment = true;

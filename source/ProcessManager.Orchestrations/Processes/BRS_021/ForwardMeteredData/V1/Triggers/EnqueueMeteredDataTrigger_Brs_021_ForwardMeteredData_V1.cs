@@ -20,7 +20,7 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
-public class EnqueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
+public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
     EnqueueMeteredDataHandlerV1 handler)
 {
     private readonly EnqueueMeteredDataHandlerV1 _handler = handler;
@@ -28,7 +28,7 @@ public class EnqueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
     /// <summary>
     /// Enqueue Messages for BRS-021.
     /// </summary>
-    [Function(nameof(EnqueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [EventHubTrigger(
             $"%{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.EventHubName)}%",

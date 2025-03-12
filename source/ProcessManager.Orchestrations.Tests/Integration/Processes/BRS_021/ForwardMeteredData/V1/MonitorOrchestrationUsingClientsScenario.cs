@@ -15,9 +15,8 @@
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
-using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Measurements.Contracts;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
@@ -29,10 +28,13 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,8 +53,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
+    private const string ProcessManagerEventHubProducerClientName = "ProcessManagerEventHubProducerClient";
     private readonly OrchestrationsAppFixture _fixture;
-    private readonly string _processManagerEventHubProducerClientName = "ProcessManagerEventHubProducerClient";
 
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
@@ -118,7 +120,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                                 options.EventHubName,
                                 _fixture.IntegrationTestConfiguration.Credential);
                         })
-                    .WithName(_processManagerEventHubProducerClientName);
+                    .WithName(ProcessManagerEventHubProducerClientName);
             });
         ServiceProvider = services.BuildServiceProvider();
     }
@@ -129,6 +131,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         _fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
         _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
+        _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.ResetMessageHandlersAndReceivedMessages();
         _fixture.EventHubListener.Reset();
 
         return Task.CompletedTask;
@@ -143,12 +146,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
+    public async Task Given_ValidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         // Arrange
-        var input = CreateMeteredDataForMeteringPointMessageInputV1();
+        var input = CreateForwardMeteredDataInputV1();
 
-        var startCommand = new ForwardMeteredDataCommandV1(
+        var forwardCommand = new ForwardMeteredDataCommandV1(
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
@@ -158,30 +161,24 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
 
         // Act
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(forwardCommand, CancellationToken.None);
 
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
-        await Awaiter.WaitUntilConditionAsync(
-            async () =>
-            {
-                var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
+        // Step 2a: Query until waiting for Event Hub notify event from Measurements
+        var (isWaitingForMeasurementsNotify, orchestrationInstance) = await processManagerClient
+            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+                forwardCommand.IdempotencyKey,
+                OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
 
-                return instances.Count >= 1;
-            },
-            TimeSpan.FromSeconds(15),
-            TimeSpan.FromSeconds(2));
-
-        var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
-        var instance = instances.Should().ContainSingle().Subject;
+        isWaitingForMeasurementsNotify.Should()
+            .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
         var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
                 (message) =>
                 {
-                    var persistSubmittedTransaction =
-                        PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
+                    var persistSubmittedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
 
-                    var orchestrationIdMatches = persistSubmittedTransaction.OrchestrationInstanceId == instance.Id.ToString();
+                    var orchestrationIdMatches = persistSubmittedTransaction.OrchestrationInstanceId == orchestrationInstance!.Id.ToString();
                     var transactionIdMatches = persistSubmittedTransaction.TransactionId == input.TransactionId;
 
                     return orchestrationIdMatches && transactionIdMatches;
@@ -192,70 +189,172 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         persistSubmittedTransactionEventFound.Should().BeTrue($"because a {nameof(PersistSubmittedTransaction)} event should have been sent");
 
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
-        var notify = new Brs021ForwardMeteredDataNotifyV1()
+        var notifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
         {
             Version = "1",
-            OrchestrationInstanceId = instance.Id.ToString(),
+            OrchestrationInstanceId = orchestrationInstance!.Id.ToString(),
         };
 
-        var data = new EventData(notify.ToByteArray());
-        var processManagerEventHubProducerClient =
-            eventHubClientFactory.CreateClient(_processManagerEventHubProducerClientName);
-        await processManagerEventHubProducerClient.SendAsync([data], CancellationToken.None);
+        var eventHubEventData = new EventData(notifyFromMeasurements.ToByteArray());
+        var processManagerEventHubProducerClient = eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
+        await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
 
-        // wait for notification from edi.
+        // Wait for enqueue messages sent to EDI and send mock notify response to Process Manager
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
             processManagerMessageClient: processManagerMessageClient,
-            orchestrationInstanceId: instance.Id,
-            messageId: startCommand.ActorMessageId);
+            orchestrationInstanceId: orchestrationInstance.Id,
+            messageId: forwardCommand.ActorMessageId);
 
         // Query until terminated
         var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
             .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
-                idempotencyKey: startCommand.IdempotencyKey);
+                idempotencyKey: forwardCommand.IdempotencyKey);
 
         orchestrationTerminatedWithSucceeded.Should().BeTrue(
             "because the orchestration instance should be terminated within given wait time");
 
-        var stepsWhichShouldBeSuccessful = new[]
-        {
-            OrchestrationDescriptionBuilderV1.ValidationStep,
-            OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
-            OrchestrationDescriptionBuilderV1.FindReceiverStep,
-            OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
-        };
+        // Orchestration instance and all steps should be Succeeded
+        using var assertionScope = new AssertionScope();
+        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
+            .NotBeNull()
+            .And.Be(OrchestrationInstanceTerminationState.Succeeded);
 
-        var successfulSteps = terminatedOrchestrationInstance!.Steps
-            .Where(step => step.Lifecycle.TerminationState is OrchestrationStepTerminationState.Succeeded)
-            .Select(step => step.Sequence);
-
-        successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
-
-        terminatedOrchestrationInstance.Should().NotBeNull();
-        terminatedOrchestrationInstance.Steps.Should().HaveCount(4);
-        terminatedOrchestrationInstance.Steps.Should().AllSatisfy(
-         step => step.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded));
+        terminatedOrchestrationInstance.Steps.Should()
+            .AllSatisfy(
+                s =>
+                {
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                });
     }
 
-    private static ForwardMeteredDataInputV1 CreateMeteredDataForMeteringPointMessageInputV1(
-        bool withError = false)
+    [Fact]
+    public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
+    {
+        // Given
+        var invalidInput = CreateForwardMeteredDataInputV1() with { EndDateTime = null };
+
+        var invalidForwardCommand = new ForwardMeteredDataCommandV1(
+            new ActorIdentityDto(ActorNumber.Create(invalidInput.ActorNumber), ActorRole.FromName(invalidInput.ActorRole)),
+            invalidInput,
+            idempotencyKey: Guid.NewGuid().ToString());
+
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        // When
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(invalidForwardCommand, CancellationToken.None);
+
+        // Then
+        // Query until waiting for EnqueueActorMessagesCompleted notify event (a reject message should be enqueued)
+        var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
+            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+                invalidForwardCommand.IdempotencyKey,
+                OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+
+        isWaitingForNotify.Should()
+            .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
+
+        // Verify an enqueue actor messages event is sent on the service bus
+        var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When(
+                (message) =>
+                {
+                    if (!message.TryParseAsEnqueueActorMessages(Brs_021_ForwardedMeteredData.Name, out var enqueueActorMessagesV1))
+                        return false;
+
+                    var forwardMeteredDataRejectedV1 = enqueueActorMessagesV1.ParseData<ForwardMeteredDataRejectedV1>();
+
+                    forwardMeteredDataRejectedV1.ValidationErrors.Should()
+                        .HaveCount(1)
+                        .And.ContainSingle(
+                            (e) => e.Message.Equals(PeriodValidationRule.InvalidEndDate.Message));
+                    return forwardMeteredDataRejectedV1.OriginalTransactionId == invalidForwardCommand.InputParameter.TransactionId;
+                })
+            .VerifyCountAsync(1);
+
+        var enqueueMessageFound = verifyEnqueueRejectedActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
+        enqueueMessageFound.Should().BeTrue($"because a {nameof(ForwardMeteredDataRejectedV1)} service bus message should have been sent");
+
+        // Send EnqueueActorMessagesCompleted event
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new ForwardMeteredDataNotifyEventV1(
+                OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
+            CancellationToken.None);
+
+        // Query until terminated
+        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
+            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
+                idempotencyKey: invalidForwardCommand.IdempotencyKey);
+
+        orchestrationTerminatedWithSucceeded.Should().BeTrue(
+            "because the orchestration instance should be terminated within given wait time");
+
+        // Orchestration instance and validation steps should be Failed
+        using var assertionScope = new AssertionScope();
+        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
+            .NotBeNull()
+            .And.Be(OrchestrationInstanceTerminationState.Failed);
+
+        terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence).Should()
+            .SatisfyRespectively(
+                s =>
+                {
+                    // Validation step should be failed
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.BusinessValidationStep);
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Failed);
+                },
+                s =>
+                {
+                    // Forward to measurements step should be skipped
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Skipped);
+                },
+                s =>
+                {
+                    // Find receiver step should be skipped
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.FindReceiverStep);
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Skipped);
+                },
+                s =>
+                {
+                    // Enqueue actor messages step should be succeeded
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                });
+    }
+
+    private static ForwardMeteredDataInputV1 CreateForwardMeteredDataInputV1()
     {
         var input = new ForwardMeteredDataInputV1(
-            "MessageId",
-            Guid.NewGuid(),
-            "1111111111111",
-            ActorRole.GridAccessProvider.Name,
-            "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
-            withError ? "NoMasterData" : "571313101700011887",
-            MeteringPointType.Production.Name,
-            "8716867000047",
-            MeasurementUnit.MetricTon.Name,
-            "2024-12-03T08:00:00Z",
-            Resolution.Hourly.Name,
-            "2024-12-01T23:00:00Z",
-            "2024-12-02T23:00:00Z",
-            "5790002606892",
-            null,
+            ActorMessageId: "MessageId",
+            TransactionId: "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
+            ActorNumber: "1111111111111",
+            ActorRole: ActorRole.GridAccessProvider.Name,
+            MeteringPointId: "571313101700011887",
+            MeteringPointType: MeteringPointType.Production.Name,
+            ProductNumber: "8716867000047",
+            MeasureUnit: MeasurementUnit.MetricTon.Name,
+            RegistrationDateTime: "2024-12-03T08:00:00Z",
+            Resolution: Resolution.Hourly.Name,
+            StartDateTime: "2024-12-01T23:00:00Z",
+            EndDateTime: "2024-12-02T23:00:00Z",
+            GridAccessProviderNumber: "5790002606892",
+            DelegatedGridAreaCodes: null,
+            EnergyObservations:
             [
                 new("1", "112.000", Quality.AsProvided.Name),
                 new("2", "112.000", Quality.AsProvided.Name),
@@ -267,12 +366,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 new("8", "112.000", Quality.AsProvided.Name),
                 new("9", "112.000", Quality.AsProvided.Name),
                 new("10", "112.000", Quality.AsProvided.Name),
-                new("12", "112.000", Quality.AsProvided.Name),
+                new("11", "112.000", Quality.AsProvided.Name),
                 new("12", "112.000", Quality.AsProvided.Name),
                 new("13", "112.000", Quality.AsProvided.Name),
                 new("14", "112.000", Quality.AsProvided.Name),
                 new("15", "112.000", Quality.AsProvided.Name),
                 new("16", "112.000", Quality.AsProvided.Name),
+                new("17", "112.000", Quality.AsProvided.Name),
                 new("18", "112.000", Quality.AsProvided.Name),
                 new("19", "112.000", Quality.AsProvided.Name),
                 new("20", "112.000", Quality.AsProvided.Name),
@@ -282,20 +382,5 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 new("24", "112.000", Quality.AsProvided.Name),
             ]);
         return input;
-    }
-
-    private async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchAsync(IProcessManagerClient processManagerClient, DateTime orchestrationCreatedAfter)
-    {
-        return await processManagerClient.SearchOrchestrationInstancesByNameAsync(
-            new SearchOrchestrationInstancesByNameQuery(
-                _fixture.DefaultUserIdentity,
-                name: Brs_021_ForwardedMeteredData.Name,
-                version: null,
-                lifecycleStates: [OrchestrationInstanceLifecycleState.Running],
-                terminationState: null,
-                startedAtOrLater: orchestrationCreatedAfter,
-                terminatedAtOrEarlier: null,
-                scheduledAtOrLater: null),
-            CancellationToken.None);
     }
 }

@@ -236,7 +236,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     var persistSubmittedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
 
                     var orchestrationIdMatches = persistSubmittedTransaction.OrchestrationInstanceId == orchestrationInstance!.Id.ToString();
-
                     var transactionIdMatches = persistSubmittedTransaction.TransactionId == input.TransactionId;
 
                     return orchestrationIdMatches && transactionIdMatches;
@@ -346,7 +345,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
                 idempotencyKey: invalidForwardCommand.IdempotencyKey);
 
-        orchestrationTerminatedWithSucceeded.Should().BeTrue("because the orchestration instance should be terminated within given wait time");
+        orchestrationTerminatedWithSucceeded.Should().BeTrue(
+            "because the orchestration instance should be terminated within given wait time");
 
         // Orchestration instance and validation steps should be Failed
         using var assertionScope = new AssertionScope();

@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.11.0
+
+- Add BRS-045 Missing Measurements Log command.
+
 ## Version 1.10.10
 
 - Rename `MessageId` to `ActorMessageId`, remove `AuthenticatedActorId` and reorder properties on `ForwardMeteredDataInputV1`.
@@ -7,7 +11,7 @@
 
 ## Version 1.9.0
 
-- Remove internal process: Migrate Calculations From Wholesale.
+- Remove internal process: Migrate Calculations From Wholesale.~~~~
 
 ## Version 1.8.0
 

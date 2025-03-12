@@ -42,7 +42,7 @@ public record ForwardMeteredDataCommandV1
                 orchestrationDescriptionUniqueName: Brs_021_ForwardedMeteredData.V1,
                 inputParameter,
                 idempotencyKey,
-                inputParameter.MessageId,
+                inputParameter.ActorMessageId,
                 inputParameter.TransactionId,
                 inputParameter.MeteringPointId)
     {

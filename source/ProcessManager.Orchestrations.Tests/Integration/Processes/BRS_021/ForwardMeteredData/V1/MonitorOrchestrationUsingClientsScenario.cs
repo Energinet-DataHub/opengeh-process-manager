@@ -352,50 +352,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .NotBeNull()
             .And.Be(OrchestrationInstanceTerminationState.Failed);
 
-        terminatedOrchestrationInstance.CustomState.Should()
-            .BeEquivalentTo(
-                Regex.Replace(
-                    """
-                    {
-                      "MeteringPointMasterData": [
-                        {
-                          "MeteringPointId": {
-                            "Value": "123456789"
-                          },
-                          "ValidFrom": "2023-11-29T12:34:56+00:00",
-                          "ValidTo": "2023-11-29T12:34:56+00:00",
-                          "GridAreaCode": {
-                            "Value": "804"
-                          },
-                          "GridAccessProvider": {
-                            "Value": "2222222222222"
-                          },
-                          "NeighborGridAreaOwners": [
-                            "Owner1",
-                            "Owner2"
-                          ],
-                          "ConnectionState": 4,
-                          "MeteringPointType": {
-                            "Name": "Consumption"
-                          },
-                          "MeteringPointSubType": 0,
-                          "Resolution": {
-                            "Name": "Hourly"
-                          },
-                          "MeasurementUnit": {
-                            "Name": "KilowattHour"
-                          },
-                          "ProductId": "Tariff",
-                          "ParentMeteringPointId": null,
-                          "EnergySupplier": {
-                            "Value": "1111111111111"
-                          }
-                        }
-                      ]
-                    }
-                    """,
-                    @"\s+",
-                    string.Empty));
+        terminatedOrchestrationInstance.CustomState.Should().BeEquivalentTo("{\"MeteringPointMasterData\":[]}");
 
         terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence)
             .Should()

@@ -47,6 +47,11 @@ public class MeteringPointMasterDataSteamRoller(IElectricityMarketViews electric
         var startDateTime = InstantPatternWithOptionalSeconds.Parse(startDate);
         var endDateTime = InstantPatternWithOptionalSeconds.Parse(endDate);
 
+        if (!startDateTime.Success || !endDateTime.Success)
+        {
+            return [];
+        }
+
         var meteringPointMasterData =
             (await _electricityMarketViews
                 .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))

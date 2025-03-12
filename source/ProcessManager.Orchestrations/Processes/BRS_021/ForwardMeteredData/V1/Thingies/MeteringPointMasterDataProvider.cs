@@ -34,7 +34,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
     "StyleCop.CSharp.ReadabilityRules",
     "SA1118:Parameter should not span multiple lines",
     Justification = "Readability")]
-public class MeteringPointMasterDataSteamRoller(IElectricityMarketViews electricityMarketViews)
+public class MeteringPointMasterDataProvider(IElectricityMarketViews electricityMarketViews)
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
@@ -56,14 +56,15 @@ public class MeteringPointMasterDataSteamRoller(IElectricityMarketViews electric
             (await _electricityMarketViews
                 .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
                 .ConfigureAwait(false))
-            .SelectMany(SteamRoll)
+            .SelectMany(CoSelectManyForEnergySuppliers)
             .ToList()
             .AsReadOnly();
 
         return meteringPointMasterData;
     }
 
-    private IReadOnlyCollection<PMMeteringPointMasterData> SteamRoll(MeteringPointMasterData meteringPointMasterData)
+    private IReadOnlyCollection<PMMeteringPointMasterData> CoSelectManyForEnergySuppliers(
+        MeteringPointMasterData meteringPointMasterData)
     {
         return meteringPointMasterData.EnergySuppliers
             .Select(

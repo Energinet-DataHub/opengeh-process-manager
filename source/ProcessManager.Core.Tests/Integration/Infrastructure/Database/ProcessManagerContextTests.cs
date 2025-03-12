@@ -266,7 +266,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceChangedFromMultipleConsumer_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
+    public async Task Given_OrchestrationInstanceChangedFromMultipleConsumers_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -279,10 +279,10 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         }
 
         var orchestrationInstanceFromContext01 = await ReadOrchestrationInstanceAsync(existingOrchestrationInstance.Id);
-        orchestrationInstanceFromContext01.TransitionStepToRunning(1, SystemClock.Instance);
+        orchestrationInstanceFromContext01.Lifecycle.TransitionToQueued(SystemClock.Instance);
 
         var orchestrationInstanceFromContext02 = await ReadOrchestrationInstanceAsync(existingOrchestrationInstance.Id);
-        orchestrationInstanceFromContext02.TransitionStepToRunning(2, SystemClock.Instance);
+        orchestrationInstanceFromContext02.Lifecycle.TransitionToQueued(SystemClock.Instance);
 
         await UpdateOrchestrationInstanceAsync(orchestrationInstanceFromContext01);
 

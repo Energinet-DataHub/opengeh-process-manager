@@ -19,7 +19,6 @@ using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
@@ -241,7 +240,39 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationDescriptionChangedFromMultipleConsumer_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
+    public async Task Given_OrchestrationDescriptionChangedFromMultipleConsumer_AndGiven_ConsumerUsesOneDatabaseContext_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        await using var dbContext01 = _fixture.DatabaseManager.CreateDbContext();
+        var orchestrationDescriptionFromContext01 = await dbContext01.OrchestrationDescriptions.FindAsync(existingOrchestrationDescription.Id);
+        orchestrationDescriptionFromContext01!.FunctionName = "First";
+
+        await using var dbContext02 = _fixture.DatabaseManager.CreateDbContext();
+        var orchestrationDescriptionFromContext02 = await dbContext02.OrchestrationDescriptions.FindAsync(existingOrchestrationDescription.Id);
+        orchestrationDescriptionFromContext02!.FunctionName = "Second";
+
+        await dbContext01.SaveChangesAsync();
+
+        // Act
+        var act = () => dbContext02.SaveChangesAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
+    }
+
+    /// <summary>
+    /// Beware that we use Update on the database context (because we use one for reading and another for updating), which is why the
+    /// OrchestrationDescription RowVersion is updated even if we change the steps.
+    /// </summary>
+    [Fact]
+    public async Task Given_OrchestrationDescriptionChangedFromMultipleConsumer_AndGiven_ConsumerUsesTwoDatabaseContext_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -267,7 +298,41 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceChangedFromMultipleConsumer_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
+    public async Task Given_OrchestrationInstanceChangedFromMultipleConsumers_AndGiven_ConsumerUsesOneDatabaseContext_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        await using var dbContext01 = _fixture.DatabaseManager.CreateDbContext();
+        var orchestrationInstanceFromContext01 = await dbContext01.OrchestrationInstances.FindAsync(existingOrchestrationInstance.Id);
+        orchestrationInstanceFromContext01!.Lifecycle.TransitionToQueued(SystemClock.Instance);
+
+        await using var dbContext02 = _fixture.DatabaseManager.CreateDbContext();
+        var orchestrationInstanceFromContext02 = await dbContext02.OrchestrationInstances.FindAsync(existingOrchestrationInstance.Id);
+        orchestrationInstanceFromContext02!.Lifecycle.TransitionToQueued(SystemClock.Instance);
+
+        await dbContext01.SaveChangesAsync();
+
+        // Act
+        var act = () => dbContext02.SaveChangesAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
+    }
+
+    /// <summary>
+    /// Beware that we use Update on the database context (because we use one for reading and another for updating), which is why the
+    /// OrchestrationInstance RowVersion is updated even if we change the steps.
+    /// </summary>
+    [Fact]
+    public async Task Given_OrchestrationInstanceChangedFromMultipleConsumers_AndGiven_ConsumerUsesTwoDatabaseContext_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {
         // Arrange
         var existingOrchestrationDescription = CreateOrchestrationDescription();
@@ -280,10 +345,10 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         }
 
         var orchestrationInstanceFromContext01 = await ReadOrchestrationInstanceAsync(existingOrchestrationInstance.Id);
-        orchestrationInstanceFromContext01.TransitionStepToRunning(1, SystemClock.Instance);
+        orchestrationInstanceFromContext01.Lifecycle.TransitionToQueued(SystemClock.Instance);
 
         var orchestrationInstanceFromContext02 = await ReadOrchestrationInstanceAsync(existingOrchestrationInstance.Id);
-        orchestrationInstanceFromContext02.TransitionStepToRunning(2, SystemClock.Instance);
+        orchestrationInstanceFromContext02.Lifecycle.TransitionToQueued(SystemClock.Instance);
 
         await UpdateOrchestrationInstanceAsync(orchestrationInstanceFromContext01);
 

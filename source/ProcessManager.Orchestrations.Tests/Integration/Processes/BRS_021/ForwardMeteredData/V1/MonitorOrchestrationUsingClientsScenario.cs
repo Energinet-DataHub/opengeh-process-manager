@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using AutoFixture;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
+using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -29,6 +32,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -191,7 +195,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
         var notifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
         {
-            Version = "1",
+            Version = "v1", // Measurements sends "v1" instead of "1" as version
             OrchestrationInstanceId = orchestrationInstance!.Id.ToString(),
         };
 
@@ -335,6 +339,49 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         .NotBeNull()
                         .And.Be(OrchestrationStepTerminationState.Succeeded);
                 });
+    }
+
+    /// <summary>
+    /// With this test we verify the function will be retried and at least executed more than once,
+    /// if we send an invalid notify event.
+    /// The reason for only verifying that the function is executed twice is to save time in the test.
+    /// And also we shouldn't have to test the attribute ExponentialBackoffRetry, since it's an
+    /// out-of-box functionality and we expect it to work.
+    /// </summary>
+    [Fact]
+    public async Task Given_InvalidNotifyEvent_When_NotifyOrchestrationInstance_Then_EnqueueMeteredDataTriggerIsExecutedAtLeastTwice()
+    {
+        // Given
+        var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
+        var processManagerEventHubProducerClient = eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
+
+        var invalidNotifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
+        {
+            Version = "invalid-value",
+            OrchestrationInstanceId = "not-used",
+        };
+        var eventHubEventData = new EventData(invalidNotifyFromMeasurements.ToByteArray());
+
+        // When
+        await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
+
+        // Then
+        var expectedFunctionName = nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1);
+
+        var wasExecutedExpectedTimes = await Awaiter.TryWaitUntilConditionAsync(
+            () =>
+            {
+                var executedFailedLogs = _fixture.OrchestrationsAppManager.AppHostManager
+                    .GetHostLogSnapshot()
+                    .Where(log => log.Contains($"Executed 'Functions.{expectedFunctionName}' (Failed", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                return executedFailedLogs.Count > 1;
+            },
+            timeLimit: TimeSpan.FromSeconds(20),
+            delay: TimeSpan.FromSeconds(3));
+
+        wasExecutedExpectedTimes.Should().BeTrue("because we expected the trigger to be executed at least twice because of the configured 'ExponentialBackoffRetry' retry policy");
     }
 
     private static ForwardMeteredDataInputV1 CreateForwardMeteredDataInputV1()

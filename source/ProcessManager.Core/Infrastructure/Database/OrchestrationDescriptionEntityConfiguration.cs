@@ -79,6 +79,9 @@ internal class OrchestrationDescriptionEntityConfiguration : IEntityTypeConfigur
                 b.Property(s => s.CanBeSkipped);
                 b.Property(s => s.SkipReason);
 
+                b.Property(o => o.RowVersion)
+                    .IsRowVersion();
+
                 // Relation to parent
                 b.Property(s => s.OrchestrationDescriptionId)
                     .HasConversion(

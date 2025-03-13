@@ -137,6 +137,9 @@ internal class OrchestrationInstanceEntityConfiguration : IEntityTypeConfigurati
                             .HasColumnName(nameof(StepInstance.CustomState));
                     });
 
+                b.Property(s => s.RowVersion)
+                    .IsRowVersion();
+
                 // Relation to parent
                 b.Property(s => s.OrchestrationInstanceId)
                     .HasConversion(

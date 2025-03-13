@@ -43,7 +43,7 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
             throw new InvalidOperationException($"Failed to deserialize message to {nameof(Brs021ForwardMeteredDataNotifyVersion)}.");
 
         if (brs021ForwardMeteredDataNotifyVersion is not { Version: "1" } or { Version: "v1" })
-            throw new ArgumentOutOfRangeException(nameof(brs021ForwardMeteredDataNotifyVersion), brs021ForwardMeteredDataNotifyVersion.Version, $"Unhandled {nameof(Brs021ForwardMeteredDataNotifyVersion)} version.");
+            throw new ArgumentOutOfRangeException(nameof(Brs021ForwardMeteredDataNotifyVersion), brs021ForwardMeteredDataNotifyVersion.Version, $"Unhandled {nameof(Brs021ForwardMeteredDataNotifyVersion)} version.");
 
         var notify = Brs021ForwardMeteredDataNotifyV1.Parser.ParseFrom(message.EventBody.ToArray());
         if (notify is null)

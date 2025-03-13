@@ -39,8 +39,13 @@ public class EnqueueMeteredDataHandlerV1(
             .GetAsync(orchestrationInstanceId)
             .ConfigureAwait(false);
 
-        if (orchestrationInstance.Lifecycle.State != OrchestrationInstanceLifecycleState.Running)
+        // If the orchestration instance is terminated, do nothing (idempotency/retry check).
+        if (orchestrationInstance.Lifecycle.State is OrchestrationInstanceLifecycleState.Terminated)
             return;
+
+        // If we reach this point, the orchestration instance should be running, so this check is just an extra safeguard.
+        if (orchestrationInstance.Lifecycle.State is not OrchestrationInstanceLifecycleState.Running)
+            throw new InvalidOperationException($"Orchestration instance must be running (Id={orchestrationInstance.Id}, State={orchestrationInstance.Lifecycle.State}).");
 
         var forwardMeteredDataInput = orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>();
 
@@ -54,6 +59,23 @@ public class EnqueueMeteredDataHandlerV1(
                 orchestrationInstance,
                 forwardMeteredDataInput)
             .ConfigureAwait(false);
+    }
+
+    private async Task TerminateForwardToMeasurementStep(OrchestrationInstance orchestrationInstance)
+    {
+        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+
+        // If the step is already terminated (idempotency/retry check), do nothing.
+        if (forwardToMeasurementStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
+            return;
+
+        // If we reach this point, the step should be running, so this check is just an extra safeguard.
+        // The alternative is that the step is pending, but we shouldn't be able to receive a "notify" event
+        // from measurements if the step hasn't transitioned to running yet.
+        if (forwardToMeasurementStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
+            throw new InvalidOperationException($"Forward to measurements step must be running (Id={forwardToMeasurementStep.Id}, State={forwardToMeasurementStep.Lifecycle.State}).");
+
+        await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
     }
 
     private async Task FindReceivers(OrchestrationInstance orchestrationInstance)
@@ -75,23 +97,6 @@ public class EnqueueMeteredDataHandlerV1(
 
         // Terminate Step: Find receiver step
         await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
-    }
-
-    private async Task TerminateForwardToMeasurementStep(OrchestrationInstance orchestrationInstance)
-    {
-        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
-
-        // If the step is already terminated (idempotency/retry check), do nothing.
-        if (forwardToMeasurementStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
-            return;
-
-        // If we reach this point, the step should be running, so this check is just an extra safeguard.
-        // The alternative is that the step is pending, but we shouldn't be able to receive a "notify" event
-        // from measurements if the step hasn't transitioned to running yet.
-        if (forwardToMeasurementStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
-            throw new InvalidOperationException($"Forward to measurements step must be running (Id={forwardToMeasurementStep.Id}, State={forwardToMeasurementStep.Lifecycle.State}).");
-
-        await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
     }
 
     private async Task EnqueueAcceptedActorMessagesAsync(

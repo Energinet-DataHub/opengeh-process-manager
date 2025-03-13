@@ -124,6 +124,7 @@ public class EnqueueMeteredDataHandlerV1(
         }
 
         // Enqueue forward metered data actor messages
+        // TODO: Implement correct message data
         var data = new ForwardMeteredDataAcceptedV1(
             OriginalActorMessageId: forwardMeteredDataInput.ActorMessageId,
             MeteringPointId: forwardMeteredDataInput.MeteringPointId ?? throw new InvalidOperationException("MeteringPointId is missing"),

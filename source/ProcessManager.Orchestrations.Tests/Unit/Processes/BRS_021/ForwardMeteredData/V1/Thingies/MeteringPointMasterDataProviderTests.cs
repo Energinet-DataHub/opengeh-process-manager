@@ -42,12 +42,12 @@ public class MeteringPointMasterDataProviderTests
     {
         /* TODO
             * Unpacking:
-                - [D] No MD
-                - [D] One MD, no ES
-                - [D] One MD, one ES
-                - [D] One MD, two ES
-                - [D] Two MD, two ES
-                - [D] Two MD, no ES + one ES
+                - [T] No MD
+                - [T] One MD, no ES
+                - [T] One MD, one ES
+                - [T] One MD, two ES
+                - [T] Two MD, two ES
+                - [T] Two MD, no ES + one ES
             * Sanity check
                 (use one MD, two ES)
                 - [ ] Hole in dates
@@ -81,34 +81,95 @@ public class MeteringPointMasterDataProviderTests
     [Fact]
     public async Task Given_MasterDataWithOneEnergySupplier_When_GetAndConvertMasterData_Then_Single()
     {
-        (await _sut.GetAndConvertMasterData(
-                "one-energy-supplier-please",
-                "2021-01-01T00:00:00Z",
-                "2021-01-01T00:00:00Z"))
+        var meteringPointMasterData = await _sut.GetAndConvertMasterData(
+            "one-energy-supplier-please",
+            "2021-01-01T00:00:00Z",
+            "2021-01-01T00:00:00Z");
+
+        meteringPointMasterData
             .Should()
             .ContainSingle();
+
+        var singleMasterData = meteringPointMasterData.Single();
+
+        singleMasterData.MeteringPointId.Value.Should().Be("one-energy-supplier-please");
+        singleMasterData.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        singleMasterData.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
+        singleMasterData.EnergySupplier.Value.Should().Be("1111111111111");
     }
 
     [Fact]
     public async Task Given_MasterDataWithTwoEnergySuppliers_When_GetAndConvertMasterData_Then_ListOfTwo()
     {
-        (await _sut.GetAndConvertMasterData(
-                "two-energy-suppliers-please",
-                "2021-01-01T00:00:00Z",
-                "2021-01-01T00:00:00Z"))
+        var meteringPointMasterData = await _sut.GetAndConvertMasterData(
+            "two-energy-suppliers-please",
+            "2021-01-01T00:00:00Z",
+            "2021-01-01T00:00:00Z");
+
+        meteringPointMasterData
             .Should()
             .HaveCount(2);
+
+        meteringPointMasterData.Should()
+            .SatisfyRespectively(
+                first =>
+                {
+                    first.MeteringPointId.Value.Should().Be("two-energy-suppliers-please");
+                    first.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
+                    first.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
+                    first.EnergySupplier.Value.Should().Be("1111111111111");
+                },
+                second =>
+                {
+                    second.MeteringPointId.Value.Should().Be("two-energy-suppliers-please");
+                    second.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
+                    second.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
+                    second.EnergySupplier.Value.Should().Be("2222222222222");
+                });
     }
 
     [Fact]
     public async Task Given_TwoMasterDataWithTwoEnergySuppliers_When_GetAndConvertMasterData_Then_ListOfFour()
     {
-        (await _sut.GetAndConvertMasterData(
-                "two-master-data-please",
-                "2021-01-01T00:00:00Z",
-                "2021-01-01T00:00:00Z"))
+        var meteringPointMasterData = await _sut.GetAndConvertMasterData(
+            "two-master-data-please",
+            "2021-01-01T00:00:00Z",
+            "2021-01-01T00:00:00Z");
+
+        meteringPointMasterData
             .Should()
             .HaveCount(4);
+
+        meteringPointMasterData.Should()
+            .SatisfyRespectively(
+                first =>
+                {
+                    first.MeteringPointId.Value.Should().Be("two-master-data-please");
+                    first.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
+                    first.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
+                    first.EnergySupplier.Value.Should().Be("1111111111111");
+                },
+                second =>
+                {
+                    second.MeteringPointId.Value.Should().Be("two-master-data-please");
+                    second.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
+                    second.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
+                    second.EnergySupplier.Value.Should().Be("2222222222222");
+                },
+                third =>
+                {
+                    third.MeteringPointId.Value.Should().Be("two-master-data-please");
+                    third.ValidFrom.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
+                    third.ValidTo.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
+                    third.EnergySupplier.Value.Should().Be("3333333333333");
+                },
+                fourth =>
+                {
+                    fourth.MeteringPointId.Value.Should().Be("two-master-data-please");
+                    fourth.ValidFrom.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
+                    fourth.ValidTo.Should().Be(new DateTimeOffset(2021, 5, 1, 0, 0, 0, TimeSpan.Zero));
+                    fourth.EnergySupplier.Value.Should().Be("4444444444444");
+                });
     }
 
     [Fact]

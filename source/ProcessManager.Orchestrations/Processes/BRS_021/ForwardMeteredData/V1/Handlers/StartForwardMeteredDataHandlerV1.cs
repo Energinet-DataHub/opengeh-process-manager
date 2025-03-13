@@ -110,7 +110,7 @@ public class StartForwardMeteredDataHandlerV1(
         if (orchestrationInstance.CustomState.IsEmpty)
         {
             var meteringPointMasterData = await new MeteringPointMasterDataProvider(_electricityMarketViews)
-                .GetAndSteamRollMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
+                .GetAndConvertMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 
             orchestrationInstance.CustomState.SetFromInstance(

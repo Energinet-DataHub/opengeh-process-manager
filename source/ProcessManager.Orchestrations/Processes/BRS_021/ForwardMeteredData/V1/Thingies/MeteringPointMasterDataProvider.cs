@@ -38,7 +38,7 @@ public class MeteringPointMasterDataProvider(IElectricityMarketViews electricity
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
-    internal async Task<IReadOnlyCollection<PMMeteringPointMasterData>> GetAndSteamRollMasterData(
+    internal async Task<IReadOnlyCollection<PMMeteringPointMasterData>> GetAndConvertMasterData(
         string meteringPointId,
         string startDate,
         string endDate)
@@ -57,8 +57,35 @@ public class MeteringPointMasterDataProvider(IElectricityMarketViews electricity
                 .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
                 .ConfigureAwait(false))
             .SelectMany(CoSelectManyForEnergySuppliers)
+            .OrderBy(mpmd => mpmd.ValidFrom)
             .ToList()
             .AsReadOnly();
+
+        if (meteringPointMasterData.Count <= 0)
+        {
+            return [];
+        }
+
+        // Meta master data validation
+        var isMeteringPointMasterDataConsistent = meteringPointMasterData
+            .Skip(1)
+            .Aggregate(
+                (Prev: meteringPointMasterData.First(), wasAllWell: true),
+                (acc, next) =>
+                {
+                    var isAllStillWell = next.ValidFrom == acc.Prev.ValidTo
+                                         && next.MeteringPointType == acc.Prev.MeteringPointType
+                                         && next.MeasurementUnit == acc.Prev.MeasurementUnit
+                                         && next.ProductId == acc.Prev.ProductId;
+
+                    return (next, isAllStillWell && acc.wasAllWell);
+                })
+            .wasAllWell;
+
+        if (!isMeteringPointMasterDataConsistent)
+        {
+            throw new Exception("Metering point master data is not consistent");
+        }
 
         return meteringPointMasterData;
     }
@@ -66,6 +93,15 @@ public class MeteringPointMasterDataProvider(IElectricityMarketViews electricity
     private IReadOnlyCollection<PMMeteringPointMasterData> CoSelectManyForEnergySuppliers(
         MeteringPointMasterData meteringPointMasterData)
     {
+        if (meteringPointMasterData.EnergySuppliers.Count <= 0
+            || meteringPointMasterData.ValidFrom
+            != meteringPointMasterData.EnergySuppliers.MinBy(es => es.StartDate)?.StartDate
+            || meteringPointMasterData.ValidTo
+            != meteringPointMasterData.EnergySuppliers.MaxBy(es => es.EndDate)?.EndDate)
+        {
+            throw new Exception("Metering point master data is not consistent");
+        }
+
         return meteringPointMasterData.EnergySuppliers
             .Select(
                 meteringPointEnergySupplier => new PMMeteringPointMasterData(

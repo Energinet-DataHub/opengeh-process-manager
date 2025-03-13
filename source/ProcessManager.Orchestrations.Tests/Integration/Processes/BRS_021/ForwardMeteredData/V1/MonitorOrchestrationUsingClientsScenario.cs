@@ -195,7 +195,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
         var notifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
         {
-            Version = "1",
+            Version = "v1", // Measurements sends "v1" instead of "1" as version
             OrchestrationInstanceId = orchestrationInstance!.Id.ToString(),
         };
 

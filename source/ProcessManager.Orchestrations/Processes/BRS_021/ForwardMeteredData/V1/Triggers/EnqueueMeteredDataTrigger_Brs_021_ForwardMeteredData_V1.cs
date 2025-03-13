@@ -42,15 +42,25 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
         if (brs021ForwardMeteredDataNotifyVersion is null)
             throw new InvalidOperationException($"Failed to deserialize message to {nameof(Brs021ForwardMeteredDataNotifyVersion)}.");
 
-        if (brs021ForwardMeteredDataNotifyVersion is not { Version: "1" } or { Version: "v1" })
-            throw new ArgumentOutOfRangeException(nameof(Brs021ForwardMeteredDataNotifyVersion), brs021ForwardMeteredDataNotifyVersion.Version, $"Unhandled {nameof(Brs021ForwardMeteredDataNotifyVersion)} version.");
+        var orchestrationInstanceId = brs021ForwardMeteredDataNotifyVersion.Version switch
+        {
+            "1" or "v1" => HandleV1(message.EventBody),
+            _ => throw new ArgumentOutOfRangeException(
+                paramName: nameof(Brs021ForwardMeteredDataNotifyVersion),
+                actualValue: brs021ForwardMeteredDataNotifyVersion.Version,
+                message: $"Unhandled {nameof(Brs021ForwardMeteredDataNotifyVersion)} version."),
+        };
 
-        var notify = Brs021ForwardMeteredDataNotifyV1.Parser.ParseFrom(message.EventBody.ToArray());
-        if (notify is null)
+        await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
+    }
+
+    private Core.Domain.OrchestrationInstance.OrchestrationInstanceId HandleV1(BinaryData messageEventBody)
+    {
+        var notifyV1 = Brs021ForwardMeteredDataNotifyV1.Parser.ParseFrom(messageEventBody);
+
+        if (notifyV1 is null)
             throw new InvalidOperationException($"Failed to deserialize message to {nameof(Brs021ForwardMeteredDataNotifyV1)}.");
 
-        var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(
-            Guid.Parse(notify.OrchestrationInstanceId));
-        await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
+        return new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notifyV1.OrchestrationInstanceId));
     }
 }

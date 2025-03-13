@@ -37,18 +37,17 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
             Connection = ProcessManagerEventHubOptions.SectionName)]
         EventData message)
     {
-        var brs021ForwardMeteredDataNotifyVersion = Brs021ForwardMeteredDataNotifyVersion.Parser.ParseFrom(message.EventBody.ToArray());
+        var brs021ForwardMeteredDataNotifyVersion = Brs021ForwardMeteredDataNotifyVersion.Parser.ParseFrom(message.EventBody);
 
-        if (brs021ForwardMeteredDataNotifyVersion is not { Version: "1" })
-        {
-            throw new InvalidOperationException("Failed to deserialize message");
-        }
+        if (brs021ForwardMeteredDataNotifyVersion is null)
+            throw new InvalidOperationException($"Failed to deserialize message to {nameof(Brs021ForwardMeteredDataNotifyVersion)}.");
+
+        if (brs021ForwardMeteredDataNotifyVersion is not { Version: "1" } or { Version: "v1" })
+            throw new ArgumentOutOfRangeException(nameof(brs021ForwardMeteredDataNotifyVersion), brs021ForwardMeteredDataNotifyVersion.Version, $"Unhandled {nameof(Brs021ForwardMeteredDataNotifyVersion)} version.");
 
         var notify = Brs021ForwardMeteredDataNotifyV1.Parser.ParseFrom(message.EventBody.ToArray());
-        if (notify == null)
-        {
-            throw new InvalidOperationException("Failed to deserialize message");
-        }
+        if (notify is null)
+            throw new InvalidOperationException($"Failed to deserialize message to {nameof(Brs021ForwardMeteredDataNotifyV1)}.");
 
         var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(
             Guid.Parse(notify.OrchestrationInstanceId));

@@ -251,6 +251,7 @@ public class StartForwardMeteredDataHandlerV1(
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
         var customState = orchestrationInstance.CustomState.AsType<Brs021_ForwardMeteredData_CustomState>();
 
+        var meteringPointMasterData = Array.Empty<MeteringPointMasterData>();
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,

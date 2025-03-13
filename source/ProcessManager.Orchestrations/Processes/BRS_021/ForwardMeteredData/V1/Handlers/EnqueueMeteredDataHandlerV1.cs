@@ -131,10 +131,10 @@ public class EnqueueMeteredDataHandlerV1(
             OriginalTransactionId: forwardMeteredDataInput.TransactionId,
             ProductNumber: forwardMeteredDataInput.ProductNumber ?? "test-product-number",
             MeasureUnit: MeasurementUnit.KilowattHour,
-            RegistrationDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
+            RegistrationDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
             Resolution: Resolution.QuarterHourly,
-            StartDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
-            EndDateTime: clock.GetCurrentInstant().ToDateTimeOffset(),
+            StartDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
+            EndDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
             AcceptedEnergyObservations:
             [
                 new(1, 1, Quality.Calculated),

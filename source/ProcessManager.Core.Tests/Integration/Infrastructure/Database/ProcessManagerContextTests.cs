@@ -239,6 +239,10 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             .BeEquivalentTo(existingOrchestrationInstance);
     }
 
+    /// <summary>
+    /// Beware that we use Update on the database context, which is why the OrchestrationDescription RowVersion is updated
+    /// even if we change the steps.
+    /// </summary>
     [Fact]
     public async Task Given_OrchestrationDescriptionChangedFromMultipleConsumer_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {

@@ -220,13 +220,12 @@ public class StartForwardMeteredDataHandlerV1(
 
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
         // TODO: Use master data from the orchestration instance custom state instead
-        // var meteringPointMasterData = await GetMeteringPointMasterData(
-        //         input.MeteringPointId,
-        //         input.StartDateTime,
-        //         input.EndDateTime)
-        //     .ConfigureAwait(false);
+        var meteringPointMasterData = await GetMeteringPointMasterData(
+                input.MeteringPointId,
+                input.StartDateTime,
+                input.EndDateTime)
+            .ConfigureAwait(false);
 
-        var meteringPointMasterData = Array.Empty<MeteringPointMasterData>();
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,

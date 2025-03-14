@@ -14,11 +14,11 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Model;
 
 /// <summary>
-/// An immutable input to start the orchestration instance for BRS_X02_NotifyOrchestrationInstanceExample V1.
+/// The data which should be sent with a <see cref="NotifyOrchestrationInstanceExampleNotifyEventV1"/>.
 /// </summary>
-public record NotifyOrchestrationInstanceExampleInputV1(
-    string InputString)
-    : IInputParameterDto;
+public record ExampleNotifyEventDataV1(
+    string Message)
+    : INotifyDataDto;

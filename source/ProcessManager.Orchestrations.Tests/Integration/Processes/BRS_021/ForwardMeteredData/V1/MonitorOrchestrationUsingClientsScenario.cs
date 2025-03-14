@@ -242,7 +242,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                             "Value": "123456789"
                           },
                           "ValidFrom": "2023-11-29T12:34:56+00:00",
-                          "ValidTo": "2023-11-29T12:34:56+00:00",
+                          "ValidTo": "2024-11-29T12:34:56+00:00",
                           "GridAreaCode": {
                             "Value": "804"
                           },

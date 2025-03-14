@@ -19,6 +19,8 @@ using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.ProcessDelegation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Thingies;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using NodaTime;
 using PMMeteringPointMasterData =
     Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.
@@ -34,7 +36,9 @@ public class MeteringPointMasterDataProviderTests
     public MeteringPointMasterDataProviderTests()
     {
         _electricityMarketViews = new ElectricityMarketViewsMock();
-        _sut = new MeteringPointMasterDataProvider(_electricityMarketViews);
+        _sut = new MeteringPointMasterDataProvider(
+            _electricityMarketViews,
+            new Mock<ILogger<MeteringPointMasterDataProvider>>().Object);
     }
 
     [Fact]

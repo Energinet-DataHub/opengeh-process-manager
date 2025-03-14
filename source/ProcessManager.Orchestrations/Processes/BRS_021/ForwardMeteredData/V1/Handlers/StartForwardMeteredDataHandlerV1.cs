@@ -57,7 +57,7 @@ public class StartForwardMeteredDataHandlerV1(
     IClock clock,
     IMeasurementsMeteredDataClient measurementsMeteredDataClient,
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
-    ElectricityMarket.Integration.IElectricityMarketViews electricityMarketViews,
+    MeteringPointMasterDataProvider meteringPointMasterDataProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
         : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
@@ -66,7 +66,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IClock _clock = clock;
     private readonly IMeasurementsMeteredDataClient _measurementsMeteredDataClient = measurementsMeteredDataClient;
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
-    private readonly ElectricityMarket.Integration.IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
+    private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly ILogger<StartForwardMeteredDataHandlerV1> _logger = logger;
 
@@ -110,15 +110,13 @@ public class StartForwardMeteredDataHandlerV1(
         // Fetch metering point master data and store if needed
         if (orchestrationInstance.CustomState.IsEmpty)
         {
-            var meteringPointMasterData = await new MeteringPointMasterDataProvider(_electricityMarketViews)
+            var meteringPointMasterData = await _meteringPointMasterDataProvider
                 .GetAndConvertMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 
             orchestrationInstance.CustomState.SetFromInstance(
                 new Brs021_ForwardMeteredData_CustomState(meteringPointMasterData));
         }
-
-        var customState = orchestrationInstance.CustomState.AsType<Brs021_ForwardMeteredData_CustomState>();
 
         // Perform step: Business validation
         // TODO: Do we need a RowVersion on the step instances, to ensure this code doesn't run in parallel?

@@ -61,6 +61,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
     private readonly ElectricityMarket.Integration.IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+    private readonly ILogger<StartForwardMeteredDataHandlerV1> _logger = logger;
 
     /// <summary>
     /// This method has multiple commits to the database, to immediately transition lifecycles. This means that
@@ -337,22 +338,30 @@ public class StartForwardMeteredDataHandlerV1(
             return [];
         }
 
-        var meteringPointMasterData = await _electricityMarketViews
-            .GetMeteringPointMasterDataChangesAsync(
-                id,
-                new Interval(parsedStartDateTime.Value, parsedEndDateTime.Value))
-            .ConfigureAwait(false);
+        try
+        {
+            var meteringPointMasterData = await _electricityMarketViews
+                .GetMeteringPointMasterDataChangesAsync(
+                    id,
+                    new Interval(parsedStartDateTime.Value, parsedEndDateTime.Value))
+                .ConfigureAwait(false);
 
-        return meteringPointMasterData
-            .Select(mpt => new MeteringPointMasterData(
-                new MeteringPointId(mpt.Identification.Value),
-                new GridAreaCode(mpt.GridAreaCode.Value),
-                ActorNumber.Create(mpt.GridAccessProvider),
-                MeteringPointMasterDataMapper.ConnectionStateMap.Map(mpt.ConnectionState),
-                MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(mpt.Type),
-                MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(mpt.SubType),
-                MeteringPointMasterDataMapper.MeasureUnitMap.Map(mpt.Unit)))
-            .ToList();
+            return meteringPointMasterData
+                .Select(mpt => new MeteringPointMasterData(
+                    new MeteringPointId(mpt.Identification.Value),
+                    new GridAreaCode(mpt.GridAreaCode.Value),
+                    ActorNumber.Create(mpt.GridAccessProvider),
+                    MeteringPointMasterDataMapper.ConnectionStateMap.Map(mpt.ConnectionState),
+                    MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(mpt.Type),
+                    MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(mpt.SubType),
+                    MeteringPointMasterDataMapper.MeasureUnitMap.Map(mpt.Unit)))
+                .ToList();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Failed to get metering point master data for metering point {meteringPointIdentification} in the period {parsedStartDateTime} - {parsedEndDateTime}.");
+            return [];
+        }
     }
 
     private MeteredDataForMeteringPoint MapInputToMeasurements(

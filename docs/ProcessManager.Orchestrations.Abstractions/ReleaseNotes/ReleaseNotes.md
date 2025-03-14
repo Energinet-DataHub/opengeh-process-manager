@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.11.0
+
+- Add BusinessReason to `ForwardMeteredDataInputV1`.
+
 ## Version 1.10.10
 
 - Rename `MessageId` to `ActorMessageId`, remove `AuthenticatedActorId` and reorder properties on `ForwardMeteredDataInputV1`.

@@ -24,6 +24,7 @@ public record ForwardMeteredDataInputV1(
     string TransactionId,
     string ActorNumber,
     string ActorRole,
+    string BusinessReason,
     string? MeteringPointId,
     string? MeteringPointType,
     string? ProductNumber,

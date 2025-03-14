@@ -26,6 +26,7 @@ public class ForwardMeteredDataInputV1Builder
     private string _transactionId = "TransactionId";
     private string _actorNumber = ActorNumber;
     private string _actorRole = ActorRole.GridAccessProvider.Name;
+    private string _businessReason = BusinessReason.PeriodicMetering.Name; // Due to validation in EDI this can either be PeriodicMetering or PeriodicFlexMetering
     private string _meteringPointId = "MeteringPointId";
     private string _meteringPointType = MeteringPointType.Production.Name;
     private string _productNumber = "ProductNumber";
@@ -61,6 +62,17 @@ public class ForwardMeteredDataInputV1Builder
     public ForwardMeteredDataInputV1Builder WithActorRole(string actorRole)
     {
         _actorRole = actorRole;
+        return this;
+    }
+
+    public ForwardMeteredDataInputV1Builder WithBusinessReason(string businessReason)
+    {
+        if (businessReason != BusinessReason.PeriodicMetering.Name && businessReason != BusinessReason.PeriodicFlexMetering.Name)
+        {
+            throw new ArgumentException("Business reason must be either PeriodicMetering or PeriodicFlexMetering due to validation in EDI");
+        }
+
+        _businessReason = businessReason;
         return this;
     }
 
@@ -132,6 +144,7 @@ public class ForwardMeteredDataInputV1Builder
             TransactionId: _transactionId,
             ActorNumber: _actorNumber,
             ActorRole: _actorRole,
+            BusinessReason: _businessReason,
             MeteringPointId: _meteringPointId,
             MeteringPointType: _meteringPointType,
             ProductNumber: _productNumber,

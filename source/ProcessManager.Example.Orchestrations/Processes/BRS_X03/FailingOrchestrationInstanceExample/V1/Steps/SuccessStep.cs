@@ -13,11 +13,11 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Activities;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Steps;
 
 internal class SuccessStep(
     TaskOrchestrationContext context,
@@ -33,7 +33,7 @@ internal class SuccessStep(
     protected override async Task<OrchestrationStepTerminationState> OnExecuteAsync()
     {
         await Context.CallActivityAsync(
-            name: nameof(SuccessActivity_Brs_X05_V1),
+            name: nameof(SuccessActivity_Brs_X03_FailingOrchestrationInstanceExample_V1),
             options: DefaultRetryOptions);
 
         return OrchestrationStepTerminationState.Succeeded;

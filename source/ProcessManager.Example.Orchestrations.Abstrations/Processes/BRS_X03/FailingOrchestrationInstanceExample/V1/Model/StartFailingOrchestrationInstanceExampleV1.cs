@@ -15,10 +15,10 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Model;
 
 /// <summary>
-/// Command for starting the BRS_X05.
+/// Command for starting the BRS-X03 FailingOrchestrationInstanceExample.
 /// </summary>
 public record StartFailingOrchestrationInstanceExampleV1
     : StartOrchestrationInstanceCommand<UserIdentityDto>
@@ -31,7 +31,7 @@ public record StartFailingOrchestrationInstanceExampleV1
         UserIdentityDto operatingIdentity)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: Brs_X05.V1)
+                orchestrationDescriptionUniqueName: Brs_X03_FailingOrchestrationInstanceExample.V1)
     {
     }
 }

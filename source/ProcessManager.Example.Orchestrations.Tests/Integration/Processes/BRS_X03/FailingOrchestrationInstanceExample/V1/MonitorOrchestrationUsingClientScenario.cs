@@ -20,9 +20,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Model;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Activities;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Activities;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Steps;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -31,7 +31,7 @@ using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1;
 
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
@@ -133,7 +133,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 failingStep.Sequence.Should().Be(FailingStep.StepSequence);
                 failingStep.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Failed);
                 failingStep.CustomState.Should().Contain(typeof(TaskFailedException).FullName);
-                failingStep.CustomState.Should().Contain(FailingActivity_Brs_X05_V1.ExceptionMessage);
+                failingStep.CustomState.Should().Contain(FailingActivity_Brs_X03_FailingOrchestrationInstanceExample_V1.ExceptionMessage);
             });
     }
 }

@@ -14,16 +14,16 @@
 
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Activities;
 
 /// <summary>
 /// An activity that always fails.
 /// </summary>
-internal class FailingActivity_Brs_X05_V1
+internal class FailingActivity_Brs_X03_FailingOrchestrationInstanceExample_V1
 {
     public const string ExceptionMessage = "This activity always fails";
 
-    [Function(nameof(FailingActivity_Brs_X05_V1))]
+    [Function(nameof(FailingActivity_Brs_X03_FailingOrchestrationInstanceExample_V1))]
     public Task<string> Run(
         [ActivityTrigger] FunctionContext functionContext)
     {

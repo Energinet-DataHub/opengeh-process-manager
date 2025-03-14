@@ -14,20 +14,20 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Steps;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample;
 
 internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
 {
     public OrchestrationDescription Build()
     {
         var description = new OrchestrationDescription(
-            uniqueName: Orchestration_Brs_X05_V1.UniqueName.MapToDomain(),
+            uniqueName: Orchestration_Brs_X03_FailingOrchestrationInstanceExample_V1.UniqueName.MapToDomain(),
             canBeScheduled: false,
-            functionName: nameof(Orchestration_Brs_X05_V1));
+            functionName: nameof(Orchestration_Brs_X03_FailingOrchestrationInstanceExample_V1));
 
         description.AppendStepDescription(SuccessStep.StepDescription);
         description.AppendStepDescription(FailingStep.StepDescription);

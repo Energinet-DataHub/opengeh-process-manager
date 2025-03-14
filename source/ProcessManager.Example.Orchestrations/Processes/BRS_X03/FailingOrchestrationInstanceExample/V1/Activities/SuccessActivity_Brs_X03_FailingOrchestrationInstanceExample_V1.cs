@@ -12,13 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X05_FailingOrchestrationInstanceExample;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Activities;
 
-public static class Brs_X05
+/// <summary>
+/// An activity that always succeeds.
+/// </summary>
+internal class SuccessActivity_Brs_X03_FailingOrchestrationInstanceExample_V1
 {
-    public const string Name = "Brs_X05";
-
-    public static OrchestrationDescriptionUniqueNameDto V1 { get; } = new(Name, 1);
+    [Function(nameof(SuccessActivity_Brs_X03_FailingOrchestrationInstanceExample_V1))]
+    public Task<string> Run(
+        [ActivityTrigger] FunctionContext functionContext)
+    {
+        return Task.FromResult("Success");
+    }
 }

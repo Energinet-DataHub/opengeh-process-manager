@@ -14,21 +14,21 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X05_FailingOrchestrationInstanceExample;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1.Steps;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03.FailingOrchestrationInstanceExample;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Steps;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1;
 
-internal class Orchestration_Brs_X05_V1
+internal class Orchestration_Brs_X03_FailingOrchestrationInstanceExample_V1
 {
-    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_X05.V1;
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_X03_FailingOrchestrationInstanceExample.V1;
 
     private readonly TaskRetryOptions _defaultRetryOptions;
 
-    public Orchestration_Brs_X05_V1()
+    public Orchestration_Brs_X03_FailingOrchestrationInstanceExample_V1()
     {
         _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(new RetryPolicy(
             maxNumberOfAttempts: 3,
@@ -36,7 +36,7 @@ internal class Orchestration_Brs_X05_V1
             backoffCoefficient: 1));
     }
 
-    [Function(nameof(Orchestration_Brs_X05_V1))]
+    [Function(nameof(Orchestration_Brs_X03_FailingOrchestrationInstanceExample_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {

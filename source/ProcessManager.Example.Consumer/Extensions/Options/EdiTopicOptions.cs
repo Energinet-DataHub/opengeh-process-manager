@@ -27,8 +27,8 @@ public class EdiTopicOptions
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// EDI Service Bus topic subscription name for enqueueing BRS-X03 actor messages.
+    /// EDI Service Bus topic subscription name for enqueueing BRS-X02 ActorRequestProcessExample actor messages.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string EnqueueBrsX03SubscriptionName { get; set; } = string.Empty;
+    public string EnqueueBrsX02ActorRequestProcessExampleSubscriptionName { get; set; } = string.Empty;
 }

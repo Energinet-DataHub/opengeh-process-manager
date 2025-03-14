@@ -14,8 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Api.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

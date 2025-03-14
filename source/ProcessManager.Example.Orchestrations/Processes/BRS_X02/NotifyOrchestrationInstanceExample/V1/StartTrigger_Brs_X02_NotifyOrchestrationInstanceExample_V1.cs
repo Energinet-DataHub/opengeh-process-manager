@@ -31,7 +31,7 @@ internal class StartTrigger_Brs_X02_NotifyOrchestrationInstanceExample_V1(
     public async Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.TopicName)}%",
-            $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.BrsX02SubscriptionName)}%",
+            $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.BrsX02NotifyOrchestrationInstanceExampleSubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {

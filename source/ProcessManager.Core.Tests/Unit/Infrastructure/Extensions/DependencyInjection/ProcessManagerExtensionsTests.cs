@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -47,10 +48,10 @@ public class ProcessManagerExtensionsTests
             typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.V1.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.OrchestrationDescriptionBuilder),
-            typeof(Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.OrchestrationDescriptionBuilder),
-            typeof(Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges.BreakingChangesOrchestrationDescriptionBuilder),
-            typeof(Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges.UnderDevelopmentOrchestrationDescriptionBuilder),
-            typeof(Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.OrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.OrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X03.OrchestrationDescriptionBreakingChanges.BreakingChangesOrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X03.OrchestrationDescriptionBreakingChanges.UnderDevelopmentOrchestrationDescriptionBuilder),
+            typeof(OrchestrationDescriptionBuilder),
         };
 
         // Act

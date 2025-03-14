@@ -23,7 +23,7 @@ using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Xunit.Abstractions;
 
@@ -236,10 +236,10 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
             ediTopicResources.EdiTopic.Name);
 
-        // => Enqueue BRS-X03
+        // => Enqueue BRS-X02 ActorRequestProcessExample
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.EnqueueBrsX03SubscriptionName)}",
-            ediTopicResources.EnqueueBrsX03Subscription.SubscriptionName);
+            $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.EnqueueBrsX02ActorRequestProcessExampleSubscriptionName)}",
+            ediTopicResources.EnqueueBrsX02ActorRequestProcessExampleSubscription.SubscriptionName);
 
         return appHostSettings;
     }
@@ -249,9 +249,9 @@ public class ExampleConsumerAppManager : IAsyncDisposable
     /// </summary>
     public record EdiTopicResources(
         TopicResource EdiTopic,
-        SubscriptionProperties EnqueueBrsX03Subscription)
+        SubscriptionProperties EnqueueBrsX02ActorRequestProcessExampleSubscription)
     {
-        private const string EnqueueBrsX03SubscriptionName = $"enqueue-brs-x03-subscription";
+        private const string EnqueueBrsX02ActorRequestProcessExampleSubscriptionName = $"enqueue-brs-x02-actorrequestprocessexample";
 
         public static async Task<EdiTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
@@ -268,8 +268,8 @@ public class ExampleConsumerAppManager : IAsyncDisposable
         public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
-                .AddSubscription(EnqueueBrsX03SubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_X03.V1));
+                .AddSubscription(EnqueueBrsX02ActorRequestProcessExampleSubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_X02_ActorRequestProcessExample.V1));
 
             return builder;
         }
@@ -282,12 +282,12 @@ public class ExampleConsumerAppManager : IAsyncDisposable
         /// </summary>
         public static EdiTopicResources CreateFromTopic(TopicResource topic)
         {
-            var enqueueBrsX03Subscription = topic.Subscriptions
-                .Single(s => s.SubscriptionName == EnqueueBrsX03SubscriptionName);
+            var enqueueBrsX02ActorRequestProcessExampleSubscription = topic.Subscriptions
+                .Single(s => s.SubscriptionName == EnqueueBrsX02ActorRequestProcessExampleSubscriptionName);
 
             return new EdiTopicResources(
                 EdiTopic: topic,
-                EnqueueBrsX03Subscription: enqueueBrsX03Subscription);
+                EnqueueBrsX02ActorRequestProcessExampleSubscription: enqueueBrsX02ActorRequestProcessExampleSubscription);
         }
     }
 }

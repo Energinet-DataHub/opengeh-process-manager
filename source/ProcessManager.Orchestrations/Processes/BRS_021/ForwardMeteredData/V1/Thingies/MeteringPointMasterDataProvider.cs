@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 using PMGridAreaCode =
     Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode;
@@ -34,9 +35,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
     "StyleCop.CSharp.ReadabilityRules",
     "SA1118:Parameter should not span multiple lines",
     Justification = "Readability")]
-public class MeteringPointMasterDataProvider(IElectricityMarketViews electricityMarketViews)
+public class MeteringPointMasterDataProvider(
+    IElectricityMarketViews electricityMarketViews,
+    ILogger<MeteringPointMasterDataProvider> logger)
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
+    private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
 
     internal async Task<IReadOnlyCollection<PMMeteringPointMasterData>> GetAndConvertMasterData(
         string meteringPointId,
@@ -52,14 +56,26 @@ public class MeteringPointMasterDataProvider(IElectricityMarketViews electricity
             return [];
         }
 
-        var meteringPointMasterData =
-            (await _electricityMarketViews
-                .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
-                .ConfigureAwait(false))
-            .SelectMany(CoSelectManyForEnergySuppliers)
-            .OrderBy(mpmd => mpmd.ValidFrom)
-            .ToList()
-            .AsReadOnly();
+        IReadOnlyCollection<PMMeteringPointMasterData> meteringPointMasterData;
+        try
+        {
+            meteringPointMasterData =
+                (await _electricityMarketViews
+                    .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
+                    .ConfigureAwait(false))
+                .SelectMany(CoSelectManyForEnergySuppliers)
+                .OrderBy(mpmd => mpmd.ValidFrom)
+                .ToList()
+                .AsReadOnly();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(
+                e,
+                $"Failed to get metering point master data for metering point '{meteringPointId}' in the period {startDateTime}--{endDateTime}.");
+
+            return [];
+        }
 
         if (meteringPointMasterData.Count <= 0)
         {

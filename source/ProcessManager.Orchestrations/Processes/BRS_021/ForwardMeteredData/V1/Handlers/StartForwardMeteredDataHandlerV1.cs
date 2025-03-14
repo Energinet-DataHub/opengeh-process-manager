@@ -68,6 +68,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
     private readonly ElectricityMarket.Integration.IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+    private readonly ILogger<StartForwardMeteredDataHandlerV1> _logger = logger;
 
     /// <summary>
     /// This method has multiple commits to the database, to immediately transition lifecycles. This means that
@@ -251,7 +252,6 @@ public class StartForwardMeteredDataHandlerV1(
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
         var customState = orchestrationInstance.CustomState.AsType<Brs021_ForwardMeteredData_CustomState>();
 
-        var meteringPointMasterData = Array.Empty<MeteringPointMasterData>();
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,

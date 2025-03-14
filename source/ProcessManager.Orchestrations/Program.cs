@@ -29,6 +29,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MyNamespace;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(builder =>
@@ -79,8 +80,7 @@ var host = new HostBuilder()
         // Measurements
         services.AddMeasurementsMeteredDataClient(azureCredential);
 
-        services.AddScoped<TerminateForwardMeteredDataHandlerV1>()
-            .AddScoped<EnqueueMeteredDataHandlerV1>();
+        services.AddBrs021ForwardMeteringData();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Net;
+using System.Text.RegularExpressions;
 using AutoFixture;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
@@ -43,6 +45,9 @@ using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
 using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
@@ -150,9 +155,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Given_ValidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+    public async Task
+        Given_ValidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         // Arrange
+        SetupElectricityMarketWireMocking();
+
         var input = CreateForwardMeteredDataInputV1();
 
         var forwardCommand = new ForwardMeteredDataCommandV1(
@@ -223,6 +231,51 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .NotBeNull()
             .And.Be(OrchestrationInstanceTerminationState.Succeeded);
 
+        terminatedOrchestrationInstance.CustomState.Should()
+            .BeEquivalentTo(
+                Regex.Replace(
+                    """
+                    {
+                      "MeteringPointMasterData": [
+                        {
+                          "MeteringPointId": {
+                            "Value": "123456789"
+                          },
+                          "ValidFrom": "2023-11-29T12:34:56+00:00",
+                          "ValidTo": "2024-11-29T12:34:56+00:00",
+                          "GridAreaCode": {
+                            "Value": "804"
+                          },
+                          "GridAccessProvider": {
+                            "Value": "2222222222222"
+                          },
+                          "NeighborGridAreaOwners": [
+                            "Owner1",
+                            "Owner2"
+                          ],
+                          "ConnectionState": 4,
+                          "MeteringPointType": {
+                            "Name": "Consumption"
+                          },
+                          "MeteringPointSubType": 0,
+                          "Resolution": {
+                            "Name": "Hourly"
+                          },
+                          "MeasurementUnit": {
+                            "Name": "KilowattHour"
+                          },
+                          "ProductId": "Tariff",
+                          "ParentMeteringPointId": null,
+                          "EnergySupplier": {
+                            "Value": "1111111111111"
+                          }
+                        }
+                      ]
+                    }
+                    """,
+                    @"\s+",
+                    string.Empty));
+
         terminatedOrchestrationInstance.Steps.Should()
             .AllSatisfy(
                 s =>
@@ -238,6 +291,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
         // Given
+        SetupElectricityMarketWireMocking();
+
         var invalidInput = CreateForwardMeteredDataInputV1() with { EndDateTime = null };
 
         var invalidForwardCommand = new ForwardMeteredDataCommandV1(
@@ -301,7 +356,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .NotBeNull()
             .And.Be(OrchestrationInstanceTerminationState.Failed);
 
-        terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence).Should()
+        terminatedOrchestrationInstance.CustomState.Should().BeEquivalentTo("{\"MeteringPointMasterData\":[]}");
+
+        terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence)
+            .Should()
             .SatisfyRespectively(
                 s =>
                 {
@@ -429,5 +487,59 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 new("24", "112.000", Quality.AsProvided.Name),
             ]);
         return input;
+    }
+
+    private void SetupElectricityMarketWireMocking()
+    {
+        var request = Request
+            .Create()
+            .WithPath("/api/get-metering-point-master-data")
+            .WithBody(_ => true)
+            .UsingPost();
+
+        var body = """
+                   {
+                     "Identification": {
+                       "Value": "123456789"
+                     },
+                     "ValidFrom": "2023-11-29T12:34:56Z",
+                     "ValidTo": "2024-11-29T12:34:56Z",
+                     "GridAreaCode": {
+                       "Value": "804"
+                     },
+                     "GridAccessProvider": "2222222222222",
+                     "NeighborGridAreaOwners": [
+                       "Owner1",
+                       "Owner2"
+                     ],
+                     "ConnectionState": 4,
+                     "Type": 0,
+                     "SubType": 0,
+                     "Resolution": {
+                       "Value": "Hourly"
+                     },
+                     "Unit": 3,
+                     "ProductId": 0,
+                     "EnergySuppliers": [
+                       {
+                         "Identification": {
+                           "Value": "123456789"
+                         },
+                         "EnergySupplier": "1111111111111",
+                         "StartDate": "2023-11-29T12:34:56Z",
+                         "EndDate": "2024-11-29T12:34:56Z"
+                       }
+                     ]
+                   }
+                   """;
+
+        // IEnumerable<MeteringPointMasterData>
+        var response = Response
+            .Create()
+            .WithStatusCode(HttpStatusCode.OK)
+            .WithHeader(HeaderNames.ContentType, "application/json")
+            .WithBody($"[{body}]");
+
+        _fixture.OrchestrationsAppManager.MockServer.Given(request).RespondWith(response);
     }
 }

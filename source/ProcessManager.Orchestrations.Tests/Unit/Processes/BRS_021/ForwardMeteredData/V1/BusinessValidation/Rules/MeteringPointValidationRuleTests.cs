@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using FluentAssertions;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation.Rules;
 
@@ -36,13 +37,20 @@ public class MeteringPointValidationRuleTests
                 input,
                 [
                     new MeteringPointMasterData(
-                        MeteringPointId: new MeteringPointId("id"),
-                        GridAreaCode: new GridAreaCode("111"),
-                        GridAccessProvider: ActorNumber.Create("1111111111111"),
-                        ConnectionState: ConnectionState.Connected,
-                        MeteringPointType: MeteringPointType.Production,
-                        MeteringPointSubType: MeteringPointSubType.Physical,
-                        MeasurementUnit: MeasurementUnit.KilowattHour),
+                        new MeteringPointId("id"),
+                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        new GridAreaCode("111"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Production,
+                        MeteringPointSubType.Physical,
+                        Resolution.Hourly,
+                        MeasurementUnit.KilowattHour,
+                        "product",
+                        null,
+                        ActorNumber.Create("1111111111112")),
                 ]));
 
         result.Should().BeEmpty();

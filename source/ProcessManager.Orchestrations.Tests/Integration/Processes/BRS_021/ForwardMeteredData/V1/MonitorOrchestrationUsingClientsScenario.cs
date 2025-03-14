@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using AutoFixture;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.Measurements.Contracts;
@@ -195,7 +193,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
         var notifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
         {
-            Version = "v1", // Measurements sends "v1" instead of "1" as version
+            Version = "1",
             OrchestrationInstanceId = orchestrationInstance!.Id.ToString(),
         };
 

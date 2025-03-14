@@ -338,6 +338,8 @@ public class StartForwardMeteredDataHandlerV1(
             return [];
         }
 
+        // Added temporary try-catch to avoid crashing the process if the call to the electricity market fails for actor tests.
+        // When this has been tested and verified, the try-catch should be removed.
         try
         {
             var meteringPointMasterData = await _electricityMarketViews

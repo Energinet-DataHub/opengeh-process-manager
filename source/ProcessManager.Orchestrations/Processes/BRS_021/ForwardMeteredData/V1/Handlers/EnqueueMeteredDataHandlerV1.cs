@@ -65,21 +65,23 @@ public class EnqueueMeteredDataHandlerV1(
 
         if (enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running)
         {
+            var orchestrationInput = orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>();
+
             var data = new ForwardMeteredDataAcceptedV1(
-                OriginalActorMessageId: "MessageId",
-                MeteringPointId: "MeteringPointId",
+                OriginalActorMessageId: orchestrationInput.ActorMessageId,
+                MeteringPointId: orchestrationInput.MeteringPointId ?? throw new InvalidOperationException("MeteringPointId is missing"),
                 MeteringPointType: MeteringPointType.Production,
-                OriginalTransactionId: "OriginalTransactionId",
-                ProductNumber: "productNumber",
-                MeasureUnit: MeasurementUnit.Megawatt,
+                OriginalTransactionId: orchestrationInput.TransactionId,
+                ProductNumber: orchestrationInput.ProductNumber ?? "test-product-number",
+                MeasureUnit: MeasurementUnit.KilowattHour,
                 RegistrationDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
                 Resolution: Resolution.QuarterHourly,
                 StartDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
                 EndDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
-                AcceptedEnergyObservations: new List<ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation>
-                {
+                AcceptedEnergyObservations:
+                [
                     new(1, 1, Quality.Calculated),
-                },
+                ],
                 MarketActorRecipients: [new MarketActorRecipientV1(ActorNumber.Create("8100000000115"), ActorRole.EnergySupplier)]);
 
             await _enqueueActorMessagesClient.EnqueueAsync(

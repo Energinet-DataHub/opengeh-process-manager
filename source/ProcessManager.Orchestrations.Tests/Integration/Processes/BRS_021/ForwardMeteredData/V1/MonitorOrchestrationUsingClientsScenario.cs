@@ -527,7 +527,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                          },
                          "EnergySupplier": "1111111111111",
                          "StartDate": "2023-11-29T12:34:56Z",
-                         "EndDate": "2023-11-29T12:34:56Z"
+                         "EndDate": "2024-11-29T12:34:56Z"
                        }
                      ]
                    }

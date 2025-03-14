@@ -22,7 +22,7 @@
         <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs">
           <Link>FluentAssertionsVersionGuard.cs</Link>
         </Compile>
-        <Compile Include="..\Shared\Tests\Models\OrchestrationHistoryItem.cs" Link="Fixtures\Models\OrchestrationHistoryItem.cs" />
+        <Compile Include="..\Shared\Tests\Model\OrchestrationHistoryItem.cs" Link="Fixtures\Model\OrchestrationHistoryItem.cs" />
     </ItemGroup>
 
     <ItemGroup>

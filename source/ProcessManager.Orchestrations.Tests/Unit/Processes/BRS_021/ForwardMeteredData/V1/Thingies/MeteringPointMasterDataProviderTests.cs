@@ -38,28 +38,6 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public void METHOD()
-    {
-        /* TODO
-            * Unpacking:
-                - [T] No MD
-                - [T] One MD, no ES
-                - [T] One MD, one ES
-                - [T] One MD, two ES
-                - [T] Two MD, two ES
-                - [T] Two MD, no ES + one ES
-            * Sanity check
-                (use one MD, two ES)
-                - [T] Hole in dates
-                - [T] Overlap in dates
-                - [ ] ES dates not matching MD dates
-                - [ ] Change to type
-                - [ ] Change to measurement unit
-                - [ ] change to product id
-         */
-    }
-
-    [Fact]
     public async Task Given_NoMasterData_When_GetAndConvertMasterData_Then_Empty()
     {
         (await _sut.GetAndConvertMasterData("no-master-data-please", "2021-01-01T00:00:00Z", "2021-01-01T00:00:00Z"))
@@ -131,8 +109,10 @@ public class MeteringPointMasterDataProviderTests
     [Fact]
     public async Task Given_TwoMasterDataWithTwoEnergySuppliers_When_GetAndConvertMasterData_Then_ListOfFour()
     {
+        _electricityMarketViews.MeteringPointMasterDataProvider = () => GetMeteringPointMasterData();
+
         var meteringPointMasterData = await _sut.GetAndConvertMasterData(
-            "two-master-data-please",
+            "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
@@ -144,31 +124,31 @@ public class MeteringPointMasterDataProviderTests
             .SatisfyRespectively(
                 first =>
                 {
-                    first.MeteringPointId.Value.Should().Be("two-master-data-please");
+                    first.MeteringPointId.Value.Should().Be("custom-metering-point-master-data");
                     first.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
                     first.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
                     first.EnergySupplier.Value.Should().Be("1111111111111");
                 },
                 second =>
                 {
-                    second.MeteringPointId.Value.Should().Be("two-master-data-please");
+                    second.MeteringPointId.Value.Should().Be("custom-metering-point-master-data");
                     second.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
                     second.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
                     second.EnergySupplier.Value.Should().Be("2222222222222");
                 },
                 third =>
                 {
-                    third.MeteringPointId.Value.Should().Be("two-master-data-please");
+                    third.MeteringPointId.Value.Should().Be("custom-metering-point-master-data");
                     third.ValidFrom.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
                     third.ValidTo.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
-                    third.EnergySupplier.Value.Should().Be("3333333333333");
+                    third.EnergySupplier.Value.Should().Be("1111111111111");
                 },
                 fourth =>
                 {
-                    fourth.MeteringPointId.Value.Should().Be("two-master-data-please");
+                    fourth.MeteringPointId.Value.Should().Be("custom-metering-point-master-data");
                     fourth.ValidFrom.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
                     fourth.ValidTo.Should().Be(new DateTimeOffset(2021, 5, 1, 0, 0, 0, TimeSpan.Zero));
-                    fourth.EnergySupplier.Value.Should().Be("4444444444444");
+                    fourth.EnergySupplier.Value.Should().Be("3333333333333");
                 });
     }
 
@@ -186,8 +166,10 @@ public class MeteringPointMasterDataProviderTests
     [Fact]
     public async Task Given_MasterDataWithEnergySupplierHole_When_GetAndConvertMasterData_Then_Error()
     {
+        _electricityMarketViews.MeteringPointMasterDataProvider = () => GetMeteringPointMasterData(gapInDates: true);
+
         var act = async () => await _sut.GetAndConvertMasterData(
-            "holes-in-dates-please",
+            "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
@@ -197,22 +179,159 @@ public class MeteringPointMasterDataProviderTests
     [Fact]
     public async Task Given_MasterDataWithOverlappingEnergySuppliers_When_GetAndConvertMasterData_Then_Error()
     {
+        _electricityMarketViews.MeteringPointMasterDataProvider =
+            () => GetMeteringPointMasterData(overlapInDates: true);
+
         var act = async () => await _sut.GetAndConvertMasterData(
-            "overlap-in-dates-please",
+            "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
         await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
     }
 
+    [Fact]
+    public async Task Given_MasterDataWithNonMatchingDatesForEnergySuppliers_When_GetAndConvertMasterData_Then_Error()
+    {
+        _electricityMarketViews.MeteringPointMasterDataProvider =
+            () => GetMeteringPointMasterData(datesNotMatching: true);
+
+        var act = async () => await _sut.GetAndConvertMasterData(
+            "custom-metering-point-master-data",
+            "2021-01-01T00:00:00Z",
+            "2021-01-01T00:00:00Z");
+
+        await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
+    }
+
+    [Fact]
+    public async Task Given_MasterDataWithChangeToMeteringPointType_When_GetAndConvertMasterData_Then_Error()
+    {
+        _electricityMarketViews.MeteringPointMasterDataProvider =
+            () => GetMeteringPointMasterData(changeToType: true);
+
+        var act = async () => await _sut.GetAndConvertMasterData(
+            "custom-metering-point-master-data",
+            "2021-01-01T00:00:00Z",
+            "2021-01-01T00:00:00Z");
+
+        await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
+    }
+
+    [Fact]
+    public async Task Given_MasterDataWithChangeToMeasurementUnit_When_GetAndConvertMasterData_Then_Error()
+    {
+        _electricityMarketViews.MeteringPointMasterDataProvider =
+            () => GetMeteringPointMasterData(changeToMeasurementUnit: true);
+
+        var act = async () => await _sut.GetAndConvertMasterData(
+            "custom-metering-point-master-data",
+            "2021-01-01T00:00:00Z",
+            "2021-01-01T00:00:00Z");
+
+        await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
+    }
+
+    [Fact]
+    public async Task Given_MasterDataWithChangeToProductId_When_GetAndConvertMasterData_Then_Error()
+    {
+        _electricityMarketViews.MeteringPointMasterDataProvider =
+            () => GetMeteringPointMasterData(changeToProductId: true);
+
+        var act = async () => await _sut.GetAndConvertMasterData(
+            "custom-metering-point-master-data",
+            "2021-01-01T00:00:00Z",
+            "2021-01-01T00:00:00Z");
+
+        await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
+    }
+
+    private IReadOnlyCollection<MeteringPointMasterData> GetMeteringPointMasterData(
+        bool gapInDates = false,
+        bool overlapInDates = false,
+        bool datesNotMatching = false,
+        bool changeToType = false,
+        bool changeToMeasurementUnit = false,
+        bool changeToProductId = false) =>
+    [
+        new()
+        {
+            Identification = new MeteringPointIdentification("custom-metering-point-master-data"),
+            ValidFrom = Instant.FromUtc(2021, 1, 1, 0, 0),
+            ValidTo = Instant.FromUtc(2021, 3, datesNotMatching ? 2 : 1, 0, 0),
+            GridAreaCode = new GridAreaCode("804"),
+            GridAccessProvider = "9999999999999",
+            ConnectionState = ConnectionState.Connected,
+            Type = MeteringPointType.Consumption,
+            SubType = MeteringPointSubType.Physical,
+            Resolution = new Resolution("Hourly"),
+            Unit = changeToMeasurementUnit ? MeasureUnit.MVAr : MeasureUnit.kWh,
+            ProductId = ProductId.EnergyActivate,
+            ParentIdentification = new MeteringPointIdentification("parent-identification"),
+            EnergySuppliers =
+            [
+                new()
+                {
+                    Identification = new MeteringPointIdentification("custom-metering-point-master-data"),
+                    EnergySupplier = "1111111111111",
+                    StartDate = Instant.FromUtc(2021, 1, 1, 0, 0),
+                    EndDate = Instant.FromUtc(2021, 2, overlapInDates ? 2 : 1, 0, 0),
+                },
+                new()
+                {
+                    Identification = new MeteringPointIdentification("custom-metering-point-master-data"),
+                    EnergySupplier = "2222222222222",
+                    StartDate = Instant.FromUtc(2021, 2, 1, 0, 0),
+                    EndDate = Instant.FromUtc(2021, 3, 1, 0, 0),
+                },
+            ],
+        },
+        new()
+        {
+            Identification = new MeteringPointIdentification("custom-metering-point-master-data"),
+            ValidFrom = Instant.FromUtc(2021, 3, 1, 0, 0),
+            ValidTo = Instant.FromUtc(2021, 5, 1, 0, 0),
+            GridAreaCode = new GridAreaCode("804"),
+            GridAccessProvider = "9999999999999",
+            ConnectionState = ConnectionState.Connected,
+            Type = changeToType ? MeteringPointType.Production : MeteringPointType.Consumption,
+            SubType = MeteringPointSubType.Physical,
+            Resolution = new Resolution("Hourly"),
+            Unit = MeasureUnit.kWh,
+            ProductId = changeToProductId ? ProductId.Tariff : ProductId.EnergyActivate,
+            ParentIdentification = new MeteringPointIdentification("parent-identification"),
+            EnergySuppliers =
+            [
+                new()
+                {
+                    Identification = new MeteringPointIdentification("custom-metering-point-master-data"),
+                    EnergySupplier = "1111111111111",
+                    StartDate = Instant.FromUtc(2021, 3, 1, 0, 0),
+                    EndDate = Instant.FromUtc(2021, 4, 1, 0, 0),
+                },
+                new()
+                {
+                    Identification = new MeteringPointIdentification("custom-metering-point-master-data"),
+                    EnergySupplier = "3333333333333",
+                    StartDate = Instant.FromUtc(2021, 4, gapInDates ? 2 : 1, 0, 0),
+                    EndDate = Instant.FromUtc(2021, 5, 1, 0, 0),
+                },
+            ],
+        },
+    ];
+
     private class ElectricityMarketViewsMock : IElectricityMarketViews
     {
+        public Func<IEnumerable<MeteringPointMasterData>> MeteringPointMasterDataProvider { get; set; } =
+            () => [];
+
         public Task<IEnumerable<MeteringPointMasterData>> GetMeteringPointMasterDataChangesAsync(
             MeteringPointIdentification meteringPointIdentification,
             Interval interval)
         {
             return meteringPointIdentification.Value switch
             {
+                "custom-metering-point-master-data" => Task.FromResult(MeteringPointMasterDataProvider()),
                 "no-master-data-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>([]),
                 "no-energy-suppliers-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
                 [
@@ -296,73 +415,6 @@ public class MeteringPointMasterDataProviderTests
                         ],
                     },
                 ]),
-                "two-master-data-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
-                [
-                    new()
-                    {
-                        Identification = new MeteringPointIdentification("two-master-data-please"),
-                        ValidFrom = Instant.FromUtc(2021, 1, 1, 0, 0),
-                        ValidTo = Instant.FromUtc(2021, 3, 1, 0, 0),
-                        GridAreaCode = new GridAreaCode("804"),
-                        GridAccessProvider = "9999999999999",
-                        ConnectionState = ConnectionState.Connected,
-                        Type = MeteringPointType.Consumption,
-                        SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
-                        Unit = MeasureUnit.kWh,
-                        ProductId = ProductId.EnergyActivate,
-                        ParentIdentification = new MeteringPointIdentification("parent-identification"),
-                        EnergySuppliers =
-                        [
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("two-master-data-please"),
-                                EnergySupplier = "1111111111111",
-                                StartDate = Instant.FromUtc(2021, 1, 1, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 2, 1, 0, 0),
-                            },
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("two-master-data-please"),
-                                EnergySupplier = "2222222222222",
-                                StartDate = Instant.FromUtc(2021, 2, 1, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 3, 1, 0, 0),
-                            },
-                        ],
-                    },
-                    new()
-                    {
-                        Identification = new MeteringPointIdentification("two-master-data-please"),
-                        ValidFrom = Instant.FromUtc(2021, 3, 1, 0, 0),
-                        ValidTo = Instant.FromUtc(2021, 5, 1, 0, 0),
-                        GridAreaCode = new GridAreaCode("804"),
-                        GridAccessProvider = "9999999999999",
-                        ConnectionState = ConnectionState.Connected,
-                        Type = MeteringPointType.Consumption,
-                        SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
-                        Unit = MeasureUnit.kWh,
-                        ProductId = ProductId.EnergyActivate,
-                        ParentIdentification = new MeteringPointIdentification("parent-identification"),
-                        EnergySuppliers =
-                        [
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("two-master-data-please"),
-                                EnergySupplier = "3333333333333",
-                                StartDate = Instant.FromUtc(2021, 3, 1, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 4, 1, 0, 0),
-                            },
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("two-master-data-please"),
-                                EnergySupplier = "4444444444444",
-                                StartDate = Instant.FromUtc(2021, 4, 1, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 5, 1, 0, 0),
-                            },
-                        ],
-                    },
-                ]),
                 "faulty-two-master-data-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
                 [
                     new()
@@ -412,76 +464,6 @@ public class MeteringPointMasterDataProviderTests
                         ProductId = ProductId.EnergyActivate,
                         ParentIdentification = new MeteringPointIdentification("parent-identification"),
                         EnergySuppliers = [],
-                    },
-                ]),
-                "holes-in-dates-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
-                [
-                    new()
-                    {
-                        Identification = new MeteringPointIdentification("two-energy-suppliers-please"),
-                        ValidFrom = Instant.FromUtc(2021, 1, 1, 0, 0),
-                        ValidTo = Instant.FromUtc(2021, 3, 1, 0, 0),
-                        GridAreaCode = new GridAreaCode("804"),
-                        GridAccessProvider = "9999999999999",
-                        ConnectionState = ConnectionState.Connected,
-                        Type = MeteringPointType.Consumption,
-                        SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
-                        Unit = MeasureUnit.kWh,
-                        ProductId = ProductId.EnergyActivate,
-                        ParentIdentification = new MeteringPointIdentification("parent-identification"),
-                        EnergySuppliers =
-                        [
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("two-energy-suppliers-please"),
-                                EnergySupplier = "1111111111111",
-                                StartDate = Instant.FromUtc(2021, 1, 1, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 2, 1, 0, 0),
-                            },
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("two-energy-suppliers-please"),
-                                EnergySupplier = "2222222222222",
-                                StartDate = Instant.FromUtc(2021, 2, 2, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 3, 1, 0, 0),
-                            },
-                        ],
-                    },
-                ]),
-                "overlap-in-dates-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
-                [
-                    new()
-                    {
-                        Identification = new MeteringPointIdentification("two-energy-suppliers-please"),
-                        ValidFrom = Instant.FromUtc(2021, 1, 1, 0, 0),
-                        ValidTo = Instant.FromUtc(2021, 3, 1, 0, 0),
-                        GridAreaCode = new GridAreaCode("804"),
-                        GridAccessProvider = "9999999999999",
-                        ConnectionState = ConnectionState.Connected,
-                        Type = MeteringPointType.Consumption,
-                        SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
-                        Unit = MeasureUnit.kWh,
-                        ProductId = ProductId.EnergyActivate,
-                        ParentIdentification = new MeteringPointIdentification("parent-identification"),
-                        EnergySuppliers =
-                        [
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("two-energy-suppliers-please"),
-                                EnergySupplier = "1111111111111",
-                                StartDate = Instant.FromUtc(2021, 1, 1, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 2, 2, 0, 0),
-                            },
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("two-energy-suppliers-please"),
-                                EnergySupplier = "2222222222222",
-                                StartDate = Instant.FromUtc(2021, 2, 1, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 3, 1, 0, 0),
-                            },
-                        ],
                     },
                 ]),
                 _ => throw new ArgumentOutOfRangeException(

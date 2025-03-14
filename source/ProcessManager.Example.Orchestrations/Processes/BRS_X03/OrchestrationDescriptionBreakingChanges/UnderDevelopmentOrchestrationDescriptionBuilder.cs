@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.OrchestrationDescriptionBreakingChanges;
 
 /// <summary>
 /// An orchestration description used to test breaking changes when synchronizing the orchestration register.

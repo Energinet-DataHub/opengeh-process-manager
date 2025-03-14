@@ -48,8 +48,8 @@ public class ProcessManagerExtensionsTests
             typeof(Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.OrchestrationDescriptionBuilder),
-            typeof(Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges.BreakingChangesOrchestrationDescriptionBuilder),
-            typeof(Example.Orchestrations.Processes.BRS_X04_OrchestrationDescriptionBreakingChanges.UnderDevelopmentOrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X03.OrchestrationDescriptionBreakingChanges.BreakingChangesOrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X03.OrchestrationDescriptionBreakingChanges.UnderDevelopmentOrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X05_FailingOrchestrationInstanceExample.OrchestrationDescriptionBuilder),
         };
 

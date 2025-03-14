@@ -127,7 +127,7 @@ public class StartForwardMeteredDataHandlerV1(
             }
 
             // Skip step: Find receiver
-            var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiverStep);
+            var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiversStep);
 
             // If the step is already skipped, do nothing (idempotency/retry check).
             if (findReceiverStep.Lifecycle.TerminationState != OrchestrationStepTerminationState.Skipped)
@@ -293,12 +293,12 @@ public class StartForwardMeteredDataHandlerV1(
         if (enqueueStep.CustomState.IsEmpty)
         {
             idempotencyKey = Guid.NewGuid();
-            enqueueStep.CustomState.SetFromInstance(new EnqueueActorMessagesCustomStateV1(idempotencyKey));
+            enqueueStep.CustomState.SetFromInstance(new EnqueueActorMessagesStepCustomStateV1(idempotencyKey));
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
         else
         {
-            idempotencyKey = enqueueStep.CustomState.AsType<EnqueueActorMessagesCustomStateV1>().IdempotencyKey;
+            idempotencyKey = enqueueStep.CustomState.AsType<EnqueueActorMessagesStepCustomStateV1>().IdempotencyKey;
         }
 
         await _enqueueActorMessagesClient.EnqueueAsync(

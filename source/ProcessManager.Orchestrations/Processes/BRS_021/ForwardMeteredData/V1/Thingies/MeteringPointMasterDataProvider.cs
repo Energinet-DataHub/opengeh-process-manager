@@ -56,17 +56,12 @@ public class MeteringPointMasterDataProvider(
             return [];
         }
 
-        IReadOnlyCollection<PMMeteringPointMasterData> meteringPointMasterData;
+        IEnumerable<MeteringPointMasterData> masterDataChanges;
         try
         {
-            meteringPointMasterData =
-                (await _electricityMarketViews
-                    .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
-                    .ConfigureAwait(false))
-                .SelectMany(CoSelectManyForEnergySuppliers)
-                .OrderBy(mpmd => mpmd.ValidFrom)
-                .ToList()
-                .AsReadOnly();
+            masterDataChanges = await _electricityMarketViews
+                .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
+                .ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -76,6 +71,12 @@ public class MeteringPointMasterDataProvider(
 
             return [];
         }
+
+        var meteringPointMasterData = masterDataChanges
+            .SelectMany(CoSelectManyForEnergySuppliers)
+            .OrderBy(mpmd => mpmd.ValidFrom)
+            .ToList()
+            .AsReadOnly();
 
         if (meteringPointMasterData.Count <= 0)
         {

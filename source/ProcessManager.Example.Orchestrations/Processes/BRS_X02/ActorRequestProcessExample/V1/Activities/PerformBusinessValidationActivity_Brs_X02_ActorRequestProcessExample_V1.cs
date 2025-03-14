@@ -15,20 +15,20 @@
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1.Model;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Steps;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Activities;
 
-internal class PerformBusinessValidationActivity_Brs_X03_V1(
+internal class PerformBusinessValidationActivity_Brs_X02_ActorRequestProcessExample_V1(
     IOrchestrationInstanceProgressRepository repository,
     BusinessValidator<ActorRequestProcessExampleInputV1> validator)
 {
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly BusinessValidator<ActorRequestProcessExampleInputV1> _validator = validator;
 
-    [Function(nameof(PerformBusinessValidationActivity_Brs_X03_V1))]
+    [Function(nameof(PerformBusinessValidationActivity_Brs_X02_ActorRequestProcessExample_V1))]
     public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput input)
     {

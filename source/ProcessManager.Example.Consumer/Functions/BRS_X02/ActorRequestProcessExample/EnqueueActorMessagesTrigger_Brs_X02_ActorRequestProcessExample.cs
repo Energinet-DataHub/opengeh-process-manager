@@ -17,38 +17,35 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManager.Example.Consumer.Functions.BRS_X03_ActorRequestProcessExample;
+namespace Energinet.DataHub.ProcessManager.Example.Consumer.Functions.BRS_X02.ActorRequestProcessExample;
 
 /// <summary>
 /// Service Bus trigger listening for EnqueueActorMessages events sent from the Process Manager.
 /// </summary>
-public class EnqueueActorMessagesTrigger_Brs_X03(
-    ILogger<EnqueueActorMessagesTrigger_Brs_X03> logger,
+public class EnqueueActorMessagesTrigger_Brs_X02_ActorRequestProcessExample(
+    ILogger<EnqueueActorMessagesTrigger_Brs_X02_ActorRequestProcessExample> logger,
     IProcessManagerMessageClient messageClient)
 {
-    private readonly ILogger<EnqueueActorMessagesTrigger_Brs_X03> _logger = logger;
+    private readonly ILogger<EnqueueActorMessagesTrigger_Brs_X02_ActorRequestProcessExample> _logger = logger;
     private readonly IProcessManagerMessageClient _messageClient = messageClient;
 
-    [Function(nameof(EnqueueActorMessagesTrigger_Brs_X03))]
+    [Function(nameof(EnqueueActorMessagesTrigger_Brs_X02_ActorRequestProcessExample))]
     public Task Run(
         [ServiceBusTrigger(
             $"%{EdiTopicOptions.SectionName}:{nameof(EdiTopicOptions.Name)}%",
-            $"%{EdiTopicOptions.SectionName}:{nameof(EdiTopicOptions.EnqueueBrsX03SubscriptionName)}%",
+            $"%{EdiTopicOptions.SectionName}:{nameof(EdiTopicOptions.EnqueueBrsX02ActorRequestProcessExampleSubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
         var majorVersion = message.GetMajorVersion();
 
         if (majorVersion == EnqueueActorMessagesV1.MajorVersion)
-        {
             return HandleV1(message);
-        }
 
         throw new ArgumentOutOfRangeException(
             nameof(majorVersion),

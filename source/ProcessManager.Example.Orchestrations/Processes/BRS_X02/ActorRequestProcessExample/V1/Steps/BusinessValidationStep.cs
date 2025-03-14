@@ -14,17 +14,17 @@
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Activities;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Steps;
 
 internal class BusinessValidationStep(
     TaskOrchestrationContext context,
     TaskRetryOptions retryOptions,
     OrchestrationInstanceId instanceId)
-        : StepExecutor<PerformBusinessValidationActivity_Brs_X03_V1.ActivityOutput>(context, retryOptions, instanceId)
+        : StepExecutor<PerformBusinessValidationActivity_Brs_X02_ActorRequestProcessExample_V1.ActivityOutput>(context, retryOptions, instanceId)
 {
     internal const string StepDescription = "Business validation";
     internal const int StepSequence = 1;
@@ -33,9 +33,9 @@ internal class BusinessValidationStep(
 
     protected override async Task<StepOutput> OnExecuteAsync()
     {
-        var businessValidationResult = await Context.CallActivityAsync<PerformBusinessValidationActivity_Brs_X03_V1.ActivityOutput>(
-            nameof(PerformBusinessValidationActivity_Brs_X03_V1),
-            new PerformBusinessValidationActivity_Brs_X03_V1.ActivityInput(
+        var businessValidationResult = await Context.CallActivityAsync<PerformBusinessValidationActivity_Brs_X02_ActorRequestProcessExample_V1.ActivityOutput>(
+            nameof(PerformBusinessValidationActivity_Brs_X02_ActorRequestProcessExample_V1),
+            new PerformBusinessValidationActivity_Brs_X02_ActorRequestProcessExample_V1.ActivityInput(
                 InstanceId),
             DefaultRetryOptions);
 

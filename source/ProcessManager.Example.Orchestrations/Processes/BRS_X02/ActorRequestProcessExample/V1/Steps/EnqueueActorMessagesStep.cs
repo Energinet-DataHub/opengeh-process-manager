@@ -14,12 +14,12 @@
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1.Model;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Activities;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Steps;
 
 internal class EnqueueActorMessagesStep(
     TaskOrchestrationContext context,
@@ -43,8 +43,8 @@ internal class EnqueueActorMessagesStep(
         if (succeededBusinessValidation)
         {
             await Context.CallActivityAsync(
-                nameof(EnqueueActorMessagesActivity_Brs_X03_V1),
-                new EnqueueActorMessagesActivity_Brs_X03_V1.ActivityInput(
+                nameof(EnqueueActorMessagesActivity_Brs_X02_ActorRequestProcessExample_V1),
+                new EnqueueActorMessagesActivity_Brs_X02_ActorRequestProcessExample_V1.ActivityInput(
                     InstanceId,
                     enqueueIdempotencyKey),
                 DefaultRetryOptions);
@@ -52,8 +52,8 @@ internal class EnqueueActorMessagesStep(
         else
         {
             await Context.CallActivityAsync(
-                nameof(EnqueueRejectedActorMessageActivity_Brs_X03_V1),
-                new EnqueueRejectedActorMessageActivity_Brs_X03_V1.ActivityInput(
+                nameof(EnqueueRejectedActorMessageActivity_Brs_X02_ActorRequestProcessExample_V1),
+                new EnqueueRejectedActorMessageActivity_Brs_X02_ActorRequestProcessExample_V1.ActivityInput(
                     InstanceId,
                     enqueueIdempotencyKey,
                     _validationErrors),

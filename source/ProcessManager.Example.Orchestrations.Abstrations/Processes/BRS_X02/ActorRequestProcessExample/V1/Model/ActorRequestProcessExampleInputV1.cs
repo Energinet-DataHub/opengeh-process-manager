@@ -12,13 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
 
-public static class Brs_X03
-{
-    public const string Name = "Brs_X03";
-
-    public static OrchestrationDescriptionUniqueNameDto V1 { get; } = new(Name, 1);
-}
+/// <summary>
+/// Input to BRS-X02 ActorRequestProcessExample
+/// </summary>
+public record ActorRequestProcessExampleInputV1(
+    string RequestedByActorNumber,
+    string RequestedByActorRole,
+    string BusinessReason)
+        : IInputParameterDto, IBusinessValidatedDto;

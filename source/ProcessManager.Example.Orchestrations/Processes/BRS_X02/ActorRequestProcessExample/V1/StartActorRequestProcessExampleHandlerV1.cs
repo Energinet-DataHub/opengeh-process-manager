@@ -15,11 +15,11 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1;
 
 internal class StartActorRequestProcessExampleHandlerV1(
     ILogger<StartActorRequestProcessExampleHandlerV1> logger,
@@ -38,7 +38,7 @@ internal class StartActorRequestProcessExampleHandlerV1(
     {
         await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
-                Orchestration_Brs_X03_V1.UniqueName.MapToDomain(),
+                Orchestration_Brs_X02_ActorRequestProcessExample_V1.UniqueName.MapToDomain(),
                 input,
                 skipStepsBySequence: [],
                 new IdempotencyKey(idempotencyKey),

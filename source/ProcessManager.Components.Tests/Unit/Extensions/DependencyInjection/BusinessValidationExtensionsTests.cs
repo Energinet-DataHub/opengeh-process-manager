@@ -16,9 +16,9 @@ using System.Reflection;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1.Model;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1.BusinessValidation.ValidationRules;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.BusinessValidation.ValidationRules;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +30,7 @@ public class BusinessValidationExtensionsTests
 {
     private readonly IServiceCollection _serviceCollection = new ServiceCollection();
 
-    private readonly Assembly _orchestrationsExampleAssembly = typeof(Orchestration_Brs_X03_V1).Assembly;
+    private readonly Assembly _orchestrationsExampleAssembly = typeof(Orchestration_Brs_X02_ActorRequestProcessExample_V1).Assembly;
     private readonly Assembly _orchestrationsExampleAbstractionsAssembly = typeof(ActorRequestProcessExampleInputV1).Assembly;
 
     private readonly List<Type> _businessValidatorTypes =

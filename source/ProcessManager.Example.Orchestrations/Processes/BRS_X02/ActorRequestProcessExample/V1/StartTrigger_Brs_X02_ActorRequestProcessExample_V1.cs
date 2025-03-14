@@ -17,9 +17,9 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03_ActorRequestProcessExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1;
 
-internal class StartTrigger_Brs_X03_V1(
+internal class StartTrigger_Brs_X02_ActorRequestProcessExample_V1(
     StartActorRequestProcessExampleHandlerV1 handler)
 {
     private readonly StartActorRequestProcessExampleHandlerV1 _handler = handler;
@@ -27,11 +27,11 @@ internal class StartTrigger_Brs_X03_V1(
     /// <summary>
     /// Start a BRS-028 request.
     /// </summary>
-    [Function(nameof(StartTrigger_Brs_X03_V1))]
+    [Function(nameof(StartTrigger_Brs_X02_ActorRequestProcessExample_V1))]
     public async Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.TopicName)}%",
-            $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.BrsX03SubscriptionName)}%",
+            $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.BrsX02ActorRequestProcessExampleSubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {

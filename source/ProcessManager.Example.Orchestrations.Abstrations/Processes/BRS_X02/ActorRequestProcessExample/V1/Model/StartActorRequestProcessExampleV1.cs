@@ -15,10 +15,10 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
 
 /// <summary>
-/// Start a BRS-X03 actor request process example
+/// Start a BRS-X02 ActorRequestProcessExample actor request process example
 /// </summary>
 public record StartActorRequestProcessExampleV1
     : StartOrchestrationInstanceMessageCommand<ActorRequestProcessExampleInputV1>
@@ -29,7 +29,7 @@ public record StartActorRequestProcessExampleV1
         string idempotencyKey,
         string actorMessageId,
         string transactionId)
-        : base(operatingIdentity, Brs_X03.V1, inputParameter, idempotencyKey, actorMessageId, transactionId, null)
+        : base(operatingIdentity, Brs_X02_ActorRequestProcessExample.V1, inputParameter, idempotencyKey, actorMessageId, transactionId, null)
     {
     }
 }

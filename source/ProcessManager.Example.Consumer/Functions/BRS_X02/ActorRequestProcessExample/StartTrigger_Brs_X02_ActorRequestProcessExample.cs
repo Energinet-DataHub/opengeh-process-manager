@@ -15,22 +15,22 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 
-namespace Energinet.DataHub.ProcessManager.Example.Consumer.Functions.BRS_X03_ActorRequestProcessExample;
+namespace Energinet.DataHub.ProcessManager.Example.Consumer.Functions.BRS_X02.ActorRequestProcessExample;
 
 /// <summary>
-/// Http trigger to start a new BRS X03 orchestration.
+/// Http trigger to start a new BRS X02 ActorRequestProcessExample orchestration.
 /// </summary>
-public class StartTrigger_Brs_X03(
+public class StartTrigger_Brs_X02_ActorRequestProcessExample(
     IProcessManagerMessageClient messageClient)
 {
     private readonly IProcessManagerMessageClient _messageClient = messageClient;
 
-    [Function(nameof(StartTrigger_Brs_X03))]
+    [Function(nameof(StartTrigger_Brs_X02_ActorRequestProcessExample))]
     public Task Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,

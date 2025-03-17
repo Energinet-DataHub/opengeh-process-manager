@@ -150,6 +150,7 @@ public class EnqueueMeteredDataHandlerV1(
             Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution),
             StartDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
             EndDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
+
             AcceptedEnergyObservations:
             [
                 new(1, 1, Quality.Calculated),

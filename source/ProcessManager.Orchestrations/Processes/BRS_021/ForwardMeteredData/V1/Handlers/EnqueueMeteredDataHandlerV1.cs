@@ -128,17 +128,26 @@ public class EnqueueMeteredDataHandlerV1(
             idempotencyKey = enqueueStep.CustomState.AsType<EnqueueActorMessagesStepCustomStateV1>().IdempotencyKey;
         }
 
+        // These checks should already (when implemented) be handled by the business validation
+        // TODO: Implement business validation for required fields
+        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.MeteringPointType);
+        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.MeteringPointId);
+        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.Resolution);
+        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.ProductNumber);
+        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.MeasureUnit);
+        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.EndDateTime);
+
         // Enqueue forward metered data actor messages
         // TODO: Implement correct message data
         var data = new ForwardMeteredDataAcceptedV1(
             OriginalActorMessageId: forwardMeteredDataInput.ActorMessageId,
-            MeteringPointId: forwardMeteredDataInput.MeteringPointId ?? throw new InvalidOperationException("MeteringPointId is missing"),
-            MeteringPointType: MeteringPointType.Production,
+            MeteringPointId: forwardMeteredDataInput.MeteringPointId,
+            MeteringPointType: MeteringPointType.FromName(forwardMeteredDataInput.MeteringPointType),
             OriginalTransactionId: forwardMeteredDataInput.TransactionId,
-            ProductNumber: forwardMeteredDataInput.ProductNumber ?? "test-product-number",
-            MeasureUnit: MeasurementUnit.KilowattHour,
+            ProductNumber: forwardMeteredDataInput.ProductNumber,
+            MeasureUnit: MeasurementUnit.FromName(forwardMeteredDataInput.MeasureUnit),
             RegistrationDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
-            Resolution: Resolution.QuarterHourly,
+            Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution),
             StartDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
             EndDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
             AcceptedEnergyObservations:

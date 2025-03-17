@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
@@ -147,15 +148,29 @@ public class EnqueueMeteredDataHandlerV1(
             ProductNumber: forwardMeteredDataInput.ProductNumber,
             MeasureUnit: MeasurementUnit.FromName(forwardMeteredDataInput.MeasureUnit),
             RegistrationDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
-            Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution),
-            StartDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
-            EndDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
-
-            AcceptedEnergyObservations:
-            [
-                new(1, 1, Quality.Calculated),
-            ],
-            MarketActorRecipients: [new MarketActorRecipientV1(ActorNumber.Create("8100000000115"), ActorRole.EnergySupplier)]);
+            StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset(),
+            EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset(),
+            Receivers: [
+                // TODO: Select from master data
+                new ForwardMeteredDataAcceptedV1.MeteredDataForReceiver(
+                    Actors: [
+                        // TODO: Get energy suppliers (and other receivers?) from master data
+                        new MarketActorRecipientV1(
+                            ActorNumber.Create("8100000000115"),
+                            ActorRole.EnergySupplier),
+                    ],
+                    // TODO: Select the following properties from master data instead
+                    Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution!),
+                    StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value.ToDateTimeOffset(),
+                    EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset(),
+                    MeteredData: forwardMeteredDataInput.EnergyObservations
+                        // TODO: Only get energy observations in the period the receiver is active
+                        .Select(eo => new ForwardMeteredDataAcceptedV1.AcceptedMeteredData(
+                            Position: int.Parse(eo.Position!),
+                            EnergyQuantity: decimal.Parse(eo.EnergyQuantity!),
+                            QuantityQuality: Quality.FromName(eo.QuantityQuality!)))
+                        .ToList()),
+                ]);
 
         await _enqueueActorMessagesClient.EnqueueAsync(
                 orchestration: OrchestrationDescriptionBuilderV1.UniqueName,

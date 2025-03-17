@@ -22,11 +22,11 @@ using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Thingies;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 using NodaTime;
@@ -103,11 +103,13 @@ public class StartForwardMeteredDataHandlerV1(
         if (orchestrationInstance.CustomState.IsEmpty)
         {
             var meteringPointMasterData = await _meteringPointMasterDataProvider
-                .GetAndConvertMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
+                .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 
             orchestrationInstance.CustomState.SetFromInstance(
-                new Brs021_ForwardMeteredData_CustomState(meteringPointMasterData));
+                new ForwardMeteredDataCustomStateV1(meteringPointMasterData));
+
+            await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
 
         // Perform step: Business validation
@@ -240,7 +242,7 @@ public class StartForwardMeteredDataHandlerV1(
         }
 
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
-        var customState = orchestrationInstance.CustomState.AsType<Brs021_ForwardMeteredData_CustomState>();
+        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
 
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(

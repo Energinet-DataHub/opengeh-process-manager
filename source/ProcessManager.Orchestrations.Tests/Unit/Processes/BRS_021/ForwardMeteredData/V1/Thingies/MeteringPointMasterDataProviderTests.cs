@@ -17,7 +17,7 @@ using Energinet.DataHub.ElectricityMarket.Integration.Models.Common;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.GridAreas;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.ProcessDelegation;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Thingies;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -42,17 +42,17 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_NoMasterData_When_GetAndConvertMasterData_Then_Empty()
+    public async Task Given_NoMasterData_When_GetMasterData_Then_Empty()
     {
-        (await _sut.GetAndConvertMasterData("no-master-data-please", "2021-01-01T00:00:00Z", "2021-01-01T00:00:00Z"))
+        (await _sut.GetMasterData("no-master-data-please", "2021-01-01T00:00:00Z", "2021-01-01T00:00:00Z"))
             .Should()
             .BeEmpty();
     }
 
     [Fact]
-    public async Task Given_MasterDataWithNoEnergySuppliers_When_GetAndConvertMasterData_Then_Error()
+    public async Task Given_MasterDataWithNoEnergySuppliers_When_GetMasterData_Then_Error()
     {
-        var act = async () => await _sut.GetAndConvertMasterData(
+        var act = async () => await _sut.GetMasterData(
             "no-energy-suppliers-please",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
@@ -61,9 +61,9 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_MasterDataWithOneEnergySupplier_When_GetAndConvertMasterData_Then_Single()
+    public async Task Given_MasterDataWithOneEnergySupplier_When_GetMasterData_Then_Single()
     {
-        var meteringPointMasterData = await _sut.GetAndConvertMasterData(
+        var meteringPointMasterData = await _sut.GetMasterData(
             "one-energy-supplier-please",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
@@ -79,9 +79,9 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_MasterDataWithTwoEnergySuppliers_When_GetAndConvertMasterData_Then_ListOfTwo()
+    public async Task Given_MasterDataWithTwoEnergySuppliers_When_GetMasterData_Then_ListOfTwo()
     {
-        var meteringPointMasterData = await _sut.GetAndConvertMasterData(
+        var meteringPointMasterData = await _sut.GetMasterData(
             "two-energy-suppliers-please",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
@@ -109,11 +109,11 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_TwoMasterDataWithTwoEnergySuppliers_When_GetAndConvertMasterData_Then_ListOfFour()
+    public async Task Given_TwoMasterDataWithTwoEnergySuppliers_When_GetMasterData_Then_ListOfFour()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider = () => GetMeteringPointMasterData();
 
-        var meteringPointMasterData = await _sut.GetAndConvertMasterData(
+        var meteringPointMasterData = await _sut.GetMasterData(
             "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
@@ -155,9 +155,9 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_TwoMasterDataWithOneFaultyEnergySuppliers_When_GetAndConvertMasterData_Then_Error()
+    public async Task Given_TwoMasterDataWithOneFaultyEnergySuppliers_When_GetMasterData_Then_Error()
     {
-        var act = async () => await _sut.GetAndConvertMasterData(
+        var act = async () => await _sut.GetMasterData(
             "faulty-two-master-data-please",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
@@ -166,11 +166,11 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_MasterDataWithEnergySupplierHole_When_GetAndConvertMasterData_Then_Error()
+    public async Task Given_MasterDataWithEnergySupplierHole_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider = () => GetMeteringPointMasterData(gapInDates: true);
 
-        var act = async () => await _sut.GetAndConvertMasterData(
+        var act = async () => await _sut.GetMasterData(
             "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
@@ -179,12 +179,12 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_MasterDataWithOverlappingEnergySuppliers_When_GetAndConvertMasterData_Then_Error()
+    public async Task Given_MasterDataWithOverlappingEnergySuppliers_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
             () => GetMeteringPointMasterData(overlapInDates: true);
 
-        var act = async () => await _sut.GetAndConvertMasterData(
+        var act = async () => await _sut.GetMasterData(
             "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
@@ -193,12 +193,12 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_MasterDataWithNonMatchingDatesForEnergySuppliers_When_GetAndConvertMasterData_Then_Error()
+    public async Task Given_MasterDataWithNonMatchingDatesForEnergySuppliers_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
             () => GetMeteringPointMasterData(datesNotMatching: true);
 
-        var act = async () => await _sut.GetAndConvertMasterData(
+        var act = async () => await _sut.GetMasterData(
             "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
@@ -207,12 +207,12 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_MasterDataWithChangeToMeteringPointType_When_GetAndConvertMasterData_Then_Error()
+    public async Task Given_MasterDataWithChangeToMeteringPointType_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
             () => GetMeteringPointMasterData(changeToType: true);
 
-        var act = async () => await _sut.GetAndConvertMasterData(
+        var act = async () => await _sut.GetMasterData(
             "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
@@ -221,12 +221,12 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_MasterDataWithChangeToMeasurementUnit_When_GetAndConvertMasterData_Then_Error()
+    public async Task Given_MasterDataWithChangeToMeasurementUnit_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
             () => GetMeteringPointMasterData(changeToMeasurementUnit: true);
 
-        var act = async () => await _sut.GetAndConvertMasterData(
+        var act = async () => await _sut.GetMasterData(
             "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
@@ -235,12 +235,12 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_MasterDataWithChangeToProductId_When_GetAndConvertMasterData_Then_Error()
+    public async Task Given_MasterDataWithChangeToProductId_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
             () => GetMeteringPointMasterData(changeToProductId: true);
 
-        var act = async () => await _sut.GetAndConvertMasterData(
+        var act = async () => await _sut.GetMasterData(
             "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");

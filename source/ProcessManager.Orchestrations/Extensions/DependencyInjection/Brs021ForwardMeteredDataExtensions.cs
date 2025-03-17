@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Thingies;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MyNamespace;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 
 public static class Brs021ForwardMeteredDataExtensions
 {

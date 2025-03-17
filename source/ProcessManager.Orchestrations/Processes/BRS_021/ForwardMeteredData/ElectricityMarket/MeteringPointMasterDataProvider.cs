@@ -29,7 +29,7 @@ using PMMeteringPointMasterData =
     MeteringPointMasterData;
 using PMResolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Thingies;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 
 [SuppressMessage(
     "StyleCop.CSharp.ReadabilityRules",
@@ -73,7 +73,7 @@ public class MeteringPointMasterDataProvider(
         }
 
         var meteringPointMasterData = masterDataChanges
-            .SelectMany(CoSelectManyForEnergySuppliers)
+            .SelectMany(GetMeteringPointMasterDataPerEnergySupplier)
             .OrderBy(mpmd => mpmd.ValidFrom)
             .ToList()
             .AsReadOnly();
@@ -107,7 +107,7 @@ public class MeteringPointMasterDataProvider(
         return meteringPointMasterData;
     }
 
-    private IReadOnlyCollection<PMMeteringPointMasterData> CoSelectManyForEnergySuppliers(
+    private IReadOnlyCollection<PMMeteringPointMasterData> GetMeteringPointMasterDataPerEnergySupplier(
         MeteringPointMasterData meteringPointMasterData)
     {
         if (meteringPointMasterData.EnergySuppliers.Count <= 0

@@ -56,7 +56,7 @@ internal class EnqueueActorMessagesActivity_Brs_021_ForwardMeteredData_V1(
 
         var acceptedEnergyObservations = messageInput.EnergyObservations
             .Select(
-                x => new ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation(
+                x => new ForwardMeteredDataAcceptedV1.MeteredData(
                     int.Parse(x.Position!),
                     decimal.Parse(x.EnergyQuantity!),
                     Quality.FromName(x.QuantityQuality!)))

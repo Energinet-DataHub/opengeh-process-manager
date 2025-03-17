@@ -60,4 +60,8 @@
     <ItemGroup>
         <Using Include="Xunit" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Integration\Processes\BRS_101\UpdateMeteringPointsConnectionState\V1\" />
+    </ItemGroup>
 </Project>

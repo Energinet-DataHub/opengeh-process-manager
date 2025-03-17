@@ -61,6 +61,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
     private readonly ElectricityMarket.Integration.IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+    private readonly ILogger<StartForwardMeteredDataHandlerV1> _logger = logger;
 
     /// <summary>
     /// This method has multiple commits to the database, to immediately transition lifecycles. This means that
@@ -126,7 +127,7 @@ public class StartForwardMeteredDataHandlerV1(
             }
 
             // Skip step: Find receiver
-            var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiverStep);
+            var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiversStep);
 
             // If the step is already skipped, do nothing (idempotency/retry check).
             if (findReceiverStep.Lifecycle.TerminationState != OrchestrationStepTerminationState.Skipped)
@@ -220,13 +221,12 @@ public class StartForwardMeteredDataHandlerV1(
 
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
         // TODO: Use master data from the orchestration instance custom state instead
-        // var meteringPointMasterData = await GetMeteringPointMasterData(
-        //         input.MeteringPointId,
-        //         input.StartDateTime,
-        //         input.EndDateTime)
-        //     .ConfigureAwait(false);
+        var meteringPointMasterData = await GetMeteringPointMasterData(
+                input.MeteringPointId,
+                input.StartDateTime,
+                input.EndDateTime)
+            .ConfigureAwait(false);
 
-        var meteringPointMasterData = Array.Empty<MeteringPointMasterData>();
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,
@@ -293,12 +293,12 @@ public class StartForwardMeteredDataHandlerV1(
         if (enqueueStep.CustomState.IsEmpty)
         {
             idempotencyKey = Guid.NewGuid();
-            enqueueStep.CustomState.SetFromInstance(new EnqueueActorMessagesCustomStateV1(idempotencyKey));
+            enqueueStep.CustomState.SetFromInstance(new EnqueueActorMessagesStepCustomStateV1(idempotencyKey));
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
         else
         {
-            idempotencyKey = enqueueStep.CustomState.AsType<EnqueueActorMessagesCustomStateV1>().IdempotencyKey;
+            idempotencyKey = enqueueStep.CustomState.AsType<EnqueueActorMessagesStepCustomStateV1>().IdempotencyKey;
         }
 
         await _enqueueActorMessagesClient.EnqueueAsync(
@@ -339,22 +339,32 @@ public class StartForwardMeteredDataHandlerV1(
             return [];
         }
 
-        var meteringPointMasterData = await _electricityMarketViews
-            .GetMeteringPointMasterDataChangesAsync(
-                id,
-                new Interval(parsedStartDateTime.Value, parsedEndDateTime.Value))
-            .ConfigureAwait(false);
+        // Added temporary try-catch to avoid crashing the process if the call to the electricity market fails for actor tests.
+        // When this has been tested and verified, the try-catch should be removed.
+        try
+        {
+            var meteringPointMasterData = await _electricityMarketViews
+                .GetMeteringPointMasterDataChangesAsync(
+                    id,
+                    new Interval(parsedStartDateTime.Value, parsedEndDateTime.Value))
+                .ConfigureAwait(false);
 
-        return meteringPointMasterData
-            .Select(mpt => new MeteringPointMasterData(
-                new MeteringPointId(mpt.Identification.Value),
-                new GridAreaCode(mpt.GridAreaCode.Value),
-                ActorNumber.Create(mpt.GridAccessProvider),
-                MeteringPointMasterDataMapper.ConnectionStateMap.Map(mpt.ConnectionState),
-                MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(mpt.Type),
-                MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(mpt.SubType),
-                MeteringPointMasterDataMapper.MeasureUnitMap.Map(mpt.Unit)))
-            .ToList();
+            return meteringPointMasterData
+                .Select(mpt => new MeteringPointMasterData(
+                    new MeteringPointId(mpt.Identification.Value),
+                    new GridAreaCode(mpt.GridAreaCode.Value),
+                    ActorNumber.Create(mpt.GridAccessProvider),
+                    MeteringPointMasterDataMapper.ConnectionStateMap.Map(mpt.ConnectionState),
+                    MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(mpt.Type),
+                    MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(mpt.SubType),
+                    MeteringPointMasterDataMapper.MeasureUnitMap.Map(mpt.Unit)))
+                .ToList();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Failed to get metering point master data for metering point {meteringPointIdentification} in the period {parsedStartDateTime} - {parsedEndDateTime}.");
+            return [];
+        }
     }
 
     private MeteredDataForMeteringPoint MapInputToMeasurements(

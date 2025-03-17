@@ -14,5 +14,5 @@
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-public record EnqueueActorMessagesCustomStateV1(
+public record EnqueueActorMessagesStepCustomStateV1(
     Guid IdempotencyKey);

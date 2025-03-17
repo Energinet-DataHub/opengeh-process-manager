@@ -324,7 +324,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 s =>
                 {
                     // Find receiver step should be skipped
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.FindReceiverStep);
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.FindReceiversStep);
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()

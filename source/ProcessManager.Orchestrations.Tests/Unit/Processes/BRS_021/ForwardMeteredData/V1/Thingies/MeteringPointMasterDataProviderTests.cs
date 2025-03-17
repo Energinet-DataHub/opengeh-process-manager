@@ -68,11 +68,9 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        meteringPointMasterData
+        var singleMasterData = meteringPointMasterData
             .Should()
-            .ContainSingle();
-
-        var singleMasterData = meteringPointMasterData.Single();
+            .ContainSingle().Subject;
 
         singleMasterData.MeteringPointId.Value.Should().Be("one-energy-supplier-please");
         singleMasterData.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));

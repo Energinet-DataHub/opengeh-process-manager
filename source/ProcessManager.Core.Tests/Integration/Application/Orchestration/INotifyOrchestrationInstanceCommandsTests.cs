@@ -22,7 +22,6 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

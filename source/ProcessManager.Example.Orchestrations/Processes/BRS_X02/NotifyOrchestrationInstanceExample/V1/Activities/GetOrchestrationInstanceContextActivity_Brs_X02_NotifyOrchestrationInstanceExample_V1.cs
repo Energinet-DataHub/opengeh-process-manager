@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Models;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Options;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Options;

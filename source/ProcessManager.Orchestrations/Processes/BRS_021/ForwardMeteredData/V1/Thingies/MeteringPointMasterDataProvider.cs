@@ -42,7 +42,7 @@ public class MeteringPointMasterDataProvider(
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
 
-    internal async Task<IReadOnlyCollection<PMMeteringPointMasterData>> GetAndConvertMasterData(
+    internal async Task<IReadOnlyCollection<PMMeteringPointMasterData>> GetMasterData(
         string meteringPointId,
         string startDate,
         string endDate)

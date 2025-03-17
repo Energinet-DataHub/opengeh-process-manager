@@ -13,14 +13,22 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 
 /// <summary>
-/// Input to BRS-101 Update MeteringPoint Connection State orchestration instance.
+/// Event sent from EDI to BRS-101 Update MeteringPoint Connection State orchestration instance
+/// to notify that actor messages has been enqueued.
 /// </summary>
-public record UpdateMeteringPointConnectionStateInputV1(
-    string MeteringPointId,
-    bool IsConnected)
-        : IInputParameterDto, IBusinessValidatedDto;
+/// <param name="OrchestrationInstanceId"></param>
+public record UpdateMeteringPointConnectionStateNotifyEventV1(
+    string OrchestrationInstanceId)
+    : NotifyOrchestrationInstanceEvent(
+        OrchestrationInstanceId,
+        EventName: OrchestrationInstanceEventName)
+{
+    /// <summary>
+    /// The event name which the orchestration instance expects (is waiting for).
+    /// </summary>
+    public const string OrchestrationInstanceEventName = "ActorMessagesEnqueued";
+}

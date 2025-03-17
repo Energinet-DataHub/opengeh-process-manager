@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 
 /// <summary>
-/// Input to BRS-101 Update MeteringPoint Connection State orchestration instance.
+/// Data sent to EDI to inform EDI to enque actor messages.
 /// </summary>
-public record UpdateMeteringPointConnectionStateInputV1(
-    string MeteringPointId,
-    bool IsConnected)
-        : IInputParameterDto, IBusinessValidatedDto;
+public record UpdateMeteringPointConnectionStateEnqueueDataV1(
+    ActorNumber ActorNumber,
+    ActorRole ActorRole,
+    BusinessReason BusinessReason);

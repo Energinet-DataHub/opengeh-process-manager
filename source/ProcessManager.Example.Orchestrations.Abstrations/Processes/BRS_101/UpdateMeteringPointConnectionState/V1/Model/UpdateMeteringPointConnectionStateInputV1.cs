@@ -21,6 +21,9 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// Input to BRS-101 Update MeteringPoint Connection State orchestration instance.
 /// </summary>
 public record UpdateMeteringPointConnectionStateInputV1(
-    string MeteringPointId,
+    string RequestedByActorNumber, // TODO: Would expect us to be able to retrieve this from "framework" identity (?)
+    string RequestedByActorRole, // TODO: Would expect us to be able to retrieve this from "framework" identity (?)
+    string BusinessReason, // TODO: Could we model this in a base (?)
+    string MeteringPointId, // TODO: Could we model this in a base (?)
     bool IsConnected)
         : IInputParameterDto, IBusinessValidatedDto;

@@ -51,12 +51,4 @@
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Model\" />
-      <Folder Include="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\" />
-      <Folder Include="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\BusinessValidation\" />
-      <Folder Include="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Steps\" />
-      <Folder Include="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Options\" />
-    </ItemGroup>
 </Project>

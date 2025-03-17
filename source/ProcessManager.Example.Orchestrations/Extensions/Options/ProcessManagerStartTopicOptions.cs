@@ -45,4 +45,10 @@ public class ProcessManagerStartTopicOptions
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string BrsX02ActorRequestProcessExampleSubscriptionName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name of the subscription for BRS-101 UpdateMeteringPointConnectionState to the Process Manager Start topic.
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string Brs101UpdateMeteringPointConnectionStateSubscriptionName { get; set; } = string.Empty;
 }

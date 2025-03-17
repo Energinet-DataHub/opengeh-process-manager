@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using AutoFixture;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.Measurements.Contracts;
@@ -324,7 +322,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 s =>
                 {
                     // Find receiver step should be skipped
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.FindReceiverStep);
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.FindReceiversStep);
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()

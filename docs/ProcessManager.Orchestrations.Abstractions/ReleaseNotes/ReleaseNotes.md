@@ -4,7 +4,11 @@
 
 - Add BRS-045 Missing Measurements Log command.
 
-## Version 1.10.10
+## Version 1.10.1
+
+- No functional changes.
+
+## Version 1.10.0
 
 - Rename `MessageId` to `ActorMessageId`, remove `AuthenticatedActorId` and reorder properties on `ForwardMeteredDataInputV1`.
 - Remove most properties from `ForwardMeteredDataRejectedV1`, since the correct properties aren't determined yet.

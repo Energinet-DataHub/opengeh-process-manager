@@ -35,14 +35,14 @@ public class ProcessManagerStartTopicOptions
     public string TopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription for BRS-X02 to the Process Manager Start topic.
+    /// Name of the subscription for BRS-X02 NotifyOrchestrationInstanceExample to the Process Manager Start topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string BrsX02SubscriptionName { get; set; } = string.Empty;
+    public string BrsX02NotifyOrchestrationInstanceExampleSubscriptionName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription for BRS-X03 to the Process Manager Start topic.
+    /// Name of the subscription for BRS-X02 ActorRequestProcessExample to the Process Manager Start topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string BrsX03SubscriptionName { get; set; } = string.Empty;
+    public string BrsX02ActorRequestProcessExampleSubscriptionName { get; set; } = string.Empty;
 }

@@ -14,6 +14,6 @@
 
     // EDI enqueue actor messages topic (required for listening to Enqueue Actor Messages from the Process Manager)
     "EdiTopic__Name": "<EDI topic name>",
-    "EdiTopic__EnqueueBrsX03SubscriptionName": "<EDI enqueue BRS-X03 subscription name, usually constructed like 'Enqueue_brs_x03'>"
+    "EdiTopic__EnqueueBrsX02ActorRequestProcessExampleSubscriptionName": "<EDI enqueue BRS-X02 ActorRequestProcessExample subscription name, usually constructed like 'Enqueue_brs_x02_actorrequestprocessexample'>"
   }
 }

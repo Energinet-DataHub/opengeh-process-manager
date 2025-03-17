@@ -14,5 +14,5 @@
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-public record Brs021_ForwardMeteredData_CustomState(
+public record ForwardMeteredDataCustomStateV1(
     IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);

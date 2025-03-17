@@ -44,7 +44,7 @@ public class StartTrigger_Brs_X02_ActorRequestProcessExample(
         var actorNumber = ActorNumber.Create("1234567890123");
         var actorRole = ActorRole.EnergySupplier;
         return _messageClient.StartNewOrchestrationInstanceAsync(
-            new StartActorRequestProcessExampleV1(
+            new StartActorRequestProcessExampleCommandV1(
                 operatingIdentity: new ActorIdentityDto(actorNumber, actorRole),
                 inputParameter: new ActorRequestProcessExampleInputV1(
                     RequestedByActorNumber: actorNumber.Value,

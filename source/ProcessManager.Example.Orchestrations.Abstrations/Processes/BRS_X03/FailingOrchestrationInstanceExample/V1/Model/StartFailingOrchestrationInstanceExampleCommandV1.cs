@@ -20,14 +20,14 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// <summary>
 /// Command for starting the BRS-X03 FailingOrchestrationInstanceExample.
 /// </summary>
-public record StartFailingOrchestrationInstanceExampleV1
+public record StartFailingOrchestrationInstanceExampleCommandV1
     : StartOrchestrationInstanceCommand<UserIdentityDto>
 {
     /// <summary>
     /// Construct command.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
-    public StartFailingOrchestrationInstanceExampleV1(
+    public StartFailingOrchestrationInstanceExampleCommandV1(
         UserIdentityDto operatingIdentity)
             : base(
                 operatingIdentity,

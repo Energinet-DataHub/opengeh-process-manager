@@ -20,10 +20,10 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// <summary>
 /// Start a BRS-X02 ActorRequestProcessExample actor request process example
 /// </summary>
-public record StartActorRequestProcessExampleV1
+public record StartActorRequestProcessExampleCommandV1
     : StartOrchestrationInstanceMessageCommand<ActorRequestProcessExampleInputV1>
 {
-    public StartActorRequestProcessExampleV1(
+    public StartActorRequestProcessExampleCommandV1(
         ActorIdentityDto operatingIdentity,
         ActorRequestProcessExampleInputV1 inputParameter,
         string idempotencyKey,

@@ -90,7 +90,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 1: Start new orchestration instance
         var userIdentity = new UserIdentityDto(Guid.NewGuid(), ActorNumber.Create("1234567891234"), ActorRole.EnergySupplier);
-        var startRequestCommand = new StartFailingOrchestrationInstanceExampleV1(userIdentity);
+        var startRequestCommand = new StartFailingOrchestrationInstanceExampleCommandV1(userIdentity);
 
         var orchestrationInstanceId = await processManagerClient.StartNewOrchestrationInstanceAsync(
             startRequestCommand,

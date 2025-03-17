@@ -34,7 +34,7 @@ public record ForwardMeteredDataAcceptedV1(
     : IInputParameterDto
 {
     public record MeteredDataForReceiver(
-        IReadOnlyCollection<MarketActorRecipientV1> Recipient,
+        IReadOnlyCollection<MarketActorRecipientV1> Recipients,
         Resolution Resolution,
         DateTimeOffset StartDateTime,
         DateTimeOffset EndDateTime,

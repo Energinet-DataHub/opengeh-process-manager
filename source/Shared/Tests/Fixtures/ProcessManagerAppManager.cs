@@ -112,13 +112,12 @@ public class ProcessManagerAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        var obsoleteNotifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider, "pm-notify-topic-obsolete");
         // Notify topic
         var notifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider, "pm-notify-topic");
         ProcessManagerNotifyTopic = notifyTopicResources.NotifyTopic;
 
         // Prepare host settings
-        var appHostSettings = CreateAppHostSettings("ProcessManager", notifyTopicResources, obsoleteNotifyTopicResources);
+        var appHostSettings = CreateAppHostSettings("ProcessManager", notifyTopicResources);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -187,8 +186,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        ProcessManagerTopicResources notifyTopicResources,
-        ProcessManagerTopicResources obsoleteNotifyTopicResources)
+        ProcessManagerTopicResources notifyTopicResources)
     {
         var buildConfiguration = GetBuildConfiguration();
 

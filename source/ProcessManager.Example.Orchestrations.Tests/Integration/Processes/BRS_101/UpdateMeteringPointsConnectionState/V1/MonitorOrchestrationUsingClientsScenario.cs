@@ -205,7 +205,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         .HaveCount(1)
                         .And.ContainSingle(
                             (e) => e.Message.Contains(
-                                "TODO - UPDATE"));
+                                "MeteringPointId skal være udfyldt / MeteringPointId must have a value"));
 
                     return requestRejectedV1.OriginalTransactionId == startCommand.InputParameter.TransactionId;
                 })

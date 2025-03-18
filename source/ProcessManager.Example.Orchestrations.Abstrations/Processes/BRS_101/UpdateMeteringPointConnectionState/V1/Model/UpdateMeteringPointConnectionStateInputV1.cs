@@ -18,12 +18,19 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidatio
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 
 /// <summary>
-/// Input to BRS-101 Update MeteringPoint Connection State orchestration instance.
+/// Input to start a BRS-101 Update MeteringPoint Connection State orchestration instance.
 /// </summary>
+/// <param name="RequestedByActorNumber">GLN or EIC of the Actor who made the request.</param>
+/// <param name="RequestedByActorRole">The actor role of the Actor who made the request.</param>
+/// <param name="ActorMessageId">The message id from the actor document that started the BRS process.</param>
+/// <param name="TransactionId">The transaction id that started the BRS process, typically found in the actor message.</param>
+/// <param name="MeteringPointId">The ID of the MeteringPoint to connect/disconnect.</param>
+/// <param name="IsConnected"><see langword="True"/> if MeteringPoint should be connected; otherwise <see langword="false"/>.</param>
 public record UpdateMeteringPointConnectionStateInputV1(
-    string RequestedByActorNumber, // TODO: Would expect us to be able to retrieve this from "framework" identity (?)
-    string RequestedByActorRole, // TODO: Would expect us to be able to retrieve this from "framework" identity (?)
-    string BusinessReason, // TODO: Could we model this in a base (?)
-    string MeteringPointId, // TODO: Could we model this in a base (?)
+    string RequestedByActorNumber, // TODO: Can we somehow use the "indentity" that is already required by the command (?)
+    string RequestedByActorRole, // TODO: Can we somehow use the "indentity" that is already required by the command (?)
+    string ActorMessageId, // TODO: Could we model this in a "input" base (?) or use the one on the command base
+    string TransactionId, // TODO: Could we model this in a "input" base (?) or use the one on the command base
+    string MeteringPointId, // TODO: Could we model this in a "input" base (?) or use the one on the command base
     bool IsConnected)
         : IInputParameterDto, IBusinessValidatedDto;

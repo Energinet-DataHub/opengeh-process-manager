@@ -17,10 +17,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 
 /// <summary>
-/// Event sent from EDI to BRS-101 Update MeteringPoint Connection State orchestration instance
+/// Event sent from EDI to an BRS-101 Update MeteringPoint Connection State orchestration instance,
 /// to notify that actor messages has been enqueued.
 /// </summary>
-/// <param name="OrchestrationInstanceId"></param>
 public record UpdateMeteringPointConnectionStateNotifyEventV1(
     string OrchestrationInstanceId)
     : NotifyOrchestrationInstanceEvent(

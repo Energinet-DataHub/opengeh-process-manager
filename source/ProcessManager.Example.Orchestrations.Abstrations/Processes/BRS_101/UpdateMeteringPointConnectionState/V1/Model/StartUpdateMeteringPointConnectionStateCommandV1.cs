@@ -18,26 +18,32 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 
 /// <summary>
-/// Start a BRS-101 Update MeteringPoint Connection State orchestration instance.
+/// Command for starting a BRS-101 Update MeteringPoint Connection State orchestration instance.
+/// Must be JSON serializable.
 /// </summary>
 public record StartUpdateMeteringPointConnectionStateCommandV1
     : StartOrchestrationInstanceMessageCommand<UpdateMeteringPointConnectionStateInputV1>
 {
+    /// <summary>
+    /// Construct command.
+    /// </summary>
+    /// <param name="operatingIdentity">Identity of the user executing the command.</param>
+    /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
+    /// <param name="idempotencyKey">
+    /// A value used by the Process Manager to ensure idempotency for a message command.
+    /// The creator of the command must create a key that is unique per command.</param>
     public StartUpdateMeteringPointConnectionStateCommandV1(
         ActorIdentityDto operatingIdentity,
         UpdateMeteringPointConnectionStateInputV1 inputParameter,
-        string idempotencyKey,
-        string actorMessageId,
-        string transactionId,
-        string meteringPointId)
+        string idempotencyKey)
         : base(
             operatingIdentity,
             Brs_101_UpdateMeteringPointConnectionState.V1,
             inputParameter,
             idempotencyKey,
-            actorMessageId,
-            transactionId,
-            meteringPointId)
+            inputParameter.ActorMessageId,
+            inputParameter.TransactionId,
+            inputParameter.MeteringPointId)
     {
     }
 }

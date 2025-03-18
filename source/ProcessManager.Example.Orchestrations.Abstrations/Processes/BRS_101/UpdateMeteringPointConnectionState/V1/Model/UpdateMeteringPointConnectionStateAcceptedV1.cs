@@ -12,13 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 
 /// <summary>
-/// Data sent to EDI to inform EDI to enque rejected actor messages because
-/// business validation failed.
+/// Data sent to EDI to enqueue an "accepted" message for the previously received
+/// actor message for BRS-101 Update MeteringPoint Connection State.
 /// </summary>
-public record UpdateMeteringPointConnectionStateEnqueueRejectedDataV1(
-    List<ValidationErrorDto> ValidationErrors);
+public record UpdateMeteringPointConnectionStateAcceptedV1(
+    ActorNumber ActorNumber,
+    ActorRole ActorRole,
+    BusinessReason BusinessReason);

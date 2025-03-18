@@ -30,16 +30,9 @@ public record ForwardMeteredDataAcceptedV1(
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
     IReadOnlyCollection<ForwardMeteredDataAcceptedV1.AcceptedMeteredData> MeteredData,
-    IReadOnlyCollection<ForwardMeteredDataAcceptedV1.ReceiverForMeteredData> Receivers)
+    IReadOnlyCollection<ReceiverForMeteredDataV1> Receivers)
     : IInputParameterDto
 {
-    public record ReceiverForMeteredData(
-        IReadOnlyCollection<MarketActorRecipientV1> Actors,
-        Resolution Resolution,
-        MeasurementUnit MeasureUnit,
-        DateTimeOffset StartDateTime,
-        DateTimeOffset EndDateTime);
-
     public record AcceptedMeteredData(
         // TODO: Should this be a timestamp instead?
         int Position,

@@ -53,12 +53,13 @@ public class EnqueueMeteredDataHandlerV1(
         await TerminateForwardToMeasurementStep(orchestrationInstance).ConfigureAwait(false);
 
         // Start Step: Find receiver step
-        await FindReceivers(orchestrationInstance).ConfigureAwait(false);
+        var receivers = await FindReceivers(orchestrationInstance, forwardMeteredDataInput).ConfigureAwait(false);
 
         // Start Step: Enqueue actor messages step
         await EnqueueAcceptedActorMessagesAsync(
                 orchestrationInstance,
-                forwardMeteredDataInput)
+                forwardMeteredDataInput,
+                receivers)
             .ConfigureAwait(false);
     }
 
@@ -79,13 +80,21 @@ public class EnqueueMeteredDataHandlerV1(
         await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
     }
 
-    private async Task FindReceivers(OrchestrationInstance orchestrationInstance)
+    private async Task<IReadOnlyCollection<ReceiverForMeteredDataV1>> FindReceivers(
+        OrchestrationInstance orchestrationInstance,
+        ForwardMeteredDataInputV1 forwardMeteredDataInput)
     {
         var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiversStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (findReceiversStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
-            return;
+        {
+            // TODO: Make sure this returns the same receivers as when the step previously ran and returned receivers.
+            // Since the master data should be saved as custom state on the orchestrationInstance, we should just
+            // be able to calculate the receivers (again), based on the master data. If the inputs are the same,
+            // the returned calculated receivers should also be the same.
+            return [];
+        }
 
         await StepHelper.StartStepAndCommitIfPending(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
 
@@ -95,14 +104,36 @@ public class EnqueueMeteredDataHandlerV1(
 
         // Find Receivers
         // TODO: Implement find receivers
+        List<ReceiverForMeteredDataV1> receivers =
+        [
+            // TODO: Select from master data
+            new ReceiverForMeteredDataV1(
+                Actors:
+                [
+                    // TODO: Get energy suppliers (and other receivers?) from master data
+                    new MarketActorRecipientV1(
+                        ActorNumber.Create("8100000000115"),
+                        ActorRole.EnergySupplier),
+                ],
+                // TODO: Select the following properties from master data instead
+                MeasureUnit: MeasurementUnit.FromName(forwardMeteredDataInput.MeasureUnit!),
+                Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution!),
+                StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value
+                    .ToDateTimeOffset(),
+                EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value
+                    .ToDateTimeOffset()),
+        ];
 
         // Terminate Step: Find receiver step
         await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
+
+        return receivers;
     }
 
     private async Task EnqueueAcceptedActorMessagesAsync(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataInputV1 forwardMeteredDataInput)
+        ForwardMeteredDataInputV1 forwardMeteredDataInput,
+        IReadOnlyCollection<ReceiverForMeteredDataV1> receivers)
     {
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
 
@@ -139,7 +170,6 @@ public class EnqueueMeteredDataHandlerV1(
         ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.EndDateTime);
 
         // Enqueue forward metered data actor messages
-        // TODO: Implement correct message data
         var data = new ForwardMeteredDataAcceptedV1(
             OriginalActorMessageId: forwardMeteredDataInput.ActorMessageId,
             MeteringPointId: forwardMeteredDataInput.MeteringPointId,
@@ -148,28 +178,14 @@ public class EnqueueMeteredDataHandlerV1(
             ProductNumber: forwardMeteredDataInput.ProductNumber,
             RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.RegistrationDateTime).Value.ToDateTimeOffset(),
             StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value.ToDateTimeOffset(),
-            EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset(),
+            EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime).Value.ToDateTimeOffset(),
             MeteredData: forwardMeteredDataInput.EnergyObservations
                 .Select(eo => new ForwardMeteredDataAcceptedV1.AcceptedMeteredData(
                     Position: int.Parse(eo.Position!),
                     EnergyQuantity: decimal.Parse(eo.EnergyQuantity!),
                     QuantityQuality: Quality.FromName(eo.QuantityQuality!)))
                 .ToList(),
-            Receivers: [
-                // TODO: Select from master data
-                new ForwardMeteredDataAcceptedV1.ReceiverForMeteredData(
-                    Actors: [
-                        // TODO: Get energy suppliers (and other receivers?) from master data
-                        new MarketActorRecipientV1(
-                            ActorNumber.Create("8100000000115"),
-                            ActorRole.EnergySupplier),
-                    ],
-                    // TODO: Select the following properties from master data instead
-                    MeasureUnit: MeasurementUnit.FromName(forwardMeteredDataInput.MeasureUnit),
-                    Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution!),
-                    StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value.ToDateTimeOffset(),
-                    EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset()),
-                ]);
+            Receivers: receivers);
 
         await _enqueueActorMessagesClient.EnqueueAsync(
                 orchestration: OrchestrationDescriptionBuilderV1.UniqueName,

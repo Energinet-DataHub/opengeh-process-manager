@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
@@ -21,4 +22,8 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// for the previously received actor message for BRS-101 Update MeteringPoint Connection State.
 /// </summary>
 public record UpdateMeteringPointConnectionStateRejectedV1(
-    List<ValidationErrorDto> ValidationErrors);
+    string OriginalActorMessageId,
+    string OriginalTransactionId,
+    ActorNumber RequestedByActorNumber,
+    ActorRole RequestedByActorRole,
+    List<ValidationErrorDto> ValidationErrors); // TODO: Could we model the "standard" properties in a base (?) or have an Interface if we need this often

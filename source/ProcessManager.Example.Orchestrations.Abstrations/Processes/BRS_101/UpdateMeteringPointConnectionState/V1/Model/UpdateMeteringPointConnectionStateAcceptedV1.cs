@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 
@@ -22,6 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// actor message for BRS-101 Update MeteringPoint Connection State.
 /// </summary>
 public record UpdateMeteringPointConnectionStateAcceptedV1(
-    ActorNumber ActorNumber,
-    ActorRole ActorRole,
-    BusinessReason BusinessReason);
+    string OriginalActorMessageId,
+    string OriginalTransactionId,
+    ActorNumber RequestedByActorNumber,
+    ActorRole RequestedByActorRole); // TODO: Could we model the "standard" properties in a base (?) or have an Interface if we need this often

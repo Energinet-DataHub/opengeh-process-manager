@@ -21,6 +21,9 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Activities;
 
+/// <summary>
+/// Perform business validation.
+/// </summary>
 internal class PerformBusinessValidationActivity_Brs_101_UpdateMeteringPointConnectionState_V1(
     IOrchestrationInstanceProgressRepository repository,
     BusinessValidator<UpdateMeteringPointConnectionStateInputV1> validator)

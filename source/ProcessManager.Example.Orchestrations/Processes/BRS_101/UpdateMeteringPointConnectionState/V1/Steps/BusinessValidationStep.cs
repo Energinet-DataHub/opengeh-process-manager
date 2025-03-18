@@ -24,7 +24,10 @@ internal class BusinessValidationStep(
     TaskOrchestrationContext context,
     TaskRetryOptions retryOptions,
     OrchestrationInstanceId instanceId)
-        : StepExecutor<PerformBusinessValidationActivity_Brs_101_UpdateMeteringPointConnectionState_V1.ActivityOutput>(context, retryOptions, instanceId)
+        : StepExecutor<PerformBusinessValidationActivity_Brs_101_UpdateMeteringPointConnectionState_V1.ActivityOutput>(
+            context,
+            retryOptions,
+            instanceId)
 {
     internal const string StepDescription = "Forretningsvalidering";
     internal const int StepSequence = 1;

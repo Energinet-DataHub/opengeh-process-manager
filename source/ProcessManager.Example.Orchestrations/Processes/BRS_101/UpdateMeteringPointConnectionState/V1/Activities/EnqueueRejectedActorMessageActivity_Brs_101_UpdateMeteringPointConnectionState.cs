@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
@@ -34,21 +35,30 @@ internal class EnqueueRejectedActorMessageActivity_Brs_101_UpdateMeteringPointCo
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await _repository.GetAsync(input.OrchestrationInstanceId).ConfigureAwait(false);
+        var orchestrationInstance = await _repository
+            .GetAsync(input.OrchestrationInstanceId)
+            .ConfigureAwait(false);
 
-        var rejectedMessage = new UpdateMeteringPointConnectionStateRejectedV1(
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<UpdateMeteringPointConnectionStateInputV1>();
+
+        var rejectedMessageData = new UpdateMeteringPointConnectionStateRejectedV1(
+            OriginalActorMessageId: orchestrationInstanceInput.ActorMessageId,
+            OriginalTransactionId: orchestrationInstanceInput.TransactionId,
+            RequestedByActorNumber: ActorNumber.Create(orchestrationInstanceInput.RequestedByActorNumber),
+            RequestedByActorRole: ActorRole.FromName(orchestrationInstanceInput.RequestedByActorRole),
             ValidationErrors: input.ValidationErrors
                 .Select(e => new ValidationErrorDto(
                     Message: e.Message,
                     ErrorCode: e.ErrorCode))
                 .ToList());
 
-        await _enqueueActorMessagesClient.EnqueueAsync(
+        await _enqueueActorMessagesClient
+            .EnqueueAsync(
                 Orchestration_Brs_101_UpdateMeteringPointConnectionState_V1.UniqueName,
                 orchestrationInstance.Id.Value,
                 orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
                 input.IdempotencyKey,
-                rejectedMessage)
+                rejectedMessageData)
             .ConfigureAwait(false);
     }
 

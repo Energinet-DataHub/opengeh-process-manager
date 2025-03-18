@@ -18,7 +18,8 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -38,6 +39,10 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
+    private readonly ActorIdentityDto _actorIdentity = new ActorIdentityDto(
+        ActorNumber: ActorNumber.Create("1234567891234"),
+        ActorRole: ActorRole.EnergySupplier);
+
     private readonly ExampleOrchestrationsAppFixture _fixture; // TODO: We must decide if we want to use a property or a field?
 
     public MonitorOrchestrationUsingClientsScenario(
@@ -103,57 +108,50 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     /// <summary>
-    /// Tests the BRS-101 Update Metering Point Connection State orchestration instance
+    /// Tests the BRS-101 Update MeteringPoint Connection State orchestration instance
     /// when the request is valid and actor messages should be enqueued.
     /// </summary>
     [Fact]
-    public async Task Given_ValidRequestCalculatedEnergyTimeSeries_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+    public async Task Given_ValidRequestToUpdateMeteringPointConnectionState_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
-        // Step 1: Start new orchestration instance
-        var requestCommand = GivenRequestCalculatedEnergyTimeSeries(gridAreaCode);
+        // Step 1: Act as EDI => Send start command to start new orchestration instance
+        var startCommand = GivenStartCommand();
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
-            requestCommand,
+            startCommand,
             CancellationToken.None);
 
-        // Step 2a: Query until waiting for EnqueueActorMessagesCompleted notify event
-        var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
-            .WaitForStepToBeRunning<RequestCalculatedEnergyTimeSeriesInputV1>(
-                requestCommand.IdempotencyKey,
-                EnqueueActorMessagesStep.StepSequence);
-
-        isWaitingForNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
-
-        // Step 2b: Verify an enqueue actor messages event is sent on the service bus
-        var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs026ServiceBusListener.When(
+        // Step 2: Wait for enqueue actor messages request is sent to EDI
+        string? orchestrationInstanceId = null;
+        var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs101ServiceBusListener.When(
                 (message) =>
                 {
-                    if (!message.TryParseAsEnqueueActorMessages(Brs_026.Name, out var enqueueActorMessagesV1))
+                    if (!message.TryParseAsEnqueueActorMessages(Brs_101_UpdateMeteringPointConnectionState.Name, out var enqueueActorMessagesV1))
                         return false;
 
-                    var requestAcceptedV1 = enqueueActorMessagesV1.ParseData<RequestCalculatedEnergyTimeSeriesAcceptedV1>();
-
-                    return requestAcceptedV1.OriginalTransactionId == requestCommand.InputParameter.TransactionId;
+                    orchestrationInstanceId = enqueueActorMessagesV1.OrchestrationInstanceId;
+                    var requestAcceptedV1 = enqueueActorMessagesV1.ParseData<UpdateMeteringPointConnectionStateAcceptedV1>();
+                    return requestAcceptedV1.OriginalTransactionId == startCommand.InputParameter.TransactionId;
                 })
             .VerifyCountAsync(1);
 
         var enqueueMessageFound = verifyEnqueueActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
-        enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestCalculatedEnergyTimeSeriesAcceptedV1)} service bus message should have been sent");
+        enqueueMessageFound.Should().BeTrue(
+            $"because a {nameof(UpdateMeteringPointConnectionStateAcceptedV1)} service bus message should have been sent");
 
-        // Step 3: Send EnqueueActorMessagesCompleted event
+        // Step 3: Act as EDI => Send "notify" event to orchestration instance, to inform that messages has been enqueued
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
-                OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
+            new UpdateMeteringPointConnectionStateNotifyEventV1(
+                OrchestrationInstanceId: orchestrationInstanceId!),
             CancellationToken.None);
 
         // Step 4: Query until terminated
         var (orchestrationTerminated, terminatedOrchestrationInstance) = await processManagerClient
-            .WaitForOrchestrationInstanceTerminated<RequestCalculatedEnergyTimeSeriesInputV1>(
-                requestCommand.IdempotencyKey);
+            .WaitForOrchestrationInstanceTerminated<UpdateMeteringPointConnectionStateInputV1>(
+                startCommand.IdempotencyKey);
 
         orchestrationTerminated.Should().BeTrue(
             "because the orchestration instance should be terminated within the given wait time");
@@ -176,66 +174,59 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     /// <summary>
-    /// Tests the BRS-101 Update Metering Point Connection State orchestration instance
+    /// Tests the BRS-101 Update MeteringPoint Connection State orchestration instance
     /// when the request is invalid and rejected actor messages should be enqueued.
     /// </summary>
     [Fact]
-    public async Task Given_InvalidRequestCalculatedEnergyTimeSeries_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
+    public async Task Given_InvalidRequestToUpdateMeteringPointConnectionState_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-        const string gridAreaCode = "804";
-        _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
-        // Step 1: Start new orchestration instance
-        var invalidRequestCommand = GivenRequestCalculatedEnergyTimeSeries(gridAreaCode, shouldFailBusinessValidation: true);
+        // Step 1: Act as EDI => Send start command to start new orchestration instance
+        var startCommand = GivenStartCommand(shouldFailBusinessValidation: true);
 
         await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
-            invalidRequestCommand,
+            startCommand,
             CancellationToken.None);
 
-        // Step 2a: Query until waiting for EnqueueActorMessagesCompleted notify event
-        var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
-            .WaitForStepToBeRunning<RequestCalculatedEnergyTimeSeriesInputV1>(
-                idempotencyKey: invalidRequestCommand.IdempotencyKey,
-                stepSequence: EnqueueActorMessagesStep.StepSequence);
-
-        isWaitingForNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
-
-        // Step 2b: Verify an enqueue actor messages event is sent on the service bus
-        var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs026ServiceBusListener.When(
+        // Step 2: Wait for enqueue actor messages request is sent to EDI
+        string? orchestrationInstanceId = null;
+        var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs101ServiceBusListener.When(
                 (message) =>
                 {
-                    if (!message.TryParseAsEnqueueActorMessages(Brs_026.Name, out var enqueueActorMessagesV1))
+                    if (!message.TryParseAsEnqueueActorMessages(Brs_101_UpdateMeteringPointConnectionState.Name, out var enqueueActorMessagesV1))
                         return false;
 
-                    var requestAcceptedV1 = enqueueActorMessagesV1.ParseData<RequestCalculatedEnergyTimeSeriesRejectedV1>();
+                    orchestrationInstanceId = enqueueActorMessagesV1.OrchestrationInstanceId;
+                    var requestRejectedV1 = enqueueActorMessagesV1.ParseData<UpdateMeteringPointConnectionStateRejectedV1>();
 
-                    requestAcceptedV1.ValidationErrors.Should()
+                    requestRejectedV1.ValidationErrors.Should()
                         .HaveCount(1)
                         .And.ContainSingle(
                             (e) => e.Message.Contains(
-                                "Feltet EnergySupplier skal være udfyldt med et valid GLN/EIC nummer når en elleverandør anmoder om data"));
-                    return requestAcceptedV1.OriginalTransactionId == invalidRequestCommand.InputParameter.TransactionId;
+                                "TODO - UPDATE"));
+
+                    return requestRejectedV1.OriginalTransactionId == startCommand.InputParameter.TransactionId;
                 })
             .VerifyCountAsync(1);
 
-        var enqueueMessageFound = verifyEnqueueRejectedActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
-        enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestCalculatedEnergyTimeSeriesRejectedV1)} service bus message should have been sent");
+        var enqueueMessageFound = verifyEnqueueActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
+        enqueueMessageFound.Should().BeTrue(
+            $"because a {nameof(UpdateMeteringPointConnectionStateRejectedV1)} service bus message should have been sent");
 
-        // Step 3: Send EnqueueActorMessagesCompleted event
+        // Step 3: Act as EDI => Send "notify" event to orchestration instance, to inform that messages has been enqueued
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
-                OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
+            new UpdateMeteringPointConnectionStateNotifyEventV1(
+                OrchestrationInstanceId: orchestrationInstanceId!),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (orchestrationWasTerminated, terminatedOrchestrationInstance) = await processManagerClient
-            .WaitForOrchestrationInstanceTerminated<RequestCalculatedEnergyTimeSeriesInputV1>(
-                idempotencyKey: invalidRequestCommand.IdempotencyKey);
+        var (orchestrationTerminated, terminatedOrchestrationInstance) = await processManagerClient
+            .WaitForOrchestrationInstanceTerminated<UpdateMeteringPointConnectionStateInputV1>(
+                startCommand.IdempotencyKey);
 
-        orchestrationWasTerminated.Should().BeTrue(
+        orchestrationTerminated.Should().BeTrue(
             "because the orchestration instance should be terminated within the given wait time");
 
         // Orchestration instance and validation steps should be Failed
@@ -264,31 +255,19 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 });
     }
 
-    private RequestCalculatedEnergyTimeSeriesCommandV1 GivenRequestCalculatedEnergyTimeSeries(
+    private StartUpdateMeteringPointConnectionStateCommandV1 GivenStartCommand(
         bool shouldFailBusinessValidation = false)
     {
-        const string energySupplierNumber = "1234567891234";
-        var energySupplierRole = ActorRole.EnergySupplier.Name;
-
-        return new RequestCalculatedEnergyTimeSeriesCommandV1(
-            _fixture.DefaultActorIdentity,
-            new RequestCalculatedEnergyTimeSeriesInputV1(
+        return new StartUpdateMeteringPointConnectionStateCommandV1(
+            _actorIdentity,
+            new UpdateMeteringPointConnectionStateInputV1(
+                RequestedByActorNumber: _actorIdentity.ActorNumber.Value,
+                RequestedByActorRole: _actorIdentity.ActorRole.Name,
                 ActorMessageId: Guid.NewGuid().ToString(),
                 TransactionId: Guid.NewGuid().ToString(),
-                RequestedForActorNumber: energySupplierNumber,
-                RequestedForActorRole: energySupplierRole,
-                RequestedByActorNumber: energySupplierNumber,
-                RequestedByActorRole: energySupplierRole,
-                BusinessReason: BusinessReason.BalanceFixing.Name,
-                PeriodStart: "2024-04-07T22:00:00Z",
-                PeriodEnd: "2024-04-08T22:00:00Z",
-                // EnergySupplierNumber is required when RequestedByActorRole is EnergySupplier, so the request will fail if not provided.
-                EnergySupplierNumber: !shouldFailBusinessValidation ? energySupplierNumber : null,
-                BalanceResponsibleNumber: null,
-                GridAreas: [gridArea],
-                MeteringPointType: null,
-                SettlementMethod: null,
-                SettlementVersion: null),
+                // MeteringPointId is required, so the request will fail if not provided.
+                MeteringPointId: !shouldFailBusinessValidation ? "TODO: Valid MeteringPoint ID" : string.Empty,
+                IsConnected: true),
             idempotencyKey: Guid.NewGuid().ToString());
     }
 }

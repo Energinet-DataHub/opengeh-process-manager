@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Identity;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,9 +24,12 @@ public static class Brs021ForwardMeteredDataExtensions
     /// <summary>
     /// Add required dependencies to use the Process Manager Service Bus topic.
     /// </summary>
-    public static IServiceCollection AddBrs021ForwardMeteringData(this IServiceCollection services)
+    public static IServiceCollection AddBrs021ForwardMeteringData(
+        this IServiceCollection services,
+        DefaultAzureCredential azureCredential)
     {
-        services.AddTransient<MeteringPointMasterDataProvider>();
+        services.AddMeasurementsMeteredDataClient(azureCredential);
+        services.AddScoped<MeteringPointMasterDataProvider>();
         services.AddScoped<TerminateForwardMeteredDataHandlerV1>();
         services.AddScoped<EnqueueMeteredDataHandlerV1>();
 

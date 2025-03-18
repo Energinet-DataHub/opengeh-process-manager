@@ -351,7 +351,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .NotBeNull()
             .And.Be(OrchestrationInstanceTerminationState.Failed);
 
-        terminatedOrchestrationInstance.CustomState.Should().BeEquivalentTo("{\"MeteringPointMasterData\":[]}");
+        terminatedOrchestrationInstance.CustomState.Should()
+            .BeEquivalentTo(JsonSerializer.Serialize(new ForwardMeteredDataCustomStateV1([])));
 
         terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence)
             .Should()

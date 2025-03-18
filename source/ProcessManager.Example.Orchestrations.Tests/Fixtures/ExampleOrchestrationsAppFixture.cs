@@ -16,6 +16,7 @@ using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -69,6 +70,11 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
             ExampleOrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
+
+        EnqueueBrs101ServiceBusListener = new ServiceBusListenerMock(
+            ExampleOrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -82,8 +88,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
     [NotNull]
     public IDurableClient? DurableClient { get; private set; }
 
-    [NotNull]
-    public TopicResource? EdiTopic { get; private set; }
+    public ServiceBusListenerMock EnqueueBrs101ServiceBusListener { get; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -103,20 +108,26 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         // Process Manager Notify topic
         await ProcessManagerAppManager.StartAsync();
 
+        // Create EDI topic resources
         var ediTopicBuilder = ServiceBusResourceProvider.BuildTopic("edi-topic");
+        ExampleOrchestrationsAppManager.EdiTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
         ExampleConsumerAppManager.EdiTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
-        EdiTopic = await ediTopicBuilder.CreateAsync();
+        var ediTopicResource = await ediTopicBuilder.CreateAsync();
+        var ediTopicResources = ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(ediTopicResource);
+        // Create listener for enqueue messages: BRS-101 Update Metering Porint Connection State
+        await EnqueueBrs101ServiceBusListener.AddTopicSubscriptionListenerAsync(
+            ediTopicResources.EnqueueBrs101UpdateMeteringPointConnectionStateSubscription.TopicName,
+            ediTopicResources.EnqueueBrs101UpdateMeteringPointConnectionStateSubscription.SubscriptionName);
 
         // Process Manager Start topic
-        await ExampleOrchestrationsAppManager.StartAsync(
-            ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(EdiTopic));
+        await ExampleOrchestrationsAppManager.StartAsync(ediTopicResources);
 
         await ExampleConsumerAppManager.StartAsync(
             ExampleOrchestrationsAppManager.ProcessManagerStartTopic,
             ProcessManagerAppManager.ProcessManagerNotifyTopic,
             ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic,
             ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic,
-            ExampleConsumerAppManager.EdiTopicResources.CreateFromTopic(EdiTopic),
+            ExampleConsumerAppManager.EdiTopicResources.CreateFromTopic(ediTopicResource),
             processManagerApiUrl: ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri,
             orchestrationsApiUrl: ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri);
 
@@ -131,6 +142,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         await ProcessManagerAppManager.DisposeAsync();
         await DurableTaskManager.DisposeAsync();
         await DatabaseManager.DeleteDatabaseAsync();
+        await EnqueueBrs101ServiceBusListener.DisposeAsync();
         await ServiceBusResourceProvider.DisposeAsync();
 
         AzuriteManager.Dispose();

@@ -151,10 +151,23 @@ public class MeteringPointMasterDataProvider(
         //         innerExceptions: exceptions);
         // }
 
-        var meteringPointMasterDataPoints = meteringPointMasterData
-            .SelectMany(mpmd => GetMeteringPointMasterDataPerEnergySupplier(mpmd).MeteringPointMasterData)
-            .ToList()
-            .AsReadOnly();
+        // Try-catch to prevent PREPROD from going up in flames
+        IReadOnlyCollection<PMMeteringPointMasterData> meteringPointMasterDataPoints;
+        try
+        {
+            meteringPointMasterDataPoints = meteringPointMasterData
+                .SelectMany(mpmd => GetMeteringPointMasterDataPerEnergySupplier(mpmd).MeteringPointMasterData)
+                .ToList()
+                .AsReadOnly();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(
+                e,
+                $"Failed to unpack metering point master data for '{meteringPointId}' in the period {startDateTime.Value}--{endDateTime.Value}.");
+
+            return [];
+        }
 
         return meteringPointMasterDataPoints;
     }

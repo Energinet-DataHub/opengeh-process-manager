@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using AutoFixture;
 using Azure.Messaging.EventHubs;
@@ -21,6 +22,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -28,12 +30,14 @@ using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
@@ -46,12 +50,28 @@ using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
+using NodaTime;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
+using ConnectionState =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ConnectionState;
+using GridAreaCode =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode;
+using MeteringPointMasterData =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.
+    MeteringPointMasterData;
+using MeteringPointSubType =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
+using OrchestrationInstanceTerminationState =
+    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationState;
+using OrchestrationStepTerminationState =
+    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationStepTerminationState;
 using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
+using StepInstanceLifecycleState =
+    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceLifecycleState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
@@ -231,50 +251,27 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .NotBeNull()
             .And.Be(OrchestrationInstanceTerminationState.Succeeded);
 
+        var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV1(
+        [
+            new MeteringPointMasterData(
+                new MeteringPointId("123456789"),
+                new DateTime(2023, 11, 29, 12, 34, 56, DateTimeKind.Utc),
+                new DateTime(2024, 11, 29, 12, 34, 56, DateTimeKind.Utc),
+                new GridAreaCode("804"),
+                ActorNumber.Create("2222222222222"),
+                ["Owner1", "Owner2"],
+                ConnectionState.Connected,
+                MeteringPointType.Consumption,
+                MeteringPointSubType.Physical,
+                Resolution.Hourly,
+                MeasurementUnit.KilowattHour,
+                "Tariff",
+                null,
+                ActorNumber.Create("1111111111111")),
+        ]);
+
         terminatedOrchestrationInstance.CustomState.Should()
-            .BeEquivalentTo(
-                Regex.Replace(
-                    """
-                    {
-                      "MeteringPointMasterData": [
-                        {
-                          "MeteringPointId": {
-                            "Value": "123456789"
-                          },
-                          "ValidFrom": "2023-11-29T12:34:56+00:00",
-                          "ValidTo": "2024-11-29T12:34:56+00:00",
-                          "GridAreaCode": {
-                            "Value": "804"
-                          },
-                          "GridAccessProvider": {
-                            "Value": "2222222222222"
-                          },
-                          "NeighborGridAreaOwners": [
-                            "Owner1",
-                            "Owner2"
-                          ],
-                          "ConnectionState": 4,
-                          "MeteringPointType": {
-                            "Name": "Consumption"
-                          },
-                          "MeteringPointSubType": 0,
-                          "Resolution": {
-                            "Name": "Hourly"
-                          },
-                          "MeasurementUnit": {
-                            "Name": "KilowattHour"
-                          },
-                          "ProductId": "Tariff",
-                          "ParentMeteringPointId": null,
-                          "EnergySupplier": {
-                            "Value": "1111111111111"
-                          }
-                        }
-                      ]
-                    }
-                    """,
-                    @"\s+",
-                    string.Empty));
+            .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));
 
         terminatedOrchestrationInstance.Steps.Should()
             .AllSatisfy(
@@ -497,48 +494,39 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .WithBody(_ => true)
             .UsingPost();
 
-        var body = """
-                   {
-                     "Identification": {
-                       "Value": "123456789"
-                     },
-                     "ValidFrom": "2023-11-29T12:34:56Z",
-                     "ValidTo": "2024-11-29T12:34:56Z",
-                     "GridAreaCode": {
-                       "Value": "804"
-                     },
-                     "GridAccessProvider": "2222222222222",
-                     "NeighborGridAreaOwners": [
-                       "Owner1",
-                       "Owner2"
-                     ],
-                     "ConnectionState": 4,
-                     "Type": 0,
-                     "SubType": 0,
-                     "Resolution": {
-                       "Value": "Hourly"
-                     },
-                     "Unit": 3,
-                     "ProductId": 0,
-                     "EnergySuppliers": [
-                       {
-                         "Identification": {
-                           "Value": "123456789"
-                         },
-                         "EnergySupplier": "1111111111111",
-                         "StartDate": "2023-11-29T12:34:56Z",
-                         "EndDate": "2024-11-29T12:34:56Z"
-                       }
-                     ]
-                   }
-                   """;
+        var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData()
+        {
+            Identification = new MeteringPointIdentification("123456789"),
+            ValidFrom = Instant.FromUtc(2023, 11, 29, 12, 34, 56),
+            ValidTo = Instant.FromUtc(2024, 11, 29, 12, 34, 56),
+            GridAreaCode = new ElectricityMarket.Integration.Models.MasterData.GridAreaCode("804"),
+            GridAccessProvider = "2222222222222",
+            NeighborGridAreaOwners = ["Owner1", "Owner2"],
+            ConnectionState = ElectricityMarket.Integration.Models.MasterData.ConnectionState.Connected,
+            Type = ElectricityMarket.Integration.Models.MasterData.MeteringPointType.Consumption,
+            SubType = ElectricityMarket.Integration.Models.MasterData.MeteringPointSubType.Physical,
+            Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("Hourly"),
+            Unit = MeasureUnit.kWh,
+            ProductId = ProductId.Tariff,
+            ParentIdentification = null,
+            EnergySuppliers =
+            [
+                new MeteringPointEnergySupplier
+                {
+                    Identification = new MeteringPointIdentification("123456789"),
+                    EnergySupplier = "1111111111111",
+                    StartDate = Instant.FromUtc(2023, 11, 29, 12, 34, 56),
+                    EndDate = Instant.FromUtc(2024, 11, 29, 12, 34, 56),
+                },
+            ],
+        };
 
         // IEnumerable<MeteringPointMasterData>
         var response = Response
             .Create()
             .WithStatusCode(HttpStatusCode.OK)
             .WithHeader(HeaderNames.ContentType, "application/json")
-            .WithBody($"[{body}]");
+            .WithBody($"[{JsonSerializer.Serialize(meteringPointMasterData)}]");
 
         _fixture.OrchestrationsAppManager.MockServer.Given(request).RespondWith(response);
     }

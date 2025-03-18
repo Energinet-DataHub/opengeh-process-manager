@@ -132,22 +132,22 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        // Orchestrations service bus topics
+        // Orchestrations service bus topics and subscriptions
         var startTopicResources = await ProcessManagerStartTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         ProcessManagerStartTopic = startTopicResources.StartTopic;
-        var brs21TopicResource = await Brs021ForwardMeteredDataTopicResources.CreateNewAsync(ServiceBusResourceProvider);
-        Brs021ForwardMeteredDataStartTopic = brs21TopicResource.StartTopic;
-        Brs021ForwardMeteredDataNotifyTopic = brs21TopicResource.NotifyTopic;
+        var brs021TopicResource = await Brs021ForwardMeteredDataTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        Brs021ForwardMeteredDataStartTopic = brs021TopicResource.StartTopic;
+        Brs021ForwardMeteredDataNotifyTopic = brs021TopicResource.NotifyTopic;
 
-        // EDI topic
+        // EDI topic and subscriptions
         ediTopicResources ??= await EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Example.Orchestrations",
             startTopicResources,
-            ediTopicResources,
-            brs21TopicResource);
+            brs021TopicResource,
+            ediTopicResources);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -217,8 +217,8 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
         ProcessManagerStartTopicResources startTopicResources,
-        EdiTopicResources ediTopicResources,
-        Brs021ForwardMeteredDataTopicResources brs21TopicResources)
+        Brs021ForwardMeteredDataTopicResources brs021TopicResources,
+        EdiTopicResources ediTopicResources)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -302,16 +302,16 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         // => BRS-021 Forward Metered Data topics
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",
-            brs21TopicResources.StartTopic.Name);
+            brs021TopicResources.StartTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}",
-            brs21TopicResources.NotifyTopic.Name);
+            brs021TopicResources.NotifyTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}",
-            brs21TopicResources.StartSubscription.SubscriptionName);
+            brs021TopicResources.StartSubscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}",
-            brs21TopicResources.NotifySubscription.SubscriptionName);
+            brs021TopicResources.NotifySubscription.SubscriptionName);
 
         // => Edi topic
         appHostSettings.ProcessEnvironmentVariables.Add(

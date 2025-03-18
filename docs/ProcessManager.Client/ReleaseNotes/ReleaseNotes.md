@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 2.1.1
+
+- Update NuGet packages.
+
 ## Version 2.1.0
 
 - Refactored `NotifyOrchestrationInstanceEvent` to be `abstract` and thereby require each event to be its own record (similar to what we do for commands).

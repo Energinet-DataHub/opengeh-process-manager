@@ -389,6 +389,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             TransactionId: "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
             ActorNumber: "1111111111111",
             ActorRole: ActorRole.GridAccessProvider.Name,
+            BusinessReason: BusinessReason.PeriodicMetering.Name,
             MeteringPointId: "571313101700011887",
             MeteringPointType: MeteringPointType.Production.Name,
             ProductNumber: "8716867000047",

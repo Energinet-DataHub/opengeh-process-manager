@@ -177,6 +177,14 @@ public class MeteringPointMasterDataProvider(
                     $"The interval of the energy suppliers ({energySupplierStartDate}--{energySupplierEndDate}) does not match the master data interval ({meteringPointMasterData.ValidFrom}--{meteringPointMasterData.ValidTo})."));
         }
 
+        if (meteringPointMasterData.EnergySuppliers.Any(
+                es => es.Identification.Value != meteringPointMasterData.Identification.Value))
+        {
+            exceptions.Add(
+                new MeteringPointMasterDataInconsistencyException(
+                    $"Metering point identification for energy supplier does not match parent identification."));
+        }
+
         return (meteringPointMasterData.EnergySuppliers
             .Select(
                 meteringPointEnergySupplier => new PMMeteringPointMasterData(

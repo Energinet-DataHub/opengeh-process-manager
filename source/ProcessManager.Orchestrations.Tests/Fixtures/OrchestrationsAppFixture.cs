@@ -139,12 +139,13 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         DurableClient = DurableTaskManager.CreateClient(TaskHubName);
 
-        // Process Manager Notify topic
+        // Start Process Manager app
+        // => Creates Process Manager default Notify topic and subscription
         await ProcessManagerAppManager.StartAsync();
 
         // Create EDI topic resources
         var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
-
+        // => Create listeners for enqueue messages
         await EnqueueBrs021ForwardMeteredDataServiceBusListener.AddTopicSubscriptionListenerAsync(
             ediTopicResources.EnqueueBrs021ForwardMeteredDataSubscription.TopicName,
             ediTopicResources.EnqueueBrs021ForwardMeteredDataSubscription.SubscriptionName);
@@ -164,7 +165,9 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             integrationEventTopicResources.SharedTopic.Name,
             integrationEventTopicResources.Subscription.SubscriptionName);
 
-        // Process Manager Orchestration Start topic
+        // Start Process Manager Orchestrations app
+        // => Creates Process Manager default Start topics and subscriptions
+        // => Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
         await OrchestrationsAppManager.StartAsync(ediTopicResources, integrationEventTopicResources);
 
         EventHubListener = new EventHubListenerMock(

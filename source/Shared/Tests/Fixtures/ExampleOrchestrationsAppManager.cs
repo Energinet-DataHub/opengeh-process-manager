@@ -118,7 +118,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     /// <summary>
-    /// Start the example orchestration app.
+    /// Start the Example Orchestrations app.
     /// </summary>
     /// <param name="ediTopicResources">EDI topic resources used by the app. Will be created if not provided.</param>
     public async Task StartAsync(

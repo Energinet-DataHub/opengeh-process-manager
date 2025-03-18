@@ -105,7 +105,8 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        // Process Manager Notify topic
+        // Start Process Manager app
+        // => Creates Process Manager default Notify topic and subscription
         await ProcessManagerAppManager.StartAsync();
 
         // Create EDI topic resources
@@ -114,14 +115,17 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         ExampleConsumerAppManager.EdiTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
         var ediTopicResource = await ediTopicBuilder.CreateAsync();
         var ediTopicResources = ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(ediTopicResource);
-        // Create listener for enqueue messages: BRS-101 Update Metering Porint Connection State
+        // => Create listener for enqueue messages: BRS-101 Update Metering Porint Connection State
         await EnqueueBrs101ServiceBusListener.AddTopicSubscriptionListenerAsync(
             ediTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.TopicName,
             ediTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.SubscriptionName);
 
-        // Process Manager Start topic
+        // Start Example Orchestrations app
+        // => Creates Process Manager default Start topics and subscriptions
+        // => Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
         await ExampleOrchestrationsAppManager.StartAsync(ediTopicResources);
 
+        // Start Example Consumer app
         await ExampleConsumerAppManager.StartAsync(
             ExampleOrchestrationsAppManager.ProcessManagerStartTopic,
             ProcessManagerAppManager.ProcessManagerNotifyTopic,

@@ -2,7 +2,7 @@
 
 ## Version 1.11.0
 
-- Add BusinessReason to `ForwardMeteredDataInputV1`.
+- Add `OriginalBusinessReason` to `ForwardMeteredDataInputV1`.
 
 ## Version 1.10.2
 

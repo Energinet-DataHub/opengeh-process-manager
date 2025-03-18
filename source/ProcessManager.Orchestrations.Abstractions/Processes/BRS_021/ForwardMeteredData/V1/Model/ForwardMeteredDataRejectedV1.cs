@@ -23,5 +23,5 @@ public record ForwardMeteredDataRejectedV1(
     string OriginalTransactionId,
     ActorNumber ForwardedByActorNumber,
     ActorRole ForwardedByActorRole,
-    BusinessReason BusinessReason,
+    BusinessReason OriginalBusinessReason,
     List<ValidationErrorDto> ValidationErrors);

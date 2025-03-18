@@ -150,6 +150,12 @@ public class EnqueueMeteredDataHandlerV1(
             RegistrationDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
             StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset(),
             EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset(),
+            MeteredData: forwardMeteredDataInput.EnergyObservations
+                .Select(eo => new ForwardMeteredDataAcceptedV1.AcceptedMeteredData(
+                    Position: int.Parse(eo.Position!),
+                    EnergyQuantity: decimal.Parse(eo.EnergyQuantity!),
+                    QuantityQuality: Quality.FromName(eo.QuantityQuality!)))
+                .ToList(),
             Receivers: [
                 // TODO: Select from master data
                 new ForwardMeteredDataAcceptedV1.MeteredDataForReceiver(
@@ -162,14 +168,7 @@ public class EnqueueMeteredDataHandlerV1(
                     // TODO: Select the following properties from master data instead
                     Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution!),
                     StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value.ToDateTimeOffset(),
-                    EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset(),
-                    MeteredData: forwardMeteredDataInput.EnergyObservations
-                        // TODO: Only get energy observations in the period the receiver is active
-                        .Select(eo => new ForwardMeteredDataAcceptedV1.AcceptedMeteredData(
-                            Position: int.Parse(eo.Position!),
-                            EnergyQuantity: decimal.Parse(eo.EnergyQuantity!),
-                            QuantityQuality: Quality.FromName(eo.QuantityQuality!)))
-                        .ToList()),
+                    EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset()),
                 ]);
 
         await _enqueueActorMessagesClient.EnqueueAsync(

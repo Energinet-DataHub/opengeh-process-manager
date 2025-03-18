@@ -22,6 +22,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ElectricityMarket.Integration.Options;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState;
@@ -290,13 +291,13 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         // => Process Manager Start topic -> subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs101UpdateMeteringPointConnectionStateSubscriptionName)}",
-            startTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.SubscriptionName);
+            startTopicResources.StartBrs101UpdateMeteringPointConnectionStateSubscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX02NotifyOrchestrationInstanceExampleSubscriptionName)}",
-            startTopicResources.BrsX02NotifyOrchestrationInstanceExampleSubscription.SubscriptionName);
+            startTopicResources.StartBrsX02NotifyOrchestrationInstanceExampleSubscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX02ActorRequestProcessExampleSubscriptionName)}",
-            startTopicResources.BrsX02ActorRequestProcessExampleSubscription.SubscriptionName);
+            startTopicResources.StartBrsX02ActorRequestProcessExampleSubscription.SubscriptionName);
 
         // => BRS-021 Forward Metered Data topics
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -343,13 +344,13 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     public record ProcessManagerStartTopicResources(
         TopicResource StartTopic,
-        SubscriptionProperties Brs101UpdateMeteringPointConnectionStateSubscription,
-        SubscriptionProperties BrsX02NotifyOrchestrationInstanceExampleSubscription,
-        SubscriptionProperties BrsX02ActorRequestProcessExampleSubscription)
+        SubscriptionProperties StartBrs101UpdateMeteringPointConnectionStateSubscription,
+        SubscriptionProperties StartBrsX02NotifyOrchestrationInstanceExampleSubscription,
+        SubscriptionProperties StartBrsX02ActorRequestProcessExampleSubscription)
     {
-        private const string Brs101UpdateMeteringPointConnectionStateSubscriptionName = "brs-101-updatemeteringpointconnectionstate";
-        private const string BrsX02NotifyOrchestrationInstanceExampleSubscriptionName = "brs-x02-notifyorchestrationinstanceexample";
-        private const string BrsX02ActorRequestProcessExampleSubscriptionName = "brs-x02-actorrequestprocessexample";
+        private const string Brs101UpdateMeteringPointConnectionStateSubscriptionName = "start-brs-101-updatemeteringpointconnectionstate";
+        private const string BrsX02NotifyOrchestrationInstanceExampleSubscriptionName = "start-brs-x02-notifyorchestrationinstanceexample";
+        private const string BrsX02ActorRequestProcessExampleSubscriptionName = "start-brs-x02-actorrequestprocessexample";
 
         internal static async Task<ProcessManagerStartTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
@@ -400,9 +401,9 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
 
             return new ProcessManagerStartTopicResources(
                 StartTopic: topic,
-                Brs101UpdateMeteringPointConnectionStateSubscription: brs101UpdateMeteringPointConnectionStateSubscription,
-                BrsX02NotifyOrchestrationInstanceExampleSubscription: brsX02NotifyOrchestrationInstanceExampleSubscription,
-                BrsX02ActorRequestProcessExampleSubscription: brsX02ActorRequestProcessExampleSubscription);
+                StartBrs101UpdateMeteringPointConnectionStateSubscription: brs101UpdateMeteringPointConnectionStateSubscription,
+                StartBrsX02NotifyOrchestrationInstanceExampleSubscription: brsX02NotifyOrchestrationInstanceExampleSubscription,
+                StartBrsX02ActorRequestProcessExampleSubscription: brsX02ActorRequestProcessExampleSubscription);
         }
     }
 
@@ -410,11 +411,15 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     /// EDI topic and subscription resources used by the Example Orchestrations app.
     /// </summary>
     public record EdiTopicResources(
-        TopicResource EdiTopic)
+        TopicResource EdiTopic,
+        SubscriptionProperties EnqueueBrs101UpdateMeteringPointConnectionStateSubscription)
     {
+        private const string EnqueueBrs101UpdateMeteringPointConnectionStateSubscriptionName = "enqueue-brs-101-updatemeteringpointconnectionstate";
+
         public static async Task<EdiTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var ediTopicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
+            AddSubscriptionsToTopicBuilder(ediTopicBuilder);
 
             var ediTopic = await ediTopicBuilder.CreateAsync();
 
@@ -422,12 +427,28 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         }
 
         /// <summary>
-        /// Get the <see cref="ExampleOrchestrationsAppManager.EdiTopicResources"/> used by the Orchestrations app.
+        /// Add EDI subscriptions to the EDI topic.
+        /// </summary>
+        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
+        {
+            builder
+                .AddSubscription(EnqueueBrs101UpdateMeteringPointConnectionStateSubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_101_UpdateMeteringPointConnectionState.V1));
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Get the <see cref="ExampleOrchestrationsAppManager.EdiTopicResources"/> used by the Example Orchestrations app.
         /// </summary>
         public static EdiTopicResources CreateFromTopic(TopicResource topic)
         {
+            var brs101UpdateMeteringPointConnectionStateSubscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(EnqueueBrs101UpdateMeteringPointConnectionStateSubscriptionName));
+
             return new EdiTopicResources(
-                EdiTopic: topic);
+                EdiTopic: topic,
+                EnqueueBrs101UpdateMeteringPointConnectionStateSubscription: brs101UpdateMeteringPointConnectionStateSubscription);
         }
     }
 

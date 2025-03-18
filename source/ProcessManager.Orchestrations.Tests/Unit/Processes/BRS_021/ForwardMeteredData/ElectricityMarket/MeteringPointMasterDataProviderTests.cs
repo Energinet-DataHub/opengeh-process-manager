@@ -70,7 +70,7 @@ internal class MeteringPointMasterDataProviderTests
         var meteringPointMasterData = await _sut.GetMasterData(
             "one-energy-supplier-please",
             "2021-01-01T00:00:00Z",
-            "2021-01-01T00:00:00Z");
+            "2021-02-01T00:00:00Z");
 
         var singleMasterData = meteringPointMasterData
             .Should()
@@ -88,7 +88,7 @@ internal class MeteringPointMasterDataProviderTests
         var meteringPointMasterData = await _sut.GetMasterData(
             "two-energy-suppliers-please",
             "2021-01-01T00:00:00Z",
-            "2021-01-01T00:00:00Z");
+            "2021-03-01T00:00:00Z");
 
         meteringPointMasterData
             .Should()
@@ -120,7 +120,7 @@ internal class MeteringPointMasterDataProviderTests
         var meteringPointMasterData = await _sut.GetMasterData(
             "custom-metering-point-master-data",
             "2021-01-01T00:00:00Z",
-            "2021-01-01T00:00:00Z");
+            "2021-01-05T00:00:00Z");
 
         meteringPointMasterData
             .Should()
@@ -173,7 +173,7 @@ internal class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_MasterDataWithEnergySupplierHole_When_GetMasterData_Then_Error()
+    public async Task Given_MasterDataWithEnergySupplierAndMasterDataWithMissingEnergySupplier_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider = () => GetMeteringPointMasterData(gapInDates: true);
 
@@ -217,7 +217,7 @@ internal class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_MasterDataWithChangeToMeteringPointType_When_GetMasterData_Then_Error()
+    public async Task Given_MasterDataWithInconsistentMeteringPointType_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
             () => GetMeteringPointMasterData(changeToType: true);

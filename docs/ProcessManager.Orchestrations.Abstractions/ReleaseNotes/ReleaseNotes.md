@@ -4,6 +4,10 @@
 
 - Add BRS-045 Missing Measurements Log command.
 
+## Version 1.10.2
+
+- Update NuGet packages.
+
 ## Version 1.10.1
 
 - No functional changes.

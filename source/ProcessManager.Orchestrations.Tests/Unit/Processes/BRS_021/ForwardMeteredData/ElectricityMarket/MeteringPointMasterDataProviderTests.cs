@@ -22,11 +22,9 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NodaTime;
-using PMMeteringPointMasterData =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.
-    MeteringPointMasterData;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.Thingies;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.
+    ElectricityMarket;
 
 public class MeteringPointMasterDataProviderTests
 {
@@ -57,7 +55,10 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
+        await act.Should()
+            .ThrowAsync<Exception>()
+            .WithMessage(
+                "No energy suppliers found for metering point 'no-energy-suppliers-please' in period 2021-01-01T00:00:00Z--2021-01-01T00:00:00Z.");
     }
 
     [Fact]
@@ -162,7 +163,10 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
+        await act.Should()
+            .ThrowAsync<Exception>()
+            .WithMessage(
+                "No energy suppliers found for metering point 'faulty-two-master-data-please' in period 2021-03-01T00:00:00Z--2021-05-01T00:00:00Z.");
     }
 
     [Fact]
@@ -203,7 +207,10 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
+        await act.Should()
+            .ThrowAsync<Exception>()
+            .WithMessage(
+                "The interval of the energy suppliers (2021-01-01T00:00:00Z--2021-03-01T00:00:00Z) does not match the master data interval (2021-01-01T00:00:00Z--2021-03-02T00:00:00Z).");
     }
 
     [Fact]
@@ -217,7 +224,9 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
+        await act.Should()
+            .ThrowAsync<Exception>()
+            .WithMessage("MeteringPointType 'Production' is not equal to previous MeteringPointType 'Consumption'");
     }
 
     [Fact]
@@ -231,7 +240,9 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
+        await act.Should()
+            .ThrowAsync<Exception>()
+            .WithMessage("MeasurementUnit 'kWh' is not equal to previous MeasurementUnit 'MVAr'");
     }
 
     [Fact]
@@ -245,7 +256,9 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
+        await act.Should()
+            .ThrowAsync<Exception>()
+            .WithMessage("ProductId 'Tariff' is not equal to previous ProductId 'EnergyActivate'");
     }
 
     private IReadOnlyCollection<MeteringPointMasterData> GetMeteringPointMasterData(

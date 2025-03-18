@@ -16,6 +16,14 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
+/// <summary>
+/// Describes how metered data is grouped (sent to) market actors for specific time periods, resolutions and measure units.
+/// </summary>
+/// <param name="Actors">The actors who should receive the metered data for the given period.</param>
+/// <param name="Resolution">The resolution the metered data has in this period.</param>
+/// <param name="MeasureUnit">The measure units the metered data has in this period.</param>
+/// <param name="StartDateTime">The start date and time of the period.</param>
+/// <param name="EndDateTime">The end date and time of the period.</param>
 public record ReceiverForMeteredDataV1(
     IReadOnlyCollection<MarketActorRecipientV1> Actors,
     Resolution Resolution,

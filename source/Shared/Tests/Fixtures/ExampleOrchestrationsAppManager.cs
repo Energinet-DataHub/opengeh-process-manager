@@ -24,6 +24,7 @@ using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ElectricityMarket.Integration.Options;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
@@ -131,7 +132,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             await DatabaseManager.CreateDatabaseAsync();
 
         // Orchestrations service bus topics
-        var startTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        var startTopicResources = await ProcessManagerStartTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         ProcessManagerStartTopic = startTopicResources.StartTopic;
         var brs21TopicResource = await Brs21TopicResources.CreateNewAsync(ServiceBusResourceProvider);
         Brs021ForwardMeteredDataStartTopic = brs21TopicResource.Brs21StartTopic;
@@ -214,7 +215,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        ProcessManagerTopicResources startTopicResources,
+        ProcessManagerStartTopicResources startTopicResources,
         EdiTopicResources ediTopicResources,
         Brs21TopicResources brs21TopicResources)
     {
@@ -288,6 +289,9 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             startTopicResources.StartTopic.Name);
         // => Process Manager Start topic -> subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs101UpdateMeteringPointConnectionStateSubscriptionName)}",
+            startTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.SubscriptionName);
+        appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX02NotifyOrchestrationInstanceExampleSubscriptionName)}",
             startTopicResources.BrsX02NotifyOrchestrationInstanceExampleSubscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -335,17 +339,19 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Process Manager topic and subscription resources used by the Example Orchestrations app.
+    /// Process Manager default start topic and subscription resources used by the Example Orchestrations app.
     /// </summary>
-    public record ProcessManagerTopicResources(
+    public record ProcessManagerStartTopicResources(
         TopicResource StartTopic,
+        SubscriptionProperties Brs101UpdateMeteringPointConnectionStateSubscription,
         SubscriptionProperties BrsX02NotifyOrchestrationInstanceExampleSubscription,
         SubscriptionProperties BrsX02ActorRequestProcessExampleSubscription)
     {
+        private const string Brs101UpdateMeteringPointConnectionStateSubscriptionName = "brs-101-updatemeteringpointconnectionstate";
         private const string BrsX02NotifyOrchestrationInstanceExampleSubscriptionName = "brs-x02-notifyorchestrationinstanceexample";
         private const string BrsX02ActorRequestProcessExampleSubscriptionName = "brs-x02-actorrequestprocessexample";
 
-        internal static async Task<ProcessManagerTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<ProcessManagerStartTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-start-topic");
             AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
@@ -361,6 +367,10 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         private static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
+                .AddSubscription(Brs101UpdateMeteringPointConnectionStateSubscriptionName)
+                    .AddSubjectFilter(Brs_101_UpdateMeteringPointConnectionState.Name);
+
+            builder
                 .AddSubscription(BrsX02NotifyOrchestrationInstanceExampleSubscriptionName)
                     .AddSubjectFilter(Brs_X02_NotifyOrchestrationInstanceExample.Name);
 
@@ -372,21 +382,25 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         }
 
         /// <summary>
-        /// Get the <see cref="ExampleOrchestrationsAppManager.ProcessManagerTopicResources"/> used by the Orchestrations app.
+        /// Get the <see cref="ExampleOrchestrationsAppManager.ProcessManagerStartTopicResources"/> used by the Orchestrations app.
         /// <remarks>
         /// This requires the Example Orchestrations app subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
         /// </remarks>
         /// </summary>
-        private static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
+        private static ProcessManagerStartTopicResources CreateFromTopic(TopicResource topic)
         {
+            var brs101UpdateMeteringPointConnectionStateSubscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(Brs101UpdateMeteringPointConnectionStateSubscriptionName));
+
             var brsX02NotifyOrchestrationInstanceExampleSubscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(BrsX02NotifyOrchestrationInstanceExampleSubscriptionName));
 
             var brsX02ActorRequestProcessExampleSubscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(BrsX02ActorRequestProcessExampleSubscriptionName));
 
-            return new ProcessManagerTopicResources(
+            return new ProcessManagerStartTopicResources(
                 StartTopic: topic,
+                Brs101UpdateMeteringPointConnectionStateSubscription: brs101UpdateMeteringPointConnectionStateSubscription,
                 BrsX02NotifyOrchestrationInstanceExampleSubscription: brsX02NotifyOrchestrationInstanceExampleSubscription,
                 BrsX02ActorRequestProcessExampleSubscription: brsX02ActorRequestProcessExampleSubscription);
         }

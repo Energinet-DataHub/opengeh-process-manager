@@ -18,8 +18,8 @@ using Microsoft.Extensions.Configuration;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
 
 /// <summary>
-/// Contains options required for the orchestrations app to connect to the
-/// Process Manager Start topic and subscriptions.
+/// Contains options required for the Example Orchestrations app to connect to the
+/// Process Manager default Start topic and subscriptions.
 /// </summary>
 public class ProcessManagerStartTopicOptions
 {
@@ -35,6 +35,12 @@ public class ProcessManagerStartTopicOptions
     public string TopicName { get; set; } = string.Empty;
 
     /// <summary>
+    /// Name of the subscription for BRS-101 UpdateMeteringPointConnectionState to the Process Manager Start topic.
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string Brs101UpdateMeteringPointConnectionStateSubscriptionName { get; set; } = string.Empty;
+
+    /// <summary>
     /// Name of the subscription for BRS-X02 NotifyOrchestrationInstanceExample to the Process Manager Start topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
@@ -45,10 +51,4 @@ public class ProcessManagerStartTopicOptions
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string BrsX02ActorRequestProcessExampleSubscriptionName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Name of the subscription for BRS-101 UpdateMeteringPointConnectionState to the Process Manager Start topic.
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string Brs101UpdateMeteringPointConnectionStateSubscriptionName { get; set; } = string.Empty;
 }

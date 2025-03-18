@@ -116,8 +116,8 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         var ediTopicResources = ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(ediTopicResource);
         // Create listener for enqueue messages: BRS-101 Update Metering Porint Connection State
         await EnqueueBrs101ServiceBusListener.AddTopicSubscriptionListenerAsync(
-            ediTopicResources.EnqueueBrs101UpdateMeteringPointConnectionStateSubscription.TopicName,
-            ediTopicResources.EnqueueBrs101UpdateMeteringPointConnectionStateSubscription.SubscriptionName);
+            ediTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.TopicName,
+            ediTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.SubscriptionName);
 
         // Process Manager Start topic
         await ExampleOrchestrationsAppManager.StartAsync(ediTopicResources);

@@ -318,6 +318,11 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
             ediTopicResources.EnqueueTopic.Name);
 
+        // => BRS-101 Update MeteringPoint Connection State
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_101_UpdateMeteringPointConnectionState_V1.SectionName}__{nameof(OrchestrationOptions_Brs_101_UpdateMeteringPointConnectionState_V1.EnqueueActorMessagesTimeout)}",
+            TimeSpan.FromMinutes(10).ToString());
+
         // => BRS-X01
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_X01_InputExample_V1.SectionName}__{nameof(OrchestrationOptions_Brs_X01_InputExample_V1.OptionValue)}",

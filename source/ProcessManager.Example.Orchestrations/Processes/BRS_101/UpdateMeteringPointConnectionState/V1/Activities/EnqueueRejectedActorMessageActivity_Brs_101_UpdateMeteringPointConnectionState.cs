@@ -36,7 +36,7 @@ internal class EnqueueRejectedActorMessageActivity_Brs_101_UpdateMeteringPointCo
     {
         var orchestrationInstance = await _repository.GetAsync(input.OrchestrationInstanceId).ConfigureAwait(false);
 
-        var rejectedMessage = new UpdateMeteringPointConnectionStateEnqueueRejectedDataV1(
+        var rejectedMessage = new UpdateMeteringPointConnectionStateRejectedV1(
             ValidationErrors: input.ValidationErrors
                 .Select(e => new ValidationErrorDto(
                     Message: e.Message,

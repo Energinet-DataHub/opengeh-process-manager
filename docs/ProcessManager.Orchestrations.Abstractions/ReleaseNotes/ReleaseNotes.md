@@ -1,5 +1,11 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.11.3
+
+- Update `ForwardMeteredDataAcceptedV1` to support a list of receivers.
+- Rename `ForwardMeteredDataAcceptedV1.AcceptedEnergyOberservation` to `AcceptedMeteredData`.
+- Add `ReceiverForMeteredDataV1` model.
+
 ## Version 1.10.2
 
 - Update NuGet packages.

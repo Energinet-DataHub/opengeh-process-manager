@@ -4,7 +4,7 @@
 
 - Update `ForwardMeteredDataAcceptedV1` to support a list of receivers.
 - Rename `ForwardMeteredDataAcceptedV1.AcceptedEnergyOberservation` to `AcceptedMeteredData`.
-- Add `ReceiverForMeteredDataV1` model.
+- Add `MeteredDataReceiverV1` model.
 
 ## Version 1.11.1
 

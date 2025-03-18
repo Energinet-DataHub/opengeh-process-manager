@@ -80,7 +80,7 @@ public class EnqueueMeteredDataHandlerV1(
         await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
     }
 
-    private async Task<IReadOnlyCollection<ReceiverForMeteredDataV1>> FindReceivers(
+    private async Task<IReadOnlyCollection<MeteredDataReceiverV1>> FindReceivers(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataInputV1 forwardMeteredDataInput)
     {
@@ -104,10 +104,10 @@ public class EnqueueMeteredDataHandlerV1(
 
         // Find Receivers
         // TODO: Implement find receivers
-        List<ReceiverForMeteredDataV1> receivers =
+        List<MeteredDataReceiverV1> receivers =
         [
             // TODO: Select from master data
-            new ReceiverForMeteredDataV1(
+            new MeteredDataReceiverV1(
                 Actors:
                 [
                     // TODO: Get energy suppliers (and other receivers?) from master data
@@ -133,7 +133,7 @@ public class EnqueueMeteredDataHandlerV1(
     private async Task EnqueueAcceptedActorMessagesAsync(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataInputV1 forwardMeteredDataInput,
-        IReadOnlyCollection<ReceiverForMeteredDataV1> receivers)
+        IReadOnlyCollection<MeteredDataReceiverV1> receivers)
     {
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
 

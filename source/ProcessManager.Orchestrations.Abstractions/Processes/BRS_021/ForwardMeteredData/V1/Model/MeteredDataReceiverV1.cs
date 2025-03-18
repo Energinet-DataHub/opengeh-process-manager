@@ -24,7 +24,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <param name="MeasureUnit">The measure units the metered data has in this period.</param>
 /// <param name="StartDateTime">The start date and time of the period.</param>
 /// <param name="EndDateTime">The end date and time of the period.</param>
-public record ReceiverForMeteredDataV1(
+public record MeteredDataReceiverV1(
     IReadOnlyCollection<MarketActorRecipientV1> Actors,
     Resolution Resolution,
     MeasurementUnit MeasureUnit,

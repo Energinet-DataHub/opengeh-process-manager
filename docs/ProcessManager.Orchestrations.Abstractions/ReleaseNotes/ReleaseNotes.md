@@ -2,7 +2,7 @@
 
 # Version 1.11.1
 
-- Rename `OriginalBusinessReason` to `BusinessReason` in `ForwardMeteredDataInputV1`.
+- Rename `OriginalBusinessReason` to `BusinessReason` in `ForwardMeteredDataRejectedV1`.
 
 ## Version 1.11.0
 

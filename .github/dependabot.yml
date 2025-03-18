@@ -8,3 +8,14 @@ updates:
     directory: /source
     schedule:
       interval: weekly
+    groups:
+      # Group patch/minor updates in same PR. Major updates is not in the group, so they will all have separate PR's.
+      # See: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/optimizing-pr-creation-version-updates
+      # and https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#groups--
+      minor-or-patch:
+        applies-to: version-updates
+        patterns:
+          - "*" # Matches all package names
+        update-types:
+          - minor
+          - patch

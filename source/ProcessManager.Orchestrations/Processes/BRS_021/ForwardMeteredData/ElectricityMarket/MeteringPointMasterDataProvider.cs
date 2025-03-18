@@ -67,7 +67,7 @@ public class MeteringPointMasterDataProvider(
         {
             _logger.LogError(
                 e,
-                $"Failed to get metering point master data for metering point '{meteringPointId}' in the period {startDateTime}--{endDateTime}.");
+                $"Failed to get metering point master data for metering point '{meteringPointId}' in the period {startDateTime.Value}--{endDateTime.Value}.");
 
             return [];
         }

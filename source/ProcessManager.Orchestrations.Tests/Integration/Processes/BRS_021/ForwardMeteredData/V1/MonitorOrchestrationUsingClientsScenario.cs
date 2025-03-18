@@ -48,6 +48,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
@@ -251,7 +252,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV1(
         [
             new MeteringPointMasterData(
-                new MeteringPointId("123456789"),
+                new MeteringPointId("571313101700011887"),
                 new DateTime(2023, 11, 29, 12, 34, 56, DateTimeKind.Utc),
                 new DateTime(2024, 11, 29, 12, 34, 56, DateTimeKind.Utc),
                 new GridAreaCode("804"),
@@ -493,7 +494,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData()
         {
-            Identification = new MeteringPointIdentification("123456789"),
+            Identification = new MeteringPointIdentification("571313101700011887"),
             ValidFrom = Instant.FromUtc(2023, 11, 29, 12, 34, 56),
             ValidTo = Instant.FromUtc(2024, 11, 29, 12, 34, 56),
             GridAreaCode = new ElectricityMarket.Integration.Models.MasterData.GridAreaCode("804"),
@@ -510,7 +511,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             [
                 new MeteringPointEnergySupplier
                 {
-                    Identification = new MeteringPointIdentification("123456789"),
+                    Identification = new MeteringPointIdentification("571313101700011887"),
                     EnergySupplier = "1111111111111",
                     StartDate = Instant.FromUtc(2023, 11, 29, 12, 34, 56),
                     EndDate = Instant.FromUtc(2024, 11, 29, 12, 34, 56),
@@ -523,7 +524,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .Create()
             .WithStatusCode(HttpStatusCode.OK)
             .WithHeader(HeaderNames.ContentType, "application/json")
-            .WithBody($"[{JsonSerializer.Serialize(meteringPointMasterData)}]");
+            .WithBody(
+                $"[{JsonSerializer.Serialize(meteringPointMasterData, new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb))}]");
 
         _fixture.OrchestrationsAppManager.MockServer.Given(request).RespondWith(response);
     }

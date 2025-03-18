@@ -1,6 +1,6 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-# Version 1.11.1
+## Version 1.11.1
 
 - Rename `OriginalBusinessReason` to `BusinessReason` in `ForwardMeteredDataRejectedV1`.
 

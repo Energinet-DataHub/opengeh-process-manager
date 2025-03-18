@@ -109,21 +109,21 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         // => Creates Process Manager default Notify topic and subscription
         await ProcessManagerAppManager.StartAsync();
 
-        // Create EDI topic resources
+        // Creates EDI enqueue actor messages topic and subscriptions
         var ediTopicBuilder = ServiceBusResourceProvider.BuildTopic("edi-topic");
-        ExampleOrchestrationsAppManager.EdiTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
-        ExampleConsumerAppManager.EdiTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
+        ExampleOrchestrationsAppManager.EdiEnqueueTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
+        ExampleConsumerAppManager.EdiEnqueueTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
         var ediTopicResource = await ediTopicBuilder.CreateAsync();
-        var ediTopicResources = ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(ediTopicResource);
-        // => Create listener for enqueue messages: BRS-101 Update Metering Porint Connection State
+        var ediEnqueueTopicResources = ExampleOrchestrationsAppManager.EdiEnqueueTopicResources.CreateFromTopic(ediTopicResource);
+        // => Create listeners for enqueue messages
         await EnqueueBrs101ServiceBusListener.AddTopicSubscriptionListenerAsync(
-            ediTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.TopicName,
-            ediTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.SubscriptionName);
+            ediEnqueueTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.TopicName,
+            ediEnqueueTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.SubscriptionName);
 
         // Start Example Orchestrations app
         // => Creates Process Manager default Start topics and subscriptions
         // => Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
-        await ExampleOrchestrationsAppManager.StartAsync(ediTopicResources);
+        await ExampleOrchestrationsAppManager.StartAsync(ediEnqueueTopicResources);
 
         // Start Example Consumer app
         await ExampleConsumerAppManager.StartAsync(
@@ -131,7 +131,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
             ProcessManagerAppManager.ProcessManagerNotifyTopic,
             ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic,
             ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic,
-            ExampleConsumerAppManager.EdiTopicResources.CreateFromTopic(ediTopicResource),
+            ExampleConsumerAppManager.EdiEnqueueTopicResources.CreateFromTopic(ediTopicResource),
             processManagerApiUrl: ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri,
             orchestrationsApiUrl: ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri);
 

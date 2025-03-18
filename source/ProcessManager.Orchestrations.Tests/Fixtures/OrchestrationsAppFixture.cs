@@ -28,6 +28,11 @@ using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 
+/// <summary>
+/// Support testing the interactions with ProcessManager.Orchestrations and
+/// Process Manager Api, by coordinating the startup of the dependent applications
+/// ProcessManager.Orchestrations and ProcessManager (Api).
+/// </summary>
 public class OrchestrationsAppFixture : IAsyncLifetime
 {
     private const string TaskHubName = "OrchestrationsTest01";
@@ -143,21 +148,21 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         // => Creates Process Manager default Notify topic and subscription
         await ProcessManagerAppManager.StartAsync();
 
-        // Create EDI topic resources
-        var ediTopicResources = await OrchestrationsAppManager.EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        // Creates EDI enqueue actor messages topic and subscriptions
+        var ediEnqueueTopicResources = await OrchestrationsAppManager.EdiEnqueueTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         // => Create listeners for enqueue messages
         await EnqueueBrs021ForwardMeteredDataServiceBusListener.AddTopicSubscriptionListenerAsync(
-            ediTopicResources.EnqueueBrs021ForwardMeteredDataSubscription.TopicName,
-            ediTopicResources.EnqueueBrs021ForwardMeteredDataSubscription.SubscriptionName);
+            ediEnqueueTopicResources.Brs021ForwardMeteredDataSubscription.TopicName,
+            ediEnqueueTopicResources.Brs021ForwardMeteredDataSubscription.SubscriptionName);
         await EnqueueBrs023027ServiceBusListener.AddTopicSubscriptionListenerAsync(
-            ediTopicResources.EnqueueBrs023027Subscription.TopicName,
-            ediTopicResources.EnqueueBrs023027Subscription.SubscriptionName);
+            ediEnqueueTopicResources.Brs023027Subscription.TopicName,
+            ediEnqueueTopicResources.Brs023027Subscription.SubscriptionName);
         await EnqueueBrs026ServiceBusListener.AddTopicSubscriptionListenerAsync(
-            ediTopicResources.EnqueueBrs026Subscription.TopicName,
-            ediTopicResources.EnqueueBrs026Subscription.SubscriptionName);
+            ediEnqueueTopicResources.Brs026Subscription.TopicName,
+            ediEnqueueTopicResources.Brs026Subscription.SubscriptionName);
         await EnqueueBrs028ServiceBusListener.AddTopicSubscriptionListenerAsync(
-            ediTopicResources.EnqueueBrs028Subscription.TopicName,
-            ediTopicResources.EnqueueBrs028Subscription.SubscriptionName);
+            ediEnqueueTopicResources.Brs028Subscription.TopicName,
+            ediEnqueueTopicResources.Brs028Subscription.SubscriptionName);
 
         // Create Integration Event topic resources
         var integrationEventTopicResources = await OrchestrationsAppManager.IntegrationEventTopicResources.CreateNewAsync(ServiceBusResourceProvider);
@@ -168,7 +173,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         // Start Process Manager Orchestrations app
         // => Creates Process Manager default Start topics and subscriptions
         // => Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
-        await OrchestrationsAppManager.StartAsync(ediTopicResources, integrationEventTopicResources);
+        await OrchestrationsAppManager.StartAsync(ediEnqueueTopicResources, integrationEventTopicResources);
 
         EventHubListener = new EventHubListenerMock(
             new TestDiagnosticsLogger(),

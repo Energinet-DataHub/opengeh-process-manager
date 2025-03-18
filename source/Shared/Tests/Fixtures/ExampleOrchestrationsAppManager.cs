@@ -24,8 +24,8 @@ using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ElectricityMarket.Integration.Options;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Options;
@@ -288,11 +288,11 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             startTopicResources.StartTopic.Name);
         // => Process Manager Start topic -> subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX02SubscriptionName)}",
-            startTopicResources.BrsX02Subscription.SubscriptionName);
+            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX02NotifyOrchestrationInstanceExampleSubscriptionName)}",
+            startTopicResources.BrsX02NotifyOrchestrationInstanceExampleSubscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX03SubscriptionName)}",
-            startTopicResources.BrsX03Subscription.SubscriptionName);
+            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.BrsX02ActorRequestProcessExampleSubscriptionName)}",
+            startTopicResources.BrsX02ActorRequestProcessExampleSubscription.SubscriptionName);
 
         // => BRS-021 Forward Metered Data topics
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -339,11 +339,11 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     public record ProcessManagerTopicResources(
         TopicResource StartTopic,
-        SubscriptionProperties BrsX02Subscription,
-        SubscriptionProperties BrsX03Subscription)
+        SubscriptionProperties BrsX02NotifyOrchestrationInstanceExampleSubscription,
+        SubscriptionProperties BrsX02ActorRequestProcessExampleSubscription)
     {
-        private const string BrsX02SubscriptionName = "brs-x02-subscription";
-        private const string BrsX03SubscriptionName = "brs-x03-subscription";
+        private const string BrsX02NotifyOrchestrationInstanceExampleSubscriptionName = "brs-x02-notifyorchestrationinstanceexample";
+        private const string BrsX02ActorRequestProcessExampleSubscriptionName = "brs-x02-actorrequestprocessexample";
 
         internal static async Task<ProcessManagerTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
@@ -361,12 +361,12 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         private static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
-                .AddSubscription(BrsX02SubscriptionName)
+                .AddSubscription(BrsX02NotifyOrchestrationInstanceExampleSubscriptionName)
                     .AddSubjectFilter(Brs_X02_NotifyOrchestrationInstanceExample.Name);
 
             builder
-                .AddSubscription(BrsX03SubscriptionName)
-                    .AddSubjectFilter(Brs_X03.Name);
+                .AddSubscription(BrsX02ActorRequestProcessExampleSubscriptionName)
+                    .AddSubjectFilter(Brs_X02_ActorRequestProcessExample.Name);
 
             return builder;
         }
@@ -379,16 +379,16 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         /// </summary>
         private static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
         {
-            var brsX02Subscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(BrsX02SubscriptionName));
+            var brsX02NotifyOrchestrationInstanceExampleSubscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(BrsX02NotifyOrchestrationInstanceExampleSubscriptionName));
 
-            var brsX03Subscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(BrsX03SubscriptionName));
+            var brsX02ActorRequestProcessExampleSubscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(BrsX02ActorRequestProcessExampleSubscriptionName));
 
             return new ProcessManagerTopicResources(
                 StartTopic: topic,
-                BrsX02Subscription: brsX02Subscription,
-                BrsX03Subscription: brsX03Subscription);
+                BrsX02NotifyOrchestrationInstanceExampleSubscription: brsX02NotifyOrchestrationInstanceExampleSubscription,
+                BrsX02ActorRequestProcessExampleSubscription: brsX02ActorRequestProcessExampleSubscription);
         }
     }
 

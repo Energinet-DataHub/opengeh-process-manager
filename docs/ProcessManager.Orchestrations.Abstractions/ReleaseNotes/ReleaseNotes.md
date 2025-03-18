@@ -4,7 +4,15 @@
 
 - Add BusinessReason to `ForwardMeteredDataInputV1`.
 
-## Version 1.10.10
+## Version 1.10.2
+
+- Update NuGet packages.
+
+## Version 1.10.1
+
+- No functional changes.
+
+## Version 1.10.0
 
 - Rename `MessageId` to `ActorMessageId`, remove `AuthenticatedActorId` and reorder properties on `ForwardMeteredDataInputV1`.
 - Remove most properties from `ForwardMeteredDataRejectedV1`, since the correct properties aren't determined yet.

@@ -84,24 +84,66 @@ public class MeteringPointMasterDataProvider(
         }
 
         // Meta master data validation
-        var isMeteringPointMasterDataConsistent = meteringPointMasterData
+        var firstMeteringPointMasterData = meteringPointMasterData.First();
+        var meteringPointMasterDataInconsistencyExceptions = meteringPointMasterData
             .Skip(1)
             .Aggregate(
-                (Prev: meteringPointMasterData.First(), wasAllWell: true),
+                (Prev: firstMeteringPointMasterData,
+                    Exceptions: firstMeteringPointMasterData.MeteringPointId.Value == meteringPointId
+                        ? new List<MeteringPointMasterDataInconsistencyException>()
+                        :
+                        [
+                            new MeteringPointMasterDataInconsistencyException(
+                                $"Metering point id '{firstMeteringPointMasterData.MeteringPointId.Value}' is not equal to the requested metering point id '{meteringPointId}'"),
+                        ]),
                 (acc, next) =>
                 {
-                    var isAllStillWell = next.ValidFrom == acc.Prev.ValidTo
-                                         && next.MeteringPointType == acc.Prev.MeteringPointType
-                                         && next.MeasurementUnit == acc.Prev.MeasurementUnit
-                                         && next.ProductId == acc.Prev.ProductId;
+                    var exceptions = acc.Exceptions;
+                    if (next.ValidFrom != acc.Prev.ValidTo)
+                    {
+                        exceptions.Add(
+                            new MeteringPointMasterDataInconsistencyException(
+                                $"ValidFrom '{next.ValidFrom}' is not equal to previous ValidTo '{acc.Prev.ValidTo}'"));
+                    }
 
-                    return (next, isAllStillWell && acc.wasAllWell);
+                    if (next.MeteringPointType != acc.Prev.MeteringPointType)
+                    {
+                        exceptions.Add(
+                            new MeteringPointMasterDataInconsistencyException(
+                                $"MeteringPointType '{next.MeteringPointType}' is not equal to previous MeteringPointType '{acc.Prev.MeteringPointType}'"));
+                    }
+
+                    if (next.MeasurementUnit != acc.Prev.MeasurementUnit)
+                    {
+                        exceptions.Add(
+                            new MeteringPointMasterDataInconsistencyException(
+                                $"MeasurementUnit '{next.MeasurementUnit}' is not equal to previous MeasurementUnit '{acc.Prev.MeasurementUnit}'"));
+                    }
+
+                    if (next.ProductId != acc.Prev.ProductId)
+                    {
+                        exceptions.Add(
+                            new MeteringPointMasterDataInconsistencyException(
+                                $"ProductId '{next.ProductId}' is not equal to previous ProductId '{acc.Prev.ProductId}'"));
+                    }
+
+                    if (next.MeteringPointId.Value != acc.Prev.MeteringPointId.Value)
+                    {
+                        exceptions.Add(
+                            new MeteringPointMasterDataInconsistencyException(
+                                $"Metering point id '{next.MeteringPointId.Value} is not equal to previous metering point id '{acc.Prev.MeteringPointId.Value}'"));
+                    }
+
+                    return (next, exceptions);
                 })
-            .wasAllWell;
+            .Exceptions;
 
-        if (!isMeteringPointMasterDataConsistent)
+        if (meteringPointMasterDataInconsistencyExceptions.Count > 0)
         {
-            throw new Exception("Metering point master data is not consistent");
+            throw new AggregateException(
+                message:
+                $"Master data for metering point '{meteringPointId}' in period '{startDate}--{endDate} is inconsistent.",
+                innerExceptions: meteringPointMasterDataInconsistencyExceptions);
         }
 
         return meteringPointMasterData;
@@ -110,13 +152,20 @@ public class MeteringPointMasterDataProvider(
     private IReadOnlyCollection<PMMeteringPointMasterData> GetMeteringPointMasterDataPerEnergySupplier(
         MeteringPointMasterData meteringPointMasterData)
     {
-        if (meteringPointMasterData.EnergySuppliers.Count <= 0
-            || meteringPointMasterData.ValidFrom
-            != meteringPointMasterData.EnergySuppliers.MinBy(es => es.StartDate)?.StartDate
-            || meteringPointMasterData.ValidTo
-            != meteringPointMasterData.EnergySuppliers.MaxBy(es => es.EndDate)?.EndDate)
+        var energySupplierStartDate = meteringPointMasterData.EnergySuppliers.MinBy(es => es.StartDate)?.StartDate;
+        var energySupplierEndDate = meteringPointMasterData.EnergySuppliers.MaxBy(es => es.EndDate)?.EndDate;
+
+        if (meteringPointMasterData.EnergySuppliers.Count <= 0)
         {
-            throw new Exception("Metering point master data is not consistent");
+            throw new MeteringPointMasterDataInconsistencyException(
+                $"No energy suppliers found for metering point '{meteringPointMasterData.Identification.Value}' in period {meteringPointMasterData.ValidFrom}-{meteringPointMasterData.ValidTo}.");
+        }
+
+        if (meteringPointMasterData.ValidFrom != energySupplierStartDate
+            || meteringPointMasterData.ValidTo != energySupplierEndDate)
+        {
+            throw new MeteringPointMasterDataInconsistencyException(
+                $"The interval of the energy suppliers ({energySupplierStartDate}--{energySupplierEndDate}) does not match the master data interval ({meteringPointMasterData.ValidFrom}--{meteringPointMasterData.ValidTo}).");
         }
 
         return meteringPointMasterData.EnergySuppliers
@@ -141,4 +190,6 @@ public class MeteringPointMasterDataProvider(
             .ToList()
             .AsReadOnly();
     }
+
+    public sealed class MeteringPointMasterDataInconsistencyException(string? message) : Exception(message);
 }

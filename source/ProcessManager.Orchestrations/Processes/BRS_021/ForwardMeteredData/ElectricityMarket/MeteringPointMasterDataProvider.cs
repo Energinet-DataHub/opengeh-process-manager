@@ -78,112 +78,119 @@ public class MeteringPointMasterDataProvider(
             return [];
         }
 
-        // Meta master data validation
-        var firstMeteringPointMasterData = meteringPointMasterData.First();
-        var (firstValidatedMeteringPointMasterData, firstValidationExceptions) =
-            GetMeteringPointMasterDataPerEnergySupplier(firstMeteringPointMasterData);
+        // TODO: Disabled until a decision is made on how to handle the master data validation (if at all)
+        // // Meta master data validation
+        // var firstMeteringPointMasterData = meteringPointMasterData.First();
+        // var (firstValidatedMeteringPointMasterData, firstValidationExceptions) =
+        //     GetMeteringPointMasterDataPerEnergySupplier(firstMeteringPointMasterData);
+        //
+        // var (_, meteringPointMasterDataPoints, exceptions) = meteringPointMasterData
+        //     .Skip(1)
+        //     .Aggregate(
+        //         (Prev: firstMeteringPointMasterData,
+        //             MeteringPointMasterDataPoints: firstValidatedMeteringPointMasterData,
+        //             Exceptions: firstMeteringPointMasterData.Identification.Value == meteringPointId
+        //                 ? firstValidationExceptions.ToList()
+        //                 :
+        //                 [
+        //                     .. firstValidationExceptions,
+        //                     new MeteringPointMasterDataInconsistencyException(
+        //                         $"Metering point id '{firstMeteringPointMasterData.Identification.Value}' is not equal to the requested metering point id '{meteringPointId}'"),
+        //                 ]),
+        //         (acc, next) =>
+        //         {
+        //             var exceptions = new List<MeteringPointMasterDataInconsistencyException>();
+        //
+        //             if (next.ValidFrom != acc.Prev.ValidTo)
+        //             {
+        //                 exceptions.Add(
+        //                     new MeteringPointMasterDataInconsistencyException(
+        //                         $"ValidFrom '{next.ValidFrom}' is not equal to previous ValidTo '{acc.Prev.ValidTo}'"));
+        //             }
+        //
+        //             if (next.Type != acc.Prev.Type)
+        //             {
+        //                 exceptions.Add(
+        //                     new MeteringPointMasterDataInconsistencyException(
+        //                         $"MeteringPointType '{next.Type}' is not equal to previous MeteringPointType '{acc.Prev.Type}'"));
+        //             }
+        //
+        //             if (next.Unit != acc.Prev.Unit)
+        //             {
+        //                 exceptions.Add(
+        //                     new MeteringPointMasterDataInconsistencyException(
+        //                         $"MeasurementUnit '{next.Unit}' is not equal to previous MeasurementUnit '{acc.Prev.Unit}'"));
+        //             }
+        //
+        //             if (next.ProductId != acc.Prev.ProductId)
+        //             {
+        //                 exceptions.Add(
+        //                     new MeteringPointMasterDataInconsistencyException(
+        //                         $"ProductId '{next.ProductId}' is not equal to previous ProductId '{acc.Prev.ProductId}'"));
+        //             }
+        //
+        //             if (next.Identification.Value != acc.Prev.Identification.Value)
+        //             {
+        //                 exceptions.Add(
+        //                     new MeteringPointMasterDataInconsistencyException(
+        //                         $"Metering point id '{next.Identification.Value} is not equal to previous metering point id '{acc.Prev.Identification.Value}'"));
+        //             }
+        //
+        //             var (nextFlats, nextExceptions) = GetMeteringPointMasterDataPerEnergySupplier(next);
+        //
+        //             return (next,
+        //                 [.. acc.MeteringPointMasterDataPoints, .. nextFlats],
+        //                 [.. acc.Exceptions, .. exceptions, .. nextExceptions]);
+        //         });
+        //
+        // if (exceptions.Count > 0)
+        // {
+        //     throw new AggregateException(
+        //         message:
+        //         $"Master data for metering point '{meteringPointId}' in period '{startDate}--{endDate} is inconsistent.",
+        //         innerExceptions: exceptions);
+        // }
 
-        var (_, meteringPointMasterDataPoints, exceptions) = meteringPointMasterData
-            .Skip(1)
-            .Aggregate(
-                (Prev: firstMeteringPointMasterData,
-                    MeteringPointMasterDataPoints: firstValidatedMeteringPointMasterData,
-                    Exceptions: firstMeteringPointMasterData.Identification.Value == meteringPointId
-                        ? firstValidationExceptions.ToList()
-                        :
-                        [
-                            .. firstValidationExceptions,
-                            new MeteringPointMasterDataInconsistencyException(
-                                $"Metering point id '{firstMeteringPointMasterData.Identification.Value}' is not equal to the requested metering point id '{meteringPointId}'"),
-                        ]),
-                (acc, next) =>
-                {
-                    var exceptions = new List<MeteringPointMasterDataInconsistencyException>();
-
-                    if (next.ValidFrom != acc.Prev.ValidTo)
-                    {
-                        exceptions.Add(
-                            new MeteringPointMasterDataInconsistencyException(
-                                $"ValidFrom '{next.ValidFrom}' is not equal to previous ValidTo '{acc.Prev.ValidTo}'"));
-                    }
-
-                    if (next.Type != acc.Prev.Type)
-                    {
-                        exceptions.Add(
-                            new MeteringPointMasterDataInconsistencyException(
-                                $"MeteringPointType '{next.Type}' is not equal to previous MeteringPointType '{acc.Prev.Type}'"));
-                    }
-
-                    if (next.Unit != acc.Prev.Unit)
-                    {
-                        exceptions.Add(
-                            new MeteringPointMasterDataInconsistencyException(
-                                $"MeasurementUnit '{next.Unit}' is not equal to previous MeasurementUnit '{acc.Prev.Unit}'"));
-                    }
-
-                    if (next.ProductId != acc.Prev.ProductId)
-                    {
-                        exceptions.Add(
-                            new MeteringPointMasterDataInconsistencyException(
-                                $"ProductId '{next.ProductId}' is not equal to previous ProductId '{acc.Prev.ProductId}'"));
-                    }
-
-                    if (next.Identification.Value != acc.Prev.Identification.Value)
-                    {
-                        exceptions.Add(
-                            new MeteringPointMasterDataInconsistencyException(
-                                $"Metering point id '{next.Identification.Value} is not equal to previous metering point id '{acc.Prev.Identification.Value}'"));
-                    }
-
-                    var (nextFlats, nextExceptions) = GetMeteringPointMasterDataPerEnergySupplier(next);
-
-                    return (next,
-                        [.. acc.MeteringPointMasterDataPoints, .. nextFlats],
-                        [.. acc.Exceptions, .. exceptions, .. nextExceptions]);
-                });
-
-        if (exceptions.Count > 0)
-        {
-            throw new AggregateException(
-                message:
-                $"Master data for metering point '{meteringPointId}' in period '{startDate}--{endDate} is inconsistent.",
-                innerExceptions: exceptions);
-        }
+        var meteringPointMasterDataPoints = meteringPointMasterData
+            .SelectMany(mpmd => GetMeteringPointMasterDataPerEnergySupplier(mpmd).MeteringPointMasterData)
+            .ToList()
+            .AsReadOnly();
 
         return meteringPointMasterDataPoints;
     }
 
-    private (IReadOnlyCollection<PMMeteringPointMasterData> Right,
-        IReadOnlyCollection<MeteringPointMasterDataInconsistencyException> Left)
+    private (IReadOnlyCollection<PMMeteringPointMasterData> MeteringPointMasterData,
+        IReadOnlyCollection<MeteringPointMasterDataInconsistencyException> Exceptions)
         GetMeteringPointMasterDataPerEnergySupplier(
         MeteringPointMasterData meteringPointMasterData)
     {
-        var energySupplierStartDate = meteringPointMasterData.EnergySuppliers.MinBy(es => es.StartDate)?.StartDate;
-        var energySupplierEndDate = meteringPointMasterData.EnergySuppliers.MaxBy(es => es.EndDate)?.EndDate;
-
-        var exceptions = new List<MeteringPointMasterDataInconsistencyException>();
-        if (meteringPointMasterData.EnergySuppliers.Count <= 0)
-        {
-            exceptions.Add(
-                new MeteringPointMasterDataInconsistencyException(
-                    $"No energy suppliers found for metering point '{meteringPointMasterData.Identification.Value}' in period {meteringPointMasterData.ValidFrom}--{meteringPointMasterData.ValidTo}."));
-        }
-
-        if (meteringPointMasterData.ValidFrom != energySupplierStartDate
-            || meteringPointMasterData.ValidTo != energySupplierEndDate)
-        {
-            exceptions.Add(
-                new MeteringPointMasterDataInconsistencyException(
-                    $"The interval of the energy suppliers ({energySupplierStartDate}--{energySupplierEndDate}) does not match the master data interval ({meteringPointMasterData.ValidFrom}--{meteringPointMasterData.ValidTo})."));
-        }
-
-        if (meteringPointMasterData.EnergySuppliers.Any(
-                es => es.Identification.Value != meteringPointMasterData.Identification.Value))
-        {
-            exceptions.Add(
-                new MeteringPointMasterDataInconsistencyException(
-                    $"Metering point identification for energy supplier does not match parent identification."));
-        }
+        // TODO: Disabled until a decision is made on how to handle the master data validation (if at all)
+        // var energySupplierStartDate = meteringPointMasterData.EnergySuppliers.MinBy(es => es.StartDate)?.StartDate;
+        // var energySupplierEndDate = meteringPointMasterData.EnergySuppliers.MaxBy(es => es.EndDate)?.EndDate;
+        //
+        // var exceptions = new List<MeteringPointMasterDataInconsistencyException>();
+        // if (meteringPointMasterData.EnergySuppliers.Count <= 0)
+        // {
+        //     exceptions.Add(
+        //         new MeteringPointMasterDataInconsistencyException(
+        //             $"No energy suppliers found for metering point '{meteringPointMasterData.Identification.Value}' in period {meteringPointMasterData.ValidFrom}--{meteringPointMasterData.ValidTo}."));
+        // }
+        //
+        // if (meteringPointMasterData.ValidFrom != energySupplierStartDate
+        //     || meteringPointMasterData.ValidTo != energySupplierEndDate)
+        // {
+        //     exceptions.Add(
+        //         new MeteringPointMasterDataInconsistencyException(
+        //             $"The interval of the energy suppliers ({energySupplierStartDate}--{energySupplierEndDate}) does not match the master data interval ({meteringPointMasterData.ValidFrom}--{meteringPointMasterData.ValidTo})."));
+        // }
+        //
+        // if (meteringPointMasterData.EnergySuppliers.Any(
+        //         es => es.Identification.Value != meteringPointMasterData.Identification.Value))
+        // {
+        //     exceptions.Add(
+        //         new MeteringPointMasterDataInconsistencyException(
+        //             $"Metering point identification for energy supplier does not match parent identification."));
+        // }
 
         return (meteringPointMasterData.EnergySuppliers
             .Select(
@@ -206,7 +213,7 @@ public class MeteringPointMasterDataProvider(
                     ActorNumber.Create(meteringPointEnergySupplier.EnergySupplier)))
             .ToList()
             .AsReadOnly(),
-            exceptions);
+            []);
     }
 
     public sealed class MeteringPointMasterDataInconsistencyException(string? message) : Exception(message);

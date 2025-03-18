@@ -26,7 +26,10 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.
     ElectricityMarket;
 
-public class MeteringPointMasterDataProviderTests
+// TODO: Disabled until a decision is made on how to handle the master data validation (if at all)
+#pragma warning disable xUnit1000
+internal class MeteringPointMasterDataProviderTests
+#pragma warning restore xUnit1000
 {
     private readonly ElectricityMarketViewsMock _electricityMarketViews;
     private readonly MeteringPointMasterDataProvider _sut;

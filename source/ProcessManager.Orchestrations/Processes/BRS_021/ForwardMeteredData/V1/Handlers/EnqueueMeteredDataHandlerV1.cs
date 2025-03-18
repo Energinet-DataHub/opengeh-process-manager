@@ -146,9 +146,8 @@ public class EnqueueMeteredDataHandlerV1(
             MeteringPointType: MeteringPointType.FromName(forwardMeteredDataInput.MeteringPointType),
             OriginalTransactionId: forwardMeteredDataInput.TransactionId,
             ProductNumber: forwardMeteredDataInput.ProductNumber,
-            MeasureUnit: MeasurementUnit.FromName(forwardMeteredDataInput.MeasureUnit),
-            RegistrationDateTime: _clock.GetCurrentInstant().ToDateTimeOffset(),
-            StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset(),
+            RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.RegistrationDateTime).Value.ToDateTimeOffset(),
+            StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value.ToDateTimeOffset(),
             EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset(),
             MeteredData: forwardMeteredDataInput.EnergyObservations
                 .Select(eo => new ForwardMeteredDataAcceptedV1.AcceptedMeteredData(
@@ -158,7 +157,7 @@ public class EnqueueMeteredDataHandlerV1(
                 .ToList(),
             Receivers: [
                 // TODO: Select from master data
-                new ForwardMeteredDataAcceptedV1.MeteredDataForReceiver(
+                new ForwardMeteredDataAcceptedV1.ReceiverForMeteredData(
                     Actors: [
                         // TODO: Get energy suppliers (and other receivers?) from master data
                         new MarketActorRecipientV1(
@@ -166,6 +165,7 @@ public class EnqueueMeteredDataHandlerV1(
                             ActorRole.EnergySupplier),
                     ],
                     // TODO: Select the following properties from master data instead
+                    MeasureUnit: MeasurementUnit.FromName(forwardMeteredDataInput.MeasureUnit),
                     Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution!),
                     StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value.ToDateTimeOffset(),
                     EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value.ToDateTimeOffset()),

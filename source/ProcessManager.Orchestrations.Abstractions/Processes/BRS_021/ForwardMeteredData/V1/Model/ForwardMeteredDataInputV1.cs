@@ -38,6 +38,7 @@ public record ForwardMeteredDataInputV1(
     : IInputParameterDto
 {
     public record EnergyObservation(
+        // TODO: Should this be a timestamp instead? (EDI could convert these to timestamps)
         string? Position,
         string? EnergyQuantity,
         string? QuantityQuality);

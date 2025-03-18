@@ -26,21 +26,22 @@ public record ForwardMeteredDataAcceptedV1(
     string MeteringPointId,
     MeteringPointType MeteringPointType,
     string ProductNumber,
-    MeasurementUnit MeasureUnit,
     DateTimeOffset RegistrationDateTime,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
     IReadOnlyCollection<ForwardMeteredDataAcceptedV1.AcceptedMeteredData> MeteredData,
-    IReadOnlyCollection<ForwardMeteredDataAcceptedV1.MeteredDataForReceiver> Receivers)
+    IReadOnlyCollection<ForwardMeteredDataAcceptedV1.ReceiverForMeteredData> Receivers)
     : IInputParameterDto
 {
-    public record MeteredDataForReceiver(
+    public record ReceiverForMeteredData(
         IReadOnlyCollection<MarketActorRecipientV1> Actors,
         Resolution Resolution,
+        MeasurementUnit MeasureUnit,
         DateTimeOffset StartDateTime,
         DateTimeOffset EndDateTime);
 
     public record AcceptedMeteredData(
+        // TODO: Should this be a timestamp instead?
         int Position,
         // TODO: Are these two optional?
         decimal? EnergyQuantity,

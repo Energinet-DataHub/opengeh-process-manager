@@ -27,10 +27,10 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// <param name="MeteringPointId">The ID of the MeteringPoint to connect/disconnect.</param>
 /// <param name="IsConnected"><see langword="True"/> if MeteringPoint should be connected; otherwise <see langword="false"/>.</param>
 public record UpdateMeteringPointConnectionStateInputV1(
-    string RequestedByActorNumber, // TODO: Can we somehow use the "indentity" that is already required by the command (?)
-    string RequestedByActorRole, // TODO: Can we somehow use the "indentity" that is already required by the command (?)
-    string ActorMessageId, // TODO: Could we model this in a "input" base (?) or use the one on the command base
-    string TransactionId, // TODO: Could we model this in a "input" base (?) or use the one on the command base
-    string MeteringPointId, // TODO: Could we model this in a "input" base (?) or use the one on the command base
+    string RequestedByActorNumber,
+    string RequestedByActorRole,
+    string ActorMessageId,
+    string TransactionId,
+    string MeteringPointId,
     bool IsConnected)
         : IInputParameterDto, IBusinessValidatedDto;

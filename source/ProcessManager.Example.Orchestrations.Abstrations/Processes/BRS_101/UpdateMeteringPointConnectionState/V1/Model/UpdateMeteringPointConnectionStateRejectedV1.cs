@@ -26,4 +26,4 @@ public record UpdateMeteringPointConnectionStateRejectedV1(
     string OriginalTransactionId,
     ActorNumber RequestedByActorNumber,
     ActorRole RequestedByActorRole,
-    List<ValidationErrorDto> ValidationErrors); // TODO: Could we model the "standard" properties in a base (?) or have an Interface if we need this often
+    IReadOnlyCollection<ValidationErrorDto> ValidationErrors);

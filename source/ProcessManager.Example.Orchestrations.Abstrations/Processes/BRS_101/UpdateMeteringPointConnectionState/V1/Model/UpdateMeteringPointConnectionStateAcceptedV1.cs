@@ -24,4 +24,4 @@ public record UpdateMeteringPointConnectionStateAcceptedV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
     ActorNumber RequestedByActorNumber,
-    ActorRole RequestedByActorRole); // TODO: Could we model the "standard" properties in a base (?) or have an Interface if we need this often
+    ActorRole RequestedByActorRole);

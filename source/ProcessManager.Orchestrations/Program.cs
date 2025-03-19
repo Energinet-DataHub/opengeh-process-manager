@@ -76,11 +76,8 @@ var host = new HostBuilder()
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(context.Configuration, typeof(Program).Assembly);
 
-        // Measurements
-        services.AddMeasurementsMeteredDataClient(azureCredential);
-
-        services.AddScoped<TerminateForwardMeteredDataHandlerV1>()
-            .AddScoped<EnqueueMeteredDataHandlerV1>();
+        // BRS-021 ForwardMeteredData
+        services.AddBrs021ForwardMeteringData(azureCredential);
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

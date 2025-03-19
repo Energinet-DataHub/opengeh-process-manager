@@ -18,13 +18,20 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-public record MeteringPointMasterData(
+public sealed record MeteringPointMasterData(
     MeteringPointId MeteringPointId,
+    DateTimeOffset ValidFrom,
+    DateTimeOffset ValidTo,
     GridAreaCode GridAreaCode,
     ActorNumber GridAccessProvider,
+    IReadOnlyCollection<string> NeighborGridAreaOwners,
     ConnectionState ConnectionState,
     MeteringPointType MeteringPointType,
     MeteringPointSubType MeteringPointSubType,
-    MeasurementUnit MeasurementUnit);
+    Resolution Resolution,
+    MeasurementUnit MeasurementUnit,
+    string ProductId,
+    MeteringPointId? ParentMeteringPointId,
+    ActorNumber EnergySupplier);
 
 public record GridAreaCode(string Value);

@@ -43,14 +43,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         ActorNumber: ActorNumber.Create("1234567891234"),
         ActorRole: ActorRole.EnergySupplier);
 
-    private readonly ExampleOrchestrationsAppFixture _fixture; // TODO: We must decide if we want to use a property or a field?
-
     public MonitorOrchestrationUsingClientsScenario(
         ExampleOrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
-        _fixture = fixture;
-        _fixture.SetTestOutputHelper(testOutputHelper);
+        Fixture = fixture;
+        Fixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
@@ -59,19 +57,19 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
                 = AuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+                = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                = _fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
+                = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
 
             // Process Manager message client
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
-                = _fixture.ExampleOrchestrationsAppManager.ProcessManagerStartTopic.Name,
+                = Fixture.ExampleOrchestrationsAppManager.ProcessManagerStartTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
-                = _fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
+                = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
-                = _fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
+                = Fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
-                = _fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
+                = Fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
         });
 
         // Process Manager HTTP client
@@ -79,30 +77,32 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Process Manager message client
         services.AddAzureClients(
-            builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
+            builder => builder.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
 
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    private ServiceProvider ServiceProvider { get; } // TODO: We must decide if we want to use a property or a field?
+    private ExampleOrchestrationsAppFixture Fixture { get; }
+
+    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
-        _fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
-        _fixture.ExampleOrchestrationsAppManager.AppHostManager.ClearHostLog();
+        Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
+        Fixture.ExampleOrchestrationsAppManager.AppHostManager.ClearHostLog();
 
-        _fixture.EnqueueBrs101ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+        Fixture.EnqueueBrs101ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
-        _fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
-        _fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
+        Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
+        Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        _fixture.EnqueueBrs101ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+        Fixture.EnqueueBrs101ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         await ServiceProvider.DisposeAsync();
     }
@@ -126,7 +126,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 2: Wait for enqueue actor messages request is sent to EDI
         string? orchestrationInstanceId = null;
-        var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs101ServiceBusListener.When(
+        var verifyEnqueueActorMessagesEvent = await Fixture.EnqueueBrs101ServiceBusListener.When(
                 (message) =>
                 {
                     if (!message.TryParseAsEnqueueActorMessages(Brs_101_UpdateMeteringPointConnectionState.Name, out var enqueueActorMessagesV1))
@@ -192,7 +192,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 2: Wait for enqueue actor messages request is sent to EDI
         string? orchestrationInstanceId = null;
-        var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs101ServiceBusListener.When(
+        var verifyEnqueueActorMessagesEvent = await Fixture.EnqueueBrs101ServiceBusListener.When(
                 (message) =>
                 {
                     if (!message.TryParseAsEnqueueActorMessages(Brs_101_UpdateMeteringPointConnectionState.Name, out var enqueueActorMessagesV1))

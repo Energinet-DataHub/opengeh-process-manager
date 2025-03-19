@@ -22,7 +22,8 @@ using Xunit.Abstractions;
 namespace Energinet.DataHub.ProcessManager.Tests.Fixtures;
 
 /// <summary>
-/// Support testing Process Manager Orchestrations app using default fixture configuration.
+/// Support testing ProcessManager (Api) functionaility by starting the applications
+/// ProcessManager.Example.Orchestrations and ProcessManager (Api).
 /// </summary>
 public class ProcessManagerAppFixture : IAsyncLifetime
 {
@@ -71,7 +72,7 @@ public class ProcessManagerAppFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        await ExampleOrchestrationsAppManager.StartAsync(ediTopicResources: null);
+        await ExampleOrchestrationsAppManager.StartAsync(ediEnqueueTopicResources: null);
         await ProcessManagerAppManager.StartAsync();
     }
 

@@ -82,7 +82,7 @@ public class ProcessManagerCoreAppFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        await ExampleOrchestrationsAppManager.StartAsync(ediTopicResources: null);
+        await ExampleOrchestrationsAppManager.StartAsync(ediEnqueueTopicResources: null);
         await ProcessManagerAppManager.StartAsync();
 
         // Create durable client when TaskHub has been created

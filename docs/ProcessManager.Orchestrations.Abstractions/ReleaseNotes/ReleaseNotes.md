@@ -1,8 +1,22 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 1.11.0
+## Version 1.12.0
 
 - Add BRS-045 Missing Measurements Log command.
+
+## Version 1.11.2
+
+- Update `ForwardMeteredDataAcceptedV1` to support a list of receivers.
+- Rename `ForwardMeteredDataAcceptedV1.AcceptedEnergyOberservation` to `AcceptedMeteredData`.
+- Add `MeteredDataReceiverV1` model.
+
+## Version 1.11.1
+
+- Rename `OriginalBusinessReason` to `BusinessReason` in `ForwardMeteredDataRejectedV1`.
+
+## Version 1.11.0
+
+- Add `OriginalBusinessReason` to `ForwardMeteredDataInputV1`.
 
 ## Version 1.10.2
 

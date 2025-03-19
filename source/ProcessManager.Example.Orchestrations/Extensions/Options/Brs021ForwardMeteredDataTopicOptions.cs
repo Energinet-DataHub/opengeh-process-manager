@@ -18,8 +18,8 @@ using Microsoft.Extensions.Configuration;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
 
 /// <summary>
-/// Contains options required for the example orchestration app to connect to the
-/// Brs021ForwardMeteredData service bus topic.
+/// Contains options required for the Example Orchestration app to connect to the
+/// BRS-021 Forward Metered Data service bus topics.
 /// </summary>
 public class Brs021ForwardMeteredDataTopicOptions
 {
@@ -29,25 +29,25 @@ public class Brs021ForwardMeteredDataTopicOptions
     public const string SectionName = "Brs021ForwardMeteredDataTopic";
 
     /// <summary>
-    /// Name of the ProcessManager Service Bus topic
+    /// Name of the topic used to start BRS-021 orchestration instances.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string StartTopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the ProcessManager Service Bus topic
+    /// Name of the topic used to notify BRS-021 orchestration instances.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string NotifyTopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription used to start BRS021 processes
+    /// Name of the subscription used to start BRS-021 orchestration instances.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string StartSubscriptionName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the subscription used to notify BRS021 processes
+    /// Name of the subscription used to notify BRS-021 orchestration instances.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
     public string NotifySubscriptionName { get; set; } = string.Empty;

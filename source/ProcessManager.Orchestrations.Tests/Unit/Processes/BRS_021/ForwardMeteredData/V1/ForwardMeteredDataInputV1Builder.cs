@@ -26,6 +26,7 @@ public class ForwardMeteredDataInputV1Builder
     private string _transactionId = "TransactionId";
     private string _actorNumber = ActorNumber;
     private string _actorRole = ActorRole.GridAccessProvider.Name;
+    private string _businessReason = BusinessReason.PeriodicMetering.Name; // Due to validation in EDI this can either be PeriodicMetering or PeriodicFlexMetering
     private string _meteringPointId = "MeteringPointId";
     private string _meteringPointType = MeteringPointType.Production.Name;
     private string _productNumber = "ProductNumber";
@@ -35,7 +36,7 @@ public class ForwardMeteredDataInputV1Builder
     private string _startDateTime = "2024-12-31T23:00Z"; // Seconds are optional, so we test with and without them.
     private string? _endDateTime = "2025-12-31T23:15:00Z"; // Seconds are optional, so we test with and without them.
     private string _gridAccessProviderNumber = ActorNumber;
-    private IReadOnlyCollection<ForwardMeteredDataInputV1.EnergyObservation> _energyObservations =
+    private IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> _meteredData =
     [
         new("1", "1024", Quality.AsProvided.Name),
     ];
@@ -61,6 +62,17 @@ public class ForwardMeteredDataInputV1Builder
     public ForwardMeteredDataInputV1Builder WithActorRole(string actorRole)
     {
         _actorRole = actorRole;
+        return this;
+    }
+
+    public ForwardMeteredDataInputV1Builder WithBusinessReason(string businessReason)
+    {
+        if (businessReason != BusinessReason.PeriodicMetering.Name && businessReason != BusinessReason.PeriodicFlexMetering.Name)
+        {
+            throw new ArgumentException("Business reason must be either PeriodicMetering or PeriodicFlexMetering due to validation in EDI");
+        }
+
+        _businessReason = businessReason;
         return this;
     }
 
@@ -118,10 +130,10 @@ public class ForwardMeteredDataInputV1Builder
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithEnergyObservations(
-        IReadOnlyCollection<ForwardMeteredDataInputV1.EnergyObservation> energyObservations)
+    public ForwardMeteredDataInputV1Builder WithMeteredData(
+        IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> meteredData)
     {
-        _energyObservations = energyObservations;
+        _meteredData = meteredData;
         return this;
     }
 
@@ -132,6 +144,7 @@ public class ForwardMeteredDataInputV1Builder
             TransactionId: _transactionId,
             ActorNumber: _actorNumber,
             ActorRole: _actorRole,
+            BusinessReason: _businessReason,
             MeteringPointId: _meteringPointId,
             MeteringPointType: _meteringPointType,
             ProductNumber: _productNumber,
@@ -142,6 +155,6 @@ public class ForwardMeteredDataInputV1Builder
             EndDateTime: _endDateTime,
             GridAccessProviderNumber: _gridAccessProviderNumber,
             DelegatedGridAreaCodes: null,
-            EnergyObservations: _energyObservations);
+            MeteredDataList: _meteredData);
     }
 }

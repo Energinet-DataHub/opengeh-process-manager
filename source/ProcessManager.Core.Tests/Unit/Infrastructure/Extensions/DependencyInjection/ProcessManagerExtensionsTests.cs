@@ -45,6 +45,7 @@ public class ProcessManagerExtensionsTests
         // Arrange
         var expectedBuilderTypes = new List<Type>
         {
+            typeof(Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.V1.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.OrchestrationDescriptionBuilder),

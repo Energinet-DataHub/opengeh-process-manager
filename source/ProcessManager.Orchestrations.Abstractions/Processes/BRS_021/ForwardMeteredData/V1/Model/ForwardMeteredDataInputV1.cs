@@ -24,6 +24,7 @@ public record ForwardMeteredDataInputV1(
     string TransactionId,
     string ActorNumber,
     string ActorRole,
+    string BusinessReason,
     string? MeteringPointId,
     string? MeteringPointType,
     string? ProductNumber,
@@ -34,10 +35,10 @@ public record ForwardMeteredDataInputV1(
     string? EndDateTime,
     string GridAccessProviderNumber,
     IReadOnlyCollection<string>? DelegatedGridAreaCodes,
-    IReadOnlyCollection<ForwardMeteredDataInputV1.EnergyObservation> EnergyObservations)
+    IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> MeteredDataList)
     : IInputParameterDto
 {
-    public record EnergyObservation(
+    public record MeteredData(
         string? Position,
         string? EnergyQuantity,
         string? QuantityQuality);

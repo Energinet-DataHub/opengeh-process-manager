@@ -24,9 +24,19 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <param name="MeasureUnit">The measure units the metered data has in this period.</param>
 /// <param name="StartDateTime">The start date and time of the period.</param>
 /// <param name="EndDateTime">The end date and time of the period.</param>
-public record MeteredDataReceiverV1(
+/// <param name="MeteredData">The metered data in the given period.</param>
+public record ReceiversWithMeteredDataV1(
     IReadOnlyCollection<MarketActorRecipientV1> Actors,
     Resolution Resolution,
     MeasurementUnit MeasureUnit,
     DateTimeOffset StartDateTime,
-    DateTimeOffset EndDateTime);
+    DateTimeOffset EndDateTime,
+    IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredData)
+{
+    public record AcceptedMeteredData(
+        // TODO: Should this be a timestamp instead?
+        int Position,
+        // TODO: Are these two optional?
+        decimal? EnergyQuantity,
+        Quality? QuantityQuality);
+}

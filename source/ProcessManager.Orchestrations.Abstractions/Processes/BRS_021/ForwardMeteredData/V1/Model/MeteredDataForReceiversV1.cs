@@ -12,22 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-
-/// <summary>
-/// A model containing the data required for notifying market actors when new metered data has been accepted.
-/// </summary>
-public record ForwardMeteredDataAcceptedV1(
-    string OriginalActorMessageId,
-    string OriginalTransactionId,
-    string MeteringPointId,
-    MeteringPointType MeteringPointType,
-    string ProductNumber,
-    DateTimeOffset RegistrationDateTime,
-    DateTimeOffset StartDateTime,
-    DateTimeOffset EndDateTime,
-    IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData)
-    : IInputParameterDto;

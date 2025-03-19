@@ -36,9 +36,9 @@ public class ForwardMeteredDataInputV1Builder
     private string _startDateTime = "2024-12-31T23:00Z"; // Seconds are optional, so we test with and without them.
     private string? _endDateTime = "2025-12-31T23:15:00Z"; // Seconds are optional, so we test with and without them.
     private string _gridAccessProviderNumber = ActorNumber;
-    private IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredDataWithTimestamp> _meteredData =
+    private IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> _meteredData =
     [
-        new("1", DateTimeOffset.Parse("2024-12-31T23:00:00Z"), "1024", Quality.AsProvided.Name),
+        new("1", "1024", Quality.AsProvided.Name),
     ];
 
     public ForwardMeteredDataInputV1Builder WithActorMessageId(string actorMessageId)
@@ -131,7 +131,7 @@ public class ForwardMeteredDataInputV1Builder
     }
 
     public ForwardMeteredDataInputV1Builder WithMeteredData(
-        IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredDataWithTimestamp> meteredData)
+        IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> meteredData)
     {
         _meteredData = meteredData;
         return this;
@@ -155,6 +155,6 @@ public class ForwardMeteredDataInputV1Builder
             EndDateTime: _endDateTime,
             GridAccessProviderNumber: _gridAccessProviderNumber,
             DelegatedGridAreaCodes: null,
-            MeteredData: _meteredData);
+            MeteredDataList: _meteredData);
     }
 }

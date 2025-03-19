@@ -81,7 +81,7 @@ public class EnqueueMeteredDataHandlerV1(
         await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
     }
 
-    private async Task<IReadOnlyCollection<MeteredDataReceiverV1>> FindReceivers(
+    private async Task<IReadOnlyCollection<ReceiversWithMeteredDataV1>> FindReceivers(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataInputV1 forwardMeteredDataInput)
     {
@@ -105,10 +105,10 @@ public class EnqueueMeteredDataHandlerV1(
 
         // Find Receivers
         // TODO: Implement find receivers
-        List<MeteredDataReceiverV1> receivers =
+        List<ReceiversWithMeteredDataV1> receivers =
         [
             // TODO: Select from master data
-            new MeteredDataReceiverV1(
+            new ReceiversWithMeteredDataV1(
                 Actors:
                 [
                     // TODO: Get energy suppliers (and other receivers?) from master data
@@ -122,7 +122,14 @@ public class EnqueueMeteredDataHandlerV1(
                 StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value
                     .ToDateTimeOffset(),
                 EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value
-                    .ToDateTimeOffset()),
+                    .ToDateTimeOffset(),
+                // TODO: Get as a subset of metered data in the given period
+                MeteredData: [
+                    new ReceiversWithMeteredDataV1.AcceptedMeteredData(
+                        1,
+                        1337,
+                        Quality.Estimated),
+                ]),
         ];
 
         // Terminate Step: Find receiver step
@@ -134,7 +141,7 @@ public class EnqueueMeteredDataHandlerV1(
     private async Task EnqueueAcceptedActorMessagesAsync(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataInputV1 forwardMeteredDataInput,
-        IReadOnlyCollection<MeteredDataReceiverV1> receivers)
+        IReadOnlyCollection<ReceiversWithMeteredDataV1> receivers)
     {
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
 
@@ -180,13 +187,7 @@ public class EnqueueMeteredDataHandlerV1(
             RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.RegistrationDateTime).Value.ToDateTimeOffset(),
             StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value.ToDateTimeOffset(),
             EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime).Value.ToDateTimeOffset(),
-            MeteredData: forwardMeteredDataInput.MeteredData
-                .Select(eo => new ForwardMeteredDataAcceptedV1.AcceptedMeteredData(
-                    Position: int.Parse(eo.Position!),
-                    EnergyQuantity: decimal.Parse(eo.EnergyQuantity!),
-                    QuantityQuality: Quality.FromName(eo.QuantityQuality!)))
-                .ToList(),
-            Receivers: receivers);
+            ReceiversWithMeteredData: receivers);
 
         await _enqueueActorMessagesClient.EnqueueAsync(
                 orchestration: OrchestrationDescriptionBuilderV1.UniqueName,

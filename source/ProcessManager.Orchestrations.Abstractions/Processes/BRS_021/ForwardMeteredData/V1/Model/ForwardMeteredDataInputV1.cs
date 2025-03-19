@@ -35,12 +35,11 @@ public record ForwardMeteredDataInputV1(
     string? EndDateTime,
     string GridAccessProviderNumber,
     IReadOnlyCollection<string>? DelegatedGridAreaCodes,
-    IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredDataWithTimestamp> MeteredData)
+    IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> MeteredDataList)
     : IInputParameterDto
 {
-    public record MeteredDataWithTimestamp(
+    public record MeteredData(
         string? Position,
-        DateTimeOffset? Timestamp,
         string? EnergyQuantity,
         string? QuantityQuality);
 }

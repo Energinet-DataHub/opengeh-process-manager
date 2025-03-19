@@ -23,7 +23,7 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Activities;
 
 /// <summary>
-/// Enqueue messages in EDI (and set step to running)
+/// Enqueue messages in EDI
 /// </summary>
 internal class EnqueueActorMessagesActivity_Brs_101_UpdateMeteringPointConnectionState(
     IOrchestrationInstanceProgressRepository repository,

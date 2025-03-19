@@ -38,7 +38,7 @@ public class ForwardMeteredDataInputV1Builder
     private string _gridAccessProviderNumber = ActorNumber;
     private IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredDataWithTimestamp> _meteredData =
     [
-        new("1", DateTimeOffset.Parse("2024-12-31T23:00Z"), "1024", Quality.AsProvided.Name),
+        new("1", DateTimeOffset.Parse("2024-12-31T23:00:00Z"), "1024", Quality.AsProvided.Name),
     ];
 
     public ForwardMeteredDataInputV1Builder WithActorMessageId(string actorMessageId)

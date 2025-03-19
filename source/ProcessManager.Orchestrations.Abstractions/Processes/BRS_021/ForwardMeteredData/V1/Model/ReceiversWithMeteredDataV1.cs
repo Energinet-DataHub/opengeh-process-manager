@@ -34,7 +34,6 @@ public record ReceiversWithMeteredDataV1(
     IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredData)
 {
     public record AcceptedMeteredData(
-        // TODO: Should this be a timestamp instead?
         int Position,
         // TODO: Are these two optional?
         decimal? EnergyQuantity,

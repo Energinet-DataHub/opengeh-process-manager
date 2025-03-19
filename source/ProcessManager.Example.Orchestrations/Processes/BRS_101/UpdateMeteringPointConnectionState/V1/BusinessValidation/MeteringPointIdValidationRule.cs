@@ -19,7 +19,6 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 
 public class MeteringPointIdValidationRule : IBusinessValidationRule<UpdateMeteringPointConnectionStateInputV1>
 {
-    internal const string InvalidBusinessReason = "";
     internal const string ValidationErrorMessage = "MeteringPointId skal være udfyldt / MeteringPointId must have a value";
 
     private IList<ValidationError> NoErrors => [];

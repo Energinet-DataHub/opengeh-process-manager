@@ -25,7 +25,7 @@ internal class StartTrigger_Brs_101_UpdateMeteringPointConnectionState_V1(
     private readonly StartActorRequestProcessExampleHandlerV1 _handler = handler;
 
     /// <summary>
-    /// Start a BRS-028 request.
+    /// Start a BRS-101 Update Metering Point connection state request.
     /// </summary>
     [Function(nameof(StartTrigger_Brs_101_UpdateMeteringPointConnectionState_V1))]
     public async Task Run(

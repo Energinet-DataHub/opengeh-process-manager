@@ -179,7 +179,7 @@ public class EnqueueMeteredDataHandlerV1(
             RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.RegistrationDateTime).Value.ToDateTimeOffset(),
             StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value.ToDateTimeOffset(),
             EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime).Value.ToDateTimeOffset(),
-            MeteredData: forwardMeteredDataInput.EnergyObservations
+            MeteredData: forwardMeteredDataInput.MeteredData
                 .Select(eo => new ForwardMeteredDataAcceptedV1.AcceptedMeteredData(
                     Position: int.Parse(eo.Position!),
                     EnergyQuantity: decimal.Parse(eo.EnergyQuantity!),

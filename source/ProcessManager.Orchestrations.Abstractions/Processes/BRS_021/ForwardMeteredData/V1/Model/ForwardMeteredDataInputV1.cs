@@ -35,12 +35,12 @@ public record ForwardMeteredDataInputV1(
     string? EndDateTime,
     string GridAccessProviderNumber,
     IReadOnlyCollection<string>? DelegatedGridAreaCodes,
-    IReadOnlyCollection<ForwardMeteredDataInputV1.EnergyObservation> EnergyObservations)
+    IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredDataWithTimestamp> MeteredData)
     : IInputParameterDto
 {
-    public record EnergyObservation(
-        // TODO: Should this be a timestamp instead? (EDI could convert these to timestamps)
+    public record MeteredDataWithTimestamp(
         string? Position,
+        DateTimeOffset? Timestamp,
         string? EnergyQuantity,
         string? QuantityQuality);
 }

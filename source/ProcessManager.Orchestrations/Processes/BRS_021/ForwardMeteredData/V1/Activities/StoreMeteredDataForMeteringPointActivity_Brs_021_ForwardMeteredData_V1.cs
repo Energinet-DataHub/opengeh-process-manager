@@ -47,7 +47,7 @@ internal class StoreMeteredDataForMeteringPointActivity_Brs_021_ForwardMeteredDa
                 orchestrationInstance)
             .ConfigureAwait(false);
 
-        var points = input.ForwardMeteredDataInput.EnergyObservations
+        var points = input.ForwardMeteredDataInput.MeteredData
             .Select(x => new Point(
                 ParsePosition(x.Position),
                 ParseQuantity(x.EnergyQuantity),

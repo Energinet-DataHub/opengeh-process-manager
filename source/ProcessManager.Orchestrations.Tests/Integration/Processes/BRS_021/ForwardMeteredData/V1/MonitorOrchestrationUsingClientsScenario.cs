@@ -456,7 +456,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             EndDateTime: "2024-12-02T23:00:00Z",
             GridAccessProviderNumber: "5790002606892",
             DelegatedGridAreaCodes: null,
-            EnergyObservations:
+            MeteredDataList:
             [
                 new("1", "112.000", Quality.AsProvided.Name),
                 new("2", "112.000", Quality.AsProvided.Name),

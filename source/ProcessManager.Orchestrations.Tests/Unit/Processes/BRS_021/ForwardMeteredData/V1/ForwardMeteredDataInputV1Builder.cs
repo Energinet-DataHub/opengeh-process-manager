@@ -36,7 +36,7 @@ public class ForwardMeteredDataInputV1Builder
     private string _startDateTime = "2024-12-31T23:00Z"; // Seconds are optional, so we test with and without them.
     private string? _endDateTime = "2025-12-31T23:15:00Z"; // Seconds are optional, so we test with and without them.
     private string _gridAccessProviderNumber = ActorNumber;
-    private IReadOnlyCollection<ForwardMeteredDataInputV1.EnergyObservation> _energyObservations =
+    private IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> _meteredData =
     [
         new("1", "1024", Quality.AsProvided.Name),
     ];
@@ -130,10 +130,10 @@ public class ForwardMeteredDataInputV1Builder
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithEnergyObservations(
-        IReadOnlyCollection<ForwardMeteredDataInputV1.EnergyObservation> energyObservations)
+    public ForwardMeteredDataInputV1Builder WithMeteredData(
+        IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> meteredData)
     {
-        _energyObservations = energyObservations;
+        _meteredData = meteredData;
         return this;
     }
 
@@ -155,6 +155,6 @@ public class ForwardMeteredDataInputV1Builder
             EndDateTime: _endDateTime,
             GridAccessProviderNumber: _gridAccessProviderNumber,
             DelegatedGridAreaCodes: null,
-            EnergyObservations: _energyObservations);
+            MeteredDataList: _meteredData);
     }
 }

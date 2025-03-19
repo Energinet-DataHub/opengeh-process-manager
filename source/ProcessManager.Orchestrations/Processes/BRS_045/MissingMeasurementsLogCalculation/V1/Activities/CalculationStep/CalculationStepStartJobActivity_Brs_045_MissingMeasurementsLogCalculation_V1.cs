@@ -14,25 +14,38 @@
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
+using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep;
 
 internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(
-    [FromKeyedServices(DatabricksWorkspaceNames.Measurements)] IDatabricksJobsClient client)
+    [FromKeyedServices(DatabricksWorkspaceNames.Measurements)]
+    IDatabricksJobsClient client,
+    IClock clock,
+    ITimeHelper timeHelper)
 {
     private readonly IDatabricksJobsClient _client = client;
+    private readonly IClock _clock = clock;
+    private readonly ITimeHelper _timeHelper = timeHelper;
 
     [Function(nameof(CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1))]
     public async Task<JobRunId> Run(
         [ActivityTrigger] ActivityInput input)
     {
+        var midnightDate = _timeHelper.GetMidnightZonedDateTime(_clock.GetCurrentInstant());
+        var periodStart = midnightDate.PlusDays(-93);
+        var periodEnd = midnightDate.PlusDays(-3);
         var jobParameters = new List<string>
         {
             $"--orchestration-instance-id={input.InstanceId.Value}",
+            $"--period-start-datetime={periodStart}",
+            $"--period-end-datetime={periodEnd}",
         };
 
         return await _client.StartJobAsync("MissingMeasurementsLog", jobParameters).ConfigureAwait(false);

@@ -51,7 +51,7 @@ public class StartForwardMeteredDataHandlerV1(
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
-        : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
+    : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
@@ -131,7 +131,8 @@ public class StartForwardMeteredDataHandlerV1(
         else
         {
             // Skip step: Forward to Measurements
-            var forwardStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+            var forwardStep =
+                orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
 
             // If the step is already skipped, do nothing (idempotency/retry check).
             if (forwardStep.Lifecycle.TerminationState is not OrchestrationStepTerminationState.Skipped)
@@ -143,6 +144,12 @@ public class StartForwardMeteredDataHandlerV1(
 
             // Skip step: Find receiver
             var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiversStep);
+
+            var meteringPointReceiversProvider = new MeteringPointReceiversProvider();
+            var customStateV1 = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
+            var receivers = customStateV1.MeteringPointMasterData
+                .Select(meteringPointReceiversProvider.GetReceiversFromMasterData)
+                .ToList();
 
             // If the step is already skipped, do nothing (idempotency/retry check).
             if (findReceiverStep.Lifecycle.TerminationState != OrchestrationStepTerminationState.Skipped)
@@ -259,7 +266,12 @@ public class StartForwardMeteredDataHandlerV1(
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
 
-        await StepHelper.TerminateStepAndCommit(validationStep, _clock, _progressRepository, validationStepTerminationState).ConfigureAwait(false);
+        await StepHelper.TerminateStepAndCommit(
+                validationStep,
+                _clock,
+                _progressRepository,
+                validationStepTerminationState)
+            .ConfigureAwait(false);
 
         return validationErrors;
     }
@@ -269,13 +281,15 @@ public class StartForwardMeteredDataHandlerV1(
         OrchestrationInstance orchestrationInstance)
     {
         // Start Step: Forward to Measurements
-        var forwardToMeasurementsStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+        var forwardToMeasurementsStep =
+            orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (forwardToMeasurementsStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
             return;
 
-        await StepHelper.StartStepAndCommitIfPending(forwardToMeasurementsStep, _clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.StartStepAndCommitIfPending(forwardToMeasurementsStep, _clock, _progressRepository)
+            .ConfigureAwait(false);
 
         // If we reach this point, the step should be running, so this check is just an extra safeguard.
         if (forwardToMeasurementsStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
@@ -370,5 +384,20 @@ public class StartForwardMeteredDataHandlerV1(
             int.Parse(eo.Position!),
             decimal.Parse(eo.EnergyQuantity!),
             quality);
+    }
+
+    public record ReceiversWithMeteredDataV1(
+        IReadOnlyCollection<MarketActorRecipientV1> Actors,
+        Resolution Resolution,
+        MeasurementUnit MeasureUnit,
+        DateTimeOffset StartDateTime,
+        DateTimeOffset EndDateTime,
+        IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredData)
+    {
+        public record AcceptedMeteredData(
+            int Position,
+            // TODO: Are these two optional?
+            decimal? EnergyQuantity,
+            Quality? QuantityQuality);
     }
 }

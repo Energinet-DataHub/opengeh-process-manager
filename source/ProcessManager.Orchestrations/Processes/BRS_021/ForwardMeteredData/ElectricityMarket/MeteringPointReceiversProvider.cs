@@ -59,21 +59,12 @@ public class MeteringPointReceiversProvider(
                 }));
 
         // Ensure master data is sorted by ValidFrom
-        // var sortedMasterData = new SortedDictionary<Instant, MeteringPointMasterData>(
-        //     meteringPointMasterDataList.ToDictionary(mpmd => mpmd.ValidFrom.ToInstant()));
         var masterDataDictionary = meteringPointMasterDataList
             .ToDictionary(mpmd => mpmd.ValidFrom.ToInstant());
 
         // The input is already validated, so this parsing should never fail
         var totalPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
         var totalPeriodEnd = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
-
-        // TODO: Delete code once we are sure that multiple resolutions in the same transaction is not supported.
-        // var allReceivers = CalculateReceiversWithMeteredDataForMasterDataPeriodsV1(
-        //     totalPeriodStart,
-        //     totalPeriodEnd,
-        //     sortedMasterData,
-        //     sortedMeteredData);
 
         var allReceivers = CalculateReceiversWithMeteredDataForMasterDataPeriods(
             totalPeriodStart,
@@ -87,6 +78,7 @@ public class MeteringPointReceiversProvider(
 
     /// <summary>
     /// Split metered data into periods based on the master data periods.
+    /// TODO: Delete method once we are sure that multiple resolutions in the same transaction is not supported.
     /// <remarks>
     /// This method supports different resolutions for each master data period.
     /// </remarks>

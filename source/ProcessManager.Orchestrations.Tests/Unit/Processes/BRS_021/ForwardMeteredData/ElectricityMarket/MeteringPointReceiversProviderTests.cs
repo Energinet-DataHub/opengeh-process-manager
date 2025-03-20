@@ -158,7 +158,7 @@ public class MeteringPointReceiversProviderTests
     }
 
     [Fact]
-    public void Given_MultipleMasterDataPeriods_When_GetReceivers_Then_MeteredDataIsSplitToCorrectReceivers()
+    public void Given_MultipleMasterDataPeriods_When_GetReceivers_Then_MeteredDataIsSplitCorrectlyToReceivers()
     {
         var resolution = Resolution.QuarterHourly;
         const int elementsPerDayForResolution = 24 * 4; // 15 minutes resolution = 24 * 4 = 96 elements per day.

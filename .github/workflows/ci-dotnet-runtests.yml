@@ -45,11 +45,6 @@ jobs:
       matrix_tests: ${{ steps.set-matrix.outputs.matrix_tests }}
       pr_number: ${{ steps.find_pull_request.outputs.pr_number }}
     steps:
-      - name: Enable long filenames
-        shell: pwsh
-        run: |
-          sudo git config --system core.longpaths true
-
       - name: Checkout repository
         uses: actions/checkout@v4
 

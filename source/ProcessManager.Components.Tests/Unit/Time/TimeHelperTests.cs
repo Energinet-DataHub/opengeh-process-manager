@@ -22,17 +22,17 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Time;
 public class TimeHelperTests
 {
     [Theory]
-    [InlineData(2025, 1, 2, 1, 1, 2025, 1, 1, 23, 0)] // 1st of January 2025 23:00
-    [InlineData(2025, 1, 3, 23, 0, 2025, 1, 3, 23, 0)] // 3rd of January 2025 23:00
-    [InlineData(2025, 7, 2, 1, 1, 2025, 7, 1, 22, 0)] // 1st of July 2025 22:00
-    [InlineData(2025, 7, 2, 22, 1, 2025, 7, 2, 22, 0)] // 2nd of July 2025 22:00
-    [InlineData(2025, 7, 2, 23, 1, 2025, 7, 2, 22, 0)] // 2nd of July 2025 22:00
-    [InlineData(2025, 7, 2, 21, 1, 2025, 7, 1, 22, 0)] // 1st of July 2025 22:00
-    [InlineData(2025, 1, 1, 1, 1, 2024, 12, 31, 23, 0)] // 1st of January 2025 23:00
-    [InlineData(2024, 2, 29, 1, 1, 2024, 2, 28, 23, 0)] // 29th of February 2024 23:00
-    [InlineData(2024, 3, 1, 1, 1, 2024, 2, 29, 23, 0)] // 1st of March 2024 23:00 Leap year
-    [InlineData(2024, 3, 1, 0, 1, 2024, 2, 29, 23, 0)] // 1st of March 2024 23:00 Leap year
-    [InlineData(2024, 3, 1, 0, 0, 2024, 2, 29, 23, 0)] // 1st of March 2024 23:00 Leap year
+    [InlineData(2025, 1, 2, 1, 1, 2025, 1, 1, 23, 0)] // 2nd of January 2025 01:01 -> 1st of January 2025 23:00
+    [InlineData(2025, 1, 3, 23, 0, 2025, 1, 3, 23, 0)] // 3rd of January 2025 23:00 -> 3rd of January 2025 23:00
+    [InlineData(2025, 7, 2, 22, 0, 2025, 7, 2, 22, 0)] // 2nd of July 2025 22:00 -> 2nd of July 2025 22:00
+    [InlineData(2025, 7, 2, 22, 1, 2025, 7, 2, 22, 0)] // 2nd of July 2025 22:01 -> 2nd of July 2025 22:00
+    [InlineData(2025, 7, 2, 23, 1, 2025, 7, 2, 22, 0)] // 2nd of July 2025 23:01 -> 2nd of July 2025 22:00
+    [InlineData(2025, 7, 2, 21, 1, 2025, 7, 1, 22, 0)] // 2nd of July 2025 21:01 -> 1st of July 2025 22:00
+    [InlineData(2025, 1, 1, 1, 1, 2024, 12, 31, 23, 0)] // 1st of January 2025 01:01 -> 31st of December 2024 23:00
+    [InlineData(2024, 2, 29, 1, 1, 2024, 2, 28, 23, 0)] // 29th of February 2024 01:01 -> 28th of February 2024 23:00 Leap year
+    [InlineData(2024, 3, 1, 1, 1, 2024, 2, 29, 23, 0)] // 1st of March 2024 01:01 -> 29th of February 2024 23:00 Leap year
+    [InlineData(2024, 3, 1, 0, 1, 2024, 2, 29, 23, 0)] // 1st of March 2024 00:01 -> 29th of February 2024 23:00 Leap year
+    [InlineData(2024, 3, 1, 0, 0, 2024, 2, 29, 23, 0)] // 1st of March 2024 00:00 -> 29th of February 2024 23:00 Leap year
     public void TestGetMidnightZonedDateTime(int actualYear, int actualMonth, int actualDay, int actualHour, int actualMinute, int expectedYear, int expectedMonth, int expectedDay, int expectedHour, int expectedMinute)
     {
         // Arrange

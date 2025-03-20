@@ -89,7 +89,7 @@ jobs:
       - name: Enable long filenames
         shell: pwsh
         run: |
-          sudo git config --system core.longpaths true
+          git config --system core.longpaths true
 
       - name: Checkout repository
         uses: Energinet-DataHub/.github/.github/actions/nuget-checkout-repository@v14

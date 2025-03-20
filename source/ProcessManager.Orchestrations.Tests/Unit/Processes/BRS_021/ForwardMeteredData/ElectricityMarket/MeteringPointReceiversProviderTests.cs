@@ -158,7 +158,7 @@ public class MeteringPointReceiversProviderTests
     }
 
     [Fact]
-    public void Given_MultipleMasterDataPeriods_When_GetReceivers_Then_MeteredDataIsSplitToCorrectMasterDataPeriods()
+    public void Given_MultipleMasterDataPeriods_When_GetReceivers_Then_MeteredDataIsSplitToCorrectReceivers()
     {
         var resolution = Resolution.QuarterHourly;
         const int elementsPerDayForResolution = 24 * 4; // 15 minutes resolution = 24 * 4 = 96 elements per day.
@@ -166,18 +166,33 @@ public class MeteringPointReceiversProviderTests
         const int masterData1Days = 80;
         var masterData1Start = Instant.FromUtc(2024, 02, 28, 23, 00);
         var masterData1End = masterData1Start.Plus(Duration.FromDays(masterData1Days));
+        var masterData1Receiver = ActorNumber.Create("1111111111111");
 
         const int masterData2Days = 17;
         var masterData2Start = masterData1End;
         var masterData2End = masterData2Start.Plus(Duration.FromDays(masterData2Days));
+        var masterData2Receiver = ActorNumber.Create("2222222222222");
 
         const int masterData3Days = 268;
         var masterData3Start = masterData2End;
         var masterData3End = masterData3Start.Plus(Duration.FromDays(masterData3Days));
+        var masterData3Receiver = ActorNumber.Create("3333333333333");
 
-        var masterData1 = CreateMasterData(from: masterData1Start, to: masterData1End, resolution: resolution);
-        var masterData2 = CreateMasterData(from: masterData2Start, to: masterData2End, resolution: resolution);
-        var masterData3 = CreateMasterData(from: masterData3Start, to: masterData3End, resolution: resolution);
+        var masterData1 = CreateMasterData(
+            from: masterData1Start,
+            to: masterData1End,
+            resolution: resolution,
+            energySupplier: masterData1Receiver);
+        var masterData2 = CreateMasterData(
+            from: masterData2Start,
+            to: masterData2End,
+            resolution: resolution,
+            energySupplier: masterData2Receiver);
+        var masterData3 = CreateMasterData(
+            from: masterData3Start,
+            to: masterData3End,
+            resolution: resolution,
+            energySupplier: masterData3Receiver);
 
         List<MeteringPointMasterData> masterDataList = [masterData1, masterData2, masterData3];
 
@@ -191,26 +206,35 @@ public class MeteringPointReceiversProviderTests
         receiversWithMeteredData.Should()
             .HaveCount(3)
             .And.SatisfyRespectively(
-                (r) =>
+                r =>
                 {
                     r.StartDateTime.Should().Be(masterData1Start.ToDateTimeOffset());
                     r.EndDateTime.Should().Be(masterData1End.ToDateTimeOffset());
+                    r.Actors.Should()
+                        .ContainSingle(a => a.ActorNumber == masterData1Receiver)
+                        .And.NotContain(a => a.ActorNumber == masterData2Receiver || a.ActorNumber == masterData3Receiver);
                     r.MeteredData.Should().HaveCount(masterData1Days * elementsPerDayForResolution);
                     r.MeteredData.First().Position.Should().Be(1);
                     r.MeteredData.Last().Position.Should().Be(r.MeteredData.Count);
                 },
-                (r) =>
+                r =>
                 {
                     r.StartDateTime.Should().Be(masterData2Start.ToDateTimeOffset());
                     r.EndDateTime.Should().Be(masterData2End.ToDateTimeOffset());
+                    r.Actors.Should()
+                        .ContainSingle(a => a.ActorNumber == masterData2Receiver)
+                        .And.NotContain(a => a.ActorNumber == masterData1Receiver || a.ActorNumber == masterData3Receiver);
                     r.MeteredData.Should().HaveCount(masterData2Days * elementsPerDayForResolution);
                     r.MeteredData.First().Position.Should().Be(1);
                     r.MeteredData.Last().Position.Should().Be(r.MeteredData.Count);
                 },
-                (r) =>
+                r =>
                 {
                     r.StartDateTime.Should().Be(masterData3Start.ToDateTimeOffset());
                     r.EndDateTime.Should().Be(masterData3End.ToDateTimeOffset());
+                    r.Actors.Should()
+                        .ContainSingle(a => a.ActorNumber == masterData3Receiver)
+                        .And.NotContain(a => a.ActorNumber == masterData1Receiver || a.ActorNumber == masterData2Receiver);
                     r.MeteredData.Should().HaveCount(masterData3Days * elementsPerDayForResolution);
                     r.MeteredData.First().Position.Should().Be(1);
                     r.MeteredData.Last().Position.Should().Be(r.MeteredData.Count);

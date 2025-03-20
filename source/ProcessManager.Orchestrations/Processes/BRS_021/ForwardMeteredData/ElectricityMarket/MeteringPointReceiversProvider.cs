@@ -39,6 +39,7 @@ public class MeteringPointReceiversProvider(
         IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterDataList,
         ForwardMeteredDataInputV1 input)
     {
+        // Ensure metered data is sorted by position
         var sortedMeteredData = new SortedDictionary<int, ReceiversWithMeteredDataV1.AcceptedMeteredData>(
             input.MeteredDataList.ToDictionary(
                 md => int.Parse(md.Position!),
@@ -57,8 +58,11 @@ public class MeteringPointReceiversProvider(
                         QuantityQuality: Quality.FromNameOrDefault(md.QuantityQuality));
                 }));
 
-        var sortedMasterData = new SortedDictionary<Instant, MeteringPointMasterData>(
-            meteringPointMasterDataList.ToDictionary(mpmd => mpmd.ValidFrom.ToInstant()));
+        // Ensure master data is sorted by ValidFrom
+        // var sortedMasterData = new SortedDictionary<Instant, MeteringPointMasterData>(
+        //     meteringPointMasterDataList.ToDictionary(mpmd => mpmd.ValidFrom.ToInstant()));
+        var masterDataDictionary = meteringPointMasterDataList
+            .ToDictionary(mpmd => mpmd.ValidFrom.ToInstant());
 
         // The input is already validated, so this parsing should never fail
         var totalPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
@@ -75,7 +79,7 @@ public class MeteringPointReceiversProvider(
             totalPeriodStart,
             totalPeriodEnd,
             Resolution.FromName(input.Resolution!), // Resolution shouldn't change between master data periods, else validation should fail
-            sortedMasterData,
+            masterDataDictionary,
             sortedMeteredData);
 
         return allReceivers;
@@ -161,14 +165,14 @@ public class MeteringPointReceiversProvider(
         Instant totalPeriodStart,
         Instant totalPeriodEnd,
         Resolution resolution,
-        SortedDictionary<Instant, MeteringPointMasterData> sortedMasterData,
+        Dictionary<Instant, MeteringPointMasterData> masterData,
         SortedDictionary<int, ReceiversWithMeteredDataV1.AcceptedMeteredData> sortedMeteredData)
     {
         var currentTimestamp = totalPeriodStart;
         var currentMasterData = new MasterDataWithMeteredData(
-            MasterData: sortedMasterData[currentTimestamp],
-            ValidFrom: sortedMasterData[currentTimestamp].ValidFrom.ToInstant(),
-            ValidTo: sortedMasterData[currentTimestamp].ValidTo.ToInstant(),
+            MasterData: masterData[currentTimestamp],
+            ValidFrom: masterData[currentTimestamp].ValidFrom.ToInstant(),
+            ValidTo: masterData[currentTimestamp].ValidTo.ToInstant(),
             MeteredDataList: []);
         List<MasterDataWithMeteredData> masterDataWithMeteredDataList = [currentMasterData];
         foreach (var meteredData in sortedMeteredData.Values)
@@ -184,7 +188,7 @@ public class MeteringPointReceiversProvider(
             {
                 // The master data should always be continuous (with no overlaps), so if this fails then
                 // the master data (or our implementation) has a bug.
-                var nextMasterData = sortedMasterData[currentTimestamp];
+                var nextMasterData = masterData[currentTimestamp];
                 currentMasterData = new MasterDataWithMeteredData(
                     MasterData: nextMasterData,
                     ValidFrom: nextMasterData.ValidFrom.ToInstant(),

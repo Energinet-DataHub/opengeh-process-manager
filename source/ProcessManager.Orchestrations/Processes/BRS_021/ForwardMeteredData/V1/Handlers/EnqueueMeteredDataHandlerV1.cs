@@ -58,13 +58,13 @@ public class EnqueueMeteredDataHandlerV1(
         await TerminateForwardToMeasurementStep(orchestrationInstance).ConfigureAwait(false);
 
         // Start Step: Find receiver step
-        var receivers = await FindReceivers(orchestrationInstance, forwardMeteredDataInput).ConfigureAwait(false);
+        var receiversWithMeteredData = await FindReceivers(orchestrationInstance, forwardMeteredDataInput).ConfigureAwait(false);
 
         // Start Step: Enqueue actor messages step
         await EnqueueAcceptedActorMessagesAsync(
                 orchestrationInstance,
                 forwardMeteredDataInput,
-                receivers)
+                receiversWithMeteredData)
             .ConfigureAwait(false);
     }
 
@@ -96,7 +96,7 @@ public class EnqueueMeteredDataHandlerV1(
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (findReceiversStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
         {
-            // Since the master data should be saved as custom state on the orchestrationInstance, we should just
+            // Since the master data is saved as custom state on the orchestrationInstance, we should just
             // be able to calculate the receivers (again), based on the master data. If the inputs are the same,
             // the returned calculated receivers should also be the same.
             return CalculateReceiversWithMeteredData(customState, forwardMeteredDataInput);

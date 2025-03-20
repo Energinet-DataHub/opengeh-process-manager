@@ -17,7 +17,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Components.Time;
 
-public class TimeHelper(DateTimeZone dateTimeZone) : ITimeHelper
+public class TimeHelper(DateTimeZone dateTimeZone)
 {
     private readonly DateTimeZone _dateTimeZone = dateTimeZone;
 

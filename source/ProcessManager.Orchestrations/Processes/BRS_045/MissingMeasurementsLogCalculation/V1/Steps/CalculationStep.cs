@@ -40,8 +40,8 @@ internal class CalculationStep(
     {
         // Start calculation (Databricks)
         var jobRunId = await Context.CallActivityAsync<JobRunId>(
-            nameof(CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal_V1),
-            new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal_V1.ActivityInput(
+            nameof(CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1),
+            new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1.ActivityInput(
                 orchestrationInstanceContext.OrchestrationInstanceId),
             DefaultRetryOptions);
 
@@ -51,8 +51,8 @@ internal class CalculationStep(
         {
             // Monitor calculation (Databricks)
             var jobRunStatus = await Context.CallActivityAsync<JobRunStatus>(
-                nameof(CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCal_V1),
-                new CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCal_V1.ActivityInput(
+                nameof(CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1),
+                new CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1.ActivityInput(
                     jobRunId),
                 DefaultRetryOptions);
 

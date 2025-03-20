@@ -34,7 +34,7 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
         var date = Instant.FromUtc(2024, 12, 31, 23, 0, 0);
         var orchestrationInstanceId = new OrchestrationInstanceId(Guid.NewGuid());
         var activityInput =
-            new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal_V1.ActivityInput(
+            new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1.ActivityInput(
                 orchestrationInstanceId);
         var jobParameters = new List<string>
         {
@@ -47,9 +47,9 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
         var client = new Mock<IDatabricksJobsClient>();
         client.Setup(x => x.StartJobAsync("MissingMeasurementsLog", jobParameters)).ReturnsAsync(jobRunId);
         var clock = new Mock<IClock>();
-        var timeHelper = new Mock<ITimeHelper>();
+        var timeHelper = new Mock<TimeHelper>();
         timeHelper.Setup(x => x.GetMidnightZonedDateTime(It.IsAny<Instant>())).Returns(date);
-        var sut = new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal_V1(client.Object, clock.Object, timeHelper.Object);
+        var sut = new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(client.Object, clock.Object, timeHelper.Object);
 
         // Act
         var actual = await sut.Run(activityInput);

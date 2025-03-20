@@ -24,17 +24,17 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep;
 
-internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal_V1(
+internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(
     [FromKeyedServices(DatabricksWorkspaceNames.Measurements)]
     IDatabricksJobsClient client,
     IClock clock,
-    ITimeHelper timeHelper)
+    TimeHelper timeHelper)
 {
     private readonly IDatabricksJobsClient _client = client;
     private readonly IClock _clock = clock;
-    private readonly ITimeHelper _timeHelper = timeHelper;
+    private readonly TimeHelper _timeHelper = timeHelper;
 
-    [Function(nameof(CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal_V1))]
+    [Function(nameof(CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1))]
     public async Task<JobRunId> Run(
         [ActivityTrigger] ActivityInput input)
     {

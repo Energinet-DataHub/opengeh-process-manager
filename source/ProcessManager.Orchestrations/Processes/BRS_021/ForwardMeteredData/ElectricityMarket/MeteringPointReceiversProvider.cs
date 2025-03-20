@@ -94,12 +94,15 @@ public class MeteringPointReceiversProvider(
         SortedDictionary<int, ReceiversWithMeteredDataV1.AcceptedMeteredData> sortedMeteredData)
     {
         var currentTimestamp = totalPeriodStart;
+
         var currentMasterData = new MasterDataWithMeteredData(
             MasterData: masterData[currentTimestamp],
             ValidFrom: masterData[currentTimestamp].ValidFrom.ToInstant(),
             ValidTo: masterData[currentTimestamp].ValidTo.ToInstant(),
             MeteredDataList: []);
+
         List<MasterDataWithMeteredData> masterDataWithMeteredDataList = [currentMasterData];
+
         foreach (var meteredData in sortedMeteredData.Values)
         {
             // TODO: Is EndDateTime inclusive or exclusive? This assumes exclusive.
@@ -127,10 +130,10 @@ public class MeteringPointReceiversProvider(
             // These safeguards shouldn't be reached if the master data (and our implementation) is correct,
             // so if the performance is critical then these checks can be removed.
             if (currentTimestamp < currentMasterData.ValidFrom)
-                throw new InvalidOperationException($"The current timestamp is before the master data period start (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, MasterDataValidFrom={currentMasterData.ValidFrom})");
+                throw new InvalidOperationException($"The current timestamp is before the master data period start (MeteringPointId={currentMasterData.MasterData.MeteringPointId.Value}, Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, MasterDataValidFrom={currentMasterData.ValidFrom})");
 
             if (currentTimestamp >= currentMasterData.ValidTo)
-                throw new InvalidOperationException($"The current timestamp is equal to or after the master data period end (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, MasterDataValidTo={currentMasterData.ValidTo})");
+                throw new InvalidOperationException($"The current timestamp is equal to or after the master data period end (MeteringPointId={currentMasterData.MasterData.MeteringPointId.Value}, Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, MasterDataValidTo={currentMasterData.ValidTo})");
 
             // Position is 1-indexed, so the new position is the current count + 1 (if the list is empty, the new position should be 1)
             var newPosition = currentMasterData.MeteredDataList.Count + 1;
@@ -193,7 +196,7 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.Consumption:
             case var _ when meteringPointType == MeteringPointType.Production:
                 receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
-                receivers.Add(TheDanishEnergyAgencyReceiver());
+                receivers.Add(DanishEnergyAgencyReceiver());
                 break;
             case var _ when meteringPointType == MeteringPointType.Exchange:
                 receivers.AddRange(
@@ -202,8 +205,8 @@ public class MeteringPointReceiversProvider(
                         .Select(NeighborGridAccessProviderReceiver));
                 break;
             case var _ when meteringPointType == MeteringPointType.VeProduction:
-                receivers.Add(TheSystemOperatorReceiver());
-                receivers.Add(TheDanishEnergyAgencyReceiver());
+                receivers.Add(SystemOperatorReceiver());
+                receivers.Add(DanishEnergyAgencyReceiver());
                 // TODO: Add parent(s) as part of #607
                 break;
             case var _ when meteringPointType == MeteringPointType.NetProduction:
@@ -236,7 +239,7 @@ public class MeteringPointReceiversProvider(
                 }
                 else
                 {
-                    throw new InvalidOperationException($"Parent metering point is missing for child metering point type (MeteringPointId={meteringPointMasterData.MeteringPointId}, MeteringPointType={meteringPointMasterData.MeteringPointType.Name}).");
+                    throw new InvalidOperationException($"Parent metering point is missing for child metering point type (MeteringPointId={meteringPointMasterData.MeteringPointId.Value}, MeteringPointType={meteringPointMasterData.MeteringPointType.Name}).");
                 }
 
                 break;
@@ -251,20 +254,20 @@ public class MeteringPointReceiversProvider(
         return distinctReceivers;
     }
 
+    private MarketActorRecipientV1 EnergySupplierReceiver(ActorNumber energySupplierId) =>
+        new(energySupplierId, ActorRole.EnergySupplier);
+
     private MarketActorRecipientV1 NeighborGridAccessProviderReceiver(ActorNumber neighborGridAccessProviderId) => new(
         neighborGridAccessProviderId,
         ActorRole.GridAccessProvider);
 
-    private MarketActorRecipientV1 TheDanishEnergyAgencyReceiver() => new(
+    private MarketActorRecipientV1 DanishEnergyAgencyReceiver() => new(
         ActorNumber.Create(DataHubDetails.DanishEnergyAgencyNumber),
         ActorRole.DanishEnergyAgency);
 
-    private MarketActorRecipientV1 TheSystemOperatorReceiver() => new(
+    private MarketActorRecipientV1 SystemOperatorReceiver() => new(
         ActorNumber.Create(DataHubDetails.SystemOperatorNumber),
         ActorRole.SystemOperator);
-
-    private MarketActorRecipientV1 EnergySupplierReceiver(ActorNumber energySupplierId) =>
-        new(energySupplierId, ActorRole.EnergySupplier);
 
     private record MasterDataWithMeteredData(
         MeteringPointMasterData MasterData,

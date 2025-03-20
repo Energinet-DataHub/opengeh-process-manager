@@ -253,8 +253,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         [
             new MeteringPointMasterData(
                 new MeteringPointId("571313101700011887"),
-                new DateTime(2023, 11, 29, 12, 34, 56, DateTimeKind.Utc),
-                new DateTime(2024, 11, 29, 12, 34, 56, DateTimeKind.Utc),
+                new DateTime(2024, 11, 30, 23, 00, 00, DateTimeKind.Utc),
+                new DateTime(2024, 12, 31, 23, 00, 00, DateTimeKind.Utc),
                 new GridAreaCode("804"),
                 ActorNumber.Create("2222222222222"),
                 ["Owner1", "Owner2"],

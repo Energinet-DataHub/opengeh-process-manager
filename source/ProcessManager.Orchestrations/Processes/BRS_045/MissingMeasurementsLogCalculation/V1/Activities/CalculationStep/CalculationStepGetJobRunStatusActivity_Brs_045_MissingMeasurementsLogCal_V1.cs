@@ -20,12 +20,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep;
 
-internal class CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1(
+internal class CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCal_V1(
     [FromKeyedServices(DatabricksWorkspaceNames.Measurements)] IDatabricksJobsClient client)
 {
     private readonly IDatabricksJobsClient _client = client;
 
-    [Function(nameof(CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1))]
+    [Function(nameof(CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCal_V1))]
     public async Task<JobRunStatus> Run(
         [ActivityTrigger] ActivityInput input)
     {

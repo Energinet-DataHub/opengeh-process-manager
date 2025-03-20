@@ -24,5 +24,5 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Miss
 /// <param name="OrchestrationOptions">Options for configuration of the orchestration execution.</param>
 /// <param name="OrchestrationInstanceId">The id of the orchestration instance</param>
 public record OrchestrationInstanceContext(
-    OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1 OrchestrationOptions,
+    OrchestrationOptions_Brs_045_MissingMeasurementsLogCal_V1 OrchestrationOptions,
     OrchestrationInstanceId OrchestrationInstanceId);

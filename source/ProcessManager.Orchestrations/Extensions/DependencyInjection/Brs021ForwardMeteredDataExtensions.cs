@@ -34,7 +34,6 @@ public static class Brs021ForwardMeteredDataExtensions
         services.AddScoped<TerminateForwardMeteredDataHandlerV1>();
         services.AddScoped<EnqueueMeteredDataHandlerV1>();
 
-
         return services;
     }
 }

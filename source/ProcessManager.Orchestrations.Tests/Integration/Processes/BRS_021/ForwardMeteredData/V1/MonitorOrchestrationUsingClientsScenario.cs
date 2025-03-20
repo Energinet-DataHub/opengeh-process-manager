@@ -497,7 +497,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData()
         {
             Identification = new MeteringPointIdentification("571313101700011887"),
-            ValidFrom = Instant.FromUtc(2024, 12, 01, 23, 00, 00),
+            ValidFrom = Instant.FromUtc(2024, 11, 30, 23, 00, 00),
             ValidTo = Instant.FromUtc(2024, 12, 31, 23, 00, 00),
             GridAreaCode = new ElectricityMarket.Integration.Models.MasterData.GridAreaCode("804"),
             GridAccessProvider = "2222222222222",
@@ -515,8 +515,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 {
                     Identification = new MeteringPointIdentification("571313101700011887"),
                     EnergySupplier = "1111111111111",
-                    StartDate = Instant.FromUtc(2023, 11, 29, 12, 34, 56),
-                    EndDate = Instant.FromUtc(2024, 11, 29, 12, 34, 56),
+                    StartDate = Instant.FromUtc(2024, 11, 30, 23, 00, 00),
+                    EndDate = Instant.FromUtc(2024, 12, 31, 23, 00, 00),
                 },
             ],
         };

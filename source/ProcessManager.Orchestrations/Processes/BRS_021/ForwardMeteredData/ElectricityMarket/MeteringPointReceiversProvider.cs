@@ -95,7 +95,6 @@ public class MeteringPointReceiversProvider(
     {
         var currentTimestamp = totalPeriodStart;
 
-        // TODO: Does the first master data always start at the period we requested? Else this should just use "first()" isntead
         var firstMasterData = masterData.Values.First();
         var currentMasterData = new MasterDataWithMeteredData(
             MasterData: firstMasterData,

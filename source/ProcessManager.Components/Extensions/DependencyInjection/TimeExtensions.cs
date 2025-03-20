@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 public static class TimeExtensions
 {
     /// <summary>
-    /// TODO.
+    /// Register time component.
     /// </summary>
     public static IServiceCollection AddTimeComponent(
         this IServiceCollection services)

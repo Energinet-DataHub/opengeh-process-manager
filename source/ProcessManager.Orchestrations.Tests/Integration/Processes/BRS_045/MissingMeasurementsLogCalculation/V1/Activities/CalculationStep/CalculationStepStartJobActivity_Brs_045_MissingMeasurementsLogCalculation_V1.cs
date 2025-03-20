@@ -43,7 +43,6 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
             $"--period-end-datetime={date.PlusDays(-3)}",
         };
 
-        // Arrange - Mocks
         var client = new Mock<IDatabricksJobsClient>();
         client.Setup(x => x.StartJobAsync("MissingMeasurementsLog", jobParameters)).ReturnsAsync(jobRunId);
         var clock = new Mock<IClock>();

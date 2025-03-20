@@ -236,7 +236,7 @@ public class MeteringPointReceiversProvider(
                 }
                 else
                 {
-                    // TODO: NO-OP or should we throw an exception?
+                    throw new InvalidOperationException($"Parent metering point is missing for child metering point type (MeteringPointId={meteringPointMasterData.MeteringPointId}, MeteringPointType={meteringPointMasterData.MeteringPointType.Name}).");
                 }
 
                 break;

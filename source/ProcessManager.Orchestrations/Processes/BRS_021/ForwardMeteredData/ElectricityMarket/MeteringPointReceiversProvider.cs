@@ -64,13 +64,14 @@ public class MeteringPointReceiversProvider(
         var totalPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
         var totalPeriodEnd = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
 
-        var allReceivers = CalculateReceiversWithMeteredDataForMasterDataPeriodsV1(
-            totalPeriodStart,
-            totalPeriodEnd,
-            sortedMasterData,
-            sortedMeteredData);
+        // TODO: Delete code once we are sure that multiple resolutions in the same transaction is not supported.
+        // var allReceivers = CalculateReceiversWithMeteredDataForMasterDataPeriodsV1(
+        //     totalPeriodStart,
+        //     totalPeriodEnd,
+        //     sortedMasterData,
+        //     sortedMeteredData);
 
-        var allReceivers2 = CalculateReceiversWithMeteredDataForMasterDataPeriodsV2(
+        var allReceivers = CalculateReceiversWithMeteredDataForMasterDataPeriods(
             totalPeriodStart,
             totalPeriodEnd,
             Resolution.FromName(input.Resolution!), // Resolution shouldn't change between master data periods, else validation should fail
@@ -86,7 +87,7 @@ public class MeteringPointReceiversProvider(
     /// This method supports different resolutions for each master data period.
     /// </remarks>
     /// </summary>
-    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredDataForMasterDataPeriodsV1(
+    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredDataForMasterDataPeriods(
         Instant totalPeriodStart,
         Instant totalPeriodEnd,
         SortedDictionary<Instant, MeteringPointMasterData> sortedMasterData,
@@ -156,7 +157,7 @@ public class MeteringPointReceiversProvider(
     /// validation should ensure that the resolution is the same for each master data period (in the same transaction).
     /// </remarks>
     /// </summary>
-    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredDataForMasterDataPeriodsV2(
+    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredDataForMasterDataPeriods(
         Instant totalPeriodStart,
         Instant totalPeriodEnd,
         Resolution resolution,
@@ -169,7 +170,7 @@ public class MeteringPointReceiversProvider(
             ValidFrom: sortedMasterData[currentTimestamp].ValidFrom.ToInstant(),
             ValidTo: sortedMasterData[currentTimestamp].ValidTo.ToInstant(),
             MeteredDataList: []);
-        List<MasterDataWithMeteredData> masterDataWithMeteredDataList = [];
+        List<MasterDataWithMeteredData> masterDataWithMeteredDataList = [currentMasterData];
         foreach (var meteredData in sortedMeteredData.Values)
         {
             // TODO: Is EndDateTime inclusive or exclusive? This assumes exclusive.
@@ -177,6 +178,7 @@ public class MeteringPointReceiversProvider(
                 throw new InvalidOperationException($"The current timestamp is after the metered data period (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, PeriodEnd={totalPeriodEnd})");
 
             // Get master data for current timestamp
+            // TODO: Is the ValidTo inclusive or exclusive? This assumes exclusive.
             var currentTimestampBelongsToNextMasterDataPeriod = currentTimestamp >= currentMasterData.ValidTo;
             if (currentTimestampBelongsToNextMasterDataPeriod)
             {

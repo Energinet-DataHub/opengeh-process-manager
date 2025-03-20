@@ -158,6 +158,66 @@ public class MeteringPointReceiversProviderTests
     }
 
     [Fact]
+    public void Given_MultipleMasterDataPeriods_When_GetReceivers_Then_MeteredDataIsSplitToCorrectMasterDataPeriods()
+    {
+        var resolution = Resolution.QuarterHourly;
+        const int elementsPerDayForResolution = 24 * 4; // 15 minutes resolution = 24 * 4 = 96 elements per day.
+
+        const int masterData1Days = 80;
+        var masterData1Start = Instant.FromUtc(2024, 02, 28, 23, 00);
+        var masterData1End = masterData1Start.Plus(Duration.FromDays(masterData1Days));
+
+        const int masterData2Days = 17;
+        var masterData2Start = masterData1End;
+        var masterData2End = masterData2Start.Plus(Duration.FromDays(masterData2Days));
+
+        const int masterData3Days = 268;
+        var masterData3Start = masterData2End;
+        var masterData3End = masterData3Start.Plus(Duration.FromDays(masterData3Days));
+
+        var masterData1 = CreateMasterData(from: masterData1Start, to: masterData1End, resolution: resolution);
+        var masterData2 = CreateMasterData(from: masterData2Start, to: masterData2End, resolution: resolution);
+        var masterData3 = CreateMasterData(from: masterData3Start, to: masterData3End, resolution: resolution);
+
+        List<MeteringPointMasterData> masterDataList = [masterData1, masterData2, masterData3];
+
+        var forwardMeteredDataInput = CreateForwardMeteredDataInput(masterDataList);
+
+        var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
+            masterDataList,
+            forwardMeteredDataInput);
+
+        using var assertionScope = new AssertionScope();
+        receiversWithMeteredData.Should()
+            .HaveCount(3)
+            .And.SatisfyRespectively(
+                (r) =>
+                {
+                    r.StartDateTime.Should().Be(masterData1Start.ToDateTimeOffset());
+                    r.EndDateTime.Should().Be(masterData1End.ToDateTimeOffset());
+                    r.MeteredData.Should().HaveCount(masterData1Days * elementsPerDayForResolution);
+                    r.MeteredData.First().Position.Should().Be(1);
+                    r.MeteredData.Last().Position.Should().Be(r.MeteredData.Count);
+                },
+                (r) =>
+                {
+                    r.StartDateTime.Should().Be(masterData2Start.ToDateTimeOffset());
+                    r.EndDateTime.Should().Be(masterData2End.ToDateTimeOffset());
+                    r.MeteredData.Should().HaveCount(masterData2Days * elementsPerDayForResolution);
+                    r.MeteredData.First().Position.Should().Be(1);
+                    r.MeteredData.Last().Position.Should().Be(r.MeteredData.Count);
+                },
+                (r) =>
+                {
+                    r.StartDateTime.Should().Be(masterData3Start.ToDateTimeOffset());
+                    r.EndDateTime.Should().Be(masterData3End.ToDateTimeOffset());
+                    r.MeteredData.Should().HaveCount(masterData3Days * elementsPerDayForResolution);
+                    r.MeteredData.First().Position.Should().Be(1);
+                    r.MeteredData.Last().Position.Should().Be(r.MeteredData.Count);
+                });
+    }
+
+    [Fact(Skip = "Different resolutions in the same transaction period is not supported (should be rejected by business validation)")]
     public void Given_MultipleMasterDataPeriodsWithDifferentResolutions_When_GetReceivers_Then_MeteredDataIsSplitToCorrectMasterDataPeriods()
     {
         const int masterData1Days = 80;

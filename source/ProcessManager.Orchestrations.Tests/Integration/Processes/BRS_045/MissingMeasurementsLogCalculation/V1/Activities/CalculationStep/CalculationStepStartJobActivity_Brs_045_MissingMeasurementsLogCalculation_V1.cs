@@ -38,7 +38,7 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
                 orchestrationInstanceId);
         var jobParameters = new List<string>
         {
-            $"--orchestration-instance-id={activityInput.InstanceId.Value}",
+            $"--orchestration-instance-id={activityInput.OrchestrationInstanceId.Value}",
             $"--period-start-datetime={date.PlusDays(-93)}",
             $"--period-end-datetime={date.PlusDays(-3)}",
         };

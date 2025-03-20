@@ -43,7 +43,7 @@ internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal
         var periodEnd = midnightDate.PlusDays(-3);
         var jobParameters = new List<string>
         {
-            $"--orchestration-instance-id={input.InstanceId.Value}",
+            $"--orchestration-instance-id={input.OrchestrationInstanceId.Value}",
             $"--period-start-datetime={periodStart}",
             $"--period-end-datetime={periodEnd}",
         };
@@ -52,5 +52,5 @@ internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal
     }
 
     public record ActivityInput(
-        OrchestrationInstanceId InstanceId);
+        OrchestrationInstanceId OrchestrationInstanceId);
 }

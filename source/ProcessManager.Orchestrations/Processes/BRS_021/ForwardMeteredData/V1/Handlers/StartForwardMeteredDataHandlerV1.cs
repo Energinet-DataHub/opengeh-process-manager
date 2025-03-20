@@ -113,7 +113,6 @@ public class StartForwardMeteredDataHandlerV1(
         }
 
         // Perform step: Business validation
-        // TODO: Do we need a RowVersion on the step instances, to ensure this code doesn't run in parallel?
         var validationErrors = await PerformBusinessValidation(
                 orchestrationInstance: orchestrationInstance,
                 input: forwardMeteredDataInput)
@@ -144,12 +143,6 @@ public class StartForwardMeteredDataHandlerV1(
 
             // Skip step: Find receiver
             var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiversStep);
-
-            var meteringPointReceiversProvider = new MeteringPointReceiversProvider();
-            var customStateV1 = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
-            var receivers = customStateV1.MeteringPointMasterData
-                .Select(meteringPointReceiversProvider.GetReceiversFromMasterData)
-                .ToList();
 
             // If the step is already skipped, do nothing (idempotency/retry check).
             if (findReceiverStep.Lifecycle.TerminationState != OrchestrationStepTerminationState.Skipped)
@@ -386,18 +379,18 @@ public class StartForwardMeteredDataHandlerV1(
             quality);
     }
 
-    public record ReceiversWithMeteredDataV1(
-        IReadOnlyCollection<MarketActorRecipientV1> Actors,
-        Resolution Resolution,
-        MeasurementUnit MeasureUnit,
-        DateTimeOffset StartDateTime,
-        DateTimeOffset EndDateTime,
-        IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredData)
-    {
-        public record AcceptedMeteredData(
-            int Position,
-            // TODO: Are these two optional?
-            decimal? EnergyQuantity,
-            Quality? QuantityQuality);
-    }
+    // public record ReceiversWithMeteredDataV1(
+    //     IReadOnlyCollection<MarketActorRecipientV1> Actors,
+    //     Resolution Resolution,
+    //     MeasurementUnit MeasureUnit,
+    //     DateTimeOffset StartDateTime,
+    //     DateTimeOffset EndDateTime,
+    //     IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredData)
+    // {
+    //     public record AcceptedMeteredData(
+    //         int Position,
+    //         // TODO: Are these two optional?
+    //         decimal? EnergyQuantity,
+    //         Quality? QuantityQuality);
+    // }
 }

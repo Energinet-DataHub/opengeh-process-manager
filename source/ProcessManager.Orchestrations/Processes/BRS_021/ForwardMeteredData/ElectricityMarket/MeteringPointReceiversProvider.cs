@@ -12,17 +12,246 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Globalization;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using NodaTime;
+using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 
-public class MeteringPointReceiversProvider
+public class MeteringPointReceiversProvider(
+    DateTimeZone dateTimeZone)
 {
-    public StartForwardMeteredDataHandlerV1.ReceiversWithMeteredDataV1 GetReceiversFromMasterData(
+    private static readonly IReadOnlyDictionary<Resolution, Duration> _resolutionToDurationMap = new Dictionary<Resolution, Duration>
+    {
+        { Resolution.QuarterHourly, Duration.FromMinutes(15) },
+        { Resolution.Hourly, Duration.FromHours(1) },
+        { Resolution.Daily, Duration.FromDays(1) },
+    };
+
+    private readonly DateTimeZone _dateTimeZone = dateTimeZone;
+
+    public List<ReceiversWithMeteredDataV1> GetReceiversWithMeteredDataFromMasterDataList(
+        IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterDataList,
+        ForwardMeteredDataInputV1 input)
+    {
+        var sortedMeteredData = new SortedDictionary<int, ReceiversWithMeteredDataV1.AcceptedMeteredData>(
+            input.MeteredDataList.ToDictionary(
+                md => int.Parse(md.Position!),
+                md =>
+                {
+                    var position = int.Parse(md.Position!);
+                    var canParseEnergyQuantity = decimal.TryParse(
+                        md.EnergyQuantity,
+                        CultureInfo.InvariantCulture,
+                        out var energyQuantity);
+
+                    // The input is already validated, so converting these should not fail.
+                    return new ReceiversWithMeteredDataV1.AcceptedMeteredData(
+                        Position: position,
+                        EnergyQuantity: canParseEnergyQuantity ? energyQuantity : null,
+                        QuantityQuality: Quality.FromNameOrDefault(md.QuantityQuality));
+                }));
+
+        var sortedMasterData = new SortedDictionary<Instant, MeteringPointMasterData>(
+            meteringPointMasterDataList.ToDictionary(mpmd => mpmd.ValidFrom.ToInstant()));
+
+        // The input is already validated, so this parsing should never fail
+        var totalPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
+        var totalPeriodEnd = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
+
+        var allReceivers = CalculateReceiversWithMeteredDataForMasterDataPeriodsV1(
+            totalPeriodStart,
+            totalPeriodEnd,
+            sortedMasterData,
+            sortedMeteredData);
+
+        var allReceivers2 = CalculateReceiversWithMeteredDataForMasterDataPeriodsV2(
+            totalPeriodStart,
+            totalPeriodEnd,
+            Resolution.FromName(input.Resolution!), // Resolution shouldn't change between master data periods, else validation should fail
+            sortedMasterData,
+            sortedMeteredData);
+
+        return allReceivers;
+    }
+
+    /// <summary>
+    /// Split metered data into periods based on the master data periods.
+    /// <remarks>
+    /// This method supports different resolutions for each master data period.
+    /// </remarks>
+    /// </summary>
+    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredDataForMasterDataPeriodsV1(
+        Instant totalPeriodStart,
+        Instant totalPeriodEnd,
+        SortedDictionary<Instant, MeteringPointMasterData> sortedMasterData,
+        SortedDictionary<int, ReceiversWithMeteredDataV1.AcceptedMeteredData> sortedMeteredData)
+    {
+        var allReceivers = new List<ReceiversWithMeteredDataV1>();
+
+        var currentTimestamp = totalPeriodStart;
+        var currentMasterDataWithMeteredData = (
+            MasterData: sortedMasterData.First().Value,
+            SortedMeteredData: new SortedList<int, ReceiversWithMeteredDataV1.AcceptedMeteredData>());
+
+        foreach (var meteredData in sortedMeteredData.Values)
+        {
+            // TODO: Is EndDateTime inclusive or exclusive? This assumes exclusive.
+            if (currentTimestamp >= totalPeriodEnd)
+                throw new InvalidOperationException($"The current timestamp is out of the metered data period (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, MeteredDataEnd={totalPeriodEnd})");
+
+            // If the current metered data timestamp is outside the current master data, move to the next master data
+            // TODO: Is the ValidTo inclusive or exclusive? This assumes exclusive.
+            if (currentTimestamp >= currentMasterDataWithMeteredData.MasterData.ValidTo.ToInstant())
+            {
+                // Add receivers & master data for the current master data element
+                var receiversForMasterData = CreateReceiversWithMeteredData(
+                    currentMasterDataWithMeteredData.MasterData,
+                    currentMasterDataWithMeteredData.SortedMeteredData.Values.ToList());
+
+                allReceivers.Add(receiversForMasterData);
+
+                // Get next master data & reset metered data for the next master data period
+                var nextMasterData = sortedMasterData[currentTimestamp];
+                currentMasterDataWithMeteredData = (
+                    MasterData: nextMasterData,
+                    SortedMeteredData: []);
+
+                if (currentMasterDataWithMeteredData.MasterData.ValidFrom.ToInstant() != currentTimestamp)
+                    throw new InvalidOperationException($"The master data list is not continuous (CurrentTimestamp={currentTimestamp}, MasterDataValidFrom={currentMasterDataWithMeteredData.MasterData.ValidFrom})");
+            }
+
+            // TODO: These safeguards shouldn't be reached if the master data (and our implementation) is correct
+            if (currentTimestamp < currentMasterDataWithMeteredData.MasterData.ValidFrom.ToInstant())
+                throw new InvalidOperationException($"The current timestamp is before the master data period start (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, MasterDataValidFrom={currentMasterDataWithMeteredData.MasterData.ValidFrom})");
+
+            if (currentTimestamp >= currentMasterDataWithMeteredData.MasterData.ValidTo.ToInstant())
+                throw new InvalidOperationException($"The current timestamp is equal to or after the master data period end (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, MasterDataValidTo={currentMasterDataWithMeteredData.MasterData.ValidTo})");
+
+            var newPosition = currentMasterDataWithMeteredData.SortedMeteredData.Count + 1;
+            currentMasterDataWithMeteredData.SortedMeteredData.Add(newPosition, meteredData with { Position = newPosition });
+
+            // Get next timestamp
+            var resolutionForCurrentMeteredData = currentMasterDataWithMeteredData.MasterData.Resolution;
+            currentTimestamp = AddResolutionToTimestamp(currentTimestamp, resolutionForCurrentMeteredData);
+        }
+
+        // Add receivers for the last master data element
+        allReceivers.Add(CreateReceiversWithMeteredData(
+            currentMasterDataWithMeteredData.MasterData,
+            currentMasterDataWithMeteredData.SortedMeteredData.Values.ToList()));
+
+        return allReceivers;
+    }
+
+    /// <summary>
+    /// Split metered data into periods based on the master data periods.
+    /// <remarks>
+    /// This method DOES NOT support different resolutions for each master data period. However, business
+    /// validation should ensure that the resolution is the same for each master data period (in the same transaction).
+    /// </remarks>
+    /// </summary>
+    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredDataForMasterDataPeriodsV2(
+        Instant totalPeriodStart,
+        Instant totalPeriodEnd,
+        Resolution resolution,
+        SortedDictionary<Instant, MeteringPointMasterData> sortedMasterData,
+        SortedDictionary<int, ReceiversWithMeteredDataV1.AcceptedMeteredData> sortedMeteredData)
+    {
+        var currentTimestamp = totalPeriodStart;
+        var currentMasterData = new MasterDataWithMeteredData(
+            MasterData: sortedMasterData[currentTimestamp],
+            ValidFrom: sortedMasterData[currentTimestamp].ValidFrom.ToInstant(),
+            ValidTo: sortedMasterData[currentTimestamp].ValidTo.ToInstant(),
+            MeteredDataList: []);
+        List<MasterDataWithMeteredData> masterDataWithMeteredDataList = [];
+        foreach (var meteredData in sortedMeteredData.Values)
+        {
+            // TODO: Is EndDateTime inclusive or exclusive? This assumes exclusive.
+            if (currentTimestamp >= totalPeriodEnd)
+                throw new InvalidOperationException($"The current timestamp is after the metered data period (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, PeriodEnd={totalPeriodEnd})");
+
+            // Get master data for current timestamp
+            var currentTimestampBelongsToNextMasterDataPeriod = currentTimestamp >= currentMasterData.ValidTo;
+            if (currentTimestampBelongsToNextMasterDataPeriod)
+            {
+                // The master data should always be continuous (with no overlaps), so if this fails then
+                // the master data (or our implementation) has a bug.
+                var nextMasterData = sortedMasterData[currentTimestamp];
+                currentMasterData = new MasterDataWithMeteredData(
+                    MasterData: nextMasterData,
+                    ValidFrom: nextMasterData.ValidFrom.ToInstant(),
+                    ValidTo: nextMasterData.ValidTo.ToInstant(),
+                    MeteredDataList: []);
+
+                // Add the new master data with metered data to the list
+                masterDataWithMeteredDataList.Add(currentMasterData);
+            }
+
+            // These safeguards shouldn't be reached if the master data (and our implementation) is correct,
+            // so if the performance is critical then these checks can be removed.
+            if (currentTimestamp < currentMasterData.ValidFrom)
+                throw new InvalidOperationException($"The current timestamp is before the master data period start (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, MasterDataValidFrom={currentMasterData.ValidFrom})");
+
+            if (currentTimestamp >= currentMasterData.ValidTo)
+                throw new InvalidOperationException($"The current timestamp is equal to or after the master data period end (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, MasterDataValidTo={currentMasterData.ValidTo})");
+
+            // Position is 1-indexed, so the new position is the current count + 1 (if the list is empty, the new position should be 1)
+            var newPosition = currentMasterData.MeteredDataList.Count + 1;
+            currentMasterData.MeteredDataList.Add(meteredData with { Position = newPosition });
+
+            // Get next timestamp
+            currentTimestamp = AddResolutionToTimestamp(currentTimestamp, resolution);
+        }
+
+        return masterDataWithMeteredDataList
+            .Select(md => CreateReceiversWithMeteredData(md.MasterData, md.MeteredDataList))
+            .ToList();
+    }
+
+    private Instant AddResolutionToTimestamp(Instant timestamp, Resolution currentResolution)
+    {
+        // Special case for monthly resolution, since month are dependent on the calendar instead of
+        // having a fixed length (e.g. 28, 29, 30 or 31 days)
+        if (currentResolution == Resolution.Monthly)
+        {
+            var asZonedDateTime = new ZonedDateTime(timestamp, _dateTimeZone);
+
+            var nextDateTime = asZonedDateTime.LocalDateTime.PlusMonths(1);
+
+            return nextDateTime.InZoneStrictly(_dateTimeZone).ToInstant();
+        }
+
+        if (!_resolutionToDurationMap.TryGetValue(currentResolution, out var durationForCurrentResolution))
+            throw new ArgumentOutOfRangeException(nameof(currentResolution), currentResolution.Name, "The resolution is not supported");
+
+        // Resolution should now be below a month, so we can use math directly on the instant (the resolution
+        // is a fixed amount of time)
+        var nextTimestamp = timestamp.Plus(durationForCurrentResolution);
+        return nextTimestamp;
+    }
+
+    private ReceiversWithMeteredDataV1 CreateReceiversWithMeteredData(
+        MeteringPointMasterData masterData,
+        IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> meteredDataForMasterDataPeriod)
+    {
+        var actorReceivers = GetReceiversFromMasterData(masterData);
+
+        return new ReceiversWithMeteredDataV1(
+            Actors: actorReceivers,
+            Resolution: masterData.Resolution,
+            MeasureUnit: masterData.MeasurementUnit,
+            StartDateTime: masterData.ValidFrom,
+            EndDateTime: masterData.ValidTo,
+            MeteredData: meteredDataForMasterDataPeriod);
+    }
+
+    private List<MarketActorRecipientV1> GetReceiversFromMasterData(
         MeteringPointMasterData meteringPointMasterData)
     {
         var receivers = new List<MarketActorRecipientV1>();
@@ -85,31 +314,30 @@ public class MeteringPointReceiversProvider
         }
 
         var distinctReceivers = receivers
-            .DistinctBy(r => r.ActorNumber)
+            .DistinctBy(r => (r.ActorNumber.Value, r.ActorRole.Name))
             .ToList();
 
-        return new StartForwardMeteredDataHandlerV1.ReceiversWithMeteredDataV1(
-            distinctReceivers,
-            meteringPointMasterData.Resolution,
-            meteringPointMasterData.MeasurementUnit,
-            meteringPointMasterData.ValidFrom,
-            meteringPointMasterData.ValidTo,
-            []);
+        return distinctReceivers;
     }
 
-    private static MarketActorRecipientV1
-        NeighborGridAccessProviderReceiver(ActorNumber neighborGridAccessProviderId) => new(
+    private MarketActorRecipientV1 NeighborGridAccessProviderReceiver(ActorNumber neighborGridAccessProviderId) => new(
         neighborGridAccessProviderId,
         ActorRole.GridAccessProvider);
 
-    private static MarketActorRecipientV1 TheDanishEnergyAgencyReceiver() => new(
+    private MarketActorRecipientV1 TheDanishEnergyAgencyReceiver() => new(
         ActorNumber.Create(DataHubDetails.DanishEnergyAgencyNumber),
         ActorRole.DanishEnergyAgency);
 
-    private static MarketActorRecipientV1 TheSystemOperatorReceiver() => new(
+    private MarketActorRecipientV1 TheSystemOperatorReceiver() => new(
         ActorNumber.Create(DataHubDetails.SystemOperatorNumber),
         ActorRole.SystemOperator);
 
-    private static MarketActorRecipientV1 EnergySupplierReceiver(ActorNumber energySupplierId) =>
+    private MarketActorRecipientV1 EnergySupplierReceiver(ActorNumber energySupplierId) =>
         new(energySupplierId, ActorRole.EnergySupplier);
+
+    private record MasterDataWithMeteredData(
+        MeteringPointMasterData MasterData,
+        Instant ValidFrom,
+        Instant ValidTo,
+        List<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredDataList);
 }

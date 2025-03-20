@@ -15,169 +15,356 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using FluentAssertions;
+using FluentAssertions.Execution;
+using NodaTime;
+using NodaTime.Extensions;
+using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.
     ElectricityMarket;
 
 public class MeteringPointReceiversProviderTests
 {
-    private readonly MeteringPointReceiversProvider _sut = new();
+    private static readonly MeteringPointType _defaultMeteringPointType = MeteringPointType.Consumption;
+    private static readonly Instant _defaultFrom = Instant.FromUtc(2025, 02, 28, 23, 00);
+    private static readonly Instant _defaultTo = _defaultFrom.Plus(Duration.FromHours(1));
+    private static readonly Resolution _defaultResolution = Resolution.QuarterHourly;
+    private static readonly ActorNumber _defaultGridAccessProvider = ActorNumber.Create("1111111111111");
+    private static readonly ActorNumber _defaultEnergySupplier = ActorNumber.Create("2222222222222");
+    private static readonly ActorNumber _defaultGridAccessProviderNeighbor1 = ActorNumber.Create("3333333333333");
+    private static readonly ActorNumber _defaultGridAccessProviderNeighbor2 = ActorNumber.Create("4444444444444");
+
+    private readonly MeteringPointReceiversProvider _sut = new(DateTimeZone.Utc);
 
     [Fact]
-    public void Consumption()
+    public void Given_MeteringPointTypeConsumption_When_GetReceivers_Then_ReceiversAreEnergySupplierAndDanishEnergyAgency()
     {
-        var meteringPointMasterData = GetMasterData(MeteringPointType.Consumption);
+        var masterData = CreateMasterData(MeteringPointType.Consumption);
 
-        var result = _sut.GetReceiversFromMasterData(meteringPointMasterData);
-        result.Actors.OrderBy(a => a.ActorRole.Name)
+        var forwardMeteredDataInput = CreateForwardMeteredDataInput([masterData]);
+
+        var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
+            [masterData],
+            forwardMeteredDataInput);
+
+        using var assertionScope = new AssertionScope();
+        receiversWithMeteredData.Should()
+            .ContainSingle()
+            .Which.Actors
             .Should()
-            .SatisfyRespectively(
-                mar =>
+            .HaveCount(2)
+            .And.SatisfyRespectively(
+                a =>
                 {
-                    mar.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
-                    mar.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
+                    a.ActorNumber.Should().Be(_defaultEnergySupplier);
+                    a.ActorRole.Should().Be(ActorRole.EnergySupplier);
                 },
-                mar =>
+                a =>
                 {
-                    mar.ActorNumber.Should().Be(meteringPointMasterData.EnergySupplier);
-                    mar.ActorRole.Should().Be(ActorRole.EnergySupplier);
-                });
-
-        result.Actors.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public void Production()
-    {
-        var meteringPointMasterData = GetMasterData(MeteringPointType.Production);
-
-        var result = _sut.GetReceiversFromMasterData(meteringPointMasterData);
-
-        result.Actors.Should().HaveCount(2);
-        result.Actors.OrderBy(a => a.ActorRole.Name)
-            .Should()
-            .SatisfyRespectively(
-                mar =>
-                {
-                    mar.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
-                    mar.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
-                },
-                mar =>
-                {
-                    mar.ActorNumber.Should().Be(meteringPointMasterData.EnergySupplier);
-                    mar.ActorRole.Should().Be(ActorRole.EnergySupplier);
+                    a.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
+                    a.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
                 });
     }
 
     [Fact]
-    public void Exchange()
+    public void Given_MeteringPointTypeProduction_When_GetReceivers_Then_ReceiversAreEnergySupplierAndDanishEnergyAgency()
     {
-        var meteringPointMasterData = GetMasterData(MeteringPointType.Exchange);
+        var masterData = CreateMasterData(MeteringPointType.Production);
 
-        var result = _sut.GetReceiversFromMasterData(meteringPointMasterData);
+        var forwardMeteredDataInput = CreateForwardMeteredDataInput([masterData]);
 
-        result.Actors.Should().HaveCount(2);
-        result.Actors
-            .OrderBy(a => a.ActorRole.Name)
-            .ThenBy(a => a.ActorNumber.Value)
+        var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
+            [masterData],
+            forwardMeteredDataInput);
+
+        receiversWithMeteredData.Should()
+            .ContainSingle()
+            .Which.Actors
             .Should()
-            .SatisfyRespectively(
-                mar =>
+            .HaveCount(2)
+            .And.SatisfyRespectively(
+                a =>
                 {
-                    mar.ActorNumber.Should().Be(ActorNumber.Create("3333333333333"));
-                    mar.ActorRole.Should().Be(ActorRole.GridAccessProvider);
+                    a.ActorNumber.Should().Be(_defaultEnergySupplier);
+                    a.ActorRole.Should().Be(ActorRole.EnergySupplier);
                 },
-                mar =>
+                a =>
                 {
-                    mar.ActorNumber.Should().Be(ActorNumber.Create("4444444444444"));
-                    mar.ActorRole.Should().Be(ActorRole.GridAccessProvider);
+                    a.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
+                    a.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
                 });
     }
 
     [Fact]
-    public void VeProduction()
+    public void Given_MeteringPointTypeExchange_When_GetReceivers_Then_ReceiversAreGridAccessProviderNeighbors()
     {
-        var meteringPointMasterData = GetMasterData(MeteringPointType.VeProduction);
+        var masterData = CreateMasterData(MeteringPointType.Exchange);
 
-        var result = _sut.GetReceiversFromMasterData(meteringPointMasterData);
+        var forwardMeteredDataInput = CreateForwardMeteredDataInput([masterData]);
 
-        result.Actors.Should().HaveCount(2);
-        result.Actors
-            .OrderBy(a => a.ActorRole.Name)
-            .ThenBy(a => a.ActorNumber.Value)
+        var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
+            [masterData],
+            forwardMeteredDataInput);
+
+        receiversWithMeteredData.Should()
+            .ContainSingle()
+            .Which.Actors
             .Should()
-            .SatisfyRespectively(
-                mar =>
+            .HaveCount(2)
+            .And.SatisfyRespectively(
+                a =>
                 {
-                    mar.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
-                    mar.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
+                    a.ActorNumber.Should().Be(_defaultGridAccessProviderNeighbor1);
+                    a.ActorRole.Should().Be(ActorRole.GridAccessProvider);
                 },
-                mar =>
+                a =>
                 {
-                    mar.ActorNumber.Value.Should().Be(DataHubDetails.SystemOperatorNumber);
-                    mar.ActorRole.Should().Be(ActorRole.SystemOperator);
+                    a.ActorNumber.Should().Be(_defaultGridAccessProviderNeighbor2);
+                    a.ActorRole.Should().Be(ActorRole.GridAccessProvider);
                 });
     }
 
-    [Theory]
-    [InlineData(MeteringPointType.NetProduction)]
-    [InlineData(MeteringPointType.SupplyToGrid)]
-    [InlineData(MeteringPointType.ConsumptionFromGrid)]
-    [InlineData(MeteringPointType.WholesaleServicesInformation)]
-    [InlineData(MeteringPointType.OwnProduction)]
-    [InlineData(MeteringPointType.NetFromGrid)]
-    [InlineData(MeteringPointType.NetToGrid)]
-    [InlineData(MeteringPointType.TotalConsumption)]
-    [InlineData(MeteringPointType.Analysis)]
-    [InlineData(MeteringPointType.NotUsed)]
-    [InlineData(MeteringPointType.SurplusProductionGroup6)]
-    [InlineData(MeteringPointType.NetLossCorrection)]
-    [InlineData(MeteringPointType.OtherConsumption)]
-    [InlineData(MeteringPointType.OtherProduction)]
-    [InlineData(MeteringPointType.ExchangeReactiveEnergy)]
-    [InlineData(MeteringPointType.CollectiveNetProduction)]
-    [InlineData(MeteringPointType.CollectiveNetConsumption)]
-    public void Think_of_the_children()
+    [Fact]
+    public void Given_MeteringPointTypeVeProduction_When_GetReceivers_Then_ReceiversAreSystemOperatorAndDanishEnergyAgency()
     {
-        var meteringPointMasterData = GetMasterData(MeteringPointType.VeProduction);
+        var masterData = CreateMasterData(MeteringPointType.VeProduction);
 
-        var result = _sut.GetReceiversFromMasterData(meteringPointMasterData);
+        var forwardMeteredDataInput = CreateForwardMeteredDataInput([masterData]);
 
-        result.Actors.Should().HaveCount(2);
-        result.Actors
-            .OrderBy(a => a.ActorRole.Name)
-            .ThenBy(a => a.ActorNumber.Value)
+        var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
+            [masterData],
+            forwardMeteredDataInput);
+
+        receiversWithMeteredData.Should()
+            .ContainSingle()
+            .Which.Actors
             .Should()
-            .SatisfyRespectively(
-                mar =>
+            .HaveCount(2)
+            .And.SatisfyRespectively(
+                a =>
                 {
-                    mar.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
-                    mar.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
+                    a.ActorNumber.Value.Should().Be(DataHubDetails.SystemOperatorNumber);
+                    a.ActorRole.Should().Be(ActorRole.SystemOperator);
                 },
-                mar =>
+                a =>
                 {
-                    mar.ActorNumber.Value.Should().Be(DataHubDetails.SystemOperatorNumber);
-                    mar.ActorRole.Should().Be(ActorRole.SystemOperator);
+                    a.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
+                    a.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
                 });
     }
 
-    private MeteringPointMasterData GetMasterData(MeteringPointType meteringPointType) =>
-        new(
-            new MeteringPointId("1"),
-            new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero),
-            new GridAreaCode("1"),
-            ActorNumber.Create("1111111111111"),
-            ["3333333333333", "4444444444444"],
-            ConnectionState.Connected,
-            meteringPointType,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "1",
-            null,
-            ActorNumber.Create("2222222222222"));
+    [Fact]
+    public void Given_MultipleMasterDataPeriodsWithDifferentResolutions_When_GetReceivers_Then_MeteredDataIsSplitToCorrectMasterDataPeriods()
+    {
+        const int masterData1Days = 80;
+        var masterData1Resolution = Resolution.Hourly;
+        const int masterData1ElementsPerDay = 24; // Hourly resolution = 24 elements per day.
+        var masterData1Start = Instant.FromUtc(2024, 02, 28, 23, 00);
+        var masterData1End = masterData1Start.Plus(Duration.FromDays(masterData1Days));
+
+        const int masterData2Days = 17;
+        var masterData2Resolution = Resolution.Daily;
+        const int masterData2ElementsPerDay = 1; // Daily resolution = 1 element per day.
+        var masterData2Start = masterData1End;
+        var masterData2End = masterData2Start.Plus(Duration.FromDays(masterData2Days));
+
+        const int masterData3Days = 268;
+        var masterData3Resolution = Resolution.QuarterHourly;
+        const int masterData3ElementsPerDay = 24 * 4; // 15 minutes resolution = 24 * 4 = 96 elements per day.
+        var masterData3Start = masterData2End;
+        var masterData3End = masterData3Start.Plus(Duration.FromDays(masterData3Days));
+
+        var masterData1 = CreateMasterData(from: masterData1Start, to: masterData1End, resolution: masterData1Resolution);
+        var masterData2 = CreateMasterData(from: masterData2Start, to: masterData2End, resolution: masterData2Resolution);
+        var masterData3 = CreateMasterData(from: masterData3Start, to: masterData3End, resolution: masterData3Resolution);
+
+        List<MeteringPointMasterData> masterDataList = [masterData1, masterData2, masterData3];
+
+        var forwardMeteredDataInput = CreateForwardMeteredDataInput(masterDataList);
+
+        var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
+            masterDataList,
+            forwardMeteredDataInput);
+
+        using var assertionScope = new AssertionScope();
+        receiversWithMeteredData.Should()
+            .HaveCount(3)
+            .And.SatisfyRespectively(
+                (r) =>
+                {
+                    r.StartDateTime.Should().Be(masterData1Start.ToDateTimeOffset());
+                    r.EndDateTime.Should().Be(masterData1End.ToDateTimeOffset());
+                    r.MeteredData.Should().HaveCount(masterData1Days * masterData1ElementsPerDay);
+                    r.MeteredData.First().Position.Should().Be(1);
+                    r.MeteredData.Last().Position.Should().Be(r.MeteredData.Count);
+                },
+                (r) =>
+                {
+                    r.StartDateTime.Should().Be(masterData2Start.ToDateTimeOffset());
+                    r.EndDateTime.Should().Be(masterData2End.ToDateTimeOffset());
+                    r.MeteredData.Should().HaveCount(masterData2Days * masterData2ElementsPerDay);
+                    r.MeteredData.First().Position.Should().Be(1);
+                    r.MeteredData.Last().Position.Should().Be(r.MeteredData.Count);
+                },
+                (r) =>
+                {
+                    r.StartDateTime.Should().Be(masterData3Start.ToDateTimeOffset());
+                    r.EndDateTime.Should().Be(masterData3End.ToDateTimeOffset());
+                    r.MeteredData.Should().HaveCount(masterData3Days * masterData3ElementsPerDay);
+                    r.MeteredData.First().Position.Should().Be(1);
+                    r.MeteredData.Last().Position.Should().Be(r.MeteredData.Count);
+                });
+    }
+
+    // [Theory]
+    // [InlineData(MeteringPointType.NetProduction)]
+    // [InlineData(MeteringPointType.SupplyToGrid)]
+    // [InlineData(MeteringPointType.ConsumptionFromGrid)]
+    // [InlineData(MeteringPointType.WholesaleServicesInformation)]
+    // [InlineData(MeteringPointType.OwnProduction)]
+    // [InlineData(MeteringPointType.NetFromGrid)]
+    // [InlineData(MeteringPointType.NetToGrid)]
+    // [InlineData(MeteringPointType.TotalConsumption)]
+    // [InlineData(MeteringPointType.Analysis)]
+    // [InlineData(MeteringPointType.NotUsed)]
+    // [InlineData(MeteringPointType.SurplusProductionGroup6)]
+    // [InlineData(MeteringPointType.NetLossCorrection)]
+    // [InlineData(MeteringPointType.OtherConsumption)]
+    // [InlineData(MeteringPointType.OtherProduction)]
+    // [InlineData(MeteringPointType.ExchangeReactiveEnergy)]
+    // [InlineData(MeteringPointType.CollectiveNetProduction)]
+    // [InlineData(MeteringPointType.CollectiveNetConsumption)]
+    // public void Think_of_the_children()
+    // {
+    //     var meteringPointMasterData = GetMasterData(MeteringPointType.VeProduction);
+    //
+    //     var result = _sut.GetReceiversFromMasterData(meteringPointMasterData);
+    //
+    //     result.Actors.Should().HaveCount(2);
+    //     result.Actors
+    //         .OrderBy(a => a.ActorRole.Name)
+    //         .ThenBy(a => a.ActorNumber.Value)
+    //         .Should()
+    //         .SatisfyRespectively(
+    //             mar =>
+    //             {
+    //                 mar.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
+    //                 mar.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
+    //             },
+    //             mar =>
+    //             {
+    //                 mar.ActorNumber.Value.Should().Be(DataHubDetails.SystemOperatorNumber);
+    //                 mar.ActorRole.Should().Be(ActorRole.SystemOperator);
+    //             });
+    // }
+
+    // private List<MeteringPointMasterData> CreateMasterDataList(
+    //     List<(
+    //         MeteringPointType MeteringPointType,
+    //         Instant From,
+    //         Instant To,
+    //         Resolution Resolution,
+    //         ActorNumber GridAccessProvider,
+    //         ActorNumber EnergySupplier)> masterDataList)
+    // {
+    //     return masterDataList
+    //         .Select(
+    //             md => CreateMasterData(
+    //                 meteringPointType: md.MeteringPointType,
+    //                 from: md.From,
+    //                 to: md.To,
+    //                 resolution: md.Resolution,
+    //                 gridAccessProvider: md.GridAccessProvider,
+    //                 energySupplier: md.EnergySupplier))
+    //         .ToList();
+    // }
+
+    private MeteringPointMasterData CreateMasterData(
+        MeteringPointType? meteringPointType = null,
+        Instant? from = null,
+        Instant? to = null,
+        Resolution? resolution = null,
+        ActorNumber? gridAccessProvider = null,
+        ActorNumber? energySupplier = null)
+    {
+        return new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId("1"),
+            ValidFrom: (from ?? _defaultFrom).ToDateTimeOffset(),
+            ValidTo: (to ?? _defaultTo).ToDateTimeOffset(),
+            GridAreaCode: new GridAreaCode("1"),
+            GridAccessProvider: gridAccessProvider ?? _defaultGridAccessProvider,
+            NeighborGridAreaOwners: [_defaultGridAccessProviderNeighbor1.Value, _defaultGridAccessProviderNeighbor2.Value],
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: meteringPointType ?? _defaultMeteringPointType,
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            Resolution: resolution ?? _defaultResolution,
+            MeasurementUnit: MeasurementUnit.KilowattHour,
+            ProductId: "1",
+            ParentMeteringPointId: null,
+            EnergySupplier: energySupplier ?? _defaultEnergySupplier);
+    }
+
+    private ForwardMeteredDataInputV1 CreateForwardMeteredDataInput(List<MeteringPointMasterData> masterData)
+    {
+        var currentPosition = 1;
+        var meteredData = masterData
+            .OrderBy(mpmd => mpmd.ValidFrom)
+            .SelectMany(
+                mpmd =>
+                {
+                    var resolutionAsDuration = mpmd.Resolution switch
+                    {
+                        var r when r == Resolution.QuarterHourly => Duration.FromMinutes(15),
+                        var r when r == Resolution.Hourly => Duration.FromHours(1),
+                        var r when r == Resolution.Daily => Duration.FromDays(1),
+                        _ => throw new ArgumentOutOfRangeException(
+                            paramName: nameof(mpmd.Resolution),
+                            actualValue: mpmd.Resolution.Name,
+                            message: "Invalid resolution"),
+                    };
+
+                    var currentTimestamp = mpmd.ValidFrom.ToInstant();
+                    var meteredDataForMasterData = new List<ForwardMeteredDataInputV1.MeteredData>();
+                    while (currentTimestamp < mpmd.ValidTo.ToInstant())
+                    {
+                        meteredDataForMasterData.Add(
+                            new ForwardMeteredDataInputV1.MeteredData(
+                                Position: currentPosition.ToString(),
+                                EnergyQuantity: "1.4",
+                                QuantityQuality: Quality.AsProvided.Name));
+
+                        currentTimestamp = currentTimestamp.Plus(resolutionAsDuration);
+
+                        currentPosition++;
+                    }
+
+                    return meteredDataForMasterData;
+                })
+            .ToList();
+
+        var from = InstantPattern.General.Format(masterData.First().ValidFrom.ToInstant());
+        var to = InstantPattern.General.Format(masterData.Last().ValidTo.ToInstant());
+
+        return new ForwardMeteredDataInputV1(
+            ActorMessageId: "1",
+            TransactionId: "2",
+            ActorNumber: "1234567890123",
+            ActorRole: ActorRole.GridAccessProvider.Name,
+            BusinessReason: BusinessReason.PeriodicMetering.Name,
+            MeteringPointId: "1234567890123",
+            MeteringPointType: masterData.First().MeteringPointType.Name,
+            ProductNumber: "3",
+            MeasureUnit: MeasurementUnit.KilowattHour.Name,
+            RegistrationDateTime: from,
+            Resolution: masterData.First().Resolution.Name,
+            StartDateTime: from,
+            EndDateTime: to,
+            GridAccessProviderNumber: masterData.First().GridAccessProvider.Value,
+            DelegatedGridAreaCodes: [],
+            MeteredDataList: meteredData);
+    }
 }

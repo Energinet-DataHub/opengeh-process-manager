@@ -24,7 +24,7 @@ using Microsoft.DurableTask;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1;
 
-internal class Orchestration_Brs_045_MissingMeasurementsLogCal_V1
+internal class Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1
 {
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_045_MissingMeasurementsLogCalculation.V1;
 
@@ -32,7 +32,7 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogCal_V1
 
     private readonly TaskOptions _defaultTaskOptions;
 
-    public Orchestration_Brs_045_MissingMeasurementsLogCal_V1()
+    public Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1()
     {
         // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
         // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
@@ -45,7 +45,7 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogCal_V1
         _defaultTaskOptions = new TaskOptions(_defaultRetryOptions);
     }
 
-    [Function(nameof(Orchestration_Brs_045_MissingMeasurementsLogCal_V1))]
+    [Function(nameof(Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
@@ -80,8 +80,8 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogCal_V1
             _defaultTaskOptions);
 
         var instanceContext = await context.CallActivityAsync<OrchestrationInstanceContext>(
-            nameof(GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogCal_V1),
-            new GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogCal_V1.ActivityInput(
+            nameof(GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogCalculation_V1),
+            new GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogCalculation_V1.ActivityInput(
                 instanceId),
             _defaultTaskOptions);
 

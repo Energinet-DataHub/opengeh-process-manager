@@ -23,12 +23,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Miss
 /// <summary>
 /// Get the <see cref="OrchestrationInstanceContext"/> for the orchestration instance.
 /// </summary>
-internal class GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogCal_V1(
-    IOptions<OrchestrationOptions_Brs_045_MissingMeasurementsLogCal_V1> orchestrationOptions)
+internal class GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogCalculation_V1(
+    IOptions<OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1> orchestrationOptions)
 {
-    private readonly OrchestrationOptions_Brs_045_MissingMeasurementsLogCal_V1 _orchestrationOptions = orchestrationOptions.Value;
+    private readonly OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1 _orchestrationOptions = orchestrationOptions.Value;
 
-    [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogCal_V1))]
+    [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogCalculation_V1))]
     public Task<OrchestrationInstanceContext> Run(
         [ActivityTrigger] ActivityInput input)
     {

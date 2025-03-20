@@ -15,9 +15,9 @@
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Options;
 
 /// <summary>
-/// Options for the <see cref="Orchestration_Brs_045_MissingMeasurementsLogCal_V1"/>.
+/// Options for the <see cref="Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1"/>.
 /// </summary>
-public class OrchestrationOptions_Brs_045_MissingMeasurementsLogCal_V1
+public class OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1
 {
     public const string SectionName = "Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1";
 

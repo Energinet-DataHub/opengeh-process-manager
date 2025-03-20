@@ -22,14 +22,14 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 {
     public OrchestrationDescription Build()
     {
-        var orchestrationDescriptionUniqueName = Orchestration_Brs_045_MissingMeasurementsLogCal_V1.UniqueName;
+        var orchestrationDescriptionUniqueName = Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1.UniqueName;
 
         var description = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
                 orchestrationDescriptionUniqueName.Name,
                 orchestrationDescriptionUniqueName.Version),
             canBeScheduled: true,
-            functionName: nameof(Orchestration_Brs_045_MissingMeasurementsLogCal_V1));
+            functionName: nameof(Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1));
 
         description.RecurringCronExpression = string.Empty;
         // Runs at 02:00 every day

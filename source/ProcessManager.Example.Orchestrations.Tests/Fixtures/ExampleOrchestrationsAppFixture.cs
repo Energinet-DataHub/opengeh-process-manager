@@ -16,6 +16,7 @@ using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -69,6 +70,11 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
             ExampleOrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
+
+        EnqueueBrs101ServiceBusListener = new ServiceBusListenerMock(
+            ExampleOrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -82,8 +88,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
     [NotNull]
     public IDurableClient? DurableClient { get; private set; }
 
-    [NotNull]
-    public TopicResource? EdiTopic { get; private set; }
+    public ServiceBusListenerMock EnqueueBrs101ServiceBusListener { get; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -100,23 +105,33 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
         await DatabaseManager.CreateDatabaseAsync();
 
-        // Process Manager Notify topic
+        // Start Process Manager app
+        // => Creates Process Manager default Notify topic and subscription
         await ProcessManagerAppManager.StartAsync();
 
+        // Creates EDI enqueue actor messages topic and subscriptions
         var ediTopicBuilder = ServiceBusResourceProvider.BuildTopic("edi-topic");
-        ExampleConsumerAppManager.EdiTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
-        EdiTopic = await ediTopicBuilder.CreateAsync();
+        ExampleOrchestrationsAppManager.EdiEnqueueTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
+        ExampleConsumerAppManager.EdiEnqueueTopicResources.AddSubscriptionsToTopicBuilder(ediTopicBuilder);
+        var ediTopicResource = await ediTopicBuilder.CreateAsync();
+        var ediEnqueueTopicResources = ExampleOrchestrationsAppManager.EdiEnqueueTopicResources.CreateFromTopic(ediTopicResource);
+        // => Create listeners for enqueue messages
+        await EnqueueBrs101ServiceBusListener.AddTopicSubscriptionListenerAsync(
+            ediEnqueueTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.TopicName,
+            ediEnqueueTopicResources.Brs101UpdateMeteringPointConnectionStateSubscription.SubscriptionName);
 
-        // Process Manager Start topic
-        await ExampleOrchestrationsAppManager.StartAsync(
-            ExampleOrchestrationsAppManager.EdiTopicResources.CreateFromTopic(EdiTopic));
+        // Start Example Orchestrations app
+        // => Creates Process Manager default Start topics and subscriptions
+        // => Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
+        await ExampleOrchestrationsAppManager.StartAsync(ediEnqueueTopicResources);
 
+        // Start Example Consumer app
         await ExampleConsumerAppManager.StartAsync(
             ExampleOrchestrationsAppManager.ProcessManagerStartTopic,
             ProcessManagerAppManager.ProcessManagerNotifyTopic,
             ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic,
             ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic,
-            ExampleConsumerAppManager.EdiTopicResources.CreateFromTopic(EdiTopic),
+            ExampleConsumerAppManager.EdiEnqueueTopicResources.CreateFromTopic(ediTopicResource),
             processManagerApiUrl: ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri,
             orchestrationsApiUrl: ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri);
 
@@ -131,6 +146,7 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
         await ProcessManagerAppManager.DisposeAsync();
         await DurableTaskManager.DisposeAsync();
         await DatabaseManager.DeleteDatabaseAsync();
+        await EnqueueBrs101ServiceBusListener.DisposeAsync();
         await ServiceBusResourceProvider.DisposeAsync();
 
         AzuriteManager.Dispose();

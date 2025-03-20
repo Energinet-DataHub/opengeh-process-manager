@@ -15,7 +15,7 @@
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 public static class ServiceBusReceivedMessageExtensions
 {

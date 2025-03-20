@@ -370,11 +370,11 @@ public class StartForwardMeteredDataHandlerV1(
             MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
             Unit: MeasurementUnit.FromName(input.MeasureUnit!),
             Resolution: Resolution.FromName(input.Resolution!),
-            Points: input.EnergyObservations.Select(
+            Points: input.MeteredDataList.Select(
                     MapPoints)
                 .ToList());
 
-    private Point MapPoints(ForwardMeteredDataInputV1.EnergyObservation eo)
+    private Point MapPoints(ForwardMeteredDataInputV1.MeteredData eo)
     {
         // TODO: temporary solution until we have business validation rules for quality
         var quality = string.IsNullOrWhiteSpace(eo.QuantityQuality) || eo.QuantityQuality == Quality.Incomplete.Name

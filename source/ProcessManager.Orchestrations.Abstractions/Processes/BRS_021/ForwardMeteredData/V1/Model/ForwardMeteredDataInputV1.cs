@@ -39,7 +39,7 @@ public record ForwardMeteredDataInputV1(
     : IInputParameterDto
 {
     public record MeteredData(
-        string? Position, // TODO: Shouldn't this be int?
-        string? EnergyQuantity, // TODO: Shouldn't this be decimal?
+        string? Position,
+        string? EnergyQuantity,
         string? QuantityQuality);
 }

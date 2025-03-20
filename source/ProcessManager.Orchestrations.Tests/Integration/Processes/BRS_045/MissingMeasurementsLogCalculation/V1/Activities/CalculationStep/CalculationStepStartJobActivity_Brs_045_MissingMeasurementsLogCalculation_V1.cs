@@ -47,7 +47,7 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
         var client = new Mock<IDatabricksJobsClient>();
         client.Setup(x => x.StartJobAsync("MissingMeasurementsLog", jobParameters)).ReturnsAsync(jobRunId);
         var clock = new Mock<IClock>();
-        var timeHelper = new Mock<ITimeHelper>();
+        var timeHelper = new Mock<TimeHelper>();
         timeHelper.Setup(x => x.GetMidnightZonedDateTime(It.IsAny<Instant>())).Returns(date);
         var sut = new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(client.Object, clock.Object, timeHelper.Object);
 

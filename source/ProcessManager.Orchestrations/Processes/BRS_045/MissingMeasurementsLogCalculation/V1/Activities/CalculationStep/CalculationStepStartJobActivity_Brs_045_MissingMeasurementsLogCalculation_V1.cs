@@ -28,11 +28,11 @@ internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal
     [FromKeyedServices(DatabricksWorkspaceNames.Measurements)]
     IDatabricksJobsClient client,
     IClock clock,
-    ITimeHelper timeHelper)
+    TimeHelper timeHelper)
 {
     private readonly IDatabricksJobsClient _client = client;
     private readonly IClock _clock = clock;
-    private readonly ITimeHelper _timeHelper = timeHelper;
+    private readonly TimeHelper _timeHelper = timeHelper;
 
     [Function(nameof(CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1))]
     public async Task<JobRunId> Run(

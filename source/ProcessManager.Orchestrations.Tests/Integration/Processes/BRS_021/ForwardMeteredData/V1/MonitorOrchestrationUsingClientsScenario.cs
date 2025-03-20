@@ -449,7 +449,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             MeteringPointId: "571313101700011887",
             MeteringPointType: MeteringPointType.Production.Name,
             ProductNumber: "8716867000047",
-            MeasureUnit: MeasurementUnit.MetricTon.Name,
+            MeasureUnit: MeasurementUnit.KilowattHour.Name,
             RegistrationDateTime: "2024-12-03T08:00:00Z",
             Resolution: Resolution.Hourly.Name,
             StartDateTime: "2024-12-01T23:00:00Z",
@@ -497,8 +497,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData()
         {
             Identification = new MeteringPointIdentification("571313101700011887"),
-            ValidFrom = Instant.FromUtc(2023, 11, 29, 12, 34, 56),
-            ValidTo = Instant.FromUtc(2024, 11, 29, 12, 34, 56),
+            ValidFrom = Instant.FromUtc(2024, 12, 01, 23, 00, 00),
+            ValidTo = Instant.FromUtc(2024, 12, 31, 23, 00, 00),
             GridAreaCode = new ElectricityMarket.Integration.Models.MasterData.GridAreaCode("804"),
             GridAccessProvider = "2222222222222",
             NeighborGridAreaOwners = ["Owner1", "Owner2"],

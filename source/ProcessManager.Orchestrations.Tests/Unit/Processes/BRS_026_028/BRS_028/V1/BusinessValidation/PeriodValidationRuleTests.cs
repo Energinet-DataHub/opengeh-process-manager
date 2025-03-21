@@ -21,7 +21,7 @@ using FluentAssertions.Execution;
 using NodaTime;
 using NodaTime.Extensions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_028.V1.BusinessValidation.Rules;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 
 public class PeriodValidationRuleTests
 {

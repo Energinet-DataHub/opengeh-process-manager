@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1;
-
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Options;
 
 /// <summary>
@@ -21,7 +19,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Miss
 /// </summary>
 public class OrchestrationOptions_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1
 {
-    public const string SectionName = "Orchestration_Brs_021_CapasitySettlementCalculation_V1";
+    public const string SectionName = "Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1";
 
     /// <summary>
     /// Time between each call to get the calculation job status.

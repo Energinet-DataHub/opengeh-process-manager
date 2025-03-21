@@ -16,13 +16,18 @@ using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using NodaTime;
+using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1;
 
 internal class StartCalculationHandlerV1(
+    DateTimeZone dateTimeZone,
     IStartOrchestrationInstanceCommands manager) :
         IStartOrchestrationInstanceCommandHandler<StartCalculationCommandV1, CalculationInputV1>
 {
+    private readonly DateTimeZone _dateTimeZone = dateTimeZone;
+
     public async Task<Guid> HandleAsync(StartCalculationCommandV1 command)
     {
         GuardInputParameter(command.InputParameter);
@@ -45,15 +50,28 @@ internal class StartCalculationHandlerV1(
     /// contains validation errors in its message property.</exception>
     private void GuardInputParameter(CalculationInputV1 inputParameter)
     {
-        var period = inputParameter.PeriodEnd - inputParameter.PeriodStart;
-        if (period.Days is > 31 or < 1)
-        {
-            throw new InvalidOperationException("The period interval must be between 0 and 31 days.");
-        }
+        // Check that  the period start is midnight local time
+        var validationErrors = new List<string>();
 
-        if (inputParameter.GridAreaCodes.Count == 0)
-        {
-            throw new InvalidOperationException("At least one grid area code must be provided.");
-        }
+        if (!inputParameter.GridAreaCodes.Any())
+            validationErrors.Add("Must contain at least one grid area code.");
+
+        if (inputParameter.PeriodStartDate >= inputParameter.PeriodEndDate)
+            validationErrors.Add($"'{nameof(inputParameter.PeriodStartDate)}' is greater or equal to '{nameof(inputParameter.PeriodEndDate)}'.");
+
+        var periodStart = inputParameter.PeriodStartDate.ToInstant();
+        var periodStartInTimeZone = new ZonedDateTime(periodStart, _dateTimeZone);
+
+        var periodEnd = inputParameter.PeriodEndDate.ToInstant();
+        var periodEndInTimeZone = new ZonedDateTime(periodEnd, _dateTimeZone);
+
+        // Validate that period start/end are set to midnight
+        if (periodStartInTimeZone.TimeOfDay != LocalTime.Midnight)
+            validationErrors.Add($"The period start '{inputParameter.PeriodStartDate}' must be midnight.");
+        if (periodEndInTimeZone.TimeOfDay != LocalTime.Midnight)
+            validationErrors.Add($"The period end '{inputParameter.PeriodEndDate}' must be midnight.");
+
+        if (validationErrors.Any())
+            throw new InvalidOperationException(string.Join(" ", validationErrors));
     }
 }

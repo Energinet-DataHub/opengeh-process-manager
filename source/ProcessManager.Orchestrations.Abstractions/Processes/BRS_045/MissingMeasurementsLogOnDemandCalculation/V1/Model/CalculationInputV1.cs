@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model;
 
@@ -21,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// An immutable input to start the orchestration instance for "BRS-045 Missing Measurements Log on demand calculation" V1.
 /// </summary>
 public record CalculationInputV1(
-    Instant PeriodStart,
-    Instant PeriodEnd,
+    DateTimeOffset PeriodStartDate,
+    DateTimeOffset PeriodEndDate,
     List<int> GridAreaCodes)
         : IInputParameterDto;

@@ -15,7 +15,6 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1;
@@ -24,14 +23,14 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 {
     public OrchestrationDescription Build()
     {
-        var orchestrationDescriptionUniqueName = Orchestration_Brs_021_CapacitySettlementCalculation_V1.UniqueName;
+        var orchestrationDescriptionUniqueName = Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.UniqueName;
 
         var description = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
                 orchestrationDescriptionUniqueName.Name,
                 orchestrationDescriptionUniqueName.Version),
             canBeScheduled: false,
-            functionName: nameof(Orchestration_Brs_021_CapacitySettlementCalculation_V1));
+            functionName: nameof(Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1));
 
         // Added inputs (parameters) from the HTTP request to the description so that the framework knows that inputs are used.
         description.ParameterDefinition.SetFromType<CalculationInputV1>();

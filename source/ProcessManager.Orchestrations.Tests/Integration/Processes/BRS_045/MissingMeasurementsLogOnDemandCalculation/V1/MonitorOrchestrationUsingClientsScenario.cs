@@ -27,7 +27,6 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Extensions.DependencyInjection;
-using NodaTime;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1;
@@ -101,9 +100,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 new StartCalculationCommandV1(
                     Fixture.DefaultUserIdentity,
                     new CalculationInputV1(
-                        Instant.FromUtc(2025, 1, 1, 23, 0, 0),
-                        Instant.FromUtc(2025, 1, 10, 23, 0, 0),
-                        new List<int>(301))),
+                        new DateTimeOffset(2025, 1, 1, 23, 0, 0, TimeSpan.Zero),
+                        new DateTimeOffset(2025, 1, 10, 23, 0, 0, TimeSpan.Zero),
+                        new List<int> { 301 })),
                 CancellationToken.None);
 
         // Step 2: Query until terminated with succeeded

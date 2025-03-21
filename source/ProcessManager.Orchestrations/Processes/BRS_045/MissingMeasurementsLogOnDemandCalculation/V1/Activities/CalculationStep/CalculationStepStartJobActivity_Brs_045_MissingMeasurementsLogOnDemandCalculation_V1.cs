@@ -43,8 +43,8 @@ internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogOnD
         var jobParameters = new List<string>
         {
             $"--orchestration-instance-id={input.OrchestrationInstanceId.Value}",
-            $"--period-start-datetime={orchestrationInstanceInput.PeriodStart}",
-            $"--period-end-datetime={orchestrationInstanceInput.PeriodEnd}",
+            $"--period-start-datetime={orchestrationInstanceInput.PeriodStartDate}",
+            $"--period-end-datetime={orchestrationInstanceInput.PeriodEndDate}",
         };
 
         return await _client.StartJobAsync("MissingMeasurementsLogOnDemand", jobParameters).ConfigureAwait(false);

@@ -89,13 +89,20 @@ public class MeteringPointMasterDataProvider(
         {
             try
             {
-                parentMeteringPointMasterData.Add(
-                    parentId!.Value,
-                    (await _electricityMarketViews
-                        .GetMeteringPointMasterDataChangesAsync(
-                            new MeteringPointIdentification(parentId!.Value),
-                            new Interval(parentFrom, parentTo))
-                        .ConfigureAwait(false)).ToImmutableList());
+                var newParentMasterData = (await _electricityMarketViews
+                    .GetMeteringPointMasterDataChangesAsync(
+                        new MeteringPointIdentification(parentId!.Value),
+                        new Interval(parentFrom, parentTo))
+                    .ConfigureAwait(false)).ToImmutableList();
+
+                if (parentMeteringPointMasterData.TryGetValue(parentId.Value, out var existingParentMasterData))
+                {
+                    parentMeteringPointMasterData[parentId.Value] = [.. existingParentMasterData, .. newParentMasterData];
+                }
+                else
+                {
+                    parentMeteringPointMasterData.Add(parentId.Value, newParentMasterData);
+                }
             }
             catch (Exception e)
             {
@@ -296,7 +303,8 @@ public class MeteringPointMasterDataProvider(
                                             ActorNumber.Create(mpes.EnergySupplier))));
                 })
             .ToList()
-            .AsReadOnly(), []);
+            .AsReadOnly(),
+            []);
     }
 
     public sealed class MeteringPointMasterDataInconsistencyException(string? message) : Exception(message);

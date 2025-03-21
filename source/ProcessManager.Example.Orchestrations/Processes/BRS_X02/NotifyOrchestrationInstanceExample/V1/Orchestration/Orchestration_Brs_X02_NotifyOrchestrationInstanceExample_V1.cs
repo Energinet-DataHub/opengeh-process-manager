@@ -13,23 +13,24 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Steps;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Activities;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Orchestration.Steps;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Orchestration;
 
-internal class Orchestration_Brs_X02_ActorRequestProcessExample_V1
+internal class Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1
 {
-    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_X02_ActorRequestProcessExample.V1;
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_X02_NotifyOrchestrationInstanceExample.V1;
 
     private readonly TaskRetryOptions _defaultRetryOptions;
 
-    public Orchestration_Brs_X02_ActorRequestProcessExample_V1()
+    public Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1()
     {
         _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(new RetryPolicy(
             maxNumberOfAttempts: 5,
@@ -37,54 +38,51 @@ internal class Orchestration_Brs_X02_ActorRequestProcessExample_V1
             backoffCoefficient: 2.0));
     }
 
-    [Function(nameof(Orchestration_Brs_X02_ActorRequestProcessExample_V1))]
+    [Function(nameof(Orchestration_Brs_X02_NotifyOrchestrationInstanceExample_V1))]
     public async Task<string> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        // Initialize orchestration instance
-        var instanceId = await InitializeOrchestrationAsync(context);
+        // Initialize
+        var orchestrationInstanceContext = await InitializeOrchestrationAsync(context);
 
-        var businessValidationResult = await new BusinessValidationStep(
+        // Wait for "ExampleNotifyEvent" notify event
+        var hasReceivedExampleNotifyEvent = await new WaitForNotifyEventStep(
                 context,
                 _defaultRetryOptions,
-                instanceId)
+                orchestrationInstanceContext.OrchestrationInstanceId,
+                orchestrationInstanceContext.Options.WaitForExampleNotifyEventTimeout)
             .ExecuteAsync();
 
-        await new EnqueueActorMessagesStep(
-                context,
-                _defaultRetryOptions,
-                instanceId,
-                businessValidationResult.ValidationErrors)
-            .ExecuteAsync();
-
-        // Terminate orchestration instance
         return await TerminateOrchestrationAsync(
             context,
-            instanceId,
-            businessValidationResult.ValidationErrors);
+            orchestrationInstanceContext.OrchestrationInstanceId,
+            hasReceivedExampleNotifyEvent);
     }
 
-    private async Task<OrchestrationInstanceId> InitializeOrchestrationAsync(TaskOrchestrationContext context)
+    private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
         await context.CallActivityAsync(
             nameof(TransitionOrchestrationToRunningActivity_V1),
-            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(
+            new TransitionOrchestrationToRunningActivity_V1.ActivityInput(instanceId),
+            new TaskOptions(_defaultRetryOptions));
+
+        var orchestrationExecutionPlan = await context.CallActivityAsync<OrchestrationInstanceContext>(
+            nameof(GetOrchestrationInstanceContextActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1),
+            new GetOrchestrationInstanceContextActivity_Brs_X02_NotifyOrchestrationInstanceExample_V1.ActivityInput(
                 instanceId),
             new TaskOptions(_defaultRetryOptions));
-        await Task.CompletedTask;
 
-        return instanceId;
+        return orchestrationExecutionPlan;
     }
 
     private async Task<string> TerminateOrchestrationAsync(
         TaskOrchestrationContext context,
         OrchestrationInstanceId instanceId,
-        IReadOnlyCollection<ValidationError> validationErrors)
+        bool hasReceivedExampleNotifyEvent)
     {
-        var validationSuccessful = validationErrors.Count == 0;
-        var terminationState = validationSuccessful
+        var terminationState = hasReceivedExampleNotifyEvent
             ? OrchestrationInstanceTerminationState.Succeeded
             : OrchestrationInstanceTerminationState.Failed;
 
@@ -94,10 +92,9 @@ internal class Orchestration_Brs_X02_ActorRequestProcessExample_V1
                 instanceId,
                 terminationState),
             new TaskOptions(_defaultRetryOptions));
-        await Task.CompletedTask;
 
-        return validationSuccessful
+        return hasReceivedExampleNotifyEvent
             ? "Success"
-            : "Failed business validation";
+            : "Error: Didn't receive example notify event";
     }
 }

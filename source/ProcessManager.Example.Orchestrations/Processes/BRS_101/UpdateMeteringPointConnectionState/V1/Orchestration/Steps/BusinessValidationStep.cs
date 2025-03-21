@@ -14,32 +14,35 @@
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Activities;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Orchestration.Steps;
 
 internal class BusinessValidationStep(
     TaskOrchestrationContext context,
     TaskRetryOptions retryOptions,
     OrchestrationInstanceId instanceId)
-        : StepExecutor<PerformBusinessValidationActivity_Brs_X02_ActorRequestProcessExample_V1.ActivityOutput>(context, retryOptions, instanceId)
+        : StepExecutor<PerformBusinessValidationActivity_Brs_101_UpdateMeteringPointConnectionState_V1.ActivityOutput>(
+            context,
+            retryOptions,
+            instanceId)
 {
-    internal const string StepDescription = "Business validation";
+    internal const string StepDescription = "Forretningsvalidering";
     internal const int StepSequence = 1;
 
     protected override int StepSequenceNumber => StepSequence;
 
     protected override async Task<StepOutput> OnExecuteAsync()
     {
-        var businessValidationResult = await Context.CallActivityAsync<PerformBusinessValidationActivity_Brs_X02_ActorRequestProcessExample_V1.ActivityOutput>(
-            nameof(PerformBusinessValidationActivity_Brs_X02_ActorRequestProcessExample_V1),
-            new PerformBusinessValidationActivity_Brs_X02_ActorRequestProcessExample_V1.ActivityInput(
+        var businessValidationResult = await Context.CallActivityAsync<PerformBusinessValidationActivity_Brs_101_UpdateMeteringPointConnectionState_V1.ActivityOutput>(
+            nameof(PerformBusinessValidationActivity_Brs_101_UpdateMeteringPointConnectionState_V1),
+            new PerformBusinessValidationActivity_Brs_101_UpdateMeteringPointConnectionState_V1.ActivityInput(
                 InstanceId),
             DefaultRetryOptions);
 
-        var stepTerminationState = businessValidationResult.ValidationErrors.Count == 0
+        var stepTerminationState = businessValidationResult.IsValid
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
 
@@ -47,5 +50,6 @@ internal class BusinessValidationStep(
     }
 
     internal record CustomState(
+        bool IsValid,
         IReadOnlyCollection<ValidationError> ValidationErrors);
 }

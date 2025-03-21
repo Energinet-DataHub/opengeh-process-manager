@@ -13,31 +13,25 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Orchestration.Steps;
 
-internal class ExampleStep(
+internal class FirstStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceId instanceId)
-        : StepExecutor<int>(context, defaultRetryOptions, instanceId)
+        : StepExecutor(context, defaultRetryOptions, instanceId)
 {
-    internal const string StepDescription = "Example step";
+    internal const string StepDescription = "Example step 1";
     internal const int StepSequence = 1;
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<StepOutput> OnExecuteAsync()
+    protected override Task<OrchestrationStepTerminationState> OnExecuteAsync()
     {
-        var workResult = await Context.CallActivityAsync<PerformCalculationActivity_Brs_X01_NoInputExample_V1.ActivityOutput>(
-                nameof(PerformCalculationActivity_Brs_X01_NoInputExample_V1),
-                new PerformCalculationActivity_Brs_X01_NoInputExample_V1.ActivityInput(
-                    InstanceId),
-                DefaultRetryOptions);
-
-        return new StepOutput(OrchestrationStepTerminationState.Succeeded, workResult.CalculationResult);
+        // Step does nothing
+        return Task.FromResult(OrchestrationStepTerminationState.Succeeded);
     }
 }

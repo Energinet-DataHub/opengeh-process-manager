@@ -14,24 +14,23 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Steps;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Orchestration.Steps;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Orchestration;
 
 internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
 {
     public OrchestrationDescription Build()
     {
         var description = new OrchestrationDescription(
-            uniqueName: Brs_X02_ActorRequestProcessExample.V1.MapToDomain(),
+            uniqueName: Brs_101_UpdateMeteringPointConnectionState.V1.MapToDomain(),
             canBeScheduled: false,
-            functionName: nameof(Orchestration_Brs_X02_ActorRequestProcessExample_V1));
+            functionName: nameof(Orchestration_Brs_101_UpdateMeteringPointConnectionState_V1));
 
-        description.ParameterDefinition.SetFromType<ActorRequestProcessExampleInputV1>();
+        description.ParameterDefinition.SetFromType<UpdateMeteringPointConnectionStateInputV1>();
 
         description.AppendStepDescription(BusinessValidationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);

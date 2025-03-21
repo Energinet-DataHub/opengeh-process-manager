@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Orchestration.Steps;
 
 internal class EnqueueActorMessagesStep(
     TaskOrchestrationContext context,

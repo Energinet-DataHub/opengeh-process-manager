@@ -14,23 +14,25 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Steps;
-using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Orchestration.Steps;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Orchestration;
 
 internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
 {
     public OrchestrationDescription Build()
     {
-        var description = new OrchestrationDescription(
-            uniqueName: Orchestration_Brs_X03_FailingOrchestrationInstanceExample_V1.UniqueName.MapToDomain(),
-            canBeScheduled: false,
-            functionName: nameof(Orchestration_Brs_X03_FailingOrchestrationInstanceExample_V1));
+        var orchestrationDescriptionUniqueName = Brs_X01_NoInputExample.V1;
 
-        description.AppendStepDescription(SuccessStep.StepDescription);
-        description.AppendStepDescription(FailingStep.StepDescription);
+        var description = new OrchestrationDescription(
+            uniqueName: new OrchestrationDescriptionUniqueName(
+                orchestrationDescriptionUniqueName.Name,
+                orchestrationDescriptionUniqueName.Version),
+            canBeScheduled: true,
+            functionName: nameof(Orchestration_Brs_X01_NoInputExample_V1));
+
+        description.AppendStepDescription(ExampleStep.StepDescription);
 
         return description;
     }

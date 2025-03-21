@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Orchestration.Steps;
 
 internal class EnqueueActorMessagesStep(
     TaskOrchestrationContext context,

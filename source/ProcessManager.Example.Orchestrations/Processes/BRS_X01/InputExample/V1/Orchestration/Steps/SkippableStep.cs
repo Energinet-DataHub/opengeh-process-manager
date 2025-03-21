@@ -13,29 +13,25 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Orchestration.Steps;
 
-internal class SuccessStep(
+internal class SkippableStep(
     TaskOrchestrationContext context,
-    TaskRetryOptions retryOptions,
+    TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceId instanceId)
-        : StepExecutor(context, retryOptions, instanceId)
+        : StepExecutor(context, defaultRetryOptions, instanceId)
 {
-    internal const string StepDescription = "Success step";
-    internal const int StepSequence = 1;
+    internal const string StepDescription = "Example step 2, can be skipped";
+    internal const int StepSequence = 2;
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<OrchestrationStepTerminationState> OnExecuteAsync()
+    protected override Task<OrchestrationStepTerminationState> OnExecuteAsync()
     {
-        await Context.CallActivityAsync(
-            name: nameof(SuccessActivity_Brs_X03_FailingOrchestrationInstanceExample_V1),
-            options: DefaultRetryOptions);
-
-        return OrchestrationStepTerminationState.Succeeded;
+        // Step does nothing
+        return Task.FromResult(OrchestrationStepTerminationState.Succeeded);
     }
 }

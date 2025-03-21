@@ -21,6 +21,11 @@ public class TimeHelper(DateTimeZone dateTimeZone)
 {
     private readonly DateTimeZone _dateTimeZone = dateTimeZone;
 
+    /// <summary>
+    /// Transforms the given instant to the midnight of the same day in the given timezone.
+    /// </summary>
+    /// <param name="instant">The instance to transformed.</param>
+    /// <returns>The new transformed instance.</returns>
     public Instant GetMidnightZonedDateTime(Instant instant)
     {
         var zonedDateTime = new ZonedDateTime(instant, _dateTimeZone);

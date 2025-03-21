@@ -34,7 +34,7 @@ public static class ServiceBusResponseMocking
             .When(
                 message =>
                 {
-                    if (message.Subject != EnqueueActorMessagesV1.BuildServiceBusMessageSubject(OrchestrationDescriptionBuilderV1.UniqueName))
+                    if (message.Subject != EnqueueActorMessagesV1.BuildServiceBusMessageSubject(OrchestrationDescriptionBuilder.UniqueName))
                         return false;
 
                     var body = EnqueueActorMessagesV1

@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
@@ -31,13 +29,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class EnqueueMeteredDataHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
-    IEnqueueActorMessagesClient enqueueActorMessagesClient,
-    MeteringPointReceiversProvider meteringPointReceiversProvider)
+    IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
-    private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
 
     public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
@@ -58,19 +54,19 @@ public class EnqueueMeteredDataHandlerV1(
         await TerminateForwardToMeasurementStep(orchestrationInstance).ConfigureAwait(false);
 
         // Start Step: Find receiver step
-        var receiversWithMeteredData = await FindReceivers(orchestrationInstance, forwardMeteredDataInput).ConfigureAwait(false);
+        var receivers = await FindReceivers(orchestrationInstance, forwardMeteredDataInput).ConfigureAwait(false);
 
         // Start Step: Enqueue actor messages step
         await EnqueueAcceptedActorMessagesAsync(
                 orchestrationInstance,
                 forwardMeteredDataInput,
-                receiversWithMeteredData)
+                receivers)
             .ConfigureAwait(false);
     }
 
     private async Task TerminateForwardToMeasurementStep(OrchestrationInstance orchestrationInstance)
     {
-        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (forwardToMeasurementStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
@@ -89,17 +85,16 @@ public class EnqueueMeteredDataHandlerV1(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataInputV1 forwardMeteredDataInput)
     {
-        var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiversStep);
-
-        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
+        var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.FindReceiversStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (findReceiversStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
         {
-            // Since the master data is saved as custom state on the orchestrationInstance, we should just
+            // TODO: Make sure this returns the same receivers as when the step previously ran and returned receivers.
+            // Since the master data should be saved as custom state on the orchestrationInstance, we should just
             // be able to calculate the receivers (again), based on the master data. If the inputs are the same,
             // the returned calculated receivers should also be the same.
-            return CalculateReceiversWithMeteredData(customState, forwardMeteredDataInput);
+            return [];
         }
 
         await StepHelper.StartStepAndCommitIfPending(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
@@ -108,30 +103,39 @@ public class EnqueueMeteredDataHandlerV1(
         if (findReceiversStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Find receivers step must be running (Id={findReceiversStep.Id}, State={findReceiversStep.Lifecycle.State}).");
 
-        var receiversWithMeteredData = CalculateReceiversWithMeteredData(customState, forwardMeteredDataInput);
+        // Find Receivers
+        // TODO: Implement find receivers
+        List<ReceiversWithMeteredDataV1> receivers =
+        [
+            // TODO: Select from master data
+            new ReceiversWithMeteredDataV1(
+                Actors:
+                [
+                    // TODO: Get energy suppliers (and other receivers?) from master data
+                    new MarketActorRecipientV1(
+                        ActorNumber.Create("8100000000115"),
+                        ActorRole.EnergySupplier),
+                ],
+                // TODO: Select the following properties from master data instead
+                MeasureUnit: MeasurementUnit.FromName(forwardMeteredDataInput.MeasureUnit!),
+                Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution!),
+                StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value
+                    .ToDateTimeOffset(),
+                EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value
+                    .ToDateTimeOffset(),
+                // TODO: Get as a subset of metered data in the given period
+                MeteredData: [
+                    new ReceiversWithMeteredDataV1.AcceptedMeteredData(
+                        1,
+                        1337,
+                        Quality.Estimated),
+                ]),
+        ];
 
         // Terminate Step: Find receiver step
         await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
 
-        return receiversWithMeteredData;
-    }
-
-    /// <summary>
-    /// Calculate receivers with metered data based on the metering point master data and the forward metered data input.
-    /// <remarks>
-    /// The returned receivers should always be the same given the same inputs.
-    /// </remarks>
-    /// </summary>
-    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredData(
-        ForwardMeteredDataCustomStateV1 customState,
-        ForwardMeteredDataInputV1 forwardMeteredDataInput)
-    {
-        var receiversWithMeteredData = _meteringPointReceiversProvider
-            .GetReceiversWithMeteredDataFromMasterDataList(
-                customState.MeteringPointMasterData,
-                forwardMeteredDataInput);
-
-        return receiversWithMeteredData;
+        return receivers;
     }
 
     private async Task EnqueueAcceptedActorMessagesAsync(
@@ -139,7 +143,7 @@ public class EnqueueMeteredDataHandlerV1(
         ForwardMeteredDataInputV1 forwardMeteredDataInput,
         IReadOnlyCollection<ReceiversWithMeteredDataV1> receivers)
     {
-        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (enqueueStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
@@ -186,7 +190,7 @@ public class EnqueueMeteredDataHandlerV1(
             ReceiversWithMeteredData: receivers);
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-                orchestration: OrchestrationDescriptionBuilderV1.UniqueName,
+                orchestration: OrchestrationDescriptionBuilder.UniqueName,
                 orchestrationInstanceId: orchestrationInstance.Id.Value,
                 orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
                 idempotencyKey: idempotencyKey,

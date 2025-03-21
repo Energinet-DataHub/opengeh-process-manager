@@ -43,8 +43,8 @@ internal class EnqueueActorMessagesStep(
         if (_validationResult.IsValid)
         {
             await Context.CallActivityAsync(
-                nameof(EnqueueActorMessagesActivity_Brs_101_UpdateMeteringPointConnectionState),
-                new EnqueueActorMessagesActivity_Brs_101_UpdateMeteringPointConnectionState.ActivityInput(
+                nameof(EnqueueActorMessagesActivity_Brs_101_UpdateMeteringPointConnectionState_V1),
+                new EnqueueActorMessagesActivity_Brs_101_UpdateMeteringPointConnectionState_V1.ActivityInput(
                     InstanceId,
                     enqueueIdempotencyKey),
                 DefaultRetryOptions);
@@ -52,8 +52,8 @@ internal class EnqueueActorMessagesStep(
         else
         {
             await Context.CallActivityAsync(
-                nameof(EnqueueRejectedActorMessageActivity_Brs_101_UpdateMeteringPointConnectionState),
-                new EnqueueRejectedActorMessageActivity_Brs_101_UpdateMeteringPointConnectionState.ActivityInput(
+                nameof(EnqueueRejectedActorMessageActivity_Brs_101_UpdateMeteringPointConnectionState_V1),
+                new EnqueueRejectedActorMessageActivity_Brs_101_UpdateMeteringPointConnectionState_V1.ActivityInput(
                     InstanceId,
                     enqueueIdempotencyKey,
                     _validationResult.ValidationErrors),

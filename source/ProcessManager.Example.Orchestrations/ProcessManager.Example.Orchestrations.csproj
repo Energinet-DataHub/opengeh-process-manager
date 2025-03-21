@@ -51,4 +51,9 @@
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\BusinessValidationStep\" />
+      <Folder Include="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\EnqueueActorMessagesStep\" />
+    </ItemGroup>
 </Project>

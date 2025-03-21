@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -24,14 +22,17 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Activities;
 
-internal class EnqueueRejectedActorMessageActivity_Brs_101_UpdateMeteringPointConnectionState(
+/// <summary>
+/// Enqueue messages in EDI
+/// </summary>
+internal class EnqueueActorMessagesActivity_Brs_101_UpdateMeteringPointConnectionState_V1(
     IOrchestrationInstanceProgressRepository repository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
-    [Function(nameof(EnqueueRejectedActorMessageActivity_Brs_101_UpdateMeteringPointConnectionState))]
+    [Function(nameof(EnqueueActorMessagesActivity_Brs_101_UpdateMeteringPointConnectionState_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -41,16 +42,11 @@ internal class EnqueueRejectedActorMessageActivity_Brs_101_UpdateMeteringPointCo
 
         var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<UpdateMeteringPointConnectionStateInputV1>();
 
-        var rejectedMessageData = new UpdateMeteringPointConnectionStateRejectedV1(
+        var acceptedMessageData = new UpdateMeteringPointConnectionStateAcceptedV1(
             OriginalActorMessageId: orchestrationInstanceInput.ActorMessageId,
             OriginalTransactionId: orchestrationInstanceInput.TransactionId,
             RequestedByActorNumber: ActorNumber.Create(orchestrationInstanceInput.RequestedByActorNumber),
-            RequestedByActorRole: ActorRole.FromName(orchestrationInstanceInput.RequestedByActorRole),
-            ValidationErrors: input.ValidationErrors
-                .Select(e => new ValidationErrorDto(
-                    Message: e.Message,
-                    ErrorCode: e.ErrorCode))
-                .ToList());
+            RequestedByActorRole: ActorRole.FromName(orchestrationInstanceInput.RequestedByActorRole));
 
         await _enqueueActorMessagesClient
             .EnqueueAsync(
@@ -58,12 +54,11 @@ internal class EnqueueRejectedActorMessageActivity_Brs_101_UpdateMeteringPointCo
                 orchestrationInstance.Id.Value,
                 orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
                 input.IdempotencyKey,
-                rejectedMessageData)
+                acceptedMessageData)
             .ConfigureAwait(false);
     }
 
     public record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        Guid IdempotencyKey,
-        IReadOnlyCollection<ValidationError> ValidationErrors);
+        Guid IdempotencyKey);
 }

@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculationV1Tests()
 {
     [Fact]
-    public async Task TestCalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1()
+    public async Task Given_CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1_When_RunWithInput_Then_JobIdIsCorrect()
     {
         // Arrange
         var jobRunId = new JobRunId(42);

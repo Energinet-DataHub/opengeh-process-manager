@@ -13,17 +13,17 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Options;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 
 public class OptionsConfiguration : IOptionsConfiguration
 {
     public IServiceCollection Configure(IServiceCollection services)
     {
-        services.AddOptions<OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1>()
-            .BindConfiguration(OrchestrationOptions_Brs_X02_NotifyOrchestrationInstanceExample_V1.SectionName)
+        services
+            .AddOptions<OrchestrationOptions_Brs_023_027_V1>()
+            .BindConfiguration(OrchestrationOptions_Brs_023_027_V1.SectionName)
             .ValidateDataAnnotations();
 
         return services;

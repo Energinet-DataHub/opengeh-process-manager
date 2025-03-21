@@ -13,18 +13,17 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Options;
 
 public class OptionsConfiguration : IOptionsConfiguration
 {
     public IServiceCollection Configure(IServiceCollection services)
     {
         services
-            .AddOptions<OrchestrationOptions_Brs_026_V1>()
-            .BindConfiguration(OrchestrationOptions_Brs_026_V1.SectionName)
+            .AddOptions<OrchestrationOptions_Brs_101_UpdateMeteringPointConnectionState_V1>()
+            .BindConfiguration(OrchestrationOptions_Brs_101_UpdateMeteringPointConnectionState_V1.SectionName)
             .ValidateDataAnnotations();
 
         return services;

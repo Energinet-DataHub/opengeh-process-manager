@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 2.1.2
+
+- No functional changes.
+
 ## Version 2.1.1
 
 - Update NuGet packages.

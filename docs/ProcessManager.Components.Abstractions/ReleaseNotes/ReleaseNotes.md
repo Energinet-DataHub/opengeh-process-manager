@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 1.4.0
+
+- Added `TimeHelper` to support time conversion.
+
 ## Version 1.3.7
 
 - Update NuGet packages.

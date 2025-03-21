@@ -37,7 +37,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -81,6 +80,15 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
     private const string ProcessManagerEventHubProducerClientName = "ProcessManagerEventHubProducerClient";
+    private const string MeteringPointId = "571313101700011887";
+    private const string EnergySupplier = "1111111111111";
+    private const string GridAccessProvider = "2222222222222";
+    private const string NeighborGridAreaOwner1 = "3333333333331";
+    private const string NeighborGridAreaOwner2 = "3333333333332";
+    private const string GridArea = "804";
+    private static readonly Instant _validFrom = Instant.FromUtc(2024, 11, 30, 23, 00, 00);
+    private static readonly Instant _validTo = Instant.FromUtc(2024, 12, 31, 23, 00, 00);
+
     private readonly OrchestrationsAppFixture _fixture;
 
     public MonitorOrchestrationUsingClientsScenario(
@@ -252,20 +260,20 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV1(
         [
             new MeteringPointMasterData(
-                new MeteringPointId("571313101700011887"),
-                new DateTime(2023, 11, 29, 12, 34, 56, DateTimeKind.Utc),
-                new DateTime(2024, 11, 29, 12, 34, 56, DateTimeKind.Utc),
-                new GridAreaCode("804"),
-                ActorNumber.Create("2222222222222"),
-                ["Owner1", "Owner2"],
-                ConnectionState.Connected,
-                MeteringPointType.Consumption,
-                MeteringPointSubType.Physical,
-                Resolution.Hourly,
-                MeasurementUnit.KilowattHour,
-                "Tariff",
-                null,
-                ActorNumber.Create("1111111111111")),
+                MeteringPointId: new MeteringPointId(MeteringPointId),
+                ValidFrom: _validFrom.ToDateTimeOffset(),
+                ValidTo: _validTo.ToDateTimeOffset(),
+                GridAreaCode: new GridAreaCode(GridArea),
+                GridAccessProvider: ActorNumber.Create(GridAccessProvider),
+                NeighborGridAreaOwners: [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
+                ConnectionState: ConnectionState.Connected,
+                MeteringPointType: MeteringPointType.Consumption,
+                MeteringPointSubType: MeteringPointSubType.Physical,
+                Resolution: Resolution.Hourly,
+                MeasurementUnit: MeasurementUnit.KilowattHour,
+                ProductId: "Tariff",
+                ParentMeteringPointId: null,
+                EnergySupplier: ActorNumber.Create(EnergySupplier)),
         ]);
 
         terminatedOrchestrationInstance.CustomState.Should()
@@ -443,13 +451,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = new ForwardMeteredDataInputV1(
             ActorMessageId: "MessageId",
             TransactionId: "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
-            ActorNumber: "1111111111111",
+            ActorNumber: GridAccessProvider,
             ActorRole: ActorRole.GridAccessProvider.Name,
             BusinessReason: BusinessReason.PeriodicMetering.Name,
-            MeteringPointId: "571313101700011887",
+            MeteringPointId: MeteringPointId,
             MeteringPointType: MeteringPointType.Production.Name,
             ProductNumber: "8716867000047",
-            MeasureUnit: MeasurementUnit.MetricTon.Name,
+            MeasureUnit: MeasurementUnit.KilowattHour.Name,
             RegistrationDateTime: "2024-12-03T08:00:00Z",
             Resolution: Resolution.Hourly.Name,
             StartDateTime: "2024-12-01T23:00:00Z",
@@ -496,16 +504,16 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData()
         {
-            Identification = new MeteringPointIdentification("571313101700011887"),
-            ValidFrom = Instant.FromUtc(2023, 11, 29, 12, 34, 56),
-            ValidTo = Instant.FromUtc(2024, 11, 29, 12, 34, 56),
-            GridAreaCode = new ElectricityMarket.Integration.Models.MasterData.GridAreaCode("804"),
-            GridAccessProvider = "2222222222222",
-            NeighborGridAreaOwners = ["Owner1", "Owner2"],
+            Identification = new MeteringPointIdentification(MeteringPointId),
+            ValidFrom = _validFrom,
+            ValidTo = _validTo,
+            GridAreaCode = new ElectricityMarket.Integration.Models.MasterData.GridAreaCode(GridArea),
+            GridAccessProvider = GridAccessProvider,
+            NeighborGridAreaOwners = [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
             ConnectionState = ElectricityMarket.Integration.Models.MasterData.ConnectionState.Connected,
             Type = ElectricityMarket.Integration.Models.MasterData.MeteringPointType.Consumption,
             SubType = ElectricityMarket.Integration.Models.MasterData.MeteringPointSubType.Physical,
-            Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("Hourly"),
+            Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("PT1H"),
             Unit = MeasureUnit.kWh,
             ProductId = ProductId.Tariff,
             ParentIdentification = null,
@@ -513,10 +521,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             [
                 new MeteringPointEnergySupplier
                 {
-                    Identification = new MeteringPointIdentification("571313101700011887"),
-                    EnergySupplier = "1111111111111",
-                    StartDate = Instant.FromUtc(2023, 11, 29, 12, 34, 56),
-                    EndDate = Instant.FromUtc(2024, 11, 29, 12, 34, 56),
+                    Identification = new MeteringPointIdentification(MeteringPointId),
+                    EnergySupplier = EnergySupplier,
+                    StartDate = _validFrom,
+                    EndDate = _validTo,
                 },
             ],
         };

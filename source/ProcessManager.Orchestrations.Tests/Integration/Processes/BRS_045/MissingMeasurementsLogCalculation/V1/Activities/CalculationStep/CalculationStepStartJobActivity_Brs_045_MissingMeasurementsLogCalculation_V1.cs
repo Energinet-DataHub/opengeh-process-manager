@@ -44,7 +44,9 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
         };
 
         var client = new Mock<IDatabricksJobsClient>();
-        client.Setup(x => x.StartJobAsync("MissingMeasurementsLog", jobParameters)).ReturnsAsync(jobRunId);
+        client
+            .Setup(x => x.StartJobAsync("MissingMeasurementsLog", jobParameters))
+            .ReturnsAsync(jobRunId);
         var clock = new Mock<IClock>();
         clock.Setup(x => x.GetCurrentInstant()).Returns(date);
         var timeHelper = new TimeHelper(DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);

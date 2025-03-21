@@ -40,6 +40,10 @@ public class MeteringPointReceiversProviderTests
 
     private readonly MeteringPointReceiversProvider _sut = new(DateTimeZone.Utc);
 
+    public static TheoryData<Resolution> GetAllResolutionsExceptMonthly() => new(
+        EnumerationRecordType.GetAll<Resolution>()
+            .Where(r => r != Resolution.Monthly));
+
     [Fact]
     public void Given_MeteringPointTypeConsumption_When_GetReceivers_Then_ReceiversAreEnergySupplierAndDanishEnergyAgency()
     {
@@ -157,26 +161,72 @@ public class MeteringPointReceiversProviderTests
                 });
     }
 
-    [Fact]
-    public void Given_MultipleMasterDataPeriods_When_GetReceivers_Then_MeteredDataIsSplitCorrectlyToReceivers()
+    [Theory]
+    [MemberData(nameof(GetAllResolutionsExceptMonthly))]
+    public void Given_SingleMasterDataPeriods_When_GetReceivers_Then_AllMeteredDataIsSentToTheSameReceivers(Resolution resolution)
     {
-        var resolution = Resolution.QuarterHourly;
-        const int elementsPerDayForResolution = 24 * 4; // 15 minutes resolution = 24 * 4 = 96 elements per day.
+        var masterData1Start = Instant.FromUtc(2024, 02, 28, 23, 00);
+        var masterData1End = masterData1Start.Plus(Duration.FromDays(42));
+
+        List<MeteringPointMasterData> masterDataList =
+        [
+            CreateMasterData(
+                from: masterData1Start,
+                to: masterData1End,
+                resolution: resolution),
+        ];
+
+        var forwardMeteredDataInput = CreateForwardMeteredDataInput(masterDataList);
+
+        var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
+            masterDataList,
+            forwardMeteredDataInput);
+
+        using var assertionScope = new AssertionScope();
+        receiversWithMeteredData.Should()
+            .ContainSingle()
+            .And.SatisfyRespectively(
+                r =>
+                {
+                    r.StartDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.StartDateTime));
+                    r.EndDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.EndDateTime!));
+                    r.Actors.Should()
+                        .ContainSingle(a => a.ActorNumber == _defaultEnergySupplier);
+                    r.MeteredData.Should().HaveSameCount(forwardMeteredDataInput.MeteredDataList);
+                    r.MeteredData.First().Position.Should().Be(1);
+                    r.MeteredData.Last().Position.Should().Be(r.MeteredData.Count);
+                });
+    }
+
+    [Theory]
+    [MemberData(nameof(GetAllResolutionsExceptMonthly))]
+    public void Given_MultipleMasterDataPeriods_When_GetReceivers_Then_MeteredDataIsSplitCorrectlyToReceivers(Resolution resolution)
+    {
+        var elementsPerDayForResolution = resolution switch
+        {
+            var r when r == Resolution.QuarterHourly => 24 * 4, // 15 minutes resolution = 24 * 4 = 96 elements per day.
+            var r when r == Resolution.Hourly => 24, // 1 hour resolution = 24 elements per day.
+            var r when r == Resolution.Daily => 1, // 1 day resolution = 1 elements per day.
+            _ => throw new ArgumentOutOfRangeException(// TODO: Is monthly resolution supported for forward metered data?
+                paramName: nameof(resolution),
+                actualValue: resolution.Name,
+                message: "Invalid resolution"),
+        };
 
         const int masterData1Days = 80;
         var masterData1Start = Instant.FromUtc(2024, 02, 28, 23, 00);
         var masterData1End = masterData1Start.Plus(Duration.FromDays(masterData1Days));
-        var masterData1Receiver = ActorNumber.Create("1111111111111");
+        var masterData1Receiver = ActorNumber.Create("0000000000001");
 
         const int masterData2Days = 17;
         var masterData2Start = masterData1End;
         var masterData2End = masterData2Start.Plus(Duration.FromDays(masterData2Days));
-        var masterData2Receiver = ActorNumber.Create("2222222222222");
+        var masterData2Receiver = ActorNumber.Create("0000000000002");
 
         const int masterData3Days = 268;
         var masterData3Start = masterData2End;
-        var masterData3End = masterData3Start.Plus(Duration.FromDays(masterData3Days));
-        var masterData3Receiver = ActorNumber.Create("3333333333333");
+        var masterData3End = masterData3Start.Plus(Duration.FromDays(masterData3Days)); // The total period is 365 days.
+        var masterData3Receiver = ActorNumber.Create("0000000000003");
 
         var masterData1 = CreateMasterData(
             from: masterData1Start,

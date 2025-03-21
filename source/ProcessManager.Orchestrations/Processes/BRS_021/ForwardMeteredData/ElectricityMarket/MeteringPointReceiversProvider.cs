@@ -39,6 +39,9 @@ public class MeteringPointReceiversProvider(
         IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterDataList,
         ForwardMeteredDataInputV1 input)
     {
+        if (meteringPointMasterDataList.Count == 0)
+            throw new InvalidOperationException($"The metering point master data list is empty (MeteringPointId={input.MeteringPointId}, StartDateTime={input.StartDateTime}, EndDateTime={input.EndDateTime})");
+
         // Ensure metered data is sorted by position
         var sortedMeteredData = new SortedDictionary<int, ReceiversWithMeteredDataV1.AcceptedMeteredData>(
             input.MeteredDataList.ToDictionary(
@@ -93,6 +96,15 @@ public class MeteringPointReceiversProvider(
         Dictionary<Instant, MeteringPointMasterData> masterData,
         SortedDictionary<int, ReceiversWithMeteredDataV1.AcceptedMeteredData> sortedMeteredData)
     {
+        if (masterData.Count == 1)
+        {
+            // If there is only one master data element then we can skip a lot of logic, since we don't
+            // need to split the metered data into periods and recalculate positions
+            var masterDataElement = masterData.Values.Single();
+            var receiversWithMeteredData = CreateReceiversWithMeteredData(masterDataElement, sortedMeteredData.Values);
+            return [receiversWithMeteredData];
+        }
+
         var currentTimestamp = totalPeriodStart;
 
         var firstMasterData = masterData.Values.First();

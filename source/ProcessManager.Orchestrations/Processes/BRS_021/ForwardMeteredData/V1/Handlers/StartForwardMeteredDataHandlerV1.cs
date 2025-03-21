@@ -291,7 +291,6 @@ public class StartForwardMeteredDataHandlerV1(
                 $"Forward to Measurements step must be running (Id={forwardToMeasurementsStep.Id}, State={forwardToMeasurementsStep.Lifecycle.State}).");
         }
 
-        // TODO: How is idempotency handled here / when Measurements receive this message? Do we need an idempotency key?
         await _measurementsMeteredDataClient.SendAsync(
                 MapInputToMeasurements(orchestrationInstance.Id, input),
                 CancellationToken.None)
@@ -378,19 +377,4 @@ public class StartForwardMeteredDataHandlerV1(
             decimal.Parse(eo.EnergyQuantity!),
             quality);
     }
-
-    // public record ReceiversWithMeteredDataV1(
-    //     IReadOnlyCollection<MarketActorRecipientV1> Actors,
-    //     Resolution Resolution,
-    //     MeasurementUnit MeasureUnit,
-    //     DateTimeOffset StartDateTime,
-    //     DateTimeOffset EndDateTime,
-    //     IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredData)
-    // {
-    //     public record AcceptedMeteredData(
-    //         int Position,
-    //         // TODO: Are these two optional?
-    //         decimal? EnergyQuantity,
-    //         Quality? QuantityQuality);
-    // }
 }

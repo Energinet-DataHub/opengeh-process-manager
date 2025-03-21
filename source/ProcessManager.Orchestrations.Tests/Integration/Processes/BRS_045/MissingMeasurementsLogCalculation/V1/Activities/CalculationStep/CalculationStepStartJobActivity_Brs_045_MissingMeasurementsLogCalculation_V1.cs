@@ -48,7 +48,9 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
             .Setup(x => x.StartJobAsync("MissingMeasurementsLog", jobParameters))
             .ReturnsAsync(jobRunId);
         var clockMock = new Mock<IClock>();
-        clockMock.Setup(x => x.GetCurrentInstant()).Returns(date);
+        clockMock
+            .Setup(x => x.GetCurrentInstant())
+            .Returns(date);
         var timeHelper = new TimeHelper(DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
         var sut = new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(clientMock.Object, clockMock.Object, timeHelper);
 

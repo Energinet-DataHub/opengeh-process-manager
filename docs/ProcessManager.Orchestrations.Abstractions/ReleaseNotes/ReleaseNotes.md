@@ -2,7 +2,7 @@
 
 ## Version 1.12.0
 
-- Add BRS-045 Missing Measurements Log command.
+- Add BRS-045 Missing Measurements Log Calculation command.
 
 ## Version 1.11.2
 

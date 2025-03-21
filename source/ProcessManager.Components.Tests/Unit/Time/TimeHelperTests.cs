@@ -33,7 +33,17 @@ public class TimeHelperTests
     [InlineData(2024, 3, 1, 1, 1, 2024, 2, 29, 23, 0)] // 1st of March 2024 01:01 -> 29th of February 2024 23:00 Leap year
     [InlineData(2024, 3, 1, 0, 1, 2024, 2, 29, 23, 0)] // 1st of March 2024 00:01 -> 29th of February 2024 23:00 Leap year
     [InlineData(2024, 3, 1, 0, 0, 2024, 2, 29, 23, 0)] // 1st of March 2024 00:00 -> 29th of February 2024 23:00 Leap year
-    public void TestGetMidnightZonedDateTime(int actualYear, int actualMonth, int actualDay, int actualHour, int actualMinute, int expectedYear, int expectedMonth, int expectedDay, int expectedHour, int expectedMinute)
+    public void TestGetMidnightZonedDateTime(
+        int actualYear,
+        int actualMonth,
+        int actualDay,
+        int actualHour,
+        int actualMinute,
+        int expectedYear,
+        int expectedMonth,
+        int expectedDay,
+        int expectedHour,
+        int expectedMinute)
     {
         // Arrange
         var instant = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, actualMinute);

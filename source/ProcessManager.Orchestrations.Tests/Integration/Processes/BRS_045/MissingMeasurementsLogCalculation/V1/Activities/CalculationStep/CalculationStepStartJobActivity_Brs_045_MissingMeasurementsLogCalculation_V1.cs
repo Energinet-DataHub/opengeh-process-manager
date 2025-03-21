@@ -43,14 +43,14 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
             $"--period-end-datetime={date.PlusDays(-3)}",
         };
 
-        var client = new Mock<IDatabricksJobsClient>();
-        client
+        var clientMock = new Mock<IDatabricksJobsClient>();
+        clientMock
             .Setup(x => x.StartJobAsync("MissingMeasurementsLog", jobParameters))
             .ReturnsAsync(jobRunId);
-        var clock = new Mock<IClock>();
-        clock.Setup(x => x.GetCurrentInstant()).Returns(date);
+        var clockMock = new Mock<IClock>();
+        clockMock.Setup(x => x.GetCurrentInstant()).Returns(date);
         var timeHelper = new TimeHelper(DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
-        var sut = new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(client.Object, clock.Object, timeHelper);
+        var sut = new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(clientMock.Object, clockMock.Object, timeHelper);
 
         // Act
         var actual = await sut.Run(activityInput);

@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.12.0
+
+- Add BRS-045 Missing Measurements Log Calculation command.
+
 ## Version 1.11.2
 
 - Update `ForwardMeteredDataAcceptedV1` to support a list of receivers.
@@ -29,7 +33,7 @@
 
 ## Version 1.9.0
 
-- Remove internal process: Migrate Calculations From Wholesale.
+- Remove internal process: Migrate Calculations From Wholesale.~~~~
 
 ## Version 1.8.0
 

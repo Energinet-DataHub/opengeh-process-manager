@@ -71,6 +71,9 @@ var host = new HostBuilder()
         var orchestrationsAbstractionsAssembly = typeof(RequestCalculatedEnergyTimeSeriesInputV1).Assembly;
         services.AddBusinessValidation([orchestrationsAssembly, orchestrationsAbstractionsAssembly]);
 
+        // Time component
+        services.AddTimeComponent();
+
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers

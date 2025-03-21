@@ -397,27 +397,6 @@ public class MeteringPointReceiversProviderTests
     //             });
     // }
 
-    // private List<MeteringPointMasterData> CreateMasterDataList(
-    //     List<(
-    //         MeteringPointType MeteringPointType,
-    //         Instant From,
-    //         Instant To,
-    //         Resolution Resolution,
-    //         ActorNumber GridAccessProvider,
-    //         ActorNumber EnergySupplier)> masterDataList)
-    // {
-    //     return masterDataList
-    //         .Select(
-    //             md => CreateMasterData(
-    //                 meteringPointType: md.MeteringPointType,
-    //                 from: md.From,
-    //                 to: md.To,
-    //                 resolution: md.Resolution,
-    //                 gridAccessProvider: md.GridAccessProvider,
-    //                 energySupplier: md.EnergySupplier))
-    //         .ToList();
-    // }
-
     private MeteringPointMasterData CreateMasterData(
         MeteringPointType? meteringPointType = null,
         Instant? from = null,

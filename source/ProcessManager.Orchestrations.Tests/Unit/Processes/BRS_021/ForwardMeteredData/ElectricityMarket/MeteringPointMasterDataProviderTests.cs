@@ -26,10 +26,7 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.
     ElectricityMarket;
 
-// TODO: Disabled until a decision is made on how to handle the master data validation (if at all)
-#pragma warning disable xUnit1000
-internal class MeteringPointMasterDataProviderTests
-#pragma warning restore xUnit1000
+public class MeteringPointMasterDataProviderTests
 {
     private readonly ElectricityMarketViewsMock _electricityMarketViews;
     private readonly MeteringPointMasterDataProvider _sut;
@@ -172,7 +169,7 @@ internal class MeteringPointMasterDataProviderTests
                 "No energy suppliers found for metering point 'faulty-two-master-data-please' in period 2021-03-01T00:00:00Z--2021-05-01T00:00:00Z.");
     }
 
-    [Fact]
+    [Fact(Skip = "Awaiting clarification wrt the expected behavior")]
     public async Task Given_MasterDataWithEnergySupplierAndMasterDataWithMissingEnergySupplier_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider = () => GetMeteringPointMasterData(gapInDates: true);
@@ -185,7 +182,7 @@ internal class MeteringPointMasterDataProviderTests
         await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
     }
 
-    [Fact]
+    [Fact(Skip = "Awaiting clarification wrt the expected behavior")]
     public async Task Given_MasterDataWithOverlappingEnergySuppliers_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
@@ -199,7 +196,7 @@ internal class MeteringPointMasterDataProviderTests
         await act.Should().ThrowAsync<Exception>().WithMessage("Metering point master data is not consistent");
     }
 
-    [Fact]
+    [Fact(Skip = "Awaiting clarification wrt the expected behavior")]
     public async Task Given_MasterDataWithNonMatchingDatesForEnergySuppliers_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
@@ -216,7 +213,7 @@ internal class MeteringPointMasterDataProviderTests
                 "The interval of the energy suppliers (2021-01-01T00:00:00Z--2021-03-01T00:00:00Z) does not match the master data interval (2021-01-01T00:00:00Z--2021-03-02T00:00:00Z).");
     }
 
-    [Fact]
+    [Fact(Skip = "Awaiting clarification wrt the expected behavior")]
     public async Task Given_MasterDataWithInconsistentMeteringPointType_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
@@ -232,7 +229,7 @@ internal class MeteringPointMasterDataProviderTests
             .WithMessage("MeteringPointType 'Production' is not equal to previous MeteringPointType 'Consumption'");
     }
 
-    [Fact]
+    [Fact(Skip = "Awaiting clarification wrt the expected behavior")]
     public async Task Given_MasterDataWithChangeToMeasurementUnit_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
@@ -248,7 +245,7 @@ internal class MeteringPointMasterDataProviderTests
             .WithMessage("MeasurementUnit 'kWh' is not equal to previous MeasurementUnit 'MVAr'");
     }
 
-    [Fact]
+    [Fact(Skip = "Awaiting clarification wrt the expected behavior")]
     public async Task Given_MasterDataWithChangeToProductId_When_GetMasterData_Then_Error()
     {
         _electricityMarketViews.MeteringPointMasterDataProvider =
@@ -285,7 +282,7 @@ internal class MeteringPointMasterDataProviderTests
             Resolution = new Resolution("Hourly"),
             Unit = changeToMeasurementUnit ? MeasureUnit.MVAr : MeasureUnit.kWh,
             ProductId = ProductId.EnergyActivate,
-            ParentIdentification = new MeteringPointIdentification("parent-identification"),
+            ParentIdentification = null,
             EnergySuppliers =
             [
                 new()
@@ -317,7 +314,7 @@ internal class MeteringPointMasterDataProviderTests
             Resolution = new Resolution("Hourly"),
             Unit = MeasureUnit.kWh,
             ProductId = changeToProductId ? ProductId.Tariff : ProductId.EnergyActivate,
-            ParentIdentification = new MeteringPointIdentification("parent-identification"),
+            ParentIdentification = null,
             EnergySuppliers =
             [
                 new()
@@ -366,7 +363,7 @@ internal class MeteringPointMasterDataProviderTests
                         Resolution = new Resolution("Hourly"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
-                        ParentIdentification = new MeteringPointIdentification("parent-identification"),
+                        ParentIdentification = null,
                         EnergySuppliers = [],
                     },
                 ]),
@@ -385,7 +382,7 @@ internal class MeteringPointMasterDataProviderTests
                         Resolution = new Resolution("Hourly"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
-                        ParentIdentification = new MeteringPointIdentification("parent-identification"),
+                        ParentIdentification = null,
                         EnergySuppliers =
                         [
                             new()
@@ -413,7 +410,7 @@ internal class MeteringPointMasterDataProviderTests
                         Resolution = new Resolution("Hourly"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
-                        ParentIdentification = new MeteringPointIdentification("parent-identification"),
+                        ParentIdentification = null,
                         EnergySuppliers =
                         [
                             new()
@@ -448,7 +445,7 @@ internal class MeteringPointMasterDataProviderTests
                         Resolution = new Resolution("Hourly"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
-                        ParentIdentification = new MeteringPointIdentification("parent-identification"),
+                        ParentIdentification = null,
                         EnergySuppliers =
                         [
                             new()
@@ -480,7 +477,7 @@ internal class MeteringPointMasterDataProviderTests
                         Resolution = new Resolution("Hourly"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
-                        ParentIdentification = new MeteringPointIdentification("parent-identification"),
+                        ParentIdentification = null,
                         EnergySuppliers = [],
                     },
                 ]),

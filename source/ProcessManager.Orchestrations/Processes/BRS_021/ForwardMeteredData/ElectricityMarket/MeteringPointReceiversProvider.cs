@@ -128,7 +128,9 @@ public class MeteringPointReceiversProvider(
             {
                 // The master data should always be continuous (with no overlaps), so if this fails then
                 // the master data (or our implementation) has a bug.
-                var nextMasterData = masterData[currentTimestamp];
+                if (!masterData.TryGetValue(currentTimestamp, out var nextMasterData))
+                    throw new InvalidOperationException($"The master data for the current timestamp is missing (MeteringPointId={currentMasterData.MasterData.MeteringPointId.Value}, Position={meteredData.Position}, CurrentTimestamp={currentTimestamp})");
+
                 currentMasterData = new MasterDataWithMeteredData(
                     MasterData: nextMasterData,
                     ValidFrom: nextMasterData.ValidFrom.ToInstant(),
@@ -256,7 +258,7 @@ public class MeteringPointReceiversProvider(
 
                 break;
             default:
-                throw new NotImplementedException();
+                throw new ArgumentOutOfRangeException(nameof(meteringPointType), meteringPointType.Name, $"Invalid metering point type (MeteringPointId={meteringPointMasterData.MeteringPointId.Value}).");
         }
 
         var distinctReceivers = receivers

@@ -5,6 +5,14 @@
         <AzureFunctionsVersion>v4</AzureFunctionsVersion>
         <OutputType>Exe</OutputType>
     </PropertyGroup>
+    <ItemGroup>
+      <Compile Remove="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\BusinessValidationStep\**" />
+      <Compile Remove="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\EnqueueActorMessagesStep\**" />
+      <EmbeddedResource Remove="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\BusinessValidationStep\**" />
+      <EmbeddedResource Remove="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\EnqueueActorMessagesStep\**" />
+      <None Remove="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\BusinessValidationStep\**" />
+      <None Remove="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\EnqueueActorMessagesStep\**" />
+    </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Energinet.DataHub.Example.Orchestrations.Tests" />
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Core.Tests" />
@@ -50,10 +58,5 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\BusinessValidationStep\" />
-      <Folder Include="Processes\BRS_101\UpdateMeteringPointConnectionState\V1\Activities\EnqueueActorMessagesStep\" />
     </ItemGroup>
 </Project>

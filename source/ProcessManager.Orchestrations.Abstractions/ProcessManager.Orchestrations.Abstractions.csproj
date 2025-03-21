@@ -57,6 +57,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="NodaTime" Version="3.2.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -74,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="InternalProcesses\" />
+    <Folder Include="Processes\BRS_045\" />
   </ItemGroup>
 
 </Project>

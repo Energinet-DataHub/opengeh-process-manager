@@ -71,6 +71,7 @@
 
     <ItemGroup>
       <Folder Include="InternalProcesses\" />
+      <Folder Include="Processes\BRS_045\" />
     </ItemGroup>
 
 </Project>

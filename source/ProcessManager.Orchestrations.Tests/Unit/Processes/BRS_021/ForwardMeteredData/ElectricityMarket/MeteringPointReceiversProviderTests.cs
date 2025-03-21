@@ -354,6 +354,7 @@ public class MeteringPointReceiversProviderTests
                 });
     }
 
+    // TODO: This part will be impl as part of #607
     // [Theory]
     // [InlineData(MeteringPointType.NetProduction)]
     // [InlineData(MeteringPointType.SupplyToGrid)]

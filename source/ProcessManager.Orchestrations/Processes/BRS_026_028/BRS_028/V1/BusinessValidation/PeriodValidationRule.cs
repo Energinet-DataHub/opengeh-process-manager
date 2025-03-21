@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Validators;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using NodaTime;
 using NodaTime.Text;
@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.
 
 public sealed class PeriodValidationRule(
     DateTimeZone dateTimeZone,
-    PeriodValidationHelper periodValidationHelper)
+    PeriodValidator periodValidator)
         : IBusinessValidationRule<RequestCalculatedWholesaleServicesInputV1>
 {
     private const int AllowedTimeFrameYearsFromNow = 3;
@@ -58,7 +58,7 @@ public sealed class PeriodValidationRule(
             "Det er kun muligt at anmode om data på for en hel måned i forbindelse med en engrosfiksering eller korrektioner / It is only possible to request data for a full month in relation to wholesalefixing or corrections",
             "E17");
 
-    private readonly PeriodValidationHelper _periodValidationHelper = periodValidationHelper;
+    private readonly PeriodValidator _periodValidator = periodValidator;
     private readonly DateTimeZone _dateTimeZone = dateTimeZone;
 
     public Task<IList<ValidationError>> ValidateAsync(RequestCalculatedWholesaleServicesInputV1 subject)
@@ -100,7 +100,7 @@ public sealed class PeriodValidationRule(
 
     private void MustNotBeOlderThan3YearsAnd6Months(Instant periodStart, ICollection<ValidationError> errors)
     {
-        if (_periodValidationHelper.IsMonthOfDateOlderThanXYearsAndYMonths(
+        if (_periodValidator.IsMonthOfDateOlderThanXYearsAndYMonths(
                 periodStart,
                 AllowedTimeFrameYearsFromNow,
                 AllowedTimeFrameMonthsFromNow))
@@ -138,7 +138,7 @@ public sealed class PeriodValidationRule(
 
     private void MustBeMidnight(Instant instant, string propertyName, ICollection<ValidationError> errors)
     {
-        if (_periodValidationHelper.IsMidnight(instant, out var zonedDateTime))
+        if (_periodValidator.IsMidnight(instant, out var zonedDateTime))
             return;
 
         errors.Add(

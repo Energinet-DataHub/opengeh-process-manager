@@ -17,7 +17,7 @@ using Energinet.DataHub.ElectricityMarket.Integration.Extensions.DependencyInjec
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.GridAreaOwner;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Validators;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -43,7 +43,7 @@ public static class BusinessValidationExtensions
         services.AddBusinessValidatorImplementations(assembliesToScan);
         services.AddBusinessValidationRuleImplementations(assembliesToScan);
 
-        services.TryAddTransient<PeriodValidationHelper>();
+        services.TryAddTransient<PeriodValidator>();
 
         // ElectricityMarketModule requires the app setting ElectricityMarketClientOptions__BaseUrl to be set
         services.AddTransient<IGridAreaOwnerClient, ElectricityMarketGridAreaOwnerClient>();

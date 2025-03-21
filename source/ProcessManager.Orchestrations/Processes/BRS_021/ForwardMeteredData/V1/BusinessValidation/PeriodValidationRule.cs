@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Validators;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using NodaTime;
@@ -25,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// "Stub" period validation rule, used to verify that validation works for <see cref="ForwardMeteredDataBusinessValidatedDto"/>.
 /// </summary>
 public class PeriodValidationRule(
-    PeriodValidationHelper periodValidationHelper)
+    PeriodValidator periodValidator)
         : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
     /// <summary>
@@ -44,7 +44,7 @@ public class PeriodValidationRule(
         Message: "Invalid start dato / Invalid start date",
         ErrorCode: "E42");
 
-    private readonly PeriodValidationHelper _periodValidationHelper = periodValidationHelper;
+    private readonly PeriodValidator _periodValidator = periodValidator;
 
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
     {

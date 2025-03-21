@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Validators;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.Shared.BusinessValidation;
 
@@ -48,7 +48,9 @@ public static class EnergySupplierIsOnlyAllowedToRequestOwnDataHelper
 
     private static bool IsValidEnergySupplierIdFormat(string energySupplierId)
     {
-        return ActorNumberValidationHelper.IsValidGlnNumber(energySupplierId) || ActorNumberValidationHelper.IsValidEicNumber(energySupplierId);
+        return
+            ActorNumberValidator.IsValidGlnNumber(energySupplierId)
+            || ActorNumberValidator.IsValidEicNumber(energySupplierId);
     }
 
     private static bool RequestedForActorNumberEqualsEnergySupplier(string requestedForActorNumber, string energySupplierNumber)

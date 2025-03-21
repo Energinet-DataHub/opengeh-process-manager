@@ -118,12 +118,11 @@ public class MeteringPointReceiversProvider(
 
         foreach (var meteredData in sortedMeteredData.Values)
         {
-            // TODO: Is EndDateTime inclusive or exclusive? This assumes exclusive.
+            // If current timestamp is equal to (or later than) the total period, throw an exception. This assumes totalPeriodEnd is exclusive.
             if (currentTimestamp >= totalPeriodEnd)
                 throw new InvalidOperationException($"The current timestamp is after the metered data period (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, PeriodEnd={totalPeriodEnd})");
 
-            // Get master data for current timestamp
-            // TODO: Is the ValidTo inclusive or exclusive? This assumes exclusive.
+            // Get master data for current timestamp. This assumes ValidTo is exclusive.
             var currentTimestampBelongsToNextMasterDataPeriod = currentTimestamp >= currentMasterData.ValidTo;
             if (currentTimestampBelongsToNextMasterDataPeriod)
             {

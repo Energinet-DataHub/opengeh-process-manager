@@ -50,6 +50,9 @@ var host = new HostBuilder()
         var orchestrationsExampleAssembly = typeof(Program).Assembly;
         var orchestrationsExampleAbstractionsAssembly = typeof(ActorRequestProcessExampleInputV1).Assembly;
         services.AddBusinessValidation([orchestrationsExampleAssembly, orchestrationsExampleAbstractionsAssembly]);
+
+        // Time component
+        services.AddTimeComponent();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

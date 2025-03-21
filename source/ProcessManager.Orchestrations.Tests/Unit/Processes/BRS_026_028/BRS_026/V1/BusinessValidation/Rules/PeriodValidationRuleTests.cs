@@ -14,14 +14,14 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Validators;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 using FluentAssertions;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_026.V1.BusinessValidation.Rules;
 
-public class PeriodValidatorTests
+public class PeriodValidationRuleTests
 {
     private static readonly ValidationError _invalidDateFormat = new("Forkert dato format for {PropertyName}, skal være YYYY-MM-DDT22:00:00Z eller YYYY-MM-DDT23:00:00Z / Wrong date format for {PropertyName}, must be YYYY-MM-DDT22:00:00Z or YYYY-MM-DDT23:00:00Z", "D66");
     private static readonly ValidationError _invalidWinterMidnightFormat = new("Forkert dato format for {PropertyName}, skal være YYYY-MM-DDT23:00:00Z / Wrong date format for {PropertyName}, must be YYYY-MM-DDT23:00:00Z", "D66");
@@ -31,7 +31,7 @@ public class PeriodValidatorTests
     private static readonly ValidationError _missingStartOrAndEndDate = new("Start og slut dato skal udfyldes / Start and end date must be present in request", "E50");
 
     private readonly PeriodValidationRule _sut = new(
-        new PeriodValidationHelper(
+        new PeriodValidator(
             DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!,
             SystemClock.Instance));
 

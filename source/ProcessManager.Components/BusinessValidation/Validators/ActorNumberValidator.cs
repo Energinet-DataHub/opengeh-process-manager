@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
+namespace Energinet.DataHub.ProcessManager.Components.BusinessValidation.Validators;
 
-public static class ActorNumberValidationHelper
+public static class ActorNumberValidator
 {
     public static bool IsValidGlnNumber(string actorNumber)
     {

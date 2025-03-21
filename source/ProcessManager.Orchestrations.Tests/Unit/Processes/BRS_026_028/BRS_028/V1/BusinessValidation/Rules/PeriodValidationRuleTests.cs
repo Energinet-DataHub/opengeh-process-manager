@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Validators;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -66,7 +66,7 @@ public class PeriodValidationRuleTests
         _now = Instant.FromUtc(2024, 5, 31, 22, 0, 0);
         _sut = new PeriodValidationRule(
             _dateTimeZone,
-            new PeriodValidationHelper(_dateTimeZone, new MockClock(() => _now)));
+            new PeriodValidator(_dateTimeZone, new MockClock(() => _now)));
     }
 
     [Fact]

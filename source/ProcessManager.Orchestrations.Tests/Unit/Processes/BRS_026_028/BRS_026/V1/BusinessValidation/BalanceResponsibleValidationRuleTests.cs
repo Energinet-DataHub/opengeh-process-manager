@@ -23,7 +23,7 @@ using FluentAssertions.Execution;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 
 [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Async suffix is not needed for test methods")]
-public class BalanceResponsibleValidatorTest
+public class BalanceResponsibleValidationRuleTests
 {
     public const string ValidGlnNumber = "qwertyuiopasd"; // Must be 13 characters to be a valid GLN
     private const string ValidEicNumber = "qwertyuiopasdfgh"; // Must be 16 characters to be a valid GLN

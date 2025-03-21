@@ -26,7 +26,7 @@ using Moq;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 
 [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Async suffix is not needed for test methods")]
-public class GridAreaValidatorTest
+public class GridAreaValidationRuleTests
 {
     private static readonly ValidationError _missingGridAreaCode = new("Netområde er obligatorisk for rollen DDM / Grid area is mandatory for the role DDM.", "D64");
     private static readonly ValidationError _invalidGridArea = new("Ugyldig netområde / Invalid gridarea", "E86");

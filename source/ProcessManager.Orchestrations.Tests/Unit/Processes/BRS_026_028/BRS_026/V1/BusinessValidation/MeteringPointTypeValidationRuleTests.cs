@@ -20,7 +20,7 @@ using FluentAssertions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 
-public class MeteringPointTypeValidatorTests
+public class MeteringPointTypeValidationRuleTests
 {
     private static readonly ValidationError _invalidMeteringPointType =
         new(

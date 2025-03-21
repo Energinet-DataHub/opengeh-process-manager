@@ -20,7 +20,7 @@ using FluentAssertions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 
-public class SettlementVersionValidatorTest
+public class SettlementVersionValidationRuleTests
 {
     private static readonly ValidationError _expectedInvalidSettlementMethodError = new("SettlementSeriesVersion kan kun benyttes i kombination med D32 og skal være enten D01, D02 eller D03 / SettlementSeriesVersion can only be used in combination with D32 and must be either D01, D02 or D03", "E86");
 

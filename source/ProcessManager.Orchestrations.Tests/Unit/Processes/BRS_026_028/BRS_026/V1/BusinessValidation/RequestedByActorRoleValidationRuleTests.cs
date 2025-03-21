@@ -18,7 +18,7 @@ using FluentAssertions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 
-public sealed class RequestedByActorRoleValidationRuleTest
+public sealed class RequestedByActorRoleValidationRuleTests
 {
     [Theory]
     [InlineData(nameof(ActorRole.MeteredDataResponsible))]

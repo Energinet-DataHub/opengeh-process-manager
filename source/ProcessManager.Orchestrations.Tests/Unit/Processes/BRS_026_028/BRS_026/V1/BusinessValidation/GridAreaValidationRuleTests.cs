@@ -26,7 +26,7 @@ using Moq;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 
 [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Async suffix is not needed for test methods")]
-public class GridAreaValidatorTest
+public class GridAreaValidationRuleTests
 {
     private const string ValidGlnNumber = "qwertyuiopasd"; // Must be 13 characters to be a valid GLN
     private static readonly ValidationError _missingGridAreaCode = new("Netområde er obligatorisk for rollen MDR / Grid area is mandatory for the role MDR.", "D64");

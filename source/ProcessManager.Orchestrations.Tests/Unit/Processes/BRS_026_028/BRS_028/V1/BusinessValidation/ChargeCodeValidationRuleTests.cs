@@ -20,7 +20,7 @@ using FluentAssertions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_026_028.BRS_028.V1.BusinessValidation;
 
-public class ChargeTypeValidatorTests
+public class ChargeCodeValidationRuleTests
 {
     private static readonly ValidationError _chargeTypeIdIsToLongError = new(
         "Følgende chargeType mRID er for lang: {PropertyName}. Den må højst indeholde 10 karaktere/"

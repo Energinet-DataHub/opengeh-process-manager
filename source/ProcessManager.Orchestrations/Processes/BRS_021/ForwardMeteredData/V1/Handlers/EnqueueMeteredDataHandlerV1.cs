@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
@@ -29,11 +31,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class EnqueueMeteredDataHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
-    IEnqueueActorMessagesClient enqueueActorMessagesClient)
+    IEnqueueActorMessagesClient enqueueActorMessagesClient,
+    MeteringPointReceiversProvider meteringPointReceiversProvider)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+    private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
 
     public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
@@ -54,13 +58,13 @@ public class EnqueueMeteredDataHandlerV1(
         await TerminateForwardToMeasurementStep(orchestrationInstance).ConfigureAwait(false);
 
         // Start Step: Find receiver step
-        var receivers = await FindReceivers(orchestrationInstance, forwardMeteredDataInput).ConfigureAwait(false);
+        var receiversWithMeteredData = await FindReceivers(orchestrationInstance, forwardMeteredDataInput).ConfigureAwait(false);
 
         // Start Step: Enqueue actor messages step
         await EnqueueAcceptedActorMessagesAsync(
                 orchestrationInstance,
                 forwardMeteredDataInput,
-                receivers)
+                receiversWithMeteredData)
             .ConfigureAwait(false);
     }
 
@@ -87,14 +91,15 @@ public class EnqueueMeteredDataHandlerV1(
     {
         var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiversStep);
 
+        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
+
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (findReceiversStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
         {
-            // TODO: Make sure this returns the same receivers as when the step previously ran and returned receivers.
-            // Since the master data should be saved as custom state on the orchestrationInstance, we should just
+            // Since the master data is saved as custom state on the orchestrationInstance, we should just
             // be able to calculate the receivers (again), based on the master data. If the inputs are the same,
             // the returned calculated receivers should also be the same.
-            return [];
+            return CalculateReceiversWithMeteredData(customState, forwardMeteredDataInput);
         }
 
         await StepHelper.StartStepAndCommitIfPending(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
@@ -103,39 +108,30 @@ public class EnqueueMeteredDataHandlerV1(
         if (findReceiversStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Find receivers step must be running (Id={findReceiversStep.Id}, State={findReceiversStep.Lifecycle.State}).");
 
-        // Find Receivers
-        // TODO: Implement find receivers
-        List<ReceiversWithMeteredDataV1> receivers =
-        [
-            // TODO: Select from master data
-            new ReceiversWithMeteredDataV1(
-                Actors:
-                [
-                    // TODO: Get energy suppliers (and other receivers?) from master data
-                    new MarketActorRecipientV1(
-                        ActorNumber.Create("8100000000115"),
-                        ActorRole.EnergySupplier),
-                ],
-                // TODO: Select the following properties from master data instead
-                MeasureUnit: MeasurementUnit.FromName(forwardMeteredDataInput.MeasureUnit!),
-                Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution!),
-                StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value
-                    .ToDateTimeOffset(),
-                EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value
-                    .ToDateTimeOffset(),
-                // TODO: Get as a subset of metered data in the given period
-                MeteredData: [
-                    new ReceiversWithMeteredDataV1.AcceptedMeteredData(
-                        1,
-                        1337,
-                        Quality.Estimated),
-                ]),
-        ];
+        var receiversWithMeteredData = CalculateReceiversWithMeteredData(customState, forwardMeteredDataInput);
 
         // Terminate Step: Find receiver step
         await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
 
-        return receivers;
+        return receiversWithMeteredData;
+    }
+
+    /// <summary>
+    /// Calculate receivers with metered data based on the metering point master data and the forward metered data input.
+    /// <remarks>
+    /// The returned receivers should always be the same given the same inputs.
+    /// </remarks>
+    /// </summary>
+    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredData(
+        ForwardMeteredDataCustomStateV1 customState,
+        ForwardMeteredDataInputV1 forwardMeteredDataInput)
+    {
+        var receiversWithMeteredData = _meteringPointReceiversProvider
+            .GetReceiversWithMeteredDataFromMasterDataList(
+                customState.MeteringPointMasterData,
+                forwardMeteredDataInput);
+
+        return receiversWithMeteredData;
     }
 
     private async Task EnqueueAcceptedActorMessagesAsync(

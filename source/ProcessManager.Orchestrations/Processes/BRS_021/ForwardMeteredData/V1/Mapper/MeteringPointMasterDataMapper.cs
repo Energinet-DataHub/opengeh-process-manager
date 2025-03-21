@@ -55,4 +55,10 @@ public static class MeteringPointMasterDataMapper
         { ConnectionState.Connected, Model.ConnectionState.Connected },
         { ConnectionState.Disconnected, Model.ConnectionState.Disconnected },
     };
+
+    public static readonly Dictionary<string, PMTypes.Resolution> ResolutionMap = new()
+    {
+        { "PT15M", PMTypes.Resolution.QuarterHourly },
+        { "PT1H", PMTypes.Resolution.Hourly },
+    };
 }

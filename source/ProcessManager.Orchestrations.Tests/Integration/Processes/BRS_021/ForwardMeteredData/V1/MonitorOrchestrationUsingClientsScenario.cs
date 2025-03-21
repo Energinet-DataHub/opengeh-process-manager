@@ -513,7 +513,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ConnectionState = ElectricityMarket.Integration.Models.MasterData.ConnectionState.Connected,
             Type = ElectricityMarket.Integration.Models.MasterData.MeteringPointType.Consumption,
             SubType = ElectricityMarket.Integration.Models.MasterData.MeteringPointSubType.Physical,
-            Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("Hourly"),
+            Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("PT1H"),
             Unit = MeasureUnit.kWh,
             ProductId = ProductId.Tariff,
             ParentIdentification = null,

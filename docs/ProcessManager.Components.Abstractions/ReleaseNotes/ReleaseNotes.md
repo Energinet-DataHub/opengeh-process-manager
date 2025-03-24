@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 1.3.8
+
+- No functional changes.
+
 ## Version 1.3.7
 
 - Update NuGet packages.

@@ -51,7 +51,7 @@ public class StartForwardMeteredDataHandlerV1(
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
-        : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
+    : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
@@ -113,7 +113,6 @@ public class StartForwardMeteredDataHandlerV1(
         }
 
         // Perform step: Business validation
-        // TODO: Do we need a RowVersion on the step instances, to ensure this code doesn't run in parallel?
         var validationErrors = await PerformBusinessValidation(
                 orchestrationInstance: orchestrationInstance,
                 input: forwardMeteredDataInput)
@@ -131,7 +130,8 @@ public class StartForwardMeteredDataHandlerV1(
         else
         {
             // Skip step: Forward to Measurements
-            var forwardStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+            var forwardStep =
+                orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
             // If the step is already skipped, do nothing (idempotency/retry check).
             if (forwardStep.Lifecycle.TerminationState is not OrchestrationStepTerminationState.Skipped)
@@ -142,7 +142,7 @@ public class StartForwardMeteredDataHandlerV1(
             }
 
             // Skip step: Find receiver
-            var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiversStep);
+            var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.FindReceiversStep);
 
             // If the step is already skipped, do nothing (idempotency/retry check).
             if (findReceiverStep.Lifecycle.TerminationState != OrchestrationStepTerminationState.Skipped)
@@ -179,7 +179,7 @@ public class StartForwardMeteredDataHandlerV1(
         // Creates an orchestration instance (if it doesn't exist) and transitions it to queued state.
         var orchestrationInstanceId = await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
-                OrchestrationDescriptionBuilderV1.UniqueName.MapToDomain(),
+                OrchestrationDescriptionBuilder.UniqueName.MapToDomain(),
                 input,
                 skipStepsBySequence: [],
                 new IdempotencyKey(idempotencyKey),
@@ -214,7 +214,7 @@ public class StartForwardMeteredDataHandlerV1(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataInputV1 input)
     {
-        var validationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.BusinessValidationStep);
+        var validationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep);
 
         // If the step is already terminated (idempotency/retry check), return the existing validation errors.
         if (validationStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
@@ -259,7 +259,12 @@ public class StartForwardMeteredDataHandlerV1(
             ? OrchestrationStepTerminationState.Succeeded
             : OrchestrationStepTerminationState.Failed;
 
-        await StepHelper.TerminateStepAndCommit(validationStep, _clock, _progressRepository, validationStepTerminationState).ConfigureAwait(false);
+        await StepHelper.TerminateStepAndCommit(
+                validationStep,
+                _clock,
+                _progressRepository,
+                validationStepTerminationState)
+            .ConfigureAwait(false);
 
         return validationErrors;
     }
@@ -269,13 +274,15 @@ public class StartForwardMeteredDataHandlerV1(
         OrchestrationInstance orchestrationInstance)
     {
         // Start Step: Forward to Measurements
-        var forwardToMeasurementsStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+        var forwardToMeasurementsStep =
+            orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (forwardToMeasurementsStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
             return;
 
-        await StepHelper.StartStepAndCommitIfPending(forwardToMeasurementsStep, _clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.StartStepAndCommitIfPending(forwardToMeasurementsStep, _clock, _progressRepository)
+            .ConfigureAwait(false);
 
         // If we reach this point, the step should be running, so this check is just an extra safeguard.
         if (forwardToMeasurementsStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
@@ -284,7 +291,6 @@ public class StartForwardMeteredDataHandlerV1(
                 $"Forward to Measurements step must be running (Id={forwardToMeasurementsStep.Id}, State={forwardToMeasurementsStep.Lifecycle.State}).");
         }
 
-        // TODO: How is idempotency handled here / when Measurements receive this message? Do we need an idempotency key?
         await _measurementsMeteredDataClient.SendAsync(
                 MapInputToMeasurements(orchestrationInstance.Id, input),
                 CancellationToken.None)
@@ -296,7 +302,7 @@ public class StartForwardMeteredDataHandlerV1(
         ForwardMeteredDataInputV1 forwardMeteredDataInput,
         IReadOnlyCollection<ValidationError> validationErrors)
     {
-        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (enqueueStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
@@ -325,7 +331,7 @@ public class StartForwardMeteredDataHandlerV1(
         }
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-                OrchestrationDescriptionBuilderV1.UniqueName,
+                OrchestrationDescriptionBuilder.UniqueName,
                 orchestrationInstance.Id.Value,
                 new ActorIdentityDto(
                     ActorNumber.Create(forwardMeteredDataInput.ActorNumber),

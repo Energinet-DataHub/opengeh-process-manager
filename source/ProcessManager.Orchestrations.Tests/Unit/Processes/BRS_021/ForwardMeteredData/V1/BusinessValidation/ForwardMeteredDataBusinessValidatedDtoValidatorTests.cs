@@ -45,7 +45,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         services.AddTransient<DateTimeZone>(s => _timeZone);
         services.AddTransient<IClock>(s => _clockMock.Object);
 
-        var orchestrationsAssembly = typeof(OrchestrationDescriptionBuilderV1).Assembly;
+        var orchestrationsAssembly = typeof(OrchestrationDescriptionBuilder).Assembly;
         var orchestrationsAbstractionsAssembly =
             typeof(ForwardMeteredDataBusinessValidatedDto).Assembly;
         services.AddBusinessValidation(assembliesToScan: [orchestrationsAssembly, orchestrationsAbstractionsAssembly]);

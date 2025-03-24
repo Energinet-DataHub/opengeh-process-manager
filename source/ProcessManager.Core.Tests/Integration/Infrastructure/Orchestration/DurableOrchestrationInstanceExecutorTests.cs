@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Orchestration;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.Logging;

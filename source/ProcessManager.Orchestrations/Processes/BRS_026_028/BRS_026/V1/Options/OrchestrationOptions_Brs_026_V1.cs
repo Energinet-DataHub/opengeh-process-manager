@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.ComponentModel.DataAnnotations;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
 

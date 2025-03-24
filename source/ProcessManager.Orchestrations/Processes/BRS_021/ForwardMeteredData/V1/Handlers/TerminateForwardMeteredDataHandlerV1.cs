@@ -46,7 +46,7 @@ public class TerminateForwardMeteredDataHandlerV1(
 
     private async Task TerminateEnqueueActorMessagesStep(OrchestrationInstance orchestrationInstance)
     {
-        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (enqueueStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
@@ -63,7 +63,7 @@ public class TerminateForwardMeteredDataHandlerV1(
 
     private async Task TerminateOrchestrationInstance(OrchestrationInstance orchestrationInstance)
     {
-        var businessValidationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.BusinessValidationStep);
+        var businessValidationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep);
 
         var succeededBusinessValidation = businessValidationStep.Lifecycle is { TerminationState: OrchestrationStepTerminationState.Succeeded };
         if (succeededBusinessValidation)

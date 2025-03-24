@@ -308,7 +308,8 @@ public class MeteringPointMasterDataProvider(
                                     meteringPointMasterData.Type),
                                 MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(
                                     meteringPointMasterData.SubType),
-                                PMResolution.FromName(meteringPointMasterData.Resolution.Value),
+                                MeteringPointMasterDataMapper.ResolutionMap.Map(
+                                    meteringPointMasterData.Resolution.Value),
                                 MeteringPointMasterDataMapper.MeasureUnitMap.Map(
                                     meteringPointMasterData.Unit),
                                 meteringPointMasterData.ProductId.ToString(),

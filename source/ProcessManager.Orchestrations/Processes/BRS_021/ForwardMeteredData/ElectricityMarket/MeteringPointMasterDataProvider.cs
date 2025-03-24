@@ -256,9 +256,8 @@ public class MeteringPointMasterDataProvider(
 
     private (IReadOnlyCollection<PMMeteringPointMasterData> MeteringPointMasterData,
         IReadOnlyCollection<MeteringPointMasterDataInconsistencyException> Exceptions) FlattenMasterDataForParent(
-            MeteringPointMasterData meteringPointMasterData)
-    {
-        return (meteringPointMasterData.EnergySuppliers
+            MeteringPointMasterData meteringPointMasterData) =>
+        (meteringPointMasterData.EnergySuppliers
                 .Select(
                     meteringPointEnergySupplier =>
                         new PMMeteringPointMasterData(
@@ -284,14 +283,12 @@ public class MeteringPointMasterDataProvider(
                 .ToList()
                 .AsReadOnly(),
             []);
-    }
 
     private (IReadOnlyCollection<PMMeteringPointMasterData> MeteringPointMasterData,
         IReadOnlyCollection<MeteringPointMasterDataInconsistencyException> Exceptions) FlattenMasterDataForChild(
             MeteringPointMasterData meteringPointMasterData,
-            IReadOnlyDictionary<string, IReadOnlyCollection<MeteringPointMasterData>> parentMeteringPointMasterData)
-    {
-        return (parentMeteringPointMasterData[meteringPointMasterData.ParentIdentification!.Value]
+            IReadOnlyDictionary<string, IReadOnlyCollection<MeteringPointMasterData>> parentMeteringPointMasterData) =>
+        (parentMeteringPointMasterData[meteringPointMasterData.ParentIdentification!.Value]
                 .SelectMany(
                     mpmd => mpmd.EnergySuppliers
                         .Select(
@@ -318,7 +315,6 @@ public class MeteringPointMasterDataProvider(
                 .ToList()
                 .AsReadOnly(),
             []);
-    }
 
     public sealed class MeteringPointMasterDataInconsistencyException(string? message) : Exception(message);
 }

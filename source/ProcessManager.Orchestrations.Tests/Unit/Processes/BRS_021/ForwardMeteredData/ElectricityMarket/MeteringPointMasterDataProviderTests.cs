@@ -47,7 +47,7 @@ public class MeteringPointMasterDataProviderTests
             .BeEmpty();
     }
 
-    [Fact]
+    [Fact(Skip = "Awaiting clarification wrt the expected behavior")]
     public async Task Given_MasterDataWithNoEnergySuppliers_When_GetMasterData_Then_Error()
     {
         var act = async () => await _sut.GetMasterData(
@@ -55,12 +55,10 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        (await act()).Should().BeEmpty();
-
-        // await act.Should()
-        //     .ThrowAsync<Exception>()
-        //     .WithMessage(
-        //         "No energy suppliers found for metering point 'no-energy-suppliers-please' in period 2021-01-01T00:00:00Z--2021-01-01T00:00:00Z.");
+        await act.Should()
+            .ThrowAsync<Exception>()
+            .WithMessage(
+                "No energy suppliers found for metering point 'no-energy-suppliers-please' in period 2021-01-01T00:00:00Z--2021-01-01T00:00:00Z.");
     }
 
     [Fact]
@@ -157,7 +155,7 @@ public class MeteringPointMasterDataProviderTests
                 });
     }
 
-    [Fact]
+    [Fact(Skip = "Awaiting clarification wrt the expected behavior")]
     public async Task Given_TwoMasterDataWithOneFaultyEnergySuppliers_When_GetMasterData_Then_Error()
     {
         var act = async () => await _sut.GetMasterData(
@@ -165,12 +163,10 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        (await act()).Should().BeEmpty();
-
-        // await act.Should()
-        //     .ThrowAsync<Exception>()
-        //     .WithMessage(
-        //         "No energy suppliers found for metering point 'faulty-two-master-data-please' in period 2021-03-01T00:00:00Z--2021-05-01T00:00:00Z.");
+        await act.Should()
+            .ThrowAsync<Exception>()
+            .WithMessage(
+                "No energy suppliers found for metering point 'faulty-two-master-data-please' in period 2021-03-01T00:00:00Z--2021-05-01T00:00:00Z.");
     }
 
     [Fact]

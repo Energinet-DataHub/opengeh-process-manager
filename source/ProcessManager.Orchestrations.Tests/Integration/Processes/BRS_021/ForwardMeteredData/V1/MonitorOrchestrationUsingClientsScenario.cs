@@ -205,7 +205,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await processManagerClient
             .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
                 forwardCommand.IdempotencyKey,
-                OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+                OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
         isWaitingForMeasurementsNotify.Should()
             .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
@@ -314,7 +314,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
             .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
                 invalidForwardCommand.IdempotencyKey,
-                OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+                OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
 
         isWaitingForNotify.Should()
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
@@ -368,7 +368,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 s =>
                 {
                     // Validation step should be failed
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.BusinessValidationStep);
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.BusinessValidationStep);
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
@@ -377,7 +377,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 s =>
                 {
                     // Forward to measurements step should be skipped
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
@@ -386,7 +386,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 s =>
                 {
                     // Find receiver step should be skipped
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.FindReceiversStep);
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.FindReceiversStep);
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
@@ -395,7 +395,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 s =>
                 {
                     // Enqueue actor messages step should be succeeded
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
@@ -513,7 +513,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ConnectionState = ElectricityMarket.Integration.Models.MasterData.ConnectionState.Connected,
             Type = ElectricityMarket.Integration.Models.MasterData.MeteringPointType.Consumption,
             SubType = ElectricityMarket.Integration.Models.MasterData.MeteringPointSubType.Physical,
-            Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("Hourly"),
+            Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("PT1H"),
             Unit = MeasureUnit.kWh,
             ProductId = ProductId.Tariff,
             ParentIdentification = null,

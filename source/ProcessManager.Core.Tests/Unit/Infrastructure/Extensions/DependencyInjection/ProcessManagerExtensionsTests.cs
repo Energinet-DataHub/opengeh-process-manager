@@ -17,7 +17,6 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -31,7 +30,7 @@ public class ProcessManagerExtensionsTests
 {
     public ProcessManagerExtensionsTests()
     {
-        ExampleOrchestrationsAssembly = Assembly.GetAssembly(typeof(Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Orchestration_Brs_X01_NoInputExample_V1))!;
+        ExampleOrchestrationsAssembly = Assembly.GetAssembly(typeof(OrchestrationOptions_Brs_X01_InputExample_V1))!;
         Services = new ServiceCollection();
     }
 
@@ -45,14 +44,14 @@ public class ProcessManagerExtensionsTests
         // Arrange
         var expectedBuilderTypes = new List<Type>
         {
-            typeof(Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.OrchestrationDescriptionBuilder),
-            typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.V1.OrchestrationDescriptionBuilder),
-            typeof(Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.OrchestrationDescriptionBuilder),
-            typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.OrchestrationDescriptionBuilder),
-            typeof(Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.OrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Orchestration.OrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Orchestration.OrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X01.NoInputExample.V1.Orchestration.OrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Orchestration.OrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Orchestration.OrchestrationDescriptionBuilder),
+            typeof(Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Orchestration.OrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X03.OrchestrationDescriptionBreakingChanges.BreakingChangesOrchestrationDescriptionBuilder),
             typeof(Example.Orchestrations.Processes.BRS_X03.OrchestrationDescriptionBreakingChanges.UnderDevelopmentOrchestrationDescriptionBuilder),
-            typeof(OrchestrationDescriptionBuilder),
         };
 
         // Act

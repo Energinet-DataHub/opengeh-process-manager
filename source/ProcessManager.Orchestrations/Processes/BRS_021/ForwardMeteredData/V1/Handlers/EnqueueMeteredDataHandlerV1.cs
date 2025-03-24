@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics.Contracts;
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
@@ -24,7 +22,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
-using ActorNumber = Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects.ActorNumber;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
@@ -70,7 +67,7 @@ public class EnqueueMeteredDataHandlerV1(
 
     private async Task TerminateForwardToMeasurementStep(OrchestrationInstance orchestrationInstance)
     {
-        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.ForwardToMeasurementsStep);
+        var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (forwardToMeasurementStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
@@ -89,7 +86,7 @@ public class EnqueueMeteredDataHandlerV1(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataInputV1 forwardMeteredDataInput)
     {
-        var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.FindReceiversStep);
+        var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.FindReceiversStep);
 
         var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
 
@@ -139,7 +136,7 @@ public class EnqueueMeteredDataHandlerV1(
         ForwardMeteredDataInputV1 forwardMeteredDataInput,
         IReadOnlyCollection<ReceiversWithMeteredDataV1> receivers)
     {
-        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep);
+        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (enqueueStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
@@ -186,7 +183,7 @@ public class EnqueueMeteredDataHandlerV1(
             ReceiversWithMeteredData: receivers);
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-                orchestration: OrchestrationDescriptionBuilderV1.UniqueName,
+                orchestration: OrchestrationDescriptionBuilder.UniqueName,
                 orchestrationInstanceId: orchestrationInstance.Id.Value,
                 orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
                 idempotencyKey: idempotencyKey,

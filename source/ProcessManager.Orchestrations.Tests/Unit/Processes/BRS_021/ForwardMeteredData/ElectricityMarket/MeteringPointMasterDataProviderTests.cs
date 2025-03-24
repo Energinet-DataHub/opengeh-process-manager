@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.Common;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.GridAreas;
@@ -26,6 +27,10 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.
     ElectricityMarket;
 
+[SuppressMessage(
+    "StyleCop.CSharp.ReadabilityRules",
+    "SA1114:Parameter list should follow declaration",
+    Justification = "Allow comments to increase readability")]
 public class MeteringPointMasterDataProviderTests
 {
     private readonly ElectricityMarketViewsMock _electricityMarketViews;
@@ -254,6 +259,7 @@ public class MeteringPointMasterDataProviderTests
             .HaveCount(6)
             .And
             .SatisfyRespectively(
+                // Master data from parent
                 first =>
                 {
                     first.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
@@ -282,6 +288,7 @@ public class MeteringPointMasterDataProviderTests
                     fourth.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
                     fourth.EnergySupplier.Value.Should().Be("4545454545454");
                 },
+                // Master data from metering point (no parent id in this period)
                 first =>
                 {
                     first.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");

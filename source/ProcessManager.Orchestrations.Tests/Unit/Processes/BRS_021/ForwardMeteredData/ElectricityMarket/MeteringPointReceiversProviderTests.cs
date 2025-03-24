@@ -388,7 +388,8 @@ public class MeteringPointReceiversProviderTests
 
     [Theory]
     [MemberData(nameof(ChildMeteringPointTypes))]
-    public void Think_of_the_children(MeteringPointType meteringPointType)
+    public void Given_ChildMeteringPointType_When_GetReceivers_Then_ReceiversAreTheParentEnergySuppliers(
+        MeteringPointType meteringPointType)
     {
         var masterData = CreateMasterData(meteringPointType, parentMeteringPointId: "parent-metering-point-id");
 

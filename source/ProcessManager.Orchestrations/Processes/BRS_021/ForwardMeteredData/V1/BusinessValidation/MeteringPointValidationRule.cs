@@ -36,7 +36,7 @@ public class MeteringPointValidationRule(IFeatureFlagManager featureFlagManager)
     public async Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
-        if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.UseBrs021ForwardMeteredDataBusinessValidationForMeteringPoint).ConfigureAwait(false))
+        if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint).ConfigureAwait(false))
         {
             if (subject.MeteringPointMasterData.Count == 0)
                 return MeteringPointDoesntExistsError;

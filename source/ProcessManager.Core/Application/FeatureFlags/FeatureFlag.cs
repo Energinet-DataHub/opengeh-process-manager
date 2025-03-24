@@ -42,5 +42,5 @@ public enum FeatureFlag
     /// If this feature flag is enabled, the business validation rule will return a business validation error
     /// if the metering point does not exist.
     /// </summary>
-    UseBrs021ForwardMeteredDataBusinessValidationForMeteringPoint,
+    EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint,
 }

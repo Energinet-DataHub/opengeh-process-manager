@@ -13,28 +13,35 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
-public class MeteringPointValidationRule
+/// <summary>
+/// Business validation rule for metering point validation
+/// if the metering point does not exist, a business validation error is returned
+/// </summary>
+public class MeteringPointValidationRule(IFeatureFlagManager featureFlagManager)
     : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
+    private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
+
     public static IList<ValidationError> MeteringPointDoesntExistsError => [new(
         Message: "Målepunktet findes ikke / The metering point does not exist",
         ErrorCode: "E10")];
 
     private static IList<ValidationError> NoError => [];
 
-    public Task<IList<ValidationError>> ValidateAsync(
+    public async Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
-        // This validation rule always succeeds, since Electricity Market doesn't contain data on dev environments.
-        // TODO: Reimplement this validation rule when the Electricity Market has data on all environments.
-        return Task.FromResult(NoError);
-        // if (subject.MeteringPointMasterData.Count == 0)
-        //     return Task.FromResult(MeteringPointDoesntExistsError);
-        //
-        // return Task.FromResult(NoError);
+        if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.UseBrs021BusinessValidationForMeteringPoint).ConfigureAwait(false))
+        {
+            if (subject.MeteringPointMasterData.Count == 0)
+                return MeteringPointDoesntExistsError;
+        }
+
+        return NoError;
     }
 }

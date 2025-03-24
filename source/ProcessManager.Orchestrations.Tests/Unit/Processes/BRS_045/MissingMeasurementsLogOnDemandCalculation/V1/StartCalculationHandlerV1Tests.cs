@@ -53,7 +53,7 @@ public class StartCalculationHandlerV1Tests
         var calculationInputV1 = new CalculationInputV1(
             new DateTimeOffset(2025, 1, 1, 23, 0, 0, TimeSpan.Zero),
             new DateTimeOffset(2025, 1, 2, 23, 0, 0, TimeSpan.Zero),
-            [302]);
+            ["302"]);
         var command = new StartCalculationCommandV1(userIdentity, calculationInputV1);
         var sut = new StartCalculationHandlerV1(DateTimeZone.ForOffset(offset), ManagerMock.Object);
 
@@ -65,12 +65,12 @@ public class StartCalculationHandlerV1Tests
     }
 
     [Theory]
-    [InlineData(2025, 1, 1, 23, 1, 2025, 1, 2, 23, 0, 301, 1)]
-    [InlineData(2025, 1, 1, 23, 0, 2025, 1, 1, 22, 0, 301, 1)]
-    [InlineData(2025, 1, 1, 22, 0, 2025, 1, 1, 23, 0, 301, 1)]
-    [InlineData(2025, 7, 1, 22, 0, 2025, 7, 1, 22, 1, 301, 2)]
+    [InlineData(2025, 1, 1, 23, 1, 2025, 1, 2, 23, 0, "301", 1)]
+    [InlineData(2025, 1, 1, 23, 0, 2025, 1, 1, 22, 0, "301", 1)]
+    [InlineData(2025, 1, 1, 22, 0, 2025, 1, 1, 23, 0, "301", 1)]
+    [InlineData(2025, 7, 1, 22, 0, 2025, 7, 1, 22, 1, "301", 2)]
     [InlineData(2025, 1, 1, 23, 0, 2025, 1, 2, 23, 0, null, 1)]
-    [InlineData(2025, 1, 1, 23, 0, 2025, 2, 2, 23, 0, 301, 1)]
+    [InlineData(2025, 1, 1, 23, 0, 2025, 2, 2, 23, 0, "301", 1)]
     public async Task HandleCommand_WithInvalidParameters(
         int startYear,
         int startMonth,
@@ -82,13 +82,13 @@ public class StartCalculationHandlerV1Tests
         int endDay,
         int endHour,
         int endMinute,
-        int? gridAreaCode,
+        string? gridAreaCode,
         int offset)
     {
         // Arrange
         var userIdentity = CreateUserIdentity();
         var offsetDk = CreateDkOffset();
-        var gridAreaCodes = gridAreaCode.HasValue ? [gridAreaCode.Value] : new List<int>();
+        var gridAreaCodes = gridAreaCode != null ? [gridAreaCode] : new List<string>();
         var calculationInputV1 = new CalculationInputV1(
             new DateTimeOffset(startYear, startMonth, startDay, startHour, startMinute, 0, TimeSpan.FromHours(offset)),
             new DateTimeOffset(endYear, endMonth, endDay, endHour, endMinute, 0, TimeSpan.FromHours(offset)),

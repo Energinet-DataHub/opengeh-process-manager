@@ -102,7 +102,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     new CalculationInputV1(
                         new DateTimeOffset(2025, 1, 1, 23, 0, 0, TimeSpan.Zero),
                         new DateTimeOffset(2025, 1, 10, 23, 0, 0, TimeSpan.Zero),
-                        [301])),
+                        ["301"])),
                 CancellationToken.None);
 
         // Step 2: Query until terminated with succeeded

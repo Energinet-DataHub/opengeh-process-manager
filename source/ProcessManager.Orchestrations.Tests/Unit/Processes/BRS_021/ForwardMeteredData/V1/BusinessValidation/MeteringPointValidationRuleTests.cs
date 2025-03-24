@@ -65,7 +65,7 @@ public class MeteringPointValidationRuleTests
     {
         var featureManager = new Mock<IFeatureManager>();
         featureManager
-            .Setup(x => x.IsEnabledAsync(FeatureFlag.UseBrs021BusinessValidationForMeteringPoint.ToString()))
+            .Setup(x => x.IsEnabledAsync(FeatureFlag.UseBrs021ForwardMeteredDataBusinessValidationForMeteringPoint.ToString()))
             .ReturnsAsync(true);
         _sut = new(new MicrosoftFeatureFlagManager(featureManager.Object));
         var input = new ForwardMeteredDataInputV1Builder()

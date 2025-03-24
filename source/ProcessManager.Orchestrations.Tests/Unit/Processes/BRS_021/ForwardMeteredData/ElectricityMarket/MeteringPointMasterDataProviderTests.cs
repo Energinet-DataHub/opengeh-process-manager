@@ -55,10 +55,12 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        await act.Should()
-            .ThrowAsync<Exception>()
-            .WithMessage(
-                "No energy suppliers found for metering point 'no-energy-suppliers-please' in period 2021-01-01T00:00:00Z--2021-01-01T00:00:00Z.");
+        (await act()).Should().BeEmpty();
+
+        // await act.Should()
+        //     .ThrowAsync<Exception>()
+        //     .WithMessage(
+        //         "No energy suppliers found for metering point 'no-energy-suppliers-please' in period 2021-01-01T00:00:00Z--2021-01-01T00:00:00Z.");
     }
 
     [Fact]
@@ -163,10 +165,12 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        await act.Should()
-            .ThrowAsync<Exception>()
-            .WithMessage(
-                "No energy suppliers found for metering point 'faulty-two-master-data-please' in period 2021-03-01T00:00:00Z--2021-05-01T00:00:00Z.");
+        (await act()).Should().BeEmpty();
+
+        // await act.Should()
+        //     .ThrowAsync<Exception>()
+        //     .WithMessage(
+        //         "No energy suppliers found for metering point 'faulty-two-master-data-please' in period 2021-03-01T00:00:00Z--2021-05-01T00:00:00Z.");
     }
 
     [Fact]

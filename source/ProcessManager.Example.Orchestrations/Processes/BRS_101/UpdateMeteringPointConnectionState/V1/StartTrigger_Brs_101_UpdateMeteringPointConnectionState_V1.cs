@@ -20,9 +20,9 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1;
 
 internal class StartTrigger_Brs_101_UpdateMeteringPointConnectionState_V1(
-    StartActorRequestProcessExampleHandlerV1 handler)
+    StartUpdateMeteringPointConnectionStateV1 handler)
 {
-    private readonly StartActorRequestProcessExampleHandlerV1 _handler = handler;
+    private readonly StartUpdateMeteringPointConnectionStateV1 _handler = handler;
 
     /// <summary>
     /// Start a BRS-101 Update Metering Point connection state request.

@@ -249,18 +249,56 @@ public class MeteringPointMasterDataProvider(
         //         new MeteringPointMasterDataInconsistencyException(
         //             $"Metering point identification for energy supplier does not match parent identification."));
         // }
+        return meteringPointMasterData.ParentIdentification is not null
+            ? FindMasterDataForChild(meteringPointMasterData, parentMeteringPointMasterData)
+            : FindMasterDataForParent(meteringPointMasterData);
+    }
 
+    private (IReadOnlyCollection<PMMeteringPointMasterData> MeteringPointMasterData,
+        IReadOnlyCollection<MeteringPointMasterDataInconsistencyException> Exceptions) FindMasterDataForParent(
+            MeteringPointMasterData meteringPointMasterData)
+    {
         return (meteringPointMasterData.EnergySuppliers
-            .SelectMany<MeteringPointEnergySupplier, PMMeteringPointMasterData>(
-                meteringPointEnergySupplier =>
-                {
-                    return meteringPointMasterData.ParentIdentification is null
-                        ?
-                        [
-                            new PMMeteringPointMasterData(
+                .Select(
+                    meteringPointEnergySupplier =>
+                        new PMMeteringPointMasterData(
+                            new MeteringPointId(meteringPointMasterData.Identification.Value),
+                            meteringPointEnergySupplier.StartDate.ToDateTimeOffset(),
+                            meteringPointEnergySupplier.EndDate.ToDateTimeOffset(),
+                            new PMGridAreaCode(meteringPointMasterData.GridAreaCode.Value),
+                            ActorNumber.Create(meteringPointMasterData.GridAccessProvider),
+                            meteringPointMasterData.NeighborGridAreaOwners,
+                            MeteringPointMasterDataMapper.ConnectionStateMap.Map(
+                                meteringPointMasterData.ConnectionState),
+                            MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(
+                                meteringPointMasterData.Type),
+                            MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(
+                                meteringPointMasterData.SubType),
+                            PMResolution.FromName(meteringPointMasterData.Resolution.Value),
+                            MeteringPointMasterDataMapper.MeasureUnitMap.Map(meteringPointMasterData.Unit),
+                            meteringPointMasterData.ProductId.ToString(),
+                            meteringPointMasterData.ParentIdentification is null
+                                ? null
+                                : new MeteringPointId(meteringPointMasterData.ParentIdentification.Value),
+                            ActorNumber.Create(meteringPointEnergySupplier.EnergySupplier)))
+                .ToList()
+                .AsReadOnly(),
+            []);
+    }
+
+    private (IReadOnlyCollection<PMMeteringPointMasterData> MeteringPointMasterData,
+        IReadOnlyCollection<MeteringPointMasterDataInconsistencyException> Exceptions) FindMasterDataForChild(
+            MeteringPointMasterData meteringPointMasterData,
+            IReadOnlyDictionary<string, IReadOnlyCollection<MeteringPointMasterData>> parentMeteringPointMasterData)
+    {
+        return (parentMeteringPointMasterData[meteringPointMasterData.ParentIdentification!.Value]
+                .SelectMany(
+                    mpmd => mpmd.EnergySuppliers
+                        .Select(
+                            mpes => new PMMeteringPointMasterData(
                                 new MeteringPointId(meteringPointMasterData.Identification.Value),
-                                meteringPointEnergySupplier.StartDate.ToDateTimeOffset(),
-                                meteringPointEnergySupplier.EndDate.ToDateTimeOffset(),
+                                mpes.StartDate.ToDateTimeOffset(),
+                                mpes.EndDate.ToDateTimeOffset(),
                                 new PMGridAreaCode(meteringPointMasterData.GridAreaCode.Value),
                                 ActorNumber.Create(meteringPointMasterData.GridAccessProvider),
                                 meteringPointMasterData.NeighborGridAreaOwners,
@@ -271,39 +309,13 @@ public class MeteringPointMasterDataProvider(
                                 MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(
                                     meteringPointMasterData.SubType),
                                 PMResolution.FromName(meteringPointMasterData.Resolution.Value),
-                                MeteringPointMasterDataMapper.MeasureUnitMap.Map(meteringPointMasterData.Unit),
+                                MeteringPointMasterDataMapper.MeasureUnitMap.Map(
+                                    meteringPointMasterData.Unit),
                                 meteringPointMasterData.ProductId.ToString(),
-                                meteringPointMasterData.ParentIdentification is null
-                                    ? null
-                                    : new MeteringPointId(meteringPointMasterData.ParentIdentification.Value),
-                                ActorNumber.Create(meteringPointEnergySupplier.EnergySupplier)),
-                        ]
-                        : parentMeteringPointMasterData[meteringPointMasterData.ParentIdentification!.Value]
-                            .SelectMany(
-                                mpmd => mpmd.EnergySuppliers
-                                    .Select(
-                                        mpes => new PMMeteringPointMasterData(
-                                            new MeteringPointId(meteringPointMasterData.Identification.Value),
-                                            mpes.StartDate.ToDateTimeOffset(),
-                                            mpes.EndDate.ToDateTimeOffset(),
-                                            new PMGridAreaCode(meteringPointMasterData.GridAreaCode.Value),
-                                            ActorNumber.Create(meteringPointMasterData.GridAccessProvider),
-                                            meteringPointMasterData.NeighborGridAreaOwners,
-                                            MeteringPointMasterDataMapper.ConnectionStateMap.Map(
-                                                meteringPointMasterData.ConnectionState),
-                                            MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(
-                                                meteringPointMasterData.Type),
-                                            MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(
-                                                meteringPointMasterData.SubType),
-                                            PMResolution.FromName(meteringPointMasterData.Resolution.Value),
-                                            MeteringPointMasterDataMapper.MeasureUnitMap.Map(
-                                                meteringPointMasterData.Unit),
-                                            meteringPointMasterData.ProductId.ToString(),
-                                            new MeteringPointId(mpmd.Identification.Value),
-                                            ActorNumber.Create(mpes.EnergySupplier))));
-                })
-            .ToList()
-            .AsReadOnly(),
+                                new MeteringPointId(mpmd.Identification.Value),
+                                ActorNumber.Create(mpes.EnergySupplier))))
+                .ToList()
+                .AsReadOnly(),
             []);
     }
 

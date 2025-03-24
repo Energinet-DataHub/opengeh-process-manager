@@ -250,12 +250,12 @@ public class MeteringPointMasterDataProvider(
         //             $"Metering point identification for energy supplier does not match parent identification."));
         // }
         return meteringPointMasterData.ParentIdentification is not null
-            ? FindMasterDataForChild(meteringPointMasterData, parentMeteringPointMasterData)
-            : FindMasterDataForParent(meteringPointMasterData);
+            ? FlattenMasterDataForChild(meteringPointMasterData, parentMeteringPointMasterData)
+            : FlattenMasterDataForParent(meteringPointMasterData);
     }
 
     private (IReadOnlyCollection<PMMeteringPointMasterData> MeteringPointMasterData,
-        IReadOnlyCollection<MeteringPointMasterDataInconsistencyException> Exceptions) FindMasterDataForParent(
+        IReadOnlyCollection<MeteringPointMasterDataInconsistencyException> Exceptions) FlattenMasterDataForParent(
             MeteringPointMasterData meteringPointMasterData)
     {
         return (meteringPointMasterData.EnergySuppliers
@@ -287,7 +287,7 @@ public class MeteringPointMasterDataProvider(
     }
 
     private (IReadOnlyCollection<PMMeteringPointMasterData> MeteringPointMasterData,
-        IReadOnlyCollection<MeteringPointMasterDataInconsistencyException> Exceptions) FindMasterDataForChild(
+        IReadOnlyCollection<MeteringPointMasterDataInconsistencyException> Exceptions) FlattenMasterDataForChild(
             MeteringPointMasterData meteringPointMasterData,
             IReadOnlyDictionary<string, IReadOnlyCollection<MeteringPointMasterData>> parentMeteringPointMasterData)
     {

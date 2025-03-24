@@ -170,7 +170,7 @@ public class MeteringPointMasterDataProviderTests
     }
 
     [Fact]
-    public async Task Given_Parents_When_GetMasterData_Then_AllTheSplitting()
+    public async Task Given_MasterDataWithMultipleParents_When_GetMasterData_Then_EnergySuppliersPickedFromCurrentParent()
     {
         var meteringPointMasterData = await _sut.GetMasterData(
             "two-parents-please",
@@ -237,6 +237,64 @@ public class MeteringPointMasterDataProviderTests
                     fourth.ValidFrom.Should().Be(new DateTimeOffset(2021, 4, 16, 0, 0, 0, TimeSpan.Zero));
                     fourth.ValidTo.Should().Be(new DateTimeOffset(2021, 5, 1, 0, 0, 0, TimeSpan.Zero));
                     fourth.EnergySupplier.Value.Should().Be("6767676767676");
+                });
+    }
+
+    [Fact]
+    public async Task
+        Given_MasterDataWithAParentAndMasterDataWithoutAParent_When_GetMasterData_Then_EnergySuppliersPickedFromParentAndChild()
+    {
+        var meteringPointMasterData = await _sut.GetMasterData(
+            "period-without-and-period-with-parent-please",
+            "2021-01-01T00:00:00Z",
+            "2021-01-01T00:00:00Z");
+
+        meteringPointMasterData
+            .Should()
+            .HaveCount(6)
+            .And
+            .SatisfyRespectively(
+                first =>
+                {
+                    first.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
+                    first.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
+                    first.ValidTo.Should().Be(new DateTimeOffset(2021, 1, 16, 0, 0, 0, TimeSpan.Zero));
+                    first.EnergySupplier.Value.Should().Be("1212121212121");
+                },
+                second =>
+                {
+                    second.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
+                    second.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 16, 0, 0, 0, TimeSpan.Zero));
+                    second.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
+                    second.EnergySupplier.Value.Should().Be("2323232323232");
+                },
+                third =>
+                {
+                    third.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
+                    third.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
+                    third.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 16, 0, 0, 0, TimeSpan.Zero));
+                    third.EnergySupplier.Value.Should().Be("3434343434343");
+                },
+                fourth =>
+                {
+                    fourth.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
+                    fourth.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 16, 0, 0, 0, TimeSpan.Zero));
+                    fourth.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
+                    fourth.EnergySupplier.Value.Should().Be("4545454545454");
+                },
+                first =>
+                {
+                    first.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
+                    first.ValidFrom.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
+                    first.ValidTo.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
+                    first.EnergySupplier.Value.Should().Be("1111111111111");
+                },
+                second =>
+                {
+                    second.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
+                    second.ValidFrom.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
+                    second.ValidTo.Should().Be(new DateTimeOffset(2021, 5, 1, 0, 0, 0, TimeSpan.Zero));
+                    second.EnergySupplier.Value.Should().Be("3333333333333");
                 });
     }
 
@@ -350,7 +408,7 @@ public class MeteringPointMasterDataProviderTests
             ConnectionState = ConnectionState.Connected,
             Type = MeteringPointType.Consumption,
             SubType = MeteringPointSubType.Physical,
-            Resolution = new Resolution("Hourly"),
+            Resolution = new Resolution("PT1H"),
             Unit = changeToMeasurementUnit ? MeasureUnit.MVAr : MeasureUnit.kWh,
             ProductId = ProductId.EnergyActivate,
             ParentIdentification = null,
@@ -382,7 +440,7 @@ public class MeteringPointMasterDataProviderTests
             ConnectionState = ConnectionState.Connected,
             Type = changeToType ? MeteringPointType.Production : MeteringPointType.Consumption,
             SubType = MeteringPointSubType.Physical,
-            Resolution = new Resolution("Hourly"),
+            Resolution = new Resolution("PT1H"),
             Unit = MeasureUnit.kWh,
             ProductId = changeToProductId ? ProductId.Tariff : ProductId.EnergyActivate,
             ParentIdentification = null,
@@ -431,7 +489,7 @@ public class MeteringPointMasterDataProviderTests
                         ConnectionState = ConnectionState.Connected,
                         Type = MeteringPointType.Consumption,
                         SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
+                        Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
                         ParentIdentification = null,
@@ -450,7 +508,7 @@ public class MeteringPointMasterDataProviderTests
                         ConnectionState = ConnectionState.Connected,
                         Type = MeteringPointType.Consumption,
                         SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
+                        Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
                         ParentIdentification = null,
@@ -478,7 +536,7 @@ public class MeteringPointMasterDataProviderTests
                         ConnectionState = ConnectionState.Connected,
                         Type = MeteringPointType.Consumption,
                         SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
+                        Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
                         ParentIdentification = null,
@@ -513,7 +571,7 @@ public class MeteringPointMasterDataProviderTests
                         ConnectionState = ConnectionState.Connected,
                         Type = MeteringPointType.Consumption,
                         SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
+                        Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
                         ParentIdentification = null,
@@ -545,7 +603,7 @@ public class MeteringPointMasterDataProviderTests
                         ConnectionState = ConnectionState.Connected,
                         Type = MeteringPointType.Consumption,
                         SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
+                        Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
                         ParentIdentification = null,
@@ -564,7 +622,7 @@ public class MeteringPointMasterDataProviderTests
                         ConnectionState = ConnectionState.Connected,
                         Type = MeteringPointType.Consumption,
                         SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
+                        Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
                         ParentIdentification = new MeteringPointIdentification("parent-metering-point-id-one"),
@@ -596,7 +654,7 @@ public class MeteringPointMasterDataProviderTests
                         ConnectionState = ConnectionState.Connected,
                         Type = MeteringPointType.Consumption,
                         SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
+                        Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
                         ParentIdentification = new MeteringPointIdentification("parent-metering-point-id-two"),
@@ -619,6 +677,79 @@ public class MeteringPointMasterDataProviderTests
                         ],
                     },
                 ]),
+                "period-without-and-period-with-parent-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
+                [
+                    new()
+                    {
+                        Identification =
+                            new MeteringPointIdentification("period-without-and-period-with-parent-please"),
+                        ValidFrom = Instant.FromUtc(2021, 1, 1, 0, 0),
+                        ValidTo = Instant.FromUtc(2021, 3, 1, 0, 0),
+                        GridAreaCode = new GridAreaCode("804"),
+                        GridAccessProvider = "9999999999999",
+                        ConnectionState = ConnectionState.Connected,
+                        Type = MeteringPointType.Consumption,
+                        SubType = MeteringPointSubType.Physical,
+                        Resolution = new Resolution("PT1H"),
+                        Unit = MeasureUnit.kWh,
+                        ProductId = ProductId.EnergyActivate,
+                        ParentIdentification = new MeteringPointIdentification("parent-metering-point-id-one"),
+                        EnergySuppliers =
+                        [
+                            new()
+                            {
+                                Identification =
+                                    new MeteringPointIdentification("period-without-and-period-with-parent-please"),
+                                EnergySupplier = "1111111111111",
+                                StartDate = Instant.FromUtc(2021, 1, 1, 0, 0),
+                                EndDate = Instant.FromUtc(2021, 2, 1, 0, 0),
+                            },
+                            new()
+                            {
+                                Identification =
+                                    new MeteringPointIdentification("period-without-and-period-with-parent-please"),
+                                EnergySupplier = "2222222222222",
+                                StartDate = Instant.FromUtc(2021, 2, 1, 0, 0),
+                                EndDate = Instant.FromUtc(2021, 3, 1, 0, 0),
+                            },
+                        ],
+                    },
+                    new()
+                    {
+                        Identification =
+                            new MeteringPointIdentification("period-without-and-period-with-parent-please"),
+                        ValidFrom = Instant.FromUtc(2021, 3, 1, 0, 0),
+                        ValidTo = Instant.FromUtc(2021, 5, 1, 0, 0),
+                        GridAreaCode = new GridAreaCode("804"),
+                        GridAccessProvider = "9999999999999",
+                        ConnectionState = ConnectionState.Connected,
+                        Type = MeteringPointType.Consumption,
+                        SubType = MeteringPointSubType.Physical,
+                        Resolution = new Resolution("PT1H"),
+                        Unit = MeasureUnit.kWh,
+                        ProductId = ProductId.EnergyActivate,
+                        ParentIdentification = null,
+                        EnergySuppliers =
+                        [
+                            new()
+                            {
+                                Identification =
+                                    new MeteringPointIdentification("period-without-and-period-with-parent-please"),
+                                EnergySupplier = "1111111111111",
+                                StartDate = Instant.FromUtc(2021, 3, 1, 0, 0),
+                                EndDate = Instant.FromUtc(2021, 4, 1, 0, 0),
+                            },
+                            new()
+                            {
+                                Identification =
+                                    new MeteringPointIdentification("period-without-and-period-with-parent-please"),
+                                EnergySupplier = "3333333333333",
+                                StartDate = Instant.FromUtc(2021, 4, 1, 0, 0),
+                                EndDate = Instant.FromUtc(2021, 5, 1, 0, 0),
+                            },
+                        ],
+                    },
+                ]),
                 "parent-metering-point-id-one" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
                 [
                     new()
@@ -631,7 +762,7 @@ public class MeteringPointMasterDataProviderTests
                         ConnectionState = ConnectionState.Connected,
                         Type = MeteringPointType.Consumption,
                         SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
+                        Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
                         ParentIdentification = null,
@@ -680,7 +811,7 @@ public class MeteringPointMasterDataProviderTests
                         ConnectionState = ConnectionState.Connected,
                         Type = MeteringPointType.Consumption,
                         SubType = MeteringPointSubType.Physical,
-                        Resolution = new Resolution("Hourly"),
+                        Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.EnergyActivate,
                         ParentIdentification = null,

@@ -22,8 +22,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1;
 
-internal class StartActorRequestProcessExampleHandlerV1(
-    ILogger<StartActorRequestProcessExampleHandlerV1> logger,
+internal class StartUpdateMeteringPointConnectionStateV1(
+    ILogger<StartUpdateMeteringPointConnectionStateV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
     : StartOrchestrationInstanceFromMessageHandlerBase<UpdateMeteringPointConnectionStateInputV1>(logger)
 {

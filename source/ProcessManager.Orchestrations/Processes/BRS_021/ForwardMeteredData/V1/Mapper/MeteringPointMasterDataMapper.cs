@@ -30,7 +30,7 @@ public static class MeteringPointMasterDataMapper
     {
         { MeasureUnit.Ampere, PMTypes.MeasurementUnit.Ampere },
         { MeasureUnit.STK, PMTypes.MeasurementUnit.Pieces },
-        { MeasureUnit.VArh, PMTypes.MeasurementUnit.KiloVoltAmpereReactiveHour },
+        { MeasureUnit.kVArh, PMTypes.MeasurementUnit.KiloVoltAmpereReactiveHour },
         { MeasureUnit.kWh, PMTypes.MeasurementUnit.KilowattHour },
         { MeasureUnit.kW, PMTypes.MeasurementUnit.Kilowatt },
         { MeasureUnit.MW, PMTypes.MeasurementUnit.Megawatt },

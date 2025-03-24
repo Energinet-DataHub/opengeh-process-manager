@@ -473,9 +473,18 @@ public class MeteringPointMasterDataProviderTests
 
     private class ElectricityMarketViewsMock : IElectricityMarketViews
     {
+        /// <summary>
+        /// Property used to store custom master data that is not part of the default scenarios provided by default.
+        /// Simply set this value to the desired master data to be returned before the mock is invoked.
+        /// </summary>
         public Func<IEnumerable<MeteringPointMasterData>> MeteringPointMasterDataProvider { get; set; } =
             () => [];
 
+        /// <summary>
+        /// The <paramref name="meteringPointIdentification"/> is used to determine which static data to return.
+        /// The id describes the scenario the data is supposed to mimic.
+        /// The <paramref name="interval"/> is not used in this mock and is ignored.
+        /// </summary>
         public Task<IEnumerable<MeteringPointMasterData>> GetMeteringPointMasterDataChangesAsync(
             MeteringPointIdentification meteringPointIdentification,
             Interval interval)

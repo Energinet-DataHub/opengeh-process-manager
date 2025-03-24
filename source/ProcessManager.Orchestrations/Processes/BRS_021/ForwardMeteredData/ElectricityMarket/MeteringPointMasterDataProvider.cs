@@ -276,9 +276,7 @@ public class MeteringPointMasterDataProvider(
                             MeteringPointMasterDataMapper.ResolutionMap.Map(meteringPointMasterData.Resolution.Value),
                             MeteringPointMasterDataMapper.MeasureUnitMap.Map(meteringPointMasterData.Unit),
                             meteringPointMasterData.ProductId.ToString(),
-                            meteringPointMasterData.ParentIdentification is null
-                                ? null
-                                : new MeteringPointId(meteringPointMasterData.ParentIdentification.Value),
+                            null,
                             ActorNumber.Create(meteringPointEnergySupplier.EnergySupplier)))
                 .ToList()
                 .AsReadOnly(),

@@ -175,7 +175,7 @@ public class MeteringPointMasterDataProviderTests
         var meteringPointMasterData = await _sut.GetMasterData(
             "two-parents-please",
             "2021-01-01T00:00:00Z",
-            "2021-01-01T00:00:00Z");
+            "2021-05-01T00:00:00Z");
 
         meteringPointMasterData
             .Should()
@@ -247,7 +247,7 @@ public class MeteringPointMasterDataProviderTests
         var meteringPointMasterData = await _sut.GetMasterData(
             "period-without-and-period-with-parent-please",
             "2021-01-01T00:00:00Z",
-            "2021-01-01T00:00:00Z");
+            "2021-05-01T00:00:00Z");
 
         meteringPointMasterData
             .Should()

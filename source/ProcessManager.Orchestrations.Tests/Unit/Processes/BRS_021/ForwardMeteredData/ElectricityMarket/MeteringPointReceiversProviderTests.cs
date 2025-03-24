@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -27,6 +28,10 @@ using NodaTime.Text;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.
     ElectricityMarket;
 
+[SuppressMessage(
+    "StyleCop.CSharp.ReadabilityRules",
+    "SA1118:Parameter should not span multiple lines",
+    Justification = "Readability")]
 public class MeteringPointReceiversProviderTests
 {
     private static readonly MeteringPointType _defaultMeteringPointType = MeteringPointType.Consumption;
@@ -35,10 +40,32 @@ public class MeteringPointReceiversProviderTests
     private static readonly Resolution _defaultResolution = Resolution.QuarterHourly;
     private static readonly ActorNumber _defaultGridAccessProvider = ActorNumber.Create("1111111111111");
     private static readonly ActorNumber _defaultEnergySupplier = ActorNumber.Create("2222222222222");
+    private static readonly ActorNumber _defaultParentEnergySupplier = ActorNumber.Create("9999999999999");
     private static readonly ActorNumber _defaultGridAccessProviderNeighbor1 = ActorNumber.Create("3333333333333");
     private static readonly ActorNumber _defaultGridAccessProviderNeighbor2 = ActorNumber.Create("4444444444444");
 
     private readonly MeteringPointReceiversProvider _sut = new(DateTimeZone.Utc);
+
+    public static TheoryData<MeteringPointType> ChildMeteringPointTypes => new()
+    {
+        MeteringPointType.NetProduction,
+        MeteringPointType.SupplyToGrid,
+        MeteringPointType.ConsumptionFromGrid,
+        MeteringPointType.WholesaleServicesInformation,
+        MeteringPointType.OwnProduction,
+        MeteringPointType.NetFromGrid,
+        MeteringPointType.NetToGrid,
+        MeteringPointType.TotalConsumption,
+        MeteringPointType.Analysis,
+        MeteringPointType.NotUsed,
+        MeteringPointType.SurplusProductionGroup6,
+        MeteringPointType.NetLossCorrection,
+        MeteringPointType.OtherConsumption,
+        MeteringPointType.OtherProduction,
+        MeteringPointType.ExchangeReactiveEnergy,
+        MeteringPointType.CollectiveNetProduction,
+        MeteringPointType.CollectiveNetConsumption,
+    };
 
     public static TheoryData<Resolution> GetAllResolutionsExceptMonthly() => new(
         EnumerationRecordType.GetAll<Resolution>()
@@ -147,7 +174,7 @@ public class MeteringPointReceiversProviderTests
             .ContainSingle()
             .Which.Actors
             .Should()
-            .HaveCount(2)
+            .HaveCount(3)
             .And.SatisfyRespectively(
                 a =>
                 {
@@ -158,6 +185,11 @@ public class MeteringPointReceiversProviderTests
                 {
                     a.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
                     a.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
+                },
+                a =>
+                {
+                    a.ActorNumber.Should().Be(_defaultEnergySupplier);
+                    a.ActorRole.Should().Be(ActorRole.EnergySupplier);
                 });
     }
 
@@ -354,48 +386,29 @@ public class MeteringPointReceiversProviderTests
                 });
     }
 
-    // TODO: This part will be impl as part of #607
-    // [Theory]
-    // [InlineData(MeteringPointType.NetProduction)]
-    // [InlineData(MeteringPointType.SupplyToGrid)]
-    // [InlineData(MeteringPointType.ConsumptionFromGrid)]
-    // [InlineData(MeteringPointType.WholesaleServicesInformation)]
-    // [InlineData(MeteringPointType.OwnProduction)]
-    // [InlineData(MeteringPointType.NetFromGrid)]
-    // [InlineData(MeteringPointType.NetToGrid)]
-    // [InlineData(MeteringPointType.TotalConsumption)]
-    // [InlineData(MeteringPointType.Analysis)]
-    // [InlineData(MeteringPointType.NotUsed)]
-    // [InlineData(MeteringPointType.SurplusProductionGroup6)]
-    // [InlineData(MeteringPointType.NetLossCorrection)]
-    // [InlineData(MeteringPointType.OtherConsumption)]
-    // [InlineData(MeteringPointType.OtherProduction)]
-    // [InlineData(MeteringPointType.ExchangeReactiveEnergy)]
-    // [InlineData(MeteringPointType.CollectiveNetProduction)]
-    // [InlineData(MeteringPointType.CollectiveNetConsumption)]
-    // public void Think_of_the_children()
-    // {
-    //     var meteringPointMasterData = GetMasterData(MeteringPointType.VeProduction);
-    //
-    //     var result = _sut.GetReceiversFromMasterData(meteringPointMasterData);
-    //
-    //     result.Actors.Should().HaveCount(2);
-    //     result.Actors
-    //         .OrderBy(a => a.ActorRole.Name)
-    //         .ThenBy(a => a.ActorNumber.Value)
-    //         .Should()
-    //         .SatisfyRespectively(
-    //             mar =>
-    //             {
-    //                 mar.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
-    //                 mar.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
-    //             },
-    //             mar =>
-    //             {
-    //                 mar.ActorNumber.Value.Should().Be(DataHubDetails.SystemOperatorNumber);
-    //                 mar.ActorRole.Should().Be(ActorRole.SystemOperator);
-    //             });
-    // }
+    [Theory]
+    [MemberData(nameof(ChildMeteringPointTypes))]
+    public void Think_of_the_children(MeteringPointType meteringPointType)
+    {
+        var masterData = CreateMasterData(meteringPointType, parentMeteringPointId: "parent-metering-point-id");
+
+        var forwardMeteredDataInput = CreateForwardMeteredDataInput([masterData]);
+
+        var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
+            [masterData],
+            forwardMeteredDataInput);
+
+        receiversWithMeteredData.Should()
+            .ContainSingle()
+            .Which.Actors.Should()
+            .ContainSingle()
+            .And.SatisfyRespectively(
+                mar =>
+                {
+                    mar.ActorNumber.Should().Be(_defaultParentEnergySupplier);
+                    mar.ActorRole.Should().Be(ActorRole.EnergySupplier);
+                });
+    }
 
     private MeteringPointMasterData CreateMasterData(
         MeteringPointType? meteringPointType = null,
@@ -403,7 +416,8 @@ public class MeteringPointReceiversProviderTests
         Instant? to = null,
         Resolution? resolution = null,
         ActorNumber? gridAccessProvider = null,
-        ActorNumber? energySupplier = null)
+        ActorNumber? energySupplier = null,
+        string? parentMeteringPointId = null)
     {
         return new MeteringPointMasterData(
             MeteringPointId: new MeteringPointId("1"),
@@ -418,8 +432,12 @@ public class MeteringPointReceiversProviderTests
             Resolution: resolution ?? _defaultResolution,
             MeasurementUnit: MeasurementUnit.KilowattHour,
             ProductId: "1",
-            ParentMeteringPointId: null,
-            EnergySupplier: energySupplier ?? _defaultEnergySupplier);
+            ParentMeteringPointId: parentMeteringPointId is not null
+                ? new MeteringPointId(parentMeteringPointId)
+                : null,
+            EnergySupplier: parentMeteringPointId is not null
+                ? _defaultParentEnergySupplier
+                : energySupplier ?? _defaultEnergySupplier);
     }
 
     private ForwardMeteredDataInputV1 CreateForwardMeteredDataInput(List<MeteringPointMasterData> masterData)

@@ -71,6 +71,10 @@ internal class StartCalculationHandlerV1(
         if (periodEndInTimeZone.TimeOfDay != LocalTime.Midnight)
             validationErrors.Add($"The period end '{inputParameter.PeriodEndDate}' must be midnight.");
 
+        var daysBetween = Period.Between(periodStartInTimeZone.Date, periodEndInTimeZone.Date, PeriodUnits.Days).Days;
+        if (daysBetween > 31)
+            validationErrors.Add($"The period must not exceed 31 days.");
+
         if (validationErrors.Any())
             throw new InvalidOperationException(string.Join(" ", validationErrors));
     }

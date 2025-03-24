@@ -70,6 +70,7 @@ public class StartCalculationHandlerV1Tests
     [InlineData(2025, 1, 1, 22, 0, 2025, 1, 1, 23, 0, 301, 1)]
     [InlineData(2025, 7, 1, 22, 0, 2025, 7, 1, 22, 1, 301, 2)]
     [InlineData(2025, 1, 1, 23, 0, 2025, 1, 2, 23, 0, null, 1)]
+    [InlineData(2025, 1, 1, 23, 0, 2025, 2, 2, 23, 0, 301, 1)]
     public async Task HandleCommand_WithInvalidParameters(
         int startYear,
         int startMonth,

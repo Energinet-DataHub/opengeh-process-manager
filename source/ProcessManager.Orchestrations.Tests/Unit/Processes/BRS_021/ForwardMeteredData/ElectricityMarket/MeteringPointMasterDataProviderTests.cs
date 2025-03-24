@@ -631,7 +631,7 @@ public class MeteringPointMasterDataProviderTests
                         SubType = MeteringPointSubType.Physical,
                         Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
-                        ProductId = ProductId.EnergyActivate,
+                        ProductId = ProductId.PowerActive,
                         ParentIdentification = new MeteringPointIdentification("parent-metering-point-id-one"),
                         EnergySuppliers =
                         [
@@ -663,7 +663,7 @@ public class MeteringPointMasterDataProviderTests
                         SubType = MeteringPointSubType.Physical,
                         Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
-                        ProductId = ProductId.EnergyActivate,
+                        ProductId = ProductId.PowerActive,
                         ParentIdentification = new MeteringPointIdentification("parent-metering-point-id-two"),
                         EnergySuppliers =
                         [
@@ -699,7 +699,7 @@ public class MeteringPointMasterDataProviderTests
                         SubType = MeteringPointSubType.Physical,
                         Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
-                        ProductId = ProductId.EnergyActivate,
+                        ProductId = ProductId.PowerActive,
                         ParentIdentification = new MeteringPointIdentification("parent-metering-point-id-one"),
                         EnergySuppliers =
                         [
@@ -734,7 +734,7 @@ public class MeteringPointMasterDataProviderTests
                         SubType = MeteringPointSubType.Physical,
                         Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
-                        ProductId = ProductId.EnergyActivate,
+                        ProductId = ProductId.PowerActive,
                         ParentIdentification = null,
                         EnergySuppliers =
                         [
@@ -771,7 +771,7 @@ public class MeteringPointMasterDataProviderTests
                         SubType = MeteringPointSubType.Physical,
                         Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
-                        ProductId = ProductId.EnergyActivate,
+                        ProductId = ProductId.PowerActive,
                         ParentIdentification = null,
                         EnergySuppliers =
                         [
@@ -820,7 +820,7 @@ public class MeteringPointMasterDataProviderTests
                         SubType = MeteringPointSubType.Physical,
                         Resolution = new Resolution("PT1H"),
                         Unit = MeasureUnit.kWh,
-                        ProductId = ProductId.EnergyActivate,
+                        ProductId = ProductId.PowerActive,
                         ParentIdentification = null,
                         EnergySuppliers =
                         [

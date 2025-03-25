@@ -31,6 +31,10 @@ public class MeteringPointValidationRule(IFeatureFlagManager featureFlagManager)
         Message: "Målepunktet findes ikke / The metering point does not exist",
         ErrorCode: "E10")];
 
+    public static IList<ValidationError> MeteringPointConnectionStateError => [new(
+        Message: "Målepunktet skal have status tilsluttet eller afbrudt/meteringpoint must have status connected or disconnected",
+        ErrorCode: "D16")];
+
     private static IList<ValidationError> NoError => [];
 
     public async Task<IList<ValidationError>> ValidateAsync(
@@ -40,6 +44,12 @@ public class MeteringPointValidationRule(IFeatureFlagManager featureFlagManager)
         {
             if (subject.MeteringPointMasterData.Count == 0)
                 return MeteringPointDoesntExistsError;
+        }
+
+        if (subject.MeteringPointMasterData
+            .Any(x => x.ConnectionState != ConnectionState.Connected && x.ConnectionState != ConnectionState.Disconnected))
+        {
+            return MeteringPointConnectionStateError;
         }
 
         return NoError;

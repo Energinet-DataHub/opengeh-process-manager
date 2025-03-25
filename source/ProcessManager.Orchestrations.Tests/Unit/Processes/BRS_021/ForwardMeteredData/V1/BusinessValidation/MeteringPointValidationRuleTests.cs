@@ -79,4 +79,72 @@ public class MeteringPointValidationRuleTests
                 ve => ve.ErrorCode == "E10"
                       && ve.Message == "Målepunktet findes ikke / The metering point does not exist");
     }
+
+    [Theory]
+    [InlineData(ConnectionState.NotUsed)]
+    [InlineData(ConnectionState.ClosedDown)]
+    [InlineData(ConnectionState.New)]
+    public async Task Given_ValidateMeteringPointMasterData_When_ConnectionStateIsInvalid_Then_ValidationError(ConnectionState connectionState)
+    {
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
+
+        var result = await _sut.ValidateAsync(new(
+            input,
+            [
+            new MeteringPointMasterData(
+                new MeteringPointId("id"),
+                SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                new GridAreaCode("111"),
+                ActorNumber.Create("1111111111111"),
+                [],
+                connectionState,
+                MeteringPointType.Production,
+                MeteringPointSubType.Physical,
+                Resolution.Hourly,
+                MeasurementUnit.KilowattHour,
+                "product",
+                null,
+                ActorNumber.Create("1111111111112")),
+        ]));
+
+        result.Should()
+            .ContainSingle()
+            .And.Contain(
+                ve => ve.ErrorCode == "D16"
+                      && ve.Message == "Målepunktet skal have status tilsluttet eller afbrudt/meteringpoint must have status connected or disconnected");
+    }
+
+    [Theory]
+    [InlineData(ConnectionState.Connected)]
+    [InlineData(ConnectionState.Disconnected)]
+    public async Task Given_ValidateMeteringPointMasterData_When_ConnectionStateIsValid_Then_NoValidationError(ConnectionState connectionState)
+    {
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new(
+                input,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("id"),
+                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        new GridAreaCode("111"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        connectionState,
+                        MeteringPointType.Production,
+                        MeteringPointSubType.Physical,
+                        Resolution.Hourly,
+                        MeasurementUnit.KilowattHour,
+                        "product",
+                        null,
+                        ActorNumber.Create("1111111111112")),
+                ]));
+
+        result.Should().BeEmpty();
+    }
 }

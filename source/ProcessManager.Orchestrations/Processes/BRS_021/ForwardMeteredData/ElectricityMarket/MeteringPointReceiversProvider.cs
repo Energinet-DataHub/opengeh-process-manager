@@ -221,7 +221,7 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.VeProduction:
                 receivers.Add(SystemOperatorReceiver());
                 receivers.Add(DanishEnergyAgencyReceiver());
-                // TODO: Add parent(s) as part of #607
+                receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
                 break;
             case var _ when meteringPointType == MeteringPointType.NetProduction:
             case var _ when meteringPointType == MeteringPointType.SupplyToGrid:
@@ -240,16 +240,9 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.ExchangeReactiveEnergy:
             case var _ when meteringPointType == MeteringPointType.CollectiveNetProduction:
             case var _ when meteringPointType == MeteringPointType.CollectiveNetConsumption:
-                if (meteringPointMasterData.ParentMeteringPointId != null)
+                if (meteringPointMasterData.ParentMeteringPointId is not null)
                 {
-                    // TODO: This part will be impl as part of #607
-                    // var parentEnergySuppliers =
-                    //     await GetEnergySupplierForMeteringPointAsync(
-                    //             activityInput.MeteringPointMasterData.ParentMeteringPointId,
-                    //             activityInput.StartDateTime,
-                    //             activityInput.EndDateTime)
-                    //         .ConfigureAwait(false);
-                    // receivers.AddRange(parentEnergySuppliers.Select(x => EnergySupplierReceiver(x.EnergySupplier)));
+                    receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
                 }
                 else
                 {

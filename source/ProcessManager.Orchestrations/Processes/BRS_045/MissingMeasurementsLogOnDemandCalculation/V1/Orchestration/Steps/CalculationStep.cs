@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingM
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Steps;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Orchestration.Steps;
 
 internal class CalculationStep(
     TaskOrchestrationContext context,

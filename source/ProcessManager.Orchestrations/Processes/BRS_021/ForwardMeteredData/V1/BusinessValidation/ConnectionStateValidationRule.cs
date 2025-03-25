@@ -13,35 +13,28 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
-/// <summary>
-/// Business validation rule for metering point validation
-/// if the metering point does not exist, a business validation error is returned
-/// </summary>
-public class MeteringPointValidationRule(IFeatureFlagManager featureFlagManager)
+public class ConnectionStateValidationRule
     : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
-    private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
-
-    public static IList<ValidationError> MeteringPointDoesntExistsError => [new(
-        Message: "Målepunktet findes ikke / The metering point does not exist",
-        ErrorCode: "E10")];
+    public static IList<ValidationError> MeteringPointConnectionStateError => [new(
+        Message: "Målepunktet skal have status tilsluttet eller afbrudt/meteringpoint must have status connected or disconnected",
+        ErrorCode: "D16")];
 
     private static IList<ValidationError> NoError => [];
 
-    public async Task<IList<ValidationError>> ValidateAsync(
+    public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
-        if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint).ConfigureAwait(false))
+        if (subject.MeteringPointMasterData
+            .Any(x => x.ConnectionState != ConnectionState.Connected && x.ConnectionState != ConnectionState.Disconnected))
         {
-            if (subject.MeteringPointMasterData.Count == 0)
-                return MeteringPointDoesntExistsError;
+            return Task.FromResult(MeteringPointConnectionStateError);
         }
 
-        return NoError;
+        return Task.FromResult(NoError);
     }
 }

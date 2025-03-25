@@ -26,12 +26,50 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
-public class MeteringPointValidationRuleTests
+public class ConnectionStateValidationRuleTests
 {
-    private MeteringPointValidationRule _sut = new(new MicrosoftFeatureFlagManager(new Mock<IFeatureManager>().Object));
+    private readonly ConnectionStateValidationRule _sut = new();
 
-    [Fact]
-    public async Task Given_MeteringPointMasterData_When_Validate_Then_NoValidationError()
+    [Theory]
+    [InlineData(ConnectionState.NotUsed)]
+    [InlineData(ConnectionState.ClosedDown)]
+    [InlineData(ConnectionState.New)]
+    public async Task Given_ValidateMeteringPointMasterData_When_ConnectionStateIsInvalid_Then_ValidationError(ConnectionState connectionState)
+    {
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
+
+        var result = await _sut.ValidateAsync(new(
+            input,
+            [
+            new MeteringPointMasterData(
+                new MeteringPointId("id"),
+                SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                new GridAreaCode("111"),
+                ActorNumber.Create("1111111111111"),
+                [],
+                connectionState,
+                MeteringPointType.Production,
+                MeteringPointSubType.Physical,
+                Resolution.Hourly,
+                MeasurementUnit.KilowattHour,
+                "product",
+                null,
+                ActorNumber.Create("1111111111112")),
+        ]));
+
+        result.Should()
+            .ContainSingle()
+            .And.Contain(
+                ve => ve.ErrorCode == "D16"
+                      && ve.Message == "Målepunktet skal have status tilsluttet eller afbrudt/meteringpoint must have status connected or disconnected");
+    }
+
+    [Theory]
+    [InlineData(ConnectionState.Connected)]
+    [InlineData(ConnectionState.Disconnected)]
+    public async Task Given_ValidateMeteringPointMasterData_When_ConnectionStateIsValid_Then_NoValidationError(ConnectionState connectionState)
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
@@ -47,7 +85,7 @@ public class MeteringPointValidationRuleTests
                         new GridAreaCode("111"),
                         ActorNumber.Create("1111111111111"),
                         [],
-                        ConnectionState.Connected,
+                        connectionState,
                         MeteringPointType.Production,
                         MeteringPointSubType.Physical,
                         Resolution.Hourly,
@@ -58,25 +96,5 @@ public class MeteringPointValidationRuleTests
                 ]));
 
         result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task Given_NoMeteringPointMasterData_When_Validate_Then_ValidationError()
-    {
-        var featureManager = new Mock<IFeatureManager>();
-        featureManager
-            .Setup(x => x.IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint.ToString()))
-            .ReturnsAsync(true);
-        _sut = new(new MicrosoftFeatureFlagManager(featureManager.Object));
-        var input = new ForwardMeteredDataInputV1Builder()
-            .Build();
-
-        var result = await _sut.ValidateAsync(new(input, []));
-
-        result.Should()
-            .ContainSingle()
-            .And.Contain(
-                ve => ve.ErrorCode == "E10"
-                      && ve.Message == "Målepunktet findes ikke / The metering point does not exist");
     }
 }

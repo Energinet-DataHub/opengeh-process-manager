@@ -14,17 +14,21 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using FluentAssertions;
+using Microsoft.FeatureManagement;
+using Moq;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
 public class MeteringPointValidationRuleTests
 {
-    private readonly MeteringPointValidationRule _sut = new();
+    private MeteringPointValidationRule _sut = new(new MicrosoftFeatureFlagManager(new Mock<IFeatureManager>().Object));
 
     [Fact]
     public async Task Given_MeteringPointMasterData_When_Validate_Then_NoValidationError()
@@ -56,9 +60,14 @@ public class MeteringPointValidationRuleTests
         result.Should().BeEmpty();
     }
 
-    [Fact(Skip = "'Metering point doesn't exists' validation is currently disabled")]
+    [Fact]
     public async Task Given_NoMeteringPointMasterData_When_Validate_Then_ValidationError()
     {
+        var featureManager = new Mock<IFeatureManager>();
+        featureManager
+            .Setup(x => x.IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint.ToString()))
+            .ReturnsAsync(true);
+        _sut = new(new MicrosoftFeatureFlagManager(featureManager.Object));
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
 

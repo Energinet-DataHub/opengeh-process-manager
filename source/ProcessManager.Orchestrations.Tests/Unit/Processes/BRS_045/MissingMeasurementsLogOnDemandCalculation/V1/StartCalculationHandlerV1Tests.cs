@@ -44,7 +44,7 @@ public class StartCalculationHandlerV1Tests
     private OrchestrationInstanceId OrchestrationInstanceId { get; }
 
     [Fact]
-    public async Task HandleCommand_WithValidParameters()
+    public async Task Given_CommandWithValidParameters_When_Handle_ThenNoExceptions()
     {
         // Arrange
         var userIdentity = CreateUserIdentity();
@@ -71,7 +71,7 @@ public class StartCalculationHandlerV1Tests
     [InlineData(2025, 7, 1, 22, 0, 2025, 7, 1, 22, 1, "301", 2)]
     [InlineData(2025, 1, 1, 23, 0, 2025, 1, 2, 23, 0, null, 1)]
     [InlineData(2025, 1, 1, 23, 0, 2025, 2, 2, 23, 0, "301", 1)]
-    public async Task HandleCommand_WithInvalidParameters(
+    public async Task Given_CommandWithInvalidParameters_When_Handle_ThenThrowsExceptions(
         int startYear,
         int startMonth,
         int startDay,

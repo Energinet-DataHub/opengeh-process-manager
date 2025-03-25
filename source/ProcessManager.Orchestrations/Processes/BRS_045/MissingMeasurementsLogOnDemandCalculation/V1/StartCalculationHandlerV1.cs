@@ -50,7 +50,7 @@ internal class StartCalculationHandlerV1(
     /// contains validation errors in its message property.</exception>
     private void GuardInputParameter(CalculationInputV1 inputParameter)
     {
-        // Check that  the period start is midnight local time
+        // Check that the period start is midnight local time
         var validationErrors = new List<string>();
 
         if (!inputParameter.GridAreaCodes.Any())

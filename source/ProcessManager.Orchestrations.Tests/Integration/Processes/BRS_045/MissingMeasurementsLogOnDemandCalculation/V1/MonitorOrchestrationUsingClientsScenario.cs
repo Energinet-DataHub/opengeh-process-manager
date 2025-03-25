@@ -33,7 +33,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 
 /// <summary>
 /// Test case where we verify the Process Manager clients can be used to start a
-/// calculation orchestration (with no input parameter) and monitor its status during its lifetime.
+/// calculation orchestration (with input parameters) and monitor its status during its lifetime.
 /// </summary>
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime

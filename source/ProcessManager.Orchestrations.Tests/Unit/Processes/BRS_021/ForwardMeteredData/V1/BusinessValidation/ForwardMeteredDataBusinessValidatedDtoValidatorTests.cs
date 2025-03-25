@@ -16,7 +16,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -30,6 +32,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 {
     private readonly Mock<IClock> _clockMock = new Mock<IClock>();
+    private readonly Mock<IFeatureFlagManager> _featureFlagManagerMock = new Mock<IFeatureFlagManager>();
     private readonly DateTimeZone _timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
 
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _sut;
@@ -39,11 +42,16 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         _clockMock.Setup(c => c.GetCurrentInstant())
             .Returns(Instant.FromUtc(2024, 11, 15, 16, 46, 43));
 
+        _featureFlagManagerMock.Setup(f => f
+                .IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint))
+            .ReturnsAsync(true);
+
         IServiceCollection services = new ServiceCollection();
 
         services.AddLogging();
         services.AddTransient<DateTimeZone>(s => _timeZone);
         services.AddTransient<IClock>(s => _clockMock.Object);
+        services.AddSingleton<IFeatureFlagManager>(s => _featureFlagManagerMock.Object);
 
         var orchestrationsAssembly = typeof(OrchestrationDescriptionBuilder).Assembly;
         var orchestrationsAbstractionsAssembly =
@@ -121,7 +129,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .And.ContainEquivalentOf(PeriodValidationRule.InvalidEndDate);
     }
 
-    [Fact(Skip = "'Metering point doesn't exists' validation is currently disabled")]
+    [Fact]
     public async Task Given_NoMasterData_When_Validate_Then_ValidationError()
     {
         var input = new ForwardMeteredDataInputV1Builder()

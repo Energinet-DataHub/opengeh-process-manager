@@ -187,6 +187,7 @@ public class MeteringPointMasterDataProviderTests
             .HaveCount(8)
             .And
             .SatisfyRespectively(
+                // Master data from first parent
                 first =>
                 {
                     first.MeteringPointId.Value.Should().Be("two-parents-please");
@@ -215,6 +216,7 @@ public class MeteringPointMasterDataProviderTests
                     fourth.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
                     fourth.EnergySupplier.Value.Should().Be("4545454545454");
                 },
+                // Master data from second parent
                 first =>
                 {
                     first.MeteringPointId.Value.Should().Be("two-parents-please");

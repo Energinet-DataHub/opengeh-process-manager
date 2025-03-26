@@ -24,8 +24,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// TODO: Implement correct validation rule
 /// "Stub" period validation rule, used to verify that validation works for <see cref="ForwardMeteredDataBusinessValidatedDto"/>.
 /// </summary>
-public class PeriodValidationRule(
-    PeriodValidator periodValidator)
+public class PeriodValidationRule(PeriodValidator periodValidator)
         : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
     /// <summary>
@@ -40,9 +39,14 @@ public class PeriodValidationRule(
     /// TODO: Add correct error messages.
     /// "Stub" error message used to very that validation works.
     /// </summary>
-    private static readonly ValidationError _invalidStartDate = new(
+    public static readonly ValidationError InvalidStartDate = new(
         Message: "Invalid start dato / Invalid start date",
         ErrorCode: "E42");
+
+    public static readonly ValidationError StartDateIsTooOld = new(
+        Message:
+        "Måledata tilhører ikke den tilladte tidsperiode / Measurements do not belong to the expected time period",
+        ErrorCode: "E17");
 
     private readonly PeriodValidator _periodValidator = periodValidator;
 
@@ -54,10 +58,19 @@ public class PeriodValidationRule(
         var end = TryParseInstant(subject.Input.EndDateTime);
 
         if (start is null)
-            errors.Add(_invalidStartDate);
+            errors.Add(InvalidStartDate);
 
         if (end is null)
             errors.Add(InvalidEndDate);
+
+        if (start is null)
+            return Task.FromResult(errors);
+
+        // Data age check
+        if (_periodValidator.IsDateOlderThanAllowed(start.Value, 3, 0))
+        {
+            errors.Add(StartDateIsTooOld);
+        }
 
         return Task.FromResult(errors);
     }

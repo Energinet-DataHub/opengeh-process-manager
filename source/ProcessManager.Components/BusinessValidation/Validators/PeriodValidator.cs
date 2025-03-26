@@ -34,7 +34,7 @@ public class PeriodValidator(DateTimeZone dateTimeZone, IClock clock)
         var zonedCurrentDateTime = new ZonedDateTime(_clock.GetCurrentInstant(), _dateTimeZone);
         var latestStartDate = zonedCurrentDateTime.LocalDateTime.PlusYears(-maxYears).PlusMonths(-maxMonths);
 
-        return zonedStartDateTime.LocalDateTime < latestStartDate;
+        return zonedStartDateTime.LocalDateTime.Date < latestStartDate.Date;
     }
 
     public bool IntervalMustBeLessThanAllowedPeriodSize(Instant start, Instant end, int maxAllowedPeriodSizeInMonths)

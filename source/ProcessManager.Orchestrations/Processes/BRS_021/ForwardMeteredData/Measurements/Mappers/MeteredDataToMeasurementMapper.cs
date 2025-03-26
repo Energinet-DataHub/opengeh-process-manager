@@ -65,7 +65,7 @@ public static class MeteredDataToMeasurementMapper
             { PMTypes.MeteringPointType.NetConsumption, MeasurementTypes.MeteringPointType.MptNetConsumption },
             { PMTypes.MeteringPointType.OtherConsumption, MeasurementTypes.MeteringPointType.MptOtherConsumption },
             { PMTypes.MeteringPointType.OtherProduction, MeasurementTypes.MeteringPointType.MptOtherProduction },
-            { PMTypes.MeteringPointType.CapacitySettlement, MeasurementTypes.MeteringPointType.MptCapacitySettlement },
+            { PMTypes.MeteringPointType.CapacitySettlement, MeasurementTypes.MeteringPointType.MptEffectPayment },
             { PMTypes.MeteringPointType.ExchangeReactiveEnergy, MeasurementTypes.MeteringPointType.MptExchangeReactiveEnergy },
             { PMTypes.MeteringPointType.CollectiveNetProduction, MeasurementTypes.MeteringPointType.MptCollectiveNetProduction },
             { PMTypes.MeteringPointType.CollectiveNetConsumption, MeasurementTypes.MeteringPointType.MptCollectiveNetConsumption },

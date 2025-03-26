@@ -135,7 +135,5 @@ internal class SearchCalculationsHandler(
             default:
                 throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
         }
-
-        throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
     }
 }

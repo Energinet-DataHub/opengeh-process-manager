@@ -462,7 +462,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             Resolution: Resolution.Hourly.Name,
             StartDateTime: "2024-12-01T23:00:00Z",
             EndDateTime: "2024-12-02T23:00:00Z",
-            GridAccessProviderNumber: "5790002606892",
+            GridAccessProviderNumber: GridAccessProvider,
             DelegatedGridAreaCodes: null,
             MeteredDataList:
             [

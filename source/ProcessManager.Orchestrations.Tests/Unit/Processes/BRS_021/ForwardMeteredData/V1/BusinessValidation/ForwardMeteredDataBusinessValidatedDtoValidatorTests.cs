@@ -145,6 +145,40 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     }
 
     [Fact]
+    public async Task Given_WrongMeteringPointOwner_When_Validate_Then_InvalidMeteringPointOwnershipValidationError()
+    {
+        var input = new ForwardMeteredDataInputV1Builder()
+            .WithGridAccessProviderNumber("1111111111111")
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                Input: input,
+                MeteringPointMasterData:
+                [
+                    new MeteringPointMasterData(
+                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+                        GridAreaCode: new GridAreaCode("804"),
+                        GridAccessProvider: ActorNumber.Create("9999999999999"),
+                        ConnectionState: ConnectionState.Connected,
+                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+                        MeteringPointSubType: MeteringPointSubType.Physical,
+                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        NeighborGridAreaOwners: [],
+                        Resolution: Resolution.Hourly,
+                        ProductId: "product",
+                        ParentMeteringPointId: null,
+                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                ]));
+
+        result.Should()
+            .ContainSingle()
+            .And.BeEquivalentTo(MeteringPointOwnershipValidationRule.MeteringPointHasWrongOwnerError);
+    }
+
+    [Fact]
     public async Task Given_InvalidConnectionState_When_Validate_Then_ValidationError()
     {
         var input = new ForwardMeteredDataInputV1Builder()

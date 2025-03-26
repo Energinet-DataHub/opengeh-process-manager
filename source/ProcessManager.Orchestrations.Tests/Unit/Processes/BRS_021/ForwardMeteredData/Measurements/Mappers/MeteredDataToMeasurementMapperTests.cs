@@ -139,7 +139,7 @@ public class MeteredDataToMeasurementMapperTests
                 },
                 {
                     PMTypes.MeteringPointType.CapacitySettlement,
-                    MeasurementsTypes.MeteringPointType.MptEffectPayment
+                    MeasurementsTypes.MeteringPointType.MptCapacitySettlement
                 },
                 {
                     PMTypes.MeteringPointType.ExchangeReactiveEnergy,

@@ -35,5 +35,13 @@ public sealed record CalculationsQuery
     /// <inheritdoc/>
     public override string QueryRouteName => RouteName;
 
-    //// TODO: In new query, group query input per orchestration description
+    public IReadOnlyCollection<OrchestrationInstanceLifecycleState>? LifecycleStates { get; set; }
+
+    public OrchestrationInstanceTerminationState? TerminationState { get; set; }
+
+    public DateTimeOffset? ScheduledAtOrLater { get; set; }
+
+    public DateTimeOffset? StartedAtOrLater { get; set; }
+
+    public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
 }

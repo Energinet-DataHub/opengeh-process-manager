@@ -13,18 +13,25 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
-using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
+using Microsoft.EntityFrameworkCore;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations;
 
 internal class SearchCalculationsHandler(
-    IOrchestrationInstanceQueries queries) :
+    ProcessManagerReaderContext readerContext) :
         ISearchOrchestrationInstancesQueryHandler<CalculationsQuery, ICalculationsQueryResult>
 {
-    private readonly IOrchestrationInstanceQueries _queries = queries;
+    private readonly ProcessManagerReaderContext _readerContext = readerContext;
 
-    public Task<IReadOnlyCollection<ICalculationsQueryResult>> HandleAsync(CalculationsQuery query)
+    public async Task<IReadOnlyCollection<ICalculationsQueryResult>> HandleAsync(CalculationsQuery query)
     {
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         //
@@ -34,6 +41,101 @@ internal class SearchCalculationsHandler(
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-        throw new NotImplementedException();
+        // TODO: Refact; for now we hardcode this list, but it should be built based on input
+        IReadOnlyCollection<string> orchestrationDescriptionNames = [
+            Brs_023_027.Name,
+            Brs_021_ElectricalHeatingCalculation.Name,
+            Brs_021_CapacitySettlementCalculation.Name];
+
+        var lifecycleStates = query.LifecycleStates?
+            .Select(state =>
+                Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
+                ? lifecycleStateResult
+                : (OrchestrationInstanceLifecycleState?)null)
+            .Where(state => state.HasValue)
+            .Select(state => state!.Value)
+            .ToList();
+        var terminationState =
+            Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
+            ? terminationStateResult
+            : (OrchestrationInstanceTerminationState?)null;
+
+        // DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
+        // See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
+        var scheduledAtOrLater = query.ScheduledAtOrLater.HasValue
+            ? Instant.FromDateTimeOffset(query.ScheduledAtOrLater.Value)
+            : (Instant?)null;
+        var startedAtOrLater = query.StartedAtOrLater.HasValue
+            ? Instant.FromDateTimeOffset(query.StartedAtOrLater.Value)
+            : (Instant?)null;
+        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.HasValue
+            ? Instant.FromDateTimeOffset(query.TerminatedAtOrEarlier.Value)
+            : (Instant?)null;
+
+        var results =
+            await SearchAsync(
+                orchestrationDescriptionNames,
+                lifecycleStates,
+                terminationState,
+                scheduledAtOrLater,
+                startedAtOrLater,
+                terminatedAtOrEarlier)
+            .ConfigureAwait(false);
+
+        return results
+            .Select(item => MapToConcreteResultDto(item.UniqueName, item.Instance))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get all orchestration instances filtered by their orchestration description name
+    /// and lifecycle information.
+    /// </summary>
+    /// <param name="orchestrationDescriptionNames"></param>
+    /// <param name="lifecycleStates"></param>
+    /// <param name="terminationState"></param>
+    /// <param name="scheduledAtOrLater"></param>
+    /// <param name="startedAtOrLater"></param>
+    /// <param name="terminatedAtOrEarlier"></param>
+    /// <returns>Use the returned unique name to determine which orchestration description
+    /// a given orchestration instance was created from.</returns>
+    private async Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
+        IReadOnlyCollection<string> orchestrationDescriptionNames,
+        IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates,
+        OrchestrationInstanceTerminationState? terminationState,
+        Instant? scheduledAtOrLater,
+        Instant? startedAtOrLater,
+        Instant? terminatedAtOrEarlier)
+    {
+        var queryable = _readerContext
+            .OrchestrationDescriptions
+                .Where(x => orchestrationDescriptionNames.Contains(x.UniqueName.Name))
+            .Join(
+                _readerContext.OrchestrationInstances,
+                description => description.Id,
+                instance => instance.OrchestrationDescriptionId,
+                (description, instance) => new { description.UniqueName, instance })
+            .Where(x => lifecycleStates == null || lifecycleStates.Contains(x.instance.Lifecycle.State))
+            .Where(x => terminationState == null || x.instance.Lifecycle.TerminationState == terminationState)
+            .Where(x => startedAtOrLater == null || startedAtOrLater <= x.instance.Lifecycle.StartedAt)
+            .Where(x => terminatedAtOrEarlier == null || x.instance.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
+            .Where(x => scheduledAtOrLater == null || scheduledAtOrLater <= x.instance.Lifecycle.ScheduledToRunAt)
+            .Select(x => ValueTuple.Create(x.UniqueName, x.instance));
+
+        return await queryable.ToListAsync().ConfigureAwait(false);
+    }
+
+    private ICalculationsQueryResult MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
+    {
+        switch (uniqueName.Name)
+        {
+            case Brs_023_027.Name:
+            case Brs_021_ElectricalHeatingCalculation.Name:
+            case Brs_021_CapacitySettlementCalculation.Name:
+            default:
+                throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
+        }
+
+        throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
     }
 }

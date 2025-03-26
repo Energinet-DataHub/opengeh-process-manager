@@ -11,7 +11,7 @@
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\DatabricksApiWireMockExtensions.cs" Link="Fixtures\Extensions\DatabricksApiWireMockExtensions.cs" />
     <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs" Link="FluentAssertionsVersionGuard.cs" />
-    <Compile Include="..\Shared\Tests\LongFilePathsAreNotAllowed.cs" Link="Unit\LongFilePathsAreNotAllowed.cs" />
+    <Compile Include="..\Shared\Tests\LongFilePathsGuard.cs" Link="LongFilePathsGuard.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -45,7 +45,7 @@
 
   <ItemGroup>
     <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs" Link="FluentAssertionsVersionGuard.cs" />
-    <Compile Include="..\Shared\Tests\LongFilePathsAreNotAllowed.cs" Link="Unit\LongFilePathsAreNotAllowed.cs" />
+    <Compile Include="..\Shared\Tests\LongFilePathsGuard.cs" Link="LongFilePathsGuard.cs" />
   </ItemGroup>
 
 </Project>

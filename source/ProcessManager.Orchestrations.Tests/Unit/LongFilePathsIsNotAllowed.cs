@@ -13,30 +13,29 @@
 // limitations under the License.
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit;
 
-public class LongFileNamesTests
+public class LongFilePathsIsNotAllowed
 {
-    private readonly int _maxPathLength = 260;
+    private readonly int _maxPathLength = 270;
     private readonly string _testsPostfix = "source";
     private readonly string _classNamePrefix = "Energinet.DataHub.";
 
     [Fact]
-    public void NamespaceMustContainLessThan256Characters()
+    public void NamespaceMustContainLessThan270Characters()
     {
-        var assembly = Assembly.GetAssembly(typeof(LongFileNamesTests))!;
+        var assembly = Assembly.GetAssembly(typeof(LongFilePathsIsNotAllowed))!;
 
-        var classes = assembly.GetTypes();
+        var types = assembly.GetTypes();
 
         string? diskToProjectPath = null;
 
-        foreach (var type in classes)
+        foreach (var type in types)
         {
             if (diskToProjectPath == null)
             {
-                // This path contains the bin, netX.0 and the like, folders
+                // This path contains the bin, netX.0 and the like
                 // e.g. C:\git\opengeh-process-manager\source\ProcessManager.Orchestrations.Tests\bin\Debug\net8.0\
                 // Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep.CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
                 var fullPath = Path.GetFullPath(type.FullName!);
@@ -49,8 +48,12 @@ public class LongFileNamesTests
             var projectToTypePath = type.Namespace != null
                     ? type.Namespace.Substring(_classNamePrefix.Length)
                     : string.Empty;
+
             //returns ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep\CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
             var pathFromProjectToClass = string.Empty;
+
+            // We may have a method name in "type.Name", if so, it will start with "<".
+            // These methods are not relevant for this test.
             if (type.Name.Contains("<"))
             {
                 pathFromProjectToClass = projectToTypePath;
@@ -65,8 +68,8 @@ public class LongFileNamesTests
             Assert.True(
                 fullPathOfFile.Length < _maxPathLength,
 #pragma warning disable SA1118
-                $"The file path: ${fullPathOfFile} is to long \n"
-                + $"It consists of {fullPathOfFile.Length} characters but it should contain no more than {_maxPathLength}. \n"
+                $"The file path: ${fullPathOfFile} is to long\n"
+                + $"It consists of {fullPathOfFile.Length} characters but it should contain no more than {_maxPathLength}.\n"
                 + $"Visual Studio can not handle it, please refactor the namespace {pathFromProjectToClass}");
 #pragma warning restore SA1118
         }

@@ -17,13 +17,16 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
 public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
-    EnqueueMeteredDataHandlerV1 handler)
+    EnqueueMeteredDataHandlerV1 handler,
+    ILogger<EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1> logger)
 {
     private readonly EnqueueMeteredDataHandlerV1 _handler = handler;
+    private readonly ILogger<EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1> _logger = logger;
 
     /// <summary>
     /// Enqueue Messages for BRS-021.
@@ -51,6 +54,7 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
                 message: $"Unhandled {nameof(Brs021ForwardMeteredDataNotifyVersion)} version."),
         };
 
+        _logger.LogInformation("Received notification from Measurements for Orchestration Instance: {OrchestrationInstanceId}", orchestrationInstanceId);
         await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
     }
 

@@ -57,6 +57,21 @@ public class ConnectionStateValidationRuleTests
                 "product",
                 null,
                 ActorNumber.Create("1111111111112")),
+            new MeteringPointMasterData(
+                new MeteringPointId("id"),
+                SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                new GridAreaCode("111"),
+                ActorNumber.Create("1111111111111"),
+                [],
+                ConnectionState.Connected,
+                MeteringPointType.Production,
+                MeteringPointSubType.Physical,
+                Resolution.Hourly,
+                MeasurementUnit.KilowattHour,
+                "product",
+                null,
+                ActorNumber.Create("1111111111112")),
         ]));
 
         result.Should()
@@ -94,6 +109,20 @@ public class ConnectionStateValidationRuleTests
                         null,
                         ActorNumber.Create("1111111111112")),
                 ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Given_ValidateMeteringPointMasterData_When_NoMasterData_Then_NoValidationError()
+    {
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new(
+                input,
+                []));
 
         result.Should().BeEmpty();
     }

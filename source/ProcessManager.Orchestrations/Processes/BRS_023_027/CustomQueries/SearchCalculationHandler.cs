@@ -37,7 +37,7 @@ internal class SearchCalculationHandler(
         // so if necessary we can validate their data access.
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        var lifecycleState = query.LifecycleStates?
+        var lifecycleStates = query.LifecycleStates?
             .Select(state =>
                 Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
                 ? lifecycleStateResult
@@ -66,7 +66,7 @@ internal class SearchCalculationHandler(
             .SearchAsync(
                 query.OrchestrationDescriptionName,
                 version: null,
-                lifecycleState,
+                lifecycleStates,
                 terminationState,
                 startedAtOrLater,
                 terminatedAtOrEarlier,

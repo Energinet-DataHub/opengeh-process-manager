@@ -62,7 +62,7 @@ public class ResolutionValidationRule
         }
 
         // Monthly resolution can only be used for Production metering points
-        if (IsMeteringPointTypeProductionAndResolutionMontly(subject))
+        if (incomingResolution == Resolution.Monthly && !IsMeteringPointTypeProduction(subject))
         {
             return Task.FromResult(WrongResolutionError);
         }
@@ -70,14 +70,14 @@ public class ResolutionValidationRule
         return Task.FromResult(NoError);
     }
 
-    private static bool IsMeteringPointTypeProductionAndResolutionMontly(ForwardMeteredDataBusinessValidatedDto subject)
+    private static bool IsMeteringPointTypeProduction(ForwardMeteredDataBusinessValidatedDto subject)
     {
-        var incomingResolution = Resolution.FromNameOrDefault(subject.Input.Resolution);
         var isProductionMeteringPointFromInput = MeteringPointType
             .FromNameOrDefault(subject.Input.MeteringPointType) == MeteringPointType.Production;
+
         var isProductionMeteringPointFromMasterData = subject.MeteringPointMasterData
-            .All(mpmd => mpmd.MeteringPointType != MeteringPointType.Production);
-        return incomingResolution == Resolution.Monthly
-               && (!isProductionMeteringPointFromInput || isProductionMeteringPointFromMasterData);
+            .All(mpmd => mpmd.MeteringPointType == MeteringPointType.Production);
+
+        return isProductionMeteringPointFromInput && isProductionMeteringPointFromMasterData;
     }
 }

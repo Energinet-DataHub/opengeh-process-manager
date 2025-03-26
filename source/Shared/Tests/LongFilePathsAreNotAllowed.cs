@@ -13,10 +13,11 @@
 // limitations under the License.
 
 using System.Reflection;
+using Xunit;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests;
 
-public class LongFilePathsIsNotAllowed
+public class LongFilePathsAreNotAllowed
 {
     private readonly int _maxPathLength = 270;
     private readonly string _testsPostfix = "source";
@@ -25,7 +26,7 @@ public class LongFilePathsIsNotAllowed
     [Fact]
     public void NamespaceMustContainLessThan270Characters()
     {
-        var assembly = Assembly.GetAssembly(typeof(LongFilePathsIsNotAllowed))!;
+        var assembly = Assembly.GetAssembly(typeof(LongFilePathsAreNotAllowed))!;
 
         var types = assembly.GetTypes();
 

@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
@@ -130,8 +131,31 @@ internal class SearchCalculationsHandler(
         switch (uniqueName.Name)
         {
             case Brs_023_027.Name:
+                var wholesale = instance.MapToTypedDto<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
+                return new WholesaleCalculationResult(
+                    wholesale.Id,
+                    wholesale.Lifecycle,
+                    wholesale.Steps,
+                    wholesale.CustomState,
+                    wholesale.ParameterValue);
+
             case Brs_021_ElectricalHeatingCalculation.Name:
+                var electricalHeating = instance.MapToDto();
+                return new ElectricalHeatingCalculationResult(
+                    electricalHeating.Id,
+                    electricalHeating.Lifecycle,
+                    electricalHeating.Steps,
+                    electricalHeating.CustomState);
+
             case Brs_021_CapacitySettlementCalculation.Name:
+                var capacitySettlement = instance.MapToTypedDto<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
+                return new CapacitySettlementCalculationResult(
+                    capacitySettlement.Id,
+                    capacitySettlement.Lifecycle,
+                    capacitySettlement.Steps,
+                    capacitySettlement.CustomState,
+                    capacitySettlement.ParameterValue);
+
             default:
                 throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
         }

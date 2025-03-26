@@ -22,4 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQue
 /// </summary>
 [JsonPolymorphic(UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FallBackToNearestAncestor)]
 [JsonDerivedType(typeof(ICalculationsQueryResult), typeDiscriminator: "base")]
+[JsonDerivedType(typeof(WholesaleCalculationResult), typeDiscriminator: "wholesale")]
+[JsonDerivedType(typeof(ElectricalHeatingCalculationResult), typeDiscriminator: "electricalheating")]
+[JsonDerivedType(typeof(CapacitySettlementCalculationResult), typeDiscriminator: "capacitysettlement")]
 public interface ICalculationsQueryResult;

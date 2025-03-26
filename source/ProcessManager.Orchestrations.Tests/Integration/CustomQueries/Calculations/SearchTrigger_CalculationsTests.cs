@@ -124,7 +124,6 @@ public class SearchTrigger_CalculationsTests : IAsyncLifetime
         var customQuery = new CalculationsQuery(Fixture.DefaultUserIdentity)
         {
             LifecycleStates = [
-                OrchestrationInstanceLifecycleState.Pending,
                 OrchestrationInstanceLifecycleState.Queued,
                 OrchestrationInstanceLifecycleState.Running,
                 OrchestrationInstanceLifecycleState.Terminated],

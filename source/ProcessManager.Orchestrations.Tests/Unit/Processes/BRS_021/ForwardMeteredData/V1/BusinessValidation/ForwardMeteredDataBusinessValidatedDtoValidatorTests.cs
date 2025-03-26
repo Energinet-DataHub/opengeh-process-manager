@@ -214,10 +214,11 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     [Fact]
     public async Task Given_InvalidResolution_When_Validate_Then_ValidationError()
     {
+        var invalidResolution = Resolution.Daily;
         var input = new ForwardMeteredDataInputV1Builder()
+            .WithResolution(invalidResolution.Name)
             .Build();
 
-        var invalidResolution = Resolution.Daily;
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
@@ -233,7 +234,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                         ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
                         ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
                         NeighborGridAreaOwners: [],
-                        Resolution: invalidResolution,
+                        Resolution: Resolution.Hourly,
                         ProductId: "product",
                         ParentMeteringPointId: null,
                         EnergySupplier: ActorNumber.Create("1111111111112")),

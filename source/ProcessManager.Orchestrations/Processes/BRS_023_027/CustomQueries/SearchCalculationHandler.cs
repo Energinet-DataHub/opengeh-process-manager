@@ -52,7 +52,6 @@ internal class SearchCalculationHandler(
 
         // DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
         // See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
-
         var scheduledAtOrLater = query.ScheduledAtOrLater.HasValue
             ? Instant.FromDateTimeOffset(query.ScheduledAtOrLater.Value)
             : (Instant?)null;

@@ -58,10 +58,9 @@ public class PeriodValidator(DateTimeZone dateTimeZone, IClock clock)
 
     public bool IntervalMustBeLessThanAllowedPeriodSize(Instant start, Instant end, int maxAllowedPeriodSizeInMonths)
     {
-        var zonedStartDateTime = new ZonedDateTime(start, _dateTimeZone);
-        var zonedEndDateTime = new ZonedDateTime(end, _dateTimeZone);
-        var monthsFromStart = zonedStartDateTime.LocalDateTime.PlusMonths(maxAllowedPeriodSizeInMonths);
+        var actualEndDate = end.InZone(_dateTimeZone);
+        var lastestAllowedEndDate = start.InZone(_dateTimeZone).LocalDateTime.PlusMonths(maxAllowedPeriodSizeInMonths);
 
-        return zonedEndDateTime.LocalDateTime > monthsFromStart;
+        return actualEndDate.LocalDateTime > lastestAllowedEndDate;
     }
 }

@@ -116,7 +116,7 @@ internal class SearchCalculationsHandlerV1(
                 Brs_023_027.Name];
         }
 
-        if (query.IsInternalCalculation.HasValue)
+        if (query.IsInternalCalculation.HasValue && query.IsInternalCalculation == true)
         {
             orchestrationDescriptionNames.RemoveAll(name
                 => name != Brs_023_027.Name);

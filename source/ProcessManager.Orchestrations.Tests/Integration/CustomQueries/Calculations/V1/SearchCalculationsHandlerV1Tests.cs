@@ -29,11 +29,6 @@ public class SearchCalculationsHandlerV1Tests :
     private readonly ProcessManagerReaderContext _readerContext;
     private readonly SearchCalculationsHandlerV1 _sut;
 
-    private readonly UserIdentityDto _userIdentity = new(
-        UserId: Guid.NewGuid(),
-        ActorNumber: ActorNumber.Create("1111111111111"),
-        ActorRole: ActorRole.DataHubAdministrator);
-
     public SearchCalculationsHandlerV1Tests(ProcessManagerDatabaseFixture fixture)
     {
         _fixture = fixture;

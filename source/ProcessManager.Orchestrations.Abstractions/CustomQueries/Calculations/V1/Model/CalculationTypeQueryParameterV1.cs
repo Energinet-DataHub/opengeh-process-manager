@@ -55,4 +55,9 @@ public enum CalculationTypeQueryParameterV1
     /// BRS-021 Capacity settlement (Effektbetaling)
     /// </summary>
     CapacitySettlement = 7,
+
+    /// <summary>
+    /// BRS-021 Net Consumption (Nettoforbrug gruppe 6)
+    /// </summary>
+    NetConsumption = 8,
 }

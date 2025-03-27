@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.NetConsumptionCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -115,6 +116,8 @@ internal class SearchCalculationsHandlerV1(
                 return Brs_021_ElectricalHeatingCalculation.Name;
             case CalculationTypeQueryParameterV1.CapacitySettlement:
                 return Brs_021_CapacitySettlementCalculation.Name;
+            case CalculationTypeQueryParameterV1.NetConsumption:
+                return Brs_021_NetConsumptionCalculation.Name;
             default:
                 return Brs_023_027.Name;
         }
@@ -179,6 +182,14 @@ internal class SearchCalculationsHandlerV1(
                     capacitySettlement.Steps,
                     capacitySettlement.CustomState,
                     capacitySettlement.ParameterValue);
+
+            case Brs_021_NetConsumptionCalculation.Name:
+                var netConsumption = instance.MapToDto();
+                return new NetConsumptionCalculationResultV1(
+                    netConsumption.Id,
+                    netConsumption.Lifecycle,
+                    netConsumption.Steps,
+                    netConsumption.CustomState);
 
             default:
                 throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");

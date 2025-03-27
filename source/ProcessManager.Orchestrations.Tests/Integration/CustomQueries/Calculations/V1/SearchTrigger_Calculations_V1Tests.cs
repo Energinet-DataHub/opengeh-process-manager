@@ -137,13 +137,26 @@ public class SearchTrigger_Calculations_V1Tests : IAsyncLifetime
                         Month: 1)),
                 CancellationToken.None);
 
+        // => Brs 021 Net Consumption
+        // Mocking the databricks api. Forcing it to return a terminated successful job status
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
+            RunLifeCycleState.TERMINATED,
+            "NetConsumptionGroup6");
+        // Start new orchestration instance (we don't have to wait for it, we just need data in the database)
+        await ProcessManagerClient
+            .StartNewOrchestrationInstanceAsync(
+                new Abstractions.Processes.BRS_021.NetConsumptionCalculation.V1.Model.StartNetConsumptionCalculationCommandV1(
+                    Fixture.DefaultUserIdentity),
+                CancellationToken.None);
+
         // => Custom query
         var customQuery = new CalculationsQueryV1(Fixture.DefaultUserIdentity)
         {
             CalculationTypes = [
                 CalculationTypeQueryParameterV1.WholesaleFixing,
                 CalculationTypeQueryParameterV1.ElectricalHeating,
-                CalculationTypeQueryParameterV1.CapacitySettlement],
+                CalculationTypeQueryParameterV1.CapacitySettlement,
+                CalculationTypeQueryParameterV1.NetConsumption],
             LifecycleStates = [
                 OrchestrationInstanceLifecycleState.Queued,
                 OrchestrationInstanceLifecycleState.Running,
@@ -164,6 +177,8 @@ public class SearchTrigger_Calculations_V1Tests : IAsyncLifetime
             .And.Contain(x =>
                 x.GetType() == typeof(ElectricalHeatingCalculationResultV1))
             .And.Contain(x =>
-                x.GetType() == typeof(CapacitySettlementCalculationResultV1));
+                x.GetType() == typeof(CapacitySettlementCalculationResultV1))
+            .And.Contain(x =>
+                x.GetType() == typeof(NetConsumptionCalculationResultV1));
     }
 }

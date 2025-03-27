@@ -25,4 +25,5 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQue
 [JsonDerivedType(typeof(WholesaleCalculationResultV1), typeDiscriminator: "wholesale")]
 [JsonDerivedType(typeof(ElectricalHeatingCalculationResultV1), typeDiscriminator: "electricalheating")]
 [JsonDerivedType(typeof(CapacitySettlementCalculationResultV1), typeDiscriminator: "capacitysettlement")]
+[JsonDerivedType(typeof(NetConsumptionCalculationResultV1), typeDiscriminator: "netconsumption")]
 public interface ICalculationsQueryResultV1;

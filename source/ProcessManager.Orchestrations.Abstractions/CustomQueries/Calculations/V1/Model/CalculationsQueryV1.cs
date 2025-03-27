@@ -15,18 +15,18 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 
 /// <summary>
 /// Query for searching for Calculations orchestration instances.
 /// Must be JSON serializable.
 /// </summary>
-public sealed record CalculationsQuery
-    : SearchOrchestrationInstancesByCustomQuery<ICalculationsQueryResult>
+public sealed record CalculationsQueryV1
+    : SearchOrchestrationInstancesByCustomQuery<ICalculationsQueryResultV1>
 {
-    public const string RouteName = "calculations";
+    public const string RouteName = "v1/calculations";
 
-    public CalculationsQuery(
+    public CalculationsQueryV1(
         UserIdentityDto operatingIdentity)
         : base(operatingIdentity)
     {

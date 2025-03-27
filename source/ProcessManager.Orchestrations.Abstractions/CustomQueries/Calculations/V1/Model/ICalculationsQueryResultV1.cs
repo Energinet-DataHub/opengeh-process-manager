@@ -14,15 +14,15 @@
 
 using System.Text.Json.Serialization;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 
 /// <summary>
 /// Query result from searching for Calculations orchestration instances.
 /// We use https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/polymorphism
 /// </summary>
 [JsonPolymorphic(UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FallBackToNearestAncestor)]
-[JsonDerivedType(typeof(ICalculationsQueryResult), typeDiscriminator: "base")]
-[JsonDerivedType(typeof(WholesaleCalculationResult), typeDiscriminator: "wholesale")]
-[JsonDerivedType(typeof(ElectricalHeatingCalculationResult), typeDiscriminator: "electricalheating")]
-[JsonDerivedType(typeof(CapacitySettlementCalculationResult), typeDiscriminator: "capacitysettlement")]
-public interface ICalculationsQueryResult;
+[JsonDerivedType(typeof(ICalculationsQueryResultV1), typeDiscriminator: "base")]
+[JsonDerivedType(typeof(WholesaleCalculationResultV1), typeDiscriminator: "wholesale")]
+[JsonDerivedType(typeof(ElectricalHeatingCalculationResultV1), typeDiscriminator: "electricalheating")]
+[JsonDerivedType(typeof(CapacitySettlementCalculationResultV1), typeDiscriminator: "capacitysettlement")]
+public interface ICalculationsQueryResultV1;

@@ -12,19 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.CustomQueries;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -32,20 +24,19 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Azure.Databricks.Client.Models;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.CustomQueries.Calculations;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.CustomQueries.Calculations.V1;
 
 /// <summary>
 /// Test collection that verifies the Process Manager clients can be used to
 /// perform a custom search for Calculations orchestration instances.
 /// </summary>
 [Collection(nameof(OrchestrationsAppCollection))]
-public class SearchTrigger_CalculationsTests : IAsyncLifetime
+public class SearchTrigger_Calculations_V1Tests : IAsyncLifetime
 {
-    public SearchTrigger_CalculationsTests(
+    public SearchTrigger_Calculations_V1Tests(
         OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
@@ -147,7 +138,7 @@ public class SearchTrigger_CalculationsTests : IAsyncLifetime
                 CancellationToken.None);
 
         // => Custom query
-        var customQuery = new CalculationsQuery(Fixture.DefaultUserIdentity)
+        var customQuery = new CalculationsQueryV1(Fixture.DefaultUserIdentity)
         {
             LifecycleStates = [
                 OrchestrationInstanceLifecycleState.Queued,
@@ -165,10 +156,10 @@ public class SearchTrigger_CalculationsTests : IAsyncLifetime
         using var assertionScope = new AssertionScope();
         actual.Should()
             .Contain(x =>
-                x.GetType() == typeof(WholesaleCalculationResult))
+                x.GetType() == typeof(WholesaleCalculationResultV1))
             .And.Contain(x =>
-                x.GetType() == typeof(ElectricalHeatingCalculationResult))
+                x.GetType() == typeof(ElectricalHeatingCalculationResultV1))
             .And.Contain(x =>
-                x.GetType() == typeof(CapacitySettlementCalculationResult));
+                x.GetType() == typeof(CapacitySettlementCalculationResultV1));
     }
 }

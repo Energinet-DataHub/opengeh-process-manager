@@ -15,13 +15,13 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 
-public record ElectricalHeatingCalculationResult :
+public record ElectricalHeatingCalculationResultV1 :
     OrchestrationInstanceTypedDto,
-    ICalculationsQueryResult
+    ICalculationsQueryResultV1
 {
-    public ElectricalHeatingCalculationResult(
+    public ElectricalHeatingCalculationResultV1(
         Guid id,
         OrchestrationInstanceLifecycleDto lifecycle,
         IReadOnlyCollection<StepInstanceDto> steps,

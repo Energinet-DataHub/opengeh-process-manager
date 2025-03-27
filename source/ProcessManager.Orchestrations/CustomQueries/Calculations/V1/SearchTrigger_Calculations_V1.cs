@@ -12,33 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 
-internal class SearchTrigger_Calculations(
-    SearchCalculationsHandler handler)
+internal class SearchTrigger_Calculations_V1(
+    SearchCalculationsHandlerV1 handler)
 {
-    private readonly SearchCalculationsHandler _handler = handler;
+    private readonly SearchCalculationsHandlerV1 _handler = handler;
 
     /// <summary>
     /// Search for Calculations orchestration instances.
     /// </summary>
-    [Function(nameof(SearchTrigger_Calculations))]
+    [Function(nameof(SearchTrigger_Calculations_V1))]
     [Authorize]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = $"orchestrationinstance/query/custom/{CalculationsQuery.RouteName}")]
+            Route = $"orchestrationinstance/query/custom/{CalculationsQueryV1.RouteName}")]
         HttpRequest httpRequest,
         [FromBody]
-        CalculationsQuery query,
+        CalculationsQueryV1 query,
         FunctionContext executionContext)
     {
         var queryResultItems = await _handler.HandleAsync(query).ConfigureAwait(false);

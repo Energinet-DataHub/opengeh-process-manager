@@ -17,6 +17,8 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
@@ -24,15 +26,15 @@ using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 
-internal class SearchCalculationsHandler(
+internal class SearchCalculationsHandlerV1(
     ProcessManagerReaderContext readerContext) :
-        ISearchOrchestrationInstancesQueryHandler<CalculationsQuery, ICalculationsQueryResult>
+        ISearchOrchestrationInstancesQueryHandler<CalculationsQueryV1, ICalculationsQueryResultV1>
 {
     private readonly ProcessManagerReaderContext _readerContext = readerContext;
 
-    public async Task<IReadOnlyCollection<ICalculationsQueryResult>> HandleAsync(CalculationsQuery query)
+    public async Task<IReadOnlyCollection<ICalculationsQueryResultV1>> HandleAsync(CalculationsQueryV1 query)
     {
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         //
@@ -126,13 +128,13 @@ internal class SearchCalculationsHandler(
         return await queryable.ToListAsync().ConfigureAwait(false);
     }
 
-    private ICalculationsQueryResult MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
+    private ICalculationsQueryResultV1 MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
     {
         switch (uniqueName.Name)
         {
             case Brs_023_027.Name:
                 var wholesale = instance.MapToTypedDto<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
-                return new WholesaleCalculationResult(
+                return new WholesaleCalculationResultV1(
                     wholesale.Id,
                     wholesale.Lifecycle,
                     wholesale.Steps,
@@ -141,7 +143,7 @@ internal class SearchCalculationsHandler(
 
             case Brs_021_ElectricalHeatingCalculation.Name:
                 var electricalHeating = instance.MapToDto();
-                return new ElectricalHeatingCalculationResult(
+                return new ElectricalHeatingCalculationResultV1(
                     electricalHeating.Id,
                     electricalHeating.Lifecycle,
                     electricalHeating.Steps,
@@ -149,7 +151,7 @@ internal class SearchCalculationsHandler(
 
             case Brs_021_CapacitySettlementCalculation.Name:
                 var capacitySettlement = instance.MapToTypedDto<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
-                return new CapacitySettlementCalculationResult(
+                return new CapacitySettlementCalculationResultV1(
                     capacitySettlement.Id,
                     capacitySettlement.Lifecycle,
                     capacitySettlement.Steps,

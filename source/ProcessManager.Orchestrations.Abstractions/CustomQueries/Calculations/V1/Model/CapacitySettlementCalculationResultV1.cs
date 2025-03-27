@@ -14,15 +14,15 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 
-public record WholesaleCalculationResult :
+public record CapacitySettlementCalculationResultV1 :
     OrchestrationInstanceTypedDto<CalculationInputV1>,
-    ICalculationsQueryResult
+    ICalculationsQueryResultV1
 {
-    public WholesaleCalculationResult(
+    public CapacitySettlementCalculationResultV1(
         Guid id,
         OrchestrationInstanceLifecycleDto lifecycle,
         IReadOnlyCollection<StepInstanceDto> steps,

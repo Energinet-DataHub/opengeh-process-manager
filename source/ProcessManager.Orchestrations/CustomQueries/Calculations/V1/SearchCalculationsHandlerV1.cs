@@ -63,11 +63,13 @@ internal class SearchCalculationsHandlerV1(
             .ConfigureAwait(false);
 
         return results
-            // TODO: Temporary in-memory filter on ParameterValues - should be refactored when we figure out how to pass filter objects to generic repository implementation.
+            // TODO: Temporary in-memory filter on ParameterValues.
+            // Should be refactored when we figure out how to pass filter objects to generic repository implementation.
             .Where(item =>
                 item.UniqueName.Name != Brs_023_027.Name
                 || (item.UniqueName.Name == Brs_023_027.Name && FilterBrs_023_027(query, item.Instance)))
-            // TODO: Temporary in-memory filter on ParameterValues - should be refactored when we figure out how to pass filter objects to generic repository implementation.
+            // TODO: Temporary in-memory filter on ParameterValues.
+            // Should be refactored when we figure out how to pass filter objects to generic repository implementation.
             .Where(item =>
                 item.UniqueName.Name != Brs_021_CapacitySettlementCalculation.Name
                 || (item.UniqueName.Name == Brs_021_CapacitySettlementCalculation.Name && FilterBrs_021_CapacitySettlement(query, item.Instance)))

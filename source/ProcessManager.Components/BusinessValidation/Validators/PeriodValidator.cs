@@ -30,11 +30,30 @@ public class PeriodValidator(DateTimeZone dateTimeZone, IClock clock)
 
     public bool IsDateOlderThanAllowed(Instant date, int maxYears, int maxMonths)
     {
-        var zonedStartDateTime = new ZonedDateTime(date, _dateTimeZone);
-        var zonedCurrentDateTime = new ZonedDateTime(_clock.GetCurrentInstant(), _dateTimeZone);
-        var latestStartDate = zonedCurrentDateTime.LocalDateTime.PlusYears(-maxYears).PlusMonths(-maxMonths);
+        var dateInQuestion = date.InZone(_dateTimeZone);
+        var someYearsAndMonthsAgo = _clock.GetCurrentInstant()
+            .InZone(_dateTimeZone)
+            .Date.PlusYears(-maxYears)
+            .PlusMonths(-maxMonths);
 
-        return zonedStartDateTime.LocalDateTime.Date < latestStartDate.Date;
+        return dateInQuestion.LocalDateTime.Date < someYearsAndMonthsAgo;
+    }
+
+    public bool IsMonthOfDateOlderThanXYearsAndYMonths(Instant periodStart, int years, int months)
+    {
+        var dateInQuestion = periodStart.InZone(_dateTimeZone);
+        var someYearsAndSomeMonthsAgo = _clock.GetCurrentInstant()
+            .InZone(_dateTimeZone)
+            .Date.PlusYears(-years)
+            .PlusMonths(-months);
+
+        if (dateInQuestion.Year > someYearsAndSomeMonthsAgo.Year)
+            return false;
+
+        if (dateInQuestion.Year == someYearsAndSomeMonthsAgo.Year)
+            return dateInQuestion.Month < someYearsAndSomeMonthsAgo.Month;
+
+        return true;
     }
 
     public bool IntervalMustBeLessThanAllowedPeriodSize(Instant start, Instant end, int maxAllowedPeriodSizeInMonths)

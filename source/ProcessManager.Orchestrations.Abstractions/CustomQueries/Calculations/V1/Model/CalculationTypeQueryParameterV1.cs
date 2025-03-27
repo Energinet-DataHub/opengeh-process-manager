@@ -17,42 +17,42 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQue
 public enum CalculationTypeQueryParameterV1
 {
     /// <summary>
-    /// Balance fixing
+    /// BRS-023/027 Balance fixing
     /// </summary>
     BalanceFixing = 0,
 
     /// <summary>
-    /// Aggregation.
+    /// BRS-023/027 Aggregation.
     /// </summary>
     Aggregation = 1,
 
     /// <summary>
-    /// Wholesale fixing.
+    /// BRS-023/027 Wholesale fixing.
     /// </summary>
     WholesaleFixing = 2,
 
     /// <summary>
-    /// First correction settlement.
+    /// BRS-023/027 First correction settlement.
     /// </summary>
     FirstCorrectionSettlement = 3,
 
     /// <summary>
-    /// Second correction settlement.
+    /// BRS-023/027 Second correction settlement.
     /// </summary>
     SecondCorrectionSettlement = 4,
 
     /// <summary>
-    /// Third correction settlement.
+    /// BRS-023/027 Third correction settlement.
     /// </summary>
     ThirdCorrectionSettlement = 5,
 
     /// <summary>
-    /// Eletrical heating (Elvarme)
+    /// BRS-021 Eletrical heating (Elvarme)
     /// </summary>
     ElectricalHeating = 6,
 
     /// <summary>
-    /// Capacity settlement (Effektbetaling)
+    /// BRS-021 Capacity settlement (Effektbetaling)
     /// </summary>
     CapacitySettlement = 7,
 }

@@ -42,36 +42,14 @@ internal class SearchCalculationsHandlerV1(
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-        // TODO: Refact; for now we hardcode this list, but it should be built based on input
-        IReadOnlyCollection<string> orchestrationDescriptionNames = [
-            Brs_023_027.Name,
-            Brs_021_ElectricalHeatingCalculation.Name,
-            Brs_021_CapacitySettlementCalculation.Name];
+        var orchestrationDescriptionNames = GetOrchestrationDescriptionNames(query);
 
-        var lifecycleStates = query.LifecycleStates?
-            .Select(state =>
-                Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
-                ? lifecycleStateResult
-                : (OrchestrationInstanceLifecycleState?)null)
-            .Where(state => state.HasValue)
-            .Select(state => state!.Value)
-            .ToList();
-        var terminationState =
-            Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
-            ? terminationStateResult
-            : (OrchestrationInstanceTerminationState?)null;
+        var lifecycleStates = GetLifecycleStates(query);
+        var terminationState = GetTerminationState(query);
 
-        // DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
-        // See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
-        var scheduledAtOrLater = query.ScheduledAtOrLater.HasValue
-            ? Instant.FromDateTimeOffset(query.ScheduledAtOrLater.Value)
-            : (Instant?)null;
-        var startedAtOrLater = query.StartedAtOrLater.HasValue
-            ? Instant.FromDateTimeOffset(query.StartedAtOrLater.Value)
-            : (Instant?)null;
-        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.HasValue
-            ? Instant.FromDateTimeOffset(query.TerminatedAtOrEarlier.Value)
-            : (Instant?)null;
+        var scheduledAtOrLater = ConvertToNullableInstant(query.ScheduledAtOrLater);
+        var startedAtOrLater = ConvertToNullableInstant(query.StartedAtOrLater);
+        var terminatedAtOrEarlier = ConvertToNullableInstant(query.TerminatedAtOrEarlier);
 
         var results =
             await SearchAsync(
@@ -86,6 +64,94 @@ internal class SearchCalculationsHandlerV1(
         return results
             .Select(item => MapToConcreteResultDto(item.UniqueName, item.Instance))
             .ToList();
+    }
+
+    private static IReadOnlyCollection<string> GetOrchestrationDescriptionNames(CalculationsQueryV1 query)
+    {
+        var orchestrationDescriptionNames = query.CalculationTypes?
+            .Select(type => GetOrchestrationDescriptionName(type))
+            .Distinct()
+            .ToList();
+
+        return orchestrationDescriptionNames ?? [];
+    }
+
+    private static string GetOrchestrationDescriptionName(CalculationTypeQueryParameterV1 calculationType)
+    {
+        switch (calculationType)
+        {
+            case CalculationTypeQueryParameterV1.ElectricalHeating:
+                return Brs_021_ElectricalHeatingCalculation.Name;
+            case CalculationTypeQueryParameterV1.CapacitySettlement:
+                return Brs_021_CapacitySettlementCalculation.Name;
+            default:
+                return Brs_023_027.Name;
+        }
+    }
+
+    private static IReadOnlyCollection<OrchestrationInstanceLifecycleState>? GetLifecycleStates(CalculationsQueryV1 query)
+    {
+        return query.LifecycleStates?
+            .Select(state =>
+                Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
+                ? lifecycleStateResult
+                : (OrchestrationInstanceLifecycleState?)null)
+            .Where(state => state.HasValue)
+            .Select(state => state!.Value)
+            .ToList();
+    }
+
+    private static OrchestrationInstanceTerminationState? GetTerminationState(CalculationsQueryV1 query)
+    {
+        return Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
+            ? terminationStateResult
+            : (OrchestrationInstanceTerminationState?)null;
+    }
+
+    /// <summary>
+    /// DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
+    /// See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
+    /// </summary>
+    private static Instant? ConvertToNullableInstant(DateTimeOffset? dateTimeOffset)
+    {
+        return dateTimeOffset.HasValue
+            ? Instant.FromDateTimeOffset(dateTimeOffset.Value)
+            : (Instant?)null;
+    }
+
+    private static ICalculationsQueryResultV1 MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
+    {
+        switch (uniqueName.Name)
+        {
+            case Brs_023_027.Name:
+                var wholesale = instance.MapToTypedDto<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
+                return new WholesaleCalculationResultV1(
+                    wholesale.Id,
+                    wholesale.Lifecycle,
+                    wholesale.Steps,
+                    wholesale.CustomState,
+                    wholesale.ParameterValue);
+
+            case Brs_021_ElectricalHeatingCalculation.Name:
+                var electricalHeating = instance.MapToDto();
+                return new ElectricalHeatingCalculationResultV1(
+                    electricalHeating.Id,
+                    electricalHeating.Lifecycle,
+                    electricalHeating.Steps,
+                    electricalHeating.CustomState);
+
+            case Brs_021_CapacitySettlementCalculation.Name:
+                var capacitySettlement = instance.MapToTypedDto<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
+                return new CapacitySettlementCalculationResultV1(
+                    capacitySettlement.Id,
+                    capacitySettlement.Lifecycle,
+                    capacitySettlement.Steps,
+                    capacitySettlement.CustomState,
+                    capacitySettlement.ParameterValue);
+
+            default:
+                throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
+        }
     }
 
     /// <summary>
@@ -124,40 +190,5 @@ internal class SearchCalculationsHandlerV1(
             .Select(x => ValueTuple.Create(x.UniqueName, x.instance));
 
         return await queryable.ToListAsync().ConfigureAwait(false);
-    }
-
-    private ICalculationsQueryResultV1 MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
-    {
-        switch (uniqueName.Name)
-        {
-            case Brs_023_027.Name:
-                var wholesale = instance.MapToTypedDto<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
-                return new WholesaleCalculationResultV1(
-                    wholesale.Id,
-                    wholesale.Lifecycle,
-                    wholesale.Steps,
-                    wholesale.CustomState,
-                    wholesale.ParameterValue);
-
-            case Brs_021_ElectricalHeatingCalculation.Name:
-                var electricalHeating = instance.MapToDto();
-                return new ElectricalHeatingCalculationResultV1(
-                    electricalHeating.Id,
-                    electricalHeating.Lifecycle,
-                    electricalHeating.Steps,
-                    electricalHeating.CustomState);
-
-            case Brs_021_CapacitySettlementCalculation.Name:
-                var capacitySettlement = instance.MapToTypedDto<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
-                return new CapacitySettlementCalculationResultV1(
-                    capacitySettlement.Id,
-                    capacitySettlement.Lifecycle,
-                    capacitySettlement.Steps,
-                    capacitySettlement.CustomState,
-                    capacitySettlement.ParameterValue);
-
-            default:
-                throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
-        }
     }
 }

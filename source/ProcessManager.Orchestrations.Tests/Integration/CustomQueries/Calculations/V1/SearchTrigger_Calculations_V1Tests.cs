@@ -140,6 +140,10 @@ public class SearchTrigger_Calculations_V1Tests : IAsyncLifetime
         // => Custom query
         var customQuery = new CalculationsQueryV1(Fixture.DefaultUserIdentity)
         {
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.BalanceFixing,
+                CalculationTypeQueryParameterV1.ElectricalHeating,
+                CalculationTypeQueryParameterV1.CapacitySettlement],
             LifecycleStates = [
                 OrchestrationInstanceLifecycleState.Queued,
                 OrchestrationInstanceLifecycleState.Running,

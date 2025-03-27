@@ -107,17 +107,43 @@ public class SearchTrigger_CalculationsTests : IAsyncLifetime
             RunLifeCycleState.TERMINATED,
             "CalculatorJob");
         // Start new orchestration instance (we don't have to wait for it, we just need data in the database)
-        var wholesaleInput = new Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1(
-            Abstractions.Processes.BRS_023_027.V1.Model.CalculationType.WholesaleFixing,
-            GridAreaCodes: ["999"],
-            PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
-            PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
-            IsInternalCalculation: false);
-        var orchestrationInstanceId = await ProcessManagerClient
+        await ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new Abstractions.Processes.BRS_023_027.V1.Model.StartCalculationCommandV1(
                     Fixture.DefaultUserIdentity,
-                    wholesaleInput),
+                    new Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1(
+                        Abstractions.Processes.BRS_023_027.V1.Model.CalculationType.WholesaleFixing,
+                        GridAreaCodes: ["999"],
+                        PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
+                        PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
+                        IsInternalCalculation: false)),
+                CancellationToken.None);
+
+        // => Brs 021 Electrical Heating
+        // Mocking the databricks api. Forcing it to return a terminated successful job status
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
+            RunLifeCycleState.TERMINATED,
+            "ElectricalHeating");
+        // Start new orchestration instance (we don't have to wait for it, we just need data in the database)
+        await ProcessManagerClient
+            .StartNewOrchestrationInstanceAsync(
+                new Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model.StartElectricalHeatingCalculationCommandV1(
+                    Fixture.DefaultUserIdentity),
+                CancellationToken.None);
+
+        // => Brs 021 Capacity Settlement
+        // Mocking the databricks api. Forcing it to return a terminated successful job status
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
+            RunLifeCycleState.TERMINATED,
+            "CapacitySettlement");
+        // Start new orchestration instance (we don't have to wait for it, we just need data in the database)
+        await ProcessManagerClient
+            .StartNewOrchestrationInstanceAsync(
+                new Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.StartCalculationCommandV1(
+                    Fixture.DefaultUserIdentity,
+                    new Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1(
+                        Year: 2020,
+                        Month: 1)),
                 CancellationToken.None);
 
         // => Custom query
@@ -139,6 +165,10 @@ public class SearchTrigger_CalculationsTests : IAsyncLifetime
         using var assertionScope = new AssertionScope();
         actual.Should()
             .Contain(x =>
-                x.GetType() == typeof(WholesaleCalculationResult));
+                x.GetType() == typeof(WholesaleCalculationResult))
+            .And.Contain(x =>
+                x.GetType() == typeof(ElectricalHeatingCalculationResult))
+            .And.Contain(x =>
+                x.GetType() == typeof(CapacitySettlementCalculationResult));
     }
 }

@@ -107,7 +107,35 @@ internal class SearchCalculationsHandlerV1(
             .Distinct()
             .ToList();
 
-        return orchestrationDescriptionNames ?? [];
+        if (orchestrationDescriptionNames == null)
+        {
+            orchestrationDescriptionNames = [
+                Brs_021_ElectricalHeatingCalculation.Name,
+                Brs_021_CapacitySettlementCalculation.Name,
+                Brs_021_NetConsumptionCalculation.Name,
+                Brs_023_027.Name];
+        }
+
+        if (query.IsInternalCalculation.HasValue)
+        {
+            orchestrationDescriptionNames.RemoveAll(name
+                => name != Brs_023_027.Name);
+        }
+
+        if (query.GridAreaCodes != null && query.GridAreaCodes.Any())
+        {
+            orchestrationDescriptionNames.RemoveAll(name
+                => name != Brs_023_027.Name);
+        }
+
+        if (query.PeriodStartDate.HasValue || query.PeriodEndDate.HasValue)
+        {
+            orchestrationDescriptionNames.RemoveAll(name =>
+                name != Brs_023_027.Name
+                && name != Brs_021_CapacitySettlementCalculation.Name);
+        }
+
+        return orchestrationDescriptionNames;
     }
 
     private static string GetOrchestrationDescriptionName(CalculationTypeQueryParameterV1 calculationType)

@@ -44,4 +44,6 @@ public sealed record CalculationsQueryV1
     public DateTimeOffset? StartedAtOrLater { get; set; }
 
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
+
+    public IReadOnlyCollection<CalculationTypeQueryParameterV1>? CalculationTypes { get; set; }
 }

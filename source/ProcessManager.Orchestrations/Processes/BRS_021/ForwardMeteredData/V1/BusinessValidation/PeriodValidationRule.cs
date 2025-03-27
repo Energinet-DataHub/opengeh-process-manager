@@ -68,7 +68,7 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
         if (start is null)
             return Task.FromResult(errors);
 
-        // Data age check
+        // Measurements age check
         if (_periodValidator.IsDateOlderThanAllowed(start.Value, MaxAllowedPeriodAgeInYears, 0))
         {
             errors.Add(StartDateIsTooOld);

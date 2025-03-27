@@ -19,12 +19,12 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests;
 
 public class LongFilePathsAreNotAllowed
 {
-    private readonly int _maxPathLength = 270;
-    private readonly string _testsPostfix = "source";
-    private readonly string _classNamePrefix = "Energinet.DataHub.";
+    private static readonly int _maxPathLength = 270;
+    private static readonly string _sourceFolder = "source";
+    private static readonly string _assemblyPrefix = "Energinet.DataHub.";
 
     [Fact]
-    public void NamespaceMustContainLessThan270Characters()
+    public void Given_PathFromDiskToClass_When_CheckingLength_Then_MayConsistsOfLessThan270Characters()
     {
         var assembly = Assembly.GetAssembly(typeof(LongFilePathsAreNotAllowed))!;
 
@@ -34,45 +34,51 @@ public class LongFilePathsAreNotAllowed
 
         foreach (var type in types)
         {
-            if (diskToProjectPath == null)
-            {
-                // This path contains the bin, netX.0 and the like
-                // e.g. C:\git\opengeh-process-manager\source\ProcessManager.Orchestrations.Tests\bin\Debug\net8.0\
-                // Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep.CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
-                var fullPath = Path.GetFullPath(type.FullName!);
-
-                // returns C:\\git\\opengeh-process-manager\\source
-                var indexOfTestsPostfix = fullPath.IndexOf(_testsPostfix, StringComparison.Ordinal);
-                diskToProjectPath = fullPath.Substring(0, indexOfTestsPostfix + _testsPostfix.Length);
-            }
-
-            var projectToTypePath = type.Namespace != null
-                    ? type.Namespace.Substring(_classNamePrefix.Length)
-                    : string.Empty;
+            // returns C:\\git\\opengeh-process-manager\\source
+            diskToProjectPath ??= GetDiskToProjectPath(type);
 
             //returns ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep\CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
-            var pathFromProjectToClass = string.Empty;
-
-            // We may have a method name in "type.Name", if so, it will start with "<".
-            // These methods are not relevant for this test.
-            if (type.Name.Contains("<"))
-            {
-                pathFromProjectToClass = projectToTypePath;
-            }
-            else
-            {
-                pathFromProjectToClass = Path.Combine(projectToTypePath, type.Name);
-            }
+            var pathFromProjectToClass = GetPathFromProjectToClass(type);
 
             // returns C:\\git\\opengeh-process-manager\\source\\ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep\CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
-            var fullPathOfFile = Path.Combine(diskToProjectPath, pathFromProjectToClass);
+            var fullPathForFile = Path.Combine(diskToProjectPath, pathFromProjectToClass);
             Assert.True(
-                fullPathOfFile.Length < _maxPathLength,
+                fullPathForFile.Length < _maxPathLength,
 #pragma warning disable SA1118
-                $"The file path: ${fullPathOfFile} is to long\n"
-                + $"It consists of {fullPathOfFile.Length} characters but it should contain no more than {_maxPathLength}.\n"
-                + $"Visual Studio can not handle it, please refactor the namespace {pathFromProjectToClass}");
+                $"The file path: ${fullPathForFile} is too long\n"
+                + $"It consists of {fullPathForFile.Length} characters but it should contain no more than {_maxPathLength}.\n"
+                + $"Visual Studio can not handle it,"
+                + $"please shorten the path and namespace: {pathFromProjectToClass}"
+                + $"for the class: {type.Name}");
 #pragma warning restore SA1118
         }
+    }
+
+    private static string GetDiskToProjectPath(Type type)
+    {
+        // The full path contains the bin, netX.0 and the like
+        // e.g. C:\git\opengeh-process-manager\source\ProcessManager.Orchestrations.Tests\bin\Debug\net8.0\
+        // Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep.CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
+        var fullPath = Path.GetFullPath(type.FullName!);
+
+        // returns C:\\git\\opengeh-process-manager\\source
+        var indexOfTestsPostfix = fullPath.IndexOf(_sourceFolder, StringComparison.Ordinal);
+        return fullPath.Substring(0, indexOfTestsPostfix + _sourceFolder.Length);
+    }
+
+    private static string GetPathFromProjectToClass(Type type)
+    {
+        var projectToTypePath = type.Namespace != null
+            ? type.Namespace.Substring(_assemblyPrefix.Length)
+            : string.Empty;
+
+        // We may have a method name in "type.Name", if so, it will start with "<".
+        // These methods are not relevant for this test.
+        if (type.Name.Contains("<"))
+        {
+            return projectToTypePath;
+        }
+
+        return Path.Combine(projectToTypePath, type.Name);
     }
 }

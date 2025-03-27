@@ -46,4 +46,30 @@ public sealed record CalculationsQueryV1
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
 
     public IReadOnlyCollection<CalculationTypeQueryParameterV1>? CalculationTypes { get; set; }
+
+    /// <summary>
+    /// Relevant for:
+    ///  - BRS-023/027
+    /// </summary>
+    public bool? IsInternalCalculation { get; set; }
+
+    /// <summary>
+    /// Relevant for:
+    ///  - BRS-023/027
+    /// </summary>
+    public IReadOnlyCollection<string>? GridAreaCodes { get; set; }
+
+    /// <summary>
+    /// Relevant for:
+    ///  - BRS-023/027
+    ///  - BRS-021 Capacity Settlement
+    /// </summary>
+    public DateTimeOffset? PeriodStartDate { get; set; }
+
+    /// <summary>
+    /// Relevant for:
+    ///  - BRS-023/027
+    ///  - BRS-021 Capacity Settlement
+    /// </summary>
+    public DateTimeOffset? PeriodEndDate { get; set; }
 }

@@ -62,8 +62,39 @@ internal class SearchCalculationsHandlerV1(
             .ConfigureAwait(false);
 
         return results
+            // TODO: Temporary in-memory filter on ParameterValues - should be refactored when we figure out how to pass filter objects to generic repository implementation.
+            .Where(item =>
+                item.UniqueName.Name != Brs_023_027.Name
+                || (item.UniqueName.Name == Brs_023_027.Name && FilterBrs_023_027(query, item.Instance)))
+            // TODO: Temporary in-memory filter on ParameterValues - should be refactored when we figure out how to pass filter objects to generic repository implementation.
+            .Where(item =>
+                item.UniqueName.Name != Brs_021_CapacitySettlementCalculation.Name
+                || (item.UniqueName.Name == Brs_021_CapacitySettlementCalculation.Name && FilterBrs_021_CapacitySettlement(query, item.Instance)))
             .Select(item => MapToConcreteResultDto(item.UniqueName, item.Instance))
             .ToList();
+    }
+
+    private static bool FilterBrs_023_027(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)
+    {
+        var calculationInput = orchestrationInstance.ParameterValue.AsType<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
+        var calculationTypesAsInt = query.CalculationTypes?.Select(type => (int)type).ToList();
+
+        return (calculationTypesAsInt == null || calculationTypesAsInt.Contains((int)calculationInput.CalculationType)) &&
+                (query.GridAreaCodes == null || calculationInput.GridAreaCodes.Any(query.GridAreaCodes.Contains)) &&
+                // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
+                // where a = query and b = calculationInput.
+                // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
+                (query.PeriodStartDate == null || query.PeriodStartDate < calculationInput.PeriodEndDate) &&
+                (query.PeriodEndDate == null || calculationInput.PeriodStartDate < query.PeriodEndDate) &&
+                (query.IsInternalCalculation == null || calculationInput.IsInternalCalculation == query.IsInternalCalculation);
+    }
+
+    private static bool FilterBrs_021_CapacitySettlement(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)
+    {
+        var input = orchestrationInstance.ParameterValue.AsType<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
+
+        // TODO: Update when we know how to filter using PeriodStartDate + PeriodEndData
+        return true;
     }
 
     private static IReadOnlyCollection<string> GetOrchestrationDescriptionNames(CalculationsQueryV1 query)

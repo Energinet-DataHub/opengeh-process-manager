@@ -34,13 +34,13 @@ public class LongFilePathsAreNotAllowed
 
         foreach (var type in types)
         {
-            // returns C:\\git\\opengeh-process-manager\\source
+            // returns C:\git\opengeh-process-manager\source
             diskToProjectPath ??= GetDiskToProjectPath(type);
 
-            //returns ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep\CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
+            // returns ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep\CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
             var pathFromProjectToClass = GetPathFromProjectToClass(type);
 
-            // returns C:\\git\\opengeh-process-manager\\source\\ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep\CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
+            // returns C:\git\opengeh-process-manager\source\ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep\CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
             var fullPathForFile = Path.Combine(diskToProjectPath, pathFromProjectToClass);
             Assert.True(
                 fullPathForFile.Length < _maxPathLength,
@@ -61,7 +61,7 @@ public class LongFilePathsAreNotAllowed
         // Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep.CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
         var fullPath = Path.GetFullPath(type.FullName!);
 
-        // returns C:\\git\\opengeh-process-manager\\source
+        // returns C:\git\opengeh-process-manager\source
         var indexOfTestsPostfix = fullPath.IndexOf(_sourceFolder, StringComparison.Ordinal);
         return fullPath.Substring(0, indexOfTestsPostfix + _sourceFolder.Length);
     }

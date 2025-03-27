@@ -59,14 +59,14 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
         var start = TryParseInstant(subject.Input.StartDateTime);
         var end = TryParseInstant(subject.Input.EndDateTime);
 
-        if (start is null)
-            errors.Add(InvalidStartDate);
-
         if (end is null)
             errors.Add(InvalidEndDate);
 
         if (start is null)
+        {
+            errors.Add(InvalidStartDate);
             return Task.FromResult(errors);
+        }
 
         // Measurements age check
         if (_periodValidator.IsDateOlderThanAllowed(start.Value, MaxAllowedPeriodAgeInYears, 0))

@@ -28,10 +28,10 @@ public class PeriodValidatorTests
     public void Given_ADateThatIsNotOlderThanAllowed_When_IsDateOlderThanAllowed_Then_DateIsNotOlder()
     {
         var dateThatIsNotTooOld = new LocalDateTime(2022, 4, 26, 11, 21, 0).InZoneStrictly(_dateTimeZone);
-        var now = new LocalDateTime(2025, 3, 26, 11, 21, 0).InZoneStrictly(_dateTimeZone);
+        var now = new LocalDateTime(2025, 6, 26, 11, 21, 0).InZoneStrictly(_dateTimeZone);
 
         var isDateOlderThanAllowed = GetPeriodValidator(now.ToInstant())
-            .IsDateOlderThanAllowed(dateThatIsNotTooOld.ToInstant(), 3, 0);
+            .IsDateOlderThanAllowed(dateThatIsNotTooOld.ToInstant(), 3, 3);
 
         isDateOlderThanAllowed.Should().BeFalse("the date is not older than the allowed period");
     }
@@ -40,10 +40,10 @@ public class PeriodValidatorTests
     public void Given_ADateThatExactlyAsOldAsAllowed_When_IsDateOlderThanAllowed_Then_DateIsNotOlder()
     {
         var dateThatIsNotTooOld = new LocalDateTime(2022, 3, 26, 11, 21, 0).InZoneStrictly(_dateTimeZone);
-        var now = new LocalDateTime(2025, 3, 26, 11, 21, 0).InZoneStrictly(_dateTimeZone);
+        var now = new LocalDateTime(2025, 6, 26, 11, 21, 0).InZoneStrictly(_dateTimeZone);
 
         var isDateOlderThanAllowed = GetPeriodValidator(now.ToInstant())
-            .IsDateOlderThanAllowed(dateThatIsNotTooOld.ToInstant(), 3, 0);
+            .IsDateOlderThanAllowed(dateThatIsNotTooOld.ToInstant(), 3, 3);
 
         isDateOlderThanAllowed.Should().BeFalse("the date is not older than the allowed period");
     }
@@ -53,10 +53,10 @@ public class PeriodValidatorTests
         Given_ADateThatIsTechnicallyToOldButOnTheLastAllowedDate_When_IsDateOlderThanAllowed_Then_DateIsNotOlder()
     {
         var dateThatIsNotTooOld = new LocalDateTime(2022, 3, 26, 8, 21, 0).InZoneStrictly(_dateTimeZone);
-        var now = new LocalDateTime(2025, 3, 26, 21, 21, 0).InZoneStrictly(_dateTimeZone);
+        var now = new LocalDateTime(2025, 6, 26, 21, 21, 0).InZoneStrictly(_dateTimeZone);
 
         var isDateOlderThanAllowed = GetPeriodValidator(now.ToInstant())
-            .IsDateOlderThanAllowed(dateThatIsNotTooOld.ToInstant(), 3, 0);
+            .IsDateOlderThanAllowed(dateThatIsNotTooOld.ToInstant(), 3, 3);
 
         isDateOlderThanAllowed.Should().BeFalse("the date is not older than the allowed period");
     }
@@ -65,10 +65,10 @@ public class PeriodValidatorTests
     public void Given_ADateThatIsOlderThanAllowed_When_IsDateOlderThanAllowed_Then_DateIsOlder()
     {
         var dateThatIsNotTooOld = new LocalDateTime(2022, 3, 25, 11, 21, 0).InZoneStrictly(_dateTimeZone);
-        var now = new LocalDateTime(2025, 3, 26, 11, 21, 0).InZoneStrictly(_dateTimeZone);
+        var now = new LocalDateTime(2025, 6, 26, 11, 21, 0).InZoneStrictly(_dateTimeZone);
 
         var isDateOlderThanAllowed = GetPeriodValidator(now.ToInstant())
-            .IsDateOlderThanAllowed(dateThatIsNotTooOld.ToInstant(), 3, 0);
+            .IsDateOlderThanAllowed(dateThatIsNotTooOld.ToInstant(), 3, 3);
 
         isDateOlderThanAllowed.Should().BeTrue("the date is older than the allowed period");
     }

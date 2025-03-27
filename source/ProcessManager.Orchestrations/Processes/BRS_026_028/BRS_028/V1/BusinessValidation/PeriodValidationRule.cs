@@ -100,7 +100,7 @@ public sealed class PeriodValidationRule(
 
     private void MustNotBeOlderThan3YearsAnd6Months(Instant periodStart, ICollection<ValidationError> errors)
     {
-        if (_periodValidator.IsMonthOfDateOlderThanXYearsAndYMonths(
+        if (_periodValidator.IsDateOlderThanAllowed(
                 periodStart,
                 AllowedTimeFrameYearsFromNow,
                 AllowedTimeFrameMonthsFromNow))

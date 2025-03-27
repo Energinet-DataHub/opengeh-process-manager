@@ -27,6 +27,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class PeriodValidationRule(PeriodValidator periodValidator)
         : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
+    public const int MaxAllowedPeriodAgeInYears = 3;
+
     /// <summary>
     /// TODO: Add correct error messages.
     /// "Stub" error message used to very that validation works.
@@ -45,7 +47,7 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
 
     public static readonly ValidationError StartDateIsTooOld = new(
         Message:
-        "Måledata tilhører ikke den tilladte tidsperiode / Measurements do not belong to the expected time period",
+        $"Måledata er ældre end de tilladte {MaxAllowedPeriodAgeInYears} år / Measurements are older than the allowed {MaxAllowedPeriodAgeInYears} years",
         ErrorCode: "E17");
 
     private readonly PeriodValidator _periodValidator = periodValidator;
@@ -67,7 +69,7 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
             return Task.FromResult(errors);
 
         // Data age check
-        if (_periodValidator.IsDateOlderThanAllowed(start.Value, 3, 0))
+        if (_periodValidator.IsDateOlderThanAllowed(start.Value, MaxAllowedPeriodAgeInYears, 0))
         {
             errors.Add(StartDateIsTooOld);
         }

@@ -78,7 +78,7 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
 
     private void StartDateMustBeGreaterThenAllowedYears(Instant start, IList<ValidationError> errors)
     {
-        if (_periodValidator.IsMonthOfDateOlderThanXYearsAndYMonths(start, AllowedTimeFrameYearsFromNow, AllowedTimeFrameMonthsFromNow))
+        if (_periodValidator.IsDateOlderThanAllowed(start, AllowedTimeFrameYearsFromNow, AllowedTimeFrameMonthsFromNow))
         {
             errors.Add(_startDateMustBeLessThen3Years);
         }

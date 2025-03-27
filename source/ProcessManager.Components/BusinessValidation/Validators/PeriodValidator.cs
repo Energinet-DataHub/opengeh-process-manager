@@ -45,21 +45,4 @@ public class PeriodValidator(DateTimeZone dateTimeZone, IClock clock)
 
         return zonedEndDateTime.LocalDateTime > monthsFromStart;
     }
-
-    public bool IsMonthOfDateOlderThanXYearsAndYMonths(Instant periodStart, int years, int months)
-    {
-        var dateInQuestion = periodStart.InZone(_dateTimeZone);
-        var someYearsAndSomeMonthsAgo = _clock.GetCurrentInstant()
-            .InZone(_dateTimeZone)
-            .Date.PlusYears(-years)
-            .PlusMonths(-months);
-
-        if (dateInQuestion.Year > someYearsAndSomeMonthsAgo.Year)
-            return false;
-
-        if (dateInQuestion.Year == someYearsAndSomeMonthsAgo.Year)
-            return dateInQuestion.Month < someYearsAndSomeMonthsAgo.Month;
-
-        return true;
-    }
 }

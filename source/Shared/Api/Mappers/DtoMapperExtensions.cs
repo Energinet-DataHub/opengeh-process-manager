@@ -22,7 +22,8 @@ namespace Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 /// </summary>
 internal static class DtoMapperExtensions
 {
-    public static DomainModel.OrchestrationInstance.UserIdentity MapToDomain(this ApiModel.OrchestrationInstance.UserIdentityDto dto)
+    public static DomainModel.OrchestrationInstance.UserIdentity MapToDomain(
+        this ApiModel.OrchestrationInstance.UserIdentityDto dto)
     {
         return new DomainModel.OrchestrationInstance.UserIdentity(
             UserId: new DomainModel.OrchestrationInstance.UserId(dto.UserId),
@@ -31,7 +32,8 @@ internal static class DtoMapperExtensions
                 Role: dto.ActorRole));
     }
 
-    public static DomainModel.OrchestrationInstance.ActorIdentity MapToDomain(this ApiModel.OrchestrationInstance.ActorIdentityDto dto)
+    public static DomainModel.OrchestrationInstance.ActorIdentity MapToDomain(
+        this ApiModel.OrchestrationInstance.ActorIdentityDto dto)
     {
         return new DomainModel.OrchestrationInstance.ActorIdentity(
             new DomainModel.OrchestrationInstance.Actor(
@@ -39,7 +41,8 @@ internal static class DtoMapperExtensions
                 Role: dto.ActorRole));
     }
 
-    public static DomainModel.OrchestrationDescription.OrchestrationDescriptionUniqueName MapToDomain(this ApiModel.OrchestrationDescription.OrchestrationDescriptionUniqueNameDto dto)
+    public static DomainModel.OrchestrationDescription.OrchestrationDescriptionUniqueName MapToDomain(
+        this ApiModel.OrchestrationDescription.OrchestrationDescriptionUniqueNameDto dto)
     {
         return new DomainModel.OrchestrationDescription.OrchestrationDescriptionUniqueName(dto.Name, dto.Version);
     }

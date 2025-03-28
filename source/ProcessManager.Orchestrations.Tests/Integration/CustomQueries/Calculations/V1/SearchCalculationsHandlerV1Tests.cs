@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -299,69 +300,13 @@ public class SearchCalculationsHandlerV1Tests :
     public async Task Given_OrchestrationInstancesInDatabase_When_SearchByLifecycleState_Then_OnlyExpectedCalculationsAreRetrieved()
     {
         // Given
-        var johnDoeName = Guid.NewGuid().ToString();
-        var johnDoeV1Description = CreateOrchestrationDescription(
-            new OrchestrationDescriptionUniqueName(name: johnDoeName, version: 1));
-        var isPendingJohnDoe = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: johnDoeV1Description,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        var isRunningJohnDoe = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: johnDoeV1Description,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isRunningJohnDoe.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isRunningJohnDoe.Lifecycle.TransitionToRunning(SystemClock.Instance);
-
-        var electricalHeatingV1Description = new Orchestrations.Processes
-            .BRS_021.ElectricalHeatingCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder().Build();
-        var isPendingElectricalHeating = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: electricalHeatingV1Description,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        var isRunningElectricalHeating = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: electricalHeatingV1Description,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isRunningElectricalHeating.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isRunningElectricalHeating.Lifecycle.TransitionToRunning(SystemClock.Instance);
-
-        var netConsumptionV1Description = new Orchestrations.Processes.
+        await SeedDatabaseWithJohnDoeDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithDatasetAsync(new Orchestrations.Processes.
+            BRS_021.ElectricalHeatingCalculation.V1
+            .Orchestration.OrchestrationDescriptionBuilder());
+        var netConsumption = await SeedDatabaseWithDatasetAsync(new Orchestrations.Processes.
             BRS_021.NetConsumptionCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder().Build();
-        var isPendingNetConsumption = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: netConsumptionV1Description,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        var isRunningNetConsumption = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: netConsumptionV1Description,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isRunningNetConsumption.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isRunningNetConsumption.Lifecycle.TransitionToRunning(SystemClock.Instance);
-
-        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
-        {
-            writeDbContext.OrchestrationDescriptions.Add(johnDoeV1Description);
-            writeDbContext.OrchestrationInstances.Add(isPendingJohnDoe);
-            writeDbContext.OrchestrationInstances.Add(isRunningJohnDoe);
-
-            writeDbContext.OrchestrationDescriptions.Add(electricalHeatingV1Description);
-            writeDbContext.OrchestrationInstances.Add(isPendingElectricalHeating);
-            writeDbContext.OrchestrationInstances.Add(isRunningElectricalHeating);
-
-            writeDbContext.OrchestrationDescriptions.Add(netConsumptionV1Description);
-            writeDbContext.OrchestrationInstances.Add(isPendingNetConsumption);
-            writeDbContext.OrchestrationInstances.Add(isRunningNetConsumption);
-            await writeDbContext.SaveChangesAsync();
-        }
+            .Orchestration.OrchestrationDescriptionBuilder());
 
         // When
         var calculationQuery = new CalculationsQueryV1(_userIdentity)
@@ -375,8 +320,8 @@ public class SearchCalculationsHandlerV1Tests :
         actual.Should()
             .HaveCount(2)
             .And.Satisfy(
-                result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == isRunningElectricalHeating.Id.Value,
-                result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == isRunningNetConsumption.Id.Value);
+                result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsRunning.Id.Value,
+                result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value);
     }
 
     private async Task Create_Brs_023_027_OrchestrationInstancesAsync(
@@ -413,58 +358,116 @@ public class SearchCalculationsHandlerV1Tests :
         await dbContext.SaveChangesAsync();
     }
 
-    private OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)
+    /// <summary>
+    /// Create an orchestration description using the given builder.
+    /// Create orchestration instances in the following states:
+    ///  - Pending
+    ///  - Running
+    ///  - Terminated as succeeded
+    ///  - Terminated as dailed
+    /// </summary>
+    private async Task<(OrchestrationInstance IsPending, OrchestrationInstance IsRunning, OrchestrationInstance IsTerminatedAsSucceeded, OrchestrationInstance TerminatedAsFailed)> SeedDatabaseWithDatasetAsync(
+        IOrchestrationDescriptionBuilder builder)
     {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: uniqueName ?? new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
+        var description = builder.Build();
+
+        var isPending = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+
+        var isRunning = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isRunning.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isRunning.Lifecycle.TransitionToRunning(SystemClock.Instance);
+
+        var isTerminatedAsSucceeded = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isTerminatedAsSucceeded.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isTerminatedAsSucceeded.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
+
+        var isTerminatedAsFailed = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToFailed(SystemClock.Instance);
+
+        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
+        dbContext.OrchestrationDescriptions.Add(description);
+        dbContext.OrchestrationInstances.AddRange(isPending);
+        dbContext.OrchestrationInstances.AddRange(isRunning);
+        dbContext.OrchestrationInstances.AddRange(isTerminatedAsSucceeded);
+        dbContext.OrchestrationInstances.AddRange(isTerminatedAsFailed);
+        await dbContext.SaveChangesAsync();
+
+        return (isPending, isRunning, isTerminatedAsSucceeded, isTerminatedAsFailed);
+    }
+
+    /// <summary>
+    /// Create an orchestration description that isn't one of the calculation types orchestration descriptions.
+    /// Create orchestration instances in the following states:
+    ///  - Pending
+    ///  - Running
+    ///  - Terminated as succeeded
+    ///  - Terminated as dailed
+    /// </summary>
+    private async Task SeedDatabaseWithJohnDoeDatasetAsync()
+    {
+        var johnDoeName = Guid.NewGuid().ToString();
+        var johnDoeV1Description = new OrchestrationDescription(
+            uniqueName: new OrchestrationDescriptionUniqueName(name: johnDoeName, version: 1),
             canBeScheduled: true,
             functionName: "TestOrchestrationFunction");
 
-        orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
-
-        orchestrationDescription.AppendStepDescription("Test step 1");
-        orchestrationDescription.AppendStepDescription("Test step 2");
-        orchestrationDescription.AppendStepDescription("Test step 3");
-
-        orchestrationDescription.IsUnderDevelopment = true;
-
-        return orchestrationDescription;
-    }
-
-    private OrchestrationInstance CreateOrchestrationInstance(
-        OrchestrationDescription orchestrationDescription,
-        Instant? runAt = null,
-        IdempotencyKey? idempotencyKey = null,
-        Actor? createdByActor = null)
-    {
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            createdByActor ?? new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
-
-        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-            userIdentity,
-            orchestrationDescription,
+        var isPendingJohnDoe = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: johnDoeV1Description,
             skipStepsBySequence: [],
-            clock: SystemClock.Instance,
-            runAt: runAt,
-            idempotencyKey: idempotencyKey,
-            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
-            transactionId: new TransactionId(Guid.NewGuid().ToString()),
-            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
+            clock: SystemClock.Instance);
 
-        orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
-        {
-            TestString = "Test string",
-            TestInt = 42,
-        });
+        var isRunningJohnDoe = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: johnDoeV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isRunningJohnDoe.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isRunningJohnDoe.Lifecycle.TransitionToRunning(SystemClock.Instance);
 
-        return orchestrationInstance;
-    }
+        var isTerminatedAsSucceededJohnDoe = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: johnDoeV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isTerminatedAsSucceededJohnDoe.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isTerminatedAsSucceededJohnDoe.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        isTerminatedAsSucceededJohnDoe.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
 
-    private class TestOrchestrationParameter
-    {
-        public string? TestString { get; set; }
+        var isTerminatedAsFailedJohnDoe = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: johnDoeV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isTerminatedAsFailedJohnDoe.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isTerminatedAsFailedJohnDoe.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        isTerminatedAsFailedJohnDoe.Lifecycle.TransitionToFailed(SystemClock.Instance);
 
-        public int? TestInt { get; set; }
+        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
+        dbContext.OrchestrationDescriptions.Add(johnDoeV1Description);
+        dbContext.OrchestrationInstances.AddRange(isPendingJohnDoe);
+        dbContext.OrchestrationInstances.AddRange(isRunningJohnDoe);
+        dbContext.OrchestrationInstances.AddRange(isTerminatedAsSucceededJohnDoe);
+        dbContext.OrchestrationInstances.AddRange(isTerminatedAsFailedJohnDoe);
+        await dbContext.SaveChangesAsync();
     }
 }

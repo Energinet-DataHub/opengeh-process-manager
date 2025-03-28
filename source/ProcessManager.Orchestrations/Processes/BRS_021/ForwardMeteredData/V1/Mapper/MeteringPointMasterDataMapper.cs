@@ -13,20 +13,21 @@
 // limitations under the License.
 
 using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Mappers;
 using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
 
 public static class MeteringPointMasterDataMapper
 {
-    public static readonly Dictionary<MeteringPointType, PMTypes.MeteringPointType> MeteringPointTypeMap = new()
+    public static readonly ValueObjectsMap<MeteringPointType, PMTypes.MeteringPointType> MeteringPointTypeMap = new()
     {
         { MeteringPointType.Consumption, PMTypes.MeteringPointType.Consumption },
         { MeteringPointType.Production, PMTypes.MeteringPointType.Production },
         { MeteringPointType.Exchange, PMTypes.MeteringPointType.Exchange },
     };
 
-    public static readonly Dictionary<MeasureUnit, PMTypes.MeasurementUnit> MeasureUnitMap = new()
+    public static readonly ValueObjectsMap<MeasureUnit, PMTypes.MeasurementUnit> MeasureUnitMap = new()
     {
         { MeasureUnit.Ampere, PMTypes.MeasurementUnit.Ampere },
         { MeasureUnit.STK, PMTypes.MeasurementUnit.Pieces },
@@ -40,14 +41,14 @@ public static class MeteringPointMasterDataMapper
         { MeasureUnit.DanishTariffCode, PMTypes.MeasurementUnit.DanishTariffCode },
     };
 
-    public static readonly Dictionary<MeteringPointSubType, Model.MeteringPointSubType> MeteringPointSubTypeMap = new()
+    public static readonly ValueObjectsMap<MeteringPointSubType, Model.MeteringPointSubType> MeteringPointSubTypeMap = new()
     {
         { MeteringPointSubType.Physical, Model.MeteringPointSubType.Physical },
         { MeteringPointSubType.Virtual, Model.MeteringPointSubType.Virtual },
         { MeteringPointSubType.Calculated, Model.MeteringPointSubType.Calculated },
     };
 
-    public static readonly Dictionary<ConnectionState, Model.ConnectionState> ConnectionStateMap = new()
+    public static readonly ValueObjectsMap<ConnectionState, Model.ConnectionState> ConnectionStateMap = new()
     {
         { ConnectionState.NotUsed, Model.ConnectionState.NotUsed },
         { ConnectionState.ClosedDown, Model.ConnectionState.ClosedDown },
@@ -56,7 +57,7 @@ public static class MeteringPointMasterDataMapper
         { ConnectionState.Disconnected, Model.ConnectionState.Disconnected },
     };
 
-    public static readonly Dictionary<string, PMTypes.Resolution> ResolutionMap = new()
+    public static readonly ValueObjectsMap<string, PMTypes.Resolution> ResolutionMap = new()
     {
         { "PT15M", PMTypes.Resolution.QuarterHourly },
         { "PT1H", PMTypes.Resolution.Hourly },

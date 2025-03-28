@@ -267,7 +267,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 GridAccessProvider: ActorNumber.Create(GridAccessProvider),
                 NeighborGridAreaOwners: [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
                 ConnectionState: ConnectionState.Connected,
-                MeteringPointType: MeteringPointType.Consumption,
+                MeteringPointType: MeteringPointType.Production,
                 MeteringPointSubType: MeteringPointSubType.Physical,
                 Resolution: Resolution.Hourly,
                 MeasurementUnit: MeasurementUnit.KilowattHour,

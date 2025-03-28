@@ -39,7 +39,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
         description.AppendStepDescription(
             EnqueueActorMessagesStep.StepDescription,
             true,
-            "A feature flag controls is the step is skipped.");
+            "A feature flag controls if the step is skipped.");
 
         description.IsUnderDevelopment = true;
 

@@ -15,14 +15,10 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.
-    MissingMeasurementsLogOnDemandCalculation;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.
-    Activities;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.
-    Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.
-    Orchestration.Steps;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Orchestration.Steps;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
@@ -55,8 +51,7 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V
     }
 
     [Function(nameof(Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1))]
-    public async Task<string> Run(
-        [OrchestrationTrigger] TaskOrchestrationContext context)
+    public async Task<string> Run([OrchestrationTrigger] TaskOrchestrationContext context)
     {
         var orchestrationInstanceContext = await InitializeOrchestrationAsync(context);
 

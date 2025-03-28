@@ -46,4 +46,60 @@ internal static class DtoMapperExtensions
     {
         return new DomainModel.OrchestrationDescription.OrchestrationDescriptionUniqueName(dto.Name, dto.Version);
     }
+
+    #region OrchestrationInstanceLifecycleState
+
+    public static IReadOnlyCollection<DomainModel.OrchestrationInstance.OrchestrationInstanceLifecycleState>? MapToDomain(
+        this IReadOnlyCollection<ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleState>? dtoStates)
+    {
+        return dtoStates?
+            .Select(state => state.MapToDomain())
+            .ToList();
+    }
+
+    public static DomainModel.OrchestrationInstance.OrchestrationInstanceLifecycleState? MapToDomain(
+        this ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleState? dtoEnum)
+    {
+        return dtoEnum.HasValue
+            ? MapToDomain(dtoEnum.Value)
+            : null;
+    }
+
+    public static DomainModel.OrchestrationInstance.OrchestrationInstanceLifecycleState MapToDomain(
+        this ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleState dtoEnum)
+    {
+        return Enum
+            .TryParse<DomainModel.OrchestrationInstance.OrchestrationInstanceLifecycleState>(
+                dtoEnum.ToString(),
+                ignoreCase: true,
+                out var result)
+            ? result
+            : throw new InvalidOperationException($"Invalid State '{dtoEnum}'; cannot be mapped.");
+    }
+
+    #endregion
+
+    #region OrchestrationInstanceTerminationState
+
+    public static DomainModel.OrchestrationInstance.OrchestrationInstanceTerminationState? MapToDomain(
+        this ApiModel.OrchestrationInstance.OrchestrationInstanceTerminationState? dtoEnum)
+    {
+        return dtoEnum.HasValue
+            ? MapToDomain(dtoEnum.Value)
+            : null;
+    }
+
+    public static DomainModel.OrchestrationInstance.OrchestrationInstanceTerminationState MapToDomain(
+        this ApiModel.OrchestrationInstance.OrchestrationInstanceTerminationState dtoEnum)
+    {
+        return Enum
+            .TryParse<DomainModel.OrchestrationInstance.OrchestrationInstanceTerminationState>(
+                dtoEnum.ToString(),
+                ignoreCase: true,
+                out var result)
+            ? result
+            : throw new InvalidOperationException($"Invalid State '{dtoEnum}'; cannot be mapped.");
+    }
+
+    #endregion
 }

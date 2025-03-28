@@ -12,49 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.NetConsumptionCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 
-// TODO: We might be able to retrieve come of this code to reuse it for other queries
 internal static class CalculationsQueryV1Extensions
 {
-    /// <summary>
-    /// DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
-    /// See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
-    /// </summary>
-    public static Instant? ConvertToNullableInstant(this DateTimeOffset? dateTimeOffset)
-    {
-        return dateTimeOffset.HasValue
-            ? Instant.FromDateTimeOffset(dateTimeOffset.Value)
-            : (Instant?)null;
-    }
-
-    public static IReadOnlyCollection<OrchestrationInstanceLifecycleState>? GetLifecycleStates(this CalculationsQueryV1 query)
-    {
-        return query.LifecycleStates?
-            .Select(state =>
-                Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
-                ? lifecycleStateResult
-                : (OrchestrationInstanceLifecycleState?)null)
-            .Where(state => state.HasValue)
-            .Select(state => state!.Value)
-            .ToList();
-    }
-
-    public static OrchestrationInstanceTerminationState? GetTerminationState(this CalculationsQueryV1 query)
-    {
-        return Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
-            ? terminationStateResult
-            : (OrchestrationInstanceTerminationState?)null;
-    }
-
     public static IReadOnlyCollection<string> GetOrchestrationDescriptionNames(this CalculationsQueryV1 query)
     {
         var orchestrationDescriptionNames = query.CalculationTypes?

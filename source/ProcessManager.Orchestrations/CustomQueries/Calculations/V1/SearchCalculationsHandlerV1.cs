@@ -45,12 +45,12 @@ internal class SearchCalculationsHandlerV1(
 
         var orchestrationDescriptionNames = query.GetOrchestrationDescriptionNames();
 
-        var lifecycleStates = query.GetLifecycleStates();
-        var terminationState = query.GetTerminationState();
+        var lifecycleStates = query.LifecycleStates.MapToDomain();
+        var terminationState = query.TerminationState.MapToDomain();
 
-        var scheduledAtOrLater = query.ScheduledAtOrLater.ConvertToNullableInstant();
-        var startedAtOrLater = query.StartedAtOrLater.ConvertToNullableInstant();
-        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ConvertToNullableInstant();
+        var scheduledAtOrLater = query.ScheduledAtOrLater.ToNullableInstant();
+        var startedAtOrLater = query.StartedAtOrLater.ToNullableInstant();
+        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ToNullableInstant();
 
         var results =
             await SearchAsync(

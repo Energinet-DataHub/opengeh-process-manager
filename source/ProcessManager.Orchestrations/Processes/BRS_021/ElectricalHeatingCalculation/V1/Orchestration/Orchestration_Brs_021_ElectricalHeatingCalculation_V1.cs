@@ -66,8 +66,7 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                 orchestrationInstanceContext)
             .ExecuteAsync();
 
-        if (orchestrationInstanceContext.SkippedStepsBySequence.Contains(
-                EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence))
+        if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence))
         {
             await new EnqueueActorMessagesStep(
                     context,

@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 1.4.0
+
+- Add `InternalUse` MeteringPointType to ValueObject `MeteringPointType.cs`.
+
 ## Version 1.3.8
 
 - No functional changes.

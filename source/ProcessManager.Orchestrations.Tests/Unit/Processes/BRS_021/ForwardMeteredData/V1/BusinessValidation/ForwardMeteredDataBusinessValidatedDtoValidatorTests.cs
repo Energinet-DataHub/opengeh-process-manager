@@ -244,4 +244,38 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .ContainSingle()
             .And.BeEquivalentTo(ResolutionValidationRule.WrongResolutionError);
     }
+
+    [Fact]
+    public async Task Given_InvalidMeteringPoint_When_Validate_Then_ValidationError()
+    {
+        var invalidMeteringPoint = MeteringPointType.ElectricalHeating;
+        var input = new ForwardMeteredDataInputV1Builder()
+            .WithMeteringPointType(invalidMeteringPoint.Name)
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                Input: input,
+                MeteringPointMasterData: [
+                    new MeteringPointMasterData(
+                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+                        GridAreaCode: new GridAreaCode("804"),
+                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+                        ConnectionState: ConnectionState.Connected,
+                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+                        MeteringPointSubType: MeteringPointSubType.Physical,
+                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        NeighborGridAreaOwners: [],
+                        Resolution: Resolution.Hourly,
+                        ProductId: "product",
+                        ParentMeteringPointId: null,
+                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                ]));
+
+        result.Should()
+            .ContainSingle()
+            .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointError);
+    }
 }

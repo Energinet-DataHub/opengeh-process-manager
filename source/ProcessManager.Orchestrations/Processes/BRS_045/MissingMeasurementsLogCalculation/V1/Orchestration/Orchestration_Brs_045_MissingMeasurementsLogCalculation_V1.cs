@@ -13,19 +13,16 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.
-    Orchestration.Steps;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Orchestration.Steps;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.
-    Orchestration;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Orchestration;
 
 internal class Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1
 {
@@ -36,11 +33,8 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1
 
     private readonly TaskOptions _defaultTaskOptions;
 
-    private readonly IFeatureFlagManager _featureFlagManager;
-
-    public Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1(IFeatureFlagManager featureFlagManager)
+    public Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1()
     {
-        _featureFlagManager = featureFlagManager;
         // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
         // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
         _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(
@@ -64,16 +58,12 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1
                 orchestrationInstanceContext)
             .ExecuteAsync();
 
-        if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.EnableBrs045MissingMeasurementsLogEnqueueMessages))
-        {
-            await new EnqueueActorMessagesStep(
-                    context,
-                    _defaultRetryOptions,
-                    orchestrationInstanceContext)
-                .ExecuteAsync();
-        }
+        await new EnqueueActorMessagesStep(
+                context,
+                _defaultRetryOptions,
+                orchestrationInstanceContext)
+            .ExecuteAsync();
 
-        // Skip step - RASMUS
         return await SetTerminateOrchestrationAsync(
             context,
             orchestrationInstanceContext.OrchestrationInstanceId,

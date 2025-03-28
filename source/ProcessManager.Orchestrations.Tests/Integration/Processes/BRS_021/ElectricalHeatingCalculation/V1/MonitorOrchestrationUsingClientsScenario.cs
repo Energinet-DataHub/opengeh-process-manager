@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Orchestration.Steps;
@@ -86,9 +87,15 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact]
-    public async Task Calculation_WhenStarted_CanMonitorLifecycle()
+    [Theory]
+    [InlineData("false", OrchestrationStepTerminationState.Skipped)]
+    [InlineData("true", OrchestrationStepTerminationState.Succeeded)]
+    public async Task Calculation_WhenStarted_CanMonitorLifecycle(string enabledEnqueue, OrchestrationStepTerminationState expectedStepState)
     {
+        // Set the feature flag to enable or disable the enqueue step
+        var environmentVariables = new Dictionary<string, string> { { $"FeatureManagement__{nameof(FeatureFlag.EnableBrs021ElectricalHeatingEnqueueMessages)}", enabledEnqueue } };
+        Fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges(environmentVariables);
+
         // Mocking the databricks api. Forcing it to return a terminated successful job status
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             RunLifeCycleState.TERMINATED,
@@ -144,6 +151,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .First(x => x.Id == orchestrationInstanceId)
             .Steps.First(x => x.Description == EnqueueActorMessagesStep.StepDescription);
 
-        skipStep.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Skipped);
+        skipStep.Lifecycle.TerminationState.Should().Be(expectedStepState);
     }
 }

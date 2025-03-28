@@ -356,9 +356,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs028SubscriptionName)}",
             startTopicResources.Brs028Subscription.SubscriptionName);
 
-        // => Feature flags
-        appHostSettings.ProcessEnvironmentVariables.Add($"FeatureManagement__{nameof(FeatureFlag.EnableBrs021ElectricalHeatingEnqueueMessages)}", "true");
-
         // => BRS-021 Forward Metered Data topics and subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",

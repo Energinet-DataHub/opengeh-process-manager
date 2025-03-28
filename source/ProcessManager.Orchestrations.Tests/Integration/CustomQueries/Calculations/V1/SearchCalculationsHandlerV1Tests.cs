@@ -24,6 +24,8 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
+using Moq;
 using NodaTime;
 using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
@@ -41,6 +43,18 @@ public class SearchCalculationsHandlerV1Tests :
         UserId: Guid.NewGuid(),
         ActorNumber: ActorNumber.Create("1111111111111"),
         ActorRole: ActorRole.DataHubAdministrator);
+
+    private readonly IOrchestrationDescriptionBuilder _wholesaleCalculationDescriptionBuilder = new
+        Orchestrations.Processes.BRS_023_027.V1
+        .Orchestration.OrchestrationDescriptionBuilder();
+
+    private readonly IOrchestrationDescriptionBuilder _electricalHeatingDescriptionBuilder = new
+        Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1
+        .Orchestration.OrchestrationDescriptionBuilder();
+
+    private readonly IOrchestrationDescriptionBuilder _netConsumptionDescriptionBuilder = new
+        Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1
+        .Orchestration.OrchestrationDescriptionBuilder();
 
     public SearchCalculationsHandlerV1Tests(ProcessManagerDatabaseFixture fixture)
     {
@@ -301,12 +315,8 @@ public class SearchCalculationsHandlerV1Tests :
     {
         // Given
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
-        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(new
-            Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder());
-        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(new Orchestrations.Processes.
-            BRS_021.NetConsumptionCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder());
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
         var calculationQuery = new CalculationsQueryV1(_userIdentity)
@@ -329,12 +339,8 @@ public class SearchCalculationsHandlerV1Tests :
     {
         // Given
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
-        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(new
-            Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder());
-        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(new Orchestrations.Processes.
-            BRS_021.NetConsumptionCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder());
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
         var calculationQuery = new CalculationsQueryV1(_userIdentity)
@@ -361,12 +367,8 @@ public class SearchCalculationsHandlerV1Tests :
     {
         // Given
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
-        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(new
-            Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder());
-        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(new Orchestrations.Processes.
-            BRS_021.NetConsumptionCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder());
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
         var calculationQuery = new CalculationsQueryV1(_userIdentity)
@@ -389,12 +391,8 @@ public class SearchCalculationsHandlerV1Tests :
     {
         // Given
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
-        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(new
-            Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder());
-        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(new Orchestrations.Processes.
-            BRS_021.NetConsumptionCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder());
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
         var calculationQuery = new CalculationsQueryV1(_userIdentity)
@@ -418,12 +416,8 @@ public class SearchCalculationsHandlerV1Tests :
     {
         // Given
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
-        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(new
-            Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder());
-        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(new Orchestrations.Processes.
-            BRS_021.NetConsumptionCalculation.V1
-            .Orchestration.OrchestrationDescriptionBuilder());
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
         var calculationQuery = new CalculationsQueryV1(_userIdentity)
@@ -442,12 +436,66 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsTerminatedAsFailed.Id.Value);
     }
 
+    [Fact]
+    public async Task Given_LifecycleDatasetInDatabase_When_SearchByStartedAtOrLater_Then_OnlyExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        var electricalHeatingIsRunningStartedAt = SystemClock.Instance.GetCurrentInstant().PlusDays(1);
+
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(
+            _electricalHeatingDescriptionBuilder,
+            isRunningStartedAt: electricalHeatingIsRunningStartedAt);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(
+            _netConsumptionDescriptionBuilder);
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            StartedAtOrLater = electricalHeatingIsRunningStartedAt.ToDateTimeOffset(),
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Assert
+        actual.Should()
+            .HaveCount(1)
+            .And.Satisfy(
+                result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsRunning.Id.Value);
+    }
+
+    [Fact]
+    public async Task Given_LifecycleDatasetInDatabase_When_SearchByTerminatedAtOrEarlier_Then_OnlyExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        var netConsumptionIsTerminatedAsSucceededAt = SystemClock.Instance.GetCurrentInstant().PlusDays(-1);
+
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(
+            _electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(
+            _netConsumptionDescriptionBuilder,
+            isTerminatedAsSucceededAt: netConsumptionIsTerminatedAsSucceededAt);
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            TerminatedAtOrEarlier = netConsumptionIsTerminatedAsSucceededAt.ToDateTimeOffset(),
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Assert
+        actual.Should()
+            .HaveCount(1)
+            .And.Satisfy(
+                result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsTerminatedAsSucceeded.Id.Value);
+    }
+
     private async Task Create_Brs_023_027_OrchestrationInstancesAsync(
         (DateTimeOffset Start, DateTimeOffset End)[] periods)
     {
-        var orchestrationDescription =
-            new Orchestrations.Processes.BRS_023_027.V1.Orchestration.OrchestrationDescriptionBuilder()
-            .Build();
+        var orchestrationDescription = _wholesaleCalculationDescriptionBuilder.Build();
 
         var orchestrationInstances = periods.Select(
             period =>
@@ -484,6 +532,12 @@ public class SearchCalculationsHandlerV1Tests :
     ///  - Running
     ///  - Terminated as succeeded
     ///  - Terminated as failed
+    ///
+    /// If <paramref name="isRunningStartedAt"/> is specified, then this value
+    /// is used when transitioning to Running.
+    ///
+    /// If <paramref name="isTerminatedAsSucceededAt"/> is specified, then this value
+    /// is used when transitioning to terminated as succeeded.
     /// </summary>
     private async Task<(
             OrchestrationInstance IsPending,
@@ -492,10 +546,15 @@ public class SearchCalculationsHandlerV1Tests :
             OrchestrationInstance IsTerminatedAsSucceeded,
             OrchestrationInstance IsTerminatedAsFailed)>
         SeedDatabaseWithLifecycleDatasetAsync(
-            IOrchestrationDescriptionBuilder builder)
+            IOrchestrationDescriptionBuilder builder,
+            Instant isRunningStartedAt = default,
+            Instant isTerminatedAsSucceededAt = default)
     {
         var orchestrationDescription = builder.Build();
-        var orchestrationInstances = CreateLifecycleDataset(orchestrationDescription);
+        var orchestrationInstances = CreateLifecycleDataset(
+            orchestrationDescription,
+            isRunningStartedAt,
+            isTerminatedAsSucceededAt);
 
         await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
         dbContext.OrchestrationDescriptions.Add(orchestrationDescription);
@@ -507,6 +566,94 @@ public class SearchCalculationsHandlerV1Tests :
         await dbContext.SaveChangesAsync();
 
         return orchestrationInstances;
+    }
+
+    /// <summary>
+    /// Create orchestration instances from <paramref name="orchestrationDescription"/>
+    /// in the following lifecycle states:
+    ///  - Pending
+    ///  - Queued
+    ///  - Running
+    ///  - Terminated as succeeded
+    ///  - Terminated as failed
+    ///
+    /// If <paramref name="isRunningStartedAt"/> is specified, then this value
+    /// is used when transitioning to Running.
+    ///
+    /// If <paramref name="isTerminatedAsSucceededAt"/> is specified, then this value
+    /// is used when transitioning to terminated as succeeded.
+    /// </summary>
+    private (
+            OrchestrationInstance IsPending,
+            OrchestrationInstance IsQueued,
+            OrchestrationInstance IsRunning,
+            OrchestrationInstance IsTerminatedAsSucceeded,
+            OrchestrationInstance IsTerminatedAsFailed)
+        CreateLifecycleDataset(
+            OrchestrationDescription orchestrationDescription,
+            Instant isRunningStartedAt = default,
+            Instant isTerminatedAsSucceededAt = default)
+    {
+        var isPending = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+
+        var isQueued = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isQueued.Lifecycle.TransitionToQueued(SystemClock.Instance);
+
+        var isRunning = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isRunning.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        if (isRunningStartedAt == default)
+        {
+            isRunning.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        }
+        else
+        {
+            var clockMock = new Mock<IClock>();
+            clockMock.Setup(m => m.GetCurrentInstant())
+                .Returns(isRunningStartedAt);
+            isRunning.Lifecycle.TransitionToRunning(clockMock.Object);
+        }
+
+        var isTerminatedAsSucceeded = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isTerminatedAsSucceeded.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isTerminatedAsSucceeded.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        if (isTerminatedAsSucceededAt == default)
+        {
+            isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
+        }
+        else
+        {
+            var clockMock = new Mock<IClock>();
+            clockMock.Setup(m => m.GetCurrentInstant())
+                .Returns(isTerminatedAsSucceededAt);
+            isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(clockMock.Object);
+        }
+
+        var isTerminatedAsFailed = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToFailed(SystemClock.Instance);
+
+        return (isPending, isQueued, isRunning, isTerminatedAsSucceeded, isTerminatedAsFailed);
     }
 
     /// <summary>
@@ -546,65 +693,5 @@ public class SearchCalculationsHandlerV1Tests :
         dbContext.OrchestrationInstances.Add(johnDoe.IsTerminatedAsFailed);
         dbContext.OrchestrationInstances.Add(isTerminatedAsUserCancelled);
         await dbContext.SaveChangesAsync();
-    }
-
-    /// <summary>
-    /// Create orchestration instances from <paramref name="orchestrationDescription"/>
-    /// in the following lifecycle states:
-    ///  - Pending
-    ///  - Queued
-    ///  - Running
-    ///  - Terminated as succeeded
-    ///  - Terminated as failed
-    /// </summary>
-    private (
-            OrchestrationInstance IsPending,
-            OrchestrationInstance IsQueued,
-            OrchestrationInstance IsRunning,
-            OrchestrationInstance IsTerminatedAsSucceeded,
-            OrchestrationInstance IsTerminatedAsFailed)
-        CreateLifecycleDataset(
-            OrchestrationDescription orchestrationDescription)
-    {
-        var isPending = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-
-        var isQueued = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isQueued.Lifecycle.TransitionToQueued(SystemClock.Instance);
-
-        var isRunning = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isRunning.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isRunning.Lifecycle.TransitionToRunning(SystemClock.Instance);
-
-        var isTerminatedAsSucceeded = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isTerminatedAsSucceeded.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isTerminatedAsSucceeded.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
-
-        var isTerminatedAsFailed = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isTerminatedAsFailed.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isTerminatedAsFailed.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        isTerminatedAsFailed.Lifecycle.TransitionToFailed(SystemClock.Instance);
-
-        return (isPending, isQueued, isRunning, isTerminatedAsSucceeded, isTerminatedAsFailed);
     }
 }

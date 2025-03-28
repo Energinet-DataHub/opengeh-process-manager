@@ -30,20 +30,13 @@ public class PeriodValidator(DateTimeZone dateTimeZone, IClock clock)
 
     public bool IsDateOlderThanAllowed(Instant date, int maxYears, int maxMonths)
     {
-        var zonedStartDateTime = new ZonedDateTime(date, _dateTimeZone);
-        var zonedCurrentDateTime = new ZonedDateTime(_clock.GetCurrentInstant(), _dateTimeZone);
-        var latestStartDate = zonedCurrentDateTime.LocalDateTime.PlusYears(-maxYears).PlusMonths(-maxMonths);
+        var dateInQuestion = date.InZone(_dateTimeZone);
+        var someYearsAndMonthsAgo = _clock.GetCurrentInstant()
+            .InZone(_dateTimeZone)
+            .Date.PlusYears(-maxYears)
+            .PlusMonths(-maxMonths);
 
-        return zonedStartDateTime.LocalDateTime < latestStartDate;
-    }
-
-    public bool IntervalMustBeLessThanAllowedPeriodSize(Instant start, Instant end, int maxAllowedPeriodSizeInMonths)
-    {
-        var zonedStartDateTime = new ZonedDateTime(start, _dateTimeZone);
-        var zonedEndDateTime = new ZonedDateTime(end, _dateTimeZone);
-        var monthsFromStart = zonedStartDateTime.LocalDateTime.PlusMonths(maxAllowedPeriodSizeInMonths);
-
-        return zonedEndDateTime.LocalDateTime > monthsFromStart;
+        return dateInQuestion.LocalDateTime.Date < someYearsAndMonthsAgo;
     }
 
     public bool IsMonthOfDateOlderThanXYearsAndYMonths(Instant periodStart, int years, int months)
@@ -61,5 +54,13 @@ public class PeriodValidator(DateTimeZone dateTimeZone, IClock clock)
             return dateInQuestion.Month < someYearsAndSomeMonthsAgo.Month;
 
         return true;
+    }
+
+    public bool IntervalMustBeLessThanAllowedPeriodSize(Instant start, Instant end, int maxAllowedPeriodSizeInMonths)
+    {
+        var actualEndDate = end.InZone(_dateTimeZone);
+        var lastestAllowedEndDate = start.InZone(_dateTimeZone).LocalDateTime.PlusMonths(maxAllowedPeriodSizeInMonths);
+
+        return actualEndDate.LocalDateTime > lastestAllowedEndDate;
     }
 }

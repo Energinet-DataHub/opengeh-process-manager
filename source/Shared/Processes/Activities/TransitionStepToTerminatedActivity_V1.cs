@@ -45,5 +45,5 @@ internal class TransitionStepToTerminatedActivity_V1(
     internal record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
         int StepSequence,
-        OrchestrationStepTerminationState TerminationState);
+        StepInstanceTerminationState TerminationState);
 }

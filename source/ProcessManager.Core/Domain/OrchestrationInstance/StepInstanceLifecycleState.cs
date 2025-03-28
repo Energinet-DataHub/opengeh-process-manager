@@ -31,12 +31,12 @@ public enum StepInstanceLifecycleState
 
     /// <summary>
     /// A Durable Functions activity has transitioned the orchestration step into terminated.
-    /// See <see cref="OrchestrationStepTerminationState"/> for details.
+    /// See <see cref="StepInstanceTerminationState"/> for details.
     /// </summary>
     Terminated = 3,
 }
 
-public enum OrchestrationStepTerminationState
+public enum StepInstanceTerminationState
 {
     Succeeded = 1,
 

@@ -42,13 +42,13 @@ public static class StepHelper
     /// <param name="step"></param>
     /// <param name="clock"></param>
     /// <param name="progressRepository"></param>
-    /// <param name="terminationState">The termination state of the step, defaulting to <see cref="OrchestrationStepTerminationState.Succeeded"/>.</param>
+    /// <param name="terminationState">The termination state of the step, defaulting to <see cref="StepInstanceTerminationState.Succeeded"/>.</param>
     /// <exception cref="InvalidOperationException">Throws an invalid operation exception if the step isn't running.</exception>
     public static async Task TerminateStepAndCommit(
         StepInstance step,
         IClock clock,
         IOrchestrationInstanceProgressRepository progressRepository,
-        OrchestrationStepTerminationState terminationState = OrchestrationStepTerminationState.Succeeded)
+        StepInstanceTerminationState terminationState = StepInstanceTerminationState.Succeeded)
     {
         if (step.Lifecycle.State != StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Can only terminate a running step (Step.Id={step.Id}, Step.State={step.Lifecycle.State}).");
@@ -63,7 +63,7 @@ public static class StepHelper
     /// <exception cref="InvalidOperationException">Throws an exception if the step isn't pending (thrown by the step lifecycle).</exception>
     public static async Task SkipStepAndCommitIfPending(StepInstance step, IClock clock, IOrchestrationInstanceProgressRepository progressRepository)
     {
-        step.Lifecycle.TransitionToTerminated(clock, OrchestrationStepTerminationState.Skipped);
+        step.Lifecycle.TransitionToTerminated(clock, StepInstanceTerminationState.Skipped);
         await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 }

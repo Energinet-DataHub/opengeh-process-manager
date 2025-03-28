@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 3.0.0
+
+- Renamed OrchestrationStepTerminationState` to `StepInstanceTerminationState` in domain and API model.
+
 ## Version 2.1.2
 
 - No functional changes.

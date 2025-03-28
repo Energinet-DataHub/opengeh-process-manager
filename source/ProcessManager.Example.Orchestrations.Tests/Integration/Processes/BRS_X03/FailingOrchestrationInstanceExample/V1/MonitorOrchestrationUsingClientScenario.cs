@@ -126,12 +126,12 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             successStep =>
             {
                 successStep.Sequence.Should().Be(SuccessStep.StepSequence);
-                successStep.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded);
+                successStep.Lifecycle.TerminationState.Should().Be(StepInstanceTerminationState.Succeeded);
             },
             failingStep =>
             {
                 failingStep.Sequence.Should().Be(FailingStep.StepSequence);
-                failingStep.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Failed);
+                failingStep.Lifecycle.TerminationState.Should().Be(StepInstanceTerminationState.Failed);
                 failingStep.CustomState.Should().Contain(typeof(TaskFailedException).FullName);
                 failingStep.CustomState.Should().Contain(FailingActivity_Brs_X03_FailingOrchestrationInstanceExample_V1.ExceptionMessage);
             });

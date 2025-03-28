@@ -40,8 +40,8 @@ internal class BusinessValidationStep(
             DefaultRetryOptions);
 
         var stepTerminationState = businessValidationResult.ValidationErrors.Count == 0
-            ? OrchestrationStepTerminationState.Succeeded
-            : OrchestrationStepTerminationState.Failed;
+            ? StepInstanceTerminationState.Succeeded
+            : StepInstanceTerminationState.Failed;
 
         return new StepOutput(stepTerminationState, businessValidationResult);
     }

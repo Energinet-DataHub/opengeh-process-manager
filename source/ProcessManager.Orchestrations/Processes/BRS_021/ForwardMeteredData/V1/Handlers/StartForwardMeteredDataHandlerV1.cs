@@ -34,11 +34,11 @@ using NodaTime.Text;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
 using OrchestrationInstanceLifecycleState =
     Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
-using OrchestrationStepTerminationState =
-    Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationStepTerminationState;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 using StepInstanceLifecycleState =
     Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.StepInstanceLifecycleState;
+using StepInstanceTerminationState =
+    Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.StepInstanceTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
@@ -134,7 +134,7 @@ public class StartForwardMeteredDataHandlerV1(
                 orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
             // If the step is already skipped, do nothing (idempotency/retry check).
-            if (forwardStep.Lifecycle.TerminationState is not OrchestrationStepTerminationState.Skipped)
+            if (forwardStep.Lifecycle.TerminationState is not StepInstanceTerminationState.Skipped)
             {
                 // If the step isn't skipped, it should still be in "pending", else an exception will be thrown.
                 await StepHelper.SkipStepAndCommitIfPending(forwardStep, _clock, _progressRepository)
@@ -145,7 +145,7 @@ public class StartForwardMeteredDataHandlerV1(
             var findReceiverStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.FindReceiversStep);
 
             // If the step is already skipped, do nothing (idempotency/retry check).
-            if (findReceiverStep.Lifecycle.TerminationState != OrchestrationStepTerminationState.Skipped)
+            if (findReceiverStep.Lifecycle.TerminationState != StepInstanceTerminationState.Skipped)
             {
                 // If the step isn't skipped, it should still be in "pending", else an exception will be thrown.
                 await StepHelper.SkipStepAndCommitIfPending(findReceiverStep, _clock, _progressRepository)
@@ -219,7 +219,7 @@ public class StartForwardMeteredDataHandlerV1(
         // If the step is already terminated (idempotency/retry check), return the existing validation errors.
         if (validationStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
         {
-            if (validationStep.Lifecycle.TerminationState == OrchestrationStepTerminationState.Failed
+            if (validationStep.Lifecycle.TerminationState == StepInstanceTerminationState.Failed
                 && validationStep.CustomState.IsEmpty)
             {
                 throw new InvalidOperationException(
@@ -256,8 +256,8 @@ public class StartForwardMeteredDataHandlerV1(
             validationStep.CustomState.SetFromInstance(validationErrors);
 
         var validationStepTerminationState = validationSuccess
-            ? OrchestrationStepTerminationState.Succeeded
-            : OrchestrationStepTerminationState.Failed;
+            ? StepInstanceTerminationState.Succeeded
+            : StepInstanceTerminationState.Failed;
 
         await StepHelper.TerminateStepAndCommit(
                 validationStep,

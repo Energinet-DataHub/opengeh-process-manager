@@ -30,12 +30,12 @@ internal class SuccessStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<OrchestrationStepTerminationState> OnExecuteAsync()
+    protected override async Task<StepInstanceTerminationState> OnExecuteAsync()
     {
         await Context.CallActivityAsync(
             name: nameof(SuccessActivity_Brs_X03_FailingOrchestrationInstanceExample_V1),
             options: DefaultRetryOptions);
 
-        return OrchestrationStepTerminationState.Succeeded;
+        return StepInstanceTerminationState.Succeeded;
     }
 }

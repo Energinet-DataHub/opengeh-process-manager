@@ -122,7 +122,7 @@ internal static class OrchestrationInstanceMapperExtensions
                 ? lifecycleStateResult
                 : throw new InvalidOperationException($"Invalid State '{entity.State}'; cannot be mapped."),
             TerminationState: Enum
-                .TryParse<ApiModel.OrchestrationInstance.OrchestrationStepTerminationState>(
+                .TryParse<ApiModel.OrchestrationInstance.StepInstanceTerminationState>(
                     entity.TerminationState.ToString(),
                     ignoreCase: true,
                     out var terminationStateResult)

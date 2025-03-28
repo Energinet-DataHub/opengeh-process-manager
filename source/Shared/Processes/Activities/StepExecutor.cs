@@ -93,7 +93,7 @@ internal abstract class StepExecutorBase(
     /// Transition the step instance's lifecycle to the given <paramref name="stepTerminationState"/>.
     /// </summary>
     /// <param name="stepTerminationState">The termination state to transition of the step.</param>
-    protected async Task TransitionToTerminated(OrchestrationStepTerminationState stepTerminationState)
+    protected async Task TransitionToTerminated(StepInstanceTerminationState stepTerminationState)
     {
         await Context.CallActivityAsync(
             name: nameof(TransitionStepToTerminatedActivity_V1),
@@ -124,7 +124,7 @@ internal abstract class StepExecutor(
     {
         await TransitionToRunning();
 
-        OrchestrationStepTerminationState terminationState;
+        StepInstanceTerminationState terminationState;
         try
         {
             terminationState = await OnExecuteAsync();
@@ -158,7 +158,7 @@ internal abstract class StepExecutor(
     /// </remarks>
     /// </summary>
     /// <returns>The step termination state, which the step instance will be transitioned to.</returns>
-    protected abstract Task<OrchestrationStepTerminationState> OnExecuteAsync();
+    protected abstract Task<StepInstanceTerminationState> OnExecuteAsync();
 }
 
 /// <inheritdoc/>
@@ -180,7 +180,7 @@ internal abstract class StepExecutor<TStepOutput>(
     {
         await TransitionToRunning();
 
-        OrchestrationStepTerminationState terminationState;
+        StepInstanceTerminationState terminationState;
         TStepOutput output;
         try
         {
@@ -222,7 +222,7 @@ internal abstract class StepExecutor<TStepOutput>(
     protected abstract Task<StepOutput> OnExecuteAsync();
 
     internal record StepOutput(
-        OrchestrationStepTerminationState TerminationState,
+        StepInstanceTerminationState TerminationState,
         TStepOutput Output);
 }
 #pragma warning restore CA2007

@@ -130,7 +130,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                        .And.Be(StepInstanceTerminationState.Succeeded);
                 });
     }
 
@@ -181,7 +181,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                     validationStep.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     validationStep.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Failed);
+                        .And.Be(StepInstanceTerminationState.Failed);
 
                     var customState = JsonSerializer.Deserialize<BusinessValidationStep.CustomState>(validationStep.CustomState);
                     customState.Should().NotBeNull();
@@ -194,7 +194,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                     enqueueStep.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     enqueueStep.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                        .And.Be(StepInstanceTerminationState.Succeeded);
                 });
     }
 }

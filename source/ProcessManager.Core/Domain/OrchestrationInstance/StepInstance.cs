@@ -82,6 +82,6 @@ public class StepInstance
 
     public bool IsSkipped()
     {
-        return Lifecycle.TerminationState == OrchestrationStepTerminationState.Skipped;
+        return Lifecycle.TerminationState == StepInstanceTerminationState.Skipped;
     }
 }

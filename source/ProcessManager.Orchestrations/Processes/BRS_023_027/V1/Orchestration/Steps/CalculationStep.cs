@@ -37,7 +37,7 @@ internal class CalculationStep(
 
     protected override int StepSequenceNumber => CalculationStepSequence;
 
-    protected override async Task<OrchestrationStepTerminationState> OnExecuteAsync()
+    protected override async Task<StepInstanceTerminationState> OnExecuteAsync()
     {
         // Start calculation (Databricks)
         var jobRunId = await Context.CallActivityAsync<JobRunId>(
@@ -74,7 +74,7 @@ internal class CalculationStep(
                     break;
 
                 case JobRunStatus.Completed:
-                    return OrchestrationStepTerminationState.Succeeded;
+                    return StepInstanceTerminationState.Succeeded;
 
                 case JobRunStatus.Failed:
                 case JobRunStatus.Canceled:

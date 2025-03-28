@@ -33,9 +33,9 @@ internal class EnqueueActorMessagesStep(
 
     protected override int StepSequenceNumber => EnqueueActorMessagesStepSequence;
 
-    protected override Task<OrchestrationStepTerminationState> OnExecuteAsync()
+    protected override Task<StepInstanceTerminationState> OnExecuteAsync()
     {
         // TODO - Alex: Implement and call activities to enqueue messages
-        return Task.FromResult(OrchestrationStepTerminationState.Succeeded);
+        return Task.FromResult(StepInstanceTerminationState.Succeeded);
     }
 }

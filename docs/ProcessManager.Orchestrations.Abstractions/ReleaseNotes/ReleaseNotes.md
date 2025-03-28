@@ -2,7 +2,7 @@
 
 ## Version 1.14.0
 
-- Make `OriginalTransactionId` optional in `ForwardMeteredDataInputV1`.
+- Removed `OriginalTransactionId` from `ForwardMeteredDataInputV1`.
 
 ## Version 1.13.0
 

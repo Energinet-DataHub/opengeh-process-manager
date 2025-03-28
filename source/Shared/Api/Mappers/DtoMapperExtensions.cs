@@ -22,7 +22,8 @@ namespace Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 /// </summary>
 internal static class DtoMapperExtensions
 {
-    public static DomainModel.OrchestrationInstance.UserIdentity MapToDomain(this ApiModel.OrchestrationInstance.UserIdentityDto dto)
+    public static DomainModel.OrchestrationInstance.UserIdentity MapToDomain(
+        this ApiModel.OrchestrationInstance.UserIdentityDto dto)
     {
         return new DomainModel.OrchestrationInstance.UserIdentity(
             UserId: new DomainModel.OrchestrationInstance.UserId(dto.UserId),
@@ -31,7 +32,8 @@ internal static class DtoMapperExtensions
                 Role: dto.ActorRole));
     }
 
-    public static DomainModel.OrchestrationInstance.ActorIdentity MapToDomain(this ApiModel.OrchestrationInstance.ActorIdentityDto dto)
+    public static DomainModel.OrchestrationInstance.ActorIdentity MapToDomain(
+        this ApiModel.OrchestrationInstance.ActorIdentityDto dto)
     {
         return new DomainModel.OrchestrationInstance.ActorIdentity(
             new DomainModel.OrchestrationInstance.Actor(
@@ -39,8 +41,65 @@ internal static class DtoMapperExtensions
                 Role: dto.ActorRole));
     }
 
-    public static DomainModel.OrchestrationDescription.OrchestrationDescriptionUniqueName MapToDomain(this ApiModel.OrchestrationDescription.OrchestrationDescriptionUniqueNameDto dto)
+    public static DomainModel.OrchestrationDescription.OrchestrationDescriptionUniqueName MapToDomain(
+        this ApiModel.OrchestrationDescription.OrchestrationDescriptionUniqueNameDto dto)
     {
         return new DomainModel.OrchestrationDescription.OrchestrationDescriptionUniqueName(dto.Name, dto.Version);
     }
+
+    #region OrchestrationInstanceLifecycleState
+
+    public static IReadOnlyCollection<DomainModel.OrchestrationInstance.OrchestrationInstanceLifecycleState>? MapToDomain(
+        this IReadOnlyCollection<ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleState>? dtoStates)
+    {
+        return dtoStates?
+            .Select(state => state.MapToDomain())
+            .ToList();
+    }
+
+    public static DomainModel.OrchestrationInstance.OrchestrationInstanceLifecycleState? MapToDomain(
+        this ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleState? dtoEnum)
+    {
+        return dtoEnum.HasValue
+            ? MapToDomain(dtoEnum.Value)
+            : null;
+    }
+
+    public static DomainModel.OrchestrationInstance.OrchestrationInstanceLifecycleState MapToDomain(
+        this ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleState dtoEnum)
+    {
+        return Enum
+            .TryParse<DomainModel.OrchestrationInstance.OrchestrationInstanceLifecycleState>(
+                dtoEnum.ToString(),
+                ignoreCase: true,
+                out var result)
+            ? result
+            : throw new InvalidOperationException($"Invalid State '{dtoEnum}'; cannot be mapped.");
+    }
+
+    #endregion
+
+    #region OrchestrationInstanceTerminationState
+
+    public static DomainModel.OrchestrationInstance.OrchestrationInstanceTerminationState? MapToDomain(
+        this ApiModel.OrchestrationInstance.OrchestrationInstanceTerminationState? dtoEnum)
+    {
+        return dtoEnum.HasValue
+            ? MapToDomain(dtoEnum.Value)
+            : null;
+    }
+
+    public static DomainModel.OrchestrationInstance.OrchestrationInstanceTerminationState MapToDomain(
+        this ApiModel.OrchestrationInstance.OrchestrationInstanceTerminationState dtoEnum)
+    {
+        return Enum
+            .TryParse<DomainModel.OrchestrationInstance.OrchestrationInstanceTerminationState>(
+                dtoEnum.ToString(),
+                ignoreCase: true,
+                out var result)
+            ? result
+            : throw new InvalidOperationException($"Invalid State '{dtoEnum}'; cannot be mapped.");
+    }
+
+    #endregion
 }

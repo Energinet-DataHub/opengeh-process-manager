@@ -24,6 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Compile Include="..\Shared\Api\Mappers\DateTimeOffsetExtensions.cs" Link="Api\Mappers\DateTimeOffsetExtensions.cs" />
         <Compile Include="..\Shared\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
         <Compile Include="..\Shared\Api\Mappers\DtoMapperExtensions.cs" Link="Api\Mappers\DtoMapperExtensions.cs" />
         <Compile Include="..\Shared\Processes\Activities\StepExecutor.cs">

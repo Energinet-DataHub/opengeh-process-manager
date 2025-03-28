@@ -502,7 +502,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByActivatedWithinOneHourTomorrow_ThenExpectedOrchestrationInstancesAreRetrieved()
+    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByActivatedWithinOneHourTomorrow_Then_ExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
         var now = SystemClock.Instance.GetCurrentInstant();
@@ -588,7 +588,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenTwoOrchestrationInstancesCreatedByDifferentActors_WhenSearchWithCreatedByActor_ThenOnlyOneExpectedOrchestrationInstanceRetrieved()
+    public async Task Given_TwoOrchestrationInstancesCreatedByDifferentActors_When_SearchWithCreatedByActor_Then_OnlyOneExpectedOrchestrationInstanceRetrieved()
     {
         // Arrange
         var now = SystemClock.Instance.GetCurrentInstant();
@@ -640,7 +640,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenTwoOrchestrationInstancesCreatedByDifferentActors_WhenSearchWithoutCreatedByActor_ThenBothExpectedOrchestrationInstanceRetrieved()
+    public async Task Given_TwoOrchestrationInstancesCreatedByDifferentActors_When_SearchWithoutCreatedByActor_Then_BothExpectedOrchestrationInstanceRetrieved()
     {
         // Arrange
         var now = SystemClock.Instance.GetCurrentInstant();

@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.2.0
+
+- Update NuGet packages.
+
 ## Version 1.13.0
 
 - Add BRS-045 Missing Measurements Log On Demand Calculation command.

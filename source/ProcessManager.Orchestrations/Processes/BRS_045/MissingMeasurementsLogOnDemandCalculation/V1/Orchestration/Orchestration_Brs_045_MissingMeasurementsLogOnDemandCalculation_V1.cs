@@ -13,34 +13,43 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Activities;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Orchestration.Steps;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.
+    MissingMeasurementsLogOnDemandCalculation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.
+    Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.
+    Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.
+    Orchestration.Steps;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Orchestration;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1
+    .Orchestration;
 
 internal class Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1
 {
-    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_045_MissingMeasurementsLogOnDemandCalculation.V1;
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName =
+        Brs_045_MissingMeasurementsLogOnDemandCalculation.V1;
 
     private readonly TaskRetryOptions _defaultRetryOptions;
 
     private readonly TaskOptions _defaultTaskOptions;
+    private readonly IFeatureFlagManager _featureFlagManager;
 
-    public Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1()
+    public Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1(IFeatureFlagManager featureFlagManager)
     {
+        _featureFlagManager = featureFlagManager;
         // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
         // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
         _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(
             new RetryPolicy(
-                maxNumberOfAttempts: 8,
-                firstRetryInterval: TimeSpan.FromSeconds(30),
-                backoffCoefficient: 2.0));
+                8,
+                TimeSpan.FromSeconds(30),
+                2.0));
 
         _defaultTaskOptions = new TaskOptions(_defaultRetryOptions);
     }
@@ -57,16 +66,20 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V
                 orchestrationInstanceContext)
             .ExecuteAsync();
 
-        await new EnqueueActorMessagesStep(
-                context,
-                _defaultRetryOptions,
-                orchestrationInstanceContext)
-            .ExecuteAsync();
+        if (await _featureFlagManager.IsEnabledAsync(
+                FeatureFlag.EnableBrs045MissingMeasurementsLogOnDemandEnqueueMessages))
+        {
+            await new EnqueueActorMessagesStep(
+                    context,
+                    _defaultRetryOptions,
+                    orchestrationInstanceContext)
+                .ExecuteAsync();
+        }
 
         return await SetTerminateOrchestrationAsync(
             context,
             orchestrationInstanceContext.OrchestrationInstanceId,
-            success: true);
+            true);
     }
 
     private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
@@ -81,17 +94,18 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V
 
         var instanceContext = await context.CallActivityAsync<OrchestrationInstanceContext>(
             nameof(GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1),
-            new GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.ActivityInput(
-                instanceId),
+            new GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.
+                ActivityInput(
+                    instanceId),
             _defaultTaskOptions);
 
         return instanceContext;
     }
 
     private async Task<string> SetTerminateOrchestrationAsync(
-    TaskOrchestrationContext context,
-    OrchestrationInstanceId instanceId,
-    bool success)
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        bool success)
     {
         var orchestrationTerminationState = success
             ? OrchestrationInstanceTerminationState.Succeeded

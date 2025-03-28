@@ -36,7 +36,10 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
         description.RecurringCronExpression = "0 9,14 * * *";
 
         description.AppendStepDescription(CalculationStep.StepDescription);
-        description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
+        description.AppendStepDescription(
+            EnqueueActorMessagesStep.StepDescription,
+            true,
+            "A feature flag controls is the step is skipped.");
 
         description.IsUnderDevelopment = true;
 

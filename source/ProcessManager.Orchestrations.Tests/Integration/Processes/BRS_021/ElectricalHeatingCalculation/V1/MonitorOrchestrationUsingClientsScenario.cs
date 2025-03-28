@@ -136,5 +136,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 CancellationToken.None);
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
+
+        // Step 4
+        orchestrationInstancesGeneralSearch.First(x => x.Id == orchestrationInstanceId)
+            .Steps.Should()
+            .AllSatisfy(x => x.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Pending));
     }
 }

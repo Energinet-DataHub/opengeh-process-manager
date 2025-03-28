@@ -43,4 +43,34 @@ public enum FeatureFlag
     /// if the metering point does not exist.
     /// </summary>
     EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint,
+
+    /// <summary>
+    /// Enables enqueue messages for the orchestration BRS_021_ElectricalHeatingCalculation.
+    /// If this flag is enabled, electrical heating messages will be generated and enqueued.
+    /// </summary>
+    EnableBrs021ElectricalHeatingEnqueueMessages,
+
+    /// <summary>
+    /// Enables enqueue messages for the orchestration BRS_021_CapacitySettlementCalculation.
+    /// If this flag is enabled, capacity settlement messages will be generated and enqueued.
+    /// </summary>
+    EnableBrs021CapacitySettlementEnqueueMessages,
+
+    /// <summary>
+    /// Enables enqueue messages for the orchestration BRS_021_NetConsumptionCalculation.
+    /// If this flag is enabled, net consumption (group 6) messages will be generated and enqueued.
+    /// </summary>
+    EnableBrs021NetConsumptionEnqueueMessages,
+
+    /// <summary>
+    /// Enables enqueue messages for the orchestration BRS_045_MissingMeasurementsLogCalculation.
+    /// If this flag is enabled, missing measurements log messages will be generated and enqueued.
+    /// </summary>
+    EnableBrs045MissingMeasurementsLogEnqueueMessages,
+
+    /// <summary>
+    /// Enables enqueue messages for the orchestration BRS_045_MissingMeasurementsLogOnDemandCalculation.
+    /// If this flag is enabled, missing measurements log on demand messages will be generated and enqueued.
+    /// </summary>
+    EnableBrs045MissingMeasurementsLogOnDemandEnqueueMessages,
 }

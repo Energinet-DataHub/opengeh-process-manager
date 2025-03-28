@@ -13,16 +13,19 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Orchestration.Steps;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Orchestration.
+    Steps;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Orchestration;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.
+    Orchestration;
 
 internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
 {
@@ -32,8 +35,11 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
 
     private readonly TaskOptions _defaultTaskOptions;
 
-    public Orchestration_Brs_021_ElectricalHeatingCalculation_V1()
+    private readonly IFeatureFlagManager _featureFlagManager;
+
+    public Orchestration_Brs_021_ElectricalHeatingCalculation_V1(IFeatureFlagManager featureFlagManager)
     {
+        _featureFlagManager = featureFlagManager;
         // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
         // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
         _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(
@@ -57,11 +63,14 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                 orchestrationInstanceContext)
             .ExecuteAsync();
 
-        await new EnqueueActorMessagesStep(
-                context,
-                _defaultRetryOptions,
-                orchestrationInstanceContext)
-            .ExecuteAsync();
+        if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.EnableBrs021ElectricalHeatingEnqueueMessages))
+        {
+            await new EnqueueActorMessagesStep(
+                    context,
+                    _defaultRetryOptions,
+                    orchestrationInstanceContext)
+                .ExecuteAsync();
+        }
 
         return await SetTerminateOrchestrationAsync(
             context,
@@ -89,9 +98,9 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
     }
 
     private async Task<string> SetTerminateOrchestrationAsync(
-    TaskOrchestrationContext context,
-    OrchestrationInstanceId instanceId,
-    bool success)
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        bool success)
     {
         var orchestrationTerminationState = success
             ? OrchestrationInstanceTerminationState.Succeeded

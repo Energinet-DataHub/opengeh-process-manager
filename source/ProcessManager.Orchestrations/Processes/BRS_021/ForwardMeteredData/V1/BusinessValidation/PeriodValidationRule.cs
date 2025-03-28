@@ -24,10 +24,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// TODO: Implement correct validation rule
 /// "Stub" period validation rule, used to verify that validation works for <see cref="ForwardMeteredDataBusinessValidatedDto"/>.
 /// </summary>
-public class PeriodValidationRule(
-    PeriodValidator periodValidator)
+public class PeriodValidationRule(PeriodValidator periodValidator)
         : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
+    public const int MaxAllowedPeriodAgeInYears = 3;
+
     /// <summary>
     /// TODO: Add correct error messages.
     /// "Stub" error message used to very that validation works.
@@ -40,9 +41,14 @@ public class PeriodValidationRule(
     /// TODO: Add correct error messages.
     /// "Stub" error message used to very that validation works.
     /// </summary>
-    private static readonly ValidationError _invalidStartDate = new(
+    public static readonly ValidationError InvalidStartDate = new(
         Message: "Invalid start dato / Invalid start date",
         ErrorCode: "E42");
+
+    public static readonly ValidationError StartDateIsTooOld = new(
+        Message:
+        $"Måledata er ældre end de tilladte {MaxAllowedPeriodAgeInYears} år / Measurements are older than the allowed {MaxAllowedPeriodAgeInYears} years",
+        ErrorCode: "E17");
 
     private readonly PeriodValidator _periodValidator = periodValidator;
 
@@ -53,11 +59,20 @@ public class PeriodValidationRule(
         var start = TryParseInstant(subject.Input.StartDateTime);
         var end = TryParseInstant(subject.Input.EndDateTime);
 
-        if (start is null)
-            errors.Add(_invalidStartDate);
-
         if (end is null)
             errors.Add(InvalidEndDate);
+
+        if (start is null)
+        {
+            errors.Add(InvalidStartDate);
+            return Task.FromResult(errors);
+        }
+
+        // Measurements age check
+        if (_periodValidator.IsDateOlderThanAllowed(start.Value, MaxAllowedPeriodAgeInYears, 0))
+        {
+            errors.Add(StartDateIsTooOld);
+        }
 
         return Task.FromResult(errors);
     }

@@ -43,14 +43,14 @@ internal class SearchCalculationsHandlerV1(
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-        var orchestrationDescriptionNames = GetOrchestrationDescriptionNames(query);
+        var orchestrationDescriptionNames = query.GetOrchestrationDescriptionNames();
 
-        var lifecycleStates = GetLifecycleStates(query);
-        var terminationState = GetTerminationState(query);
+        var lifecycleStates = query.GetLifecycleStates();
+        var terminationState = query.GetTerminationState();
 
-        var scheduledAtOrLater = ConvertToNullableInstant(query.ScheduledAtOrLater);
-        var startedAtOrLater = ConvertToNullableInstant(query.StartedAtOrLater);
-        var terminatedAtOrEarlier = ConvertToNullableInstant(query.TerminatedAtOrEarlier);
+        var scheduledAtOrLater = query.ScheduledAtOrLater.ConvertToNullableInstant();
+        var startedAtOrLater = query.StartedAtOrLater.ConvertToNullableInstant();
+        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ConvertToNullableInstant();
 
         var results =
             await SearchAsync(
@@ -98,89 +98,6 @@ internal class SearchCalculationsHandlerV1(
 
         // TODO: Update when we know how to filter using PeriodStartDate + PeriodEndData
         return true;
-    }
-
-    private static IReadOnlyCollection<string> GetOrchestrationDescriptionNames(CalculationsQueryV1 query)
-    {
-        var orchestrationDescriptionNames = query.CalculationTypes?
-            .Select(type => GetOrchestrationDescriptionName(type))
-            .Distinct()
-            .ToList();
-
-        if (orchestrationDescriptionNames == null)
-        {
-            orchestrationDescriptionNames = [
-                Brs_021_ElectricalHeatingCalculation.Name,
-                Brs_021_CapacitySettlementCalculation.Name,
-                Brs_021_NetConsumptionCalculation.Name,
-                Brs_023_027.Name];
-        }
-
-        if (query.IsInternalCalculation.HasValue && query.IsInternalCalculation == true)
-        {
-            orchestrationDescriptionNames.RemoveAll(name
-                => name != Brs_023_027.Name);
-        }
-
-        if (query.GridAreaCodes != null && query.GridAreaCodes.Any())
-        {
-            orchestrationDescriptionNames.RemoveAll(name
-                => name != Brs_023_027.Name);
-        }
-
-        if (query.PeriodStartDate.HasValue || query.PeriodEndDate.HasValue)
-        {
-            orchestrationDescriptionNames.RemoveAll(name =>
-                name != Brs_023_027.Name
-                && name != Brs_021_CapacitySettlementCalculation.Name);
-        }
-
-        return orchestrationDescriptionNames;
-    }
-
-    private static string GetOrchestrationDescriptionName(CalculationTypeQueryParameterV1 calculationType)
-    {
-        switch (calculationType)
-        {
-            case CalculationTypeQueryParameterV1.ElectricalHeating:
-                return Brs_021_ElectricalHeatingCalculation.Name;
-            case CalculationTypeQueryParameterV1.CapacitySettlement:
-                return Brs_021_CapacitySettlementCalculation.Name;
-            case CalculationTypeQueryParameterV1.NetConsumption:
-                return Brs_021_NetConsumptionCalculation.Name;
-            default:
-                return Brs_023_027.Name;
-        }
-    }
-
-    private static IReadOnlyCollection<OrchestrationInstanceLifecycleState>? GetLifecycleStates(CalculationsQueryV1 query)
-    {
-        return query.LifecycleStates?
-            .Select(state =>
-                Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
-                ? lifecycleStateResult
-                : (OrchestrationInstanceLifecycleState?)null)
-            .Where(state => state.HasValue)
-            .Select(state => state!.Value)
-            .ToList();
-    }
-
-    private static OrchestrationInstanceTerminationState? GetTerminationState(CalculationsQueryV1 query)
-    {
-        return Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
-            ? terminationStateResult
-            : (OrchestrationInstanceTerminationState?)null;
-    }
-
-    /// <summary>
-    /// DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
-    /// See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
-    /// </summary>
-    private static Instant? ConvertToNullableInstant(DateTimeOffset? dateTimeOffset)
-    {
-        return dateTimeOffset.HasValue
-            ? Instant.FromDateTimeOffset(dateTimeOffset.Value)
-            : (Instant?)null;
     }
 
     private static ICalculationsQueryResultV1 MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)

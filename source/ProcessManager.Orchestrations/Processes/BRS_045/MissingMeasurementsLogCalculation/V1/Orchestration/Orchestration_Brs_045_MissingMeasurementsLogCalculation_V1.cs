@@ -67,7 +67,7 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1
         return await SetTerminateOrchestrationAsync(
             context,
             orchestrationInstanceContext.OrchestrationInstanceId,
-            true);
+            success: true);
     }
 
     private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)

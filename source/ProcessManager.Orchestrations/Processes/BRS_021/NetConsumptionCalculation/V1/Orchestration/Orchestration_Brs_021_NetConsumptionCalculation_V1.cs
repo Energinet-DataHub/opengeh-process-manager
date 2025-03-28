@@ -66,7 +66,7 @@ internal class Orchestration_Brs_021_NetConsumptionCalculation_V1
         return await SetTerminateOrchestrationAsync(
             context,
             orchestrationInstanceContext.OrchestrationInstanceId,
-            true);
+            success: true);
     }
 
     private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)

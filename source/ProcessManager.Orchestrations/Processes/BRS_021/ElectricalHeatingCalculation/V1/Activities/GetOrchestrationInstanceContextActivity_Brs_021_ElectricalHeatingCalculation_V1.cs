@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
-using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
@@ -27,11 +26,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 /// Get the <see cref="OrchestrationInstanceContext"/> for the orchestration instance.
 /// </summary>
 internal class GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1(
-    IOrchestrationInstanceProgressRepository repository,
     IOptions<OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1> orchestrationOptions,
     IFeatureFlagManager featureFlagManager)
 {
-    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
     private readonly OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1 _orchestrationOptions = orchestrationOptions.Value;
 
@@ -39,14 +36,9 @@ internal class GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeating
     public async Task<OrchestrationInstanceContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var orchestrationInstance = await _repository
-            .GetAsync(input.InstanceId)
-            .ConfigureAwait(false);
-
         var stepsToSkipBySequence = new List<int>();
-        // CORRECT THIS
-        if (await _featureFlagManager.IsEnabledAsync(
-                FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint))
+
+        if (!await _featureFlagManager.IsEnabledAsync(FeatureFlag.EnableBrs021ElectricalHeatingEnqueueMessages))
         {
             stepsToSkipBySequence.Add(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence);
         }

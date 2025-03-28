@@ -229,17 +229,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     public void EnsureAppHostUsesMockedDatabricksApi(bool useMockServer = false)
     {
-        AppHostManager.RestartHostIfChanges(new Dictionary<string, string>
-        {
+        AppHostManager.RestartHostIfChanges(
+            new Dictionary<string, string>
             {
-                $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
-                useMockServer ? MockServer.Url! : IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl
-            },
-            {
-                $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
-                useMockServer ? MockServer.Url! : IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl
-            },
-        });
+                { $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}", useMockServer ? MockServer.Url! : IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl },
+                { $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}", useMockServer ? MockServer.Url! : IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl },
+            });
     }
 
     private static void StartHost(FunctionAppHostManager hostManager)
@@ -362,7 +357,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             startTopicResources.Brs028Subscription.SubscriptionName);
 
         // => Feature flags
-        appHostSettings.ProcessEnvironmentVariables.Add($"FeatureManagement__{nameof(FeatureFlag.EnableBrs021ElectricalHeatingEnqueueMessages)}", "false");
+        appHostSettings.ProcessEnvironmentVariables.Add($"FeatureManagement__{nameof(FeatureFlag.EnableBrs021ElectricalHeatingEnqueueMessages)}", "true");
 
         // => BRS-021 Forward Metered Data topics and subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -481,13 +476,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             builder
                 .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(OrchestrationDescriptionBuilder.UniqueName))
+                .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(OrchestrationDescriptionBuilder.UniqueName))
                 .AddSubscription(Brs023027SubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
+                .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
                 .AddSubscription(Brs026SubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_026.V1))
+                .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_026.V1))
                 .AddSubscription(Brs028SubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_028.V1));
+                .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_028.V1));
 
             return builder;
         }
@@ -567,13 +562,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             builder
                 .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
-                    .AddSubjectFilter(Brs_021_ForwardedMeteredData.Name)
+                .AddSubjectFilter(Brs_021_ForwardedMeteredData.Name)
                 .AddSubscription(Brs023027SubscriptionName)
-                    .AddSubjectFilter(Brs_023_027.Name)
+                .AddSubjectFilter(Brs_023_027.Name)
                 .AddSubscription(Brs026SubscriptionName)
-                    .AddSubjectFilter(Brs_026.Name)
+                .AddSubjectFilter(Brs_026.Name)
                 .AddSubscription(Brs028SubscriptionName)
-                    .AddSubjectFilter(Brs_028.Name);
+                .AddSubjectFilter(Brs_028.Name);
 
             return builder;
         }

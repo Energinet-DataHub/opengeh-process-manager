@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities;
@@ -22,7 +21,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Electric
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Orchestration;
 
@@ -30,19 +28,12 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
 {
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_021_ElectricalHeatingCalculation.V1;
 
-    private readonly IOrchestrationInstanceProgressRepository _progressRepository;
-    private readonly IClock _clock;
-
     private readonly TaskRetryOptions _defaultRetryOptions;
 
     private readonly TaskOptions _defaultTaskOptions;
 
-    public Orchestration_Brs_021_ElectricalHeatingCalculation_V1(
-        IOrchestrationInstanceProgressRepository progressRepository,
-        IClock clock)
+    public Orchestration_Brs_021_ElectricalHeatingCalculation_V1()
     {
-        _progressRepository = progressRepository;
-        _clock = clock;
         // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
         // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
         _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(
@@ -66,7 +57,11 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                 orchestrationInstanceContext)
             .ExecuteAsync();
 
-        if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence))
+        if (orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence))
+        {
+            await ChangeEnqueueActorMessagesStepToSkipped(context, orchestrationInstanceContext);
+        }
+        else
         {
             await new EnqueueActorMessagesStep(
                     context,
@@ -74,16 +69,20 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                     orchestrationInstanceContext)
                 .ExecuteAsync();
         }
-        else
-        {
-            // This should be an activity
-            await SkipEnqueueStepAsync(orchestrationInstanceContext.OrchestrationInstanceId);
-        }
 
         return await SetTerminateOrchestrationAsync(
             context,
             orchestrationInstanceContext.OrchestrationInstanceId,
             success: true);
+    }
+
+    private async Task ChangeEnqueueActorMessagesStepToSkipped(TaskOrchestrationContext context, OrchestrationInstanceContext orchestrationInstanceContext)
+    {
+        await context.CallActivityAsync(
+            nameof(SkipEnqueueActorMessagesStepActivity_Brs_021_ElectricalHeatingCalculation_V1),
+            new SkipEnqueueActorMessagesStepActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                orchestrationInstanceContext.OrchestrationInstanceId),
+            _defaultTaskOptions);
     }
 
     private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
@@ -122,19 +121,5 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
             _defaultTaskOptions);
 
         return "Success";
-    }
-
-    private async Task SkipEnqueueStepAsync(OrchestrationInstanceId orchestrationInstanceId)
-    {
-        var orchestration = await _progressRepository.GetAsync(orchestrationInstanceId);
-        var enqueueStep = orchestration.GetStep(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence);
-
-        if (enqueueStep.Lifecycle.TerminationState == OrchestrationStepTerminationState.Skipped)
-        {
-            return;
-        }
-
-        enqueueStep.Lifecycle.TransitionToTerminated(_clock, OrchestrationStepTerminationState.Skipped);
-        await _progressRepository.UnitOfWork.CommitAsync();
     }
 }

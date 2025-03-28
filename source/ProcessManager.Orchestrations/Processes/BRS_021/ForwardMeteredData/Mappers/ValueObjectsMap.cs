@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Mappers;
 
-internal static class DictionaryExtensions
+public sealed class ValueObjectsMap<TKey, TValue> : Dictionary<TKey, TValue>
+    where TKey : notnull
+    where TValue : notnull
 {
-    internal static TTarget Map<TSource, TTarget>(
-        this Dictionary<TSource, TTarget> dictionary,
-        TSource source)
-        where TSource : notnull
+    public TValue Map(TKey source)
     {
-        return !dictionary.TryGetValue(source, out var result)
+        return !TryGetValue(source, out var result)
             ? throw new ArgumentOutOfRangeException(nameof(source), source, null)
             : result;
     }

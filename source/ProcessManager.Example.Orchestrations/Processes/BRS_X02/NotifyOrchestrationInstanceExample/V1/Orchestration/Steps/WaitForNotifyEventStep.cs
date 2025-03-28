@@ -74,8 +74,8 @@ internal class WaitForNotifyEventStep(
 
         var hasReceivedExampleNotifyEvent = notifyData != null;
         var stepTerminationState = hasReceivedExampleNotifyEvent
-            ? OrchestrationStepTerminationState.Succeeded
-            : OrchestrationStepTerminationState.Failed;
+            ? StepInstanceTerminationState.Succeeded
+            : StepInstanceTerminationState.Failed;
 
         return new StepOutput(stepTerminationState, hasReceivedExampleNotifyEvent);
     }

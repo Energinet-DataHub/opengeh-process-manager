@@ -61,7 +61,7 @@ internal class EnqueueActorMessagesStep(
                 timeout: timeout);
 
             if (enqueueEvent.Success)
-                return new StepOutput(OrchestrationStepTerminationState.Succeeded, enqueueEvent.Success);
+                return new StepOutput(StepInstanceTerminationState.Succeeded, enqueueEvent.Success);
 
             throw new Exception($"Enqueue messages did not finish within {orchestrationInstanceContext.OrchestrationOptions.MessagesEnqueuingExpiryTimeInSeconds} seconds");
         }

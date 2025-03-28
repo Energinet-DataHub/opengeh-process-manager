@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
@@ -23,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
+using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.CustomQueries.Calculations.V1;
 
@@ -293,7 +295,91 @@ public class SearchCalculationsHandlerV1Tests :
                 });
     }
 
-    private async Task<IReadOnlyCollection<OrchestrationInstance>> Create_Brs_023_027_OrchestrationInstancesAsync(
+    [Fact]
+    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByLifecycleState_Then_OnlyExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        var johnDoeName = Guid.NewGuid().ToString();
+        var johnDoeV1Description = CreateOrchestrationDescription(
+            new OrchestrationDescriptionUniqueName(name: johnDoeName, version: 1));
+        var isPendingJohnDoe = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: johnDoeV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        var isRunningJohnDoe = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: johnDoeV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isRunningJohnDoe.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isRunningJohnDoe.Lifecycle.TransitionToRunning(SystemClock.Instance);
+
+        var electricalHeatingV1Description = new Orchestrations.Processes
+            .BRS_021.ElectricalHeatingCalculation.V1
+            .Orchestration.OrchestrationDescriptionBuilder().Build();
+        var isPendingElectricalHeating = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: electricalHeatingV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        var isRunningElectricalHeating = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: electricalHeatingV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isRunningElectricalHeating.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isRunningElectricalHeating.Lifecycle.TransitionToRunning(SystemClock.Instance);
+
+        var netConsumptionV1Description = new Orchestrations.Processes.
+            BRS_021.NetConsumptionCalculation.V1
+            .Orchestration.OrchestrationDescriptionBuilder().Build();
+        var isPendingNetConsumption = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: netConsumptionV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        var isRunningNetConsumption = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: netConsumptionV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isRunningNetConsumption.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isRunningNetConsumption.Lifecycle.TransitionToRunning(SystemClock.Instance);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(johnDoeV1Description);
+            writeDbContext.OrchestrationInstances.Add(isPendingJohnDoe);
+            writeDbContext.OrchestrationInstances.Add(isRunningJohnDoe);
+
+            writeDbContext.OrchestrationDescriptions.Add(electricalHeatingV1Description);
+            writeDbContext.OrchestrationInstances.Add(isPendingElectricalHeating);
+            writeDbContext.OrchestrationInstances.Add(isRunningElectricalHeating);
+
+            writeDbContext.OrchestrationDescriptions.Add(netConsumptionV1Description);
+            writeDbContext.OrchestrationInstances.Add(isPendingNetConsumption);
+            writeDbContext.OrchestrationInstances.Add(isRunningNetConsumption);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Running],
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Assert
+        actual.Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == isRunningElectricalHeating.Id.Value,
+                result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == isRunningNetConsumption.Id.Value);
+    }
+
+    private async Task Create_Brs_023_027_OrchestrationInstancesAsync(
         (DateTimeOffset Start, DateTimeOffset End)[] periods)
     {
         var orchestrationDescription =
@@ -325,7 +411,60 @@ public class SearchCalculationsHandlerV1Tests :
         dbContext.OrchestrationDescriptions.Add(orchestrationDescription);
         dbContext.OrchestrationInstances.AddRange(orchestrationInstances);
         await dbContext.SaveChangesAsync();
+    }
 
-        return orchestrationInstances;
+    private OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)
+    {
+        var orchestrationDescription = new OrchestrationDescription(
+            uniqueName: uniqueName ?? new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
+            canBeScheduled: true,
+            functionName: "TestOrchestrationFunction");
+
+        orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
+
+        orchestrationDescription.AppendStepDescription("Test step 1");
+        orchestrationDescription.AppendStepDescription("Test step 2");
+        orchestrationDescription.AppendStepDescription("Test step 3");
+
+        orchestrationDescription.IsUnderDevelopment = true;
+
+        return orchestrationDescription;
+    }
+
+    private OrchestrationInstance CreateOrchestrationInstance(
+        OrchestrationDescription orchestrationDescription,
+        Instant? runAt = null,
+        IdempotencyKey? idempotencyKey = null,
+        Actor? createdByActor = null)
+    {
+        var userIdentity = new UserIdentity(
+            new UserId(Guid.NewGuid()),
+            createdByActor ?? new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+
+        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
+            userIdentity,
+            orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance,
+            runAt: runAt,
+            idempotencyKey: idempotencyKey,
+            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
+
+        orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
+        {
+            TestString = "Test string",
+            TestInt = 42,
+        });
+
+        return orchestrationInstance;
+    }
+
+    private class TestOrchestrationParameter
+    {
+        public string? TestString { get; set; }
+
+        public int? TestInt { get; set; }
     }
 }

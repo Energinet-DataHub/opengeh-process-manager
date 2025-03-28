@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Orchestration.Steps;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Options;
 
@@ -24,17 +27,34 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 /// Get the <see cref="OrchestrationInstanceContext"/> for the orchestration instance.
 /// </summary>
 internal class GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1(
-    IOptions<OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1> orchestrationOptions)
+    IOrchestrationInstanceProgressRepository repository,
+    IOptions<OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1> orchestrationOptions,
+    IFeatureFlagManager featureFlagManager)
 {
+    private readonly IOrchestrationInstanceProgressRepository _repository = repository;
+    private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
     private readonly OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1 _orchestrationOptions = orchestrationOptions.Value;
 
     [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1))]
-    public Task<OrchestrationInstanceContext> Run(
+    public async Task<OrchestrationInstanceContext> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        return Task.FromResult(new OrchestrationInstanceContext(
+        var orchestrationInstance = await _repository
+            .GetAsync(input.InstanceId)
+            .ConfigureAwait(false);
+
+        var stepsToSkipBySequence = new List<int>();
+        // CORRECT THIS
+        if (await _featureFlagManager.IsEnabledAsync(
+                FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint))
+        {
+            stepsToSkipBySequence.Add(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence);
+        }
+
+        return new OrchestrationInstanceContext(
             _orchestrationOptions,
-            input.InstanceId));
+            input.InstanceId,
+            SkippedStepsBySequence: stepsToSkipBySequence);
     }
 
     public record ActivityInput(

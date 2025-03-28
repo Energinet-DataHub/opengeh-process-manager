@@ -25,4 +25,5 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 /// <param name="OrchestrationInstanceId">The id of the orchestration instance</param>
 public record OrchestrationInstanceContext(
     OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1 OrchestrationOptions,
-    OrchestrationInstanceId OrchestrationInstanceId);
+    OrchestrationInstanceId OrchestrationInstanceId,
+    IReadOnlyCollection<int> SkippedStepsBySequence);

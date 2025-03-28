@@ -300,7 +300,7 @@ public class SearchCalculationsHandlerV1Tests :
     public async Task Given_OrchestrationInstancesInDatabase_When_SearchByLifecycleState_Then_OnlyExpectedCalculationsAreRetrieved()
     {
         // Given
-        await SeedDatabaseWithJohnDoeDatasetAsync();
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var electricalHeating = await SeedDatabaseWithDatasetAsync(new Orchestrations.Processes.
             BRS_021.ElectricalHeatingCalculation.V1
             .Orchestration.OrchestrationDescriptionBuilder());
@@ -364,7 +364,7 @@ public class SearchCalculationsHandlerV1Tests :
     ///  - Pending
     ///  - Running
     ///  - Terminated as succeeded
-    ///  - Terminated as dailed
+    ///  - Terminated as failed
     /// </summary>
     private async Task<(OrchestrationInstance IsPending, OrchestrationInstance IsRunning, OrchestrationInstance IsTerminatedAsSucceeded, OrchestrationInstance TerminatedAsFailed)> SeedDatabaseWithDatasetAsync(
         IOrchestrationDescriptionBuilder builder)
@@ -416,13 +416,15 @@ public class SearchCalculationsHandlerV1Tests :
 
     /// <summary>
     /// Create an orchestration description that isn't one of the calculation types orchestration descriptions.
-    /// Create orchestration instances in the following states:
+    /// Create orchestration instances in all possible lifecycle states:
     ///  - Pending
+    ///  - Queued
     ///  - Running
+    ///  - Terminated as user cancelled (require the instance is scheduled)
     ///  - Terminated as succeeded
-    ///  - Terminated as dailed
+    ///  - Terminated as failed
     /// </summary>
-    private async Task SeedDatabaseWithJohnDoeDatasetAsync()
+    private async Task SeedDatabaseWithJohnDoeLifecycleDatasetAsync()
     {
         var johnDoeName = Guid.NewGuid().ToString();
         var johnDoeV1Description = new OrchestrationDescription(
@@ -430,44 +432,60 @@ public class SearchCalculationsHandlerV1Tests :
             canBeScheduled: true,
             functionName: "TestOrchestrationFunction");
 
-        var isPendingJohnDoe = OrchestrationInstance.CreateFromDescription(
+        var isPending = OrchestrationInstance.CreateFromDescription(
             identity: _userIdentity.MapToDomain(),
             description: johnDoeV1Description,
             skipStepsBySequence: [],
             clock: SystemClock.Instance);
 
-        var isRunningJohnDoe = OrchestrationInstance.CreateFromDescription(
+        var isQueued = OrchestrationInstance.CreateFromDescription(
             identity: _userIdentity.MapToDomain(),
             description: johnDoeV1Description,
             skipStepsBySequence: [],
             clock: SystemClock.Instance);
-        isRunningJohnDoe.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isRunningJohnDoe.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        isQueued.Lifecycle.TransitionToQueued(SystemClock.Instance);
 
-        var isTerminatedAsSucceededJohnDoe = OrchestrationInstance.CreateFromDescription(
+        var isRunning = OrchestrationInstance.CreateFromDescription(
             identity: _userIdentity.MapToDomain(),
             description: johnDoeV1Description,
             skipStepsBySequence: [],
             clock: SystemClock.Instance);
-        isTerminatedAsSucceededJohnDoe.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isTerminatedAsSucceededJohnDoe.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        isTerminatedAsSucceededJohnDoe.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
+        isRunning.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isRunning.Lifecycle.TransitionToRunning(SystemClock.Instance);
 
-        var isTerminatedAsFailedJohnDoe = OrchestrationInstance.CreateFromDescription(
+        var isTerminatedAsUserCancelled = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: johnDoeV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance,
+            runAt: SystemClock.Instance.GetCurrentInstant());
+        isTerminatedAsUserCancelled.Lifecycle.TransitionToUserCanceled(SystemClock.Instance, _userIdentity.MapToDomain());
+
+        var isTerminatedAsSucceeded = OrchestrationInstance.CreateFromDescription(
             identity: _userIdentity.MapToDomain(),
             description: johnDoeV1Description,
             skipStepsBySequence: [],
             clock: SystemClock.Instance);
-        isTerminatedAsFailedJohnDoe.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isTerminatedAsFailedJohnDoe.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        isTerminatedAsFailedJohnDoe.Lifecycle.TransitionToFailed(SystemClock.Instance);
+        isTerminatedAsSucceeded.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isTerminatedAsSucceeded.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
+
+        var isTerminatedAsFailed = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: johnDoeV1Description,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToFailed(SystemClock.Instance);
 
         await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
         dbContext.OrchestrationDescriptions.Add(johnDoeV1Description);
-        dbContext.OrchestrationInstances.AddRange(isPendingJohnDoe);
-        dbContext.OrchestrationInstances.AddRange(isRunningJohnDoe);
-        dbContext.OrchestrationInstances.AddRange(isTerminatedAsSucceededJohnDoe);
-        dbContext.OrchestrationInstances.AddRange(isTerminatedAsFailedJohnDoe);
+        dbContext.OrchestrationInstances.AddRange(isPending);
+        dbContext.OrchestrationInstances.AddRange(isQueued);
+        dbContext.OrchestrationInstances.AddRange(isRunning);
+        dbContext.OrchestrationInstances.AddRange(isTerminatedAsSucceeded);
+        dbContext.OrchestrationInstances.AddRange(isTerminatedAsFailed);
         await dbContext.SaveChangesAsync();
     }
 }

@@ -175,7 +175,6 @@ public class EnqueueMeteredDataHandlerV1(
             OriginalActorMessageId: forwardMeteredDataInput.ActorMessageId,
             MeteringPointId: forwardMeteredDataInput.MeteringPointId,
             MeteringPointType: MeteringPointType.FromName(forwardMeteredDataInput.MeteringPointType),
-            OriginalTransactionId: null,
             ProductNumber: forwardMeteredDataInput.ProductNumber,
             RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.RegistrationDateTime).Value.ToDateTimeOffset(),
             StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value.ToDateTimeOffset(),

@@ -22,7 +22,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// </summary>
 public record ForwardMeteredDataAcceptedV1(
     string OriginalActorMessageId,
-    string? OriginalTransactionId,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
     string ProductNumber,

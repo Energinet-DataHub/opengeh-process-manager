@@ -32,6 +32,6 @@ public sealed record MeteringPointMasterData(
     MeasurementUnit MeasurementUnit,
     string ProductId,
     MeteringPointId? ParentMeteringPointId,
-    ActorNumber EnergySupplier);
+    ActorNumber? EnergySupplier);
 
 public record GridAreaCode(string Value);

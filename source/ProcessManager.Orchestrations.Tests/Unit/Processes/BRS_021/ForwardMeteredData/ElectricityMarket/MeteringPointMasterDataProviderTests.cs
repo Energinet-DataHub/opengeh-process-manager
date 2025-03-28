@@ -33,14 +33,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
     Justification = "Allow comments to increase readability")]
 public class MeteringPointMasterDataProviderTests
 {
-    private readonly ElectricityMarketViewsMock _electricityMarketViews;
     private readonly MeteringPointMasterDataProvider _sut;
 
     public MeteringPointMasterDataProviderTests()
     {
-        _electricityMarketViews = new ElectricityMarketViewsMock();
         _sut = new MeteringPointMasterDataProvider(
-            _electricityMarketViews,
+            new ElectricityMarketViewsMock(),
             new Mock<ILogger<MeteringPointMasterDataProvider>>().Object);
     }
 
@@ -60,7 +58,11 @@ public class MeteringPointMasterDataProviderTests
             "2021-01-01T00:00:00Z",
             "2021-01-01T00:00:00Z");
 
-        result.Should().BeEmpty();
+        var singleMasterData = result.Should().ContainSingle().Subject;
+        singleMasterData.MeteringPointId.Value.Should().Be("no-energy-suppliers-please");
+        singleMasterData.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        singleMasterData.ValidTo.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        singleMasterData.EnergySupplier.Should().BeNull();
     }
 
     [Fact]
@@ -78,7 +80,8 @@ public class MeteringPointMasterDataProviderTests
         singleMasterData.MeteringPointId.Value.Should().Be("one-energy-supplier-please");
         singleMasterData.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
         singleMasterData.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
-        singleMasterData.EnergySupplier.Value.Should().Be("1111111111111");
+        singleMasterData.EnergySupplier.Should().NotBeNull();
+        singleMasterData.EnergySupplier!.Value.Should().Be("1111111111111");
     }
 
     [Fact]
@@ -100,14 +103,16 @@ public class MeteringPointMasterDataProviderTests
                     first.MeteringPointId.Value.Should().Be("two-energy-suppliers-please");
                     first.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
                     first.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
-                    first.EnergySupplier.Value.Should().Be("1111111111111");
+                    first.EnergySupplier.Should().NotBeNull();
+                    first.EnergySupplier!.Value.Should().Be("1111111111111");
                 },
                 second =>
                 {
                     second.MeteringPointId.Value.Should().Be("two-energy-suppliers-please");
                     second.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
                     second.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
-                    second.EnergySupplier.Value.Should().Be("2222222222222");
+                    second.EnergySupplier.Should().NotBeNull();
+                    second.EnergySupplier!.Value.Should().Be("2222222222222");
                 });
     }
 
@@ -130,28 +135,32 @@ public class MeteringPointMasterDataProviderTests
                     first.MeteringPointId.Value.Should().Be("two-master-data-with-two-energy-suppliers-please");
                     first.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
                     first.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
-                    first.EnergySupplier.Value.Should().Be("1111111111111");
+                    first.EnergySupplier.Should().NotBeNull();
+                    first.EnergySupplier!.Value.Should().Be("1111111111111");
                 },
                 second =>
                 {
                     second.MeteringPointId.Value.Should().Be("two-master-data-with-two-energy-suppliers-please");
                     second.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
                     second.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
-                    second.EnergySupplier.Value.Should().Be("2222222222222");
+                    second.EnergySupplier.Should().NotBeNull();
+                    second.EnergySupplier!.Value.Should().Be("2222222222222");
                 },
                 third =>
                 {
                     third.MeteringPointId.Value.Should().Be("two-master-data-with-two-energy-suppliers-please");
                     third.ValidFrom.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
                     third.ValidTo.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
-                    third.EnergySupplier.Value.Should().Be("1111111111111");
+                    third.EnergySupplier.Should().NotBeNull();
+                    third.EnergySupplier!.Value.Should().Be("1111111111111");
                 },
                 fourth =>
                 {
                     fourth.MeteringPointId.Value.Should().Be("two-master-data-with-two-energy-suppliers-please");
                     fourth.ValidFrom.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
                     fourth.ValidTo.Should().Be(new DateTimeOffset(2021, 5, 1, 0, 0, 0, TimeSpan.Zero));
-                    fourth.EnergySupplier.Value.Should().Be("3333333333333");
+                    fourth.EnergySupplier.Should().NotBeNull();
+                    fourth.EnergySupplier!.Value.Should().Be("3333333333333");
                 });
     }
 
@@ -171,14 +180,23 @@ public class MeteringPointMasterDataProviderTests
                     first.MeteringPointId.Value.Should().Be("faulty-two-master-data-please");
                     first.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
                     first.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
-                    first.EnergySupplier.Value.Should().Be("1111111111111");
+                    first.EnergySupplier.Should().NotBeNull();
+                    first.EnergySupplier!.Value.Should().Be("1111111111111");
                 },
                 second =>
                 {
                     second.MeteringPointId.Value.Should().Be("faulty-two-master-data-please");
                     second.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
                     second.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
-                    second.EnergySupplier.Value.Should().Be("2222222222222");
+                    second.EnergySupplier.Should().NotBeNull();
+                    second.EnergySupplier!.Value.Should().Be("2222222222222");
+                },
+                noEnergySupplier =>
+                {
+                    noEnergySupplier.MeteringPointId.Value.Should().Be("faulty-two-master-data-please");
+                    noEnergySupplier.ValidFrom.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
+                    noEnergySupplier.ValidTo.Should().Be(new DateTimeOffset(2021, 5, 1, 0, 0, 0, TimeSpan.Zero));
+                    noEnergySupplier.EnergySupplier.Should().BeNull();
                 });
     }
 
@@ -201,28 +219,32 @@ public class MeteringPointMasterDataProviderTests
                     first.MeteringPointId.Value.Should().Be("two-parents-please");
                     first.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
                     first.ValidTo.Should().Be(new DateTimeOffset(2021, 1, 16, 0, 0, 0, TimeSpan.Zero));
-                    first.EnergySupplier.Value.Should().Be("1212121212121");
+                    first.EnergySupplier.Should().NotBeNull();
+                    first.EnergySupplier!.Value.Should().Be("1212121212121");
                 },
                 second =>
                 {
                     second.MeteringPointId.Value.Should().Be("two-parents-please");
                     second.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 16, 0, 0, 0, TimeSpan.Zero));
                     second.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
-                    second.EnergySupplier.Value.Should().Be("2323232323232");
+                    second.EnergySupplier.Should().NotBeNull();
+                    second.EnergySupplier!.Value.Should().Be("2323232323232");
                 },
                 third =>
                 {
                     third.MeteringPointId.Value.Should().Be("two-parents-please");
                     third.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
                     third.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 16, 0, 0, 0, TimeSpan.Zero));
-                    third.EnergySupplier.Value.Should().Be("3434343434343");
+                    third.EnergySupplier.Should().NotBeNull();
+                    third.EnergySupplier!.Value.Should().Be("3434343434343");
                 },
                 fourth =>
                 {
                     fourth.MeteringPointId.Value.Should().Be("two-parents-please");
                     fourth.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 16, 0, 0, 0, TimeSpan.Zero));
                     fourth.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
-                    fourth.EnergySupplier.Value.Should().Be("4545454545454");
+                    fourth.EnergySupplier.Should().NotBeNull();
+                    fourth.EnergySupplier!.Value.Should().Be("4545454545454");
                 },
                 // Master data from second parent
                 first =>
@@ -230,28 +252,32 @@ public class MeteringPointMasterDataProviderTests
                     first.MeteringPointId.Value.Should().Be("two-parents-please");
                     first.ValidFrom.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
                     first.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 16, 0, 0, 0, TimeSpan.Zero));
-                    first.EnergySupplier.Value.Should().Be("9090909090909");
+                    first.EnergySupplier.Should().NotBeNull();
+                    first.EnergySupplier!.Value.Should().Be("9090909090909");
                 },
                 second =>
                 {
                     second.MeteringPointId.Value.Should().Be("two-parents-please");
                     second.ValidFrom.Should().Be(new DateTimeOffset(2021, 3, 16, 0, 0, 0, TimeSpan.Zero));
                     second.ValidTo.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
-                    second.EnergySupplier.Value.Should().Be("8989898989898");
+                    second.EnergySupplier.Should().NotBeNull();
+                    second.EnergySupplier!.Value.Should().Be("8989898989898");
                 },
                 third =>
                 {
                     third.MeteringPointId.Value.Should().Be("two-parents-please");
                     third.ValidFrom.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
                     third.ValidTo.Should().Be(new DateTimeOffset(2021, 4, 16, 0, 0, 0, TimeSpan.Zero));
-                    third.EnergySupplier.Value.Should().Be("7878787878787");
+                    third.EnergySupplier.Should().NotBeNull();
+                    third.EnergySupplier!.Value.Should().Be("7878787878787");
                 },
                 fourth =>
                 {
                     fourth.MeteringPointId.Value.Should().Be("two-parents-please");
                     fourth.ValidFrom.Should().Be(new DateTimeOffset(2021, 4, 16, 0, 0, 0, TimeSpan.Zero));
                     fourth.ValidTo.Should().Be(new DateTimeOffset(2021, 5, 1, 0, 0, 0, TimeSpan.Zero));
-                    fourth.EnergySupplier.Value.Should().Be("6767676767676");
+                    fourth.EnergySupplier.Should().NotBeNull();
+                    fourth.EnergySupplier!.Value.Should().Be("6767676767676");
                 });
     }
 
@@ -275,28 +301,32 @@ public class MeteringPointMasterDataProviderTests
                     first.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
                     first.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
                     first.ValidTo.Should().Be(new DateTimeOffset(2021, 1, 16, 0, 0, 0, TimeSpan.Zero));
-                    first.EnergySupplier.Value.Should().Be("1212121212121");
+                    first.EnergySupplier.Should().NotBeNull();
+                    first.EnergySupplier!.Value.Should().Be("1212121212121");
                 },
                 second =>
                 {
                     second.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
                     second.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 16, 0, 0, 0, TimeSpan.Zero));
                     second.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
-                    second.EnergySupplier.Value.Should().Be("2323232323232");
+                    second.EnergySupplier.Should().NotBeNull();
+                    second.EnergySupplier!.Value.Should().Be("2323232323232");
                 },
                 third =>
                 {
                     third.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
                     third.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 1, 0, 0, 0, TimeSpan.Zero));
                     third.ValidTo.Should().Be(new DateTimeOffset(2021, 2, 16, 0, 0, 0, TimeSpan.Zero));
-                    third.EnergySupplier.Value.Should().Be("3434343434343");
+                    third.EnergySupplier.Should().NotBeNull();
+                    third.EnergySupplier!.Value.Should().Be("3434343434343");
                 },
                 fourth =>
                 {
                     fourth.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
                     fourth.ValidFrom.Should().Be(new DateTimeOffset(2021, 2, 16, 0, 0, 0, TimeSpan.Zero));
                     fourth.ValidTo.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
-                    fourth.EnergySupplier.Value.Should().Be("4545454545454");
+                    fourth.EnergySupplier.Should().NotBeNull();
+                    fourth.EnergySupplier!.Value.Should().Be("4545454545454");
                 },
                 // Master data from metering point (no parent id in this period)
                 first =>
@@ -304,14 +334,16 @@ public class MeteringPointMasterDataProviderTests
                     first.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
                     first.ValidFrom.Should().Be(new DateTimeOffset(2021, 3, 1, 0, 0, 0, TimeSpan.Zero));
                     first.ValidTo.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
-                    first.EnergySupplier.Value.Should().Be("1111111111111");
+                    first.EnergySupplier.Should().NotBeNull();
+                    first.EnergySupplier!.Value.Should().Be("1111111111111");
                 },
                 second =>
                 {
                     second.MeteringPointId.Value.Should().Be("period-without-and-period-with-parent-please");
                     second.ValidFrom.Should().Be(new DateTimeOffset(2021, 4, 1, 0, 0, 0, TimeSpan.Zero));
                     second.ValidTo.Should().Be(new DateTimeOffset(2021, 5, 1, 0, 0, 0, TimeSpan.Zero));
-                    second.EnergySupplier.Value.Should().Be("3333333333333");
+                    second.EnergySupplier.Should().NotBeNull();
+                    second.EnergySupplier!.Value.Should().Be("3333333333333");
                 });
     }
 

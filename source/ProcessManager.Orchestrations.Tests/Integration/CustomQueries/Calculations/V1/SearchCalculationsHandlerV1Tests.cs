@@ -297,7 +297,7 @@ public class SearchCalculationsHandlerV1Tests :
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByRunning_Then_OnlyExpectedCalculationsAreRetrieved()
+    public async Task Given_LifecycleDatasetInDatabase_When_SearchByRunning_Then_OnlyExpectedCalculationsAreRetrieved()
     {
         // Given
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
@@ -325,7 +325,7 @@ public class SearchCalculationsHandlerV1Tests :
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByQueuedAndRunning_Then_OnlyExpectedCalculationsAreRetrieved()
+    public async Task Given_LifecycleDatasetInDatabase_When_SearchByQueuedAndRunning_Then_OnlyExpectedCalculationsAreRetrieved()
     {
         // Given
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
@@ -357,7 +357,35 @@ public class SearchCalculationsHandlerV1Tests :
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByTerminationState_Then_OnlyExpectedCalculationsAreRetrieved()
+    public async Task Given_LifecycleDatasetInDatabase_When_SearchByCalculationTypeAndPending_Then_OnlyExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(new
+            Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1
+            .Orchestration.OrchestrationDescriptionBuilder());
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(new Orchestrations.Processes.
+            BRS_021.NetConsumptionCalculation.V1
+            .Orchestration.OrchestrationDescriptionBuilder());
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            CalculationTypes = [CalculationTypeQueryParameterV1.NetConsumption],
+            LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Pending],
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Assert
+        actual.Should()
+            .HaveCount(1)
+            .And.Satisfy(
+                result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsPending.Id.Value);
+    }
+
+    [Fact]
+    public async Task Given_LifecycleDatasetInDatabase_When_SearchByTerminationState_Then_OnlyExpectedCalculationsAreRetrieved()
     {
         // Given
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
@@ -383,6 +411,35 @@ public class SearchCalculationsHandlerV1Tests :
             .And.Satisfy(
                 result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsTerminatedAsSucceeded.Id.Value,
                 result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsTerminatedAsSucceeded.Id.Value);
+    }
+
+    [Fact]
+    public async Task Given_LifecycleDatasetInDatabase_When_SearchByCalculationTypeAndTerminationState_Then_OnlyExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(new
+            Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1
+            .Orchestration.OrchestrationDescriptionBuilder());
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(new Orchestrations.Processes.
+            BRS_021.NetConsumptionCalculation.V1
+            .Orchestration.OrchestrationDescriptionBuilder());
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            CalculationTypes = [CalculationTypeQueryParameterV1.ElectricalHeating],
+            LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Terminated],
+            TerminationState = ApiModel.OrchestrationInstanceTerminationState.Failed,
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Assert
+        actual.Should()
+            .HaveCount(1)
+            .And.Satisfy(
+                result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsTerminatedAsFailed.Id.Value);
     }
 
     private async Task Create_Brs_023_027_OrchestrationInstancesAsync(

@@ -39,9 +39,9 @@ internal class Orchestration_Brs_021_CapacitySettlementCalculation_V1
         // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
         _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(
             new RetryPolicy(
-                8,
-                TimeSpan.FromSeconds(30),
-                2.0));
+                maxNumberOfAttempts: 8,
+                firstRetryInterval: TimeSpan.FromSeconds(30),
+                backoffCoefficient: 2.0));
 
         _defaultTaskOptions = new TaskOptions(_defaultRetryOptions);
     }

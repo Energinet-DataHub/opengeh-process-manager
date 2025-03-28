@@ -57,16 +57,32 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                 orchestrationInstanceContext)
             .ExecuteAsync();
 
-        await new EnqueueActorMessagesStep(
-                context,
-                _defaultRetryOptions,
-                orchestrationInstanceContext)
-            .ExecuteAsync();
+        if (orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence))
+        {
+            await ChangeEnqueueActorMessagesStepToSkipped(context, orchestrationInstanceContext);
+        }
+        else
+        {
+            await new EnqueueActorMessagesStep(
+                    context,
+                    _defaultRetryOptions,
+                    orchestrationInstanceContext)
+                .ExecuteAsync();
+        }
 
         return await SetTerminateOrchestrationAsync(
             context,
             orchestrationInstanceContext.OrchestrationInstanceId,
             success: true);
+    }
+
+    private async Task ChangeEnqueueActorMessagesStepToSkipped(TaskOrchestrationContext context, OrchestrationInstanceContext orchestrationInstanceContext)
+    {
+        await context.CallActivityAsync(
+            nameof(SkipEnqueueActorMessagesStepActivity_Brs_021_ElectricalHeatingCalculation_V1),
+            new SkipEnqueueActorMessagesStepActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                orchestrationInstanceContext.OrchestrationInstanceId),
+            _defaultTaskOptions);
     }
 
     private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
@@ -89,9 +105,9 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
     }
 
     private async Task<string> SetTerminateOrchestrationAsync(
-    TaskOrchestrationContext context,
-    OrchestrationInstanceId instanceId,
-    bool success)
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        bool success)
     {
         var orchestrationTerminationState = success
             ? OrchestrationInstanceTerminationState.Succeeded

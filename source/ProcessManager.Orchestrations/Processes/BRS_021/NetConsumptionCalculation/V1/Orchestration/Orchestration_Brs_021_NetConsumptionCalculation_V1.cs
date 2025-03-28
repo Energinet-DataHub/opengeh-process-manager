@@ -89,9 +89,9 @@ internal class Orchestration_Brs_021_NetConsumptionCalculation_V1
     }
 
     private async Task<string> SetTerminateOrchestrationAsync(
-    TaskOrchestrationContext context,
-    OrchestrationInstanceId instanceId,
-    bool success)
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        bool success)
     {
         var orchestrationTerminationState = success
             ? OrchestrationInstanceTerminationState.Succeeded

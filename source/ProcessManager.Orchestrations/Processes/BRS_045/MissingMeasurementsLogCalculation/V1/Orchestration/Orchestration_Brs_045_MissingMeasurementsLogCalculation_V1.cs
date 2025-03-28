@@ -26,7 +26,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Miss
 
 internal class Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1
 {
-    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_045_MissingMeasurementsLogCalculation.V1;
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName =
+        Brs_045_MissingMeasurementsLogCalculation.V1;
 
     private readonly TaskRetryOptions _defaultRetryOptions;
 
@@ -89,9 +90,9 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1
     }
 
     private async Task<string> SetTerminateOrchestrationAsync(
-    TaskOrchestrationContext context,
-    OrchestrationInstanceId instanceId,
-    bool success)
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        bool success)
     {
         var orchestrationTerminationState = success
             ? OrchestrationInstanceTerminationState.Succeeded

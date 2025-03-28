@@ -511,7 +511,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             GridAccessProvider = GridAccessProvider,
             NeighborGridAreaOwners = [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
             ConnectionState = ElectricityMarket.Integration.Models.MasterData.ConnectionState.Connected,
-            Type = ElectricityMarket.Integration.Models.MasterData.MeteringPointType.Consumption,
+            Type = ElectricityMarket.Integration.Models.MasterData.MeteringPointType.Production,
             SubType = ElectricityMarket.Integration.Models.MasterData.MeteringPointSubType.Physical,
             Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("PT1H"),
             Unit = MeasureUnit.kWh,

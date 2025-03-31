@@ -557,6 +557,31 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.Aggregation.Id.Value);
     }
 
+    [Fact]
+    public async Task Given_WholesaleCalculationsDataset_When_SearchByCalculationTypes_Then_ExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.Aggregation,
+                CalculationTypeQueryParameterV1.WholesaleFixing],
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.Aggregation.Id.Value,
+                result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.WholesaleFixing.Id.Value);
+    }
+
     private async Task Create_Brs_023_027_OrchestrationInstancesAsync(
         (DateTimeOffset Start, DateTimeOffset End)[] periods)
     {

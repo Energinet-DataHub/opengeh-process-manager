@@ -27,7 +27,7 @@ public class StepInstanceLifecycle
 
     public StepInstanceLifecycleState State { get; private set; }
 
-    public OrchestrationStepTerminationState? TerminationState { get; private set; }
+    public StepInstanceTerminationState? TerminationState { get; private set; }
 
     /// <summary>
     /// The time when the Process Manager was used from Durable Functions to
@@ -57,17 +57,17 @@ public class StepInstanceLifecycle
         StartedAt = clock.GetCurrentInstant();
     }
 
-    public void TransitionToTerminated(IClock clock, OrchestrationStepTerminationState terminationState)
+    public void TransitionToTerminated(IClock clock, StepInstanceTerminationState terminationState)
     {
         switch (terminationState)
         {
-            case OrchestrationStepTerminationState.Succeeded:
-            case OrchestrationStepTerminationState.Failed:
+            case StepInstanceTerminationState.Succeeded:
+            case StepInstanceTerminationState.Failed:
                 if (State is not StepInstanceLifecycleState.Running)
                     throw new InvalidOperationException($"Cannot change termination state to '{terminationState}' when '{State}'.");
                 break;
 
-            case OrchestrationStepTerminationState.Skipped:
+            case StepInstanceTerminationState.Skipped:
                 if (State is not StepInstanceLifecycleState.Pending)
                     throw new InvalidOperationException($"Cannot change termination state to '{terminationState}' when '{State}'.");
                 if (CanBeSkipped == false)

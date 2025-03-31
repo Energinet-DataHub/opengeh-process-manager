@@ -38,6 +38,6 @@ internal class ExampleStep(
                     InstanceId),
                 DefaultRetryOptions);
 
-        return new StepOutput(OrchestrationStepTerminationState.Succeeded, workResult.CalculationResult);
+        return new StepOutput(StepInstanceTerminationState.Succeeded, workResult.CalculationResult);
     }
 }

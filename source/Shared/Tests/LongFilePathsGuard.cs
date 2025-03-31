@@ -17,6 +17,15 @@ using Xunit;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests;
 
+/// <summary>
+/// This test is here to ensure that Rider users does not create paths that are too long.
+/// The maximum path length is defined by visual studio. Since it handles shorter paths than Rider.
+/// The path is dependent of the local location of the repository.
+/// Hence it might fail locally but not in CI. If this happens, consider moving the repository to a shorter path.
+/// <remarks>
+/// If the max length needs to be altered, ensure that one of your Visual studio buddies can compile the code.
+/// </remarks>
+/// </summary>
 public class LongFilePathsAreNotAllowed
 {
     private static readonly int _maxPathLength = 270;
@@ -24,7 +33,7 @@ public class LongFilePathsAreNotAllowed
     private static readonly string _assemblyPrefix = "Energinet.DataHub.";
 
     [Fact]
-    public void Given_PathFromDiskToClass_When_CheckingLength_Then_MayConsistsOfLessThan270Characters()
+    public void Given_Path_When_CheckingPathFromDiskToClass_Then_PathMustBeLessThan270Characters()
     {
         var assembly = Assembly.GetAssembly(typeof(LongFilePathsAreNotAllowed))!;
 
@@ -34,13 +43,10 @@ public class LongFilePathsAreNotAllowed
 
         foreach (var type in types)
         {
-            // returns C:\git\opengeh-process-manager\source
             diskToProjectPath ??= GetDiskToProjectPath(type);
 
-            // returns ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep\CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
             var pathFromProjectToClass = GetPathFromProjectToClass(type);
 
-            // returns C:\git\opengeh-process-manager\source\ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep\CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
             var fullPathForFile = Path.Combine(diskToProjectPath, pathFromProjectToClass);
             Assert.True(
                 fullPathForFile.Length < _maxPathLength,
@@ -56,12 +62,8 @@ public class LongFilePathsAreNotAllowed
 
     private static string GetDiskToProjectPath(Type type)
     {
-        // The full path contains the bin, netX.0 and the like
-        // e.g. C:\git\opengeh-process-manager\source\ProcessManager.Orchestrations.Tests\bin\Debug\net8.0\
-        // Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep.CalculationStepGetJobRunStatusActivity_Brs_045_MissingMeasurementsLogCalculation_V1
         var fullPath = Path.GetFullPath(type.FullName!);
 
-        // returns C:\git\opengeh-process-manager\source
         var indexOfTestsPostfix = fullPath.IndexOf(_sourceFolder, StringComparison.Ordinal);
         return fullPath.Substring(0, indexOfTestsPostfix + _sourceFolder.Length);
     }

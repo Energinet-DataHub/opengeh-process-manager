@@ -2,7 +2,7 @@
 
 ## Version 1.14.0
 
-- Removed `OriginalTransactionId` from `ForwardMeteredDataInputV1`.
+- Removed `OriginalTransactionId` from `ForwardMeteredDataAcceptedV1`.
 
 ## Version 1.13.0
 

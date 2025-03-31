@@ -373,13 +373,14 @@ public class SearchCalculationsHandlerV1Tests :
 
         // Then
         actual
+            .Select(c => c.As<WholesaleCalculationResultV1>())
             .Should()
             .HaveCount(1)
             .And.SatisfyRespectively(
                 result =>
                 {
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodStartDate.Should().Be(calculation1.Start);
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodEndDate.Should().Be(calculation1.End);
+                    result.ParameterValue.PeriodStartDate.Should().Be(calculation1.Start);
+                    result.ParameterValue.PeriodEndDate.Should().Be(calculation1.End);
                 });
     }
 
@@ -419,19 +420,20 @@ public class SearchCalculationsHandlerV1Tests :
 
         // Then
         actual
-            .OrderBy(c => c.As<WholesaleCalculationResultV1>().ParameterValue.PeriodStartDate)
+            .Select(c => c.As<WholesaleCalculationResultV1>())
+            .OrderBy(c => c.ParameterValue.PeriodStartDate)
             .Should()
             .HaveCount(2)
             .And.SatisfyRespectively(
                 result =>
                 {
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodStartDate.Should().Be(calculation2.Start);
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodEndDate.Should().Be(calculation2.End);
+                    result.ParameterValue.PeriodStartDate.Should().Be(calculation2.Start);
+                    result.ParameterValue.PeriodEndDate.Should().Be(calculation2.End);
                 },
                 result =>
                 {
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodStartDate.Should().Be(calculation3.Start);
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodEndDate.Should().Be(calculation3.End);
+                    result.ParameterValue.PeriodStartDate.Should().Be(calculation3.Start);
+                    result.ParameterValue.PeriodEndDate.Should().Be(calculation3.End);
                 });
     }
 
@@ -471,24 +473,25 @@ public class SearchCalculationsHandlerV1Tests :
 
         // Then
         actual
-            .OrderBy(c => c.As<WholesaleCalculationResultV1>().ParameterValue.PeriodStartDate)
+            .Select(c => c.As<WholesaleCalculationResultV1>())
+            .OrderBy(c => c.ParameterValue.PeriodStartDate)
             .Should()
             .HaveCount(3)
             .And.SatisfyRespectively(
                 result =>
                 {
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodStartDate.Should().Be(calculation1.Start);
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodEndDate.Should().Be(calculation1.End);
+                    result.ParameterValue.PeriodStartDate.Should().Be(calculation1.Start);
+                    result.ParameterValue.PeriodEndDate.Should().Be(calculation1.End);
                 },
                 result =>
                 {
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodStartDate.Should().Be(calculation2.Start);
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodEndDate.Should().Be(calculation2.End);
+                    result.ParameterValue.PeriodStartDate.Should().Be(calculation2.Start);
+                    result.ParameterValue.PeriodEndDate.Should().Be(calculation2.End);
                 },
                 result =>
                 {
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodStartDate.Should().Be(calculation3.Start);
-                    result.As<WholesaleCalculationResultV1>().ParameterValue.PeriodEndDate.Should().Be(calculation3.End);
+                    result.ParameterValue.PeriodStartDate.Should().Be(calculation3.Start);
+                    result.ParameterValue.PeriodEndDate.Should().Be(calculation3.End);
                 });
     }
 

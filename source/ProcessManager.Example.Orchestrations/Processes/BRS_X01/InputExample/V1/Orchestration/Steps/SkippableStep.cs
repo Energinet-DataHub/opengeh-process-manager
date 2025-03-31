@@ -29,9 +29,9 @@ internal class SkippableStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override Task<OrchestrationStepTerminationState> OnExecuteAsync()
+    protected override Task<StepInstanceTerminationState> OnExecuteAsync()
     {
         // Step does nothing
-        return Task.FromResult(OrchestrationStepTerminationState.Succeeded);
+        return Task.FromResult(StepInstanceTerminationState.Succeeded);
     }
 }

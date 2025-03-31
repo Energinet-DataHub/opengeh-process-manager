@@ -43,5 +43,5 @@ internal class EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredD
 
     public sealed record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        OrchestrationStepTerminationState TerminationState);
+        StepInstanceTerminationState TerminationState);
 }

@@ -39,7 +39,7 @@ internal class TransitionOrchestrationAndStepToFailedActivity_V1(
             .ConfigureAwait(false);
 
         var step = orchestrationInstance.GetStep(input.FailedStepSequence);
-        step.Lifecycle.TransitionToTerminated(_clock, OrchestrationStepTerminationState.Failed);
+        step.Lifecycle.TransitionToTerminated(_clock, StepInstanceTerminationState.Failed);
         step.CustomState.SetFromInstance(new FailedStepCustomState(
             ErrorMessage: input.FailedStepErrorMessage));
 

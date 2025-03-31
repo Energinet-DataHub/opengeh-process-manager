@@ -156,13 +156,13 @@ internal static class OrchestrationInstanceMapperExtensions
     }
 
     private static ApiModel.OrchestrationInstance.OrchestrationStepTerminationState? MapToDto(
-        this DomainModel.OrchestrationStepTerminationState? domainEnum)
+        this DomainModel.StepInstanceTerminationState? domainEnum)
     {
         if (!domainEnum.HasValue)
             return null;
 
         return Enum
-            .TryParse<ApiModel.OrchestrationInstance.OrchestrationStepTerminationState>(
+            .TryParse<ApiModel.OrchestrationInstance.StepInstanceTerminationState>(
                 domainEnum.ToString(),
                 ignoreCase: true,
                 out var result)

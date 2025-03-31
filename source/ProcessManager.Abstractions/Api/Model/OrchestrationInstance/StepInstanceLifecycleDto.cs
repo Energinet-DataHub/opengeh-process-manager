@@ -23,6 +23,6 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationI
 /// <param name="TerminatedAt">The time when the Process Manager was used from Durable Functions to transition the state to Terminated.</param>
 public record StepInstanceLifecycleDto(
     StepInstanceLifecycleState State,
-    OrchestrationStepTerminationState? TerminationState,
+    StepInstanceTerminationState? TerminationState,
     DateTimeOffset? StartedAt,
     DateTimeOffset? TerminatedAt);

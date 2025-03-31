@@ -36,7 +36,7 @@ internal class EnqueueActorMessagesStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<OrchestrationStepTerminationState> OnExecuteAsync()
+    protected override async Task<StepInstanceTerminationState> OnExecuteAsync()
     {
         var enqueueIdempotencyKey = Context.NewGuid();
 
@@ -67,6 +67,6 @@ internal class EnqueueActorMessagesStep(
             eventName: UpdateMeteringPointConnectionStateNotifyEventV1.OrchestrationInstanceEventName,
             timeout: _actorMessagesEnqueuedTimeout);
 
-        return OrchestrationStepTerminationState.Succeeded;
+        return StepInstanceTerminationState.Succeeded;
     }
 }

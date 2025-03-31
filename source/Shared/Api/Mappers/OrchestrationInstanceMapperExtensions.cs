@@ -155,7 +155,7 @@ internal static class OrchestrationInstanceMapperExtensions
             : throw new InvalidOperationException($"Invalid State '{domainEnum}'; cannot be mapped.");
     }
 
-    private static ApiModel.OrchestrationInstance.OrchestrationStepTerminationState? MapToDto(
+    private static ApiModel.OrchestrationInstance.StepInstanceTerminationState? MapToDto(
         this DomainModel.StepInstanceTerminationState? domainEnum)
     {
         if (!domainEnum.HasValue)

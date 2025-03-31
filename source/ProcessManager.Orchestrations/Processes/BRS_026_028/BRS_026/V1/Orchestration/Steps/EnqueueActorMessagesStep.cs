@@ -35,7 +35,7 @@ internal class EnqueueActorMessagesStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
-    protected override async Task<OrchestrationStepTerminationState> OnExecuteAsync()
+    protected override async Task<StepInstanceTerminationState> OnExecuteAsync()
     {
         var idempotencyKey = Context.NewGuid();
         if (validationResult.IsValid)
@@ -67,6 +67,6 @@ internal class EnqueueActorMessagesStep(
             eventName: RequestCalculatedEnergyTimeSeriesNotifyEventV1.OrchestrationInstanceEventName,
             timeout: _actorMessagesEnqueuedTimeout);
 
-        return OrchestrationStepTerminationState.Succeeded;
+        return StepInstanceTerminationState.Succeeded;
     }
 }

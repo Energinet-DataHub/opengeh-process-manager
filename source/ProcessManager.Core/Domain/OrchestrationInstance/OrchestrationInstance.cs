@@ -165,7 +165,7 @@ public class OrchestrationInstance
     /// <param name="terminationState">The state of the termination step (Succeeded, failed etc.)</param>
     /// <param name="clock"></param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if a step with the given <paramref name="sequence"/> isn't found.</exception>
-    public void TransitionStepToTerminated(int sequence, OrchestrationStepTerminationState terminationState, IClock clock)
+    public void TransitionStepToTerminated(int sequence, StepInstanceTerminationState terminationState, IClock clock)
     {
         var step = GetStep(sequence);
         step.Lifecycle.TransitionToTerminated(clock, terminationState);
@@ -219,7 +219,7 @@ public class OrchestrationInstance
 
             if (skipStepsBySequence.Contains(stepInstance.Sequence))
             {
-                stepInstance.Lifecycle.TransitionToTerminated(clock, OrchestrationStepTerminationState.Skipped);
+                stepInstance.Lifecycle.TransitionToTerminated(clock, StepInstanceTerminationState.Skipped);
             }
 
             orchestrationInstance._steps.Add(stepInstance);

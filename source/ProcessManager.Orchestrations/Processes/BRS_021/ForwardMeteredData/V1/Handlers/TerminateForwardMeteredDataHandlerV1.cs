@@ -65,7 +65,7 @@ public class TerminateForwardMeteredDataHandlerV1(
     {
         var businessValidationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep);
 
-        var succeededBusinessValidation = businessValidationStep.Lifecycle is { TerminationState: OrchestrationStepTerminationState.Succeeded };
+        var succeededBusinessValidation = businessValidationStep.Lifecycle is { TerminationState: StepInstanceTerminationState.Succeeded };
         if (succeededBusinessValidation)
             orchestrationInstance.Lifecycle.TransitionToSucceeded(_clock);
         else

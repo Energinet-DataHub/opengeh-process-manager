@@ -82,22 +82,34 @@ internal class SearchCalculationsHandlerV1(
         var calculationInput = orchestrationInstance.ParameterValue.AsType<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
         var calculationTypesAsInt = query.CalculationTypes?.Select(type => (int)type).ToList();
 
-        return (calculationTypesAsInt == null || calculationTypesAsInt.Contains((int)calculationInput.CalculationType)) &&
-                (query.GridAreaCodes == null || calculationInput.GridAreaCodes.Any(query.GridAreaCodes.Contains)) &&
-                // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
-                // where a = query and b = calculationInput.
-                // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
-                (query.PeriodStartDate == null || query.PeriodStartDate < calculationInput.PeriodEndDate) &&
-                (query.PeriodEndDate == null || calculationInput.PeriodStartDate < query.PeriodEndDate) &&
-                (query.IsInternalCalculation == null || calculationInput.IsInternalCalculation == query.IsInternalCalculation);
+        return
+            (calculationTypesAsInt == null || calculationTypesAsInt.Contains((int)calculationInput.CalculationType)) &&
+            (query.GridAreaCodes == null || calculationInput.GridAreaCodes.Any(query.GridAreaCodes.Contains)) &&
+            // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
+            // where a = query and b = calculationInput.
+            // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
+            (query.PeriodStartDate == null || query.PeriodStartDate < calculationInput.PeriodEndDate) &&
+            (query.PeriodEndDate == null || calculationInput.PeriodStartDate < query.PeriodEndDate) &&
+            (query.IsInternalCalculation == null || calculationInput.IsInternalCalculation == query.IsInternalCalculation);
     }
 
     private static bool FilterBrs_021_CapacitySettlement(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)
     {
-        var input = orchestrationInstance.ParameterValue.AsType<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
+        var calculationInput = orchestrationInstance.ParameterValue.AsType<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
 
-        // TODO: Update when we know how to filter using PeriodStartDate + PeriodEndData
-        return true;
+        var year = (int)calculationInput.Year;
+        var month = (int)calculationInput.Month;
+
+        // TODO: Must be changed to match daylight saving, and midnight
+        var calculationInputPeriodStart = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
+        var calculationInputPeriodEnd = new DateTimeOffset(year, month, DateTime.DaysInMonth(year, month), 23, 59, 59, TimeSpan.Zero);
+
+        return
+            // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
+            // where a = query and b = calculationInput.
+            // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
+            (query.PeriodStartDate == null || query.PeriodStartDate < calculationInputPeriodEnd) &&
+            (query.PeriodEndDate == null || calculationInputPeriodStart < query.PeriodEndDate);
     }
 
     private static ICalculationsQueryResultV1 MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)

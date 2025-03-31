@@ -57,11 +57,7 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                 orchestrationInstanceContext)
             .ExecuteAsync();
 
-        if (orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence))
-        {
-            await ChangeEnqueueActorMessagesStepToSkipped(context, orchestrationInstanceContext);
-        }
-        else
+        if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence))
         {
             await new EnqueueActorMessagesStep(
                     context,
@@ -74,15 +70,6 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
             context,
             orchestrationInstanceContext.OrchestrationInstanceId,
             success: true);
-    }
-
-    private async Task ChangeEnqueueActorMessagesStepToSkipped(TaskOrchestrationContext context, OrchestrationInstanceContext orchestrationInstanceContext)
-    {
-        await context.CallActivityAsync(
-            nameof(SkipEnqueueActorMessagesStepActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            new SkipEnqueueActorMessagesStepActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
-                orchestrationInstanceContext.OrchestrationInstanceId),
-            _defaultTaskOptions);
     }
 
     private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)

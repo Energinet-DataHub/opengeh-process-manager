@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -43,16 +44,23 @@ public class StartCalculationHandlerV1Tests
 
     private OrchestrationInstanceId OrchestrationInstanceId { get; }
 
-    [Fact(Skip = "The test is failing, might be related to the fact that we have moved into summertime period.")]
+    [Fact]
     public async Task Given_CommandWithValidParameters_When_Handle_Then_NoExceptions()
     {
         // Arrange
         var userIdentity = CreateUserIdentity();
         var offset = CreateDkOffset();
+        var timeHelper = new TimeHelper(DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
+        var now = DateTime.UtcNow;
+
+        var startDate = Instant.FromDateTimeUtc(DateTime.SpecifyKind(now, DateTimeKind.Utc));
+        startDate = timeHelper.GetMidnightZonedDateTime(startDate);
+        var endDate = Instant.FromDateTimeUtc(DateTime.SpecifyKind(now.AddDays(1), DateTimeKind.Utc));
+        endDate = timeHelper.GetMidnightZonedDateTime(endDate);
 
         var calculationInputV1 = new CalculationInputV1(
-            new DateTimeOffset(2025, 1, 1, 23, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2025, 1, 2, 23, 0, 0, TimeSpan.Zero),
+            startDate.ToDateTimeOffset(),
+            endDate.ToDateTimeOffset(),
             ["302"]);
         var command = new StartCalculationCommandV1(userIdentity, calculationInputV1);
         var sut = new StartCalculationHandlerV1(DateTimeZone.ForOffset(offset), ManagerMock.Object);

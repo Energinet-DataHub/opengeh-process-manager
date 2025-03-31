@@ -18,11 +18,12 @@ using Xunit;
 namespace Energinet.DataHub.ProcessManager.Shared.Tests;
 
 /// <summary>
-/// This test is here to ensure that Rider users does not create paths that are too long.
-/// The maximum path length is defined by visual studio. Since it handles shorter paths than Rider.
+/// This test is here to ensure that Visual Studio can compile the code.
+/// The reason being that Visual studio has a limit on the path lengths
+/// (https://developercommunity.visualstudio.com/t/allow-building-running-and-debugging-a-net-applica/351628).
+/// <remarks>
 /// The path is dependent of the local location of the repository.
 /// Hence it might fail locally but not in CI. If this happens, consider moving the repository to a shorter path.
-/// <remarks>
 /// If the max length needs to be altered, ensure that one of your Visual studio buddies can compile the code.
 /// </remarks>
 /// </summary>

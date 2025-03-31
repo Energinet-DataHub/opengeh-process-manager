@@ -636,35 +636,38 @@ public class SearchCalculationsHandlerV1Tests :
     {
         var orchestrationDescription = _wholesaleCalculationDescriptionBuilder.Build();
 
-        var aggregationInput = new Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1(
-            CalculationType: Abstractions.Processes.BRS_023_027.V1.Model.CalculationType.Aggregation,
-            GridAreaCodes: ["111"],
-            // 20/2/2025
-            PeriodStartDate: new DateTimeOffset(2025, 02, 19, 23, 00, 00, TimeSpan.Zero),
-            PeriodEndDate: new DateTimeOffset(2025, 02, 20, 23, 00, 00, TimeSpan.Zero),
-            // Internal
-            IsInternalCalculation: true);
-        var aggregation = CreateWholesaleCalculation(orchestrationDescription, aggregationInput);
+        var aggregation = CreateWholesaleCalculation(
+            orchestrationDescription,
+            new Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1(
+                CalculationType: Abstractions.Processes.BRS_023_027.V1.Model.CalculationType.Aggregation,
+                GridAreaCodes: ["111"],
+                // 20/2/2025
+                PeriodStartDate: new DateTimeOffset(2025, 02, 19, 23, 00, 00, TimeSpan.Zero),
+                PeriodEndDate: new DateTimeOffset(2025, 02, 20, 23, 00, 00, TimeSpan.Zero),
+                // Internal
+                IsInternalCalculation: true));
 
-        var balanceFixingInput = new Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1(
-            CalculationType: Abstractions.Processes.BRS_023_027.V1.Model.CalculationType.BalanceFixing,
-            GridAreaCodes: ["222"],
-            // 21/2/2025
-            PeriodStartDate: new DateTimeOffset(2025, 02, 20, 23, 00, 00, TimeSpan.Zero),
-            PeriodEndDate: new DateTimeOffset(2025, 02, 21, 23, 00, 00, TimeSpan.Zero),
-            // External
-            IsInternalCalculation: false);
-        var balanceFixing = CreateWholesaleCalculation(orchestrationDescription, balanceFixingInput);
+        var balanceFixing = CreateWholesaleCalculation(
+            orchestrationDescription,
+            new Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1(
+                CalculationType: Abstractions.Processes.BRS_023_027.V1.Model.CalculationType.BalanceFixing,
+                GridAreaCodes: ["222"],
+                // 21/2/2025
+                PeriodStartDate: new DateTimeOffset(2025, 02, 20, 23, 00, 00, TimeSpan.Zero),
+                PeriodEndDate: new DateTimeOffset(2025, 02, 21, 23, 00, 00, TimeSpan.Zero),
+                // External
+                IsInternalCalculation: false));
 
-        var wholesaleFixingInput = new Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1(
-            CalculationType: Abstractions.Processes.BRS_023_027.V1.Model.CalculationType.WholesaleFixing,
-            GridAreaCodes: ["111", "222"],
-            // 23/2/2025 - 25/2/2025 (not inclusive)
-            PeriodStartDate: new DateTimeOffset(2025, 02, 22, 23, 00, 00, TimeSpan.Zero),
-            PeriodEndDate: new DateTimeOffset(2025, 02, 24, 23, 00, 00, TimeSpan.Zero),
-            // External
-            IsInternalCalculation: false);
-        var wholesaleFixing = CreateWholesaleCalculation(orchestrationDescription, wholesaleFixingInput);
+        var wholesaleFixing = CreateWholesaleCalculation(
+            orchestrationDescription,
+            new Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1(
+                CalculationType: Abstractions.Processes.BRS_023_027.V1.Model.CalculationType.WholesaleFixing,
+                GridAreaCodes: ["111", "222"],
+                // 23/2/2025 - 25/2/2025 (not inclusive)
+                PeriodStartDate: new DateTimeOffset(2025, 02, 22, 23, 00, 00, TimeSpan.Zero),
+                PeriodEndDate: new DateTimeOffset(2025, 02, 24, 23, 00, 00, TimeSpan.Zero),
+                // External
+                IsInternalCalculation: false));
 
         await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
         dbContext.OrchestrationDescriptions.Add(orchestrationDescription);

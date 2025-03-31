@@ -56,6 +56,10 @@ public class SearchCalculationsHandlerV1Tests :
         Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1
         .Orchestration.OrchestrationDescriptionBuilder();
 
+    private readonly IOrchestrationDescriptionBuilder _capacitySettlementDescriptionBuilder = new
+        Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1
+        .Orchestration.OrchestrationDescriptionBuilder();
+
     public SearchCalculationsHandlerV1Tests(ProcessManagerDatabaseFixture fixture)
     {
         _fixture = fixture;
@@ -583,6 +587,49 @@ public class SearchCalculationsHandlerV1Tests :
             .And.Satisfy(
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.Aggregation.Id.Value,
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.WholesaleFixing.Id.Value);
+    }
+
+    private async Task<(
+            OrchestrationInstance November2024,
+            OrchestrationInstance February2025)>
+        CreateCapacitySettlementCalculationsAsync()
+    {
+        var orchestrationDescription = _capacitySettlementDescriptionBuilder.Build();
+
+        var november2024 = CreateCapacitySettlementCalculation(
+            orchestrationDescription,
+            new Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1(
+                Year: 2024,
+                Month: 10));
+
+        var february2025 = CreateCapacitySettlementCalculation(
+            orchestrationDescription,
+            new Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1(
+                Year: 2025,
+                Month: 2));
+
+        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
+        dbContext.OrchestrationDescriptions.Add(orchestrationDescription);
+        dbContext.OrchestrationInstances.Add(november2024);
+        dbContext.OrchestrationInstances.Add(february2025);
+        await dbContext.SaveChangesAsync();
+
+        return (november2024, february2025);
+    }
+
+    private OrchestrationInstance CreateCapacitySettlementCalculation(
+        OrchestrationDescription orchestrationDescription,
+        Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1 input)
+    {
+        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
+            identity: _userIdentity.MapToDomain(),
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+
+        orchestrationInstance.ParameterValue.SetFromInstance(input);
+
+        return orchestrationInstance;
     }
 
     private async Task Create_Brs_023_027_OrchestrationInstancesAsync(

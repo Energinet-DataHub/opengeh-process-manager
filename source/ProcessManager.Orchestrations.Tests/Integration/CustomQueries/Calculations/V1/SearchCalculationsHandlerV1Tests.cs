@@ -589,14 +589,110 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.WholesaleFixing.Id.Value);
     }
 
+    [Fact]
+    public async Task Given_CapacitySettlementDataset_When_SearchByPeriodWhichDoesNotContainCalculations_Then_ResultIsEmpty()
+    {
+        // Given
+        var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            // Query for 1/9/2024 - 1/10/2024 (not inclusive)
+            PeriodStartDate = new DateTimeOffset(2024, 8, 31, 22, 00, 00, TimeSpan.Zero), // Summertime
+            PeriodEndDate = new DateTimeOffset(2024, 9, 30, 22, 00, 00, TimeSpan.Zero), // Summertime
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .BeEmpty();
+    }
+
+    [Fact]
+    public async Task Given_CapacitySettlementDataset_When_SearchByPeriodWhichFullyContainsCalculations_Then_AllCalculationsAreRetrieved()
+    {
+        // Given
+        var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            // Query for 1/9/2024 - 1/3/2025 (not inclusive)
+            PeriodStartDate = new DateTimeOffset(2024, 8, 31, 22, 00, 00, TimeSpan.Zero), // Summertime
+            PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.October2024.Id.Value,
+                result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.February2025.Id.Value);
+    }
+
+    [Fact]
+    public async Task Given_CapacitySettlementDataset_When_SearchByPeriodWhichFullyContainsOctober2024_Then_October2024IsRetrieved()
+    {
+        // Given
+        var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            // Query for 1/9/2024 - 1/11/2024 (not inclusive)
+            PeriodStartDate = new DateTimeOffset(2024, 8, 31, 22, 00, 00, TimeSpan.Zero), // Summertime
+            PeriodEndDate = new DateTimeOffset(2024, 10, 31, 23, 00, 00, TimeSpan.Zero), // Wintertime
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.October2024.Id.Value);
+    }
+
+    [Fact]
+    public async Task Given_CapacitySettlementDataset_When_SearchByPeriodWhichPartlyContainsAllCalculations_Then_AllCalculationsAreRetrieved()
+    {
+        // Given
+        var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            // Query for 11/10/2024 - 3/2/2024 (not inclusive)
+            PeriodStartDate = new DateTimeOffset(2024, 10, 10, 22, 00, 00, TimeSpan.Zero), // Summertime
+            PeriodEndDate = new DateTimeOffset(2025, 2, 2, 23, 00, 00, TimeSpan.Zero), // Wintertime
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.October2024.Id.Value,
+                result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.February2025.Id.Value);
+    }
+
     private async Task<(
-            OrchestrationInstance November2024,
+            OrchestrationInstance October2024,
             OrchestrationInstance February2025)>
-        CreateCapacitySettlementCalculationsAsync()
+        SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync()
     {
         var orchestrationDescription = _capacitySettlementDescriptionBuilder.Build();
 
-        var november2024 = CreateCapacitySettlementCalculation(
+        var october2024 = CreateCapacitySettlementCalculation(
             orchestrationDescription,
             new Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1(
                 Year: 2024,
@@ -610,11 +706,11 @@ public class SearchCalculationsHandlerV1Tests :
 
         await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
         dbContext.OrchestrationDescriptions.Add(orchestrationDescription);
-        dbContext.OrchestrationInstances.Add(november2024);
+        dbContext.OrchestrationInstances.Add(october2024);
         dbContext.OrchestrationInstances.Add(february2025);
         await dbContext.SaveChangesAsync();
 
-        return (november2024, february2025);
+        return (october2024, february2025);
     }
 
     private OrchestrationInstance CreateCapacitySettlementCalculation(

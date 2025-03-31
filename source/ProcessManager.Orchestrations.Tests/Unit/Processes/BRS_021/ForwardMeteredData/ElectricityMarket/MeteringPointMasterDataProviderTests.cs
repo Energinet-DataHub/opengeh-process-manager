@@ -166,7 +166,7 @@ public class MeteringPointMasterDataProviderTests
 
     [Fact]
     public async Task
-        Given_TwoMasterDataWithOneFaultyEnergySuppliers_When_GetMasterData_Then_NonFaultMasterDataReturned()
+        Given_TwoMasterDataWithOneFaultyEnergySuppliers_When_GetMasterData_Then_AllMasterDataReturned()
     {
         var result = await _sut.GetMasterData(
             "faulty-two-master-data-please",

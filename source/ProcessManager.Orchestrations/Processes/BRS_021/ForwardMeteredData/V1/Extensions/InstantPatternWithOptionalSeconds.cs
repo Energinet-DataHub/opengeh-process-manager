@@ -22,8 +22,11 @@ public class InstantPatternWithOptionalSeconds
 {
     /// <summary>
     /// Supported formats:
+    /// Cim formats
     /// yyyy-MM-ddTHH:mm'Z'
+    /// Ebix formats
     /// yyyy-MM-ddTHH:mm:ss'Z'
+    /// yyyy-MM-ddTHH:mm:ss.fffffff'Z'
     /// </summary>
     /// <param name="dateTime"></param>
     public static ParseResult<Instant> Parse(string dateTime)
@@ -34,6 +37,8 @@ public class InstantPatternWithOptionalSeconds
                 { InstantPattern.Create("yyyy-MM-ddTHH:mm'Z'", CultureInfo.InvariantCulture), _ => false },
                 // allowed to incl seconds
                 { InstantPattern.Create("yyyy-MM-ddTHH:mm:ss'Z'", CultureInfo.InvariantCulture), _ => false },
+                // allowed to incl seconds and fractional seconds
+                { InstantPattern.Create("yyyy-MM-ddTHH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture), _ => false },
             }
             .Build();
         return pattern.Parse(dateTime);

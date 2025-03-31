@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -64,7 +65,9 @@ public class SearchCalculationsHandlerV1Tests :
     {
         _fixture = fixture;
         _readerContext = fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
-        _sut = new SearchCalculationsHandlerV1(_readerContext);
+
+        var timeHelper = new TimeHelper(DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
+        _sut = new SearchCalculationsHandlerV1(_readerContext, timeHelper);
     }
 
     public async Task InitializeAsync()
@@ -655,7 +658,7 @@ public class SearchCalculationsHandlerV1Tests :
         // Then
         actual
             .Should()
-            .HaveCount(2)
+            .HaveCount(1)
             .And.Satisfy(
                 result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.October2024.Id.Value);
     }

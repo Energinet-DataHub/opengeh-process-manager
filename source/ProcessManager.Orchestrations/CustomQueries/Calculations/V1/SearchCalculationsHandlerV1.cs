@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -28,10 +29,12 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 
 internal class SearchCalculationsHandlerV1(
-    ProcessManagerReaderContext readerContext) :
+    ProcessManagerReaderContext readerContext,
+    TimeHelper timeHelper) :
         ISearchOrchestrationInstancesQueryHandler<CalculationsQueryV1, ICalculationsQueryResultV1>
 {
     private readonly ProcessManagerReaderContext _readerContext = readerContext;
+    private readonly TimeHelper _timeHelper = timeHelper;
 
     public async Task<IReadOnlyCollection<ICalculationsQueryResultV1>> HandleAsync(CalculationsQueryV1 query)
     {
@@ -79,7 +82,8 @@ internal class SearchCalculationsHandlerV1(
 
     private static bool FilterBrs_023_027(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)
     {
-        var calculationInput = orchestrationInstance.ParameterValue.AsType<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
+        var calculationInput = orchestrationInstance.ParameterValue
+            .AsType<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
         var calculationTypesAsInt = query.CalculationTypes?.Select(type => (int)type).ToList();
 
         return
@@ -91,25 +95,6 @@ internal class SearchCalculationsHandlerV1(
             (query.PeriodStartDate == null || query.PeriodStartDate < calculationInput.PeriodEndDate) &&
             (query.PeriodEndDate == null || calculationInput.PeriodStartDate < query.PeriodEndDate) &&
             (query.IsInternalCalculation == null || calculationInput.IsInternalCalculation == query.IsInternalCalculation);
-    }
-
-    private static bool FilterBrs_021_CapacitySettlement(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)
-    {
-        var calculationInput = orchestrationInstance.ParameterValue.AsType<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
-
-        var year = (int)calculationInput.Year;
-        var month = (int)calculationInput.Month;
-
-        // TODO: Must be changed to match daylight saving, and midnight
-        var calculationInputPeriodStart = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
-        var calculationInputPeriodEnd = new DateTimeOffset(year, month, DateTime.DaysInMonth(year, month), 23, 59, 59, TimeSpan.Zero);
-
-        return
-            // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
-            // where a = query and b = calculationInput.
-            // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
-            (query.PeriodStartDate == null || query.PeriodStartDate < calculationInputPeriodEnd) &&
-            (query.PeriodEndDate == null || calculationInputPeriodStart < query.PeriodEndDate);
     }
 
     private static ICalculationsQueryResultV1 MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
@@ -153,6 +138,30 @@ internal class SearchCalculationsHandlerV1(
             default:
                 throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
         }
+    }
+
+    private bool FilterBrs_021_CapacitySettlement(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)
+    {
+        var calculationInput = orchestrationInstance.ParameterValue
+            .AsType<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
+
+        var year = (int)calculationInput.Year;
+        var month = (int)calculationInput.Month;
+
+        var startDate = Instant.FromDateTimeOffset(new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero));
+        startDate = _timeHelper.GetMidnightZonedDateTime(startDate);
+        var calculationInputPeriodStart = startDate.ToDateTimeOffset();
+
+        var endDate = Instant.FromDateTimeOffset(new DateTimeOffset(year, month, DateTime.DaysInMonth(year, month), 23, 59, 59, TimeSpan.Zero));
+        endDate = _timeHelper.GetMidnightZonedDateTime(endDate);
+        var calculationInputPeriodEnd = endDate.ToDateTimeOffset();
+
+        return
+            // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
+            // where a = query and b = calculationInput.
+            // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
+            (query.PeriodStartDate == null || query.PeriodStartDate < calculationInputPeriodEnd) &&
+            (query.PeriodEndDate == null || calculationInputPeriodStart < query.PeriodEndDate);
     }
 
     /// <summary>

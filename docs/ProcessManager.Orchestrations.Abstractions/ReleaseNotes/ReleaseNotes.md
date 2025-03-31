@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.15.0
+
+- Removed `OriginalTransactionId` from `ForwardMeteredDataAcceptedV1`.
+
 ## Version 1.14.0
 
 - Add `InternalUse` MeteringPointType to ValueObject `MeteringPointType.cs`.

@@ -271,10 +271,10 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<TItem?> SearchOrchestrationInstanceByCustomQueryAsync<TItem>(
-        SearchOrchestrationInstanceByCustomQuery<TItem> query,
+    public async Task<TResultItem> SearchOrchestrationInstanceByCustomQueryAsync<TResultItem>(
+        SearchOrchestrationInstanceByCustomQuery<TResultItem> query,
         CancellationToken cancellationToken)
-            where TItem : class
+            where TResultItem : class?
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
@@ -294,10 +294,10 @@ internal class ProcessManagerClient : IProcessManagerClient
         // Default serialization using 'OkObjectResult' doesn't perform Json Polymorphic correct if we
         // use the type directly; so we use a list as a container.
         var orchestrationInstances = await actualResponse.Content
-            .ReadFromJsonAsync<IReadOnlyCollection<TItem>>(cancellationToken)
+            .ReadFromJsonAsync<IReadOnlyCollection<TResultItem>>(cancellationToken)
             .ConfigureAwait(false);
 
-        return orchestrationInstances!.FirstOrDefault();
+        return orchestrationInstances!.FirstOrDefault()!;
     }
 
     /// <inheritdoc/>

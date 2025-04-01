@@ -21,17 +21,20 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 /// </summary>
 /// <typeparam name="TQuery">The type of the query.</typeparam>
 /// <typeparam name="TResultItem">
-/// The result type of the item returned.
+/// The result type of the item returned (can be nullable).
 /// Must be a JSON serializable type.
 /// </typeparam>
 public interface ISearchOrchestrationInstanceQueryHandler<TQuery, TResultItem>
     where TQuery : SearchOrchestrationInstanceByCustomQuery<TResultItem>
-    where TResultItem : class
+    where TResultItem : class?
 {
     /// <summary>
     /// Handles a query for searching a single orchestration instance.
     /// </summary>
     /// <param name="query">The query to handle.</param>
-    /// <returns>Returns a result item for the matching orchestration instance, if any is found.</returns>
+    /// <returns>
+    /// Returns a result item (can be nullable) for the matching orchestration instance,
+    /// if any is found.
+    /// </returns>
     Task<TResultItem> HandleAsync(TQuery query);
 }

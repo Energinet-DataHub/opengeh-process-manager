@@ -17,16 +17,16 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Base class for implementing custom queries for searching a single orchestration instance.
+/// Base class for implementing custom queries for searching a single (nullable) orchestration instance.
 /// Must be JSON serializable.
 /// </summary>
-/// <typeparam name="TItem">
-/// The result type of the item returned.
+/// <typeparam name="TResultItem">
+/// The result type of the item returned (can be nullable).
 /// Must be a JSON serializable type.
 /// </typeparam>
-public abstract record SearchOrchestrationInstanceByCustomQuery<TItem>
+public abstract record SearchOrchestrationInstanceByCustomQuery<TResultItem>
     : OrchestrationInstanceRequest<UserIdentityDto>
-        where TItem : class
+        where TResultItem : class?
 {
     /// <summary>
     /// Construct query.

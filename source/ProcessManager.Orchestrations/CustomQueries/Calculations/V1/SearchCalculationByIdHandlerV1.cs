@@ -23,11 +23,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculat
 
 internal class SearchCalculationByIdHandlerV1(
     ProcessManagerReaderContext readerContext) :
-        ISearchOrchestrationInstanceQueryHandler<CalculationByIdQueryV1, ICalculationsQueryResultV1>
+        ISearchOrchestrationInstanceQueryHandler<CalculationByIdQueryV1, ICalculationsQueryResultV1?>
 {
     private readonly ProcessManagerReaderContext _readerContext = readerContext;
 
-    public async Task<ICalculationsQueryResultV1> HandleAsync(CalculationByIdQueryV1 query)
+    public async Task<ICalculationsQueryResultV1?> HandleAsync(CalculationByIdQueryV1 query)
     {
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         //
@@ -44,7 +44,7 @@ internal class SearchCalculationByIdHandlerV1(
             .ConfigureAwait(false);
 
         return item == default
-            ? null!
+            ? null
             : CalculationsQueryResultMapperV1.MapToDto(item.UniqueName, item.Instance);
     }
 

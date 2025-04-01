@@ -26,6 +26,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -43,6 +44,10 @@ var host = new HostBuilder()
             {
                 settings.Mode = DfmMode.ReadOnly;
             });
+    })
+    .ConfigureAppConfiguration((context, config) =>
+    {
+        context.AddConfiguration(config);
     })
     .ConfigureServices((context, services) =>
     {
@@ -73,6 +78,9 @@ var host = new HostBuilder()
 
         // Time component
         services.AddTimeComponent();
+
+        // Azure App Configuration
+        services.AddAzureAppConfiguration();
 
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);

@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 /// of a feature flag configuration is the enum value's name, prefixed with "FeatureManagement__",
 /// i.e. "FeatureManagement__EnableOrchestrationDescriptionBreakingChanges".
 /// </summary>
-public enum FeatureFlag
+public static class FeatureFlag
 {
     /// <summary>
     /// <p>THIS FEATURE MUST NOT BE USED ON PRE-PROD AND PROD!</p>
@@ -35,42 +35,42 @@ public enum FeatureFlag
     /// actual orchestration. If these errors were not silenced in the environment in which these tests are executed,
     /// the log and dead-letter queue for the PM core will be flooded with false errors.
     /// </summary>
-    SilentMode,
+    public const string SilentMode = "SilentMode";
 
     /// <summary>
     /// Enables the use of the BRS_021_ForwardMeteredData business validation for metering points.
     /// If this feature flag is enabled, the business validation rule will return a business validation error
     /// if the metering point does not exist.
     /// </summary>
-    EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint,
+    public const string EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint = "EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint";
 
     /// <summary>
     /// Enables enqueue messages for the orchestration BRS_021_ElectricalHeatingCalculation.
     /// If this flag is enabled, electrical heating messages will be generated and enqueued.
     /// </summary>
-    EnableBrs021ElectricalHeatingEnqueueMessages,
+    public const string EnableBrs021ElectricalHeatingEnqueueMessages = "PM27-ELECTRICALHEATING";
 
     /// <summary>
     /// Enables enqueue messages for the orchestration BRS_021_CapacitySettlementCalculation.
     /// If this flag is enabled, capacity settlement messages will be generated and enqueued.
     /// </summary>
-    EnableBrs021CapacitySettlementEnqueueMessages,
+    public const string EnableBrs021CapacitySettlementEnqueueMessages = "PM11-CAPACITYSETTLEMENT";
 
     /// <summary>
     /// Enables enqueue messages for the orchestration BRS_021_NetConsumptionCalculation.
     /// If this flag is enabled, net consumption (group 6) messages will be generated and enqueued.
     /// </summary>
-    EnableBrs021NetConsumptionEnqueueMessages,
+    public const string EnableBrs021NetConsumptionEnqueueMessages = "PM26-NETCONSUMPTION";
 
     /// <summary>
     /// Enables enqueue messages for the orchestration BRS_045_MissingMeasurementsLogCalculation.
     /// If this flag is enabled, missing measurements log messages will be generated and enqueued.
     /// </summary>
-    EnableBrs045MissingMeasurementsLogEnqueueMessages,
+    public const string EnableBrs045MissingMeasurementsLogEnqueueMessages = "PM34-MISSINGDATALOG";
 
     /// <summary>
     /// Enables enqueue messages for the orchestration BRS_045_MissingMeasurementsLogOnDemandCalculation.
     /// If this flag is enabled, missing measurements log on demand messages will be generated and enqueued.
     /// </summary>
-    EnableBrs045MissingMeasurementsLogOnDemandEnqueueMessages,
+    public const string EnableBrs045MissingMeasurementsLogOnDemandEnqueueMessages = "PM34-MISSINGDATALOG";
 }

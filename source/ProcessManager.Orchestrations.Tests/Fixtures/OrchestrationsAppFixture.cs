@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using AutoFixture;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
@@ -22,6 +23,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.AppConfiguration;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
@@ -94,6 +96,8 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
+
+        AppConfigurationClient = new AppConfigurationClient(IntegrationTestConfiguration.Configuration["AZURE-APP-CONFIGURATION-ENDPOINT"]!, IntegrationTestConfiguration.Credential);
     }
 
     public IntegrationTestConfiguration IntegrationTestConfiguration { get; }
@@ -126,6 +130,8 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         Guid.NewGuid(),
         DefaultActorIdentity.ActorNumber,
         DefaultActorIdentity.ActorRole);
+
+    public AppConfigurationClient AppConfigurationClient { get; private set; }
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 

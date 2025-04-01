@@ -88,13 +88,15 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData("false", OrchestrationStepTerminationState.Skipped)]
-    [InlineData("true", OrchestrationStepTerminationState.Succeeded)]
-    public async Task Calculation_WhenStarted_CanMonitorLifecycle(string enabledEnqueue, OrchestrationStepTerminationState expectedStepState)
+    [InlineData(true, OrchestrationStepTerminationState.Skipped)]
+    [InlineData(false, OrchestrationStepTerminationState.Succeeded)]
+    public async Task Calculation_WhenStarted_CanMonitorLifecycle(bool enableFeatureFlag, OrchestrationStepTerminationState expectedStepState)
     {
-        // Set the feature flag to enable or disable the enqueue step
-        var environmentVariables = new Dictionary<string, string> { { $"FeatureManagement__{nameof(FeatureFlag.EnableBrs021ElectricalHeatingEnqueueMessages)}", enabledEnqueue } };
-        Fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges(environmentVariables);
+        // Set the feature flag to true to enable the message enqueue step
+        await Fixture.AppConfigurationClient.SetFeatureFlagAsync(FeatureFlag.EnableBrs021ElectricalHeatingEnqueueMessages, enableFeatureFlag);
+
+        // Wait for the feature flag to be applied (currently it takes 5 seconds).
+        await Task.Delay(5000);
 
         // Mocking the databricks api. Forcing it to return a terminated successful job status
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(

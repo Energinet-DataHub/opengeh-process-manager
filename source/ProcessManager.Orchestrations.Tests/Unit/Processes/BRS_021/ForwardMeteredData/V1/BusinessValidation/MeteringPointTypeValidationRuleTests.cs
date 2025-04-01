@@ -22,12 +22,12 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
-public class ResolutionValidationRuleTests
+public class MeteringPointTypeValidationRuleTests
 {
-    private readonly ResolutionValidationRule _sut = new();
+    private readonly MeteringPointTypeValidationRule _sut = new();
 
     [Fact]
-    public async Task Given_Validate_When_NoMasterData_Then_NoValidationError()
+    public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
@@ -41,13 +41,30 @@ public class ResolutionValidationRuleTests
     }
 
     [Theory]
-    [InlineData("QuarterHourly")]
-    [InlineData("Hourly")]
-    [InlineData("Monthly")]
-    public async Task Given_Validate_When_ResolutionIsValid_Then_NoValidationError(string resolution)
+    [InlineData("Production")]
+    [InlineData("Consumption")]
+    [InlineData("Exchange")]
+    [InlineData("VeProduction")]
+    [InlineData("Analysis")]
+    [InlineData("SurplusProductionGroup6")]
+    [InlineData("NetProduction")]
+    [InlineData("SupplyToGrid")]
+    [InlineData("ConsumptionFromGrid")]
+    [InlineData("WholesaleServicesInformation")]
+    [InlineData("OwnProduction")]
+    [InlineData("NetFromGrid")]
+    [InlineData("NetToGrid")]
+    [InlineData("TotalConsumption")]
+    [InlineData("OtherConsumption")]
+    [InlineData("OtherProduction")]
+    [InlineData("ExchangeReactiveEnergy")]
+    [InlineData("CollectiveNetProduction")]
+    [InlineData("CollectiveNetConsumption")]
+    [InlineData("InternalUse")]
+    public async Task Given_ValidMeteringPointType_When_Validate_Then_NoValidationError(string meteringPointType)
     {
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithResolution(resolution)
+            .WithMeteringPointType(meteringPointType)
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -62,9 +79,9 @@ public class ResolutionValidationRuleTests
                         ActorNumber.Create("1111111111111"),
                         [],
                         ConnectionState.Connected,
-                        MeteringPointType.Production,
+                        MeteringPointType.FromName(meteringPointType),
                         MeteringPointSubType.Physical,
-                        Resolution.FromName(resolution),
+                        Resolution.QuarterHourly,
                         MeasurementUnit.KilowattHour,
                         "product",
                         null,
@@ -75,44 +92,47 @@ public class ResolutionValidationRuleTests
     }
 
     [Theory]
-    [InlineData("Daily")]
-    public async Task Given_Validate_When_ResolutionIsInvalid_Then_ValidationError(string resolution)
+    [InlineData("ElectricalHeating")]
+    [InlineData("NetConsumption")]
+    [InlineData("CapacitySettlement")]
+    [InlineData("NotUsed")]
+    [InlineData("NetLossCorrection")]
+    public async Task Given_InvalidMeteringPointType_When_Validate_Then_ValidationError(string meteringPointType)
     {
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithResolution(resolution)
+            .WithMeteringPointType(meteringPointType)
             .Build();
 
-        var result = await _sut.ValidateAsync(new(
-            input,
-            [
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    MeteringPointType.Production,
-                    MeteringPointSubType.Physical,
-                    Resolution.FromName(resolution),
-                    MeasurementUnit.KilowattHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
-            ]));
+        var result = await _sut.ValidateAsync(
+            new(
+                input,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("id"),
+                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        new GridAreaCode("111"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.FromName(meteringPointType),
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "product",
+                        null,
+                        ActorNumber.Create("1111111111112")),
+                ]));
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(ResolutionValidationRule.WrongResolutionError);
+            .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointError);
     }
 
     [Fact]
-    public async Task Given_Validate_When_MasterDataHasTwoDifferentResolutions_Then_ValidationError()
+    public async Task Given_ChangeBetweenTwoValidMeteringPointTypes_When_Validate_Then_ValidationError()
     {
-        var validResolution = Resolution.QuarterHourly;
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithResolution(validResolution.Name)
             .Build();
 
         var result = await _sut.ValidateAsync(new(
@@ -126,9 +146,10 @@ public class ResolutionValidationRuleTests
                     ActorNumber.Create("1111111111111"),
                     [],
                     ConnectionState.Connected,
+                    // One MeteringPointType
                     MeteringPointType.Production,
                     MeteringPointSubType.Physical,
-                    validResolution,
+                    Resolution.QuarterHourly,
                     MeasurementUnit.KilowattHour,
                     "product",
                     null,
@@ -141,45 +162,10 @@ public class ResolutionValidationRuleTests
                     ActorNumber.Create("1111111111111"),
                     [],
                     ConnectionState.Connected,
-                    MeteringPointType.Production,
-                    MeteringPointSubType.Physical,
-                    // Different resolution
-                    Resolution.Hourly,
-                    MeasurementUnit.KilowattHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
-            ]));
-
-        result.Should()
-            .ContainSingle()
-            .And.BeEquivalentTo(ResolutionValidationRule.WrongResolutionError);
-    }
-
-    [Fact]
-    public async Task Given_Validate_When_MasterDataMeteringPointIsNotProductionAndResolutionIsMonthly_Then_ValidationError()
-    {
-        var validResolutionForProduction = Resolution.Monthly;
-        var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteringPointType(MeteringPointType.Production.Name)
-            .WithResolution(validResolutionForProduction.Name)
-            .Build();
-
-        var result = await _sut.ValidateAsync(new(
-            input,
-            [
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    // Not production metering point type
+                    // A different MeteringPointType
                     MeteringPointType.Consumption,
                     MeteringPointSubType.Physical,
-                    validResolutionForProduction,
+                    Resolution.QuarterHourly,
                     MeasurementUnit.KilowattHour,
                     "product",
                     null,
@@ -188,17 +174,15 @@ public class ResolutionValidationRuleTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(ResolutionValidationRule.WrongResolutionError);
+            .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointError);
     }
 
     [Fact]
-    public async Task Given_Validate_WhenInputIsNotProductionAndResolutionIsMonthly_Then_ValidationError()
+    public async Task Given_IncomingMeteringPointTypeDoesNotMatchMasterDataMeteringPointType_When_Validate_Then_ValidationError()
     {
-        var validResolutionForProduction = Resolution.Monthly;
         var input = new ForwardMeteredDataInputV1Builder()
-            // Not production metering point type
-            .WithMeteringPointType(MeteringPointType.Consumption.Name)
-            .WithResolution(validResolutionForProduction.Name)
+            // Incoming MeteringPointType
+            .WithMeteringPointType("Production")
             .Build();
 
         var result = await _sut.ValidateAsync(new(
@@ -212,9 +196,10 @@ public class ResolutionValidationRuleTests
                     ActorNumber.Create("1111111111111"),
                     [],
                     ConnectionState.Connected,
-                    MeteringPointType.Production,
+                    // MeteringPointType different from incoming
+                    MeteringPointType.Consumption,
                     MeteringPointSubType.Physical,
-                    validResolutionForProduction,
+                    Resolution.QuarterHourly,
                     MeasurementUnit.KilowattHour,
                     "product",
                     null,
@@ -223,6 +208,6 @@ public class ResolutionValidationRuleTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(ResolutionValidationRule.WrongResolutionError);
+            .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointError);
     }
 }

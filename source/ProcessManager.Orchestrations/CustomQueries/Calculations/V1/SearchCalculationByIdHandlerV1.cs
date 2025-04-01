@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -23,12 +22,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 
 internal class SearchCalculationByIdHandlerV1(
-    ProcessManagerReaderContext readerContext,
-    TimeHelper timeHelper) :
+    ProcessManagerReaderContext readerContext) :
         ISearchOrchestrationInstanceQueryHandler<CalculationByIdQueryV1, ICalculationsQueryResultV1>
 {
     private readonly ProcessManagerReaderContext _readerContext = readerContext;
-    private readonly TimeHelper _timeHelper = timeHelper;
 
     public async Task<ICalculationsQueryResultV1> HandleAsync(CalculationByIdQueryV1 query)
     {

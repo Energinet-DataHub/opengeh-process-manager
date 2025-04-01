@@ -56,20 +56,8 @@ internal static class OrchestrationInstanceMapperExtensions
     {
         return new ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleDto(
             CreatedBy: entity.CreatedBy.Value.MapToDto(),
-            State: Enum
-                .TryParse<ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleState>(
-                    entity.State.ToString(),
-                    ignoreCase: true,
-                    out var lifecycleStateResult)
-                ? lifecycleStateResult
-                : throw new InvalidOperationException($"Invalid State '{entity.State}'; cannot be mapped."),
-            TerminationState: Enum
-                .TryParse<ApiModel.OrchestrationInstance.OrchestrationInstanceTerminationState>(
-                    entity.TerminationState.ToString(),
-                    ignoreCase: true,
-                    out var terminationStateResult)
-                ? terminationStateResult
-                : null,
+            State: entity.State.MapToDto(),
+            TerminationState: entity.TerminationState.MapToDto(),
             CanceledBy: entity.CanceledBy?.Value.MapToDto(),
             CreatedAt: entity.CreatedAt.ToDateTimeOffset(),
             ScheduledToRunAt: entity.ScheduledToRunAt?.ToDateTimeOffset(),
@@ -114,20 +102,8 @@ internal static class OrchestrationInstanceMapperExtensions
         this DomainModel.StepInstanceLifecycle entity)
     {
         return new ApiModel.OrchestrationInstance.StepInstanceLifecycleDto(
-            State: Enum
-                .TryParse<ApiModel.OrchestrationInstance.StepInstanceLifecycleState>(
-                    entity.State.ToString(),
-                    ignoreCase: true,
-                    out var lifecycleStateResult)
-                ? lifecycleStateResult
-                : throw new InvalidOperationException($"Invalid State '{entity.State}'; cannot be mapped."),
-            TerminationState: Enum
-                .TryParse<ApiModel.OrchestrationInstance.StepInstanceTerminationState>(
-                    entity.TerminationState.ToString(),
-                    ignoreCase: true,
-                    out var terminationStateResult)
-                ? terminationStateResult
-                : null,
+            State: entity.State.MapToDto(),
+            TerminationState: entity.TerminationState.MapToDto(),
             StartedAt: entity.StartedAt?.ToDateTimeOffset(),
             TerminatedAt: entity.TerminatedAt?.ToDateTimeOffset());
     }
@@ -138,6 +114,60 @@ internal static class OrchestrationInstanceMapperExtensions
         return entities
             .Select(instance => instance.MapToDto())
             .ToList();
+    }
+
+    private static ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleState MapToDto(
+    this DomainModel.OrchestrationInstanceLifecycleState domainEnum)
+    {
+        return Enum
+            .TryParse<ApiModel.OrchestrationInstance.OrchestrationInstanceLifecycleState>(
+                domainEnum.ToString(),
+                ignoreCase: true,
+                out var result)
+            ? result
+            : throw new InvalidOperationException($"Invalid State '{domainEnum}'; cannot be mapped.");
+    }
+
+    private static ApiModel.OrchestrationInstance.OrchestrationInstanceTerminationState? MapToDto(
+        this DomainModel.OrchestrationInstanceTerminationState? domainEnum)
+    {
+        if (!domainEnum.HasValue)
+            return null;
+
+        return Enum
+            .TryParse<ApiModel.OrchestrationInstance.OrchestrationInstanceTerminationState>(
+                domainEnum.ToString(),
+                ignoreCase: true,
+                out var result)
+            ? result
+            : throw new InvalidOperationException($"Invalid State '{domainEnum}'; cannot be mapped.");
+    }
+
+    private static ApiModel.OrchestrationInstance.StepInstanceLifecycleState MapToDto(
+        this DomainModel.StepInstanceLifecycleState domainEnum)
+    {
+        return Enum
+            .TryParse<ApiModel.OrchestrationInstance.StepInstanceLifecycleState>(
+                domainEnum.ToString(),
+                ignoreCase: true,
+                out var result)
+            ? result
+            : throw new InvalidOperationException($"Invalid State '{domainEnum}'; cannot be mapped.");
+    }
+
+    private static ApiModel.OrchestrationInstance.StepInstanceTerminationState? MapToDto(
+        this DomainModel.StepInstanceTerminationState? domainEnum)
+    {
+        if (!domainEnum.HasValue)
+            return null;
+
+        return Enum
+            .TryParse<ApiModel.OrchestrationInstance.StepInstanceTerminationState>(
+                domainEnum.ToString(),
+                ignoreCase: true,
+                out var result)
+            ? result
+            : throw new InvalidOperationException($"Invalid State '{domainEnum}'; cannot be mapped.");
     }
 }
 #pragma warning restore SA1118 // Parameter should not span multiple lines

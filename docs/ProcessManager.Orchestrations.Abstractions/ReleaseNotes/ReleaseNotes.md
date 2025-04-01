@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.17.0
+
+- Add custom query `CalculationsQueryV1` and related types.
+
 ## Version 1.16.0
 
 - Add `InternalUse` MeteringPointType to ValueObject `MeteringPointType.cs`.

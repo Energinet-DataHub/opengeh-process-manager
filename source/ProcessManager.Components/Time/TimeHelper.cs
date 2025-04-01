@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Components.Time;
@@ -22,23 +21,19 @@ public class TimeHelper(DateTimeZone dateTimeZone)
     private readonly DateTimeZone _dateTimeZone = dateTimeZone;
 
     /// <summary>
-    /// Transforms the given instant to the midnight of the same day in the given timezone.
+    /// Transforms the given instant to midnight of the same day in the injected timezone.
     /// </summary>
-    /// <param name="instant">The instance to transformed.</param>
-    /// <returns>The new transformed instance.</returns>
-    public Instant GetMidnightZonedDateTime(Instant instant)
+    /// <param name="instantInUtc">The instant (in UTC) to transformed.</param>
+    /// <returns>The new transformed instant.</returns>
+    public Instant GetMidnightZonedDateTime(Instant instantInUtc)
     {
-        var zonedDateTime = new ZonedDateTime(instant, _dateTimeZone);
-        var adjustedHour = 24 - (zonedDateTime.IsDaylightSavingTime() ? 2 : 1);
+        var zonedDateTimeAtMidnight = instantInUtc
+            .InZone(_dateTimeZone)
+            .Date
+            .AtMidnight();
 
-        // Return instance with adjusted hour
-        var adjustedInstant = Instant.FromUtc(
-            zonedDateTime.Year,
-            zonedDateTime.Month,
-            zonedDateTime.Day,
-            adjustedHour,
-            0,
-            0);
-        return adjustedInstant.PlusDays(-1);
+        return zonedDateTimeAtMidnight
+            .InZoneStrictly(_dateTimeZone)
+            .ToInstant();
     }
 }

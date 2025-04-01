@@ -169,7 +169,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                        .And.Be(StepInstanceTerminationState.Succeeded);
                 });
     }
 
@@ -243,7 +243,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Failed);
+                        .And.Be(StepInstanceTerminationState.Failed);
                 },
                 s =>
                 {
@@ -251,7 +251,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                        .And.Be(StepInstanceTerminationState.Succeeded);
                 });
     }
 

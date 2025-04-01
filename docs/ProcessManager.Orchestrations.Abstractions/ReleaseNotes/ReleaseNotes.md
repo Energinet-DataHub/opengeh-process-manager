@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.15.0
+
+- Update NuGet packages.
+
 ## Version 1.14.0
 
 - Removed `OriginalTransactionId` from `ForwardMeteredDataAcceptedV1`.

@@ -32,6 +32,33 @@ public class CalculationsQueryV1ExtensionsTests
         ActorRole: ActorRole.DataHubAdministrator);
 
     [Fact]
+    public void Test()
+    {
+        var result = new ElectricalHeatingCalculationResultV1(
+            Guid.NewGuid(),
+            new OrchestrationInstanceLifecycleDto(
+                _userIdentity,
+                OrchestrationInstanceLifecycleState.Pending,
+                null,
+                null,
+                DateTimeOffset.Now,
+                null,
+                null,
+                null,
+                null),
+            [],
+            string.Empty);
+
+        var resultAsJson = System.Text.Json.JsonSerializer
+            .Serialize<ICalculationsQueryResultV1>(result);
+
+        var results = new List<ICalculationsQueryResultV1>() { result };
+
+        var resultsAsJson = System.Text.Json.JsonSerializer
+            .Serialize<IReadOnlyCollection<ICalculationsQueryResultV1>>(results);
+    }
+
+    [Fact]
     public void Given_AnyOneWholesaleCalculationType_When_GetOrchestrationDescriptionNames_Then_ReturnsBrs_023_027()
     {
         // Given

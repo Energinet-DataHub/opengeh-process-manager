@@ -271,7 +271,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<TItem> SearchOrchestrationInstanceByCustomQueryAsync<TItem>(
+    public async Task<TItem?> SearchOrchestrationInstanceByCustomQueryAsync<TItem>(
         SearchOrchestrationInstanceByCustomQuery<TItem> query,
         CancellationToken cancellationToken)
             where TItem : class
@@ -291,11 +291,13 @@ internal class ProcessManagerClient : IProcessManagerClient
             .ConfigureAwait(false);
         actualResponse.EnsureSuccessStatusCode();
 
+        // Default serialization using 'OkObjectResult' doesn't perform Json Polymorphic correct if we
+        // use the type directly; so we use a list as a container.
         var orchestrationInstances = await actualResponse.Content
-            .ReadFromJsonAsync<TItem>(cancellationToken)
+            .ReadFromJsonAsync<IReadOnlyCollection<TItem>>(cancellationToken)
             .ConfigureAwait(false);
 
-        return orchestrationInstances!;
+        return orchestrationInstances!.FirstOrDefault();
     }
 
     /// <inheritdoc/>

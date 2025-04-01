@@ -42,6 +42,13 @@ internal class SearchTrigger_CalculationById_V1(
         FunctionContext executionContext)
     {
         var queryResultItem = await _handler.HandleAsync(query).ConfigureAwait(false);
-        return new OkObjectResult(queryResultItem);
+
+        // Default serialization using 'OkObjectResult' doesn't perform Json Polymorphic correct if we
+        // use the type directly; so we use a list as a container.
+        var results = new List<ICalculationsQueryResultV1>();
+        if (queryResultItem != null)
+            results.Add(queryResultItem);
+
+        return new OkObjectResult(results);
     }
 }

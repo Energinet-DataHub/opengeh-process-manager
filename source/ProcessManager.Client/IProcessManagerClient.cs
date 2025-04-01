@@ -86,13 +86,13 @@ public interface IProcessManagerClient
             where TInputParameterDto : class, IInputParameterDto;
 
     /// <summary>
-    /// Get orchestration instance by a custom query.
+    /// Get orchestration instance, or null, by a custom query.
     /// </summary>
     /// <typeparam name="TItem">
     /// The result type of the item returned.
     /// Must be a JSON serializable type.
     /// </typeparam>
-    Task<TItem> SearchOrchestrationInstanceByCustomQueryAsync<TItem>(
+    Task<TItem?> SearchOrchestrationInstanceByCustomQueryAsync<TItem>(
         SearchOrchestrationInstanceByCustomQuery<TItem> query,
         CancellationToken cancellationToken)
             where TItem : class;

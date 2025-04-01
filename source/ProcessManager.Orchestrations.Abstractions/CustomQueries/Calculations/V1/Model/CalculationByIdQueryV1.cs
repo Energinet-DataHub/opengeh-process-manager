@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 
 /// <summary>
-/// Query for retrievig a single Calculation orchestration instance by id.
+/// Query for retrieving a single Calculation orchestration instance by id.
 /// Must be JSON serializable.
 /// </summary>
 /// <remarks>
@@ -26,7 +26,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQue
 /// by <see cref="ICalculationsQueryResultV1"/>, then the response will be <see langword="null"/>.
 /// </remarks>
 public sealed record CalculationByIdQueryV1
-    : GetOrchestrationInstanceByCustomQuery<ICalculationsQueryResultV1>
+    : SearchOrchestrationInstanceByCustomQuery<ICalculationsQueryResultV1>
 {
     public const string RouteName = "v1/calculation";
 

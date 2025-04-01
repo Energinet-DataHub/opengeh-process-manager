@@ -63,12 +63,12 @@ using MeteringPointSubType =
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
 using OrchestrationInstanceTerminationState =
     Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationState;
-using OrchestrationStepTerminationState =
-    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationStepTerminationState;
 using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 using StepInstanceLifecycleState =
     Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceLifecycleState;
+using StepInstanceTerminationState =
+    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
@@ -267,7 +267,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 GridAccessProvider: ActorNumber.Create(GridAccessProvider),
                 NeighborGridAreaOwners: [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
                 ConnectionState: ConnectionState.Connected,
-                MeteringPointType: MeteringPointType.Consumption,
+                MeteringPointType: MeteringPointType.Production,
                 MeteringPointSubType: MeteringPointSubType.Physical,
                 Resolution: Resolution.Hourly,
                 MeasurementUnit: MeasurementUnit.KilowattHour,
@@ -286,7 +286,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                        .And.Be(StepInstanceTerminationState.Succeeded);
                 });
     }
 
@@ -372,7 +372,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Failed);
+                        .And.Be(StepInstanceTerminationState.Failed);
                 },
                 s =>
                 {
@@ -381,7 +381,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Skipped);
+                        .And.Be(StepInstanceTerminationState.Skipped);
                 },
                 s =>
                 {
@@ -390,7 +390,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Skipped);
+                        .And.Be(StepInstanceTerminationState.Skipped);
                 },
                 s =>
                 {
@@ -399,7 +399,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
                     s.Lifecycle.TerminationState.Should()
                         .NotBeNull()
-                        .And.Be(OrchestrationStepTerminationState.Succeeded);
+                        .And.Be(StepInstanceTerminationState.Succeeded);
                 });
     }
 
@@ -511,7 +511,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             GridAccessProvider = GridAccessProvider,
             NeighborGridAreaOwners = [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
             ConnectionState = ElectricityMarket.Integration.Models.MasterData.ConnectionState.Connected,
-            Type = ElectricityMarket.Integration.Models.MasterData.MeteringPointType.Consumption,
+            Type = ElectricityMarket.Integration.Models.MasterData.MeteringPointType.Production,
             SubType = ElectricityMarket.Integration.Models.MasterData.MeteringPointSubType.Physical,
             Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("PT1H"),
             Unit = MeasureUnit.kWh,

@@ -343,7 +343,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         orchestrationInstance.Steps
             .Single(step => step.Sequence == EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence)
             .Lifecycle.TerminationState
-            .Should().Be(OrchestrationStepTerminationState.Failed);
+            .Should().Be(StepInstanceTerminationState.Failed);
     }
 
     private async Task AwaitOrchestrationRuntimeStatusAsync(string orchestrationInstanceId, OrchestrationRuntimeStatus status)

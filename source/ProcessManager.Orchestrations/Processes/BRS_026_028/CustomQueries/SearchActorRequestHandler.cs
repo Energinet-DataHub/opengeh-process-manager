@@ -63,28 +63,28 @@ internal class SearchActorRequestHandler(
 
     private IActorRequestQueryResult MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
     {
-        if (uniqueName.Name == Brs_026.Name)
+        switch (uniqueName.Name)
         {
-            var original = instance.MapToTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>();
-            return new RequestCalculatedEnergyTimeSeriesResult(
-                original.Id,
-                original.Lifecycle,
-                original.Steps,
-                original.CustomState,
-                original.ParameterValue);
-        }
+            case Brs_026.Name:
+                var brs026 = instance.MapToTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>();
+                return new RequestCalculatedEnergyTimeSeriesResult(
+                    brs026.Id,
+                    brs026.Lifecycle,
+                    brs026.Steps,
+                    brs026.CustomState,
+                    brs026.ParameterValue);
 
-        if (uniqueName.Name == Brs_028.Name)
-        {
-            var original = instance.MapToTypedDto<RequestCalculatedWholesaleServicesInputV1>();
-            return new RequestCalculatedWholesaleServicesResult(
-                original.Id,
-                original.Lifecycle,
-                original.Steps,
-                original.CustomState,
-                original.ParameterValue);
-        }
+            case Brs_028.Name:
+                var brs028 = instance.MapToTypedDto<RequestCalculatedWholesaleServicesInputV1>();
+                return new RequestCalculatedWholesaleServicesResult(
+                    brs028.Id,
+                    brs028.Lifecycle,
+                    brs028.Steps,
+                    brs028.CustomState,
+                    brs028.ParameterValue);
 
-        throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
+            default:
+                throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
+        }
     }
 }

@@ -118,6 +118,7 @@ public static class ProcessManagerExtensions
         services
             .AddProcessManagerOptions()
             .AddProcessManagerDatabase()
+            .AddProcessManagerReaderContext()
             .AddProcessManagerAuthentication(configuration)
             .AddFeatureFlags();
 
@@ -325,6 +326,27 @@ public static class ProcessManagerExtensions
         services
             .AddHealthChecks()
             .AddDbContextCheck<ProcessManagerContext>(name: "ProcessManagerDatabase");
+
+        return services;
+    }
+
+    /// <summary>
+    /// Register Process Manager reader database context for use from custom query handlers.
+    /// Depends on <see cref="ProcessManagerOptions"/>.
+    /// </summary>
+    private static IServiceCollection AddProcessManagerReaderContext(this IServiceCollection services)
+    {
+        services.
+            AddDbContext<ProcessManagerReaderContext>((sp, optionsBuilder) =>
+            {
+                var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
+
+                optionsBuilder.UseSqlServer(processManagerOptions.SqlDatabaseConnectionString, providerOptionsBuilder =>
+                {
+                    providerOptionsBuilder.UseNodaTime();
+                    providerOptionsBuilder.EnableRetryOnFailure();
+                });
+            });
 
         return services;
     }

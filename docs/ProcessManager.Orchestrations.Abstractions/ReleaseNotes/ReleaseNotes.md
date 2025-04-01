@@ -1,5 +1,21 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.17.0
+
+- Add custom query `CalculationsQueryV1` and related types.
+
+## Version 1.16.0
+
+- Add `InternalUse` MeteringPointType to ValueObject `MeteringPointType.cs`.
+
+## Version 1.15.0
+
+- Update NuGet packages.
+
+## Version 1.14.0
+
+- Removed `OriginalTransactionId` from `ForwardMeteredDataAcceptedV1`.
+
 ## Version 1.13.0
 
 - Add BRS-045 Missing Measurements Log On Demand Calculation command.

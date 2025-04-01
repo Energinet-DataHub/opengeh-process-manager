@@ -18,7 +18,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.CustomQueries;
 
@@ -37,37 +36,19 @@ internal class SearchCalculationHandler(
         // so if necessary we can validate their data access.
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        var lifecycleState = query.LifecycleStates?
-            .Select(state =>
-                Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
-                ? lifecycleStateResult
-                : (OrchestrationInstanceLifecycleState?)null)
-            .Where(state => state.HasValue)
-            .Select(state => state!.Value)
-            .ToList();
-        var terminationState =
-            Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
-            ? terminationStateResult
-            : (OrchestrationInstanceTerminationState?)null;
 
-        // DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
-        // See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
+        var lifecycleStates = query.LifecycleStates.MapToDomain();
+        var terminationState = query.TerminationState.MapToDomain();
 
-        var scheduledAtOrLater = query.ScheduledAtOrLater.HasValue
-            ? Instant.FromDateTimeOffset(query.ScheduledAtOrLater.Value)
-            : (Instant?)null;
-        var startedAtOrLater = query.StartedAtOrLater.HasValue
-            ? Instant.FromDateTimeOffset(query.StartedAtOrLater.Value)
-            : (Instant?)null;
-        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.HasValue
-            ? Instant.FromDateTimeOffset(query.TerminatedAtOrEarlier.Value)
-            : (Instant?)null;
+        var scheduledAtOrLater = query.ScheduledAtOrLater.ToNullableInstant();
+        var startedAtOrLater = query.StartedAtOrLater.ToNullableInstant();
+        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ToNullableInstant();
 
         var calculations = await _queries
             .SearchAsync(
                 query.OrchestrationDescriptionName,
                 version: null,
-                lifecycleState,
+                lifecycleStates,
                 terminationState,
                 startedAtOrLater,
                 terminatedAtOrEarlier,

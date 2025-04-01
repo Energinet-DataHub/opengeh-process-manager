@@ -209,7 +209,11 @@ public class MeteringPointReceiversProvider(
         {
             case var _ when meteringPointType == MeteringPointType.Consumption:
             case var _ when meteringPointType == MeteringPointType.Production:
-                receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                if (meteringPointMasterData.EnergySupplier is not null)
+                {
+                    receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                }
+
                 receivers.Add(DanishEnergyAgencyReceiver());
                 break;
             case var _ when meteringPointType == MeteringPointType.Exchange:
@@ -221,7 +225,12 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.VeProduction:
                 receivers.Add(SystemOperatorReceiver());
                 receivers.Add(DanishEnergyAgencyReceiver());
-                receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+
+                if (meteringPointMasterData.EnergySupplier is not null)
+                {
+                    receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                }
+
                 break;
             case var _ when meteringPointType == MeteringPointType.NetProduction:
             case var _ when meteringPointType == MeteringPointType.SupplyToGrid:
@@ -242,7 +251,12 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.CollectiveNetConsumption:
                 if (meteringPointMasterData.ParentMeteringPointId is not null)
                 {
-                    receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                    // It is legal for the energy supplier to be null for these metering point types
+                    // It is however not legal for the parent metering point to be null
+                    if (meteringPointMasterData.EnergySupplier is not null)
+                    {
+                        receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                    }
                 }
                 else
                 {

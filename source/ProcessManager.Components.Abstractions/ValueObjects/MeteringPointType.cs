@@ -45,6 +45,7 @@ public record MeteringPointType : DataHubRecordType<MeteringPointType>
     public static readonly MeteringPointType ExchangeReactiveEnergy = new("ExchangeReactiveEnergy");
     public static readonly MeteringPointType CollectiveNetProduction = new("CollectiveNetProduction");
     public static readonly MeteringPointType CollectiveNetConsumption = new("CollectiveNetConsumption");
+    public static readonly MeteringPointType InternalUse = new("InternalUse");
 
     [JsonConstructor]
     private MeteringPointType(string name)

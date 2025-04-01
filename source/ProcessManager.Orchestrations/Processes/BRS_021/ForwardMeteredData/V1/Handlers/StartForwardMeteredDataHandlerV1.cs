@@ -356,7 +356,7 @@ public class StartForwardMeteredDataHandlerV1(
             OrchestrationId: orchestrationInstanceId.Value.ToString(),
             MeteringPointId: input.MeteringPointId!,
             TransactionId: input.TransactionId,
-            CreatedAt: InstantPattern.ExtendedIso.Parse(input.RegistrationDateTime).Value,
+            CreatedAt: InstantPatternWithOptionalSeconds.Parse(input.RegistrationDateTime).Value,
             StartDateTime: InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value,
             EndDateTime: InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value,
             MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),

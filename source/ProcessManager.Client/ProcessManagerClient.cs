@@ -271,6 +271,34 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
+    public async Task<TItem> GetOrchestrationInstanceByCustomQueryAsync<TItem>(
+        GetOrchestrationInstanceByCustomQuery<TItem> query,
+        CancellationToken cancellationToken)
+            where TItem : class
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/orchestrationinstance/query/custom/{query.QueryRouteName}");
+        // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
+        var json = JsonSerializer.Serialize(query, query.GetType());
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+
+        using var actualResponse = await _orchestrationsApiHttpClient
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        actualResponse.EnsureSuccessStatusCode();
+
+        var orchestrationInstances = await actualResponse.Content
+            .ReadFromJsonAsync<TItem>(cancellationToken)
+            .ConfigureAwait(false);
+
+        return orchestrationInstances!;
+    }
+
+    /// <inheritdoc/>
     public async Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByCustomQueryAsync<TItem>(
         SearchOrchestrationInstancesByCustomQuery<TItem> query,
         CancellationToken cancellationToken)

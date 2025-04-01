@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using FluentAssertions;
@@ -27,7 +28,7 @@ public class PositionCountValidationRuleTests
     private readonly PositionCountValidationRule _sut = new();
 
     [Fact]
-    public async Task QuarterHourly_PeriodNotMod()
+    public async Task QuarterHourly_WrongPeriod_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:57Z")
@@ -60,7 +61,83 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Hourly_PeriodNotMod()
+    public async Task QuarterHourly_WrongCount_CountError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-01T01:23:56Z")
+            .WithEndDateTime("2023-01-01T02:53:56Z")
+            .WithResolution(Resolution.QuarterHourly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 7)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(7, 6));
+    }
+
+    [Fact]
+    public async Task QuarterHourly_Correct_NoError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-01T01:23:56Z")
+            .WithEndDateTime("2023-01-01T02:53:56Z")
+            .WithResolution(Resolution.QuarterHourly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 6)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Hourly_WrongPeriod_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T17:42:18Z")
@@ -93,7 +170,83 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Daily_PeriodNotMod()
+    public async Task Hourly_WrongCount_CountError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-01T17:42:18Z")
+            .WithEndDateTime("2023-01-01T19:42:18Z")
+            .WithResolution(Resolution.Hourly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 4)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(4, 2));
+    }
+
+    [Fact]
+    public async Task Hourly_Correct_NoError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-01T17:42:18Z")
+            .WithEndDateTime("2023-01-01T19:42:18Z")
+            .WithResolution(Resolution.Hourly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 2)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Daily_WrongPeriod_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T11:02:19Z")
@@ -128,12 +281,17 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_SecondsMinAndHoursNotMatch_WeDontCareSoItsFine()
+    public async Task Daily_WrongCount_CountError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
-            .WithStartDateTime("2023-01-01T15:18:40Z")
-            .WithEndDateTime("2023-03-01T16:19:41Z")
-            .WithResolution(Resolution.Monthly.Name)
+            .WithStartDateTime("2023-01-01T11:02:19Z")
+            .WithEndDateTime("2023-01-04T11:02:19Z")
+            .WithResolution(Resolution.Daily.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 4)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -157,11 +315,165 @@ public class PositionCountValidationRuleTests
                         ActorNumber.Create("2222222222222")),
                 ]));
 
-        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError);
+        result.Should()
+            .ContainSingle()
+            .And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(4, 3));
     }
 
     [Fact]
-    public async Task Monthly_FirstOfMonthDaysNotMatch_PeriodNotMod()
+    public async Task Daily_Correct_NoError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-01T11:02:19Z")
+            .WithEndDateTime("2023-01-04T11:02:19Z")
+            .WithResolution(Resolution.Daily.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 3)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Monthly_StartOfMonthSecondsMinAndHoursNotMatch_NoError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-01T15:18:40Z")
+            .WithEndDateTime("2023-03-01T16:19:41Z")
+            .WithResolution(Resolution.Monthly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 2)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Monthly_EndOfMonthSecondsMinAndHoursNotMatch_NoError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-31T23:59:59Z")
+            .WithEndDateTime("2023-04-30T23:59:59Z")
+            .WithResolution(Resolution.Monthly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 3)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Monthly_MiddleOfMonthSecondsMinAndHoursNotMatch_NoError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-21T15:18:40Z")
+            .WithEndDateTime("2023-03-21T16:19:41Z")
+            .WithResolution(Resolution.Monthly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 2)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Monthly_StartOfMonthDaysNotMatch_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T15:18:40Z")
@@ -190,15 +502,53 @@ public class PositionCountValidationRuleTests
                         ActorNumber.Create("2222222222222")),
                 ]));
 
-        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.PeriodNotModError(0.25));
+        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.PeriodNotModError(1));
     }
 
     [Fact]
-    public async Task Monthly_MiddleOfMonthDaysMatch_IsFine()
+    public async Task Monthly_MiddleOfMonthDaysMatch_NoError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-15T15:18:40Z")
             .WithEndDateTime("2023-03-15T15:18:40Z")
+            .WithResolution(Resolution.Monthly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 2)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Monthly_EndOfMonthDaysNotMatch_ResidualError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-29T15:18:40Z")
+            .WithEndDateTime("2023-04-30T15:18:40Z")
             .WithResolution(Resolution.Monthly.Name)
             .Build();
 
@@ -223,11 +573,11 @@ public class PositionCountValidationRuleTests
                         ActorNumber.Create("2222222222222")),
                 ]));
 
-        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError);
+        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.PeriodNotModError(1));
     }
 
     [Fact]
-    public async Task Monthly_MiddleOfMonthDaysNotMatch_PeriodNotMod()
+    public async Task Monthly_MiddleOfMonthDaysNotMatch_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-15T15:18:40Z")
@@ -256,6 +606,120 @@ public class PositionCountValidationRuleTests
                         ActorNumber.Create("2222222222222")),
                 ]));
 
-        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.PeriodNotModError(0.25));
+        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.PeriodNotModError(1));
+    }
+
+    [Fact]
+    public async Task Monthly_StartOfMonthWrongCount_CountError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-01T15:18:40Z")
+            .WithEndDateTime("2023-03-01T16:19:41Z")
+            .WithResolution(Resolution.Monthly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 3)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(3, 2));
+    }
+
+    [Fact]
+    public async Task Monthly_MiddleOfMonthWrongCount_CountError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-05-17T15:18:40Z")
+            .WithEndDateTime("2023-07-17T16:19:41Z")
+            .WithResolution(Resolution.Monthly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 3)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(3, 2));
+    }
+
+    [Fact]
+    public async Task Monthly_EndOfMonthWrongCount_CountError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-31T15:18:40Z")
+            .WithEndDateTime("2023-04-30T16:19:41Z")
+            .WithResolution(Resolution.Monthly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 4)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(4, 3));
     }
 }

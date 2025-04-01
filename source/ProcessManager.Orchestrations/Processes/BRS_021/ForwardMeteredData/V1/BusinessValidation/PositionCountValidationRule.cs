@@ -23,11 +23,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public class PositionCountValidationRule : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
-    public static IList<ValidationError> IncorrectNumberOfPositionsError =>
+    public static IList<ValidationError> IncorrectNumberOfPositionsError(int actual, int expected) =>
     [
         new(
             Message:
-            "Antal positioner svarer ikke til tidsopløsning og periodelængde / Position count does not match resolution and period length",
+            $"Antal positioner ({actual}) svarer ikke til tidsopløsning og periodelængde ({expected}) / Position count ({actual}) does not match resolution and period length ({expected})",
             ErrorCode: "E87"),
     ];
 
@@ -35,7 +35,7 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
     [
         new(
             Message:
-            $"Period not modulo resolution ({mod}) / Period not modulo resolution ({mod})",
+            $"Perioden er kan ikke opdeles i et helt antal dele af opløsningens størrelse ({mod}) / The period cannot be split into a whole number resolution sized chunks ({mod})",
             ErrorCode: "E99"),
     ];
 
@@ -56,38 +56,41 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
 
         var startDate = startDateResult.Value;
         var endDate = endDateResult.Value;
-        var periodDuration = endDate - startDate;
 
-        var expectedPositionCount = subject.Input.Resolution switch
+        var period = Period.Between(
+            startDate.ToDateTimeUtc().ToLocalDateTime(),
+            endDate.ToDateTimeUtc().ToLocalDateTime(),
+            PeriodUnits.Months | PeriodUnits.Days | PeriodUnits.Hours | PeriodUnits.Minutes | PeriodUnits.Seconds);
+
+        var actualPeriodResidual = subject.Input.Resolution switch
         {
-            var pt15m when pt15m == Resolution.QuarterHourly.Name => periodDuration.TotalMinutes % 15,
-            var pt1h when pt1h == Resolution.Hourly.Name => periodDuration.TotalHours % 1,
-            var p1d when p1d == Resolution.Daily.Name => periodDuration.TotalDays % 1,
+            var pt15m when pt15m == Resolution.QuarterHourly.Name => period.ToDuration().TotalMinutes % 15,
+            var pt1h when pt1h == Resolution.Hourly.Name => period.ToDuration().TotalHours % 1,
+            var p1d when p1d == Resolution.Daily.Name => period.ToDuration().TotalDays % 1,
             // This maybe worky, but of hacky... Or is?
-            var p1m when p1m == Resolution.Monthly.Name => Period.Between(
-                                                                   startDate.ToDateTimeUtc().ToLocalDateTime(),
-                                                                   endDate.ToDateTimeUtc().ToLocalDateTime(),
-                                                                   PeriodUnits.Months | PeriodUnits.Days)
-                                                               .Days
-                                                           != 0
-                ? 0.25
-                : Period.Between(
-                        startDate.ToDateTimeUtc().ToLocalDateTime(),
-                        endDate.ToDateTimeUtc().ToLocalDateTime(),
-                        PeriodUnits.Months | PeriodUnits.Days)
-                    .Months,
+            var p1m when p1m == Resolution.Monthly.Name => period.Days,
             _ => 0.5,
         };
 
-        if (expectedPositionCount % 1 != 0)
+        if (actualPeriodResidual != 0)
         {
-            return Task.FromResult(PeriodNotModError(expectedPositionCount));
+            return Task.FromResult(PeriodNotModError(actualPeriodResidual));
         }
 
-        var expectedPositionCountAsInt = (int)expectedPositionCount;
-        if (subject.Input.MeteredDataList.Count != expectedPositionCountAsInt)
+        var expectedPositionCount = subject.Input.Resolution switch
         {
-            return Task.FromResult(IncorrectNumberOfPositionsError);
+            var pt15m when pt15m == Resolution.QuarterHourly.Name => (int)(period.ToDuration().TotalMinutes / 15),
+            var pt1h when pt1h == Resolution.Hourly.Name => (int)period.ToDuration().TotalHours,
+            var p1d when p1d == Resolution.Daily.Name => (int)period.ToDuration().TotalDays,
+            // This maybe worky, but of hacky... Or is?
+            var p1m when p1m == Resolution.Monthly.Name => period.Days != 0 ? 0 : period.Months,
+            _ => 0,
+        };
+
+        if (subject.Input.MeteredDataList.Count != expectedPositionCount)
+        {
+            return Task.FromResult(
+                IncorrectNumberOfPositionsError(subject.Input.MeteredDataList.Count, expectedPositionCount));
         }
 
         return Task.FromResult<IList<ValidationError>>([]);

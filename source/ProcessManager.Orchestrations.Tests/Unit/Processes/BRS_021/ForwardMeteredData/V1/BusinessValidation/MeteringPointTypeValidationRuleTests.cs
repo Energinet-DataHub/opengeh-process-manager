@@ -27,7 +27,7 @@ public class MeteringPointTypeValidationRuleTests
     private readonly MeteringPointTypeValidationRule _sut = new();
 
     [Fact]
-    public async Task Given_Validate_When_NoMasterData_Then_NoValidationError()
+    public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
@@ -61,7 +61,7 @@ public class MeteringPointTypeValidationRuleTests
     [InlineData("CollectiveNetProduction")]
     [InlineData("CollectiveNetConsumption")]
     [InlineData("InternalUse")]
-    public async Task Given_Validate_When_ResolutionIsValid_Then_NoValidationError(string meteringPointType)
+    public async Task Given_ValidResolution_When_Validate_Then_NoValidationError(string meteringPointType)
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteringPointType(meteringPointType)
@@ -97,7 +97,7 @@ public class MeteringPointTypeValidationRuleTests
     [InlineData("CapacitySettlement")]
     [InlineData("NotUsed")]
     [InlineData("NetLossCorrection")]
-    public async Task Given_Validate_When_ResolutionIsInvalid_Then_ValidationError(string meteringPointType)
+    public async Task Given_InvalidResolution_When_Validate_Then_ValidationError(string meteringPointType)
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteringPointType(meteringPointType)
@@ -130,7 +130,7 @@ public class MeteringPointTypeValidationRuleTests
     }
 
     [Fact]
-    public async Task Given_Validate_When_MasterDataHasTwoDifferentMeteringPointTypes_Then_ValidationError()
+    public async Task Given_ChangeBetweenTwoValidTypes_When_Validate_Then_ValidationError()
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
@@ -178,7 +178,7 @@ public class MeteringPointTypeValidationRuleTests
     }
 
     [Fact]
-    public async Task Given_Validate_When_IncomingMeteringPointDoesNotMatchMasterDataMeteringPointType_Then_ValidationError()
+    public async Task Given_IncomingMeteringPointTypeDoesNotMatchMasterDataMeteringPointType_When_Validate_Then_ValidationError()
     {
         var input = new ForwardMeteredDataInputV1Builder()
             // Incoming MeteringPointType

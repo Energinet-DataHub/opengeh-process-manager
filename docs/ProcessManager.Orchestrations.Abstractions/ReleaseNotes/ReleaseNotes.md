@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.18.0
+
+- Add custom query `CalculationByIdQueryV1`.
+
 ## Version 1.17.0
 
 - Add custom query `CalculationsQueryV1` and related types.

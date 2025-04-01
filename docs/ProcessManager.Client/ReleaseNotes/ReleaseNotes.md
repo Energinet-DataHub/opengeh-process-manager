@@ -1,5 +1,11 @@
 # ProcessManager.Client Release Notes
 
+## Version 3.1.0
+
+- Implemented support for custom queries that only returns a single item:
+  - Added type `GetOrchestrationInstanceByCustomQuery`.
+  - Extended `IProcessManagerClient` with operation `GetOrchestrationInstanceByCustomQueryAsync<TItem>`.
+
 ## Version 3.0.0
 
 - Renamed OrchestrationStepTerminationState` to `StepInstanceTerminationState` in domain and API model.

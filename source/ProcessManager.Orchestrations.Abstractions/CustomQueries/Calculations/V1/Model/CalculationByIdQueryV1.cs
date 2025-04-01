@@ -12,16 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 
 /// <summary>
-/// Query for searching for Calculation orchestration instance by ID.
+/// Query for retrievig a single Calculation orchestration instance by id.
 /// Must be JSON serializable.
 /// </summary>
+/// <remarks>
+/// If the orchestration instance found is not one of the types supported
+/// by <see cref="ICalculationsQueryResultV1"/>, then the response will be <see langword="null"/>.
+/// </remarks>
 public sealed record CalculationByIdQueryV1
-    : SearchOrchestrationInstanceByCustomQuery<ICalculationsQueryResultV1>
+    : GetOrchestrationInstanceByCustomQuery<ICalculationsQueryResultV1>
 {
     public const string RouteName = "v1/calculation";
 

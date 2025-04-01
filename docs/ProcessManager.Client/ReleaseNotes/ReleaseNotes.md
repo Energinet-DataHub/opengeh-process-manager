@@ -3,8 +3,8 @@
 ## Version 3.1.0
 
 - Implemented support for custom queries that only returns a single item:
-  - Added type `GetOrchestrationInstanceByCustomQuery`.
-  - Extended `IProcessManagerClient` with operation `GetOrchestrationInstanceByCustomQueryAsync<TItem>`.
+  - Added type `SearchOrchestrationInstanceByCustomQuery`.
+  - Extended `IProcessManagerClient` with operation `SearchOrchestrationInstanceByCustomQueryAsync<TItem>`.
 
 ## Version 3.0.0
 

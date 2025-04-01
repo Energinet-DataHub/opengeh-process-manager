@@ -271,8 +271,8 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<TItem> GetOrchestrationInstanceByCustomQueryAsync<TItem>(
-        GetOrchestrationInstanceByCustomQuery<TItem> query,
+    public async Task<TItem> SearchOrchestrationInstanceByCustomQueryAsync<TItem>(
+        SearchOrchestrationInstanceByCustomQuery<TItem> query,
         CancellationToken cancellationToken)
             where TItem : class
     {

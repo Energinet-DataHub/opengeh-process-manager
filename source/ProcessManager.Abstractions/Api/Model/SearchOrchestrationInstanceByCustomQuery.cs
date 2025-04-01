@@ -17,11 +17,14 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Base class for implementing custom queries for retrieving a single orchestration instance.
+/// Base class for implementing custom queries for searching a single orchestration instance.
 /// Must be JSON serializable.
 /// </summary>
-/// <typeparam name="TItem">The result type of the item returned. Must be a JSON serializable type.</typeparam>
-public abstract record GetOrchestrationInstanceByCustomQuery<TItem>
+/// <typeparam name="TItem">
+/// The result type of the item returned.
+/// Must be a JSON serializable type.
+/// </typeparam>
+public abstract record SearchOrchestrationInstanceByCustomQuery<TItem>
     : OrchestrationInstanceRequest<UserIdentityDto>
         where TItem : class
 {
@@ -29,7 +32,7 @@ public abstract record GetOrchestrationInstanceByCustomQuery<TItem>
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
-    public GetOrchestrationInstanceByCustomQuery(
+    public SearchOrchestrationInstanceByCustomQuery(
         UserIdentityDto operatingIdentity)
             : base(operatingIdentity)
     {

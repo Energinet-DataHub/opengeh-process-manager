@@ -88,16 +88,22 @@ public interface IProcessManagerClient
     /// <summary>
     /// Get orchestration instance by a custom query.
     /// </summary>
-    /// <typeparam name="TItem">The result type of the item returned. Must be a JSON serializable type.</typeparam>
-    Task<TItem> GetOrchestrationInstanceByCustomQueryAsync<TItem>(
-        GetOrchestrationInstanceByCustomQuery<TItem> query,
+    /// <typeparam name="TItem">
+    /// The result type of the item returned.
+    /// Must be a JSON serializable type.
+    /// </typeparam>
+    Task<TItem> SearchOrchestrationInstanceByCustomQueryAsync<TItem>(
+        SearchOrchestrationInstanceByCustomQuery<TItem> query,
         CancellationToken cancellationToken)
             where TItem : class;
 
     /// <summary>
     /// Get all orchestration instances filtered by a custom query.
     /// </summary>
-    /// <typeparam name="TItem">The result type of each item returned in the list. Must be a JSON serializable type.</typeparam>
+    /// <typeparam name="TItem">
+    /// The result type of each item returned in the list.
+    /// Must be a JSON serializable type.
+    /// </typeparam>
     Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByCustomQueryAsync<TItem>(
         SearchOrchestrationInstancesByCustomQuery<TItem> query,
         CancellationToken cancellationToken)

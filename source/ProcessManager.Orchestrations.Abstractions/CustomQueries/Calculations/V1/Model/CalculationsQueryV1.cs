@@ -26,6 +26,10 @@ public sealed record CalculationsQueryV1
 {
     public const string RouteName = "v1/calculations";
 
+    /// <summary>
+    /// Construct query.
+    /// </summary>
+    /// <param name="operatingIdentity">Identity of the user executing the query.</param>
     public CalculationsQueryV1(
         UserIdentityDto operatingIdentity)
         : base(operatingIdentity)

@@ -67,7 +67,6 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
             var pt15m when pt15m == Resolution.QuarterHourly.Name => period.ToDuration().TotalMinutes % 15,
             var pt1h when pt1h == Resolution.Hourly.Name => period.ToDuration().TotalHours % 1,
             var p1d when p1d == Resolution.Daily.Name => period.ToDuration().TotalDays % 1,
-            // This maybe worky, but of hacky... Or is?
             var p1m when p1m == Resolution.Monthly.Name => period.Days,
             _ => 0.5,
         };
@@ -82,8 +81,7 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
             var pt15m when pt15m == Resolution.QuarterHourly.Name => (int)(period.ToDuration().TotalMinutes / 15),
             var pt1h when pt1h == Resolution.Hourly.Name => (int)period.ToDuration().TotalHours,
             var p1d when p1d == Resolution.Daily.Name => (int)period.ToDuration().TotalDays,
-            // This maybe worky, but of hacky... Or is?
-            var p1m when p1m == Resolution.Monthly.Name => period.Days != 0 ? 0 : period.Months,
+            var p1m when p1m == Resolution.Monthly.Name => period.Months,
             _ => 0,
         };
 

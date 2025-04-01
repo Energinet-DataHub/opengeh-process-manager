@@ -57,7 +57,7 @@ public sealed record CalculationsQueryV1
     public IReadOnlyCollection<CalculationTypeQueryParameterV1>? CalculationTypes { get; set; }
 
     /// <summary>
-    /// If this is specified, then only the following calculation types will be searched for:
+    /// If this is true, then only the following calculation types will be searched for:
     ///  - BRS-023/027
     /// </summary>
     public bool? IsInternalCalculation { get; set; }

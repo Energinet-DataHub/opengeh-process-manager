@@ -50,6 +50,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 
+        Environment.SetEnvironmentVariable("AZURE_APP_CONFIGURATION_PROVIDER_DISABLED", true.ToString());
         var services = ConfigureServices(_fixture, _executorMock);
         _serviceProvider = services.BuildServiceProvider();
 

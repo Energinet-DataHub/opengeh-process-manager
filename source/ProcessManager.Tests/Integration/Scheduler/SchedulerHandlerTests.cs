@@ -56,13 +56,12 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
             new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
-
+        Environment.SetEnvironmentVariable("AZURE_APP_CONFIGURATION_PROVIDER_DISABLED", true.ToString());
         var services = ConfigureServices(_fixture, _executorMock);
         _serviceProvider = services.BuildServiceProvider();
 
         _orchestrationRegister = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
         _startCommands = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceCommands>();
-
         _sut = _serviceProvider.GetRequiredService<SchedulerHandler>();
     }
 

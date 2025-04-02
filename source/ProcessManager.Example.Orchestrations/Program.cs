@@ -30,6 +30,10 @@ var host = new HostBuilder()
         // Http => Authorization
         builder.UseFunctionsAuthorization();
     })
+    .ConfigureAppConfiguration((context, config) =>
+    {
+        context.AddConfiguration(config);
+    })
     .ConfigureServices((context, services) =>
     {
         var azureCredential = new DefaultAzureCredential();

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.FeatureManagement;
 
@@ -24,17 +25,25 @@ namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
 public class MicrosoftFeatureFlagManager : IFeatureFlagManager
 {
     private readonly IFeatureManager _featureManager;
-    private readonly IConfigurationRefresher _refresher;
+    private readonly IConfigurationRefresher? _refresher;
 
     public MicrosoftFeatureFlagManager(IFeatureManager featureManager, IConfigurationRefresherProvider refresherProvider)
     {
         _featureManager = featureManager;
-        _refresher = refresherProvider.Refreshers.First();
+        if (!ÍsAzureAppConfigurationProviderDisabled())
+        {
+            _refresher = refresherProvider.Refreshers.First();
+        }
     }
 
     public Task<bool> IsEnabledAsync(string featureFlag)
     {
-        _refresher.TryRefreshAsync();
+        _refresher?.TryRefreshAsync();
         return _featureManager.IsEnabledAsync(featureFlag);
+    }
+
+    private static bool ÍsAzureAppConfigurationProviderDisabled()
+    {
+        return bool.TryParse(Environment.GetEnvironmentVariable("AZURE_APP_CONFIGURATION_PROVIDER_DISABLED"), out bool result) && result;
     }
 }

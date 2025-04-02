@@ -29,7 +29,19 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 
 public class MeteringPointValidationRuleTests
 {
-    private MeteringPointValidationRule _sut = new(new MicrosoftFeatureFlagManager(new Mock<IFeatureManager>().Object, new Mock<IConfigurationRefresherProvider>().Object));
+    private readonly Mock<IConfigurationRefresherProvider> _refresherProviderMock;
+    private readonly Mock<IFeatureManager> _featureManagerMock;
+    private MeteringPointValidationRule _sut;
+
+    public MeteringPointValidationRuleTests()
+    {
+        var refresherMock = new Mock<IConfigurationRefresher>();
+        _refresherProviderMock = new Mock<IConfigurationRefresherProvider>();
+        _refresherProviderMock.Setup(x => x.Refreshers).Returns(new List<IConfigurationRefresher> { refresherMock.Object });
+
+        _featureManagerMock = new Mock<IFeatureManager>();
+        _sut = new(new MicrosoftFeatureFlagManager(_featureManagerMock.Object, _refresherProviderMock.Object));
+    }
 
     [Fact]
     public async Task Given_MeteringPointMasterData_When_Validate_Then_NoValidationError()
@@ -64,12 +76,10 @@ public class MeteringPointValidationRuleTests
     [Fact]
     public async Task Given_NoMeteringPointMasterData_When_Validate_Then_ValidationError()
     {
-        var featureManagerMock = new Mock<IFeatureManager>();
-        var configurationRefresherProviderMock = new Mock<IConfigurationRefresherProvider>();
-        featureManagerMock
+        _featureManagerMock
             .Setup(x => x.IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint))
             .ReturnsAsync(true);
-        _sut = new(new MicrosoftFeatureFlagManager(featureManagerMock.Object, configurationRefresherProviderMock.Object));
+        _sut = new(new MicrosoftFeatureFlagManager(_featureManagerMock.Object, _refresherProviderMock.Object));
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
 

@@ -345,6 +345,10 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.ApplicationIdUri)}",
             AuthenticationOptionsForTests.ApplicationIdUri);
 
+        // App Configuration
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "AppConfigEndpoint", IntegrationTestConfiguration.Configuration["AZURE-APP-CONFIGURATION-ENDPOINT"]!);
+
         return appHostSettings;
     }
 

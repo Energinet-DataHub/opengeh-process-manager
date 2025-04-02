@@ -183,7 +183,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_SearchInJsonColumnAndReturnParameters_Then_ExpectedParametersAreReturned()
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_SearchInJsonColumnAndCastResultToParameters_Then_ExpectedParametersAreReturned()
     {
         // Arrange
         var expectedTestInt = 53;

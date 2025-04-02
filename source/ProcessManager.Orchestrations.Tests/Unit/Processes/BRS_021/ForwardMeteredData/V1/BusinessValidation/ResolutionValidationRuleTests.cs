@@ -157,12 +157,12 @@ public class ResolutionValidationRuleTests
     }
 
     [Fact]
-    public async Task Given_Validate_When_MasterDataMeteringPointIsNotProductionAndResolutionIsMonthly_Then_ValidationError()
+    public async Task Given_Validate_When_MasterDataMeteringPointIsNotVeProductionAndResolutionIsMonthly_Then_ValidationError()
     {
-        var validResolutionForProduction = Resolution.Monthly;
+        var validResolutionForVeProduction = Resolution.Monthly;
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteringPointType(MeteringPointType.Production.Name)
-            .WithResolution(validResolutionForProduction.Name)
+            .WithMeteringPointType(MeteringPointType.VeProduction.Name)
+            .WithResolution(validResolutionForVeProduction.Name)
             .Build();
 
         var result = await _sut.ValidateAsync(new(
@@ -179,7 +179,7 @@ public class ResolutionValidationRuleTests
                     // Not production metering point type
                     MeteringPointType.Consumption,
                     MeteringPointSubType.Physical,
-                    validResolutionForProduction,
+                    validResolutionForVeProduction,
                     MeasurementUnit.KilowattHour,
                     "product",
                     null,

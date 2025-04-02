@@ -14,14 +14,14 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Helpers;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Validators;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using NodaTime;
 using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.BusinessValidation;
 
-public class PeriodValidationRule(PeriodValidationHelper periodValidationHelper)
+public class PeriodValidationRule(PeriodValidator periodValidator)
     : IBusinessValidationRule<RequestCalculatedEnergyTimeSeriesInputV1>
 {
     private const int MaxAllowedPeriodSizeInMonths = 1;
@@ -35,7 +35,7 @@ public class PeriodValidationRule(PeriodValidationHelper periodValidationHelper)
     private static readonly ValidationError _periodIsGreaterThenAllowedPeriodSize = new("Dato må kun være for 1 måned af gangen / Can maximum be for a 1 month period", "E17");
     private static readonly ValidationError _missingStartOrAndEndDate = new("Start og slut dato skal udfyldes / Start and end date must be present in request", "E50");
 
-    private readonly PeriodValidationHelper _periodValidationHelper = periodValidationHelper;
+    private readonly PeriodValidator _periodValidator = periodValidator;
 
     public Task<IList<ValidationError>> ValidateAsync(RequestCalculatedEnergyTimeSeriesInputV1 subject)
     {
@@ -72,13 +72,13 @@ public class PeriodValidationRule(PeriodValidationHelper periodValidationHelper)
 
     private void IntervalMustBeWithinAllowedPeriodSize(Instant start, Instant end, IList<ValidationError> errors)
     {
-        if (_periodValidationHelper.IntervalMustBeLessThanAllowedPeriodSize(start, end, MaxAllowedPeriodSizeInMonths))
+        if (_periodValidator.IntervalMustBeLessThanAllowedPeriodSize(start, end, MaxAllowedPeriodSizeInMonths))
             errors.Add(_periodIsGreaterThenAllowedPeriodSize);
     }
 
     private void StartDateMustBeGreaterThenAllowedYears(Instant start, IList<ValidationError> errors)
     {
-        if (_periodValidationHelper.IsMonthOfDateOlderThanXYearsAndYMonths(start, AllowedTimeFrameYearsFromNow, AllowedTimeFrameMonthsFromNow))
+        if (_periodValidator.IsMonthOfDateOlderThanXYearsAndYMonths(start, AllowedTimeFrameYearsFromNow, AllowedTimeFrameMonthsFromNow))
         {
             errors.Add(_startDateMustBeLessThen3Years);
         }
@@ -96,7 +96,7 @@ public class PeriodValidationRule(PeriodValidationHelper periodValidationHelper)
 
     private void MustBeMidnight(Instant instant, string propertyName, IList<ValidationError> errors)
     {
-        if (_periodValidationHelper.IsMidnight(instant, out var zonedDateTime))
+        if (_periodValidator.IsMidnight(instant, out var zonedDateTime))
             return;
 
         errors.Add(zonedDateTime.IsDaylightSavingTime()

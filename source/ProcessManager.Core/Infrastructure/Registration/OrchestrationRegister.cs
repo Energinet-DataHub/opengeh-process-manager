@@ -105,12 +105,11 @@ internal class OrchestrationRegister(
         ArgumentNullException.ThrowIfNull(registerDescription);
 
         var existingDescription = await GetOrDefaultAsync(registerDescription.UniqueName, isEnabled: true).ConfigureAwait(false);
-        if (existingDescription == null)
-            throw new InvalidOperationException("Orchestration description has not been registered or is not currently enabled.");
-
-        existingDescription.IsEnabled = false;
-
-        await _context.SaveChangesAsync().ConfigureAwait(false);
+        if (existingDescription != null)
+        {
+            existingDescription.IsEnabled = false;
+            await _context.SaveChangesAsync().ConfigureAwait(false);
+        }
     }
 
     private bool AnyRefreshablePropertyHasChanged(

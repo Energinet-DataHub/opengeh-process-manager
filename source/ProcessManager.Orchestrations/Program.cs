@@ -71,19 +71,16 @@ var host = new HostBuilder()
         var orchestrationsAbstractionsAssembly = typeof(RequestCalculatedEnergyTimeSeriesInputV1).Assembly;
         services.AddBusinessValidation([orchestrationsAssembly, orchestrationsAbstractionsAssembly]);
 
+        // Time component
+        services.AddTimeComponent();
+
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(context.Configuration, typeof(Program).Assembly);
 
-        // Measurements
-        services.AddMeasurementsMeteredDataClient(azureCredential);
-
-        services.AddScoped<TerminateForwardMeteredDataHandlerV1>()
-            .AddScoped<EnqueueMeteredDataHandlerV1>();
-
-        // Wholesale migrations
-        services.AddWholesaleDatabase();
+        // BRS-021 ForwardMeteredData
+        services.AddBrs021ForwardMeteringData(azureCredential);
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

@@ -294,10 +294,11 @@ public class SearchCalculationHandlerTests : IClassFixture<ProcessManagerDatabas
                 });
     }
 
-    private async Task<IReadOnlyCollection<OrchestrationInstance>> CreateCalculationOrchestrationInstancesAsync((DateTimeOffset Start, DateTimeOffset End)[] periods)
+    private async Task<IReadOnlyCollection<OrchestrationInstance>> CreateCalculationOrchestrationInstancesAsync(
+        (DateTimeOffset Start, DateTimeOffset End)[] periods)
     {
         await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
-        var descriptionBuilder = new Orchestrations.Processes.BRS_023_027.V1.OrchestrationDescriptionBuilder();
+        var descriptionBuilder = new Orchestrations.Processes.BRS_023_027.V1.Orchestration.OrchestrationDescriptionBuilder();
         var orchestrationDescription = descriptionBuilder.Build();
         dbContext.OrchestrationDescriptions.Add(orchestrationDescription);
 

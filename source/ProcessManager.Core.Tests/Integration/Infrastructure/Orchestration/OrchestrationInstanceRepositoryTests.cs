@@ -90,6 +90,72 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
+    public async Task Given_OrchestrationInstanceChangedFromMultipleConsumers_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // => First consumer (sut)
+        var actual01 = await _sut.GetAsync(existingOrchestrationInstance.Id);
+        actual01.Lifecycle.TransitionToQueued(SystemClock.Instance);
+
+        // => Second consumer (sut02)
+        using var dbContext02 = _fixture.DatabaseManager.CreateDbContext();
+        var sut02 = new OrchestrationInstanceRepository(dbContext02);
+        var actual02 = await sut02.GetAsync(existingOrchestrationInstance.Id);
+        actual02.Lifecycle.TransitionToQueued(SystemClock.Instance);
+
+        await _sut.UnitOfWork.CommitAsync();
+
+        // Act
+        var act = () => sut02.UnitOfWork.CommitAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
+    }
+
+    [Fact]
+    public async Task Given_StepInstanceChangedFromMultipleConsumers_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
+    {
+        // Arrange
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // => First consumer (sut)
+        var actual01 = await _sut.GetAsync(existingOrchestrationInstance.Id);
+        actual01.TransitionStepToRunning(1, SystemClock.Instance);
+
+        // => Second consumer (sut02)
+        using var dbContext02 = _fixture.DatabaseManager.CreateDbContext();
+        var sut02 = new OrchestrationInstanceRepository(dbContext02);
+        var actual02 = await sut02.GetAsync(existingOrchestrationInstance.Id);
+        actual02.TransitionStepToRunning(1, SystemClock.Instance);
+
+        await _sut.UnitOfWork.CommitAsync();
+
+        // Act
+        var act = () => sut02.UnitOfWork.CommitAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
+    }
+
+    [Fact]
     public async Task Given_OrchestrationInstanceNotInDatabase_When_GetByIdempotencyKey_Then_ReturnsNull()
     {
         // Arrange
@@ -436,7 +502,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenOrchestrationInstancesInDatabase_WhenSearchByActivatedWithinOneHourTomorrow_ThenExpectedOrchestrationInstancesAreRetrieved()
+    public async Task Given_OrchestrationInstancesInDatabase_When_SearchByActivatedWithinOneHourTomorrow_Then_ExpectedOrchestrationInstancesAreRetrieved()
     {
         // Arrange
         var now = SystemClock.Instance.GetCurrentInstant();
@@ -522,7 +588,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenTwoOrchestrationInstancesCreatedByDifferentActors_WhenSearchWithCreatedByActor_ThenOnlyOneExpectedOrchestrationInstanceRetrieved()
+    public async Task Given_TwoOrchestrationInstancesCreatedByDifferentActors_When_SearchWithCreatedByActor_Then_OnlyOneExpectedOrchestrationInstanceRetrieved()
     {
         // Arrange
         var now = SystemClock.Instance.GetCurrentInstant();
@@ -574,7 +640,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     }
 
     [Fact]
-    public async Task GivenTwoOrchestrationInstancesCreatedByDifferentActors_WhenSearchWithoutCreatedByActor_ThenBothExpectedOrchestrationInstanceRetrieved()
+    public async Task Given_TwoOrchestrationInstancesCreatedByDifferentActors_When_SearchWithoutCreatedByActor_Then_BothExpectedOrchestrationInstanceRetrieved()
     {
         // Arrange
         var now = SystemClock.Instance.GetCurrentInstant();

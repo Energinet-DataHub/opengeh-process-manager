@@ -348,10 +348,10 @@ internal class OrchestrationInstanceManager(
             if (orchestrationDescription.IsDurableFunction)
             {
                 await _executor
-                .StartNewOrchestrationInstanceAsync(
-                    orchestrationDescription,
-                    orchestrationInstance)
-                .ConfigureAwait(false);
+                    .StartNewOrchestrationInstanceAsync(
+                        orchestrationDescription,
+                        orchestrationInstance)
+                    .ConfigureAwait(false);
             }
 
             orchestrationInstance.Lifecycle.TransitionToQueued(_clock);

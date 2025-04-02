@@ -22,21 +22,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// </summary>
 public record ForwardMeteredDataAcceptedV1(
     string OriginalActorMessageId,
-    string OriginalTransactionId,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
     string ProductNumber,
-    MeasurementUnit MeasureUnit,
     DateTimeOffset RegistrationDateTime,
-    Resolution Resolution,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
-    IReadOnlyCollection<ForwardMeteredDataAcceptedV1.AcceptedEnergyObservation> AcceptedEnergyObservations,
-    IReadOnlyCollection<MarketActorRecipientV1> MarketActorRecipients)
-    : IInputParameterDto
-{
-    public record AcceptedEnergyObservation(
-        int Position,
-        decimal? EnergyQuantity,
-        Quality? QuantityQuality);
-}
+    IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData)
+    : IInputParameterDto;

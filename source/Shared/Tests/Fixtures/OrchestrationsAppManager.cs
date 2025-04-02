@@ -108,8 +108,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.Credential);
 
         MockServer = WireMockServer.Start(port: wireMockServerPort);
-
-        WholesaleDatabaseManager = new WholesaleDatabaseManager("Wholesale");
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
@@ -136,8 +134,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     public WireMockServer MockServer { get; }
 
-    public WholesaleDatabaseManager WholesaleDatabaseManager { get; }
-
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
     private AzuriteManager AzuriteManager { get; }
@@ -147,12 +143,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
     private EventHubResourceProvider EventHubResourceProvider { get; }
 
     /// <summary>
-    /// Start the orchestration app
+    /// Start the Orchestrations app.
     /// </summary>
-    /// <param name="ediTopicResources">The required EDI topic resources. New resources will be created if not provided.</param>
-    /// <param name="integrationEventTopicResources">The required shared integration event topic resources. New resources will be created if not provided.</param>
+    /// <param name="ediEnqueueTopicResources">EDI enqueue actor messages topic resources used by the app.
+    /// Will be created if not provided.</param>
+    /// <param name="integrationEventTopicResources">Shared integration event topic resources used by the app.
+    /// Will be created if not provided.</param>
     public async Task StartAsync(
-        EdiTopicResources? ediTopicResources,
+        EdiEnqueueTopicResources? ediEnqueueTopicResources,
         IntegrationEventTopicResources? integrationEventTopicResources)
     {
         if (_manageAzurite)
@@ -170,27 +168,27 @@ public class OrchestrationsAppManager : IAsyncDisposable
         var processManagerEventhubResource = await EventHubResourceProvider.BuildEventHub("process-manager-event-hub").CreateAsync();
         ProcessManagerEventhubName = processManagerEventhubResource.Name;
 
-        // Orchestrations service bus topics
-        var startTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        // Creates Process Manager default Start topics and subscriptions
+        var startTopicResources = await ProcessManagerStartTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         ProcessManagerStartTopic = startTopicResources.StartTopic;
-        var brs21TopicResource = await Brs21TopicResources.CreateNewAsync(ServiceBusResourceProvider);
-        Brs021ForwardMeteredDataStartTopic = brs21TopicResource.Brs21StartTopic;
-        Brs021ForwardMeteredDataNotifyTopic = brs21TopicResource.Brs21NotifyTopic;
 
-        // EDI topic
-        ediTopicResources ??= await EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        // Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
+        var brs21fmdTopicResource = await Brs021ForwardMeteredDataTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        Brs021ForwardMeteredDataStartTopic = brs21fmdTopicResource.StartTopic;
+        Brs021ForwardMeteredDataNotifyTopic = brs21fmdTopicResource.NotifyTopic;
 
-        // Integration event topic
+        // Creates EDI enqueue actor messages topic and subscriptions
+        ediEnqueueTopicResources ??= await EdiEnqueueTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+
+        // Creates Integration event topic and subscriptions
         integrationEventTopicResources ??= await IntegrationEventTopicResources.CreateNewAsync(ServiceBusResourceProvider);
-
-        await WholesaleDatabaseManager.CreateDatabaseAsync();
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
             "ProcessManager.Orchestrations",
             startTopicResources,
-            ediTopicResources,
-            brs21TopicResource,
+            ediEnqueueTopicResources,
+            brs21fmdTopicResource,
             integrationEventTopicResources,
             measurementEventHubResource,
             processManagerEventhubResource);
@@ -213,8 +211,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
         await ServiceBusResourceProvider.DisposeAsync();
         await EventHubResourceProvider.DisposeAsync();
         MockServer.Dispose();
-
-        await WholesaleDatabaseManager.DeleteDatabaseAsync();
     }
 
     /// <summary>
@@ -281,9 +277,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        ProcessManagerTopicResources startTopicResources,
-        EdiTopicResources ediTopicResources,
-        Brs21TopicResources brs21TopicResources,
+        ProcessManagerStartTopicResources startTopicResources,
+        EdiEnqueueTopicResources ediEnqueueTopicResources,
+        Brs021ForwardMeteredDataTopicResources brs21fmdTopicResources,
         IntegrationEventTopicResources integrationEventTopicResources,
         EventHubResource eventHubResource,
         EventHubResource processManagerEventhubResource)
@@ -356,6 +352,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.TopicName)}",
             startTopicResources.StartTopic.Name);
+        // => Process Manager Start topic -> subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs026SubscriptionName)}",
             startTopicResources.Brs026Subscription.SubscriptionName);
@@ -363,24 +360,24 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs028SubscriptionName)}",
             startTopicResources.Brs028Subscription.SubscriptionName);
 
-        // => BRS-021 Forward Metered Data topics
+        // => BRS-021 Forward Metered Data topics and subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",
-            brs21TopicResources.Brs21StartTopic.Name);
+            brs21fmdTopicResources.StartTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}",
-            brs21TopicResources.Brs21NotifyTopic.Name);
+            brs21fmdTopicResources.NotifyTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}",
-            brs21TopicResources.StartSubscription.SubscriptionName);
+            brs21fmdTopicResources.StartSubscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}",
-            brs21TopicResources.NotifySubscription.SubscriptionName);
+            brs21fmdTopicResources.NotifySubscription.SubscriptionName);
 
-        // => EDI topic
+        // => Edi enqueue topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
-            ediTopicResources.EdiTopic.Name);
+            ediEnqueueTopicResources.EnqueueTopic.Name);
 
         // => Shared integration event topic
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -401,7 +398,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
 
-        // => BRS 023 027
+        // => BRS 023 027 options
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.CalculationJobStatusPollingIntervalInSeconds)}",
             "3");
@@ -436,53 +433,133 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.ApplicationIdUri)}",
             AuthenticationOptionsForTests.ApplicationIdUri);
 
-        // => BRS-026
+        // => BRS-026 options
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_026_V1.SectionName}__{nameof(OrchestrationOptions_Brs_026_V1.EnqueueActorMessagesTimeout)}",
             TimeSpan.FromSeconds(60).ToString());
 
-        // => BRS-028
+        // => BRS-028 options
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_028_V1.SectionName}__{nameof(OrchestrationOptions_Brs_028_V1.EnqueueActorMessagesTimeout)}",
             TimeSpan.FromSeconds(60).ToString());
-
-        // => Wholesale migration (database)
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{WholesaleDatabaseOptions.SectionName}__{nameof(WholesaleDatabaseOptions.SqlDatabaseConnectionString)}",
-            WholesaleDatabaseManager.ConnectionString);
 
         return appHostSettings;
     }
 
     /// <summary>
-    /// Process Manager topic and subscription resources used by the Orchestrations app.
+    /// EDI enqueue actor messages topic and subscription resources used by the Orchestrations app.
     /// </summary>
-    public record ProcessManagerTopicResources(
+    public record EdiEnqueueTopicResources(
+        TopicResource EnqueueTopic,
+        SubscriptionProperties Brs021ForwardMeteredDataSubscription,
+        SubscriptionProperties Brs023027Subscription,
+        SubscriptionProperties Brs026Subscription,
+        SubscriptionProperties Brs028Subscription)
+    {
+        private const string Brs021ForwardMeteredDataSubscriptionName = "brs-021-forwardmetereddata";
+        private const string Brs023027SubscriptionName = "brs-023-027";
+        private const string Brs026SubscriptionName = "brs-026";
+        private const string Brs028SubscriptionName = "brs-028";
+
+        public static async Task<EdiEnqueueTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        {
+            var topicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
+            AddSubscriptionsToTopicBuilder(topicBuilder);
+
+            var topic = await topicBuilder.CreateAsync();
+            return CreateFromTopic(topic);
+        }
+
+        /// <summary>
+        /// Add the subscriptions used by the Orchestrations app to the topic builder.
+        /// </summary>
+        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
+        {
+            builder
+                .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(OrchestrationDescriptionBuilder.UniqueName))
+                .AddSubscription(Brs023027SubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
+                .AddSubscription(Brs026SubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_026.V1))
+                .AddSubscription(Brs028SubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_028.V1));
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Get the <see cref="EdiEnqueueTopicResources"/> used by the Orchestrations app.
+        /// <remarks>
+        /// Subscriptions must be created on the topic beforehand, using <see cref="AddSubscriptionsToTopicBuilder"/>.
+        /// </remarks>
+        /// </summary>
+        public static EdiEnqueueTopicResources CreateFromTopic(TopicResource topic)
+        {
+            var enqueueBrs021ForwardMeteredDataSubscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(Brs021ForwardMeteredDataSubscriptionName));
+            var enqueueBrs023027Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(Brs023027SubscriptionName));
+            var enqueueBrs026Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(Brs026SubscriptionName));
+            var enqueueBrs028Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(Brs028SubscriptionName));
+
+            return new EdiEnqueueTopicResources(
+                EnqueueTopic: topic,
+                Brs021ForwardMeteredDataSubscription: enqueueBrs021ForwardMeteredDataSubscription,
+                Brs023027Subscription: enqueueBrs023027Subscription,
+                Brs026Subscription: enqueueBrs026Subscription,
+                Brs028Subscription: enqueueBrs028Subscription);
+        }
+    }
+
+    public record IntegrationEventTopicResources(
+        TopicResource SharedTopic,
+        SubscriptionProperties Subscription)
+    {
+        public static async Task<IntegrationEventTopicResources> CreateNewAsync(
+            ServiceBusResourceProvider serviceBusResourceProvider)
+        {
+            var topic = await serviceBusResourceProvider
+                .BuildTopic("integration-event-topic")
+                .AddSubscription("integration-event-subscription")
+                .CreateAsync();
+
+            return new IntegrationEventTopicResources(
+                SharedTopic: topic,
+                Subscription: topic.Subscriptions.Single());
+        }
+    }
+
+    /// <summary>
+    /// Process Manager default start topic and subscription resources used by the Orchestrations app.
+    /// </summary>
+    private record ProcessManagerStartTopicResources(
         TopicResource StartTopic,
         SubscriptionProperties Brs021ForwardMeteredDataSubscription,
         SubscriptionProperties Brs023027Subscription,
         SubscriptionProperties Brs026Subscription,
         SubscriptionProperties Brs028Subscription)
     {
-        private const string Brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data-subscription";
-        private const string Brs023027SubscriptionName = "brs-023-027-subscription";
-        private const string Brs026SubscriptionName = "brs-026-subscription";
-        private const string Brs028SubscriptionName = "brs-028-subscription";
+        private const string Brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data";
+        private const string Brs023027SubscriptionName = "brs-023-027";
+        private const string Brs026SubscriptionName = "brs-026";
+        private const string Brs028SubscriptionName = "brs-028";
 
-        internal static async Task<ProcessManagerTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<ProcessManagerStartTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
-            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic("pm-start-topic");
-            AddOrchestrationsAppSubscriptions(processManagerTopicBuilder);
+            var topicBuilder = serviceBusResourceProvider.BuildTopic("pm-start-topic");
+            AddSubscriptionsToTopicBuilder(topicBuilder);
 
-            var processManagerTopic = await processManagerTopicBuilder.CreateAsync();
-
-            return CreateFromTopic(processManagerTopic);
+            var topic = await topicBuilder.CreateAsync();
+            return CreateFromTopic(topic);
         }
 
         /// <summary>
         /// Add the subscriptions used by the Orchestrations app to the topic builder.
         /// </summary>
-        internal static TopicResourceBuilder AddOrchestrationsAppSubscriptions(TopicResourceBuilder builder)
+        private static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
                 .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
@@ -498,12 +575,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
         }
 
         /// <summary>
-        /// Get the <see cref="OrchestrationsAppManager.ProcessManagerTopicResources"/> used by the Orchestrations app.
+        /// Get the <see cref="ProcessManagerStartTopicResources"/> used by the Orchestrations app.
         /// <remarks>
-        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddOrchestrationsAppSubscriptions"/>.
+        /// Subscriptions must be created on the topic beforehand, using <see cref="AddSubscriptionsToTopicBuilder"/>.
         /// </remarks>
         /// </summary>
-        internal static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
+        private static ProcessManagerStartTopicResources CreateFromTopic(TopicResource topic)
         {
             var brs021ForwardMeteredDataSubscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs021ForwardMeteredDataSubscriptionName));
@@ -517,7 +594,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             var brs028Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs028SubscriptionName));
 
-            return new ProcessManagerTopicResources(
+            return new ProcessManagerStartTopicResources(
                 StartTopic: topic,
                 Brs021ForwardMeteredDataSubscription: brs021ForwardMeteredDataSubscription,
                 Brs023027Subscription: brs023027Subscription,
@@ -527,169 +604,34 @@ public class OrchestrationsAppManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// EDI topic resources.
+    /// BRS-021 Forward Metered Data start + notify topic and subscription resources used by the Orchestrations app.
     /// </summary>
-    public record EdiTopicResources(
-        TopicResource EdiTopic,
-        SubscriptionProperties EnqueueBrs021ForwardMeteredDataSubscription,
-        SubscriptionProperties EnqueueBrs023027Subscription,
-        SubscriptionProperties EnqueueBrs026Subscription,
-        SubscriptionProperties EnqueueBrs028Subscription)
-    {
-        private const string EnqueueBrs021ForwardMeteredDataSubscriptionName = "enqueue-brs-021-forwardmetereddata-subscription";
-        private const string EnqueueBrs023027SubscriptionName = "enqueue-brs-023-027-subscription";
-        private const string EnqueueBrs026SubscriptionName = "enqueue-brs-026-subscription";
-        private const string EnqueueBrs028SubscriptionName = "enqueue-brs-028-subscription";
-
-        public static async Task<EdiTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
-        {
-            var ediTopicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
-            AddSubscriptionsToTopicBuilder(ediTopicBuilder);
-
-            var ediTopic = await ediTopicBuilder.CreateAsync();
-
-            return CreateFromTopic(ediTopic);
-        }
-
-        /// <summary>
-        /// Add EDI subscriptions to the EDI topic.
-        /// </summary>
-        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
-        {
-            builder
-                .AddSubscription(EnqueueBrs021ForwardMeteredDataSubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(OrchestrationDescriptionBuilderV1.UniqueName))
-                .AddSubscription(EnqueueBrs023027SubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
-                .AddSubscription(EnqueueBrs026SubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_026.V1))
-                .AddSubscription(EnqueueBrs028SubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_028.V1));
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Get the <see cref="OrchestrationsAppManager.EdiTopicResources"/> used by the Orchestrations app.
-        /// <remarks>
-        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
-        /// </remarks>
-        /// </summary>
-        public static EdiTopicResources CreateFromTopic(TopicResource topic)
-        {
-            var enqueueBrs021ForwardMeteredDataSubscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(EnqueueBrs021ForwardMeteredDataSubscriptionName));
-            var enqueueBrs023027Subscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(EnqueueBrs023027SubscriptionName));
-            var enqueueBrs026Subscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(EnqueueBrs026SubscriptionName));
-            var enqueueBrs028Subscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(EnqueueBrs028SubscriptionName));
-
-            return new EdiTopicResources(
-                EdiTopic: topic,
-                EnqueueBrs021ForwardMeteredDataSubscription: enqueueBrs021ForwardMeteredDataSubscription,
-                EnqueueBrs023027Subscription: enqueueBrs023027Subscription,
-                EnqueueBrs026Subscription: enqueueBrs026Subscription,
-                EnqueueBrs028Subscription: enqueueBrs028Subscription);
-        }
-    }
-
-    /// <summary>
-    /// Brs21 topic resources.
-    /// </summary>
-    public record Brs21TopicResources(
-        TopicResource Brs21StartTopic,
+    private record Brs021ForwardMeteredDataTopicResources(
+        TopicResource StartTopic,
         SubscriptionProperties StartSubscription,
-        TopicResource Brs21NotifyTopic,
+        TopicResource NotifyTopic,
         SubscriptionProperties NotifySubscription)
     {
-        private const string StartSubscriptionName = "brs-021-start-subscription";
-        private const string NotifySubscriptionName = "brs-021-notify-subscription";
+        private const string StartSubscriptionName = "brs-021-forwardmetereddata-start";
+        private const string NotifySubscriptionName = "brs-021-forwardmetereddata-notify";
 
-        internal static async Task<Brs21TopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<Brs021ForwardMeteredDataTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
-            var brs21StartTopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-start-topic");
-            AddSubscriptionsToTopicBuilder(brs21StartTopicBuilder, StartSubscriptionName);
-            var brs21StartTopic = await brs21StartTopicBuilder.CreateAsync();
+            var startTopic = await serviceBusResourceProvider
+                .BuildTopic("brs021-start-topic")
+                .AddSubscription(StartSubscriptionName)
+                .CreateAsync();
 
-            var brs21NotifyTopicBuilder = serviceBusResourceProvider.BuildTopic("brs21-notify-topic");
-            AddSubscriptionsToTopicBuilder(brs21NotifyTopicBuilder, NotifySubscriptionName);
-            var brs21NotifyTopic = await brs21NotifyTopicBuilder.CreateAsync();
+            var notifyTopic = await serviceBusResourceProvider
+                .BuildTopic("brs021-notify-topic")
+                .AddSubscription(NotifySubscriptionName)
+                .CreateAsync();
 
-            return new Brs21TopicResources(
-                Brs21StartTopic: brs21StartTopic,
-                StartSubscription: GetSubscription(brs21StartTopic, StartSubscriptionName),
-                Brs21NotifyTopic: brs21NotifyTopic,
-                NotifySubscription: GetSubscription(brs21NotifyTopic, NotifySubscriptionName));
-        }
-
-        /// <summary>
-        /// Add Brs21 subscriptions to the Brs21 topic.
-        /// </summary>
-        internal static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder, string subscriptionName)
-        {
-            builder
-                .AddSubscription(subscriptionName);
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Get the <see cref="OrchestrationsAppManager.Brs21TopicResources"/> used by the Orchestrations app.
-        /// <remarks>
-        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
-        /// </remarks>
-        /// </summary>
-        internal static SubscriptionProperties GetSubscription(TopicResource topic, string subscriptionName)
-        {
-            return topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(subscriptionName));
-        }
-    }
-
-    public record IntegrationEventTopicResources(
-        TopicResource SharedTopic,
-        SubscriptionProperties Subscription)
-    {
-        private const string SubscriptionName = "integration-event-subscription";
-
-        public static async Task<IntegrationEventTopicResources> CreateNewAsync(
-            ServiceBusResourceProvider serviceBusResourceProvider)
-        {
-            var integrationEventTopicBuilder = serviceBusResourceProvider.BuildTopic("integration-event-topic");
-            AddSubscriptionsToTopicBuilder(integrationEventTopicBuilder);
-
-            var integrationEventTopic = await integrationEventTopicBuilder.CreateAsync();
-
-            return CreateFromTopic(integrationEventTopic);
-        }
-
-        /// <summary>
-        /// Add integration event subscription to the integration event topic.
-        /// </summary>
-        public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
-        {
-            builder
-                .AddSubscription(SubscriptionName);
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Get the <see cref="IntegrationEventTopicResources"/> used by the Orchestrations app.
-        /// <remarks>
-        /// This requires the Orchestration subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
-        /// </remarks>
-        /// </summary>
-        public static IntegrationEventTopicResources CreateFromTopic(TopicResource topic)
-        {
-            var integrationEventSubscriptionName = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(SubscriptionName));
-
-            return new IntegrationEventTopicResources(
-                SharedTopic: topic,
-                Subscription: integrationEventSubscriptionName);
+            return new Brs021ForwardMeteredDataTopicResources(
+                StartTopic: startTopic,
+                StartSubscription: startTopic.Subscriptions.Single(),
+                NotifyTopic: notifyTopic,
+                NotifySubscription: notifyTopic.Subscriptions.Single());
         }
     }
 }

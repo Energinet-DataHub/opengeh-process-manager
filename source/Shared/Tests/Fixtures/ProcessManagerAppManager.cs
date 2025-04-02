@@ -57,7 +57,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
 
     public ProcessManagerAppManager(
         ProcessManagerDatabaseManager databaseManager,
-        IntegrationTestConfiguration integrationTestConfiguration,
+        IntegrationTestConfiguration configuration,
         AzuriteManager azuriteManager,
         string taskHubName,
         int appPort,
@@ -74,7 +74,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         DatabaseManager = databaseManager;
         TestLogger = new TestDiagnosticsLogger();
 
-        IntegrationTestConfiguration = integrationTestConfiguration;
+        IntegrationTestConfiguration = configuration;
         AzuriteManager = azuriteManager;
         ServiceBusResourceProvider = new ServiceBusResourceProvider(
             TestLogger,
@@ -99,7 +99,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
     private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     /// <summary>
-    /// Start the app.
+    /// Start the Process Manager core app.
     /// </summary>
     public async Task StartAsync()
     {
@@ -112,13 +112,12 @@ public class ProcessManagerAppManager : IAsyncDisposable
         if (_manageDatabase)
             await DatabaseManager.CreateDatabaseAsync();
 
-        var obsoleteNotifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider, "pm-notify-topic-obsolete");
-        // Notify topic
-        var notifyTopicResources = await ProcessManagerTopicResources.CreateNewAsync(ServiceBusResourceProvider, "pm-notify-topic");
+        // Creates Process Manager default Notify topic and subscription
+        var notifyTopicResources = await ProcessManagerNotifyTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         ProcessManagerNotifyTopic = notifyTopicResources.NotifyTopic;
 
         // Prepare host settings
-        var appHostSettings = CreateAppHostSettings("ProcessManager", notifyTopicResources, obsoleteNotifyTopicResources);
+        var appHostSettings = CreateAppHostSettings("ProcessManager", notifyTopicResources);
 
         // Create and start host
         AppHostManager = new FunctionAppHostManager(appHostSettings, TestLogger);
@@ -187,8 +186,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
 
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
-        ProcessManagerTopicResources notifyTopicResources,
-        ProcessManagerTopicResources obsoleteNotifyTopicResources)
+        ProcessManagerNotifyTopicResources notifyTopicResources)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -224,19 +222,6 @@ public class ProcessManagerAppManager : IAsyncDisposable
             "Logging__LogLevel__Azure.Core",
             "Error");
 
-        // Service Bus
-        // => Service Bus Client
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
-            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
-        // => Notify topic
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerNotifyTopicOptions.SectionName}__{nameof(ProcessManagerNotifyTopicOptions.TopicName)}",
-            notifyTopicResources.NotifyTopic.Name);
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerNotifyTopicOptions.SectionName}__{nameof(ProcessManagerNotifyTopicOptions.SubscriptionName)}",
-            notifyTopicResources.NotifySubscription.SubscriptionName);
-
         // ProcessManager
         // => Task Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -257,6 +242,19 @@ public class ProcessManagerAppManager : IAsyncDisposable
             $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
             AuthenticationOptionsForTests.Issuer);
 
+        // => Service Bus
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
+
+        // => Process Manager Notify topic and subscription
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerNotifyTopicOptions.SectionName}__{nameof(ProcessManagerNotifyTopicOptions.TopicName)}",
+            notifyTopicResources.NotifyTopic.Name);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerNotifyTopicOptions.SectionName}__{nameof(ProcessManagerNotifyTopicOptions.SubscriptionName)}",
+            notifyTopicResources.NotifySubscription.SubscriptionName);
+
         // Disable timer triggers (should be manually triggered in tests)
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"AzureWebJobs.StartScheduledOrchestrationInstances.Disabled",
@@ -269,50 +267,25 @@ public class ProcessManagerAppManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Process Manager topic and subscription resources used by the Process Manager Core app.
+    /// Process Manager default notify topic and subscription resources used by the Process Manager core app.
     /// </summary>
-    public record ProcessManagerTopicResources(
+    private record ProcessManagerNotifyTopicResources(
         TopicResource NotifyTopic,
         SubscriptionProperties NotifySubscription)
     {
-        private const string NotifySubscriptionName = "notify-subscription";
+        private const string NotifySubscriptionName = "pm-notify";
 
-        internal static async Task<ProcessManagerTopicResources> CreateNewAsync(
-            ServiceBusResourceProvider serviceBusResourceProvider,
-            string topicNamePrefix)
+        internal static async Task<ProcessManagerNotifyTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
-            var processManagerTopicBuilder = serviceBusResourceProvider.BuildTopic(topicNamePrefix);
-            AddSubscriptionsToTopicBuilder(processManagerTopicBuilder);
-
-            var processManagerTopic = await processManagerTopicBuilder.CreateAsync();
-
-            return CreateFromTopic(processManagerTopic);
-        }
-
-        /// <summary>
-        /// Add the subscriptions used by the Process Manager app to the topic builder.
-        /// </summary>
-        private static TopicSubscriptionBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
-        {
-            return builder
+            var topic = await serviceBusResourceProvider
+                .BuildTopic("pm-notify-topic")
                 .AddSubscription(NotifySubscriptionName)
-                    .AddSubjectFilter("NotifyOrchestration");
-        }
+                    .AddSubjectFilter("NotifyOrchestration")
+                .CreateAsync();
 
-        /// <summary>
-        /// Get the <see cref="ProcessManagerAppManager.ProcessManagerTopicResources"/> used by the Process Manager app.
-        /// <remarks>
-        /// This requires the Process Manager subscriptions to be created on the topic, using <see cref="AddSubscriptionsToTopicBuilder"/>.
-        /// </remarks>
-        /// </summary>
-        private static ProcessManagerTopicResources CreateFromTopic(TopicResource topic)
-        {
-            var notifyOrchestrationInstanceSubscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(NotifySubscriptionName));
-
-            return new ProcessManagerTopicResources(
-                topic,
-                notifyOrchestrationInstanceSubscription);
+            return new ProcessManagerNotifyTopicResources(
+                NotifyTopic: topic,
+                NotifySubscription: topic.Subscriptions.Single());
         }
     }
 }

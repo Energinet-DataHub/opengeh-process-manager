@@ -12,43 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-public readonly record struct TimeInterval(DateTimeOffset Start, DateTimeOffset End);
-
-public sealed record ForwardMeteredDataRejectedV1(
-    string EventId,
+public record ForwardMeteredDataRejectedV1(
+    string OriginalActorMessageId,
+    string OriginalTransactionId,
+    ActorNumber ForwardedByActorNumber,
+    ActorRole ForwardedByActorRole,
     BusinessReason BusinessReason,
-    MarketActorRecipientV1 MarketActorRecipient,
-    Guid ProcessId,
-    Guid ExternalId,
-    AcknowledgementV1 AcknowledgementV1);
-
-public sealed record AcknowledgementV1(
-    DateTimeOffset? ReceivedMarketDocumentCreatedDateTime,
-    string? ReceivedMarketDocumentTransactionId,
-    string? ReceivedMarketDocumentProcessProcessType,
-    string? ReceivedMarketDocumentRevisionNumber,
-    string? ReceivedMarketDocumentTitle,
-    string? ReceivedMarketDocumentType,
-    IReadOnlyCollection<ReasonV1> Reason,
-    IReadOnlyCollection<TimePeriodV1> InErrorPeriod,
-    IReadOnlyCollection<SeriesV1> Series,
-    IReadOnlyCollection<MktActivityRecordV1> OriginalMktActivityRecord,
-    IReadOnlyCollection<TimeSeriesV1> RejectedTimeSeries);
-
-public sealed record ReasonV1(string Code, string? Text);
-
-public sealed record TimePeriodV1(TimeInterval TimeInterval, IReadOnlyCollection<ReasonV1> Reason);
-
-public sealed record SeriesV1(string MRID, IReadOnlyCollection<ReasonV1> Reason);
-
-public sealed record MktActivityRecordV1(string MRID, IReadOnlyCollection<ReasonV1> Reason);
-
-public sealed record TimeSeriesV1(
-    string MRID,
-    string Version,
-    IReadOnlyCollection<TimePeriodV1> InErrorPeriod,
-    IReadOnlyCollection<ReasonV1> Reason);
+    List<ValidationErrorDto> ValidationErrors);

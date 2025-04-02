@@ -20,11 +20,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// An immutable input to start the orchestration instance for "BRS_021_ForwardMeteredData" V1.
 /// </summary>
 public record ForwardMeteredDataInputV1(
-    string MessageId,
-    Guid AuthenticatedActorId,
+    string ActorMessageId,
+    string TransactionId,
     string ActorNumber,
     string ActorRole,
-    string TransactionId,
+    string BusinessReason,
     string? MeteringPointId,
     string? MeteringPointType,
     string? ProductNumber,
@@ -35,10 +35,10 @@ public record ForwardMeteredDataInputV1(
     string? EndDateTime,
     string GridAccessProviderNumber,
     IReadOnlyCollection<string>? DelegatedGridAreaCodes,
-    IReadOnlyCollection<ForwardMeteredDataInputV1.EnergyObservation> EnergyObservations)
+    IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> MeteredDataList)
     : IInputParameterDto
 {
-    public record EnergyObservation(
+    public record MeteredData(
         string? Position,
         string? EnergyQuantity,
         string? QuantityQuality);

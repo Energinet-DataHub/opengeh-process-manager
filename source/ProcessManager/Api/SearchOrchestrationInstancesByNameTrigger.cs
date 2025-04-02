@@ -14,14 +14,12 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using NodaTime;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace Energinet.DataHub.ProcessManager.Api;
@@ -52,36 +50,19 @@ internal class SearchOrchestrationInstancesByNameTrigger(
         // so if necessary we can validate their data access.
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        var lifecycleState = query.LifecycleStates?
-            .Select(state =>
-                Enum.TryParse<OrchestrationInstanceLifecycleState>(state.ToString(), ignoreCase: true, out var lifecycleStateResult)
-                ? lifecycleStateResult
-                : (OrchestrationInstanceLifecycleState?)null)
-            .Where(state => state.HasValue)
-            .Select(state => state!.Value)
-            .ToList();
-        var terminationState =
-            Enum.TryParse<OrchestrationInstanceTerminationState>(query.TerminationState.ToString(), ignoreCase: true, out var terminationStateResult)
-            ? terminationStateResult
-            : (OrchestrationInstanceTerminationState?)null;
 
-        // DateTimeOffset values must be in "round-trip" ("o"/"O") format to be parsed correctly
-        // See https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#the-round-trip-o-o-format-specifier
-        var scheduledAtOrLater = query.ScheduledAtOrLater.HasValue
-            ? Instant.FromDateTimeOffset(query.ScheduledAtOrLater.Value)
-            : (Instant?)null;
-        var startedAtOrLater = query.StartedAtOrLater.HasValue
-            ? Instant.FromDateTimeOffset(query.StartedAtOrLater.Value)
-            : (Instant?)null;
-        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.HasValue
-            ? Instant.FromDateTimeOffset(query.TerminatedAtOrEarlier.Value)
-            : (Instant?)null;
+        var lifecycleStates = query.LifecycleStates.MapToDomain();
+        var terminationState = query.TerminationState.MapToDomain();
+
+        var scheduledAtOrLater = query.ScheduledAtOrLater.ToNullableInstant();
+        var startedAtOrLater = query.StartedAtOrLater.ToNullableInstant();
+        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ToNullableInstant();
 
         var orchestrationInstances = await _queries
             .SearchAsync(
                 query.Name,
                 query.Version,
-                lifecycleState,
+                lifecycleStates,
                 terminationState,
                 startedAtOrLater,
                 terminatedAtOrEarlier,

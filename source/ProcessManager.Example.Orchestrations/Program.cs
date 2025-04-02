@@ -20,7 +20,7 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInject
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Hosting;
 
@@ -50,6 +50,9 @@ var host = new HostBuilder()
         var orchestrationsExampleAssembly = typeof(Program).Assembly;
         var orchestrationsExampleAbstractionsAssembly = typeof(ActorRequestProcessExampleInputV1).Assembly;
         services.AddBusinessValidation([orchestrationsExampleAssembly, orchestrationsExampleAbstractionsAssembly]);
+
+        // Time component
+        services.AddTimeComponent();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

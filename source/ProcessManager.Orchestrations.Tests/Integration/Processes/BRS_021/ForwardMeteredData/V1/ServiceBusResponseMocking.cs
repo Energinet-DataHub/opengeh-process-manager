@@ -14,7 +14,6 @@
 
 using System.Text.Json;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -35,15 +34,15 @@ public static class ServiceBusResponseMocking
             .When(
                 message =>
                 {
-                    if (message.Subject != EnqueueActorMessagesV1.BuildServiceBusMessageSubject(OrchestrationDescriptionBuilderV1.UniqueName))
+                    if (message.Subject != EnqueueActorMessagesV1.BuildServiceBusMessageSubject(OrchestrationDescriptionBuilder.UniqueName))
                         return false;
 
                     var body = EnqueueActorMessagesV1
                         .Parser.ParseJson(message.Body.ToString())!;
 
-                    var meteredDateForMeringPointAccepted = JsonSerializer.Deserialize<ForwardMeteredDataAcceptedV1>(body.Data);
+                    var forwardMeteredDataAcceptedV1 = JsonSerializer.Deserialize<ForwardMeteredDataAcceptedV1>(body.Data);
 
-                    var messageIdMatches = meteredDateForMeringPointAccepted?.OriginalActorMessageId == messageId;
+                    var messageIdMatches = forwardMeteredDataAcceptedV1?.OriginalActorMessageId == messageId;
                     var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationInstanceId.ToString();
 
                     return messageIdMatches && orchestrationIdMatches;

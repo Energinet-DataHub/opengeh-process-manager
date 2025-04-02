@@ -23,14 +23,14 @@ using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03_ActorRequestProcessExample;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 
 /// <summary>
-/// Support running Example Consumer app and specifying configuration using inheritance.
+/// Support running Example Consumer app and specifying configuration.
 /// This allows us to use multiple fixtures and coordinate their configuration.
 /// </summary>
 public class ExampleConsumerAppManager : IAsyncDisposable
@@ -68,7 +68,7 @@ public class ExampleConsumerAppManager : IAsyncDisposable
     private ServiceBusResourceProvider ServiceBusResourceProvider { get; }
 
     /// <summary>
-    /// Start the example consumer app.
+    /// Start the Example Consumer app.
     /// </summary>
     /// <param name="processManagerStartTopicResources">Process Manager Start topic.
     /// Used by consumer app to configure Process Manager Message Client.</param>
@@ -78,19 +78,23 @@ public class ExampleConsumerAppManager : IAsyncDisposable
     /// Used by consumer app to configure Process Manager Message Client.</param>
     /// <param name="brs021fmdNotifyTopicResources">BRS-021 Forward Metered Data Notify Topic.
     /// Used by consumer app to configure Process Manager Message Client.</param>
-    /// <param name="ediTopicResources">EDI topic resources used by the app. Will be created if not provided.</param>
-    /// <param name="processManagerApiUrl">Base URL of the Process Manager general API.</param>
-    /// <param name="orchestrationsApiUrl">Base URL of the Orchestrations API.</param>
+    /// <param name="ediEnqueueTopicResources">EDI enqueue actor messages topic resources used by the app.
+    /// Will be created if not provided.</param>
+    /// <param name="processManagerApiUrl">Base URL of the Process Manager general API.
+    /// Used by consumer app to configure Process Manager Http Client.</param>
+    /// <param name="orchestrationsApiUrl">Base URL of the Orchestrations API.
+    /// Used by consumer app to configure Process Manager Http Client.</param>
     public async Task StartAsync(
         TopicResource processManagerStartTopicResources,
         TopicResource processManagerNotifyTopicResources,
         TopicResource brs021fmdStartTopicResources,
         TopicResource brs021fmdNotifyTopicResources,
-        EdiTopicResources? ediTopicResources,
+        EdiEnqueueTopicResources? ediEnqueueTopicResources,
         string processManagerApiUrl,
         string orchestrationsApiUrl)
     {
-        ediTopicResources ??= await EdiTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        // Creates EDI enqueue actor messages topic and subscriptions
+        ediEnqueueTopicResources ??= await EdiEnqueueTopicResources.CreateNewAsync(ServiceBusResourceProvider);
 
         // Prepare host settings
         var appHostSettings = CreateAppHostSettings(
@@ -99,7 +103,7 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             processManagerNotifyTopicResources,
             brs021fmdStartTopicResources,
             brs021fmdNotifyTopicResources,
-            ediTopicResources,
+            ediEnqueueTopicResources,
             processManagerApiUrl,
             orchestrationsApiUrl);
 
@@ -167,9 +171,9 @@ public class ExampleConsumerAppManager : IAsyncDisposable
         TopicResource processManagerNotifyTopicResources,
         TopicResource brs021fmdStartTopicResources,
         TopicResource brs021fmdNotifyTopicResources,
-        EdiTopicResources ediTopicResources,
-        string processManagerGeneralApiBaseUrl,
-        string orchestrationApiBaseUrl)
+        EdiEnqueueTopicResources ediEnqueueTopicResources,
+        string processManagerApiUrl,
+        string orchestrationsApiUrl)
     {
         var buildConfiguration = GetBuildConfiguration();
 
@@ -209,21 +213,25 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             AuthenticationOptionsForTests.ApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}",
-            processManagerGeneralApiBaseUrl);
+            processManagerApiUrl);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}",
-            orchestrationApiBaseUrl);
+            orchestrationsApiUrl);
 
-        // => Process Manager topic
+        // => Service Bus
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ServiceBusNamespaceOptions.SectionName}__{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace);
+
+        // => Process Manager Start/Notify topics
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}",
             processManagerStartTopicResources.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}",
             processManagerNotifyTopicResources.Name);
+
+        // => BRS-021 Forward Metered Data topics
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}",
             brs021fmdStartTopicResources.Name);
@@ -231,35 +239,35 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}",
             brs021fmdNotifyTopicResources.Name);
 
-        // => Edi topic
+        // => Edi enqueue topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
-            ediTopicResources.EdiTopic.Name);
+            ediEnqueueTopicResources.EnqueueTopic.Name);
 
-        // => Enqueue BRS-X03
+        // => Enqueue BRS-X02 ActorRequestProcessExample
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.EnqueueBrsX03SubscriptionName)}",
-            ediTopicResources.EnqueueBrsX03Subscription.SubscriptionName);
+            $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.EnqueueBrsX02ActorRequestProcessExampleSubscriptionName)}",
+            ediEnqueueTopicResources.BrsX02ActorRequestProcessExampleSubscription.SubscriptionName);
 
         return appHostSettings;
     }
 
     /// <summary>
-    /// EDI topic and subscription resources used by the Example Orchestrations app.
+    /// EDI enqueue actor messages topic and subscription resources used by the Example Consumer app.
     /// </summary>
-    public record EdiTopicResources(
-        TopicResource EdiTopic,
-        SubscriptionProperties EnqueueBrsX03Subscription)
+    public record EdiEnqueueTopicResources(
+        TopicResource EnqueueTopic,
+        SubscriptionProperties BrsX02ActorRequestProcessExampleSubscription)
     {
-        private const string EnqueueBrsX03SubscriptionName = $"enqueue-brs-x03-subscription";
+        private const string BrsX02ActorRequestProcessExampleSubscriptionName = $"brs-x02-actorrequestprocessexample";
 
-        public static async Task<EdiTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        public static async Task<EdiEnqueueTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
-            var ediTopicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
-            AddSubscriptionsToTopicBuilder(ediTopicBuilder);
-            var ediTopic = await ediTopicBuilder.CreateAsync();
+            var topicBuilder = serviceBusResourceProvider.BuildTopic("edi-topic");
+            AddSubscriptionsToTopicBuilder(topicBuilder);
 
-            return CreateFromTopic(ediTopic);
+            var topic = await topicBuilder.CreateAsync();
+            return CreateFromTopic(topic);
         }
 
         /// <summary>
@@ -268,26 +276,26 @@ public class ExampleConsumerAppManager : IAsyncDisposable
         public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
-                .AddSubscription(EnqueueBrsX03SubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_X03.V1));
+                .AddSubscription(BrsX02ActorRequestProcessExampleSubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_X02_ActorRequestProcessExample.V1));
 
             return builder;
         }
 
         /// <summary>
-        /// Get the <see cref="ExampleConsumerAppManager.EdiTopicResources"/> used by the Orchestrations app.
+        /// Get the <see cref="EdiEnqueueTopicResources"/> used by the Example Consumer app.
         /// <remarks>
-        /// The required subscriptions must be added to the topic by calling <see cref="AddSubscriptionsToTopicBuilder"/>.
+        /// Subscriptions must be created on the topic beforehand, using <see cref="AddSubscriptionsToTopicBuilder"/>.
         /// </remarks>
         /// </summary>
-        public static EdiTopicResources CreateFromTopic(TopicResource topic)
+        public static EdiEnqueueTopicResources CreateFromTopic(TopicResource topic)
         {
-            var enqueueBrsX03Subscription = topic.Subscriptions
-                .Single(s => s.SubscriptionName == EnqueueBrsX03SubscriptionName);
+            var brsX02ActorRequestProcessExampleSubscription = topic.Subscriptions
+                .Single(s => s.SubscriptionName == BrsX02ActorRequestProcessExampleSubscriptionName);
 
-            return new EdiTopicResources(
-                EdiTopic: topic,
-                EnqueueBrsX03Subscription: enqueueBrsX03Subscription);
+            return new EdiEnqueueTopicResources(
+                EnqueueTopic: topic,
+                BrsX02ActorRequestProcessExampleSubscription: brsX02ActorRequestProcessExampleSubscription);
         }
     }
 }

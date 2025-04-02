@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Mappers;
 using MeasurementTypes = Energinet.DataHub.Measurements.Contracts;
 using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
@@ -19,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public static class MeteredDataToMeasurementMapper
 {
-    internal static Dictionary<PMTypes.Quality, MeasurementTypes.Quality> Quality { get; } = new()
+    internal static ValueObjectsMap<PMTypes.Quality, MeasurementTypes.Quality> Quality { get; } = new()
     {
         { PMTypes.Quality.NotAvailable, MeasurementTypes.Quality.QMissing },
         { PMTypes.Quality.Estimated, MeasurementTypes.Quality.QEstimated },
@@ -27,13 +28,13 @@ public static class MeteredDataToMeasurementMapper
         { PMTypes.Quality.Calculated, MeasurementTypes.Quality.QCalculated },
     };
 
-    internal static Dictionary<PMTypes.Resolution, MeasurementTypes.Resolution> Resolution { get; } = new()
+    internal static ValueObjectsMap<PMTypes.Resolution, MeasurementTypes.Resolution> Resolution { get; } = new()
     {
         { PMTypes.Resolution.QuarterHourly, MeasurementTypes.Resolution.RPt15M },
         { PMTypes.Resolution.Hourly, MeasurementTypes.Resolution.RPt1H },
     };
 
-    internal static Dictionary<PMTypes.MeasurementUnit, MeasurementTypes.Unit> MeasurementUnit { get; } = new()
+    internal static ValueObjectsMap<PMTypes.MeasurementUnit, MeasurementTypes.Unit> MeasurementUnit { get; } = new()
     {
         { PMTypes.MeasurementUnit.KilowattHour, MeasurementTypes.Unit.UKwh },
         { PMTypes.MeasurementUnit.MegawattHour, MeasurementTypes.Unit.UMwh },
@@ -43,7 +44,7 @@ public static class MeteredDataToMeasurementMapper
         { PMTypes.MeasurementUnit.MetricTon, MeasurementTypes.Unit.UTonne },
     };
 
-    internal static Dictionary<PMTypes.MeteringPointType, MeasurementTypes.MeteringPointType> MeteringPointType { get; } = new()
+    internal static ValueObjectsMap<PMTypes.MeteringPointType, MeasurementTypes.MeteringPointType> MeteringPointType { get; } = new()
         {
             { PMTypes.MeteringPointType.Consumption, MeasurementTypes.MeteringPointType.MptConsumption },
             { PMTypes.MeteringPointType.Production, MeasurementTypes.MeteringPointType.MptProduction },
@@ -65,7 +66,7 @@ public static class MeteredDataToMeasurementMapper
             { PMTypes.MeteringPointType.NetConsumption, MeasurementTypes.MeteringPointType.MptNetConsumption },
             { PMTypes.MeteringPointType.OtherConsumption, MeasurementTypes.MeteringPointType.MptOtherConsumption },
             { PMTypes.MeteringPointType.OtherProduction, MeasurementTypes.MeteringPointType.MptOtherProduction },
-            { PMTypes.MeteringPointType.CapacitySettlement, MeasurementTypes.MeteringPointType.MptEffectPayment },
+            { PMTypes.MeteringPointType.CapacitySettlement, MeasurementTypes.MeteringPointType.MptCapacitySettlement },
             { PMTypes.MeteringPointType.ExchangeReactiveEnergy, MeasurementTypes.MeteringPointType.MptExchangeReactiveEnergy },
             { PMTypes.MeteringPointType.CollectiveNetProduction, MeasurementTypes.MeteringPointType.MptCollectiveNetProduction },
             { PMTypes.MeteringPointType.CollectiveNetConsumption, MeasurementTypes.MeteringPointType.MptCollectiveNetConsumption },

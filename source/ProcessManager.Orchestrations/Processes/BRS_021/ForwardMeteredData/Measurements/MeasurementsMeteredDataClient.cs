@@ -16,13 +16,11 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Mapper;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.Logging;
 using NodaTime;
 using Point = Energinet.DataHub.Measurements.Contracts.Point;
 
@@ -41,6 +39,8 @@ public class MeasurementsMeteredDataClient(
     {
         var data = new PersistSubmittedTransaction
         {
+            // TODO: Missing version field?
+            Version = "1",
             OrchestrationInstanceId = meteredDataForMeteringPoint.OrchestrationId,
             OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
             MeteringPointId = meteredDataForMeteringPoint.MeteringPointId,

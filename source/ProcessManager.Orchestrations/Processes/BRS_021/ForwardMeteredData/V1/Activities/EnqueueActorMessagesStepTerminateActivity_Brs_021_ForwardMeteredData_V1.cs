@@ -34,7 +34,7 @@ internal class EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredD
             .ConfigureAwait(false);
 
         orchestrationInstance.TransitionStepToTerminated(
-            OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
+            OrchestrationDescriptionBuilder.EnqueueActorMessagesStep,
             activityInput.TerminationState,
             _clock);
 
@@ -43,5 +43,5 @@ internal class EnqueueActorMessagesStepTerminateActivity_Brs_021_ForwardMeteredD
 
     public sealed record ActivityInput(
         OrchestrationInstanceId OrchestrationInstanceId,
-        OrchestrationStepTerminationState TerminationState);
+        StepInstanceTerminationState TerminationState);
 }

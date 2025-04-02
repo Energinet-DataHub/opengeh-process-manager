@@ -1,5 +1,64 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.17.0
+
+- Add custom query `CalculationsQueryV1` and related types.
+
+## Version 1.16.0
+
+- Add `InternalUse` MeteringPointType to ValueObject `MeteringPointType.cs`.
+
+## Version 1.15.0
+
+- Update NuGet packages.
+
+## Version 1.14.0
+
+- Removed `OriginalTransactionId` from `ForwardMeteredDataAcceptedV1`.
+
+## Version 1.13.0
+
+- Add BRS-045 Missing Measurements Log On Demand Calculation command.
+
+## Version 1.12.0
+
+- Add BRS-045 Missing Measurements Log Calculation command.
+
+## Version 1.11.2
+
+- Update `ForwardMeteredDataAcceptedV1` to support a list of receivers.
+- Rename `ForwardMeteredDataAcceptedV1.AcceptedEnergyOberservation` to `AcceptedMeteredData`.
+- Add `MeteredDataReceiverV1` model.
+
+## Version 1.11.1
+
+- Rename `OriginalBusinessReason` to `BusinessReason` in `ForwardMeteredDataRejectedV1`.
+
+## Version 1.11.0
+
+- Add `OriginalBusinessReason` to `ForwardMeteredDataInputV1`.
+
+## Version 1.10.2
+
+- Update NuGet packages.
+
+## Version 1.10.1
+
+- No functional changes.
+
+## Version 1.10.0
+
+- Rename `MessageId` to `ActorMessageId`, remove `AuthenticatedActorId` and reorder properties on `ForwardMeteredDataInputV1`.
+- Remove most properties from `ForwardMeteredDataRejectedV1`, since the correct properties aren't determined yet.
+
+## Version 1.9.0
+
+- Remove internal process: Migrate Calculations From Wholesale.~~~~
+
+## Version 1.8.0
+
+- Add BRS-021 Net Consumption (group 6) command.
+
 ## Version 1.7.0
 
 - Add BRS-021 Capacity Settlement command.

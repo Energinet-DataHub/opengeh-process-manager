@@ -34,7 +34,6 @@ internal class GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeating
     {
         return Task.FromResult(new OrchestrationInstanceContext(
             _orchestrationOptions,
-            CalculationId: input.InstanceId.Value,
             input.InstanceId));
     }
 

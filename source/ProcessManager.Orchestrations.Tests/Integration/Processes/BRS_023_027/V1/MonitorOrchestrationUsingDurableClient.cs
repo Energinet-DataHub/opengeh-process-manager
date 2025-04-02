@@ -21,18 +21,18 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities.EnqueActorMessagesStep;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Steps;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Orchestration;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Orchestration.Steps;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Wiremock;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Models;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Model;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Azure.Databricks.Client.Models;
@@ -343,7 +343,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         orchestrationInstance.Steps
             .Single(step => step.Sequence == EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence)
             .Lifecycle.TerminationState
-            .Should().Be(OrchestrationStepTerminationState.Failed);
+            .Should().Be(StepInstanceTerminationState.Failed);
     }
 
     private async Task AwaitOrchestrationRuntimeStatusAsync(string orchestrationInstanceId, OrchestrationRuntimeStatus status)

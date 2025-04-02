@@ -12,33 +12,63 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Net;
+using System.Text.Json;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.Measurements.Contracts;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
+using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
+using ConnectionState =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ConnectionState;
+using GridAreaCode =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode;
+using MeteringPointMasterData =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.
+    MeteringPointMasterData;
+using MeteringPointSubType =
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
+using OrchestrationInstanceTerminationState =
+    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationState;
+using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
+using StepInstanceLifecycleState =
+    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceLifecycleState;
+using StepInstanceTerminationState =
+    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
@@ -49,8 +79,17 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
+    private const string ProcessManagerEventHubProducerClientName = "ProcessManagerEventHubProducerClient";
+    private const string MeteringPointId = "571313101700011887";
+    private const string EnergySupplier = "1111111111111";
+    private const string GridAccessProvider = "2222222222222";
+    private const string NeighborGridAreaOwner1 = "3333333333331";
+    private const string NeighborGridAreaOwner2 = "3333333333332";
+    private const string GridArea = "804";
+    private static readonly Instant _validFrom = Instant.FromUtc(2024, 11, 30, 23, 00, 00);
+    private static readonly Instant _validTo = Instant.FromUtc(2024, 12, 31, 23, 00, 00);
+
     private readonly OrchestrationsAppFixture _fixture;
-    private readonly string _processManagerEventHubProducerClientName = "ProcessManagerEventHubProducerClient";
 
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
@@ -116,7 +155,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                                 options.EventHubName,
                                 _fixture.IntegrationTestConfiguration.Credential);
                         })
-                    .WithName(_processManagerEventHubProducerClientName);
+                    .WithName(ProcessManagerEventHubProducerClientName);
             });
         ServiceProvider = services.BuildServiceProvider();
     }
@@ -127,6 +166,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         _fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
         _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
+        _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.ResetMessageHandlersAndReceivedMessages();
         _fixture.EventHubListener.Reset();
 
         return Task.CompletedTask;
@@ -140,13 +180,16 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await ServiceProvider.DisposeAsync();
     }
 
-    [Fact(Skip = "This test is not yet implemented")]
-    public async Task ForwardMeteredData_WhenStartedUsingCorrectInput_ThenExecutedHappyPath()
+    [Fact]
+    public async Task
+        Given_ValidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         // Arrange
-        var input = CreateMeteredDataForMeteringPointMessageInputV1();
+        SetupElectricityMarketWireMocking();
 
-        var startCommand = new ForwardMeteredDataCommandV1(
+        var input = CreateForwardMeteredDataInputV1();
+
+        var forwardCommand = new ForwardMeteredDataCommandV1(
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.FromName(input.ActorRole)),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
@@ -156,170 +199,344 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
 
         // Act
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(startCommand, CancellationToken.None);
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(forwardCommand, CancellationToken.None);
 
-        var orchestrationCreatedAfter = DateTime.UtcNow.AddSeconds(-1);
-        await Awaiter.WaitUntilConditionAsync(
-            async () =>
-            {
-                var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
+        // Step 2a: Query until waiting for Event Hub notify event from Measurements
+        var (isWaitingForMeasurementsNotify, orchestrationInstance) = await processManagerClient
+            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+                forwardCommand.IdempotencyKey,
+                OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
-                return instances.Count >= 1;
-            },
-            TimeSpan.FromSeconds(15),
-            TimeSpan.FromSeconds(2));
-
-        var instances = await SearchAsync(processManagerClient, orchestrationCreatedAfter);
-        var instance = instances.Should().ContainSingle().Subject;
+        isWaitingForMeasurementsNotify.Should()
+            .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
         var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
                 (message) =>
                 {
-                    var persistSubmittedTransaction =
-                        PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
+                    var persistSubmittedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
 
-                    var orchestrationIdMatches = persistSubmittedTransaction.OrchestrationInstanceId == instance.Id.ToString();
+                    var orchestrationIdMatches = persistSubmittedTransaction.OrchestrationInstanceId == orchestrationInstance!.Id.ToString();
                     var transactionIdMatches = persistSubmittedTransaction.TransactionId == input.TransactionId;
 
                     return orchestrationIdMatches && transactionIdMatches;
                 })
             .VerifyCountAsync(1);
 
-        var persistSubmittedTransactionEventFound = verifyForwardMeteredDataToMeasurementsEvent.Wait(TimeSpan.FromSeconds(30));
+        var persistSubmittedTransactionEventFound = verifyForwardMeteredDataToMeasurementsEvent.Wait(TimeSpan.FromSeconds(60));
         persistSubmittedTransactionEventFound.Should().BeTrue($"because a {nameof(PersistSubmittedTransaction)} event should have been sent");
 
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
-        var notify = new Brs021ForwardMeteredDataNotifyV1()
+        var notifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
         {
-            OrchestrationInstanceId = instance.Id.ToString(),
+            Version = "v1", // Measurements sends "v1" instead of "1" as version
+            OrchestrationInstanceId = orchestrationInstance!.Id.ToString(),
         };
 
-        var data = new EventData(notify.ToByteArray());
-        var processManagerEventHubProducerClient =
-            eventHubClientFactory.CreateClient(_processManagerEventHubProducerClientName);
-        await processManagerEventHubProducerClient.SendAsync([data], CancellationToken.None);
+        var eventHubEventData = new EventData(notifyFromMeasurements.ToByteArray());
+        var processManagerEventHubProducerClient = eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
+        await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
 
-        // wait for notification from edi.
-        // TODO: Refactor this to use _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When()
+        // Wait for enqueue messages sent to EDI and send mock notify response to Process Manager
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
             processManagerMessageClient: processManagerMessageClient,
-            orchestrationInstanceId: instance.Id,
-            messageId: startCommand.ActorMessageId);
+            orchestrationInstanceId: orchestrationInstance.Id,
+            messageId: forwardCommand.ActorMessageId);
 
-        // TODO: Fetch the terminated instance and assert that it has been terminated successfully
-        await Task.Delay(TimeSpan.FromSeconds(5));
+        // Query until terminated
+        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
+            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
+                idempotencyKey: forwardCommand.IdempotencyKey);
 
-        var simulateTheTerminatedInstance = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
-            new SearchOrchestrationInstancesByNameQuery(
-                _fixture.DefaultUserIdentity,
-                name: Brs_021_ForwardedMeteredData.Name,
-                version: null,
-                lifecycleStates: null,
-                terminationState: null,
-                startedAtOrLater: orchestrationCreatedAfter,
-                terminatedAtOrEarlier: null,
-                scheduledAtOrLater: null),
-            CancellationToken.None);
+        orchestrationTerminatedWithSucceeded.Should().BeTrue(
+            "because the orchestration instance should be terminated within given wait time");
 
-        var instanceAfterEnqueue = simulateTheTerminatedInstance.Should().ContainSingle().Subject;
+        // Orchestration instance and all steps should be Succeeded
+        using var assertionScope = new AssertionScope();
+        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
+            .NotBeNull()
+            .And.Be(OrchestrationInstanceTerminationState.Succeeded);
 
-        var stepsWhichShouldBeSuccessful = new[]
-        {
-            OrchestrationDescriptionBuilderV1.ValidationStep,
-            OrchestrationDescriptionBuilderV1.ForwardToMeasurementStep,
-            OrchestrationDescriptionBuilderV1.FindReceiverStep,
-            // TODO: re-enable when the Process Manager Client can send notifications to the Brs021 topic
-            //OrchestrationDescriptionBuilderV1.EnqueueActorMessagesStep,
-        };
+        var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV1(
+        [
+            new MeteringPointMasterData(
+                MeteringPointId: new MeteringPointId(MeteringPointId),
+                ValidFrom: _validFrom.ToDateTimeOffset(),
+                ValidTo: _validTo.ToDateTimeOffset(),
+                GridAreaCode: new GridAreaCode(GridArea),
+                GridAccessProvider: ActorNumber.Create(GridAccessProvider),
+                NeighborGridAreaOwners: [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
+                ConnectionState: ConnectionState.Connected,
+                MeteringPointType: MeteringPointType.Production,
+                MeteringPointSubType: MeteringPointSubType.Physical,
+                Resolution: Resolution.Hourly,
+                MeasurementUnit: MeasurementUnit.KilowattHour,
+                ProductId: "Tariff",
+                ParentMeteringPointId: null,
+                EnergySupplier: ActorNumber.Create(EnergySupplier)),
+        ]);
 
-        var successfulSteps = instanceAfterEnqueue.Steps
-            .Where(step => step.Lifecycle.TerminationState is OrchestrationStepTerminationState.Succeeded)
-            .Select(step => step.Sequence);
+        terminatedOrchestrationInstance.CustomState.Should()
+            .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));
 
-        successfulSteps.Should().BeEquivalentTo(stepsWhichShouldBeSuccessful);
-
-        var searchResult = await processManagerClient.SearchOrchestrationInstancesByNameAsync(
-             new SearchOrchestrationInstancesByNameQuery(
-                 _fixture.DefaultUserIdentity,
-                 name: Brs_021_ForwardedMeteredData.Name,
-                 version: null,
-                 // TODO: switch to lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated] when the Process Manager Client can send notifications to the Brs021 topic
-                 lifecycleStates: [OrchestrationInstanceLifecycleState.Running],
-                 // TODO: switch to terminationState: OrchestrationInstanceTerminationState.Succeeded when the Process Manager Client can send notifications to the Brs021 topic
-                 terminationState: null,
-                 startedAtOrLater: orchestrationCreatedAfter,
-                 terminatedAtOrEarlier: null,
-                 scheduledAtOrLater: null),
-             CancellationToken.None);
-
-        searchResult.Should().NotBeNull().And.ContainSingle();
-        searchResult.Single().Steps.Should().HaveCount(4);
-        // TODO: re-enable when the Process Manager Client can send notifications to the Brs021 topic
-        // searchResult.Single().Steps.Should().AllSatisfy(
-        //  step => step.Lifecycle.TerminationState.Should().Be(OrchestrationStepTerminationState.Succeeded));
-        // TODO: Assert that the orchestration instance has been terminated successfully
+        terminatedOrchestrationInstance.Steps.Should()
+            .AllSatisfy(
+                s =>
+                {
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(StepInstanceTerminationState.Succeeded);
+                });
     }
 
-    private static ForwardMeteredDataInputV1 CreateMeteredDataForMeteringPointMessageInputV1(
-        bool withError = false)
+    [Fact]
+    public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
+    {
+        // Given
+        SetupElectricityMarketWireMocking();
+
+        var invalidInput = CreateForwardMeteredDataInputV1() with { EndDateTime = null };
+
+        var invalidForwardCommand = new ForwardMeteredDataCommandV1(
+            new ActorIdentityDto(ActorNumber.Create(invalidInput.ActorNumber), ActorRole.FromName(invalidInput.ActorRole)),
+            invalidInput,
+            idempotencyKey: Guid.NewGuid().ToString());
+
+        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
+        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+
+        // When
+        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(invalidForwardCommand, CancellationToken.None);
+
+        // Then
+        // Query until waiting for EnqueueActorMessagesCompleted notify event (a reject message should be enqueued)
+        var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
+            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+                invalidForwardCommand.IdempotencyKey,
+                OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
+
+        isWaitingForNotify.Should()
+            .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
+
+        // Verify an enqueue actor messages event is sent on the service bus
+        var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When(
+                (message) =>
+                {
+                    if (!message.TryParseAsEnqueueActorMessages(Brs_021_ForwardedMeteredData.Name, out var enqueueActorMessagesV1))
+                        return false;
+
+                    var forwardMeteredDataRejectedV1 = enqueueActorMessagesV1.ParseData<ForwardMeteredDataRejectedV1>();
+
+                    forwardMeteredDataRejectedV1.ValidationErrors.Should()
+                        .HaveCount(1)
+                        .And.ContainSingle(
+                            (e) => e.Message.Equals(PeriodValidationRule.InvalidEndDate.Message));
+                    return forwardMeteredDataRejectedV1.OriginalTransactionId == invalidForwardCommand.InputParameter.TransactionId;
+                })
+            .VerifyCountAsync(1);
+
+        var enqueueMessageFound = verifyEnqueueRejectedActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
+        enqueueMessageFound.Should().BeTrue($"because a {nameof(ForwardMeteredDataRejectedV1)} service bus message should have been sent");
+
+        // Send EnqueueActorMessagesCompleted event
+        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new ForwardMeteredDataNotifyEventV1(
+                OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
+            CancellationToken.None);
+
+        // Query until terminated
+        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
+            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
+                idempotencyKey: invalidForwardCommand.IdempotencyKey);
+
+        orchestrationTerminatedWithSucceeded.Should().BeTrue(
+            "because the orchestration instance should be terminated within given wait time");
+
+        // Orchestration instance and validation steps should be Failed
+        using var assertionScope = new AssertionScope();
+        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
+            .NotBeNull()
+            .And.Be(OrchestrationInstanceTerminationState.Failed);
+
+        terminatedOrchestrationInstance.CustomState.Should()
+            .BeEquivalentTo(JsonSerializer.Serialize(new ForwardMeteredDataCustomStateV1([])));
+
+        terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence)
+            .Should()
+            .SatisfyRespectively(
+                s =>
+                {
+                    // Validation step should be failed
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.BusinessValidationStep);
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(StepInstanceTerminationState.Failed);
+                },
+                s =>
+                {
+                    // Forward to measurements step should be skipped
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(StepInstanceTerminationState.Skipped);
+                },
+                s =>
+                {
+                    // Find receiver step should be skipped
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.FindReceiversStep);
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(StepInstanceTerminationState.Skipped);
+                },
+                s =>
+                {
+                    // Enqueue actor messages step should be succeeded
+                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
+                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                    s.Lifecycle.TerminationState.Should()
+                        .NotBeNull()
+                        .And.Be(StepInstanceTerminationState.Succeeded);
+                });
+    }
+
+    /// <summary>
+    /// With this test we verify the function will be retried and at least executed more than once,
+    /// if we send an invalid notify event.
+    /// The reason for only verifying that the function is executed twice is to save time in the test.
+    /// And also we shouldn't have to test the attribute ExponentialBackoffRetry, since it's an
+    /// out-of-box functionality and we expect it to work.
+    /// </summary>
+    [Fact]
+    public async Task Given_InvalidNotifyEvent_When_NotifyOrchestrationInstance_Then_EnqueueMeteredDataTriggerIsExecutedAtLeastTwice()
+    {
+        // Given
+        var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
+        var processManagerEventHubProducerClient = eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
+
+        var invalidNotifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
+        {
+            Version = "invalid-value",
+            OrchestrationInstanceId = "not-used",
+        };
+        var eventHubEventData = new EventData(invalidNotifyFromMeasurements.ToByteArray());
+
+        // When
+        await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
+
+        // Then
+        var expectedFunctionName = nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1);
+
+        var wasExecutedExpectedTimes = await Awaiter.TryWaitUntilConditionAsync(
+            () =>
+            {
+                var executedFailedLogs = _fixture.OrchestrationsAppManager.AppHostManager
+                    .GetHostLogSnapshot()
+                    .Where(log => log.Contains($"Executed 'Functions.{expectedFunctionName}' (Failed", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                return executedFailedLogs.Count > 1;
+            },
+            timeLimit: TimeSpan.FromSeconds(20),
+            delay: TimeSpan.FromSeconds(3));
+
+        wasExecutedExpectedTimes.Should().BeTrue("because we expected the trigger to be executed at least twice because of the configured 'ExponentialBackoffRetry' retry policy");
+    }
+
+    private static ForwardMeteredDataInputV1 CreateForwardMeteredDataInputV1()
     {
         var input = new ForwardMeteredDataInputV1(
-            "MessageId",
-            Guid.NewGuid(),
-            "1111111111111",
-            ActorRole.GridAccessProvider.Name,
-            "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
-            withError ? "NoMasterData" : "571313101700011887",
-            MeteringPointType.Production.Name,
-            "8716867000047",
-            MeasurementUnit.MetricTon.Name,
-            "2024-12-03T08:00:00Z",
-            Resolution.Hourly.Name,
-            "2024-12-01T23:00:00Z",
-            "2024-12-02T23:00:00Z",
-            "5790002606892",
-            null,
+            ActorMessageId: "MessageId",
+            TransactionId: "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
+            ActorNumber: GridAccessProvider,
+            ActorRole: ActorRole.GridAccessProvider.Name,
+            BusinessReason: BusinessReason.PeriodicMetering.Name,
+            MeteringPointId: MeteringPointId,
+            MeteringPointType: MeteringPointType.Production.Name,
+            ProductNumber: "8716867000047",
+            MeasureUnit: MeasurementUnit.KilowattHour.Name,
+            RegistrationDateTime: "2024-12-03T08:00:00Z",
+            Resolution: Resolution.Hourly.Name,
+            StartDateTime: "2024-12-01T23:00:00Z",
+            EndDateTime: "2024-12-02T23:00:00Z",
+            GridAccessProviderNumber: GridAccessProvider,
+            DelegatedGridAreaCodes: null,
+            MeteredDataList:
             [
-                new("1", "112.000", "A04"),
-                new("2", "112.000", "A04"),
-                new("3", "112.000", "A04"),
-                new("4", "112.000", "A04"),
-                new("5", "112.000", "A04"),
-                new("6", "112.000", "A04"),
-                new("7", "112.000", "A04"),
-                new("8", "112.000", "A04"),
-                new("9", "112.000", "A04"),
-                new("10", "112.000", "A04"),
-                new("12", "112.000", "A04"),
-                new("12", "112.000", "A04"),
-                new("13", "112.000", "A04"),
-                new("14", "112.000", "A04"),
-                new("15", "112.000", "A04"),
-                new("16", "112.000", "A04"),
-                new("18", "112.000", "A04"),
-                new("19", "112.000", "A04"),
-                new("20", "112.000", "A04"),
-                new("21", "112.000", "A04"),
-                new("22", "112.000", "A04"),
-                new("23", "112.000", "A04"),
-                new("24", "112.000", "A04"),
+                new("1", "112.000", Quality.AsProvided.Name),
+                new("2", "112.000", Quality.AsProvided.Name),
+                new("3", "112.000", Quality.AsProvided.Name),
+                new("4", "112.000", Quality.AsProvided.Name),
+                new("5", "112.000", Quality.AsProvided.Name),
+                new("6", "112.000", Quality.AsProvided.Name),
+                new("7", "112.000", Quality.AsProvided.Name),
+                new("8", "112.000", Quality.AsProvided.Name),
+                new("9", "112.000", Quality.AsProvided.Name),
+                new("10", "112.000", Quality.AsProvided.Name),
+                new("11", "112.000", Quality.AsProvided.Name),
+                new("12", "112.000", Quality.AsProvided.Name),
+                new("13", "112.000", Quality.AsProvided.Name),
+                new("14", "112.000", Quality.AsProvided.Name),
+                new("15", "112.000", Quality.AsProvided.Name),
+                new("16", "112.000", Quality.AsProvided.Name),
+                new("17", "112.000", Quality.AsProvided.Name),
+                new("18", "112.000", Quality.AsProvided.Name),
+                new("19", "112.000", Quality.AsProvided.Name),
+                new("20", "112.000", Quality.AsProvided.Name),
+                new("21", "112.000", Quality.AsProvided.Name),
+                new("22", "112.000", Quality.AsProvided.Name),
+                new("23", "112.000", Quality.AsProvided.Name),
+                new("24", "112.000", Quality.AsProvided.Name),
             ]);
         return input;
     }
 
-    private async Task<IReadOnlyCollection<OrchestrationInstanceTypedDto>> SearchAsync(IProcessManagerClient processManagerClient, DateTime orchestrationCreatedAfter)
+    private void SetupElectricityMarketWireMocking()
     {
-        return await processManagerClient.SearchOrchestrationInstancesByNameAsync(
-            new SearchOrchestrationInstancesByNameQuery(
-                _fixture.DefaultUserIdentity,
-                name: Brs_021_ForwardedMeteredData.Name,
-                version: null,
-                lifecycleStates: [OrchestrationInstanceLifecycleState.Running],
-                terminationState: null,
-                startedAtOrLater: orchestrationCreatedAfter,
-                terminatedAtOrEarlier: null,
-                scheduledAtOrLater: null),
-            CancellationToken.None);
+        var request = Request
+            .Create()
+            .WithPath("/api/get-metering-point-master-data")
+            .WithBody(_ => true)
+            .UsingPost();
+
+        var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData()
+        {
+            Identification = new MeteringPointIdentification(MeteringPointId),
+            ValidFrom = _validFrom,
+            ValidTo = _validTo,
+            GridAreaCode = new ElectricityMarket.Integration.Models.MasterData.GridAreaCode(GridArea),
+            GridAccessProvider = GridAccessProvider,
+            NeighborGridAreaOwners = [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
+            ConnectionState = ElectricityMarket.Integration.Models.MasterData.ConnectionState.Connected,
+            Type = ElectricityMarket.Integration.Models.MasterData.MeteringPointType.Production,
+            SubType = ElectricityMarket.Integration.Models.MasterData.MeteringPointSubType.Physical,
+            Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("PT1H"),
+            Unit = MeasureUnit.kWh,
+            ProductId = ProductId.Tariff,
+            ParentIdentification = null,
+            EnergySuppliers =
+            [
+                new MeteringPointEnergySupplier
+                {
+                    Identification = new MeteringPointIdentification(MeteringPointId),
+                    EnergySupplier = EnergySupplier,
+                    StartDate = _validFrom,
+                    EndDate = _validTo,
+                },
+            ],
+        };
+
+        // IEnumerable<MeteringPointMasterData>
+        var response = Response
+            .Create()
+            .WithStatusCode(HttpStatusCode.OK)
+            .WithHeader(HeaderNames.ContentType, "application/json")
+            .WithBody(
+                $"[{JsonSerializer.Serialize(meteringPointMasterData, new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb))}]");
+
+        _fixture.OrchestrationsAppManager.MockServer.Given(request).RespondWith(response);
     }
 }

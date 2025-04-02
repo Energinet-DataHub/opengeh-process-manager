@@ -148,7 +148,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_FilteringJsonColumn_Then_ReturnsExpectedItem()
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_SearchInJsonColumnAndReturnId_Then_ExpectedIdIsReturned()
     {
         // Arrange
         var expectedTestInt = 52;
@@ -166,7 +166,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
 
         // Act
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
-        var actualOrchestrationInstanceIds = await readerContext.Database
+        var actualIds = await readerContext.Database
             .SqlQuery<Guid>($"""
                 SELECT
                     [o].[Id]
@@ -178,8 +178,47 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
             .ToListAsync();
 
         // Assert
-        actualOrchestrationInstanceIds.Should().Contain(existingOrchestrationInstance.Id.Value);
-        actualOrchestrationInstanceIds.Count.Should().Be(1);
+        actualIds.Should().Contain(existingOrchestrationInstance.Id.Value);
+        actualIds.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_SearchInJsonColumnAndReturnParameters_Then_ExpectedParametersAreReturned()
+    {
+        // Arrange
+        var expectedTestInt = 53;
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            testInt: expectedTestInt);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        var existingParameters = existingOrchestrationInstance.ParameterValue.AsType<TestOrchestrationParameter>();
+
+        // Act
+        await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
+        var actualParameters = await readerContext.Database
+            .SqlQuery<TestOrchestrationParameter>($"""
+                SELECT
+                    CAST(JSON_VALUE([o].[ParameterValue],'$.TestString') AS nvarchar) AS TestString,
+                    CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) AS TestInt
+                FROM
+                    [pm].[OrchestrationInstance] AS [o]
+                WHERE
+                    CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+                """)
+            .ToListAsync();
+
+        // Assert
+
+        actualParameters.Should().ContainEquivalentOf(existingParameters);
+        actualParameters.Count.Should().Be(1);
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(string? recurringCronExpression = default)

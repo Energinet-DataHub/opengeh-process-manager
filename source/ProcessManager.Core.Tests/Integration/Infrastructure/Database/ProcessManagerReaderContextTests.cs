@@ -274,10 +274,12 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
                     [pm].OrchestrationInstance as [o]
             """)
             .Where(x => x.Id == existingOrchestrationInstance.Id);
+        // => Show query for easy debugging
         var queryString01 = result01.ToQueryString();
         var result01OrchestrationInstance = await result01.FirstOrDefaultAsync();
 
         var result02 = readerContext.OrchestrationInstances.Where(x => x.Id == existingOrchestrationInstance.Id);
+        // => Show query for easy debugging
         var queryString02 = result02.ToQueryString();
         var result02OrchestrationInstance = await result01.FirstOrDefaultAsync();
 

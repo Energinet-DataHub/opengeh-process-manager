@@ -88,9 +88,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData(true, OrchestrationStepTerminationState.Skipped)]
-    [InlineData(false, OrchestrationStepTerminationState.Succeeded)]
-    public async Task Calculation_WhenStarted_CanMonitorLifecycle(bool enableFeatureFlag, OrchestrationStepTerminationState expectedStepState)
+    [InlineData(true, StepInstanceTerminationState.Skipped)]
+    [InlineData(false, StepInstanceTerminationState.Succeeded)]
+    public async Task Calculation_WhenStarted_CanMonitorLifecycle(bool enableFeatureFlag, StepInstanceTerminationState expectedStepState)
     {
         // Set the feature flag to true to enable the message enqueue step
         await Fixture.AppConfigurationClient.SetFeatureFlagAsync(FeatureFlag.EnableBrs021ElectricalHeatingEnqueueMessages, enableFeatureFlag);

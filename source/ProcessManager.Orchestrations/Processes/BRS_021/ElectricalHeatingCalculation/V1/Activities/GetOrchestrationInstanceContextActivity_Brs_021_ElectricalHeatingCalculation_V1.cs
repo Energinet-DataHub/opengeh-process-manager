@@ -53,7 +53,7 @@ internal class GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeating
 
             if (enqueueStep.Lifecycle.State != StepInstanceLifecycleState.Terminated)
             {
-                enqueueStep.Lifecycle.TransitionToTerminated(_clock, OrchestrationStepTerminationState.Skipped);
+                enqueueStep.Lifecycle.TransitionToTerminated(_clock, StepInstanceTerminationState.Skipped);
                 await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
             }
         }

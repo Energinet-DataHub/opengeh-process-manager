@@ -55,9 +55,6 @@ var host = new HostBuilder()
         // Handlers
         services.AddScoped<RecurringPlannerHandler>();
         services.AddScoped<SchedulerHandler>();
-
-        // Azure App Configuration
-        services.AddAzureAppConfiguration();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 
@@ -25,6 +26,9 @@ public static class FeatureFlagExtensions
     {
         services.AddFeatureManagement();
         services.AddSingleton<IFeatureFlagManager, MicrosoftFeatureFlagManager>();
+
+        // Azure App Configuration
+        services.AddAzureAppConfiguration();
 
         return services;
     }

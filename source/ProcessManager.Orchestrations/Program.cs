@@ -79,9 +79,6 @@ var host = new HostBuilder()
         // Time component
         services.AddTimeComponent();
 
-        // Azure App Configuration
-        services.AddAzureAppConfiguration();
-
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers

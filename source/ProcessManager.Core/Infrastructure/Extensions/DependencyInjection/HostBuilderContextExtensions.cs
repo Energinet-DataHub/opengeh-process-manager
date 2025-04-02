@@ -29,8 +29,6 @@ public static class HostBuilderContextExtensions
         // This code gets the Azure App Configuration endpoint and, if valid, adds it as a configuration source,
         // connecting with DefaultAzureCredential and setting feature flags to refresh every 5 seconds.
         // Feature flags are connected to the application through Azure App Configuration.
-        //var appConfigEndpoint = context.Configuration["AppConfigEndpoint"];
-        //var appConfigEndpoint = Environment.GetEnvironmentVariable("AppConfigEndpoint");
 
         var settings = configuration.Build();
         var appConfigEndpoint = settings["AppConfigEndpoint"]!;

@@ -342,8 +342,6 @@ public class StartForwardMeteredDataHandlerV1(
                 new ForwardMeteredDataRejectedV1(
                     forwardMeteredDataInput.ActorMessageId,
                     forwardMeteredDataInput.TransactionId,
-                    ForwardedByActorNumber: ActorNumber.Create(forwardMeteredDataInput.ActorNumber), // TODO: delete when EDI is refactored
-                    ForwardedByActorRole: ActorRole.FromName(forwardMeteredDataInput.ActorRole), // TODO: delete when EDI is refactored
                     ForwardedForActorRole: ActorRole.FromName(forwardMeteredDataInput.ActorRole),
                     BusinessReason.FromName(forwardMeteredDataInput.BusinessReason),
                     validationErrors

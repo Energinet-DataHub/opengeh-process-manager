@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
@@ -144,6 +145,41 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
             .NotBeNull()
             .And
             .BeEquivalentTo(existingOrchestrationInstance);
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_FilteringJsonColumn_Then_ReturnsExpectedItem()
+    {
+        // Arrange
+        var expectedTestInt = 52;
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            testInt: expectedTestInt);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
+        var actualOrchestrationInstanceIds = await readerContext.Database
+            .SqlQuery<Guid>($"""
+                SELECT
+                    [o].[Id]
+                FROM
+                    [pm].[OrchestrationInstance] AS [o]
+                WHERE
+                    CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+                """)
+            .ToListAsync();
+
+        // Assert
+        actualOrchestrationInstanceIds.Should().Contain(existingOrchestrationInstance.Id.Value);
+        actualOrchestrationInstanceIds.Count.Should().Be(1);
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(string? recurringCronExpression = default)

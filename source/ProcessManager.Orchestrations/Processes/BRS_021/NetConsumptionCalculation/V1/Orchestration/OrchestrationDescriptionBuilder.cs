@@ -31,12 +31,14 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
             canBeScheduled: true,
             functionName: nameof(Orchestration_Brs_021_NetConsumptionCalculation_V1));
 
-        description.RecurringCronExpression = string.Empty;
         // Runs at 09:00 and 14:00 every day
         description.RecurringCronExpression = "0 9,14 * * *";
 
         description.AppendStepDescription(CalculationStep.StepDescription);
-        description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
+        description.AppendStepDescription(
+            EnqueueActorMessagesStep.StepDescription,
+            true,
+            "A feature flag controls if the step is skipped.");
 
         description.IsUnderDevelopment = true;
 

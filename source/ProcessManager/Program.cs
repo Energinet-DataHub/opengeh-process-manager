@@ -22,6 +22,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Energinet.DataHub.ProcessManager.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Scheduler;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -30,6 +31,10 @@ var host = new HostBuilder()
     {
         // Http => Authorization
         builder.UseFunctionsAuthorization();
+    })
+    .ConfigureAppConfiguration((context, config) =>
+    {
+        context.AddConfiguration(config);
     })
     .ConfigureServices((context, services) =>
     {
@@ -50,6 +55,9 @@ var host = new HostBuilder()
         // Handlers
         services.AddScoped<RecurringPlannerHandler>();
         services.AddScoped<SchedulerHandler>();
+
+        // Azure App Configuration
+        services.AddAzureAppConfiguration();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

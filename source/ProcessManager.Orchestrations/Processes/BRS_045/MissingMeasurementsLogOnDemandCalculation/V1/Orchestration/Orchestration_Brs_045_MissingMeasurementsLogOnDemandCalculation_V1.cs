@@ -26,7 +26,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Miss
 
 internal class Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1
 {
-    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_045_MissingMeasurementsLogOnDemandCalculation.V1;
+    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName =
+        Brs_045_MissingMeasurementsLogOnDemandCalculation.V1;
 
     private readonly TaskRetryOptions _defaultRetryOptions;
 
@@ -46,8 +47,7 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V
     }
 
     [Function(nameof(Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1))]
-    public async Task<string> Run(
-        [OrchestrationTrigger] TaskOrchestrationContext context)
+    public async Task<string> Run([OrchestrationTrigger] TaskOrchestrationContext context)
     {
         var orchestrationInstanceContext = await InitializeOrchestrationAsync(context);
 
@@ -81,17 +81,18 @@ internal class Orchestration_Brs_045_MissingMeasurementsLogOnDemandCalculation_V
 
         var instanceContext = await context.CallActivityAsync<OrchestrationInstanceContext>(
             nameof(GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1),
-            new GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.ActivityInput(
-                instanceId),
+            new GetOrchestrationInstanceContextActivity_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.
+                ActivityInput(
+                    instanceId),
             _defaultTaskOptions);
 
         return instanceContext;
     }
 
     private async Task<string> SetTerminateOrchestrationAsync(
-    TaskOrchestrationContext context,
-    OrchestrationInstanceId instanceId,
-    bool success)
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        bool success)
     {
         var orchestrationTerminationState = success
             ? OrchestrationInstanceTerminationState.Succeeded

@@ -263,6 +263,10 @@ public class ProcessManagerAppManager : IAsyncDisposable
             $"AzureWebJobs.PerformRecurringPlanning.Disabled",
             "true");
 
+        // App Configuration
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            "AppConfigEndpoint", IntegrationTestConfiguration.Configuration["AZURE-APP-CONFIGURATION-ENDPOINT"]!);
+
         return appHostSettings;
     }
 

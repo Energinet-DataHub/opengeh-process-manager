@@ -57,11 +57,14 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                 orchestrationInstanceContext)
             .ExecuteAsync();
 
-        await new EnqueueActorMessagesStep(
-                context,
-                _defaultRetryOptions,
-                orchestrationInstanceContext)
-            .ExecuteAsync();
+        if (!orchestrationInstanceContext.SkippedStepsBySequence.Contains(EnqueueActorMessagesStep.EnqueueActorMessagesStepSequence))
+        {
+            await new EnqueueActorMessagesStep(
+                    context,
+                    _defaultRetryOptions,
+                    orchestrationInstanceContext)
+                .ExecuteAsync();
+        }
 
         return await SetTerminateOrchestrationAsync(
             context,
@@ -89,9 +92,9 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
     }
 
     private async Task<string> SetTerminateOrchestrationAsync(
-    TaskOrchestrationContext context,
-    OrchestrationInstanceId instanceId,
-    bool success)
+        TaskOrchestrationContext context,
+        OrchestrationInstanceId instanceId,
+        bool success)
     {
         var orchestrationTerminationState = success
             ? OrchestrationInstanceTerminationState.Succeeded

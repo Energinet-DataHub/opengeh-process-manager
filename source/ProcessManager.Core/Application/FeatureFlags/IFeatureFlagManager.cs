@@ -27,5 +27,5 @@ public interface IFeatureFlagManager
     /// <summary>
     /// Get whether the feature flag is enabled.
     /// </summary>
-    Task<bool> IsEnabledAsync(FeatureFlag featureFlag);
+    Task<bool> IsEnabledAsync(string featureFlag);
 }

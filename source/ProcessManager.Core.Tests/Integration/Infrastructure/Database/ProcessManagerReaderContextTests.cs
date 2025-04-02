@@ -19,7 +19,6 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
@@ -222,10 +221,119 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_CompareSearchUsingFromSqlRawAndTraditionalWhereQuery_Then_BothReturnsEquivalentOrchestrationInstance()
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_UsingSqlQueryToSearchInJsonColumnAndCastResultToFlatOrchestrationInstanceDto_Then_ExpectedOrchestrationInstanceAreReturned()
     {
         // Arrange
         var expectedTestInt = 54;
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            testInt: expectedTestInt);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
+        var actualFlatResult = await readerContext.Database
+            .SqlQuery<OrchestrationInstanceCustomQueryRow>($"""
+                SELECT
+                    [od].[Name] as OrchestrationDescription_Name,
+                    [od].[Version] as OrchestrationDescription_Version,
+
+                    [oi].[Id],
+                    [oi].[ParameterValue],
+                    [oi].[CustomState],
+                    [oi].[IdempotencyKey],
+                    [oi].[ActorMessageId],
+                    [oi].[TransactionId],
+                    [oi].[MeteringPointId],
+
+                    [oi].[Lifecycle_CreatedAt],
+                    [oi].[Lifecycle_QueuedAt],
+                    [oi].[Lifecycle_ScheduledToRunAt],
+                    [oi].[Lifecycle_StartedAt],
+                    [oi].[Lifecycle_State],
+                    [oi].[Lifecycle_TerminatedAt],
+                    [oi].[Lifecycle_TerminationState],
+
+                    [oi].[Lifecycle_CreatedBy_IdentityType],
+                    [oi].[Lifecycle_CreatedBy_ActorNumber],
+                    [oi].[Lifecycle_CreatedBy_ActorRole],
+                    [oi].[Lifecycle_CreatedBy_UserId],
+
+                    [oi].[Lifecycle_CanceledBy_IdentityType],
+                    [oi].[Lifecycle_CanceledBy_ActorNumber],
+                    [oi].[Lifecycle_CanceledBy_ActorRole],
+                    [oi].[Lifecycle_CanceledBy_UserId],
+
+                    [si].[Description] as Step_Description,
+                    [si].[Sequence] as Step_Sequence,
+                    [si].[CustomState] as Step_CustomState,
+
+                    [si].[Lifecycle_CanBeSkipped] as Step_Lifecycle_CanBeSkipped,
+                    [si].[Lifecycle_StartedAt] as Step_Lifecycle_StartedAt,
+                    [si].[Lifecycle_State] as Step_Lifecycle_State,
+                    [si].[Lifecycle_TerminatedAt] as Step_Lifecycle_TerminatedAt,
+                    [si].[Lifecycle_TerminationState] as Step_Lifecycle_TerminationState
+                FROM
+                    [pm].[OrchestrationDescription] AS [od]
+                INNER JOIN
+                    [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
+                LEFT JOIN
+                    [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
+                WHERE
+                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+                ORDER BY [od].[Id], [oi].[Id], [si].[Sequence]
+                """)
+            .ToListAsync();
+        ////var actualObjectResult = actualFlatResult
+        ////  .GroupBy(x => new
+        ////  {
+        ////      x.Id,
+
+        ////      x.Lifecycle_CreatedBy,
+        ////      x.Lifecycle_State,
+        ////      x.Lifecycle_TerminationState,
+        ////      x.Lifecycle_CanceledBy,
+        ////      x.Lifecycle_CreatedAt,
+        ////      x.Lifecycle_ScheduledToRunAt,
+        ////      x.Lifecycle_QueuedAt,
+        ////      x.Lifecycle_StartedAt,
+        ////      x.Lifecycle_TerminatedAt,
+
+        ////      x.ParameterValue,
+        ////      x.CustomState,
+        ////      x.IdempotencyKey,
+        ////      x.ActorMessageId,
+        ////      x.TransactionId,
+        ////      x.MeteringPointId,
+
+        ////      // List all but Steps...
+        ////  })
+        ////  .Select(x => new OrchestrationInstance()
+        ////  {
+        ////      id = x.Key.Id,
+        ////      desc = x,
+        ////      Key.ProductDesc,
+        ////      .... // etc.
+        ////      images = x.Select(i => i.ProdImgThumb).ToList()
+        ////  });
+
+        // Assert
+        actualFlatResult.Should().Contain(x => x.Id == existingOrchestrationInstance.Id.Value);
+        actualFlatResult.Count.Should().Be(3); // TODO: Update, but for now it's one per step - must group and create instances
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_CompareSearchUsingFromSqlRawAndTraditionalWhereQuery_Then_BothReturnsEquivalentOrchestrationInstance()
+    {
+        // Arrange
+        var expectedTestInt = 55;
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance = CreateOrchestrationInstance(
             existingOrchestrationDescription,

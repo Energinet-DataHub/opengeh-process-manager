@@ -176,13 +176,14 @@ internal class SearchCalculationsHandlerV1(
     /// <param name="terminatedAtOrEarlier"></param>
     /// <returns>Use the returned unique name to determine which orchestration description
     /// a given orchestration instance was created from.</returns>
-    private async Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
-        IReadOnlyCollection<string> orchestrationDescriptionNames,
-        IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates,
-        OrchestrationInstanceTerminationState? terminationState,
-        Instant? scheduledAtOrLater,
-        Instant? startedAtOrLater,
-        Instant? terminatedAtOrEarlier)
+    private async Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>>
+        SearchAsync(
+            IReadOnlyCollection<string> orchestrationDescriptionNames,
+            IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates,
+            OrchestrationInstanceTerminationState? terminationState,
+            Instant? scheduledAtOrLater,
+            Instant? startedAtOrLater,
+            Instant? terminatedAtOrEarlier)
     {
         var queryable = _readerContext
             .OrchestrationDescriptions

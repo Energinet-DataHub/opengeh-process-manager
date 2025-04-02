@@ -199,6 +199,10 @@ internal class SearchCalculationsHandlerV1(
             .Where(x => scheduledAtOrLater == null || scheduledAtOrLater <= x.instance.Lifecycle.ScheduledToRunAt)
             .Select(x => ValueTuple.Create(x.UniqueName, x.instance));
 
+#if DEBUG
+        var queryStringForDebugging = queryable.ToQueryString();
+#endif
+
         return await queryable.ToListAsync().ConfigureAwait(false);
     }
 }

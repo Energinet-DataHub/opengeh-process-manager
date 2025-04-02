@@ -243,6 +243,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         // Act
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
 
+        // => Demo how we can "fix" issue where FromSqlRaw incorrectly think the tables names are "CustomState_SerializedValue" and "ParameterValue_SerializedValue".
         var result01 = readerContext.OrchestrationInstances
             .FromSqlRaw("""
                 SELECT

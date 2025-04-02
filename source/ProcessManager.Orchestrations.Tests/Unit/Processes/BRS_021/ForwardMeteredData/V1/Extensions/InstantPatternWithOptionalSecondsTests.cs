@@ -25,6 +25,7 @@ public class InstantPatternWithOptionalSecondsTests
     [InlineData("2025-03-17T11:13:48.1955802", false)]
     [InlineData("2025-03-17 11:13:48.1955802Z", false)]
     [InlineData("2025-03-17T11:13:48.1955802+00:00", false)]
+    [InlineData("2025-03-31T13:43:48.8975122+02:00", false)]
     public void Parse_ShouldReturnExpectedResult(string dateTime, bool isValid)
     {
         // Act

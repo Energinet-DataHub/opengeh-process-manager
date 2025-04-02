@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client.Extensions;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Shared.Api.Json;
 
 namespace Energinet.DataHub.ProcessManager.Client;
 
@@ -292,13 +293,11 @@ internal class ProcessManagerClient : IProcessManagerClient
             .ConfigureAwait(false);
         actualResponse.EnsureSuccessStatusCode();
 
-        // Default serialization using 'OkObjectResult' doesn't perform Json Polymorphic correct if we
-        // use the type directly; so we use a list as a container.
-        var orchestrationInstances = await actualResponse.Content
-            .ReadFromJsonAsync<IReadOnlyCollection<TItem>>(cancellationToken)
+        var itemContainer = await actualResponse.Content
+            .ReadFromJsonAsync<JsonPolymorphicItemContainer<TItem>>(cancellationToken)
             .ConfigureAwait(false);
 
-        return orchestrationInstances!.SingleOrDefault()!;
+        return itemContainer!.Item;
     }
 
     /// <inheritdoc/>

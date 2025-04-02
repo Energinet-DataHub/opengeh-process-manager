@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
+using Energinet.DataHub.ProcessManager.Shared.Api.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -43,12 +44,6 @@ internal class SearchTrigger_CalculationById_V1(
     {
         var queryResultItem = await _handler.HandleAsync(query).ConfigureAwait(false);
 
-        // Default serialization using 'OkObjectResult' doesn't perform Json Polymorphic correct if we
-        // use the type directly; so we use a list as a container.
-        var results = new List<ICalculationsQueryResultV1>();
-        if (queryResultItem != null)
-            results.Add(queryResultItem);
-
-        return new OkObjectResult(results);
+        return new OkObjectResult(new JsonPolymorphicItemContainer<ICalculationsQueryResultV1>(queryResultItem));
     }
 }

@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
@@ -26,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure
 public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCoreFixture>
 {
     private readonly ProcessManagerCoreFixture _fixture;
-    private readonly UserIdentity _userIdentity = new UserIdentity(
+    private readonly UserIdentity _userIdentity = new(
         new UserId(Guid.NewGuid()),
         new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
@@ -148,7 +149,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_SearchInJsonColumnAndReturnId_Then_ExpectedIdIsReturned()
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_UsingSqlQueryToSearchInJsonColumnAndReturnId_Then_ExpectedIdIsReturned()
     {
         // Arrange
         var expectedTestInt = 52;
@@ -183,7 +184,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_SearchInJsonColumnAndCastResultToParameters_Then_ExpectedParametersAreReturned()
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_UsingSqlQueryToSearchInJsonColumnAndCastResultToParameterType_Then_ExpectedParametersAreReturned()
     {
         // Arrange
         var expectedTestInt = 53;
@@ -216,9 +217,72 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
             .ToListAsync();
 
         // Assert
-
         actualParameters.Should().ContainEquivalentOf(existingParameters);
         actualParameters.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_CompareSearchUsingFromSqlRawAndTraditionalWhereQuery_Then_BothReturnsEquivalentOrchestrationInstance()
+    {
+        // Arrange
+        var expectedTestInt = 54;
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            testInt: expectedTestInt);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        var existingParameters = existingOrchestrationInstance.ParameterValue.AsType<TestOrchestrationParameter>();
+
+        // Act
+        await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
+
+        var result01 = readerContext.OrchestrationInstances
+            .FromSqlRaw("""
+                SELECT
+                    [o].[Id],
+                    [o].[ActorMessageId],
+                    [o].[IdempotencyKey],
+                    [o].[MeteringPointId],
+                    [o].[OrchestrationDescriptionId],
+                    [o].[RowVersion],
+                    [o].[TransactionId],
+                    [o].[CustomState] as CustomState_SerializedValue,
+                    [o].[ParameterValue] as ParameterValue_SerializedValue,
+                    [o].[Lifecycle_CreatedAt],
+                    [o].[Lifecycle_QueuedAt],
+                    [o].[Lifecycle_ScheduledToRunAt],
+                    [o].[Lifecycle_StartedAt],
+                    [o].[Lifecycle_State],
+                    [o].[Lifecycle_TerminatedAt],
+                    [o].[Lifecycle_TerminationState],
+                    [o].[Lifecycle_CanceledBy_ActorNumber],
+                    [o].[Lifecycle_CanceledBy_ActorRole],
+                    [o].[Lifecycle_CanceledBy_IdentityType],
+                    [o].[Lifecycle_CanceledBy_UserId],
+                    [o].[Lifecycle_CreatedBy_ActorNumber],
+                    [o].[Lifecycle_CreatedBy_ActorRole],
+                    [o].[Lifecycle_CreatedBy_IdentityType],
+                    [o].[Lifecycle_CreatedBy_UserId]
+                FROM
+                    [pm].OrchestrationInstance as [o]
+            """)
+            .Where(x => x.Id == existingOrchestrationInstance.Id);
+        var queryString01 = result01.ToQueryString();
+        var result01OrchestrationInstance = await result01.FirstOrDefaultAsync();
+
+        var result02 = readerContext.OrchestrationInstances.Where(x => x.Id == existingOrchestrationInstance.Id);
+        var queryString02 = result02.ToQueryString();
+        var result02OrchestrationInstance = await result01.FirstOrDefaultAsync();
+
+        // Assert
+        result01OrchestrationInstance.Should().BeEquivalentTo(result02OrchestrationInstance);
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(string? recurringCronExpression = default)

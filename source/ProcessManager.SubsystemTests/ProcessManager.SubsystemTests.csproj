@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ProcessManager.Client\ProcessManager.Client.csproj" />
     <ProjectReference Include="..\ProcessManager.Orchestrations\ProcessManager.Orchestrations.csproj" />
     <ProjectReference Include="..\ProcessManager\ProcessManager.csproj" />
   </ItemGroup>

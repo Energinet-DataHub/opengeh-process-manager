@@ -23,10 +23,15 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculat
 
 internal class SearchCalculationByIdHandlerV1(
     ProcessManagerReaderContext readerContext) :
-        ISearchOrchestrationInstanceQueryHandler<CalculationByIdQueryV1, ICalculationsQueryResultV1?>
+        ISearchOrchestrationInstanceQueryHandler<CalculationByIdQueryV1, ICalculationsQueryResultV1>
 {
     private readonly ProcessManagerReaderContext _readerContext = readerContext;
 
+    /// <summary>
+    /// Get orchestration instance by id; or <see langword="null"/> if it doesn't exist.
+    /// Also, if the orchestration instance found is not one of the types supported
+    /// by <see cref="ICalculationsQueryResultV1"/>, then the response will be <see langword="null"/>.
+    /// </summary>
     public async Task<ICalculationsQueryResultV1?> HandleAsync(CalculationByIdQueryV1 query)
     {
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -53,8 +58,10 @@ internal class SearchCalculationByIdHandlerV1(
     /// </summary>
     /// <param name="orchestrationDescriptionNames"></param>
     /// <param name="orchestrationInstanceId"></param>
-    /// <returns>Use the returned unique name to determine which orchestration description
-    /// the orchestration instance was created from.</returns>
+    /// <returns>
+    /// Use the returned unique name to determine which orchestration description
+    /// the orchestration instance was created from.
+    /// </returns>
     private async Task<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)> SearchAsync(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
         OrchestrationInstanceId orchestrationInstanceId)
@@ -70,6 +77,6 @@ internal class SearchCalculationByIdHandlerV1(
             .Where(x => x.instance.Id == orchestrationInstanceId)
             .Select(x => ValueTuple.Create(x.UniqueName, x.instance));
 
-        return await queryable.FirstOrDefaultAsync().ConfigureAwait(false);
+        return await queryable.SingleOrDefaultAsync().ConfigureAwait(false);
     }
 }

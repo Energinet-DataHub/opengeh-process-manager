@@ -17,16 +17,20 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Base class for implementing custom queries for searching a single (nullable) orchestration instance.
+/// Base class for implementing custom queries for searching a single orchestration instance.
 /// Must be JSON serializable.
 /// </summary>
+/// <remarks>
+/// Using JSON polymorphism on <typeparamref name="TResultItem"/> makes it possible to
+/// specify a base type, and be able to deserialize it into multiple concrete types.
+/// </remarks>
 /// <typeparam name="TResultItem">
-/// The result type of the item returned (can be nullable).
+/// The type (or base type) of the item returned.
 /// Must be a JSON serializable type.
 /// </typeparam>
 public abstract record SearchOrchestrationInstanceByCustomQuery<TResultItem>
     : OrchestrationInstanceRequest<UserIdentityDto>
-        where TResultItem : class?
+        where TResultItem : class
 {
     /// <summary>
     /// Construct query.

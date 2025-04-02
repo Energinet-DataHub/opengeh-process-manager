@@ -271,15 +271,16 @@ internal class ProcessManagerClient : IProcessManagerClient
     }
 
     /// <inheritdoc/>
-    public async Task<TResultItem> SearchOrchestrationInstanceByCustomQueryAsync<TResultItem>(
-        SearchOrchestrationInstanceByCustomQuery<TResultItem> query,
+    public async Task<TItem?> SearchOrchestrationInstanceByCustomQueryAsync<TItem>(
+        SearchOrchestrationInstanceByCustomQuery<TItem> query,
         CancellationToken cancellationToken)
-            where TResultItem : class?
+            where TItem : class
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
             $"/api/orchestrationinstance/query/custom/{query.QueryRouteName}");
-        // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
+        // Ensure we serialize using the derived type and not the base type;
+        // otherwise we won't serialize all properties.
         var json = JsonSerializer.Serialize(query, query.GetType());
         request.Content = new StringContent(
             json,
@@ -294,10 +295,10 @@ internal class ProcessManagerClient : IProcessManagerClient
         // Default serialization using 'OkObjectResult' doesn't perform Json Polymorphic correct if we
         // use the type directly; so we use a list as a container.
         var orchestrationInstances = await actualResponse.Content
-            .ReadFromJsonAsync<IReadOnlyCollection<TResultItem>>(cancellationToken)
+            .ReadFromJsonAsync<IReadOnlyCollection<TItem>>(cancellationToken)
             .ConfigureAwait(false);
 
-        return orchestrationInstances!.FirstOrDefault()!;
+        return orchestrationInstances!.SingleOrDefault()!;
     }
 
     /// <inheritdoc/>
@@ -309,7 +310,8 @@ internal class ProcessManagerClient : IProcessManagerClient
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
             $"/api/orchestrationinstance/query/custom/{query.QueryRouteName}");
-        // Ensure we serialize using the derived type and not the base type; otherwise we won't serialize all properties.
+        // Ensure we serialize using the derived type and not the base type;
+        // otherwise we won't serialize all properties.
         var json = JsonSerializer.Serialize(query, query.GetType());
         request.Content = new StringContent(
             json,

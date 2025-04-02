@@ -17,10 +17,17 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
 /// <summary>
-/// Interface for handling a query for searching orchestration instances.
+/// Interface for handling a custom query for searching orchestration instances.
 /// </summary>
+/// <remarks>
+/// Using JSON polymorphism on <typeparamref name="TResultItem"/> makes it possible to
+/// specify a base type, and be able to deserialize it into multiple concrete types.
+/// </remarks>
 /// <typeparam name="TQuery">The type of the query.</typeparam>
-/// <typeparam name="TResultItem">The result type of each item returned in the result list from the query. Must be a JSON serializable type.</typeparam>
+/// <typeparam name="TResultItem">
+/// The type (or base type) of each item returned in the result list from the query.
+/// Must be a JSON serializable type.
+/// </typeparam>
 public interface ISearchOrchestrationInstancesQueryHandler<TQuery, TResultItem>
     where TQuery : SearchOrchestrationInstancesByCustomQuery<TResultItem>
     where TResultItem : class
@@ -29,6 +36,6 @@ public interface ISearchOrchestrationInstancesQueryHandler<TQuery, TResultItem>
     /// Handles a query for searching orchestration instances.
     /// </summary>
     /// <param name="query">The query to handle.</param>
-    /// <returns>Returns a result item for each matching orchestration instance.</returns>
+    /// <returns>Returns an item for each matching orchestration instance.</returns>
     Task<IReadOnlyCollection<TResultItem>> HandleAsync(TQuery query);
 }

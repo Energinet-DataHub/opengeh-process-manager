@@ -26,7 +26,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQue
 /// by <see cref="ICalculationsQueryResultV1"/>, then the response will be <see langword="null"/>.
 /// </remarks>
 public sealed record CalculationByIdQueryV1
-    : SearchOrchestrationInstanceByCustomQuery<ICalculationsQueryResultV1?>
+    : SearchOrchestrationInstanceByCustomQuery<ICalculationsQueryResultV1>
 {
     public const string RouteName = "v1/calculation";
 

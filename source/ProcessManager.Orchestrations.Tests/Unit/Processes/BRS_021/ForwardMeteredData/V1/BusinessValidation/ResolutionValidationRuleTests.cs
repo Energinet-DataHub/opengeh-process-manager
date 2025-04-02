@@ -43,7 +43,7 @@ public class ResolutionValidationRuleTests
     [Theory]
     [InlineData("QuarterHourly")]
     [InlineData("Hourly")]
-    public async Task Given_Validate_When_ResolutionIsValid_Then_NoValidationError(string resolution)
+    public async Task Given_ResolutionIsValid_When_Validate_Then_NoValidationError(string resolution)
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithResolution(resolution)

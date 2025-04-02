@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Microsoft.EntityFrameworkCore.Metadata;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 
@@ -33,13 +33,12 @@ public record OrchestrationInstanceCustomQueryRow(
         string? TransactionId,
         string? MeteringPointId,
 
-        // TODO: We should use Instant
-        DateTime Lifecycle_CreatedAt,
-        DateTime? Lifecycle_QueuedAt,
-        DateTime? Lifecycle_ScheduledToRunAt,
-        DateTime? Lifecycle_StartedAt,
+        Instant Lifecycle_CreatedAt,
+        Instant? Lifecycle_QueuedAt,
+        Instant? Lifecycle_ScheduledToRunAt,
+        Instant? Lifecycle_StartedAt,
         OrchestrationInstanceLifecycleState Lifecycle_State,
-        DateTime? Lifecycle_TerminatedAt,
+        Instant? Lifecycle_TerminatedAt,
         OrchestrationInstanceTerminationState? Lifecycle_TerminationState,
 
         string Lifecycle_CreatedBy_IdentityType,
@@ -57,7 +56,7 @@ public record OrchestrationInstanceCustomQueryRow(
         string Step_CustomState,
 
         bool Step_Lifecycle_CanBeSkipped,
-        DateTime? Step_Lifecycle_StartedAt,
+        Instant? Step_Lifecycle_StartedAt,
         StepInstanceLifecycleState Step_Lifecycle_State,
-        DateTime? Step_Lifecycle_TerminatedAt,
+        Instant? Step_Lifecycle_TerminatedAt,
         StepInstanceTerminationState? Step_Lifecycle_TerminationState);

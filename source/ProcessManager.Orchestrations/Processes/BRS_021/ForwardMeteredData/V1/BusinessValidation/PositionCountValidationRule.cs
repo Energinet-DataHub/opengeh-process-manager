@@ -23,20 +23,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public class PositionCountValidationRule : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
-    public static IList<ValidationError> IncorrectNumberOfPositionsError(int actual, int expected) =>
+    public static IList<ValidationError> IncorrectNumberOfPositionsError(int actual, double expected) =>
     [
         new(
             Message:
-            $"Antal positioner ({actual}) svarer ikke til tidsopløsning og periodelængde ({expected}) / Position count ({actual}) does not match resolution and period length ({expected})",
+            $"Antal faktiske positioner ({actual}) svarer ikke til det forventede antal ({expected}) givet tidsopløsning og periodelængde / The actual position count ({actual}) does not match the expected count ({expected}) given resolution and period length",
             ErrorCode: "E87"),
-    ];
-
-    public static IList<ValidationError> PeriodNotModError(double mod) =>
-    [
-        new(
-            Message:
-            $"Perioden er kan ikke opdeles i et helt antal dele af opløsningens størrelse ({mod}) / The period cannot be split into a whole number resolution sized chunks ({mod})",
-            ErrorCode: "E99"),
     ];
 
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
@@ -62,33 +54,69 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
             endDate.ToDateTimeUtc().ToLocalDateTime(),
             PeriodUnits.Months | PeriodUnits.Days | PeriodUnits.Hours | PeriodUnits.Minutes | PeriodUnits.Seconds);
 
-        var actualPeriodResidual = subject.Input.Resolution switch
-        {
-            var pt15m when pt15m == Resolution.QuarterHourly.Name => period.ToDuration().TotalMinutes % 15,
-            var pt1h when pt1h == Resolution.Hourly.Name => period.ToDuration().TotalHours % 1,
-            var p1d when p1d == Resolution.Daily.Name => period.ToDuration().TotalDays % 1,
-            var p1m when p1m == Resolution.Monthly.Name => period.Days,
-            _ => 0.5,
-        };
-
-        if (actualPeriodResidual != 0)
-        {
-            return Task.FromResult(PeriodNotModError(actualPeriodResidual));
-        }
-
+        // In case there is a residual,
+        // the expected count will be a decimal number and as such will never be equal to the actual count
         var expectedPositionCount = subject.Input.Resolution switch
         {
-            var pt15m when pt15m == Resolution.QuarterHourly.Name => (int)(period.ToDuration().TotalMinutes / 15),
-            var pt1h when pt1h == Resolution.Hourly.Name => (int)period.ToDuration().TotalHours,
-            var p1d when p1d == Resolution.Daily.Name => (int)period.ToDuration().TotalDays,
-            var p1m when p1m == Resolution.Monthly.Name => period.Months,
+            var pt15m when pt15m == Resolution.QuarterHourly.Name => period.ToDuration().TotalMinutes / 15d,
+            var pt1h when pt1h == Resolution.Hourly.Name => period.ToDuration().TotalHours,
+            var p1d when p1d == Resolution.Daily.Name => period.ToDuration().TotalDays,
+            var p1m when p1m == Resolution.Monthly.Name => period.Months + (period.Days / 100d),
             _ => 0,
         };
 
-        if (subject.Input.MeteredDataList.Count != expectedPositionCount)
+        // As the expected count is a decimal number,
+        // it might have some residuals by virtue of being a double,
+        // and we would like to ignore those as actual errors.
+        // At the same time,
+        // we have to catch those residuals that represent a real error from an incorrect period length.
+        if (Math.Abs(subject.Input.MeteredDataList.Count - expectedPositionCount) > 0.000001d)
         {
             return Task.FromResult(
                 IncorrectNumberOfPositionsError(subject.Input.MeteredDataList.Count, expectedPositionCount));
+        }
+
+        /*
+         * This will blow up if the position is null or not a number.
+         * But the value is required in the schema, and is defined as
+         * "value": {
+         *     "description": "Main Core value Space.",
+         *     "type": "integer",
+         *     "maximum": 999999,
+         *     "minimum": 1
+         * }
+         * in JSON
+         * <xs:restriction base="xs:integer">
+         *     <xs:maxInclusive value="999999"/>
+         *     <xs:minInclusive value="1"/>
+         * </xs:restriction>
+         * in XML, and finally
+         * <xsd:restriction base="xsd:integer">
+         *     <xsd:totalDigits value="10" />
+         * </xsd:restriction>
+         * in eBix.
+         */
+        var positions = subject.Input.MeteredDataList.Select(md => int.Parse(md.Position!)).Order().ToList();
+
+        if (positions.Distinct().Count() != positions.Count)
+        {
+            return Task.FromResult<IList<ValidationError>>(
+            [
+                new(
+                    Message: "Positioner må ikke være duplikeret / Positions must not be duplicated",
+                    ErrorCode: "E87"),
+            ]);
+        }
+
+        if (positions.First() != 1 || positions.Last() != positions.Count)
+        {
+            return Task.FromResult<IList<ValidationError>>(
+            [
+                new(
+                    Message:
+                    "Positioner skal være i rækkefølge fra 1 til antal positioner / Positions must be in order from 1 to the number of positions",
+                    ErrorCode: "E87"),
+            ]);
         }
 
         return Task.FromResult<IList<ValidationError>>([]);

@@ -330,18 +330,21 @@ public class StartForwardMeteredDataHandlerV1(
             idempotencyKey = enqueueStep.CustomState.AsType<EnqueueActorMessagesStepCustomStateV1>().IdempotencyKey;
         }
 
+        var actorIdentity = ((ActorIdentity)orchestrationInstance.Lifecycle.CreatedBy.Value).Actor;
+
         await _enqueueActorMessagesClient.EnqueueAsync(
                 OrchestrationDescriptionBuilder.UniqueName,
                 orchestrationInstance.Id.Value,
                 new ActorIdentityDto(
-                    ActorNumber.Create(forwardMeteredDataInput.ActorNumber),
-                    ActorRole.FromName(forwardMeteredDataInput.ActorRole)),
+                    ActorNumber.Create(actorIdentity.Number.Value),
+                    ActorRole.FromName(actorIdentity.Role.Name)),
                 idempotencyKey,
                 new ForwardMeteredDataRejectedV1(
                     forwardMeteredDataInput.ActorMessageId,
                     forwardMeteredDataInput.TransactionId,
-                    ActorNumber.Create(forwardMeteredDataInput.ActorNumber),
-                    ActorRole.FromName(forwardMeteredDataInput.ActorRole),
+                    ForwardedByActorNumber: ActorNumber.Create(forwardMeteredDataInput.ActorNumber), // TODO: delete when EDI is refactored
+                    ForwardedByActorRole: ActorRole.FromName(forwardMeteredDataInput.ActorRole), // TODO: delete when EDI is refactored
+                    ForwardedForActorRole: ActorRole.FromName(forwardMeteredDataInput.ActorRole),
                     BusinessReason.FromName(forwardMeteredDataInput.BusinessReason),
                     validationErrors
                         .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))

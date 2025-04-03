@@ -32,8 +32,8 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
             functionName: nameof(Orchestration_Brs_021_ElectricalHeatingCalculation_V1));
 
         description.RecurringCronExpression = string.Empty;
-        // Runs at 12:00 and 17:00 every day
-        description.RecurringCronExpression = "0 12,17 * * *";
+        // Runs at 04:00 every day
+        description.RecurringCronExpression = "0 4 * * *";
 
         description.AppendStepDescription(CalculationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);

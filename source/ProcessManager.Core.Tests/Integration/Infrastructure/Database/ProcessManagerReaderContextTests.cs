@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Core.Application.Query;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -543,4 +542,48 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
 
         public string? TestString { get; set; }
     }
+
+    /// <summary>
+    /// Can be used with EF Core method "SqlQuery" to retrieve Orchestration Instances
+    /// using raw SQL statements.
+    /// </summary>
+    public record OrchestrationInstanceCustomQueryRow(
+            string OrchestrationDescription_Name,
+            int OrchestrationDescription_Version,
+
+            Guid Id,
+            string ParameterValue,
+            string CustomState,
+            string? IdempotencyKey,
+            string? ActorMessageId,
+            string? TransactionId,
+            string? MeteringPointId,
+
+            Instant Lifecycle_CreatedAt,
+            Instant? Lifecycle_QueuedAt,
+            Instant? Lifecycle_ScheduledToRunAt,
+            Instant? Lifecycle_StartedAt,
+            OrchestrationInstanceLifecycleState Lifecycle_State,
+            Instant? Lifecycle_TerminatedAt,
+            OrchestrationInstanceTerminationState? Lifecycle_TerminationState,
+
+            string Lifecycle_CreatedBy_IdentityType,
+            string? Lifecycle_CreatedBy_ActorNumber,
+            string? Lifecycle_CreatedBy_ActorRole,
+            Guid? Lifecycle_CreatedBy_UserId,
+
+            string? Lifecycle_CanceledBy_IdentityType,
+            string? Lifecycle_CanceledBy_ActorNumber,
+            string? Lifecycle_CanceledBy_ActorRole,
+            Guid? Lifecycle_CanceledBy_UserId,
+
+            string Step_Description,
+            int Step_Sequence,
+            string Step_CustomState,
+
+            bool Step_Lifecycle_CanBeSkipped,
+            Instant? Step_Lifecycle_StartedAt,
+            StepInstanceLifecycleState Step_Lifecycle_State,
+            Instant? Step_Lifecycle_TerminatedAt,
+            StepInstanceTerminationState? Step_Lifecycle_TerminationState);
 }

@@ -61,6 +61,11 @@ public class MeteringPointTypeValidationRuleTests
     [InlineData("CollectiveNetProduction")]
     [InlineData("CollectiveNetConsumption")]
     [InlineData("InternalUse")]
+    [InlineData("ElectricalHeating")]
+    [InlineData("NetConsumption")]
+    [InlineData("CapacitySettlement")]
+    [InlineData("NotUsed")]
+    [InlineData("NetLossCorrection")]
     public async Task Given_ValidMeteringPointType_When_Validate_Then_NoValidationError(string meteringPointType)
     {
         var input = new ForwardMeteredDataInputV1Builder()
@@ -92,11 +97,8 @@ public class MeteringPointTypeValidationRuleTests
     }
 
     [Theory]
-    [InlineData("ElectricalHeating")]
-    [InlineData("NetConsumption")]
-    [InlineData("CapacitySettlement")]
-    [InlineData("NotUsed")]
-    [InlineData("NetLossCorrection")]
+    [InlineData("OneNotCorrectMeteringPointType")]
+    [InlineData("AnotherNotCorrectMeteringPointType")]
     public async Task Given_InvalidMeteringPointType_When_Validate_Then_ValidationError(string meteringPointType)
     {
         var input = new ForwardMeteredDataInputV1Builder()
@@ -115,7 +117,7 @@ public class MeteringPointTypeValidationRuleTests
                         ActorNumber.Create("1111111111111"),
                         [],
                         ConnectionState.Connected,
-                        MeteringPointType.FromName(meteringPointType),
+                        MeteringPointType.Production,
                         MeteringPointSubType.Physical,
                         Resolution.QuarterHourly,
                         MeasurementUnit.KilowattHour,

@@ -1,5 +1,13 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.17.2
+
+- No functional changes.
+
+## Version 1.17.1
+
+- Add `ForwardedForActorRole`, to `ForwardMeteredDataRejectedV1`
+
 ## Version 1.17.0
 
 - Add custom query `CalculationsQueryV1` and related types.

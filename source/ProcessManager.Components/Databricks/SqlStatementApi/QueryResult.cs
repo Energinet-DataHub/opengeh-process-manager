@@ -26,12 +26,14 @@ public sealed record QueryResult<TResult>
 
     public TResult? Result { get; }
 
-    internal static QueryResult<TResult> Success(TResult result)
+    // TODO AJW Was internal before
+    public static QueryResult<TResult> Success(TResult result)
     {
         return new(true, result);
     }
 
-    internal static QueryResult<TResult> Error()
+    // TODO AJW Was internal before
+    public static QueryResult<TResult> Error()
     {
         return new(false, default);
     }

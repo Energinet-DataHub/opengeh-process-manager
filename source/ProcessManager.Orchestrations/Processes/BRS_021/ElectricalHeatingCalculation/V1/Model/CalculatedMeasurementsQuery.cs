@@ -11,12 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatementApi;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 
-public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Guid orchestrationInstanceId, ILogger logger) : CalculationResultQueryBase<CalculatedMeasurementsMessageDto>(databricksOptions, orchestrationInstanceId)
+public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Guid orchestrationInstanceId, ILogger logger) : QueryBase<CalculatedMeasurementsV1>(databricksOptions, orchestrationInstanceId)
 {
     private readonly ILogger _logger = logger;
 
@@ -37,33 +40,36 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
         { CalculatedMeasurementsColumnNames.Resolution, (DeltaTableCommonTypes.Timestamp, false) },
     };
 
-    protected override Task<QueryResult<CalculatedMeasurementsMessageDto>> CreateResultAsync(List<DatabricksSqlRow> currentResultSet)
+    protected override async Task<QueryResult<CalculatedMeasurementsV1>> CreateQueryResultAsync(List<DatabricksSqlRow> currentSet)
     {
-        var firstRow = currentResultSet.First();
+        var firstRow = currentSet.First();
         var transactionId = firstRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
 
         try
         {
-            var timeSeriesPoints = new List<CalculatedMeasurementsMessageDto>();
+            var calculatedMeasurements = new List<CalculatedMeasurement>();
 
-            foreach (var row in currentResultSet)
+            foreach (var row in currentSet)
             {
-                var timeSeriesPoint = CreateTimeSeriesPoint(row);
-                timeSeriesPoints.Add(timeSeriesPoint);
+                var calculatedMeasurement = CreateCalculatedMeasurement(row);
+                calculatedMeasurements.Add(calculatedMeasurement);
             }
 
-            var result = await CreateWholesaleResultAsync(firstRow, timeSeriesPoints).ConfigureAwait(false);
-            return QueryResult.Success(result);
+            var result = await CreateCalculatedMeasurementsV1Async(firstRow, calculatedMeasurements).ConfigureAwait(false);
+            return QueryResult<CalculatedMeasurementsV1>.Success(result);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Creating calculated measurements result for electrical heating failed for orchestration instance id='{OrchestrationInstanceId}', TransactionId='{transactionId}'.");
+            var orchestrationType = firstRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType);
+            _logger.LogWarning(ex, $"Creating calculated measurements ({orchestrationType}) failed for orchestration instance id='{OrchestrationInstanceId}', TransactionId='{transactionId}'.");
         }
+
+        return QueryResult<CalculatedMeasurementsV1>.Error();
     }
 
-    protected override bool BelongsToSameResultSet(DatabricksSqlRow currentResult, DatabricksSqlRow previousResult)
+    protected override bool BelongsToSameSet(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow)
     {
-        return previousResult?.ToGuid(CalculatedMeasurementsColumnNames.TransactionId) == currentResult.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
+        return previousRow?.ToGuid(CalculatedMeasurementsColumnNames.TransactionId) == currentRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
     }
 
     protected override string BuildSqlQuery()
@@ -74,7 +80,51 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
                 SELECT {string.Join(", ", columnNames)}
                 FROM {DatabaseName}.{DataObjectName}
                 WHERE {CalculatedMeasurementsColumnNames.OrchestrationInstanceId} = '{OrchestrationInstanceId}'
-                ORDER BY {CalculatedMeasurementsColumnNames.MeteringPointId}, {CalculatedMeasurementsColumnNames.ObservationTime}
+                ORDER BY {CalculatedMeasurementsColumnNames.TransactionId}, {CalculatedMeasurementsColumnNames.ObservationTime}
                 """;
+    }
+
+    private static CalculatedMeasurement CreateCalculatedMeasurement(DatabricksSqlRow databricksSqlRow)
+    {
+        return new CalculatedMeasurement(
+            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType),
+            databricksSqlRow.ToGuid(CalculatedMeasurementsColumnNames.OrchestrationInstanceId),
+            databricksSqlRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId),
+            databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.TransactionCreationDatetime),
+            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointId),
+            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointType),
+            databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.ObservationTime),
+            databricksSqlRow.ToDecimal(CalculatedMeasurementsColumnNames.Quantity),
+            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit),
+            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityQuality),
+            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution));
+    }
+
+    private Task<CalculatedMeasurementsV1> CreateCalculatedMeasurementsV1Async(
+        DatabricksSqlRow databricksSqlRow,
+        IReadOnlyCollection<CalculatedMeasurement> calculatedMeasurements)
+    {
+        return Task.FromResult(
+            new CalculatedMeasurementsV1(
+                OriginalActorMessageId: " ",
+                MeteringPointId: databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointId),
+                MeteringPointType: MeteringPointType.NotUsed,
+                ProductNumber: " ",
+                RegistrationDateTime: DateTimeOffset.Now,
+                StartDateTime: DateTimeOffset.Now,
+                EndDateTime: DateTimeOffset.Now,
+                ReceiversWithMeteredData: Mapper(calculatedMeasurements)));
+    }
+
+    private IReadOnlyCollection<ReceiversWithMeasurementsV1> Mapper(IReadOnlyCollection<CalculatedMeasurement> calculatedMeasurements)
+    {
+        return calculatedMeasurements.Select(x => new ReceiversWithMeasurementsV1(
+            Actors: new List<MarketActorRecipientV1>(),
+            Resolution: Resolution.Daily,
+            MeasureUnit: MeasurementUnit.KilowattHour,
+            StartDateTime: DateTimeOffset.Now,
+            EndDateTime: DateTimeOffset.Now,
+            Measurements: new List<ReceiversWithMeasurementsV1.AcceptedMeasurements>()))
+            .ToList();
     }
 }

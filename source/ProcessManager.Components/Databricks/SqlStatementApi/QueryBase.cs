@@ -17,9 +17,9 @@ using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
 namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatementApi;
 
 /// <summary>
-/// Common base class for querying calculation results from Databricks.
+/// Common base class for querying Databricks.
 /// </summary>
-public abstract class CalculationResultQueryBase<TResult>(
+public abstract class QueryBase<TResult>(
     DatabricksOptions databricksOptions,
     Guid orchestrationInstanceId)
     : IDeltaTableSchemaDescription
@@ -52,39 +52,39 @@ public abstract class CalculationResultQueryBase<TResult>(
             .FromRawSql(BuildSqlQuery())
             .Build();
 
-        DatabricksSqlRow? previousResult = null;
-        var currentResultSet = new List<DatabricksSqlRow>();
+        DatabricksSqlRow? previousRow = null;
+        var currentSet = new List<DatabricksSqlRow>();
 
-        await foreach (var currentResult in databricksSqlWarehouseQueryExecutor.ExecuteQueryAsync(statement).ConfigureAwait(false))
+        await foreach (var currentRow in databricksSqlWarehouseQueryExecutor.ExecuteQueryAsync(statement).ConfigureAwait(false))
         {
-            if (previousResult == null || BelongsToSameResultSet(currentResult, previousResult))
+            if (previousRow == null || BelongsToSameSet(currentRow, previousRow))
             {
-                currentResultSet.Add(currentResult);
-                previousResult = currentResult;
+                currentSet.Add(currentRow);
+                previousRow = currentRow;
                 continue;
             }
 
-            yield return await CreateResultAsync(currentResultSet).ConfigureAwait(false);
+            yield return await CreateQueryResultAsync(currentSet).ConfigureAwait(false);
 
-            // Next result serie
-            currentResultSet =
+            // Next set
+            currentSet =
             [
-                currentResult,
+                currentRow,
             ];
-            previousResult = currentResult;
+            previousRow = currentRow;
         }
 
-        // Last result (if any)
-        if (currentResultSet.Count != 0)
+        // Last set (if any)
+        if (currentSet.Count != 0)
         {
-            yield return await CreateResultAsync(currentResultSet).ConfigureAwait(false);
+            yield return await CreateQueryResultAsync(currentSet).ConfigureAwait(false);
         }
     }
 
-    protected abstract Task<QueryResult<TResult>> CreateResultAsync(
-        List<DatabricksSqlRow> currentResultSet);
+    protected abstract Task<QueryResult<TResult>> CreateQueryResultAsync(
+        List<DatabricksSqlRow> currentSet);
 
-    protected abstract bool BelongsToSameResultSet(DatabricksSqlRow currentResult, DatabricksSqlRow previousResult);
+    protected abstract bool BelongsToSameSet(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow);
 
     protected abstract string BuildSqlQuery();
 }

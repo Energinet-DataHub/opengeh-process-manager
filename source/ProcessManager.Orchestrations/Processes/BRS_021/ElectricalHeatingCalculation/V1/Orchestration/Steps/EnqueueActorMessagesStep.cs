@@ -35,19 +35,25 @@ internal class EnqueueActorMessagesStep(
 
     protected override int StepSequenceNumber => EnqueueActorMessagesStepSequence;
 
-    protected override async Task<StepInstanceTerminationState> OnExecuteAsync()
+    protected override Task<StepInstanceTerminationState> OnExecuteAsync()
     {
         // TODO - Alex: Implement and call activities to enqueue messages
+        // 1. step
         // build statement
         //      - build SQL query
         // loop over results using steaming
         // make/map rsm-12 message
-        // enqueue message:
+
+        // 2. Get actor info for the message
+
+        // 3. step enqueue message:
         // await EnqueueAcceptedActorMessagesAsync(
         //        orchestrationInstance,
         //        forwardMeteredDataInput,
         //        receiversWithMeteredData)
         //    .ConfigureAwait(false);
         // Blocking: Kvitteringer from many messages?
+
+        return Task.FromResult(StepInstanceTerminationState.Succeeded);
     }
 }

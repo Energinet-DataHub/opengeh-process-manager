@@ -23,20 +23,31 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public class PositionCountValidationRule : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
-    public static readonly IList<ValidationError> DuplicatedPositionError =
-    [
-        new(
-            Message: "Positioner må ikke være duplikeret / Positions cannot be duplicated",
-            ErrorCode: "E87"),
-    ];
+    public static IList<ValidationError> DuplicatedPositionError(IEnumerable<int> duplicates)
+    {
+        var duplicatesAsString = string.Join(", ", duplicates);
 
-    public static readonly IList<ValidationError> PositionsNotConsecutiveError =
-    [
-        new(
-            Message:
-            "Positioner skal være i rækkefølge startende fra 1 / Positions must be consecutive starting from 1",
-            ErrorCode: "E87"),
-    ];
+        return
+        [
+            new(
+                Message:
+                $"Position(erne) '{duplicatesAsString}' er duplikeret / The position(s) '{duplicatesAsString}' are duplicated",
+                ErrorCode: "E87"),
+        ];
+    }
+
+    public static IList<ValidationError> PositionsNotConsecutiveError(IEnumerable<int> missing)
+    {
+        var missingAsString = string.Join(", ", missing);
+
+        return
+        [
+            new(
+                Message:
+                $"Position(erne) '{missingAsString}' mangler / The position(s) '{missingAsString}' are missing",
+                ErrorCode: "E87"),
+        ];
+    }
 
     public static IList<ValidationError> IncorrectNumberOfPositionsError(int actual, double expected) =>
     [
@@ -114,14 +125,15 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
          */
         var positions = subject.Input.MeteredDataList.Select(md => int.Parse(md.Position!)).Order().ToList();
 
-        if (positions.Distinct().Count() != positions.Count)
+        var duplicates = positions.GroupBy(p => p).Where(g => g.Count() > 1).ToList();
+        if (duplicates.Count > 0)
         {
-            errors.AddRange(DuplicatedPositionError);
+            errors.AddRange(DuplicatedPositionError(duplicates.Select(g => g.Key)));
         }
 
         if (positions.First() != 1 || positions.Last() != positions.Count)
         {
-            errors.AddRange(PositionsNotConsecutiveError);
+            errors.AddRange(PositionsNotConsecutiveError(Enumerable.Range(1, positions.Count).Except(positions)));
         }
 
         return Task.FromResult<IList<ValidationError>>(errors);

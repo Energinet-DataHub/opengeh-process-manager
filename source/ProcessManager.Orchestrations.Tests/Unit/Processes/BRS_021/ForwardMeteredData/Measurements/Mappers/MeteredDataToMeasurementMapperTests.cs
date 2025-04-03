@@ -153,10 +153,6 @@ public class MeteredDataToMeasurementMapperTests
                     PMTypes.MeteringPointType.CollectiveNetConsumption,
                     MeasurementsTypes.MeteringPointType.MptCollectiveNetConsumption
                 },
-                {
-                    PMTypes.MeteringPointType.InternalUse,
-                    MeasurementsTypes.MeteringPointType.MptInternalUse
-                },
             };
 
         MeteredDataToMeasurementMapper.MeteringPointType.Should().BeEquivalentTo(expectedMappings);

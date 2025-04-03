@@ -200,9 +200,9 @@ internal class SearchCalculationsHandlerV1(
             .FromSql(sql)
             ////.Where(instance => lifecycleStates == null || lifecycleStates.Contains(instance.Lifecycle.State))
             ////.Where(instance => terminationState == null || instance.Lifecycle.TerminationState == terminationState)
-            .Where(instance => startedAtOrLater == null || startedAtOrLater <= instance.Lifecycle.StartedAt)
-            .Where(instance => terminatedAtOrEarlier == null || instance.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
-            .Where(instance => scheduledAtOrLater == null || scheduledAtOrLater <= instance.Lifecycle.ScheduledToRunAt)
+            ////.Where(instance => startedAtOrLater == null || startedAtOrLater <= instance.Lifecycle.StartedAt)
+            ////.Where(instance => terminatedAtOrEarlier == null || instance.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
+            ////.Where(instance => scheduledAtOrLater == null || scheduledAtOrLater <= instance.Lifecycle.ScheduledToRunAt)
             .Select(instance => ValueTuple.Create(uniqueNamesById[instance.OrchestrationDescriptionId], instance));
 
 #if DEBUG
@@ -266,6 +266,18 @@ internal class SearchCalculationsHandlerV1(
                 AND (
                     {terminationState} is null
                     OR [oi].[Lifecycle_TerminationState] = {terminationState}
+                )
+                AND (
+                    {startedAtOrLater} is null
+                    OR {startedAtOrLater} <= [oi].[Lifecycle_StartedAt]
+                )
+                AND (
+                    {terminatedAtOrEarlier} is null
+                    OR [oi].[Lifecycle_TerminatedAt] <= {terminatedAtOrEarlier}
+                )
+                AND (
+                    {scheduledAtOrLater} is null
+                    OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
                 )
             """;
     }

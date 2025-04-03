@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Text;
 using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
@@ -47,24 +46,7 @@ internal class SearchCalculationsHandlerV1(
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-        var orchestrationDescriptionNames = query.GetOrchestrationDescriptionNames();
-
-        var lifecycleStates = query.LifecycleStates.MapToDomain();
-        var terminationState = query.TerminationState.MapToDomain();
-
-        var scheduledAtOrLater = query.ScheduledAtOrLater.ToNullableInstant();
-        var startedAtOrLater = query.StartedAtOrLater.ToNullableInstant();
-        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ToNullableInstant();
-
-        var results =
-            await SearchAsync(
-                orchestrationDescriptionNames,
-                lifecycleStates,
-                terminationState,
-                scheduledAtOrLater,
-                startedAtOrLater,
-                terminatedAtOrEarlier)
-            .ConfigureAwait(false);
+        var results = await SearchAsync(query).ConfigureAwait(false);
 
         return results
             // TODO: Temporary in-memory filter on ParameterValues.
@@ -94,8 +76,7 @@ internal class SearchCalculationsHandlerV1(
             // where a = query and b = calculationInput.
             // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
             (query.PeriodStartDate == null || query.PeriodStartDate < calculationInput.PeriodEndDate) &&
-            (query.PeriodEndDate == null || calculationInput.PeriodStartDate < query.PeriodEndDate) &&
-            (query.IsInternalCalculation == null || calculationInput.IsInternalCalculation == query.IsInternalCalculation);
+            (query.PeriodEndDate == null || calculationInput.PeriodStartDate < query.PeriodEndDate);
     }
 
     private static ICalculationsQueryResultV1 MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
@@ -169,33 +150,18 @@ internal class SearchCalculationsHandlerV1(
     /// Get all orchestration instances filtered by their orchestration description name
     /// and lifecycle information.
     /// </summary>
-    /// <param name="orchestrationDescriptionNames"></param>
-    /// <param name="lifecycleStates"></param>
-    /// <param name="terminationState"></param>
-    /// <param name="scheduledAtOrLater"></param>
-    /// <param name="startedAtOrLater"></param>
-    /// <param name="terminatedAtOrEarlier"></param>
     /// <returns>Use the returned unique name to determine which orchestration description
     /// a given orchestration instance was created from.</returns>
-    private async Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>>
+    private async Task<IReadOnlyCollection<(
+            OrchestrationDescriptionUniqueName UniqueName,
+            OrchestrationInstance Instance)>>
         SearchAsync(
-            IReadOnlyCollection<string> orchestrationDescriptionNames,
-            IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates,
-            OrchestrationInstanceTerminationState? terminationState,
-            Instant? scheduledAtOrLater,
-            Instant? startedAtOrLater,
-            Instant? terminatedAtOrEarlier)
+            CalculationsQueryV1 query)
     {
+        var orchestrationDescriptionNames = query.GetOrchestrationDescriptionNames();
         var uniqueNamesById = await GetUniqueNamesByIdDictionaryAsync(orchestrationDescriptionNames).ConfigureAwait(false);
 
-        var sql = BuildSql(
-            orchestrationDescriptionNames,
-            lifecycleStates,
-            terminationState,
-            scheduledAtOrLater,
-            startedAtOrLater,
-            terminatedAtOrEarlier);
-
+        var sql = BuildSql(orchestrationDescriptionNames, query);
         var queryable = _readerContext.OrchestrationInstances
             .FromSql(sql)
             .Select(instance => ValueTuple.Create(uniqueNamesById[instance.OrchestrationDescriptionId], instance));
@@ -209,12 +175,15 @@ internal class SearchCalculationsHandlerV1(
 
     private FormattableString BuildSql(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
-        IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates,
-        OrchestrationInstanceTerminationState? terminationState,
-        Instant? scheduledAtOrLater,
-        Instant? startedAtOrLater,
-        Instant? terminatedAtOrEarlier)
+        CalculationsQueryV1 query)
     {
+        var lifecycleStates = query.LifecycleStates.MapToDomain();
+        var terminationState = query.TerminationState.MapToDomain();
+
+        var scheduledAtOrLater = query.ScheduledAtOrLater.ToNullableInstant();
+        var startedAtOrLater = query.StartedAtOrLater.ToNullableInstant();
+        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ToNullableInstant();
+
         return $"""
             SELECT
                 [oi].[Id],
@@ -273,6 +242,14 @@ internal class SearchCalculationsHandlerV1(
                 AND (
                     {scheduledAtOrLater} is null
                     OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
+                )
+                AND (
+                    {query.IsInternalCalculation} is null
+                    OR (
+                        [oi].[OrchestrationDescriptionId] = [od].[Id]
+                        AND 'Brs_023_027' = [od].[Name]
+                        AND CAST(JSON_VALUE([oi].[ParameterValue],'$.IsInternalCalculation') AS bit) = {query.IsInternalCalculation}
+                    )
                 )
             """;
     }

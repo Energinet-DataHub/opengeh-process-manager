@@ -33,8 +33,8 @@ public abstract record DataHubRecordType<TDataHubRecordType> : EnumerationRecord
     /// <exception cref="InvalidOperationException">Thrown if <paramref name="name"/> doesn't match a defined enumeration type.</exception>
     public static TDataHubRecordType FromName(string name)
     {
-        return GetAll<TDataHubRecordType>().SingleOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException($"{name} is not a valid {typeof(TDataHubRecordType).Name} {nameof(name)}");
+        return FromNameOrDefault(name)
+               ?? throw new InvalidOperationException($"{name} is not a valid {typeof(TDataHubRecordType).Name} {nameof(name)}");
     }
 
     /// <summary>
@@ -49,6 +49,6 @@ public abstract record DataHubRecordType<TDataHubRecordType> : EnumerationRecord
     {
         return name is null
             ? null
-            : FromName(name);
+            : GetAll<TDataHubRecordType>().SingleOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
 }

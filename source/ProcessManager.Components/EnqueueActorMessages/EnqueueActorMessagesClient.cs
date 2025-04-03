@@ -13,19 +13,26 @@
 // limitations under the License.
 
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
+using Energinet.DataHub.ProcessManager.Components.Extensions;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
 public class EnqueueActorMessagesClient(
+    IOptions<ProcessManagerOptions> options,
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
     : IEnqueueActorMessagesClient
 {
+    private readonly IOptions<ProcessManagerOptions> _options = options;
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.EdiTopic);
 
     public async Task EnqueueAsync<TInputData>(
@@ -34,7 +41,7 @@ public class EnqueueActorMessagesClient(
         IOperatingIdentityDto orchestrationStartedBy,
         Guid idempotencyKey,
         TInputData data)
-            where TInputData : class
+            where TInputData : INotifyEnqueueDataDto
     {
         var (startedByActorNumber, startedByActorRole, startedByUserId) = orchestrationStartedBy switch
         {
@@ -66,7 +73,23 @@ public class EnqueueActorMessagesClient(
             subject: EnqueueActorMessagesV1.BuildServiceBusMessageSubject(orchestration.Name),
             idempotencyKey: idempotencyKey.ToString());
 
-        await _serviceBusSender.SendMessageAsync(serviceBusMessage)
-            .ConfigureAwait(false);
+        var originalActorMessageId = data switch
+        {
+            INotifyEnqueueAcceptedDataDto d => d.OriginalActorMessageId,
+            INotifyEnqueueRejectedDataDto d => d.OriginalActorMessageId,
+            _ => null,
+        };
+
+        if (_options.Value.AllowMockDependenciesForTests
+            && originalActorMessageId != null
+            && originalActorMessageId.IsTestUuid())
+        {
+            // Do nothing if this is a test message (don't pollute EDI)
+        }
+        else
+        {
+            await _serviceBusSender.SendMessageAsync(serviceBusMessage)
+                .ConfigureAwait(false);
+        }
     }
 }

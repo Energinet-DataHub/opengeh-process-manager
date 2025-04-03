@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Text.Json;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
@@ -32,7 +33,7 @@ public partial class EnqueueActorMessagesV1
     public static string BuildServiceBusMessageSubject(OrchestrationDescriptionUniqueNameDto uniqueName) => BuildServiceBusMessageSubject(uniqueName.Name);
 
     public void SetData<TData>(TData data)
-        where TData : class
+        where TData : INotifyEnqueueDataDto
     {
         Data = JsonSerializer.Serialize(data);
         DataFormat = EnqueueActorMessagesDataFormatV1.Json;
@@ -40,7 +41,7 @@ public partial class EnqueueActorMessagesV1
     }
 
     public TData ParseData<TData>()
-        where TData : class
+        where TData : INotifyEnqueueDataDto
     {
         if (DataType != typeof(TData).Name)
         {

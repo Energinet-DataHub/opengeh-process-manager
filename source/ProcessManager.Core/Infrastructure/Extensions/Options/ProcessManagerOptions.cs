@@ -40,4 +40,11 @@ public class ProcessManagerOptions
     /// </summary>
     [Required]
     public bool AllowStartingOrchestrationsUnderDevelopment { get; set; } = true;
+
+    /// <summary>
+    /// Allow using mock dependencies for tests. This must only be enabled only in environments where
+    /// subsystem tests and load tests are executed.
+    /// </summary>
+    [Required]
+    public bool AllowMockDependenciesForTests { get; set; } = false;
 }

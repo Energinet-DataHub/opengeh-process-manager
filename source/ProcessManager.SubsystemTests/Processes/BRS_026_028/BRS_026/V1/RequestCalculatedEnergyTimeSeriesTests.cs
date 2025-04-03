@@ -89,9 +89,21 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
 
     [Fact]
     [ScenarioStep(4)]
-    public void Then_OrchestrationInstanceIsRunning()
+    public void Then_OrchestrationInstanceHasCorrectValues()
     {
-        Assert.Equal(OrchestrationInstanceLifecycleState.Running, _fixture.TestConfiguration.OrchestrationInstance?.Lifecycle.State);
+        var request = _fixture.TestConfiguration.Request;
+        var orchestrationInstance = _fixture.TestConfiguration.OrchestrationInstance;
+        ArgumentNullException.ThrowIfNull(orchestrationInstance);
+
+        Assert.Multiple(
+            () => Assert.Equal(request.IdempotencyKey, orchestrationInstance.IdempotencyKey),
+            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, orchestrationInstance.Lifecycle.State),
+            () => Assert.Null(orchestrationInstance.Lifecycle.TerminationState),
+            () => Assert.Equal(2, orchestrationInstance.Steps.Count),
+            () => Assert.Equivalent(request.InputParameter, orchestrationInstance.ParameterValue),
+            () => Assert.Equal(request.ActorMessageId, orchestrationInstance.ActorMessageId),
+            () => Assert.Equal(request.TransactionId, orchestrationInstance.TransactionId),
+            () => Assert.Null(orchestrationInstance.MeteringPointId));
     }
 
     [Fact]

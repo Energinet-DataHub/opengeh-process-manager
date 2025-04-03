@@ -198,11 +198,6 @@ internal class SearchCalculationsHandlerV1(
 
         var queryable = _readerContext.OrchestrationInstances
             .FromSql(sql)
-            ////.Where(instance => lifecycleStates == null || lifecycleStates.Contains(instance.Lifecycle.State))
-            ////.Where(instance => terminationState == null || instance.Lifecycle.TerminationState == terminationState)
-            ////.Where(instance => startedAtOrLater == null || startedAtOrLater <= instance.Lifecycle.StartedAt)
-            ////.Where(instance => terminatedAtOrEarlier == null || instance.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
-            ////.Where(instance => scheduledAtOrLater == null || scheduledAtOrLater <= instance.Lifecycle.ScheduledToRunAt)
             .Select(instance => ValueTuple.Create(uniqueNamesById[instance.OrchestrationDescriptionId], instance));
 
 #if DEBUG

@@ -240,6 +240,10 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
 
         // Act
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
+
+        IReadOnlyCollection<string> orchestrationDescriptionNames = [
+            existingOrchestrationDescription.UniqueName.Name];
+
         var actualFlatResults = await readerContext.Database
             .SqlQuery<OrchestrationInstanceCustomQueryRow>($"""
                 SELECT
@@ -288,7 +292,11 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
                 LEFT JOIN
                     [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
                 WHERE
-                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+                    [od].[Name] IN (
+                        SELECT [names].[value]
+                        FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                    )
+                    AND CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
                 ORDER BY [od].[Id], [oi].[Id], [si].[Sequence]
                 """)
             .ToListAsync();

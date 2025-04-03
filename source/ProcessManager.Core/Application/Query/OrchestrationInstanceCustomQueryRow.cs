@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+namespace Energinet.DataHub.ProcessManager.Core.Application.Query;
 
 /// <summary>
 /// Can be used with EF Core method "SqlQuery" to retrieve Orchestration Instances

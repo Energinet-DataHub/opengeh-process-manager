@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 1.5.1
+
+- No functional changes.
+
 ## Version 1.5.0
 
 - Update NuGet packages.

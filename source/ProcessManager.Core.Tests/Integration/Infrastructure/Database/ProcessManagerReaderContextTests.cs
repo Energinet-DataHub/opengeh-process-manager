@@ -170,11 +170,11 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         var actualIds = await readerContext.Database
             .SqlQuery<Guid>($"""
                 SELECT
-                    [o].[Id]
+                    [oi].[Id]
                 FROM
-                    [pm].[OrchestrationInstance] AS [o]
+                    [pm].[OrchestrationInstance] AS [oi]
                 WHERE
-                    CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
                 """)
             .ToListAsync();
 
@@ -207,12 +207,12 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         var actualParameters = await readerContext.Database
             .SqlQuery<TestOrchestrationParameter>($"""
                 SELECT
-                    CAST(JSON_VALUE([o].[ParameterValue],'$.TestString') AS nvarchar) AS TestString,
-                    CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) AS TestInt
+                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestString') AS nvarchar) AS TestString,
+                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) AS TestInt
                 FROM
-                    [pm].[OrchestrationInstance] AS [o]
+                    [pm].[OrchestrationInstance] AS [oi]
                 WHERE
-                    CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
                 """)
             .ToListAsync();
 
@@ -361,32 +361,32 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         var result01 = readerContext.OrchestrationInstances
             .FromSqlRaw("""
                 SELECT
-                    [o].[Id],
-                    [o].[ActorMessageId],
-                    [o].[IdempotencyKey],
-                    [o].[MeteringPointId],
-                    [o].[OrchestrationDescriptionId],
-                    [o].[RowVersion],
-                    [o].[TransactionId],
-                    [o].[CustomState] as CustomState_SerializedValue,
-                    [o].[ParameterValue] as ParameterValue_SerializedValue,
-                    [o].[Lifecycle_CreatedAt],
-                    [o].[Lifecycle_QueuedAt],
-                    [o].[Lifecycle_ScheduledToRunAt],
-                    [o].[Lifecycle_StartedAt],
-                    [o].[Lifecycle_State],
-                    [o].[Lifecycle_TerminatedAt],
-                    [o].[Lifecycle_TerminationState],
-                    [o].[Lifecycle_CanceledBy_ActorNumber],
-                    [o].[Lifecycle_CanceledBy_ActorRole],
-                    [o].[Lifecycle_CanceledBy_IdentityType],
-                    [o].[Lifecycle_CanceledBy_UserId],
-                    [o].[Lifecycle_CreatedBy_ActorNumber],
-                    [o].[Lifecycle_CreatedBy_ActorRole],
-                    [o].[Lifecycle_CreatedBy_IdentityType],
-                    [o].[Lifecycle_CreatedBy_UserId]
+                    [oi].[Id],
+                    [oi].[ActorMessageId],
+                    [oi].[IdempotencyKey],
+                    [oi].[MeteringPointId],
+                    [oi].[OrchestrationDescriptionId],
+                    [oi].[RowVersion],
+                    [oi].[TransactionId],
+                    [oi].[CustomState] as CustomState_SerializedValue,
+                    [oi].[ParameterValue] as ParameterValue_SerializedValue,
+                    [oi].[Lifecycle_CreatedAt],
+                    [oi].[Lifecycle_QueuedAt],
+                    [oi].[Lifecycle_ScheduledToRunAt],
+                    [oi].[Lifecycle_StartedAt],
+                    [oi].[Lifecycle_State],
+                    [oi].[Lifecycle_TerminatedAt],
+                    [oi].[Lifecycle_TerminationState],
+                    [oi].[Lifecycle_CanceledBy_ActorNumber],
+                    [oi].[Lifecycle_CanceledBy_ActorRole],
+                    [oi].[Lifecycle_CanceledBy_IdentityType],
+                    [oi].[Lifecycle_CanceledBy_UserId],
+                    [oi].[Lifecycle_CreatedBy_ActorNumber],
+                    [oi].[Lifecycle_CreatedBy_ActorRole],
+                    [oi].[Lifecycle_CreatedBy_IdentityType],
+                    [oi].[Lifecycle_CreatedBy_UserId]
                 FROM
-                    [pm].OrchestrationInstance as [o]
+                    [pm].OrchestrationInstance as [oi]
             """)
             .Where(x => x.Id == existingOrchestrationInstance.Id);
         // => Show query for easy debugging
@@ -426,34 +426,34 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         var query = readerContext.OrchestrationInstances
             .FromSql($"""
                 SELECT
-                    [o].[Id],
-                    [o].[ActorMessageId],
-                    [o].[IdempotencyKey],
-                    [o].[MeteringPointId],
-                    [o].[OrchestrationDescriptionId],
-                    [o].[RowVersion],
-                    [o].[TransactionId],
-                    [o].[CustomState] as CustomState_SerializedValue,
-                    [o].[ParameterValue] as ParameterValue_SerializedValue,
-                    [o].[Lifecycle_CreatedAt],
-                    [o].[Lifecycle_QueuedAt],
-                    [o].[Lifecycle_ScheduledToRunAt],
-                    [o].[Lifecycle_StartedAt],
-                    [o].[Lifecycle_State],
-                    [o].[Lifecycle_TerminatedAt],
-                    [o].[Lifecycle_TerminationState],
-                    [o].[Lifecycle_CanceledBy_ActorNumber],
-                    [o].[Lifecycle_CanceledBy_ActorRole],
-                    [o].[Lifecycle_CanceledBy_IdentityType],
-                    [o].[Lifecycle_CanceledBy_UserId],
-                    [o].[Lifecycle_CreatedBy_ActorNumber],
-                    [o].[Lifecycle_CreatedBy_ActorRole],
-                    [o].[Lifecycle_CreatedBy_IdentityType],
-                    [o].[Lifecycle_CreatedBy_UserId]
+                    [oi].[Id],
+                    [oi].[ActorMessageId],
+                    [oi].[IdempotencyKey],
+                    [oi].[MeteringPointId],
+                    [oi].[OrchestrationDescriptionId],
+                    [oi].[RowVersion],
+                    [oi].[TransactionId],
+                    [oi].[CustomState] as CustomState_SerializedValue,
+                    [oi].[ParameterValue] as ParameterValue_SerializedValue,
+                    [oi].[Lifecycle_CreatedAt],
+                    [oi].[Lifecycle_QueuedAt],
+                    [oi].[Lifecycle_ScheduledToRunAt],
+                    [oi].[Lifecycle_StartedAt],
+                    [oi].[Lifecycle_State],
+                    [oi].[Lifecycle_TerminatedAt],
+                    [oi].[Lifecycle_TerminationState],
+                    [oi].[Lifecycle_CanceledBy_ActorNumber],
+                    [oi].[Lifecycle_CanceledBy_ActorRole],
+                    [oi].[Lifecycle_CanceledBy_IdentityType],
+                    [oi].[Lifecycle_CanceledBy_UserId],
+                    [oi].[Lifecycle_CreatedBy_ActorNumber],
+                    [oi].[Lifecycle_CreatedBy_ActorRole],
+                    [oi].[Lifecycle_CreatedBy_IdentityType],
+                    [oi].[Lifecycle_CreatedBy_UserId]
                 FROM
-                    [pm].OrchestrationInstance as [o]
+                    [pm].OrchestrationInstance as [oi]
                 WHERE
-                    CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
             """);
         // => Show query for easy debugging
         var queryString = query.ToQueryString();

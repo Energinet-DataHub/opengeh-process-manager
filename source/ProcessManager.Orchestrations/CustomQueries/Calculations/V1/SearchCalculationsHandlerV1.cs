@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text;
 using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
@@ -187,47 +188,18 @@ internal class SearchCalculationsHandlerV1(
     {
         var uniqueNamesById = await GetUniqueNamesByIdDictionaryAsync(orchestrationDescriptionNames).ConfigureAwait(false);
 
+        var sql = BuildSql(
+            orchestrationDescriptionNames,
+            lifecycleStates,
+            terminationState,
+            scheduledAtOrLater,
+            startedAtOrLater,
+            terminatedAtOrEarlier);
+
         var queryable = _readerContext.OrchestrationInstances
-            .FromSql($"""
-                SELECT
-                    [oi].[Id],
-                    [oi].[ActorMessageId],
-                    [oi].[IdempotencyKey],
-                    [oi].[MeteringPointId],
-                    [oi].[OrchestrationDescriptionId],
-                    [oi].[RowVersion],
-                    [oi].[TransactionId],
-                    [oi].[CustomState] as CustomState_SerializedValue,
-                    [oi].[ParameterValue] as ParameterValue_SerializedValue,
-                    [oi].[Lifecycle_CreatedAt],
-                    [oi].[Lifecycle_QueuedAt],
-                    [oi].[Lifecycle_ScheduledToRunAt],
-                    [oi].[Lifecycle_StartedAt],
-                    [oi].[Lifecycle_State],
-                    [oi].[Lifecycle_TerminatedAt],
-                    [oi].[Lifecycle_TerminationState],
-                    [oi].[Lifecycle_CanceledBy_ActorNumber],
-                    [oi].[Lifecycle_CanceledBy_ActorRole],
-                    [oi].[Lifecycle_CanceledBy_IdentityType],
-                    [oi].[Lifecycle_CanceledBy_UserId],
-                    [oi].[Lifecycle_CreatedBy_ActorNumber],
-                    [oi].[Lifecycle_CreatedBy_ActorRole],
-                    [oi].[Lifecycle_CreatedBy_IdentityType],
-                    [oi].[Lifecycle_CreatedBy_UserId]
-                FROM
-                    [pm].[OrchestrationDescription] AS [od]
-                INNER JOIN
-                    [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
-                LEFT JOIN
-                    [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
-                WHERE
-                    [od].[Name] IN (
-                        SELECT [names].[value]
-                        FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
-                    )
-            """)
-            .Where(instance => lifecycleStates == null || lifecycleStates.Contains(instance.Lifecycle.State))
-            .Where(instance => terminationState == null || instance.Lifecycle.TerminationState == terminationState)
+            .FromSql(sql)
+            ////.Where(instance => lifecycleStates == null || lifecycleStates.Contains(instance.Lifecycle.State))
+            ////.Where(instance => terminationState == null || instance.Lifecycle.TerminationState == terminationState)
             .Where(instance => startedAtOrLater == null || startedAtOrLater <= instance.Lifecycle.StartedAt)
             .Where(instance => terminatedAtOrEarlier == null || instance.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
             .Where(instance => scheduledAtOrLater == null || scheduledAtOrLater <= instance.Lifecycle.ScheduledToRunAt)
@@ -238,6 +210,64 @@ internal class SearchCalculationsHandlerV1(
 #endif
 
         return await queryable.ToListAsync().ConfigureAwait(false);
+    }
+
+    private FormattableString BuildSql(
+        IReadOnlyCollection<string> orchestrationDescriptionNames,
+        IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates,
+        OrchestrationInstanceTerminationState? terminationState,
+        Instant? scheduledAtOrLater,
+        Instant? startedAtOrLater,
+        Instant? terminatedAtOrEarlier)
+    {
+        return $"""
+            SELECT
+                [oi].[Id],
+                [oi].[ActorMessageId],
+                [oi].[IdempotencyKey],
+                [oi].[MeteringPointId],
+                [oi].[OrchestrationDescriptionId],
+                [oi].[RowVersion],
+                [oi].[TransactionId],
+                [oi].[CustomState] as CustomState_SerializedValue,
+                [oi].[ParameterValue] as ParameterValue_SerializedValue,
+                [oi].[Lifecycle_CreatedAt],
+                [oi].[Lifecycle_QueuedAt],
+                [oi].[Lifecycle_ScheduledToRunAt],
+                [oi].[Lifecycle_StartedAt],
+                [oi].[Lifecycle_State],
+                [oi].[Lifecycle_TerminatedAt],
+                [oi].[Lifecycle_TerminationState],
+                [oi].[Lifecycle_CanceledBy_ActorNumber],
+                [oi].[Lifecycle_CanceledBy_ActorRole],
+                [oi].[Lifecycle_CanceledBy_IdentityType],
+                [oi].[Lifecycle_CanceledBy_UserId],
+                [oi].[Lifecycle_CreatedBy_ActorNumber],
+                [oi].[Lifecycle_CreatedBy_ActorRole],
+                [oi].[Lifecycle_CreatedBy_IdentityType],
+                [oi].[Lifecycle_CreatedBy_UserId]
+            FROM
+                [pm].[OrchestrationDescription] AS [od]
+            INNER JOIN
+                [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
+            LEFT JOIN
+                [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
+            WHERE
+                [od].[Name] IN (
+                    SELECT [names].[value]
+                    FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                )
+                AND (
+                    {lifecycleStates} is null
+                    OR [oi].[Lifecycle_State] IN (
+                        SELECT [lifecyclestates].[value]
+                        FROM OPENJSON({lifecycleStates}) WITH ([value] int '$') AS [lifecyclestates])
+                )
+                AND (
+                    {terminationState} is null
+                    OR [oi].[Lifecycle_TerminationState] = {terminationState}
+                )
+            """;
     }
 
     /// <summary>

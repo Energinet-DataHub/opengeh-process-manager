@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.17.3
+
+- Use `INotifyEnqueueAcceptedDataDto`, `INotifyEnqueueRejectedDataDto` and `INotifyEnqueueDataDto` marker interfaces.
+
 ## Version 1.17.2
 
 - No functional changes.

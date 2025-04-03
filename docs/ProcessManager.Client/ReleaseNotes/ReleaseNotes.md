@@ -1,12 +1,16 @@
 # ProcessManager.Client Release Notes
 
+## Version 4.0.0
+
+- Add `INotifyEnqueueDataDto` and use it as generic for `EnqueueActorMessagesV1` data.
+
 ## Version 3.0.1
 
 - No functional changes.
 
 ## Version 3.0.0
 
-- Renamed OrchestrationStepTerminationState` to `StepInstanceTerminationState` in domain and API model.
+- Rename `OrchestrationStepTerminationState` to `StepInstanceTerminationState` in domain and API model.
 
 ## Version 2.1.2
 

@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 1.6.0
+
+- Add `INotifyEnqueueAcceptedDataDto` and `INotifyEnqueueRejectedDataDto` interfaces.
+
 ## Version 1.5.1
 
 - No functional changes.

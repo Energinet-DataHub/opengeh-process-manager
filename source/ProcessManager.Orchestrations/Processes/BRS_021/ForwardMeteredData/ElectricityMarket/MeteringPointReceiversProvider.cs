@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
@@ -23,6 +24,10 @@ using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 
+[SuppressMessage(
+    "StyleCop.CSharp.ReadabilityRules",
+    "SA1118:Parameter should not span multiple lines",
+    Justification = "Readability")]
 public class MeteringPointReceiversProvider(
     DateTimeZone dateTimeZone)
 {
@@ -66,7 +71,14 @@ public class MeteringPointReceiversProvider(
 
         // Ensure master data is sorted by ValidFrom
         var masterDataDictionary = meteringPointMasterDataList
-            .ToDictionary(mpmd => mpmd.ValidFrom.ToInstant());
+            .ToDictionary(
+                mpmd =>
+                {
+                    var masterDataValidFrom = mpmd.ValidFrom.ToInstant();
+                    var inputValidFrom = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
+
+                    return Instant.Max(masterDataValidFrom, inputValidFrom);
+                });
 
         // The input is already validated, so this parsing should never fail
         var totalPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
@@ -101,7 +113,21 @@ public class MeteringPointReceiversProvider(
             // If there is only one master data element then we can skip a lot of logic, since we don't
             // need to split the metered data into periods and recalculate positions
             var masterDataElement = masterData.Values.Single();
-            var receiversWithMeteredData = CreateReceiversWithMeteredData(masterDataElement, sortedMeteredData.Values);
+
+            // Ensure that the start and end dates are bounded by the period
+            masterDataElement = masterDataElement with
+            {
+                ValidFrom = masterDataElement.ValidFrom > totalPeriodStart.ToDateTimeOffset()
+                    ? masterDataElement.ValidFrom
+                    : totalPeriodStart.ToDateTimeOffset(),
+                ValidTo = masterDataElement.ValidTo > totalPeriodEnd.ToDateTimeOffset()
+                    ? totalPeriodEnd.ToDateTimeOffset()
+                    : masterDataElement.ValidTo,
+            };
+
+            var receiversWithMeteredData = CreateReceiversWithMeteredData(
+                masterDataElement,
+                sortedMeteredData.Values);
             return [receiversWithMeteredData];
         }
 
@@ -110,7 +136,7 @@ public class MeteringPointReceiversProvider(
         var firstMasterData = masterData.Values.First();
         var currentMasterData = new MasterDataWithMeteredData(
             MasterData: firstMasterData,
-            ValidFrom: firstMasterData.ValidFrom.ToInstant(),
+            ValidFrom: Instant.Max(firstMasterData.ValidFrom.ToInstant(), totalPeriodStart),
             ValidTo: firstMasterData.ValidTo.ToInstant(),
             MeteredDataList: []);
 
@@ -134,7 +160,7 @@ public class MeteringPointReceiversProvider(
                 currentMasterData = new MasterDataWithMeteredData(
                     MasterData: nextMasterData,
                     ValidFrom: nextMasterData.ValidFrom.ToInstant(),
-                    ValidTo: nextMasterData.ValidTo.ToInstant(),
+                    ValidTo: Instant.Min(nextMasterData.ValidTo.ToInstant(), totalPeriodEnd),
                     MeteredDataList: []);
 
                 // Add the new master data with metered data to the list

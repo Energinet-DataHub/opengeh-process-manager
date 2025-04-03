@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 
@@ -26,4 +27,5 @@ public record UpdateMeteringPointConnectionStateRejectedV1(
     string OriginalTransactionId,
     ActorNumber RequestedByActorNumber,
     ActorRole RequestedByActorRole,
-    IReadOnlyCollection<ValidationErrorDto> ValidationErrors);
+    IReadOnlyCollection<ValidationErrorDto> ValidationErrors)
+        : INotifyEnqueueRejectedDataDto;

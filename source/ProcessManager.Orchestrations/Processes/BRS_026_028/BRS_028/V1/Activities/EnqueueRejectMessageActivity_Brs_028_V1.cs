@@ -58,8 +58,9 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
         RequestCalculatedWholesaleServicesInputV1 requestInput)
     {
         var rejectedMessage = new RequestCalculatedWholesaleServicesRejectedV1(
+            OriginalMessageId: requestInput.ActorMessageId, // TODO: Remove when EDI is updated to use new OriginalActorMessageId property
+            OriginalActorMessageId: requestInput.ActorMessageId,
             OriginalTransactionId: requestInput.TransactionId,
-            OriginalMessageId: requestInput.ActorMessageId,
             RequestedForActorNumber: ActorNumber.Create(requestInput.RequestedForActorNumber),
             RequestedForActorRole: ActorRole.FromName(requestInput.RequestedForActorRole),
             RequestedByActorNumber: ActorNumber.Create(requestInput.RequestedByActorNumber),

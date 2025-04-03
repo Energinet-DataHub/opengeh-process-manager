@@ -18,6 +18,7 @@ using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 using Xunit.Abstractions;
@@ -47,7 +48,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
             request: new RequestCalculatedEnergyTimeSeriesCommandV1(
                 operatingIdentity: _fixture.EnergySupplierActorIdentity,
                 inputParameter: new RequestCalculatedEnergyTimeSeriesInputV1(
-                    ActorMessageId: Guid.NewGuid().ToString(),
+                    ActorMessageId: Guid.NewGuid().ToTestUuid(),
                     TransactionId: Guid.NewGuid().ToString(),
                     RequestedForActorNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
                     RequestedForActorRole: _fixture.EnergySupplierActorIdentity.ActorRole.Name,
@@ -82,7 +83,9 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
 
         var (success, orchestrationInstance, _) = await WaitForOrchestrationInstance();
 
-        Assert.True(success, $"An orchestration instance for idempotency key {idempotencyKey} should have been found");
+        Assert.Multiple(
+            () => Assert.True(success, $"An orchestration instance for idempotency key \"{idempotencyKey}\" should have been found"),
+            () => Assert.NotNull(orchestrationInstance));
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
     }
@@ -93,7 +96,8 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
     {
         var request = _fixture.TestConfiguration.Request;
         var orchestrationInstance = _fixture.TestConfiguration.OrchestrationInstance;
-        ArgumentNullException.ThrowIfNull(orchestrationInstance);
+
+        Assert.NotNull(orchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         Assert.Multiple(
             () => Assert.Equal(request.IdempotencyKey, orchestrationInstance.IdempotencyKey),
@@ -110,6 +114,8 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
     [ScenarioStep(5)]
     public async Task AndThen_BusinessValidationStepIsSuccessful()
     {
+        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+
         var (success, orchestrationInstance, businessValidationStep) = await WaitForOrchestrationInstance(
             stepSequence: Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration.Steps.BusinessValidationStep.StepSequence,
             stepState: StepInstanceLifecycleState.Terminated);
@@ -126,6 +132,8 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
     [ScenarioStep(6)]
     public async Task AndThen_EnqueueActorMessagesStepIsRunning()
     {
+        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+
         var (success, orchestrationInstance, enqueueActorMessagesStep) = await WaitForOrchestrationInstance(
             stepSequence: Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
             stepState: StepInstanceLifecycleState.Running);
@@ -142,12 +150,12 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
     [ScenarioStep(7)]
     public async Task AndThen_ReceivingNotifyEnqueueActorMessagesCompletedTransitionsEnqueueActorMessagesStepToSuccessful()
     {
-        ArgumentNullException.ThrowIfNull(_fixture.TestConfiguration.OrchestrationInstance);
+        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         // Send notify "EnqueueActorMessagesCompleted" message for the orchestration instance
         await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
-                OrchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstance!.Id.ToString()),
+                OrchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstance.Id.ToString()),
             CancellationToken.None);
 
         var (success, orchestrationInstance, enqueueActorMessagesStep) = await WaitForOrchestrationInstance(
@@ -166,6 +174,8 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
     [ScenarioStep(8)]
     public async Task AndThen_OrchestrationInstanceIsTerminatedWithSuccess()
     {
+        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+
         var (success, orchestrationInstance, _) = await WaitForOrchestrationInstance(
             orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated);
 
@@ -215,7 +225,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
                 if (stepSequence != null)
                 {
                     stepInstance = orchestrationInstance.Steps
-                        .Single(s => s.Sequence == stepSequence.Value);
+                        .SingleOrDefault(s => s.Sequence == stepSequence.Value);
                 }
 
                 if (orchestrationInstanceState != null && orchestrationInstance.Lifecycle.State != orchestrationInstanceState)
@@ -225,7 +235,9 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
                 if (stepSequence == null)
                     return true;
 
-                return stepInstance!.Lifecycle.State == (stepState ?? StepInstanceLifecycleState.Terminated);
+                return stepInstance != null
+                    ? stepInstance.Lifecycle.State == (stepState ?? StepInstanceLifecycleState.Terminated)
+                    : throw new ArgumentException($"Step instance for step sequence {stepSequence} not found", nameof(stepSequence));
             },
             timeLimit: TimeSpan.FromMinutes(1),
             delay: TimeSpan.FromSeconds(1));

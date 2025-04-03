@@ -422,6 +422,10 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
 
         // Act
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
+
+        IReadOnlyCollection<string> orchestrationDescriptionNames = [
+            existingOrchestrationDescription.UniqueName.Name];
+
         // => Demo how we can "fix" issue where FromSqlRaw incorrectly think the tables names are "CustomState_SerializedValue" and "ParameterValue_SerializedValue".
         var query = readerContext.OrchestrationInstances
             .FromSql($"""
@@ -451,9 +455,17 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
                     [oi].[Lifecycle_CreatedBy_IdentityType],
                     [oi].[Lifecycle_CreatedBy_UserId]
                 FROM
-                    [pm].OrchestrationInstance as [oi]
+                    [pm].[OrchestrationDescription] AS [od]
+                INNER JOIN
+                    [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
+                LEFT JOIN
+                    [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
                 WHERE
-                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+                    [od].[Name] IN (
+                        SELECT [names].[value]
+                        FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                    )
+                    AND CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
             """);
         // => Show query for easy debugging
         var queryString = query.ToQueryString();

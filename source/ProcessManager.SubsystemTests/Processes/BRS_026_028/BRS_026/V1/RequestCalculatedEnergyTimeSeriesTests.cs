@@ -12,55 +12,212 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.Core.TestCommon.Xunit.Attributes;
+using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
+using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_026_028.BRS_026.V1;
 
-public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManagerFixture>
+[TestCaseOrderer(
+    ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
+    ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
+public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManagerFixture<RequestCalculatedEnergyTimeSeriesTestConfiguration>>
 {
-    private readonly ProcessManagerFixture _fixture;
+    private readonly ProcessManagerFixture<RequestCalculatedEnergyTimeSeriesTestConfiguration> _fixture;
 
-    public RequestCalculatedEnergyTimeSeriesTests(ProcessManagerFixture fixture)
+    public RequestCalculatedEnergyTimeSeriesTests(
+        ProcessManagerFixture<RequestCalculatedEnergyTimeSeriesTestConfiguration> fixture,
+        ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;
-        _fixture.TestConfiguration = new RequestCalculatedEnergyTimeSeriesTestConfiguration();
+        _fixture.SetTestOutputHelper(testOutputHelper);
     }
 
-    public RequestCalculatedEnergyTimeSeriesTestConfiguration TestConfiguration =>
-        _fixture.TestConfiguration as RequestCalculatedEnergyTimeSeriesTestConfiguration
-        ?? throw new InvalidOperationException($"{nameof(_fixture.TestConfiguration)} is not {nameof(RequestCalculatedEnergyTimeSeriesTestConfiguration)}");
-
     [Fact]
-    public void Given_RequestCalculatedEnergyTimeSeries()
+    [ScenarioStep(1)]
+    public void Given_ValidRequestCalculatedEnergyTimeSeriesRequest()
     {
-        TestConfiguration.Request = new RequestCalculatedEnergyTimeSeriesCommandV1(
-            operatingIdentity: _fixture.EnergySupplierActorIdentity,
-            inputParameter: new RequestCalculatedEnergyTimeSeriesInputV1(
-                ActorMessageId: Guid.NewGuid().ToString(),
-                TransactionId: Guid.NewGuid().ToString(),
-                RequestedForActorNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
-                RequestedForActorRole: _fixture.EnergySupplierActorIdentity.ActorRole.Name,
-                RequestedByActorNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
-                RequestedByActorRole: _fixture.EnergySupplierActorIdentity.ActorRole.Name,
-                BusinessReason: BusinessReason.BalanceFixing.Name,
-                PeriodStart: new DateTimeOffset(2025, 03, 07, 23, 00, 00, TimeSpan.Zero).ToString(),
-                PeriodEnd: new DateTimeOffset(2025, 03, 09, 23, 00, 00, TimeSpan.Zero).ToString(),
-                EnergySupplierNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
-                BalanceResponsibleNumber: null,
-                GridAreas: ["804"],
-                MeteringPointType: null,
-                SettlementMethod: null,
-                SettlementVersion: null),
-            idempotencyKey: Guid.NewGuid().ToString());
+        _fixture.TestConfiguration = new RequestCalculatedEnergyTimeSeriesTestConfiguration(
+            request: new RequestCalculatedEnergyTimeSeriesCommandV1(
+                operatingIdentity: _fixture.EnergySupplierActorIdentity,
+                inputParameter: new RequestCalculatedEnergyTimeSeriesInputV1(
+                    ActorMessageId: Guid.NewGuid().ToString(),
+                    TransactionId: Guid.NewGuid().ToString(),
+                    RequestedForActorNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
+                    RequestedForActorRole: _fixture.EnergySupplierActorIdentity.ActorRole.Name,
+                    RequestedByActorNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
+                    RequestedByActorRole: _fixture.EnergySupplierActorIdentity.ActorRole.Name,
+                    BusinessReason: BusinessReason.BalanceFixing.Name,
+                    PeriodStart: new DateTimeOffset(year: 2025, month: 03, day: 07, hour: 23, minute: 00, second: 00, offset: TimeSpan.Zero).ToString(),
+                    PeriodEnd: new DateTimeOffset(year: 2025, month: 03, day: 09, hour: 23, minute: 00, second: 00, offset: TimeSpan.Zero).ToString(),
+                    EnergySupplierNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
+                    BalanceResponsibleNumber: null,
+                    GridAreas: ["804"],
+                    MeteringPointType: null,
+                    SettlementMethod: null,
+                    SettlementVersion: null),
+                idempotencyKey: Guid.NewGuid().ToString()));
     }
 
     [Fact]
-    public async Task When_RequestIsReceived()
+    [ScenarioStep(2)]
+    public async Task AndGiven_StartNewOrchestrationInstanceIsSent()
     {
         await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
-            TestConfiguration.Request,
+            _fixture.TestConfiguration.Request,
             CancellationToken.None);
+    }
+
+    [Fact]
+    [ScenarioStep(3)]
+    public async Task When_OrchestrationInstanceIsStarted()
+    {
+        var idempotencyKey = _fixture.TestConfiguration.Request.IdempotencyKey;
+
+        var (success, orchestrationInstance, _) = await WaitForOrchestrationInstance();
+
+        Assert.True(success, $"An orchestration instance for idempotency key {idempotencyKey} should have been found");
+
+        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+    }
+
+    [Fact]
+    [ScenarioStep(4)]
+    public void Then_OrchestrationInstanceIsRunning()
+    {
+        Assert.Equal(OrchestrationInstanceLifecycleState.Running, _fixture.TestConfiguration.OrchestrationInstance?.Lifecycle.State);
+    }
+
+    [Fact]
+    [ScenarioStep(5)]
+    public async Task AndThen_BusinessValidationStepIsSuccessful()
+    {
+        var (success, orchestrationInstance, businessValidationStep) = await WaitForOrchestrationInstance(
+            stepSequence: Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration.Steps.BusinessValidationStep.StepSequence,
+            stepState: StepInstanceLifecycleState.Terminated);
+
+        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+
+        Assert.Multiple(
+            () => Assert.True(success, "Business validation step should be terminated"),
+            () => Assert.Equal(StepInstanceLifecycleState.Terminated, businessValidationStep?.Lifecycle.State),
+            () => Assert.Equal(StepInstanceTerminationState.Succeeded, businessValidationStep?.Lifecycle.TerminationState));
+    }
+
+    [Fact]
+    [ScenarioStep(6)]
+    public async Task AndThen_EnqueueActorMessagesStepIsRunning()
+    {
+        var (success, orchestrationInstance, enqueueActorMessagesStep) = await WaitForOrchestrationInstance(
+            stepSequence: Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
+            stepState: StepInstanceLifecycleState.Running);
+
+        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+
+        Assert.Multiple(
+            () => Assert.True(success, "Enqueue actor messages step should be running"),
+            () => Assert.Equal(StepInstanceLifecycleState.Running, enqueueActorMessagesStep?.Lifecycle.State),
+            () => Assert.Null(enqueueActorMessagesStep?.Lifecycle.TerminationState));
+    }
+
+    [Fact]
+    [ScenarioStep(7)]
+    public async Task AndThen_ReceivingNotifyEnqueueActorMessagesCompletedTransitionsEnqueueActorMessagesStepToSuccessful()
+    {
+        ArgumentNullException.ThrowIfNull(_fixture.TestConfiguration.OrchestrationInstance);
+
+        // Send notify "EnqueueActorMessagesCompleted" message for the orchestration instance
+        await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
+                OrchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstance!.Id.ToString()),
+            CancellationToken.None);
+
+        var (success, orchestrationInstance, enqueueActorMessagesStep) = await WaitForOrchestrationInstance(
+            stepSequence: Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
+            stepState: StepInstanceLifecycleState.Terminated);
+
+        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+
+        Assert.Multiple(
+            () => Assert.True(success, "Enqueue actor messages step should be terminated"),
+            () => Assert.Equal(StepInstanceLifecycleState.Terminated, enqueueActorMessagesStep?.Lifecycle.State),
+            () => Assert.Equal(StepInstanceTerminationState.Succeeded, enqueueActorMessagesStep?.Lifecycle.TerminationState));
+    }
+
+    [Fact]
+    [ScenarioStep(8)]
+    public async Task AndThen_OrchestrationInstanceIsTerminatedWithSuccess()
+    {
+        var (success, orchestrationInstance, _) = await WaitForOrchestrationInstance(
+            orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated);
+
+        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+
+        Assert.Multiple(
+            () => Assert.True(success, "The orchestration instance should be terminated"),
+            () => Assert.Equal(OrchestrationInstanceLifecycleState.Terminated, orchestrationInstance?.Lifecycle.State),
+            () => Assert.Equal(OrchestrationInstanceTerminationState.Succeeded, orchestrationInstance?.Lifecycle.TerminationState));
+    }
+
+    /// <summary>
+    /// Wait for an orchestration instance to be returned by the ProcessManager http client. If step inputs are provided,
+    /// then the orchestration instance must have a step instance with the given step sequence and state.
+    /// <remarks>The lookup is based on the idempotency key of the test configuration request.</remarks>
+    /// </summary>
+    /// <param name="orchestrationInstanceState">If provided, then the orchestration instance have the given state.</param>
+    /// <param name="stepSequence">If provided, then the orchestration instance must have a step instance with the given sequence number.</param>
+    /// <param name="stepState">If provided, then the step should be in the given state (defaults to <see cref="StepInstanceLifecycleState.Terminated"/>).</param>
+    private async Task<(
+        bool Success,
+        OrchestrationInstanceTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>? OrchestrationInstance,
+        StepInstanceDto? StepInstance)> WaitForOrchestrationInstance(
+            OrchestrationInstanceLifecycleState? orchestrationInstanceState = null,
+            int? stepSequence = null,
+            StepInstanceLifecycleState? stepState = null)
+    {
+        if (stepState != null && stepSequence == null)
+            throw new ArgumentNullException(nameof(stepSequence), $"{nameof(stepSequence)} must be provided if {nameof(stepState)} is not null.");
+
+        OrchestrationInstanceTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>? orchestrationInstance = null;
+        StepInstanceDto? stepInstance = null;
+
+        var success = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                orchestrationInstance = await _fixture.ProcessManagerHttpClient
+                    .GetOrchestrationInstanceByIdempotencyKeyAsync<RequestCalculatedEnergyTimeSeriesInputV1>(
+                        new GetOrchestrationInstanceByIdempotencyKeyQuery(
+                            operatingIdentity: _fixture.UserIdentity,
+                            idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey),
+                        CancellationToken.None);
+
+                if (orchestrationInstance == null)
+                    return false;
+
+                if (stepSequence != null)
+                {
+                    stepInstance = orchestrationInstance.Steps
+                        .Single(s => s.Sequence == stepSequence.Value);
+                }
+
+                if (orchestrationInstanceState != null && orchestrationInstance.Lifecycle.State != orchestrationInstanceState)
+                    return false;
+
+                // If step sequence is not provided, only check for orchestration instance existence
+                if (stepSequence == null)
+                    return true;
+
+                return stepInstance!.Lifecycle.State == (stepState ?? StepInstanceLifecycleState.Terminated);
+            },
+            timeLimit: TimeSpan.FromMinutes(1),
+            delay: TimeSpan.FromSeconds(1));
+
+        return (success, orchestrationInstance, stepInstance);
     }
 }

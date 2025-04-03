@@ -18,7 +18,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="7.2.2" />
+    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="7.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,10 +41,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Fixtures\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs">
+      <Link>Fixtures\Extensions\ServiceCollectionExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs" Link="FluentAssertionsVersionGuard.cs" />
     <Compile Include="..\Shared\Tests\LongFilePathsGuard.cs" Link="LongFilePathsGuard.cs" />
   </ItemGroup>

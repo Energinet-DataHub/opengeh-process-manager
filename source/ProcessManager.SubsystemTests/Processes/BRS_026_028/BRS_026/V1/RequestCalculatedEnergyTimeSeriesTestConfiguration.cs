@@ -13,13 +13,16 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_026_028.BRS_026.V1;
 
-public class RequestCalculatedEnergyTimeSeriesTestConfiguration : ITestConfiguration
+public class RequestCalculatedEnergyTimeSeriesTestConfiguration(
+    RequestCalculatedEnergyTimeSeriesCommandV1 request)
 {
-    [NotNull]
-    public RequestCalculatedEnergyTimeSeriesCommandV1? Request { get; set; }
+    public RequestCalculatedEnergyTimeSeriesCommandV1 Request { get; } = request;
+
+    public OrchestrationInstanceTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>? OrchestrationInstance { get; set; }
 }

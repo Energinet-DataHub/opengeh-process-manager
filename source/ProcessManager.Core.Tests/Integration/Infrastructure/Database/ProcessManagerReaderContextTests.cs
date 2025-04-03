@@ -240,7 +240,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
 
         // Act
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
-        var actualFlatResult = await readerContext.Database
+        var actualFlatResults = await readerContext.Database
             .SqlQuery<OrchestrationInstanceCustomQueryRow>($"""
                 SELECT
                     [od].[Name] as OrchestrationDescription_Name,
@@ -326,8 +326,8 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         ////  });
 
         // Assert
-        actualFlatResult.Should().Contain(x => x.Id == existingOrchestrationInstance.Id.Value);
-        actualFlatResult.Count.Should().Be(3); // TODO: Update, but for now it's one per step - must group and create instances
+        actualFlatResults.Should().Contain(x => x.Id == existingOrchestrationInstance.Id.Value);
+        actualFlatResults.Count.Should().Be(3); // TODO: Update, but for now it's one per step - must group and create instances
     }
 
     [Fact]
@@ -346,8 +346,6 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
             writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
             await writeDbContext.SaveChangesAsync();
         }
-
-        var existingParameters = existingOrchestrationInstance.ParameterValue.AsType<TestOrchestrationParameter>();
 
         // Act
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
@@ -395,6 +393,67 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
 
         // Assert
         result01OrchestrationInstance.Should().BeEquivalentTo(result02OrchestrationInstance);
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_UsingFromSqlToSearchInJsonColumn_Then_ExpectedOrchestrationInstanceAreReturned()
+    {
+        // Arrange
+        var expectedTestInt = 56;
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateOrchestrationInstance(
+            existingOrchestrationDescription,
+            testInt: expectedTestInt);
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
+            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
+        // => Demo how we can "fix" issue where FromSqlRaw incorrectly think the tables names are "CustomState_SerializedValue" and "ParameterValue_SerializedValue".
+        var query = readerContext.OrchestrationInstances
+            .FromSql($"""
+                SELECT
+                    [o].[Id],
+                    [o].[ActorMessageId],
+                    [o].[IdempotencyKey],
+                    [o].[MeteringPointId],
+                    [o].[OrchestrationDescriptionId],
+                    [o].[RowVersion],
+                    [o].[TransactionId],
+                    [o].[CustomState] as CustomState_SerializedValue,
+                    [o].[ParameterValue] as ParameterValue_SerializedValue,
+                    [o].[Lifecycle_CreatedAt],
+                    [o].[Lifecycle_QueuedAt],
+                    [o].[Lifecycle_ScheduledToRunAt],
+                    [o].[Lifecycle_StartedAt],
+                    [o].[Lifecycle_State],
+                    [o].[Lifecycle_TerminatedAt],
+                    [o].[Lifecycle_TerminationState],
+                    [o].[Lifecycle_CanceledBy_ActorNumber],
+                    [o].[Lifecycle_CanceledBy_ActorRole],
+                    [o].[Lifecycle_CanceledBy_IdentityType],
+                    [o].[Lifecycle_CanceledBy_UserId],
+                    [o].[Lifecycle_CreatedBy_ActorNumber],
+                    [o].[Lifecycle_CreatedBy_ActorRole],
+                    [o].[Lifecycle_CreatedBy_IdentityType],
+                    [o].[Lifecycle_CreatedBy_UserId]
+                FROM
+                    [pm].OrchestrationInstance as [o]
+                WHERE
+                    CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+            """);
+        // => Show query for easy debugging
+        var queryString = query.ToQueryString();
+        var actualOrchestrationInstances = await query.ToListAsync();
+
+        // Assert
+        actualOrchestrationInstances.Should().Contain(x => x.Id == existingOrchestrationInstance.Id);
+        actualOrchestrationInstances.Count.Should().Be(1);
     }
 
     private static OrchestrationDescription CreateOrchestrationDescription(string? recurringCronExpression = default)

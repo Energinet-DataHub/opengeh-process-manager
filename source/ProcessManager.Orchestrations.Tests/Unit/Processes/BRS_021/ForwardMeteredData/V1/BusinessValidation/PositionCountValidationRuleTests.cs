@@ -28,7 +28,7 @@ public class PositionCountValidationRuleTests
     private readonly PositionCountValidationRule _sut = new();
 
     [Fact]
-    public async Task QuarterHourly_WrongPeriod_ResidualError()
+    public async Task Given_QuarterHourlyResolutionWithWrongPeriod_When_Validate_Then_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:57Z")
@@ -68,7 +68,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task QuarterHourly_WrongCount_CountError()
+    public async Task Given_QuarterHourlyResolutionWithWrongCount_When_Validate_Then_PositionCountError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")
@@ -106,7 +106,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task QuarterHourly_Correct_NoError()
+    public async Task Given_QuarterHourlyResolutionWithCorrectPeriodAndCount_When_Validate_Then_NoValidationError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")
@@ -144,7 +144,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Hourly_WrongPeriod_ResidualError()
+    public async Task Given_HourlyResolutionAndWrongPeriod_When_Validate_Then_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T17:42:18Z")
@@ -184,7 +184,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Hourly_WrongCount_CountError()
+    public async Task Given_HourlyResolutionWithWrongCount_When_Validate_Then_CountError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T17:42:18Z")
@@ -222,7 +222,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Hourly_Correct_NoError()
+    public async Task Given_HourlyResolutionWithCorrectPeriodAndCount_When_Validate_Then_NoValidationError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T17:42:18Z")
@@ -260,7 +260,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Daily_WrongPeriod_ResidualError()
+    public async Task Given_DailyResolutionWithWrongPeriod_When_Validate_Then_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T11:02:19Z")
@@ -300,7 +300,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Daily_WrongCount_CountError()
+    public async Task Given_DailyResolutionWithWrongCount_When_Validate_Then_CountError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T11:02:19Z")
@@ -340,7 +340,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Daily_Correct_NoError()
+    public async Task Given_DailyResolutionWithCorrectPeriodAndCount_When_Validate_Then_NoValidationError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T11:02:19Z")
@@ -378,7 +378,8 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_StartOfMonthSecondsMinAndHoursNotMatch_NoError()
+    public async Task
+        Given_MonthlyResolutionWithStartOfMonthWhereSecondsMinutesAndHoursDoNotMatch_When_Validate_Then_NoValidationError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T15:18:40Z")
@@ -416,7 +417,8 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_EndOfMonthSecondsMinAndHoursNotMatch_NoError()
+    public async Task
+        Given_MonthlyResolutionWithEndOfMonthWhereSecondsMinutesAndHoursDoNotMatch_When_Validate_Then_NoValidationError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-31T23:59:59Z")
@@ -454,7 +456,8 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_MiddleOfMonthSecondsMinAndHoursNotMatch_NoError()
+    public async Task
+        Given_MonthlyResolutionWithMiddleOfMonthWhereSecondsMinutesAndHoursDoNotMatch_When_Validate_Then_NoValidationError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-21T15:18:40Z")
@@ -492,7 +495,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_StartOfMonthDaysNotMatch_ResidualError()
+    public async Task Given_MonthlyResolutionWithStartOfMonthWhereDaysDoNotMatch_When_Validate_Then_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T15:18:40Z")
@@ -532,7 +535,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_MiddleOfMonthDaysMatch_NoError()
+    public async Task Given_MonthlyResolutionWithMiddleOfMonthWhereDaysDoMatch_When_Validate_Then_NoValidationError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-15T15:18:40Z")
@@ -570,7 +573,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_EndOfMonthDaysNotMatch_ResidualError()
+    public async Task Given_MonthlyResolutionWithEndOfMonthWhereDaysDoNotMatch_When_Validate_Then_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-29T15:18:40Z")
@@ -610,7 +613,8 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_EndOfMonthDaysOneIsEndOneIsMiddle_NoError()
+    public async Task
+        Given_MonthlyResolutionWithEndOfMonthWhereOneDayIsEndOfMonthAndOneIsMiddleOfMonth_When_Validate_Then_NoValidationError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-31T15:18:40Z")
@@ -648,7 +652,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_MiddleOfMonthDaysNotMatch_ResidualError()
+    public async Task Given_MonthlyResolutionWhenMiddleOfMonthWhereDaysDoNotMatch_When_Validate_Then_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-15T15:18:40Z")
@@ -688,7 +692,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_StartOfMonthWrongCount_CountError()
+    public async Task Given_MonthlyResolutionWithStartOfMonthWithWrongCount_When_Validate_Then_CountError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T15:18:40Z")
@@ -726,7 +730,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_MiddleOfMonthWrongCount_CountError()
+    public async Task Given_MonthlyResolutionWithMiddleOfMonthWithWrongCount_When_Validate_Then_CountError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-05-17T15:18:40Z")
@@ -764,7 +768,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Monthly_EndOfMonthWrongCount_CountError()
+    public async Task Given_MonthlyResolutionWithEndOfMonthWithWrongCount_When_Validate_Then_CountError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-31T15:18:40Z")
@@ -801,9 +805,8 @@ public class PositionCountValidationRuleTests
         result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(4, 3));
     }
 
-    // KHJLKJHKJHJKHKJHMNL=JL
     [Fact]
-    public async Task Positions_Shuffled_NoError()
+    public async Task Given_PositionsAreShuffledButOtherwiseValid_When_Validate_Then_NoValidationError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")
@@ -842,7 +845,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Positions_MissingPosition_Error()
+    public async Task Given_MissingPosition_When_Validate_Then_PositionsNotConcecutiveError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")
@@ -885,7 +888,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Positions_Duplication_Error()
+    public async Task Given_APositionIsDuplication_When_Validate_Then_DuplicationAndConsecutiveError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")

@@ -2,7 +2,7 @@
 
 ## Version 1.17.3
 
-- Use `INotifyEnqueueAcceptedDataDto`, `INotifyEnqueueRejectedDataDto` and `INotifyEnqueueDataDto` marker interfaces.
+- Use `IEnqueueAcceptedDataDto`, `IEnqueueRejectedDataDto` and `IEnqueueDataDto` marker interfaces.
 
 ## Version 1.17.2
 

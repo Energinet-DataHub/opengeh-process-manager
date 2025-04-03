@@ -2,7 +2,7 @@
 
 ## Version 1.6.0
 
-- Add `INotifyEnqueueAcceptedDataDto` and `INotifyEnqueueRejectedDataDto` interfaces.
+- Add `IEnqueueAcceptedDataDto` and `IEnqueueRejectedDataDto` interfaces.
 
 ## Version 1.5.1
 

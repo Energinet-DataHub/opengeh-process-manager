@@ -2,7 +2,7 @@
 
 ## Version 4.0.0
 
-- Add `INotifyEnqueueDataDto` and use it as generic for `EnqueueActorMessagesV1` data.
+- Add `IEnqueueDataDto` and use it as generic for `EnqueueActorMessagesV1` data.
 
 ## Version 3.0.1
 

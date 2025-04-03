@@ -15,6 +15,6 @@
 namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Allows for generic type constraints of serializable notify data when enqueuing actor messages to EDI.
+/// Allows for generic type constraints of serializable data when enqueuing actor messages to EDI.
 /// </summary>
 public interface IEnqueueDataDto;

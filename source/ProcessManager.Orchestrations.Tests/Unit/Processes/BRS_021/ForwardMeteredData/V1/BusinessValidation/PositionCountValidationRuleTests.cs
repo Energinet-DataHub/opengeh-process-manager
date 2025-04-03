@@ -881,7 +881,7 @@ public class PositionCountValidationRuleTests
                         ActorNumber.Create("2222222222222")),
                 ]));
 
-        result.Should().BeEmpty();
+        result.Should().ContainSingle().And.Contain(PositionCountValidationRule.PositionsNotConsecutiveError);
     }
 
     [Fact]
@@ -924,6 +924,9 @@ public class PositionCountValidationRuleTests
                         ActorNumber.Create("2222222222222")),
                 ]));
 
-        result.Should().BeEmpty();
+        result.Should()
+            .HaveCount(2)
+            .And.Contain(PositionCountValidationRule.DuplicatedPositionError)
+            .And.Contain(PositionCountValidationRule.PositionsNotConsecutiveError);
     }
 }

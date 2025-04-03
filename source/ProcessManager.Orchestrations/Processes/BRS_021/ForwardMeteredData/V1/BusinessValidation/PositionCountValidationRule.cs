@@ -23,6 +23,21 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public class PositionCountValidationRule : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
+    public static readonly IList<ValidationError> DuplicatedPositionError =
+    [
+        new(
+            Message: "Positioner må ikke være duplikeret / Positions cannot be duplicated",
+            ErrorCode: "E87"),
+    ];
+
+    public static readonly IList<ValidationError> PositionsNotConsecutiveError =
+    [
+        new(
+            Message:
+            "Positioner skal være i rækkefølge startende fra 1 / Positions must be consecutive starting from 1",
+            ErrorCode: "E87"),
+    ];
+
     public static IList<ValidationError> IncorrectNumberOfPositionsError(int actual, double expected) =>
     [
         new(
@@ -48,6 +63,7 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
 
         var startDate = startDateResult.Value;
         var endDate = endDateResult.Value;
+        var errors = new List<ValidationError>();
 
         var period = Period.Between(
             startDate.ToDateTimeUtc().ToLocalDateTime(),
@@ -72,7 +88,7 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
         // we have to catch those residuals that represent a real error from an incorrect period length.
         if (Math.Abs(subject.Input.MeteredDataList.Count - expectedPositionCount) > 0.000001d)
         {
-            return Task.FromResult(
+            errors.AddRange(
                 IncorrectNumberOfPositionsError(subject.Input.MeteredDataList.Count, expectedPositionCount));
         }
 
@@ -100,25 +116,14 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
 
         if (positions.Distinct().Count() != positions.Count)
         {
-            return Task.FromResult<IList<ValidationError>>(
-            [
-                new(
-                    Message: "Positioner må ikke være duplikeret / Positions must not be duplicated",
-                    ErrorCode: "E87"),
-            ]);
+            errors.AddRange(DuplicatedPositionError);
         }
 
         if (positions.First() != 1 || positions.Last() != positions.Count)
         {
-            return Task.FromResult<IList<ValidationError>>(
-            [
-                new(
-                    Message:
-                    "Positioner skal være i rækkefølge fra 1 til antal positioner / Positions must be in order from 1 to the number of positions",
-                    ErrorCode: "E87"),
-            ]);
+            errors.AddRange(PositionsNotConsecutiveError);
         }
 
-        return Task.FromResult<IList<ValidationError>>([]);
+        return Task.FromResult<IList<ValidationError>>(errors);
     }
 }

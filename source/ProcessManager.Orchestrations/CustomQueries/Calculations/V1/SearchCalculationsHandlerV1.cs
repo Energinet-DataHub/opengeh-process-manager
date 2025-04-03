@@ -185,25 +185,78 @@ internal class SearchCalculationsHandlerV1(
             Instant? startedAtOrLater,
             Instant? terminatedAtOrEarlier)
     {
-        var queryable = _readerContext
-            .OrchestrationDescriptions
-                .Where(x => orchestrationDescriptionNames.Contains(x.UniqueName.Name))
-            .Join(
-                _readerContext.OrchestrationInstances,
-                description => description.Id,
-                instance => instance.OrchestrationDescriptionId,
-                (description, instance) => new { description.UniqueName, instance })
-            .Where(x => lifecycleStates == null || lifecycleStates.Contains(x.instance.Lifecycle.State))
-            .Where(x => terminationState == null || x.instance.Lifecycle.TerminationState == terminationState)
-            .Where(x => startedAtOrLater == null || startedAtOrLater <= x.instance.Lifecycle.StartedAt)
-            .Where(x => terminatedAtOrEarlier == null || x.instance.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
-            .Where(x => scheduledAtOrLater == null || scheduledAtOrLater <= x.instance.Lifecycle.ScheduledToRunAt)
-            .Select(x => ValueTuple.Create(x.UniqueName, x.instance));
+        var uniqueNamesById = await GetUniqueNamesByIdDictionaryAsync(orchestrationDescriptionNames).ConfigureAwait(false);
+
+        var queryable = _readerContext.OrchestrationInstances
+            .FromSql($"""
+                SELECT
+                    [oi].[Id],
+                    [oi].[ActorMessageId],
+                    [oi].[IdempotencyKey],
+                    [oi].[MeteringPointId],
+                    [oi].[OrchestrationDescriptionId],
+                    [oi].[RowVersion],
+                    [oi].[TransactionId],
+                    [oi].[CustomState] as CustomState_SerializedValue,
+                    [oi].[ParameterValue] as ParameterValue_SerializedValue,
+                    [oi].[Lifecycle_CreatedAt],
+                    [oi].[Lifecycle_QueuedAt],
+                    [oi].[Lifecycle_ScheduledToRunAt],
+                    [oi].[Lifecycle_StartedAt],
+                    [oi].[Lifecycle_State],
+                    [oi].[Lifecycle_TerminatedAt],
+                    [oi].[Lifecycle_TerminationState],
+                    [oi].[Lifecycle_CanceledBy_ActorNumber],
+                    [oi].[Lifecycle_CanceledBy_ActorRole],
+                    [oi].[Lifecycle_CanceledBy_IdentityType],
+                    [oi].[Lifecycle_CanceledBy_UserId],
+                    [oi].[Lifecycle_CreatedBy_ActorNumber],
+                    [oi].[Lifecycle_CreatedBy_ActorRole],
+                    [oi].[Lifecycle_CreatedBy_IdentityType],
+                    [oi].[Lifecycle_CreatedBy_UserId]
+                FROM
+                    [pm].[OrchestrationDescription] AS [od]
+                INNER JOIN
+                    [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
+                LEFT JOIN
+                    [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
+                WHERE
+                    [od].[Name] IN (
+                        SELECT [names].[value]
+                        FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                    )
+            """)
+            .Where(instance => lifecycleStates == null || lifecycleStates.Contains(instance.Lifecycle.State))
+            .Where(instance => terminationState == null || instance.Lifecycle.TerminationState == terminationState)
+            .Where(instance => startedAtOrLater == null || startedAtOrLater <= instance.Lifecycle.StartedAt)
+            .Where(instance => terminatedAtOrEarlier == null || instance.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
+            .Where(instance => scheduledAtOrLater == null || scheduledAtOrLater <= instance.Lifecycle.ScheduledToRunAt)
+            .Select(instance => ValueTuple.Create(uniqueNamesById[instance.OrchestrationDescriptionId], instance));
 
 #if DEBUG
         var queryStringForDebugging = queryable.ToQueryString();
 #endif
 
         return await queryable.ToListAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Build a dictionary of relevant orchestration description unique names.
+    /// We can use this to combine orchestration instances with their
+    /// orchestration description unique name counterpart.
+    /// </summary>
+    private async Task<IReadOnlyDictionary<OrchestrationDescriptionId, OrchestrationDescriptionUniqueName>>
+        GetUniqueNamesByIdDictionaryAsync(
+            IReadOnlyCollection<string> orchestrationDescriptionNames)
+    {
+        var orchestrationDescriptions = await _readerContext
+            .OrchestrationDescriptions
+                .Where(x => orchestrationDescriptionNames.Contains(x.UniqueName.Name))
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        return orchestrationDescriptions
+            .Select(x => new KeyValuePair<OrchestrationDescriptionId, OrchestrationDescriptionUniqueName>(x.Id, x.UniqueName))
+            .ToDictionary();
     }
 }

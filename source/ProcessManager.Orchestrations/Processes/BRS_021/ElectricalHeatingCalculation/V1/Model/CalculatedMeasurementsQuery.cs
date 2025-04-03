@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatementApi;
+using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 
-public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Guid orchestrationInstanceId) : CalculationResultQueryBase<CalculatedMeasurementsMessageDto>(databricksOptions, orchestrationInstanceId)
+public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Guid orchestrationInstanceId, ILogger logger) : CalculationResultQueryBase<CalculatedMeasurementsMessageDto>(databricksOptions, orchestrationInstanceId)
 {
+    private readonly ILogger _logger = logger;
+
     public override string DataObjectName => "calculated_measurements_v1";
 
     public override Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => new()
@@ -36,8 +39,26 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
 
     protected override Task<QueryResult<CalculatedMeasurementsMessageDto>> CreateResultAsync(List<DatabricksSqlRow> currentResultSet)
     {
-        return Task.FromResult(QueryResult<List<DatabricksSqlRow>>.Success(new List<DatabricksSqlRow>()))
-            .ConfigureAwait(false);
+        var firstRow = currentResultSet.First();
+        var transactionId = firstRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
+
+        try
+        {
+            var timeSeriesPoints = new List<CalculatedMeasurementsMessageDto>();
+
+            foreach (var row in currentResultSet)
+            {
+                var timeSeriesPoint = CreateTimeSeriesPoint(row);
+                timeSeriesPoints.Add(timeSeriesPoint);
+            }
+
+            var result = await CreateWholesaleResultAsync(firstRow, timeSeriesPoints).ConfigureAwait(false);
+            return QueryResult.Success(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Creating calculated measurements result for electrical heating failed for orchestration instance id='{OrchestrationInstanceId}', TransactionId='{transactionId}'.");
+        }
     }
 
     protected override bool BelongsToSameResultSet(DatabricksSqlRow currentResult, DatabricksSqlRow previousResult)

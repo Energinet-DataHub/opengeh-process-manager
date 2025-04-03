@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -217,6 +218,14 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var invalidResolution = Resolution.Daily;
         var input = new ForwardMeteredDataInputV1Builder()
             .WithResolution(invalidResolution.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 31)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(
+                            Position: i.ToString(),
+                            "1024",
+                            Quality.AsProvided.Name))
+                    .ToList())
             .Build();
 
         var result = await _sut.ValidateAsync(

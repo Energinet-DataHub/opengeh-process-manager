@@ -74,11 +74,11 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
         // the expected count will be a decimal number and as such will never be equal to the actual count
         var expectedPositionCount = subject.Input.Resolution switch
         {
-            var pt15m when pt15m == Resolution.QuarterHourly.Name => period.ToDuration().TotalMinutes / 15d,
-            var pt1h when pt1h == Resolution.Hourly.Name => period.ToDuration().TotalHours,
-            var p1d when p1d == Resolution.Daily.Name => period.ToDuration().TotalDays,
+            var pt15m when pt15m == Resolution.QuarterHourly.Name => (endDate - startDate).TotalMinutes / 15d,
+            var pt1h when pt1h == Resolution.Hourly.Name => (endDate - startDate).TotalHours,
+            var p1d when p1d == Resolution.Daily.Name => (endDate - startDate).TotalDays,
             var p1m when p1m == Resolution.Monthly.Name => period.Months + (period.Days / 100d),
-            _ => 0,
+            _ => 0d,
         };
 
         // As the expected count is a decimal number,

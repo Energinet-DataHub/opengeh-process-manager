@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
 
@@ -20,4 +21,6 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// Data when enqueueing BRS-X02 ActorRequestProcessExample actor messages.
 /// </summary>
 public record ActorRequestProcessExampleEnqueueRejectedDataV1(
-    List<ValidationErrorDto> ValidationErrors);
+    string OriginalActorMessageId,
+    List<ValidationErrorDto> ValidationErrors)
+        : INotifyEnqueueRejectedDataDto;

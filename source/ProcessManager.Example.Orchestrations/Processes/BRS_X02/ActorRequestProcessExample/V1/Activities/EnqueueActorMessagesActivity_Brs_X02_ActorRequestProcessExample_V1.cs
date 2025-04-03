@@ -49,6 +49,7 @@ internal class EnqueueActorMessagesActivity_Brs_X02_ActorRequestProcessExample_V
             orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
             input.IdempotencyKey,
             new ActorRequestProcessExampleEnqueueDataV1(
+                OriginalActorMessageId: orchestrationInstance.ActorMessageId?.Value ?? throw new NullReferenceException($"ActorMessageId is null for orchestration instance with id {orchestrationInstance.Id.Value}"),
                 ActorNumber.Create(orchestrationInstanceInput.RequestedByActorNumber),
                 ActorRole.FromName(orchestrationInstanceInput.RequestedByActorRole),
                 businessReason))

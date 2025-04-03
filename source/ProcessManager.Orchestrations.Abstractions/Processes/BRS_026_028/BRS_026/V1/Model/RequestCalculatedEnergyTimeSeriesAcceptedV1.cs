@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
@@ -35,4 +36,5 @@ public record RequestCalculatedEnergyTimeSeriesAcceptedV1(
     ActorNumber? BalanceResponsibleNumber,
     MeteringPointType? MeteringPointType,
     SettlementMethod? SettlementMethod,
-    SettlementVersion? SettlementVersion);
+    SettlementVersion? SettlementVersion)
+        : INotifyEnqueueAcceptedDataDto;

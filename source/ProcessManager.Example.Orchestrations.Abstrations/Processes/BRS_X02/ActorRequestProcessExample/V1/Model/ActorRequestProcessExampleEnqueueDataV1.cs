@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
@@ -21,6 +22,8 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 /// Data when enqueueing BRS-X02 ActorRequestProcessExample actor messages.
 /// </summary>
 public record ActorRequestProcessExampleEnqueueDataV1(
+    string OriginalActorMessageId,
     ActorNumber ActorNumber,
     ActorRole ActorRole,
-    BusinessReason BusinessReason);
+    BusinessReason BusinessReason)
+        : INotifyEnqueueAcceptedDataDto;

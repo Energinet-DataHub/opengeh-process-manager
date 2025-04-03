@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
@@ -33,5 +34,5 @@ public interface IEnqueueActorMessagesClient
         IOperatingIdentityDto orchestrationStartedBy,
         Guid idempotencyKey,
         TData data)
-            where TData : class;
+            where TData : INotifyEnqueueDataDto;
 }

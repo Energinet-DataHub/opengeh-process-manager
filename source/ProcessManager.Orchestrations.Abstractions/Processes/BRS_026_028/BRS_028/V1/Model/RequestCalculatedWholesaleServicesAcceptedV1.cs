@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
@@ -36,6 +37,7 @@ public record RequestCalculatedWholesaleServicesAcceptedV1(
     ActorNumber? ChargeOwnerNumber,
     SettlementVersion? SettlementVersion,
     IReadOnlyCollection<RequestCalculatedWholesaleServicesAcceptedV1.AcceptedChargeType> ChargeTypes)
+        : INotifyEnqueueAcceptedDataDto
 {
     public record AcceptedChargeType(
         ChargeType? ChargeType,

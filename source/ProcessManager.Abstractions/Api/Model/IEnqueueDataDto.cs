@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-namespace Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
-
-public interface INotifyEnqueueAcceptedDataDto : INotifyEnqueueDataDto
-{
-    string OriginalActorMessageId { get; init; }
-}
+/// <summary>
+/// Allows for generic type constraints of serializable notify data when enqueuing actor messages to EDI.
+/// </summary>
+public interface IEnqueueDataDto;

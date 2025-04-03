@@ -30,4 +30,4 @@ public record ForwardMeteredDataAcceptedV1(
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
     IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData)
-        : INotifyEnqueueAcceptedDataDto;
+        : IEnqueueAcceptedDataDto;

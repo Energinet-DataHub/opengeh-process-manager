@@ -29,4 +29,4 @@ public record ForwardMeteredDataRejectedV1(
     ActorRole ForwardedForActorRole,
     BusinessReason BusinessReason,
     List<ValidationErrorDto> ValidationErrors)
-        : INotifyEnqueueRejectedDataDto;
+        : IEnqueueRejectedDataDto;

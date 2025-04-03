@@ -27,4 +27,4 @@ public record UpdateMeteringPointConnectionStateAcceptedV1(
     string OriginalTransactionId,
     ActorNumber RequestedByActorNumber,
     ActorRole RequestedByActorRole)
-        : INotifyEnqueueAcceptedDataDto;
+        : IEnqueueAcceptedDataDto;

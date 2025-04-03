@@ -32,4 +32,4 @@ public record RequestCalculatedWholesaleServicesRejectedV1(
     ActorRole RequestedByActorRole,
     BusinessReason BusinessReason,
     List<ValidationErrorDto> ValidationErrors)
-        : INotifyEnqueueRejectedDataDto;
+        : IEnqueueRejectedDataDto;

@@ -17,4 +17,4 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 
 public record CalculationEnqueueActorMessagesV1(Guid CalculationId)
-    : INotifyEnqueueDataDto;
+    : IEnqueueDataDto;

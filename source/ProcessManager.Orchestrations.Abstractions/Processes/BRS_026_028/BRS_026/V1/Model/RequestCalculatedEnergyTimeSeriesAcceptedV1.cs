@@ -37,4 +37,4 @@ public record RequestCalculatedEnergyTimeSeriesAcceptedV1(
     MeteringPointType? MeteringPointType,
     SettlementMethod? SettlementMethod,
     SettlementVersion? SettlementVersion)
-        : INotifyEnqueueAcceptedDataDto;
+        : IEnqueueAcceptedDataDto;

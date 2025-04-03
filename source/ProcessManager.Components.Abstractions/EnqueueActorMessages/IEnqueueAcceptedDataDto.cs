@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 namespace Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 
-public interface INotifyEnqueueRejectedDataDto : INotifyEnqueueDataDto
+public interface IEnqueueAcceptedDataDto : IEnqueueDataDto
 {
     string OriginalActorMessageId { get; init; }
 }

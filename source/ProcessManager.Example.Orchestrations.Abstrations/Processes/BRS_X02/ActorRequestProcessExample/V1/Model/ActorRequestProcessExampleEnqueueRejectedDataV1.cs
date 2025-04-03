@@ -23,4 +23,4 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 public record ActorRequestProcessExampleEnqueueRejectedDataV1(
     string OriginalActorMessageId,
     List<ValidationErrorDto> ValidationErrors)
-        : INotifyEnqueueRejectedDataDto;
+        : IEnqueueRejectedDataDto;

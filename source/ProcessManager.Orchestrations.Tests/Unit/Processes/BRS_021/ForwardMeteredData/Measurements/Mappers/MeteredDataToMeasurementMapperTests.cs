@@ -154,7 +154,7 @@ public class MeteredDataToMeasurementMapperTests
                     MeasurementsTypes.MeteringPointType.MptCollectiveNetConsumption
                 },
                 {
-                    PMTypes.MeteringPointType.CollectiveNetConsumption,
+                    PMTypes.MeteringPointType.InternalUse,
                     MeasurementsTypes.MeteringPointType.MptInternalUse
                 },
             };

@@ -142,6 +142,12 @@ internal class SearchCalculationsHandlerV1(
                 .Where(x => Enum.IsDefined(typeof(Abstractions.Processes.BRS_023_027.V1.Model.CalculationType), (int)x))
                 .ToList();
 
+        string? wholesaleIsInternalCalculation = null;
+        if (query.IsInternalCalculation.HasValue)
+        {
+            wholesaleIsInternalCalculation = query.IsInternalCalculation.Value ? "true" : "false";
+        }
+
         return $"""
             -- ************************************************************************
             --   All except 'Brs_023_027' and 'Brs_021_CapacitySettlementCalculation'
@@ -272,9 +278,9 @@ internal class SearchCalculationsHandlerV1(
                     OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
                 )
                 AND (
-                    {query.IsInternalCalculation} is null
+                    {wholesaleIsInternalCalculation} is null
                     OR (
-                        CAST(JSON_VALUE([oi].[ParameterValue],'$.IsInternalCalculation') AS bit) = {query.IsInternalCalculation}
+                        CAST(CHOOSE(ISJSON([oi].[ParameterValue]) + 1, null, JSON_VALUE([oi].[ParameterValue],'$.IsInternalCalculation')) AS nvarchar(10)) = {wholesaleIsInternalCalculation}
                     )
                 )
                 AND (

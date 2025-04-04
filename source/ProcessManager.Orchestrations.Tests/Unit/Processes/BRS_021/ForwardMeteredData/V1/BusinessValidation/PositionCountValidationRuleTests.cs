@@ -845,7 +845,7 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
-    public async Task Given_MissingPosition_When_Validate_Then_PositionsNotConcecutiveError()
+    public async Task Given_MissingPosition_When_Validate_Then_PositionsNotConsecutiveError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")

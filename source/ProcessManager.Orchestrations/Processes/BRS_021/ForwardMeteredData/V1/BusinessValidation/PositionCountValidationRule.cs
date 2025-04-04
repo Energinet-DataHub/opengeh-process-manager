@@ -79,7 +79,7 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
         var period = Period.Between(
             startDate.ToDateTimeUtc().ToLocalDateTime(),
             endDate.ToDateTimeUtc().ToLocalDateTime(),
-            PeriodUnits.Months | PeriodUnits.Days | PeriodUnits.Hours | PeriodUnits.Minutes | PeriodUnits.Seconds);
+            PeriodUnits.Months | PeriodUnits.Days);
 
         // In case there is a residual,
         // the expected count will be a decimal number and as such will never be equal to the actual count

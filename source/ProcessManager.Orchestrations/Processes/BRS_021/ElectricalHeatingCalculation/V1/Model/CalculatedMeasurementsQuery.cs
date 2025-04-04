@@ -19,7 +19,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 
-public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Guid orchestrationInstanceId, ILogger logger) : QueryBase<CalculatedMeasurementsV1>(databricksOptions, orchestrationInstanceId)
+public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Guid orchestrationInstanceId, ILogger logger)
+     : QueryBase<CalculatedMeasurementsV1>(databricksOptions, orchestrationInstanceId)
 {
     private readonly ILogger _logger = logger;
 

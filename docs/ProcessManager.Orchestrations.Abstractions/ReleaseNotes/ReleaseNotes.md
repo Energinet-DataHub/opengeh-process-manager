@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.18.1
+
+- Use `IEnqueueAcceptedDataDto`, `IEnqueueRejectedDataDto` and `IEnqueueDataDto` marker interfaces.
+
 ## Version 1.18.0
 
 - Add custom query `CalculationByIdQueryV1`.

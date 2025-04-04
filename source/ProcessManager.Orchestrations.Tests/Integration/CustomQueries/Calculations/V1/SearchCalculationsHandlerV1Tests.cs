@@ -134,6 +134,10 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value);
     }
 
+    /// <summary>
+    /// Here we also search for 'BalanceFixing' even though we know there isn't any in the database.
+    /// This impacts the JSON search as it will also search for Wholesale calsulation types.
+    /// </summary>
     [Fact]
     public async Task Given_LifecycleDatasetInDatabase_When_SearchByCalculationTypeAndPending_Then_OnlyExpectedCalculationsAreRetrieved()
     {
@@ -504,10 +508,15 @@ public class SearchCalculationsHandlerV1Tests :
                 });
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions  if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_CalculationsForGridAreas_When_SearchByAnotherGridArea_Then_ResultIsEmpty()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
@@ -547,10 +556,15 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.WholesaleFixing.Id.Value);
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions  if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_InternalCalculation_When_SearchByIsInternalCalculation_Then_AggregationCalculationIsRetrieved()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
@@ -569,10 +583,15 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.Aggregation.Id.Value);
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions  if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_WholesaleCalculationsDataset_When_SearchByCalculationTypes_Then_ExpectedCalculationsAreRetrieved()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
@@ -594,10 +613,15 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.WholesaleFixing.Id.Value);
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions  if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_CapacitySettlementDataset_When_SearchByPeriodWhichDoesNotContainCalculations_Then_ResultIsEmpty()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
 
         // When
@@ -690,10 +714,15 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.February2025.Id.Value);
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions  if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_CapacitySettlementAndWholesaleDataset_When_SearchByPeriodWhichContainsCalculationFromBothDataets_Then_ExpectedCalculationsAreRetrieved()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
         var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 

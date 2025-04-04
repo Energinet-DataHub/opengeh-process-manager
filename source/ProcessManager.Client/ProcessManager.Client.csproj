@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <PackageId>Energinet.DataHub.ProcessManager.Client</PackageId>
-    <PackageVersion>3.0.1$(VersionSuffix)</PackageVersion>
+    <PackageVersion>3.1.0$(VersionSuffix)</PackageVersion>
     <Title>DH3 Process Manager Client library</Title>
     <Company>Energinet-DataHub</Company>
     <Authors>Energinet-DataHub</Authors>
@@ -68,6 +68,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\Shared\Api\Json\JsonPolymorphicItemContainer.cs" Link="Api\Json\JsonPolymorphicItemContainer.cs" />
     <Compile Include="..\Shared\Extensions\ServiceBusMessageBodyFormat.cs">
       <Link>Extensions\ServiceBusMessageBodyFormat.cs</Link>
     </Compile>

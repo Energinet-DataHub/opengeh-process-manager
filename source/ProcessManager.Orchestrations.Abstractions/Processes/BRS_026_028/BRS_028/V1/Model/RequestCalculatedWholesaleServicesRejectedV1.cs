@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
@@ -22,11 +23,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// A model containing the validation errors if a wholesale services request is rejected.
 /// </summary>
 public record RequestCalculatedWholesaleServicesRejectedV1(
-    string OriginalMessageId,
+    [property: Obsolete] string OriginalMessageId, // TODO: Remove after EDI is updated to use OriginalActorMessageId
+    string OriginalActorMessageId,
     string OriginalTransactionId,
     ActorNumber RequestedForActorNumber,
     ActorRole RequestedForActorRole,
     ActorNumber RequestedByActorNumber,
     ActorRole RequestedByActorRole,
     BusinessReason BusinessReason,
-    List<ValidationErrorDto> ValidationErrors);
+    List<ValidationErrorDto> ValidationErrors)
+        : IEnqueueRejectedDataDto;

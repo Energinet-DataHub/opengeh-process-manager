@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 
@@ -24,4 +26,5 @@ public record UpdateMeteringPointConnectionStateAcceptedV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
     ActorNumber RequestedByActorNumber,
-    ActorRole RequestedByActorRole);
+    ActorRole RequestedByActorRole)
+        : IEnqueueAcceptedDataDto;

@@ -12,30 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 /// <summary>
-/// Interface for handling a custom query for searching orchestration instances.
+/// Base class for implementing custom queries for searching a single orchestration instance.
+/// Must be JSON serializable.
 /// </summary>
 /// <remarks>
 /// Using JSON polymorphism on <typeparamref name="TResultItem"/> makes it possible to
 /// specify a base type, and be able to deserialize it into multiple concrete types.
 /// </remarks>
-/// <typeparam name="TQuery">The type of the query.</typeparam>
 /// <typeparam name="TResultItem">
-/// The type (or base type) of each item returned in the result list from the query.
+/// The type (or base type) of the item returned.
 /// Must be a JSON serializable type.
 /// </typeparam>
-public interface ISearchOrchestrationInstancesQueryHandler<TQuery, TResultItem>
-    where TQuery : SearchOrchestrationInstancesByCustomQuery<TResultItem>
-    where TResultItem : class
+public abstract record SearchOrchestrationInstanceByCustomQuery<TResultItem>
+    : OrchestrationInstanceRequest<UserIdentityDto>
+        where TResultItem : class
 {
     /// <summary>
-    /// Handles a query for searching orchestration instances.
+    /// Construct query.
     /// </summary>
-    /// <param name="query">The query to handle.</param>
-    /// <returns>Returns an item for each matching orchestration instance.</returns>
-    Task<IReadOnlyCollection<TResultItem>> HandleAsync(TQuery query);
+    /// <param name="operatingIdentity">Identity of the user executing the query.</param>
+    public SearchOrchestrationInstanceByCustomQuery(
+        UserIdentityDto operatingIdentity)
+            : base(operatingIdentity)
+    {
+    }
+
+    /// <summary>
+    /// A query name used to route the underlying request to the correct custom query trigger.
+    /// </summary>
+    public abstract string QueryRouteName { get; }
 }

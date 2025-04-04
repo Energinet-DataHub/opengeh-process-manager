@@ -58,8 +58,9 @@ internal class EnqueueRejectMessageActivity_Brs_028_V1(
         RequestCalculatedWholesaleServicesInputV1 requestInput)
     {
         var rejectedMessage = new RequestCalculatedWholesaleServicesRejectedV1(
-            OriginalTransactionId: requestInput.TransactionId,
             OriginalMessageId: requestInput.ActorMessageId,
+            OriginalActorMessageId: requestInput.ActorMessageId,
+            OriginalTransactionId: requestInput.TransactionId,
             RequestedForActorNumber: ActorNumber.Create(requestInput.RequestedForActorNumber),
             RequestedForActorRole: ActorRole.FromName(requestInput.RequestedForActorRole),
             RequestedByActorNumber: ActorNumber.Create(requestInput.RequestedByActorNumber),

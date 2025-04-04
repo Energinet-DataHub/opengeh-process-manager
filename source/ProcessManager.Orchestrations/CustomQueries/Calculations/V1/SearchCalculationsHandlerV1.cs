@@ -19,8 +19,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.NetConsumptionCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -76,7 +74,7 @@ internal class SearchCalculationsHandlerV1(
             .Where(item =>
                 item.UniqueName.Name != Brs_021_CapacitySettlementCalculation.Name
                 || (item.UniqueName.Name == Brs_021_CapacitySettlementCalculation.Name && FilterBrs_021_CapacitySettlement(query, item.Instance)))
-            .Select(item => MapToConcreteResultDto(item.UniqueName, item.Instance))
+            .Select(item => CalculationsQueryResultMapperV1.MapToDto(item.UniqueName, item.Instance))
             .ToList();
     }
 
@@ -95,49 +93,6 @@ internal class SearchCalculationsHandlerV1(
             (query.PeriodStartDate == null || query.PeriodStartDate < calculationInput.PeriodEndDate) &&
             (query.PeriodEndDate == null || calculationInput.PeriodStartDate < query.PeriodEndDate) &&
             (query.IsInternalCalculation == null || calculationInput.IsInternalCalculation == query.IsInternalCalculation);
-    }
-
-    private static ICalculationsQueryResultV1 MapToConcreteResultDto(OrchestrationDescriptionUniqueName uniqueName, OrchestrationInstance instance)
-    {
-        switch (uniqueName.Name)
-        {
-            case Brs_023_027.Name:
-                var wholesale = instance.MapToTypedDto<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
-                return new WholesaleCalculationResultV1(
-                    wholesale.Id,
-                    wholesale.Lifecycle,
-                    wholesale.Steps,
-                    wholesale.CustomState,
-                    wholesale.ParameterValue);
-
-            case Brs_021_ElectricalHeatingCalculation.Name:
-                var electricalHeating = instance.MapToDto();
-                return new ElectricalHeatingCalculationResultV1(
-                    electricalHeating.Id,
-                    electricalHeating.Lifecycle,
-                    electricalHeating.Steps,
-                    electricalHeating.CustomState);
-
-            case Brs_021_CapacitySettlementCalculation.Name:
-                var capacitySettlement = instance.MapToTypedDto<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
-                return new CapacitySettlementCalculationResultV1(
-                    capacitySettlement.Id,
-                    capacitySettlement.Lifecycle,
-                    capacitySettlement.Steps,
-                    capacitySettlement.CustomState,
-                    capacitySettlement.ParameterValue);
-
-            case Brs_021_NetConsumptionCalculation.Name:
-                var netConsumption = instance.MapToDto();
-                return new NetConsumptionCalculationResultV1(
-                    netConsumption.Id,
-                    netConsumption.Lifecycle,
-                    netConsumption.Steps,
-                    netConsumption.CustomState);
-
-            default:
-                throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");
-        }
     }
 
     private bool FilterBrs_021_CapacitySettlement(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)

@@ -34,11 +34,17 @@ public class ForwardMeteredDataInputV1Builder
     private string _registrationDateTime = "2024-12-31T23:00Z";
     private string _resolution = Resolution.Hourly.Name;
     private string _startDateTime = "2024-12-31T23:00Z"; // Seconds are optional, so we test with and without them.
-    private string? _endDateTime = "2025-12-31T23:15:00Z"; // Seconds are optional, so we test with and without them.
+    private string? _endDateTime = "2025-01-31T23:00:00Z"; // Seconds are optional, so we test with and without them.
     private string _gridAccessProviderNumber = ActorNumber;
+
     private IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> _meteredData =
     [
-        new("1", "1024", Quality.AsProvided.Name),
+        .. Enumerable.Range(1, 744)
+            .Select(
+                i => new ForwardMeteredDataInputV1.MeteredData(
+                    Position: i.ToString(),
+                    "1024",
+                    Quality.AsProvided.Name)),
     ];
 
     public ForwardMeteredDataInputV1Builder WithActorMessageId(string actorMessageId)

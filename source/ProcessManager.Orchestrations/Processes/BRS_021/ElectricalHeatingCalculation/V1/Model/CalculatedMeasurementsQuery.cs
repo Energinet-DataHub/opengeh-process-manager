@@ -56,7 +56,7 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
                 calculatedMeasurements.Add(calculatedMeasurement);
             }
 
-            var result = await CreateCalculatedMeasurementsV1Async(firstRow, calculatedMeasurements).ConfigureAwait(false);
+            var result = await CreateCalculatedMeasurementsV1Async(calculatedMeasurements).ConfigureAwait(false);
             return QueryResult<CalculatedMeasurementsV1>.Success(result);
         }
         catch (Exception ex)

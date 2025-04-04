@@ -73,12 +73,12 @@ public class MeteringPointReceiversProvider(
         var masterDataDictionary = meteringPointMasterDataList.ToDictionary(mpmd => mpmd.ValidFrom.ToInstant());
 
         // The input is already validated, so this parsing should never fail
-        var totalPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
-        var totalPeriodEnd = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
+        var inputPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
+        var inputPeriodEnd = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
 
         var allReceivers = CalculateReceiversWithMeteredDataForMasterDataPeriods(
-            totalPeriodStart,
-            totalPeriodEnd,
+            inputPeriodStart,
+            inputPeriodEnd,
             Resolution.FromName(input.Resolution!), // Resolution shouldn't change between master data periods, else validation should fail
             masterDataDictionary,
             sortedMeteredData);
@@ -94,8 +94,8 @@ public class MeteringPointReceiversProvider(
     /// </remarks>
     /// </summary>
     private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredDataForMasterDataPeriods(
-        Instant totalPeriodStart,
-        Instant totalPeriodEnd,
+        Instant inputPeriodStart,
+        Instant inputPeriodEnd,
         Resolution resolution,
         Dictionary<Instant, MeteringPointMasterData> masterData,
         SortedDictionary<int, ReceiversWithMeteredDataV1.AcceptedMeteredData> sortedMeteredData)
@@ -106,39 +106,28 @@ public class MeteringPointReceiversProvider(
             // need to split the metered data into periods and recalculate positions
             var masterDataElement = masterData.Values.Single();
 
-            // Ensure that the start and end dates are bounded by the period
-            masterDataElement = masterDataElement with
-            {
-                ValidFrom = masterDataElement.ValidFrom > totalPeriodStart.ToDateTimeOffset()
-                    ? masterDataElement.ValidFrom
-                    : totalPeriodStart.ToDateTimeOffset(),
-                ValidTo = masterDataElement.ValidTo > totalPeriodEnd.ToDateTimeOffset()
-                    ? totalPeriodEnd.ToDateTimeOffset()
-                    : masterDataElement.ValidTo,
-            };
-
             var receiversWithMeteredData = CreateReceiversWithMeteredData(
                 new MasterDataWithMeteredData(
                     masterDataElement,
-                    totalPeriodStart,
-                    totalPeriodEnd,
+                    inputPeriodStart,
+                    inputPeriodEnd,
                     [.. sortedMeteredData.Values]));
 
             return [receiversWithMeteredData];
         }
 
-        var currentTimestamp = totalPeriodStart;
+        var currentTimestamp = inputPeriodStart;
 
         var firstMasterData = masterData.Values.First();
-        var currentMasterData = new MasterDataWithMeteredData(firstMasterData, totalPeriodStart, totalPeriodEnd, []);
+        var currentMasterData = new MasterDataWithMeteredData(firstMasterData, inputPeriodStart, inputPeriodEnd, []);
 
         List<MasterDataWithMeteredData> masterDataWithMeteredDataList = [currentMasterData];
 
         foreach (var meteredData in sortedMeteredData.Values)
         {
             // If current timestamp is equal to (or later than) the total period, throw an exception. This assumes totalPeriodEnd is exclusive.
-            if (currentTimestamp >= totalPeriodEnd)
-                throw new InvalidOperationException($"The current timestamp is after the metered data period (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, PeriodEnd={totalPeriodEnd})");
+            if (currentTimestamp >= inputPeriodEnd)
+                throw new InvalidOperationException($"The current timestamp is after the metered data period (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, PeriodEnd={inputPeriodEnd})");
 
             // Get master data for current timestamp. This assumes ValidTo is exclusive.
             var currentTimestampBelongsToNextMasterDataPeriod = currentTimestamp >= currentMasterData.ValidTo;
@@ -149,7 +138,7 @@ public class MeteringPointReceiversProvider(
                 if (!masterData.TryGetValue(currentTimestamp, out var nextMasterData))
                     throw new InvalidOperationException($"The master data for the current timestamp is missing (MeteringPointId={currentMasterData.MasterData.MeteringPointId.Value}, Position={meteredData.Position}, CurrentTimestamp={currentTimestamp})");
 
-                currentMasterData = new MasterDataWithMeteredData(nextMasterData, totalPeriodStart, totalPeriodEnd, []);
+                currentMasterData = new MasterDataWithMeteredData(nextMasterData, inputPeriodStart, inputPeriodEnd, []);
 
                 // Add the new master data with metered data to the list
                 masterDataWithMeteredDataList.Add(currentMasterData);
@@ -172,7 +161,7 @@ public class MeteringPointReceiversProvider(
         }
 
         return masterDataWithMeteredDataList
-            .Select(md => CreateReceiversWithMeteredData(md))
+            .Select(CreateReceiversWithMeteredData)
             .ToList();
     }
 
@@ -303,7 +292,7 @@ public class MeteringPointReceiversProvider(
         ActorNumber.Create(DataHubDetails.SystemOperatorNumber),
         ActorRole.SystemOperator);
 
-    private record MasterDataWithMeteredData
+    private sealed record MasterDataWithMeteredData
     {
         public MasterDataWithMeteredData(
             MeteringPointMasterData masterData,
@@ -324,17 +313,5 @@ public class MeteringPointReceiversProvider(
         public Instant ValidTo { get; }
 
         public List<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredDataList { get; }
-
-        public void Deconstruct(
-            out MeteringPointMasterData masterData,
-            out Instant validFrom,
-            out Instant validTo,
-            out List<ReceiversWithMeteredDataV1.AcceptedMeteredData> meteredDataList)
-        {
-            masterData = MasterData;
-            validFrom = ValidFrom;
-            validTo = ValidTo;
-            meteredDataList = MeteredDataList;
-        }
     }
 }

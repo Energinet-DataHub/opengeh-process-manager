@@ -44,24 +44,7 @@ internal class SearchCalculationsHandlerV1(
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-        var orchestrationDescriptionNames = query.GetOrchestrationDescriptionNames();
-
-        var lifecycleStates = query.LifecycleStates.MapToDomain();
-        var terminationState = query.TerminationState.MapToDomain();
-
-        var scheduledAtOrLater = query.ScheduledAtOrLater.ToNullableInstant();
-        var startedAtOrLater = query.StartedAtOrLater.ToNullableInstant();
-        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ToNullableInstant();
-
-        var results =
-            await SearchAsync(
-                orchestrationDescriptionNames,
-                lifecycleStates,
-                terminationState,
-                scheduledAtOrLater,
-                startedAtOrLater,
-                terminatedAtOrEarlier)
-            .ConfigureAwait(false);
+        var results = await SearchAsync(query).ConfigureAwait(false);
 
         return results
             // TODO: Temporary in-memory filter on ParameterValues.
@@ -82,17 +65,14 @@ internal class SearchCalculationsHandlerV1(
     {
         var calculationInput = orchestrationInstance.ParameterValue
             .AsType<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
-        var calculationTypesAsInt = query.CalculationTypes?.Select(type => (int)type).ToList();
 
         return
-            (calculationTypesAsInt == null || calculationTypesAsInt.Contains((int)calculationInput.CalculationType)) &&
             (query.GridAreaCodes == null || calculationInput.GridAreaCodes.Any(query.GridAreaCodes.Contains)) &&
             // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
             // where a = query and b = calculationInput.
             // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
             (query.PeriodStartDate == null || query.PeriodStartDate < calculationInput.PeriodEndDate) &&
-            (query.PeriodEndDate == null || calculationInput.PeriodStartDate < query.PeriodEndDate) &&
-            (query.IsInternalCalculation == null || calculationInput.IsInternalCalculation == query.IsInternalCalculation);
+            (query.PeriodEndDate == null || calculationInput.PeriodStartDate < query.PeriodEndDate);
     }
 
     private bool FilterBrs_021_CapacitySettlement(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)
@@ -123,37 +103,278 @@ internal class SearchCalculationsHandlerV1(
     /// Get all orchestration instances filtered by their orchestration description name
     /// and lifecycle information.
     /// </summary>
-    /// <param name="orchestrationDescriptionNames"></param>
-    /// <param name="lifecycleStates"></param>
-    /// <param name="terminationState"></param>
-    /// <param name="scheduledAtOrLater"></param>
-    /// <param name="startedAtOrLater"></param>
-    /// <param name="terminatedAtOrEarlier"></param>
     /// <returns>Use the returned unique name to determine which orchestration description
     /// a given orchestration instance was created from.</returns>
-    private async Task<IReadOnlyCollection<(OrchestrationDescriptionUniqueName UniqueName, OrchestrationInstance Instance)>> SearchAsync(
-        IReadOnlyCollection<string> orchestrationDescriptionNames,
-        IReadOnlyCollection<OrchestrationInstanceLifecycleState>? lifecycleStates,
-        OrchestrationInstanceTerminationState? terminationState,
-        Instant? scheduledAtOrLater,
-        Instant? startedAtOrLater,
-        Instant? terminatedAtOrEarlier)
+    private async Task<IReadOnlyCollection<(
+            OrchestrationDescriptionUniqueName UniqueName,
+            OrchestrationInstance Instance)>>
+        SearchAsync(
+            CalculationsQueryV1 query)
     {
-        var queryable = _readerContext
-            .OrchestrationDescriptions
-                .Where(x => orchestrationDescriptionNames.Contains(x.UniqueName.Name))
-            .Join(
-                _readerContext.OrchestrationInstances,
-                description => description.Id,
-                instance => instance.OrchestrationDescriptionId,
-                (description, instance) => new { description.UniqueName, instance })
-            .Where(x => lifecycleStates == null || lifecycleStates.Contains(x.instance.Lifecycle.State))
-            .Where(x => terminationState == null || x.instance.Lifecycle.TerminationState == terminationState)
-            .Where(x => startedAtOrLater == null || startedAtOrLater <= x.instance.Lifecycle.StartedAt)
-            .Where(x => terminatedAtOrEarlier == null || x.instance.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
-            .Where(x => scheduledAtOrLater == null || scheduledAtOrLater <= x.instance.Lifecycle.ScheduledToRunAt)
-            .Select(x => ValueTuple.Create(x.UniqueName, x.instance));
+        var orchestrationDescriptionNames = query.GetOrchestrationDescriptionNames();
+        var uniqueNamesById = await GetUniqueNamesByIdDictionaryAsync(orchestrationDescriptionNames).ConfigureAwait(false);
+
+        var sql = BuildSql(orchestrationDescriptionNames, query);
+        var queryable = _readerContext.OrchestrationInstances
+            .FromSql(sql)
+            .Select(instance => ValueTuple.Create(uniqueNamesById[instance.OrchestrationDescriptionId], instance));
+
+#if DEBUG
+        var queryStringForDebugging = queryable.ToQueryString();
+#endif
 
         return await queryable.ToListAsync().ConfigureAwait(false);
+    }
+
+    private FormattableString BuildSql(
+        IReadOnlyCollection<string> orchestrationDescriptionNames,
+        CalculationsQueryV1 query)
+    {
+        var lifecycleStates = query.LifecycleStates.MapToDomain();
+        var terminationState = query.TerminationState.MapToDomain();
+
+        var scheduledAtOrLater = query.ScheduledAtOrLater.ToNullableInstant();
+        var startedAtOrLater = query.StartedAtOrLater.ToNullableInstant();
+        var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ToNullableInstant();
+
+        var wholesaleCalculationTypes = query
+            .CalculationTypes?
+                .Where(x => Enum.IsDefined(typeof(Abstractions.Processes.BRS_023_027.V1.Model.CalculationType), (int)x))
+                .ToList();
+
+        string? wholesaleIsInternalCalculation = null;
+        if (query.IsInternalCalculation.HasValue)
+        {
+            wholesaleIsInternalCalculation = query.IsInternalCalculation.Value ? "true" : "false";
+        }
+
+        return $"""
+            -- ************************************************************************
+            --   All except 'Brs_023_027' and 'Brs_021_CapacitySettlementCalculation'
+            -- ************************************************************************
+            SELECT
+                [oi].[Id],
+                [oi].[ActorMessageId],
+                [oi].[IdempotencyKey],
+                [oi].[MeteringPointId],
+                [oi].[OrchestrationDescriptionId],
+                [oi].[RowVersion],
+                [oi].[TransactionId],
+                [oi].[CustomState] as CustomState_SerializedValue,
+                [oi].[ParameterValue] as ParameterValue_SerializedValue,
+                [oi].[Lifecycle_CreatedAt],
+                [oi].[Lifecycle_QueuedAt],
+                [oi].[Lifecycle_ScheduledToRunAt],
+                [oi].[Lifecycle_StartedAt],
+                [oi].[Lifecycle_State],
+                [oi].[Lifecycle_TerminatedAt],
+                [oi].[Lifecycle_TerminationState],
+                [oi].[Lifecycle_CanceledBy_ActorNumber],
+                [oi].[Lifecycle_CanceledBy_ActorRole],
+                [oi].[Lifecycle_CanceledBy_IdentityType],
+                [oi].[Lifecycle_CanceledBy_UserId],
+                [oi].[Lifecycle_CreatedBy_ActorNumber],
+                [oi].[Lifecycle_CreatedBy_ActorRole],
+                [oi].[Lifecycle_CreatedBy_IdentityType],
+                [oi].[Lifecycle_CreatedBy_UserId]
+            FROM
+                [pm].[OrchestrationDescription] AS [od]
+            INNER JOIN
+                [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
+            LEFT JOIN
+                [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
+            WHERE
+                [od].[Name] NOT IN (
+                    'Brs_023_027',
+                    'Brs_021_CapacitySettlementCalculation'
+                )
+                AND [od].[Name] IN (
+                    SELECT [names].[value]
+                    FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                )
+                AND (
+                    {lifecycleStates} is null
+                    OR [oi].[Lifecycle_State] IN (
+                        SELECT [lifecyclestates].[value]
+                        FROM OPENJSON({lifecycleStates}) WITH ([value] int '$') AS [lifecyclestates])
+                )
+                AND (
+                    {terminationState} is null
+                    OR [oi].[Lifecycle_TerminationState] = {terminationState}
+                )
+                AND (
+                    {startedAtOrLater} is null
+                    OR {startedAtOrLater} <= [oi].[Lifecycle_StartedAt]
+                )
+                AND (
+                    {terminatedAtOrEarlier} is null
+                    OR [oi].[Lifecycle_TerminatedAt] <= {terminatedAtOrEarlier}
+                )
+                AND (
+                    {scheduledAtOrLater} is null
+                    OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
+                )
+            UNION
+            -- ************************************************************************
+            --   Only 'Brs_023_027'
+            -- ************************************************************************
+            SELECT
+                [oi].[Id],
+                [oi].[ActorMessageId],
+                [oi].[IdempotencyKey],
+                [oi].[MeteringPointId],
+                [oi].[OrchestrationDescriptionId],
+                [oi].[RowVersion],
+                [oi].[TransactionId],
+                [oi].[CustomState] as CustomState_SerializedValue,
+                [oi].[ParameterValue] as ParameterValue_SerializedValue,
+                [oi].[Lifecycle_CreatedAt],
+                [oi].[Lifecycle_QueuedAt],
+                [oi].[Lifecycle_ScheduledToRunAt],
+                [oi].[Lifecycle_StartedAt],
+                [oi].[Lifecycle_State],
+                [oi].[Lifecycle_TerminatedAt],
+                [oi].[Lifecycle_TerminationState],
+                [oi].[Lifecycle_CanceledBy_ActorNumber],
+                [oi].[Lifecycle_CanceledBy_ActorRole],
+                [oi].[Lifecycle_CanceledBy_IdentityType],
+                [oi].[Lifecycle_CanceledBy_UserId],
+                [oi].[Lifecycle_CreatedBy_ActorNumber],
+                [oi].[Lifecycle_CreatedBy_ActorRole],
+                [oi].[Lifecycle_CreatedBy_IdentityType],
+                [oi].[Lifecycle_CreatedBy_UserId]
+            FROM
+                [pm].[OrchestrationDescription] AS [od]
+            INNER JOIN
+                [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
+            LEFT JOIN
+                [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
+            WHERE
+                [od].[Name] = 'Brs_023_027'
+                AND [od].[Name] IN (
+                    SELECT [names].[value]
+                    FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                )
+                AND (
+                    {lifecycleStates} is null
+                    OR [oi].[Lifecycle_State] IN (
+                        SELECT [lifecyclestates].[value]
+                        FROM OPENJSON({lifecycleStates}) WITH ([value] int '$') AS [lifecyclestates])
+                )
+                AND (
+                    {terminationState} is null
+                    OR [oi].[Lifecycle_TerminationState] = {terminationState}
+                )
+                AND (
+                    {startedAtOrLater} is null
+                    OR {startedAtOrLater} <= [oi].[Lifecycle_StartedAt]
+                )
+                AND (
+                    {terminatedAtOrEarlier} is null
+                    OR [oi].[Lifecycle_TerminatedAt] <= {terminatedAtOrEarlier}
+                )
+                AND (
+                    {scheduledAtOrLater} is null
+                    OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
+                )
+                AND (
+                    {wholesaleIsInternalCalculation} is null
+                    OR (
+                        CAST(CHOOSE(ISJSON([oi].[ParameterValue]) + 1, null, JSON_VALUE([oi].[ParameterValue],'$.IsInternalCalculation')) AS nvarchar(10)) = {wholesaleIsInternalCalculation}
+                    )
+                )
+                AND (
+                    {wholesaleCalculationTypes} is null
+                    OR (
+                        CAST(CHOOSE(ISJSON([oi].[ParameterValue]) + 1, -1, JSON_VALUE([oi].[ParameterValue],'$.CalculationType')) AS int) IN (
+                            SELECT [calculationtypes].[value]
+                            FROM OPENJSON({wholesaleCalculationTypes}) WITH ([value] int '$') AS [calculationtypes]
+                        )
+                    )
+                )
+            UNION
+            -- ************************************************************************
+            --   Only 'Brs_021_CapacitySettlementCalculation'
+            -- ************************************************************************
+            SELECT
+                [oi].[Id],
+                [oi].[ActorMessageId],
+                [oi].[IdempotencyKey],
+                [oi].[MeteringPointId],
+                [oi].[OrchestrationDescriptionId],
+                [oi].[RowVersion],
+                [oi].[TransactionId],
+                [oi].[CustomState] as CustomState_SerializedValue,
+                [oi].[ParameterValue] as ParameterValue_SerializedValue,
+                [oi].[Lifecycle_CreatedAt],
+                [oi].[Lifecycle_QueuedAt],
+                [oi].[Lifecycle_ScheduledToRunAt],
+                [oi].[Lifecycle_StartedAt],
+                [oi].[Lifecycle_State],
+                [oi].[Lifecycle_TerminatedAt],
+                [oi].[Lifecycle_TerminationState],
+                [oi].[Lifecycle_CanceledBy_ActorNumber],
+                [oi].[Lifecycle_CanceledBy_ActorRole],
+                [oi].[Lifecycle_CanceledBy_IdentityType],
+                [oi].[Lifecycle_CanceledBy_UserId],
+                [oi].[Lifecycle_CreatedBy_ActorNumber],
+                [oi].[Lifecycle_CreatedBy_ActorRole],
+                [oi].[Lifecycle_CreatedBy_IdentityType],
+                [oi].[Lifecycle_CreatedBy_UserId]
+            FROM
+                [pm].[OrchestrationDescription] AS [od]
+            INNER JOIN
+                [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
+            LEFT JOIN
+                [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
+            WHERE
+                [od].[Name] = 'Brs_021_CapacitySettlementCalculation'
+                AND [od].[Name] IN (
+                    SELECT [names].[value]
+                    FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                )
+                AND (
+                    {lifecycleStates} is null
+                    OR [oi].[Lifecycle_State] IN (
+                        SELECT [lifecyclestates].[value]
+                        FROM OPENJSON({lifecycleStates}) WITH ([value] int '$') AS [lifecyclestates])
+                )
+                AND (
+                    {terminationState} is null
+                    OR [oi].[Lifecycle_TerminationState] = {terminationState}
+                )
+                AND (
+                    {startedAtOrLater} is null
+                    OR {startedAtOrLater} <= [oi].[Lifecycle_StartedAt]
+                )
+                AND (
+                    {terminatedAtOrEarlier} is null
+                    OR [oi].[Lifecycle_TerminatedAt] <= {terminatedAtOrEarlier}
+                )
+                AND (
+                    {scheduledAtOrLater} is null
+                    OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
+                )
+            """;
+    }
+
+    /// <summary>
+    /// Build a dictionary of relevant orchestration description unique names.
+    /// We can use this to combine orchestration instances with their
+    /// orchestration description unique name counterpart.
+    /// </summary>
+    private async Task<IReadOnlyDictionary<OrchestrationDescriptionId, OrchestrationDescriptionUniqueName>>
+        GetUniqueNamesByIdDictionaryAsync(
+            IReadOnlyCollection<string> orchestrationDescriptionNames)
+    {
+        var orchestrationDescriptions = await _readerContext
+            .OrchestrationDescriptions
+                .Where(x => orchestrationDescriptionNames.Contains(x.UniqueName.Name))
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        return orchestrationDescriptions
+            .Select(x => new KeyValuePair<OrchestrationDescriptionId, OrchestrationDescriptionUniqueName>(x.Id, x.UniqueName))
+            .ToDictionary();
     }
 }

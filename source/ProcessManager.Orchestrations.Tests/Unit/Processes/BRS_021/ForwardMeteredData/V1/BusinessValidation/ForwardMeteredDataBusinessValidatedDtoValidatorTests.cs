@@ -246,11 +246,11 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     }
 
     [Fact]
-    public async Task Given_InvalidMeteringPoint_When_Validate_Then_ValidationError()
+    public async Task Given_InvalidMeteringPointType_When_Validate_Then_ValidationError()
     {
-        var invalidMeteringPoint = MeteringPointType.ElectricalHeating;
+        var invalidMeteringPoint = "InvalidMeteringPointType";
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteringPointType(invalidMeteringPoint.Name)
+            .WithMeteringPointType(invalidMeteringPoint)
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -262,7 +262,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                         GridAreaCode: new GridAreaCode("804"),
                         GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
                         ConnectionState: ConnectionState.Connected,
-                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+                        MeteringPointType: MeteringPointType.ElectricalHeating,
                         MeteringPointSubType: MeteringPointSubType.Physical,
                         MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
                         ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),

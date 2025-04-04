@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <PackageId>Energinet.DataHub.ProcessManager.Components.Abstractions</PackageId>
-    <PackageVersion>1.5.1$(VersionSuffix)</PackageVersion>
+    <PackageVersion>1.5.2$(VersionSuffix)</PackageVersion>
     <Title>DH3 Process Manager Components Abstractions library</Title>
     <Company>Energinet-DataHub</Company>
     <Authors>Energinet-DataHub</Authors>

@@ -21,10 +21,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// A model containing the data required for notifying market actors when new calculated measurement has been calculated.
 /// </summary>
 public record CalculatedMeasurementsV1(
-    string OriginalActorMessageId,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
-    string ProductNumber,
     DateTimeOffset RegistrationDateTime,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,

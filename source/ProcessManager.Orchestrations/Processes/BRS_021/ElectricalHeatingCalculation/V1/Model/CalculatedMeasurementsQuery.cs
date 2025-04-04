@@ -103,11 +103,14 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
     private Task<CalculatedMeasurementsV1> CreateCalculatedMeasurementsV1Async(
         IReadOnlyCollection<CalculatedMeasurement> calculatedMeasurements)
     {
+        // TODO AJW
+        var firstCalculatedMeasurement = calculatedMeasurements.First();
+
         return Task.FromResult(
             new CalculatedMeasurementsV1(
-                MeteringPointId: calculatedMeasurements.First().MeteringPointId,
-                MeteringPointType: MeteringPointType.NotUsed,
-                RegistrationDateTime: DateTimeOffset.Now,
+                MeteringPointId: firstCalculatedMeasurement.MeteringPointId,
+                MeteringPointType: CalculatedMeasurementsMeteringPointTypeMapper.FromDeltaTableValue(firstCalculatedMeasurement.MeteringPointType),
+                RegistrationDateTime: firstCalculatedMeasurement.TransactionCreationDatetime.ToDateTimeOffset(),
                 StartDateTime: DateTimeOffset.Now,
                 EndDateTime: DateTimeOffset.Now,
                 ReceiversWithMeteredData: Mapper(calculatedMeasurements)));
@@ -115,10 +118,11 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
 
     private IReadOnlyCollection<ReceiversWithMeasurementsV1> Mapper(IReadOnlyCollection<CalculatedMeasurement> calculatedMeasurements)
     {
+        // TODO AJW
         return calculatedMeasurements.Select(x => new ReceiversWithMeasurementsV1(
             Actors: new List<MarketActorRecipientV1>(),
-            Resolution: Resolution.Daily,
-            MeasureUnit: MeasurementUnit.KilowattHour,
+            Resolution: ResolutionMapper.FromDeltaTableValue(x.Resolution),
+            MeasureUnit: MeasurementUnitMapper.FromDeltaTableValue(x.QuantityUnit),
             StartDateTime: DateTimeOffset.Now,
             EndDateTime: DateTimeOffset.Now,
             Measurements: new List<ReceiversWithMeasurementsV1.AcceptedMeasurements>()))

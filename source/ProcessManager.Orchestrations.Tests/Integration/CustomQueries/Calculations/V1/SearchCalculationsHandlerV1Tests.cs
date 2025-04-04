@@ -78,7 +78,7 @@ public class SearchCalculationsHandlerV1Tests :
 
         // Crazy, but if we don't wait a bit it's as if the data isn't cleared if we run all tests at once.
         // It caused the exception "Microsoft.Data.SqlClient.SqlException : JSON text is not properly formatted. Unexpected character '.' is found at position 0.".
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        await Task.Delay(TimeSpan.FromMilliseconds(500));
     }
 
     public async Task DisposeAsync()

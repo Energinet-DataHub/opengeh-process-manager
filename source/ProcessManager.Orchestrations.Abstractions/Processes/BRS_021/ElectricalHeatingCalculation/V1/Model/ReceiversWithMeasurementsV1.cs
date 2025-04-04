@@ -35,7 +35,6 @@ public record ReceiversWithMeasurementsV1(
 {
     public record AcceptedMeasurements(
         int Position,
-        // TODO: Are these two optional?
-        decimal? EnergyQuantity,
-        Quality? QuantityQuality);
+        decimal EnergyQuantity,
+        Quality QuantityQuality);
 }

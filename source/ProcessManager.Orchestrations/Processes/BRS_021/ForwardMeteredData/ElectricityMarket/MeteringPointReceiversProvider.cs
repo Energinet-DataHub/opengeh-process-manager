@@ -70,15 +70,7 @@ public class MeteringPointReceiversProvider(
                 }));
 
         // Ensure master data is sorted by ValidFrom
-        var masterDataDictionary = meteringPointMasterDataList
-            .ToDictionary(
-                mpmd =>
-                {
-                    var masterDataValidFrom = mpmd.ValidFrom.ToInstant();
-                    var inputValidFrom = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
-
-                    return Instant.Max(masterDataValidFrom, inputValidFrom);
-                });
+        var masterDataDictionary = meteringPointMasterDataList.ToDictionary(mpmd => mpmd.ValidFrom.ToInstant());
 
         // The input is already validated, so this parsing should never fail
         var totalPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;

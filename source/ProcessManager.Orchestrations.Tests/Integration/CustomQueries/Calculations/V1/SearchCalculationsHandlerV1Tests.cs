@@ -510,7 +510,7 @@ public class SearchCalculationsHandlerV1Tests :
 
     /// <summary>
     /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
-    /// cause exceptions  if there isn't JSON in the columns.
+    /// cause exceptions if there isn't JSON in the columns.
     /// </summary>
     [Fact]
     public async Task Given_CalculationsForGridAreas_When_SearchByAnotherGridArea_Then_ResultIsEmpty()
@@ -558,7 +558,7 @@ public class SearchCalculationsHandlerV1Tests :
 
     /// <summary>
     /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
-    /// cause exceptions  if there isn't JSON in the columns.
+    /// cause exceptions if there isn't JSON in the columns.
     /// </summary>
     [Fact]
     public async Task Given_InternalCalculation_When_SearchByIsInternalCalculation_Then_AggregationCalculationIsRetrieved()
@@ -585,7 +585,7 @@ public class SearchCalculationsHandlerV1Tests :
 
     /// <summary>
     /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
-    /// cause exceptions  if there isn't JSON in the columns.
+    /// cause exceptions if there isn't JSON in the columns.
     /// </summary>
     [Fact]
     public async Task Given_WholesaleCalculationsDataset_When_SearchByCalculationTypes_Then_ExpectedCalculationsAreRetrieved()
@@ -615,7 +615,7 @@ public class SearchCalculationsHandlerV1Tests :
 
     /// <summary>
     /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
-    /// cause exceptions  if there isn't JSON in the columns.
+    /// cause exceptions if there isn't JSON in the columns.
     /// </summary>
     [Fact]
     public async Task Given_CapacitySettlementDataset_When_SearchByPeriodWhichDoesNotContainCalculations_Then_ResultIsEmpty()
@@ -716,7 +716,7 @@ public class SearchCalculationsHandlerV1Tests :
 
     /// <summary>
     /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
-    /// cause exceptions  if there isn't JSON in the columns.
+    /// cause exceptions if there isn't JSON in the columns.
     /// </summary>
     [Fact]
     public async Task Given_CapacitySettlementAndWholesaleDataset_When_SearchByPeriodWhichContainsCalculationFromBothDataets_Then_ExpectedCalculationsAreRetrieved()

@@ -31,11 +31,7 @@ internal static class CalculationsQueryV1Extensions
 
         if (orchestrationDescriptionNames == null)
         {
-            orchestrationDescriptionNames = [
-                Brs_021_ElectricalHeatingCalculation.Name,
-                Brs_021_CapacitySettlementCalculation.Name,
-                Brs_021_NetConsumptionCalculation.Name,
-                Brs_023_027.Name];
+            orchestrationDescriptionNames = [.. CalculationsQueryResultMapperV1.SupportedOrchestrationDescriptionNames];
         }
 
         if (query.IsInternalCalculation.HasValue && query.IsInternalCalculation == true)

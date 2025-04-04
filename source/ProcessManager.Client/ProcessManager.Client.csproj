@@ -68,6 +68,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\Shared\Api\Json\JsonPolymorphicItemContainer.cs" Link="Api\Json\JsonPolymorphicItemContainer.cs" />
     <Compile Include="..\Shared\Extensions\ServiceBusMessageBodyFormat.cs">
       <Link>Extensions\ServiceBusMessageBodyFormat.cs</Link>
     </Compile>

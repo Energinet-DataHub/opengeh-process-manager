@@ -4,6 +4,10 @@
 
 - Add `IEnqueueAcceptedDataDto` and `IEnqueueRejectedDataDto` interfaces.
 
+## Version 1.5.2
+
+- Update NuGet packages.
+
 ## Version 1.5.1
 
 - No functional changes.

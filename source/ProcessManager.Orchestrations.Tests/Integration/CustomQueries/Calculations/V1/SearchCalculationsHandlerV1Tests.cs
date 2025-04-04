@@ -692,6 +692,32 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.February2025.Id.Value);
     }
 
+    [Fact]
+    public async Task Given_CapacitySettlementAndWholesaleDataset_When_SearchByPeriodWhichContainsCalculationFromBothDataets_Then_ExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+        var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            // Query for 23/2/2025 - 1/3/2025 (not inclusive)
+            PeriodStartDate = new DateTimeOffset(2025, 2, 22, 23, 00, 00, TimeSpan.Zero), // Wintertime
+            PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == capacitySettlementInstances.February2025.Id.Value,
+                result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == wholesaleInstances.WholesaleFixing.Id.Value);
+    }
+
     private async Task<(
             OrchestrationInstance October2024,
             OrchestrationInstance February2025)>

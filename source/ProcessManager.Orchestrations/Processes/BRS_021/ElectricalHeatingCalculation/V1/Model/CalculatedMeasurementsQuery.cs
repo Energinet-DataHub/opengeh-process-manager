@@ -110,7 +110,6 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
                 OriginalActorMessageId: " ",
                 MeteringPointId: calculatedMeasurements.First().MeteringPointId,
                 MeteringPointType: MeteringPointType.NotUsed,
-                ProductNumber: " ",
                 RegistrationDateTime: DateTimeOffset.Now,
                 StartDateTime: DateTimeOffset.Now,
                 EndDateTime: DateTimeOffset.Now,

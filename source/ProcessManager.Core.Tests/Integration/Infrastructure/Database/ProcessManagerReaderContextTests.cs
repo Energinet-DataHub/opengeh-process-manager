@@ -245,58 +245,105 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
 
         var actualFlatResults = await readerContext.Database
             .SqlQuery<OrchestrationInstanceCustomQueryRow>($"""
+                WITH CommonFilter_CTE (
+                    OrchestrationDescription_Name,
+                    OrchestrationDescription_Version,
+
+                    [Id],
+                    [ParameterValue],
+                    [CustomState],
+                    [IdempotencyKey],
+                    [ActorMessageId],
+                    [TransactionId],
+                    [MeteringPointId],
+
+                    [Lifecycle_CreatedAt],
+                    [Lifecycle_QueuedAt],
+                    [Lifecycle_ScheduledToRunAt],
+                    [Lifecycle_StartedAt],
+                    [Lifecycle_State],
+                    [Lifecycle_TerminatedAt],
+                    [Lifecycle_TerminationState],
+
+                    [Lifecycle_CreatedBy_IdentityType],
+                    [Lifecycle_CreatedBy_ActorNumber],
+                    [Lifecycle_CreatedBy_ActorRole],
+                    [Lifecycle_CreatedBy_UserId],
+
+                    [Lifecycle_CanceledBy_IdentityType],
+                    [Lifecycle_CanceledBy_ActorNumber],
+                    [Lifecycle_CanceledBy_ActorRole],
+                    [Lifecycle_CanceledBy_UserId],
+
+                    Step_Description,
+                    Step_Sequence,
+                    Step_CustomState,
+
+                    Step_Lifecycle_CanBeSkipped,
+                    Step_Lifecycle_StartedAt,
+                    Step_Lifecycle_State,
+                    Step_Lifecycle_TerminatedAt,
+                    Step_Lifecycle_TerminationState
+                )
+                AS (
+                    SELECT
+                        [od].[Name] as OrchestrationDescription_Name,
+                        [od].[Version] as OrchestrationDescription_Version,
+
+                        [oi].[Id],
+                        [oi].[ParameterValue],
+                        [oi].[CustomState],
+                        [oi].[IdempotencyKey],
+                        [oi].[ActorMessageId],
+                        [oi].[TransactionId],
+                        [oi].[MeteringPointId],
+
+                        [oi].[Lifecycle_CreatedAt],
+                        [oi].[Lifecycle_QueuedAt],
+                        [oi].[Lifecycle_ScheduledToRunAt],
+                        [oi].[Lifecycle_StartedAt],
+                        [oi].[Lifecycle_State],
+                        [oi].[Lifecycle_TerminatedAt],
+                        [oi].[Lifecycle_TerminationState],
+
+                        [oi].[Lifecycle_CreatedBy_IdentityType],
+                        [oi].[Lifecycle_CreatedBy_ActorNumber],
+                        [oi].[Lifecycle_CreatedBy_ActorRole],
+                        [oi].[Lifecycle_CreatedBy_UserId],
+
+                        [oi].[Lifecycle_CanceledBy_IdentityType],
+                        [oi].[Lifecycle_CanceledBy_ActorNumber],
+                        [oi].[Lifecycle_CanceledBy_ActorRole],
+                        [oi].[Lifecycle_CanceledBy_UserId],
+
+                        [si].[Description] as Step_Description,
+                        [si].[Sequence] as Step_Sequence,
+                        [si].[CustomState] as Step_CustomState,
+
+                        [si].[Lifecycle_CanBeSkipped] as Step_Lifecycle_CanBeSkipped,
+                        [si].[Lifecycle_StartedAt] as Step_Lifecycle_StartedAt,
+                        [si].[Lifecycle_State] as Step_Lifecycle_State,
+                        [si].[Lifecycle_TerminatedAt] as Step_Lifecycle_TerminatedAt,
+                        [si].[Lifecycle_TerminationState] as Step_Lifecycle_TerminationState
+                    FROM
+                        [pm].[OrchestrationDescription] AS [od]
+                    INNER JOIN
+                        [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
+                    LEFT JOIN
+                        [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
+                    WHERE
+                        [od].[Name] IN (
+                            SELECT [names].[value]
+                            FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                        )
+                )
+
                 SELECT
-                    [od].[Name] as OrchestrationDescription_Name,
-                    [od].[Version] as OrchestrationDescription_Version,
-
-                    [oi].[Id],
-                    [oi].[ParameterValue],
-                    [oi].[CustomState],
-                    [oi].[IdempotencyKey],
-                    [oi].[ActorMessageId],
-                    [oi].[TransactionId],
-                    [oi].[MeteringPointId],
-
-                    [oi].[Lifecycle_CreatedAt],
-                    [oi].[Lifecycle_QueuedAt],
-                    [oi].[Lifecycle_ScheduledToRunAt],
-                    [oi].[Lifecycle_StartedAt],
-                    [oi].[Lifecycle_State],
-                    [oi].[Lifecycle_TerminatedAt],
-                    [oi].[Lifecycle_TerminationState],
-
-                    [oi].[Lifecycle_CreatedBy_IdentityType],
-                    [oi].[Lifecycle_CreatedBy_ActorNumber],
-                    [oi].[Lifecycle_CreatedBy_ActorRole],
-                    [oi].[Lifecycle_CreatedBy_UserId],
-
-                    [oi].[Lifecycle_CanceledBy_IdentityType],
-                    [oi].[Lifecycle_CanceledBy_ActorNumber],
-                    [oi].[Lifecycle_CanceledBy_ActorRole],
-                    [oi].[Lifecycle_CanceledBy_UserId],
-
-                    [si].[Description] as Step_Description,
-                    [si].[Sequence] as Step_Sequence,
-                    [si].[CustomState] as Step_CustomState,
-
-                    [si].[Lifecycle_CanBeSkipped] as Step_Lifecycle_CanBeSkipped,
-                    [si].[Lifecycle_StartedAt] as Step_Lifecycle_StartedAt,
-                    [si].[Lifecycle_State] as Step_Lifecycle_State,
-                    [si].[Lifecycle_TerminatedAt] as Step_Lifecycle_TerminatedAt,
-                    [si].[Lifecycle_TerminationState] as Step_Lifecycle_TerminationState
+                    *
                 FROM
-                    [pm].[OrchestrationDescription] AS [od]
-                INNER JOIN
-                    [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
-                LEFT JOIN
-                    [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
+                    CommonFilter_CTE as [cf]
                 WHERE
-                    [od].[Name] IN (
-                        SELECT [names].[value]
-                        FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
-                    )
-                    AND CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
-                ORDER BY [od].[Id], [oi].[Id], [si].[Sequence]
+                    CAST(JSON_VALUE([cf].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
                 """)
             .ToListAsync();
         ////var actualObjectResult = actualFlatResult

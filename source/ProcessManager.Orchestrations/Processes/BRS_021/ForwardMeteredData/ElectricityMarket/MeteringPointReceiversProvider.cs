@@ -126,6 +126,8 @@ public class MeteringPointReceiversProvider(
             };
 
             var receiversWithMeteredData = CreateReceiversWithMeteredData(
+                masterDataElement.ValidFrom.ToInstant(),
+                masterDataElement.ValidTo.ToInstant(),
                 masterDataElement,
                 sortedMeteredData.Values);
             return [receiversWithMeteredData];
@@ -184,7 +186,7 @@ public class MeteringPointReceiversProvider(
         }
 
         return masterDataWithMeteredDataList
-            .Select(md => CreateReceiversWithMeteredData(md.MasterData, md.MeteredDataList))
+            .Select(md => CreateReceiversWithMeteredData(md.ValidFrom, md.ValidTo, md.MasterData, md.MeteredDataList))
             .ToList();
     }
 
@@ -211,6 +213,8 @@ public class MeteringPointReceiversProvider(
     }
 
     private ReceiversWithMeteredDataV1 CreateReceiversWithMeteredData(
+        Instant validFrom,
+        Instant validTo,
         MeteringPointMasterData masterData,
         IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> meteredDataForMasterDataPeriod)
     {
@@ -220,8 +224,8 @@ public class MeteringPointReceiversProvider(
             Actors: actorReceivers,
             Resolution: masterData.Resolution,
             MeasureUnit: masterData.MeasurementUnit,
-            StartDateTime: masterData.ValidFrom,
-            EndDateTime: masterData.ValidTo,
+            StartDateTime: validFrom.ToDateTimeOffset(),
+            EndDateTime: validTo.ToDateTimeOffset(),
             MeteredData: meteredDataForMasterDataPeriod);
     }
 

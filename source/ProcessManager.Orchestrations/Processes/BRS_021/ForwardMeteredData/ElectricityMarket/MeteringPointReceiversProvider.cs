@@ -126,21 +126,19 @@ public class MeteringPointReceiversProvider(
             };
 
             var receiversWithMeteredData = CreateReceiversWithMeteredData(
-                masterDataElement.ValidFrom.ToInstant(),
-                masterDataElement.ValidTo.ToInstant(),
-                masterDataElement,
-                sortedMeteredData.Values);
+                new MasterDataWithMeteredData(
+                    masterDataElement,
+                    totalPeriodStart,
+                    totalPeriodEnd,
+                    [.. sortedMeteredData.Values]));
+
             return [receiversWithMeteredData];
         }
 
         var currentTimestamp = totalPeriodStart;
 
         var firstMasterData = masterData.Values.First();
-        var currentMasterData = new MasterDataWithMeteredData(
-            MasterData: firstMasterData,
-            ValidFrom: Instant.Max(firstMasterData.ValidFrom.ToInstant(), totalPeriodStart),
-            ValidTo: firstMasterData.ValidTo.ToInstant(),
-            MeteredDataList: []);
+        var currentMasterData = new MasterDataWithMeteredData(firstMasterData, totalPeriodStart, totalPeriodEnd, []);
 
         List<MasterDataWithMeteredData> masterDataWithMeteredDataList = [currentMasterData];
 
@@ -159,11 +157,7 @@ public class MeteringPointReceiversProvider(
                 if (!masterData.TryGetValue(currentTimestamp, out var nextMasterData))
                     throw new InvalidOperationException($"The master data for the current timestamp is missing (MeteringPointId={currentMasterData.MasterData.MeteringPointId.Value}, Position={meteredData.Position}, CurrentTimestamp={currentTimestamp})");
 
-                currentMasterData = new MasterDataWithMeteredData(
-                    MasterData: nextMasterData,
-                    ValidFrom: nextMasterData.ValidFrom.ToInstant(),
-                    ValidTo: Instant.Min(nextMasterData.ValidTo.ToInstant(), totalPeriodEnd),
-                    MeteredDataList: []);
+                currentMasterData = new MasterDataWithMeteredData(nextMasterData, totalPeriodStart, totalPeriodEnd, []);
 
                 // Add the new master data with metered data to the list
                 masterDataWithMeteredDataList.Add(currentMasterData);
@@ -186,7 +180,7 @@ public class MeteringPointReceiversProvider(
         }
 
         return masterDataWithMeteredDataList
-            .Select(md => CreateReceiversWithMeteredData(md.ValidFrom, md.ValidTo, md.MasterData, md.MeteredDataList))
+            .Select(md => CreateReceiversWithMeteredData(md))
             .ToList();
     }
 
@@ -213,20 +207,17 @@ public class MeteringPointReceiversProvider(
     }
 
     private ReceiversWithMeteredDataV1 CreateReceiversWithMeteredData(
-        Instant validFrom,
-        Instant validTo,
-        MeteringPointMasterData masterData,
-        IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> meteredDataForMasterDataPeriod)
+        MasterDataWithMeteredData masterDataWithMeteredData)
     {
-        var actorReceivers = GetReceiversFromMasterData(masterData);
+        var actorReceivers = GetReceiversFromMasterData(masterDataWithMeteredData.MasterData);
 
         return new ReceiversWithMeteredDataV1(
             Actors: actorReceivers,
-            Resolution: masterData.Resolution,
-            MeasureUnit: masterData.MeasurementUnit,
-            StartDateTime: validFrom.ToDateTimeOffset(),
-            EndDateTime: validTo.ToDateTimeOffset(),
-            MeteredData: meteredDataForMasterDataPeriod);
+            Resolution: masterDataWithMeteredData.MasterData.Resolution,
+            MeasureUnit: masterDataWithMeteredData.MasterData.MeasurementUnit,
+            StartDateTime: masterDataWithMeteredData.ValidFrom.ToDateTimeOffset(),
+            EndDateTime: masterDataWithMeteredData.ValidTo.ToDateTimeOffset(),
+            MeteredData: masterDataWithMeteredData.MeteredDataList);
     }
 
     private List<MarketActorRecipientV1> GetReceiversFromMasterData(
@@ -320,9 +311,38 @@ public class MeteringPointReceiversProvider(
         ActorNumber.Create(DataHubDetails.SystemOperatorNumber),
         ActorRole.SystemOperator);
 
-    private record MasterDataWithMeteredData(
-        MeteringPointMasterData MasterData,
-        Instant ValidFrom,
-        Instant ValidTo,
-        List<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredDataList);
+    private record MasterDataWithMeteredData
+    {
+        public MasterDataWithMeteredData(
+            MeteringPointMasterData masterData,
+            Instant inputPeriodStart,
+            Instant inputPeriodEnd,
+            List<ReceiversWithMeteredDataV1.AcceptedMeteredData> meteredDataList)
+        {
+            MasterData = masterData;
+            ValidFrom = Instant.Max(inputPeriodStart, masterData.ValidFrom.ToInstant());
+            ValidTo = Instant.Min(inputPeriodEnd, masterData.ValidTo.ToInstant());
+            MeteredDataList = meteredDataList;
+        }
+
+        public MeteringPointMasterData MasterData { get; }
+
+        public Instant ValidFrom { get; }
+
+        public Instant ValidTo { get; }
+
+        public List<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredDataList { get; }
+
+        public void Deconstruct(
+            out MeteringPointMasterData masterData,
+            out Instant validFrom,
+            out Instant validTo,
+            out List<ReceiversWithMeteredDataV1.AcceptedMeteredData> meteredDataList)
+        {
+            masterData = MasterData;
+            validFrom = ValidFrom;
+            validTo = ValidTo;
+            meteredDataList = MeteredDataList;
+        }
+    }
 }

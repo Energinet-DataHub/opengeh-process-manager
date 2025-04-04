@@ -414,7 +414,7 @@ public class MeteringPointReceiversProviderTests
 
     [Fact]
     public void
-        Given_OneMasterDataPeriodWhichExceedsStartAndEndPeriodOfData_When_GetReceivers_Then_OnePackageWithBoundedStartAndEndDates()
+        Given_OneMasterDataPeriodWhichExceedsStartAndEndPeriodOfInput_When_GetReceivers_Then_OnePackageWithBoundedStartAndEndDates()
     {
         var masterData = CreateMasterData(
             MeteringPointType.Consumption,
@@ -440,14 +440,14 @@ public class MeteringPointReceiversProviderTests
             forwardMeteredDataInput);
 
         var package = receiversWithMeteredData.Should().ContainSingle().Subject;
-        package.StartDateTime.Should().Be(new DateTimeOffset(2025, 2, 1, 23, 0, 0, TimeSpan.Zero));
-        package.EndDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
+        package.StartDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.StartDateTime));
+        package.EndDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.EndDateTime!));
         package.MeteredData.Should().HaveCount(649);
     }
 
     [Fact]
     public void
-        Given_OneMasterDataPeriodWhichExceedsStartPeriodOfData_When_GetReceivers_Then_OnePackageWithBoundedStartDate()
+        Given_OneMasterDataPeriodWhichExceedsStartPeriodOfInput_When_GetReceivers_Then_OnePackageWithBoundedStartDate()
     {
         var masterData = CreateMasterData(
             MeteringPointType.Consumption,
@@ -473,14 +473,14 @@ public class MeteringPointReceiversProviderTests
             forwardMeteredDataInput);
 
         var package = receiversWithMeteredData.Should().ContainSingle().Subject;
-        package.StartDateTime.Should().Be(new DateTimeOffset(2025, 2, 1, 23, 0, 0, TimeSpan.Zero));
-        package.EndDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
+        package.StartDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.StartDateTime));
+        package.EndDateTime.Should().Be(masterData.ValidTo);
         package.MeteredData.Should().HaveCount(649);
     }
 
     [Fact]
     public void
-        Given_OneMasterDataPeriodWhichExceedsEndPeriodOfData_When_GetReceivers_Then_OnePackageWithBoundedEndDate()
+        Given_OneMasterDataPeriodWhichExceedsEndPeriodOfInput_When_GetReceivers_Then_OnePackageWithBoundedEndDate()
     {
         var masterData = CreateMasterData(
             MeteringPointType.Consumption,
@@ -506,14 +506,14 @@ public class MeteringPointReceiversProviderTests
             forwardMeteredDataInput);
 
         var package = receiversWithMeteredData.Should().ContainSingle().Subject;
-        package.StartDateTime.Should().Be(new DateTimeOffset(2025, 2, 1, 23, 0, 0, TimeSpan.Zero));
-        package.EndDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
+        package.StartDateTime.Should().Be(masterData.ValidFrom);
+        package.EndDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.EndDateTime!));
         package.MeteredData.Should().HaveCount(649);
     }
 
     [Fact]
     public void
-        Given_TwoMasterDataPeriodsWhichExceedsStartAndEndPeriodOfData_When_GetReceivers_Then_TwoPackagesWithBoundedStartAndEndDates()
+        Given_TwoMasterDataPeriodsWhichExceedsStartAndEndPeriodOfInput_When_GetReceivers_Then_TwoPackagesWithBoundedStartAndEndDates()
     {
         var masterData1 = CreateMasterData(
             MeteringPointType.Consumption,
@@ -546,19 +546,19 @@ public class MeteringPointReceiversProviderTests
         using var assertionScope = new AssertionScope();
         receiversWithMeteredData.Should().HaveCount(2);
         var first = receiversWithMeteredData.First();
-        first.StartDateTime.Should().Be(new DateTimeOffset(2025, 2, 1, 0, 0, 0, TimeSpan.Zero));
-        first.EndDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
+        first.StartDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.StartDateTime));
+        first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.MeteredData.Should().HaveCount(28);
 
         var second = receiversWithMeteredData.Last();
-        second.StartDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
-        second.EndDateTime.Should().Be(new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero));
+        second.StartDateTime.Should().Be(masterData2.ValidFrom);
+        second.EndDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.EndDateTime!));
         second.MeteredData.Should().HaveCount(31);
     }
 
     [Fact]
     public void
-        Given_TwoMasterDataPeriodsWhichExceedsStartPeriodOfData_When_GetReceivers_Then_TwoPackagesWithBoundedStartDate()
+        Given_TwoMasterDataPeriodsWhichExceedsStartPeriodOfInput_When_GetReceivers_Then_TwoPackagesWithBoundedStartDate()
     {
         var masterData1 = CreateMasterData(
             MeteringPointType.Consumption,
@@ -591,19 +591,19 @@ public class MeteringPointReceiversProviderTests
         using var assertionScope = new AssertionScope();
         receiversWithMeteredData.Should().HaveCount(2);
         var first = receiversWithMeteredData.First();
-        first.StartDateTime.Should().Be(new DateTimeOffset(2025, 2, 1, 0, 0, 0, TimeSpan.Zero));
-        first.EndDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
+        first.StartDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.StartDateTime));
+        first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.MeteredData.Should().HaveCount(28);
 
         var second = receiversWithMeteredData.Last();
-        second.StartDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
-        second.EndDateTime.Should().Be(new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero));
+        second.StartDateTime.Should().Be(masterData2.ValidFrom);
+        second.EndDateTime.Should().Be(masterData2.ValidTo);
         second.MeteredData.Should().HaveCount(31);
     }
 
     [Fact]
     public void
-        Given_TwoMasterDataPeriodsWhichExceedsEndPeriodOfData_When_GetReceivers_Then_TwoPackagesWithBoundedEndDate()
+        Given_TwoMasterDataPeriodsWhichExceedsEndPeriodOfInput_When_GetReceivers_Then_TwoPackagesWithBoundedEndDate()
     {
         var masterData1 = CreateMasterData(
             MeteringPointType.Consumption,
@@ -636,19 +636,19 @@ public class MeteringPointReceiversProviderTests
         using var assertionScope = new AssertionScope();
         receiversWithMeteredData.Should().HaveCount(2);
         var first = receiversWithMeteredData.First();
-        first.StartDateTime.Should().Be(new DateTimeOffset(2025, 2, 1, 0, 0, 0, TimeSpan.Zero));
-        first.EndDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
+        first.StartDateTime.Should().Be(masterData1.ValidFrom);
+        first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.MeteredData.Should().HaveCount(28);
 
         var second = receiversWithMeteredData.Last();
-        second.StartDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
-        second.EndDateTime.Should().Be(new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero));
+        second.StartDateTime.Should().Be(masterData2.ValidFrom);
+        second.EndDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.EndDateTime!));
         second.MeteredData.Should().HaveCount(31);
     }
 
     [Fact]
     public void
-        Given_ThreeMasterDataPeriodsWhichExceedsStartAndEndPeriodOfData_When_GetReceivers_Then_ThreePackagesWithBoundedStartAndEndDates()
+        Given_ThreeMasterDataPeriodsWhichExceedsStartAndEndPeriodOfInput_When_GetReceivers_Then_ThreePackagesWithBoundedStartAndEndDates()
     {
         var masterData1 = CreateMasterData(
             MeteringPointType.Consumption,
@@ -686,24 +686,24 @@ public class MeteringPointReceiversProviderTests
         using var assertionScope = new AssertionScope();
         receiversWithMeteredData.Should().HaveCount(3);
         var first = receiversWithMeteredData.First();
-        first.StartDateTime.Should().Be(new DateTimeOffset(2025, 2, 1, 0, 0, 0, TimeSpan.Zero));
-        first.EndDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
+        first.StartDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.StartDateTime));
+        first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.MeteredData.Should().HaveCount(28);
 
         var second = receiversWithMeteredData[1];
-        second.StartDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
-        second.EndDateTime.Should().Be(new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero));
+        second.StartDateTime.Should().Be(masterData2.ValidFrom);
+        second.EndDateTime.Should().Be(masterData2.ValidTo);
         second.MeteredData.Should().HaveCount(31);
 
         var third = receiversWithMeteredData.Last();
-        third.StartDateTime.Should().Be(new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero));
-        third.EndDateTime.Should().Be(new DateTimeOffset(2025, 5, 1, 0, 0, 0, TimeSpan.Zero));
+        third.StartDateTime.Should().Be(masterData3.ValidFrom);
+        third.EndDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.EndDateTime!));
         third.MeteredData.Should().HaveCount(30);
     }
 
     [Fact]
     public void
-        Given_ThreeMasterDataPeriodsWhichExceedsStartPeriodOfData_When_GetReceivers_Then_ThreePackagesWithBoundedStartDate()
+        Given_ThreeMasterDataPeriodsWhichExceedsStartPeriodOfInput_When_GetReceivers_Then_ThreePackagesWithBoundedStartDate()
     {
         var masterData1 = CreateMasterData(
             MeteringPointType.Consumption,
@@ -741,24 +741,24 @@ public class MeteringPointReceiversProviderTests
         using var assertionScope = new AssertionScope();
         receiversWithMeteredData.Should().HaveCount(3);
         var first = receiversWithMeteredData.First();
-        first.StartDateTime.Should().Be(new DateTimeOffset(2025, 2, 1, 0, 0, 0, TimeSpan.Zero));
-        first.EndDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
+        first.StartDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.StartDateTime));
+        first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.MeteredData.Should().HaveCount(28);
 
         var second = receiversWithMeteredData[1];
-        second.StartDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
-        second.EndDateTime.Should().Be(new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero));
+        second.StartDateTime.Should().Be(masterData2.ValidFrom);
+        second.EndDateTime.Should().Be(masterData2.ValidTo);
         second.MeteredData.Should().HaveCount(31);
 
         var third = receiversWithMeteredData.Last();
-        third.StartDateTime.Should().Be(new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero));
-        third.EndDateTime.Should().Be(new DateTimeOffset(2025, 5, 1, 0, 0, 0, TimeSpan.Zero));
+        third.StartDateTime.Should().Be(masterData3.ValidFrom);
+        third.EndDateTime.Should().Be(masterData3.ValidTo);
         third.MeteredData.Should().HaveCount(30);
     }
 
     [Fact]
     public void
-        Given_ThreeMasterDataPeriodsWhichExceedsEndPeriodOfData_When_GetReceivers_Then_ThreePackagesWithBoundedEndDate()
+        Given_ThreeMasterDataPeriodsWhichExceedsEndPeriodOfInput_When_GetReceivers_Then_ThreePackagesWithBoundedEndDate()
     {
         var masterData1 = CreateMasterData(
             MeteringPointType.Consumption,
@@ -796,18 +796,73 @@ public class MeteringPointReceiversProviderTests
         using var assertionScope = new AssertionScope();
         receiversWithMeteredData.Should().HaveCount(3);
         var first = receiversWithMeteredData.First();
-        first.StartDateTime.Should().Be(new DateTimeOffset(2025, 2, 1, 0, 0, 0, TimeSpan.Zero));
-        first.EndDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
+        first.StartDateTime.Should().Be(masterData1.ValidFrom);
+        first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.MeteredData.Should().HaveCount(28);
 
         var second = receiversWithMeteredData[1];
-        second.StartDateTime.Should().Be(new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero));
-        second.EndDateTime.Should().Be(new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero));
+        second.StartDateTime.Should().Be(masterData2.ValidFrom);
+        second.EndDateTime.Should().Be(masterData2.ValidTo);
         second.MeteredData.Should().HaveCount(31);
 
         var third = receiversWithMeteredData.Last();
-        third.StartDateTime.Should().Be(new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero));
-        third.EndDateTime.Should().Be(new DateTimeOffset(2025, 5, 1, 0, 0, 0, TimeSpan.Zero));
+        third.StartDateTime.Should().Be(masterData3.ValidFrom);
+        third.EndDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.EndDateTime!));
+        third.MeteredData.Should().HaveCount(30);
+    }
+
+    [Fact]
+    public void
+        Given_MasterDataPeriodsWhichExceedsStartAndEndPeriodOfInputAndHolesPresent_When_GetReceivers_Then_ThreePackagesWithBoundedStartAndEndDatesAndHolesPreserved()
+    {
+        var masterData1 = CreateMasterData(
+            MeteringPointType.Consumption,
+            from: DateTimeOffset.MinValue.ToInstant(),
+            to: new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero).ToInstant());
+
+        var masterData2 = CreateMasterData(
+            MeteringPointType.Consumption,
+            from: new DateTimeOffset(2025, 3, 15, 0, 0, 0, TimeSpan.Zero).ToInstant(),
+            to: new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero).ToInstant());
+
+        var masterData3 = CreateMasterData(
+            MeteringPointType.Consumption,
+            from: new DateTimeOffset(2025, 4, 15, 0, 0, 0, TimeSpan.Zero).ToInstant(),
+            to: DateTimeOffset.MaxValue.ToInstant());
+
+        var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2025-02-01T00:00:00Z")
+            .WithEndDateTime("2025-05-01T00:00:00Z")
+            .WithResolution(Resolution.Daily.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 89)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(
+                            Position: i.ToString(),
+                            EnergyQuantity: "1.4",
+                            QuantityQuality: Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
+            [masterData1, masterData2, masterData3],
+            forwardMeteredDataInput);
+
+        using var assertionScope = new AssertionScope();
+        receiversWithMeteredData.Should().HaveCount(3);
+        var first = receiversWithMeteredData.First();
+        first.StartDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.StartDateTime));
+        first.EndDateTime.Should().Be(masterData1.ValidTo);
+        first.MeteredData.Should().HaveCount(28);
+
+        var second = receiversWithMeteredData[1];
+        second.StartDateTime.Should().Be(masterData2.ValidFrom);
+        second.EndDateTime.Should().Be(masterData2.ValidTo);
+        second.MeteredData.Should().HaveCount(31);
+
+        var third = receiversWithMeteredData.Last();
+        third.StartDateTime.Should().Be(masterData3.ValidFrom);
+        third.EndDateTime.Should().Be(DateTimeOffset.Parse(forwardMeteredDataInput.EndDateTime!));
         third.MeteredData.Should().HaveCount(30);
     }
 

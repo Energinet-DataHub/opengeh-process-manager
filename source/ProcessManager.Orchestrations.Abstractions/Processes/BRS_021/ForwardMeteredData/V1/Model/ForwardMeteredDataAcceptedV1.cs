@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -29,4 +30,4 @@ public record ForwardMeteredDataAcceptedV1(
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
     IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData)
-    : IInputParameterDto;
+        : IEnqueueAcceptedDataDto;

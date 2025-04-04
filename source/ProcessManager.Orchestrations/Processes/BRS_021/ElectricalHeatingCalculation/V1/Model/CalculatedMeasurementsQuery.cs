@@ -19,7 +19,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 
-public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Guid orchestrationInstanceId, ILogger logger) : QueryBase<CalculatedMeasurementsV1>(databricksOptions, orchestrationInstanceId)
+public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Guid orchestrationInstanceId, ILogger logger)
+     : QueryBase<CalculatedMeasurementsV1>(databricksOptions, orchestrationInstanceId)
 {
     private readonly ILogger _logger = logger;
 
@@ -42,8 +43,6 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
 
     protected override async Task<QueryResult<CalculatedMeasurementsV1>> CreateQueryResultAsync(List<DatabricksSqlRow> currentSet)
     {
-        var firstRow = currentSet.First();
-        var transactionId = firstRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
 
         try
         {
@@ -55,11 +54,13 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
                 calculatedMeasurements.Add(calculatedMeasurement);
             }
 
-            var result = await CreateCalculatedMeasurementsV1Async(firstRow, calculatedMeasurements).ConfigureAwait(false);
+            var result = await CreateCalculatedMeasurementsV1Async(calculatedMeasurements).ConfigureAwait(false);
             return QueryResult<CalculatedMeasurementsV1>.Success(result);
         }
         catch (Exception ex)
         {
+        var firstRow = currentSet.First();
+        var transactionId = firstRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
             var orchestrationType = firstRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType);
             _logger.LogWarning(ex, $"Creating calculated measurements ({orchestrationType}) failed for orchestration instance id='{OrchestrationInstanceId}', TransactionId='{transactionId}'.");
         }
@@ -101,15 +102,12 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
     }
 
     private Task<CalculatedMeasurementsV1> CreateCalculatedMeasurementsV1Async(
-        DatabricksSqlRow databricksSqlRow,
         IReadOnlyCollection<CalculatedMeasurement> calculatedMeasurements)
     {
         return Task.FromResult(
             new CalculatedMeasurementsV1(
-                OriginalActorMessageId: " ",
-                MeteringPointId: databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointId),
+                MeteringPointId: calculatedMeasurements.First().MeteringPointId,
                 MeteringPointType: MeteringPointType.NotUsed,
-                ProductNumber: " ",
                 RegistrationDateTime: DateTimeOffset.Now,
                 StartDateTime: DateTimeOffset.Now,
                 EndDateTime: DateTimeOffset.Now,

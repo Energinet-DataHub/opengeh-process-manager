@@ -12,38 +12,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 
 /// <summary>
-/// Base class for implementing custom queries for orchestration instances.
+/// Query for retrieving a single Calculation orchestration instance by id.
 /// Must be JSON serializable.
 /// </summary>
 /// <remarks>
-/// Using JSON polymorphism on <typeparamref name="TResultItem"/> makes it possible to
-/// specify a base type, and be able to deserialize it into multiple concrete types.
+/// If the orchestration instance found is not one of the types supported
+/// by <see cref="ICalculationsQueryResultV1"/>, then the response will be <see langword="null"/>.
 /// </remarks>
-/// <typeparam name="TResultItem">
-/// The type (or base type) of each item returned in the result list.
-/// Must be a JSON serializable type.
-/// </typeparam>
-public abstract record SearchOrchestrationInstancesByCustomQuery<TResultItem>
-    : OrchestrationInstanceRequest<UserIdentityDto>
-        where TResultItem : class
+public sealed record CalculationByIdQueryV1
+    : SearchOrchestrationInstanceByCustomQuery<ICalculationsQueryResultV1>
 {
+    public const string RouteName = "v1/calculation";
+
     /// <summary>
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
-    public SearchOrchestrationInstancesByCustomQuery(
-        UserIdentityDto operatingIdentity)
-            : base(operatingIdentity)
+    /// <param name="id">Id of the orchestration instance.</param>
+    public CalculationByIdQueryV1(
+        UserIdentityDto operatingIdentity,
+        Guid id)
+        : base(operatingIdentity)
     {
+        Id = id;
     }
 
+    /// <inheritdoc/>
+    public override string QueryRouteName => RouteName;
+
     /// <summary>
-    /// A query name used to route the underlying request to the correct custom query trigger.
+    /// Id of the orchestration instance.
     /// </summary>
-    public abstract string QueryRouteName { get; }
+    public Guid Id { get; }
 }

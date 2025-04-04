@@ -145,7 +145,9 @@ public class SearchCalculationsHandlerV1Tests :
         // When
         var calculationQuery = new CalculationsQueryV1(_userIdentity)
         {
-            CalculationTypes = [CalculationTypeQueryParameterV1.NetConsumption],
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.NetConsumption,
+                CalculationTypeQueryParameterV1.BalanceFixing],
             LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Pending],
         };
 

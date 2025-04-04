@@ -65,10 +65,8 @@ internal class SearchCalculationsHandlerV1(
     {
         var calculationInput = orchestrationInstance.ParameterValue
             .AsType<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
-        var calculationTypesAsInt = query.CalculationTypes?.Select(type => (int)type).ToList();
 
         return
-            (calculationTypesAsInt == null || calculationTypesAsInt.Contains((int)calculationInput.CalculationType)) &&
             (query.GridAreaCodes == null || calculationInput.GridAreaCodes.Any(query.GridAreaCodes.Contains)) &&
             // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
             // where a = query and b = calculationInput.
@@ -138,6 +136,11 @@ internal class SearchCalculationsHandlerV1(
         var scheduledAtOrLater = query.ScheduledAtOrLater.ToNullableInstant();
         var startedAtOrLater = query.StartedAtOrLater.ToNullableInstant();
         var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ToNullableInstant();
+
+        var wholesaleCalculationTypes = query
+            .CalculationTypes?
+                .Where(x => Enum.IsDefined(typeof(Abstractions.Processes.BRS_023_027.V1.Model.CalculationType), (int)x))
+                .ToList();
 
         return $"""
             -- ************************************************************************
@@ -272,6 +275,15 @@ internal class SearchCalculationsHandlerV1(
                     {query.IsInternalCalculation} is null
                     OR (
                         CAST(JSON_VALUE([oi].[ParameterValue],'$.IsInternalCalculation') AS bit) = {query.IsInternalCalculation}
+                    )
+                )
+                AND (
+                    {wholesaleCalculationTypes} is null
+                    OR (
+                        CAST(CHOOSE(ISJSON([oi].[ParameterValue]) + 1, -1, JSON_VALUE([oi].[ParameterValue],'$.CalculationType')) AS int) IN (
+                            SELECT [calculationtypes].[value]
+                            FROM OPENJSON({wholesaleCalculationTypes}) WITH ([value] int '$') AS [calculationtypes]
+                        )
                     )
                 )
             UNION

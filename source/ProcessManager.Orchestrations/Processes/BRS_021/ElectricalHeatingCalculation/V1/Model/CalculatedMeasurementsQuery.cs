@@ -59,6 +59,8 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
         }
         catch (Exception ex)
         {
+        var firstRow = currentSet.First();
+        var transactionId = firstRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
             var orchestrationType = firstRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType);
             _logger.LogWarning(ex, $"Creating calculated measurements ({orchestrationType}) failed for orchestration instance id='{OrchestrationInstanceId}', TransactionId='{transactionId}'.");
         }

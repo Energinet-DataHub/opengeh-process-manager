@@ -102,7 +102,6 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
     }
 
     private Task<CalculatedMeasurementsV1> CreateCalculatedMeasurementsV1Async(
-        DatabricksSqlRow databricksSqlRow,
         IReadOnlyCollection<CalculatedMeasurement> calculatedMeasurements)
     {
         return Task.FromResult(

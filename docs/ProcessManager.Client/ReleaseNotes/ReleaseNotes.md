@@ -1,5 +1,11 @@
 # ProcessManager.Client Release Notes
 
+## Version 3.1.0
+
+- Implemented support for custom queries that only returns a single item:
+    - Added type `SearchOrchestrationInstanceByCustomQuery`.
+    - Extended `IProcessManagerClient` with operation `SearchOrchestrationInstanceByCustomQueryAsync<TItem>`.
+
 ## Version 3.0.1
 
 - No functional changes.

@@ -43,8 +43,6 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
 
     protected override async Task<QueryResult<CalculatedMeasurementsV1>> CreateQueryResultAsync(List<DatabricksSqlRow> currentSet)
     {
-        var firstRow = currentSet.First();
-        var transactionId = firstRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
 
         try
         {

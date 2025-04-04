@@ -107,7 +107,6 @@ public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Gu
     {
         return Task.FromResult(
             new CalculatedMeasurementsV1(
-                OriginalActorMessageId: " ",
                 MeteringPointId: calculatedMeasurements.First().MeteringPointId,
                 MeteringPointType: MeteringPointType.NotUsed,
                 RegistrationDateTime: DateTimeOffset.Now,

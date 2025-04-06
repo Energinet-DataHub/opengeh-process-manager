@@ -142,13 +142,9 @@ internal class SearchCalculationsHandlerV1(
                 .Where(x => Enum.IsDefined(typeof(Abstractions.Processes.BRS_023_027.V1.Model.CalculationType), (int)x))
                 .ToList();
 
-        string? wholesaleIsInternalCalculation = null;
-        if (query.IsInternalCalculation.HasValue)
-        {
-            wholesaleIsInternalCalculation = query.IsInternalCalculation.Value ? "true" : "false";
-        }
-
-        return $"""
+        // Double $ so we can use '{}'
+        // See: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated#interpolated-raw-string-literals
+        return $$"""
             -- ************************************************************************
             --   All except 'Brs_023_027' and 'Brs_021_CapacitySettlementCalculation'
             -- ************************************************************************
@@ -190,29 +186,29 @@ internal class SearchCalculationsHandlerV1(
                 )
                 AND [od].[Name] IN (
                     SELECT [names].[value]
-                    FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                    FROM OPENJSON({{orchestrationDescriptionNames}}) WITH ([value] nvarchar(max) '$') AS [names]
                 )
                 AND (
-                    {lifecycleStates} is null
+                    {{lifecycleStates}} is null
                     OR [oi].[Lifecycle_State] IN (
                         SELECT [lifecyclestates].[value]
-                        FROM OPENJSON({lifecycleStates}) WITH ([value] int '$') AS [lifecyclestates])
+                        FROM OPENJSON({{lifecycleStates}}) WITH ([value] int '$') AS [lifecyclestates])
                 )
                 AND (
-                    {terminationState} is null
-                    OR [oi].[Lifecycle_TerminationState] = {terminationState}
+                    {{terminationState}} is null
+                    OR [oi].[Lifecycle_TerminationState] = {{terminationState}}
                 )
                 AND (
-                    {startedAtOrLater} is null
-                    OR {startedAtOrLater} <= [oi].[Lifecycle_StartedAt]
+                    {{startedAtOrLater}} is null
+                    OR {{startedAtOrLater}} <= [oi].[Lifecycle_StartedAt]
                 )
                 AND (
-                    {terminatedAtOrEarlier} is null
-                    OR [oi].[Lifecycle_TerminatedAt] <= {terminatedAtOrEarlier}
+                    {{terminatedAtOrEarlier}} is null
+                    OR [oi].[Lifecycle_TerminatedAt] <= {{terminatedAtOrEarlier}}
                 )
                 AND (
-                    {scheduledAtOrLater} is null
-                    OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
+                    {{scheduledAtOrLater}} is null
+                    OR {{scheduledAtOrLater}} <= [oi].[Lifecycle_ScheduledToRunAt]
                 )
             UNION
             -- ************************************************************************
@@ -253,42 +249,42 @@ internal class SearchCalculationsHandlerV1(
                 [od].[Name] = 'Brs_023_027'
                 AND [od].[Name] IN (
                     SELECT [names].[value]
-                    FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                    FROM OPENJSON({{orchestrationDescriptionNames}}) WITH ([value] nvarchar(max) '$') AS [names]
                 )
                 AND (
-                    {lifecycleStates} is null
+                    {{lifecycleStates}} is null
                     OR [oi].[Lifecycle_State] IN (
                         SELECT [lifecyclestates].[value]
-                        FROM OPENJSON({lifecycleStates}) WITH ([value] int '$') AS [lifecyclestates])
+                        FROM OPENJSON({{lifecycleStates}}) WITH ([value] int '$') AS [lifecyclestates])
                 )
                 AND (
-                    {terminationState} is null
-                    OR [oi].[Lifecycle_TerminationState] = {terminationState}
+                    {{terminationState}} is null
+                    OR [oi].[Lifecycle_TerminationState] = {{terminationState}}
                 )
                 AND (
-                    {startedAtOrLater} is null
-                    OR {startedAtOrLater} <= [oi].[Lifecycle_StartedAt]
+                    {{startedAtOrLater}} is null
+                    OR {{startedAtOrLater}} <= [oi].[Lifecycle_StartedAt]
                 )
                 AND (
-                    {terminatedAtOrEarlier} is null
-                    OR [oi].[Lifecycle_TerminatedAt] <= {terminatedAtOrEarlier}
+                    {{terminatedAtOrEarlier}} is null
+                    OR [oi].[Lifecycle_TerminatedAt] <= {{terminatedAtOrEarlier}}
                 )
                 AND (
-                    {scheduledAtOrLater} is null
-                    OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
+                    {{scheduledAtOrLater}} is null
+                    OR {{scheduledAtOrLater}} <= [oi].[Lifecycle_ScheduledToRunAt]
                 )
                 AND (
-                    {wholesaleIsInternalCalculation} is null
+                    {{query.IsInternalCalculation}} is null
                     OR (
-                        CAST(CHOOSE(ISJSON([oi].[ParameterValue]) + 1, null, JSON_VALUE([oi].[ParameterValue],'$.IsInternalCalculation')) AS nvarchar(10)) = {wholesaleIsInternalCalculation}
+                        CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], '{}'),'$.IsInternalCalculation') AS bit) = {{query.IsInternalCalculation}}
                     )
                 )
                 AND (
-                    {wholesaleCalculationTypes} is null
+                    {{wholesaleCalculationTypes}} is null
                     OR (
-                        CAST(CHOOSE(ISJSON([oi].[ParameterValue]) + 1, -1, JSON_VALUE([oi].[ParameterValue],'$.CalculationType')) AS int) IN (
+                        CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], '{}'),'$.CalculationType') AS int) IN (
                             SELECT [calculationtypes].[value]
-                            FROM OPENJSON({wholesaleCalculationTypes}) WITH ([value] int '$') AS [calculationtypes]
+                            FROM OPENJSON({{wholesaleCalculationTypes}}) WITH ([value] int '$') AS [calculationtypes]
                         )
                     )
                 )
@@ -331,29 +327,29 @@ internal class SearchCalculationsHandlerV1(
                 [od].[Name] = 'Brs_021_CapacitySettlementCalculation'
                 AND [od].[Name] IN (
                     SELECT [names].[value]
-                    FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
+                    FROM OPENJSON({{orchestrationDescriptionNames}}) WITH ([value] nvarchar(max) '$') AS [names]
                 )
                 AND (
-                    {lifecycleStates} is null
+                    {{lifecycleStates}} is null
                     OR [oi].[Lifecycle_State] IN (
                         SELECT [lifecyclestates].[value]
-                        FROM OPENJSON({lifecycleStates}) WITH ([value] int '$') AS [lifecyclestates])
+                        FROM OPENJSON({{lifecycleStates}}) WITH ([value] int '$') AS [lifecyclestates])
                 )
                 AND (
-                    {terminationState} is null
-                    OR [oi].[Lifecycle_TerminationState] = {terminationState}
+                    {{terminationState}} is null
+                    OR [oi].[Lifecycle_TerminationState] = {{terminationState}}
                 )
                 AND (
-                    {startedAtOrLater} is null
-                    OR {startedAtOrLater} <= [oi].[Lifecycle_StartedAt]
+                    {{startedAtOrLater}} is null
+                    OR {{startedAtOrLater}} <= [oi].[Lifecycle_StartedAt]
                 )
                 AND (
-                    {terminatedAtOrEarlier} is null
-                    OR [oi].[Lifecycle_TerminatedAt] <= {terminatedAtOrEarlier}
+                    {{terminatedAtOrEarlier}} is null
+                    OR [oi].[Lifecycle_TerminatedAt] <= {{terminatedAtOrEarlier}}
                 )
                 AND (
-                    {scheduledAtOrLater} is null
-                    OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
+                    {{scheduledAtOrLater}} is null
+                    OR {{scheduledAtOrLater}} <= [oi].[Lifecycle_ScheduledToRunAt]
                 )
             """;
     }

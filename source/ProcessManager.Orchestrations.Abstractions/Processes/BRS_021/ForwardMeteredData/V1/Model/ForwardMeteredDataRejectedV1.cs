@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -23,4 +24,5 @@ public record ForwardMeteredDataRejectedV1(
     string OriginalTransactionId,
     ActorRole ForwardedForActorRole,
     BusinessReason BusinessReason,
-    List<ValidationErrorDto> ValidationErrors);
+    List<ValidationErrorDto> ValidationErrors)
+        : IEnqueueRejectedDataDto;

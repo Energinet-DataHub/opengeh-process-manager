@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
@@ -27,11 +28,11 @@ public interface IEnqueueActorMessagesClient
     /// <param name="orchestrationStartedBy">The identity that initiated the orchestration</param>
     /// <param name="idempotencyKey">A unique key that MUST not change if the same ´data´ is being supplied</param>
     /// <param name="data">Is the payload from witch the message to the actor is generated.</param>
-    public Task EnqueueAsync<TData>(
+    public Task EnqueueAsync<TEnqueueData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
         Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
         Guid idempotencyKey,
-        TData data)
-            where TData : class;
+        TEnqueueData data)
+            where TEnqueueData : IEnqueueDataDto;
 }

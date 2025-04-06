@@ -86,9 +86,32 @@ public interface IProcessManagerClient
             where TInputParameterDto : class, IInputParameterDto;
 
     /// <summary>
+    /// Get orchestration instance, or null, by a custom query.
+    /// </summary>
+    /// <remarks>
+    /// Using JSON polymorphism on <typeparamref name="TItem"/> makes it possible to
+    /// specify a base type, and be able to deserialize it into multiple concrete types.
+    /// </remarks>
+    /// <typeparam name="TItem">
+    /// The type (or base type) of the item returned.
+    /// Must be a JSON serializable type.
+    /// </typeparam>
+    Task<TItem?> SearchOrchestrationInstanceByCustomQueryAsync<TItem>(
+        SearchOrchestrationInstanceByCustomQuery<TItem> query,
+        CancellationToken cancellationToken)
+            where TItem : class;
+
+    /// <summary>
     /// Get all orchestration instances filtered by a custom query.
     /// </summary>
-    /// <typeparam name="TItem">The result type of each item returned in the list. Must be a JSON serializable type.</typeparam>
+    /// <remarks>
+    /// Using JSON polymorphism on <typeparamref name="TItem"/> makes it possible to
+    /// specify a base type, and be able to deserialize it into multiple concrete types.
+    /// </remarks>
+    /// <typeparam name="TItem">
+    /// The type (or base type) of each item returned in the list.
+    /// Must be a JSON serializable type.
+    /// </typeparam>
     Task<IReadOnlyCollection<TItem>> SearchOrchestrationInstancesByCustomQueryAsync<TItem>(
         SearchOrchestrationInstancesByCustomQuery<TItem> query,
         CancellationToken cancellationToken)

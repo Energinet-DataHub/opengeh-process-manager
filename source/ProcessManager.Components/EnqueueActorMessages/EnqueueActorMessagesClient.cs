@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
@@ -28,13 +29,13 @@ public class EnqueueActorMessagesClient(
 {
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.EdiTopic);
 
-    public async Task EnqueueAsync<TInputData>(
+    public async Task EnqueueAsync<TEnqueueData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
         Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
         Guid idempotencyKey,
-        TInputData data)
-            where TInputData : class
+        TEnqueueData data)
+            where TEnqueueData : IEnqueueDataDto
     {
         var (startedByActorNumber, startedByActorRole, startedByUserId) = orchestrationStartedBy switch
         {

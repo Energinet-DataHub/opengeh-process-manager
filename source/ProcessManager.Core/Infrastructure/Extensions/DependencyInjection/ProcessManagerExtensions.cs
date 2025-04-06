@@ -208,6 +208,7 @@ public static class ProcessManagerExtensions
         {
             typeof(IStartOrchestrationInstanceCommandHandler<,>),
             typeof(IScheduleOrchestrationInstanceCommandHandler<,>),
+            typeof(ISearchOrchestrationInstanceQueryHandler<,>),
             typeof(ISearchOrchestrationInstancesQueryHandler<,>),
         };
 

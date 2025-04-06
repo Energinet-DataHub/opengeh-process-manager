@@ -12,9 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+namespace Energinet.DataHub.ProcessManager.Shared.Api.Json;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
-
-public record CalculationEnqueueActorMessagesV1(Guid CalculationId)
-    : IEnqueueDataDto;
+/// <summary>
+/// Default serialization using 'OkObjectResult' doesn't perform Json Polymorphic correct if we
+/// use the type directly; so we use an item container.
+/// </summary>
+/// <typeparam name="TItem">
+/// The JSON polymorphic item type.
+/// See https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/polymorphism.
+/// </typeparam>
+/// <param name="Item">
+/// The JSON polymorphic item instance.
+/// </param>
+internal record JsonPolymorphicItemContainer<TItem>(TItem? Item)
+    where TItem : class;

@@ -38,6 +38,8 @@ internal class EnqueueRejectedActorMessageActivity_Brs_X02_ActorRequestProcessEx
         var orchestrationInstance = await _repository.GetAsync(input.OrchestrationInstanceId).ConfigureAwait(false);
 
         var rejectedMessage = new ActorRequestProcessExampleEnqueueRejectedDataV1(
+            OriginalActorMessageId: orchestrationInstance.ActorMessageId?.Value
+                ?? throw new NullReferenceException($"ActorMessageId is null for orchestration instance with id {orchestrationInstance.Id.Value}"),
             ValidationErrors: input.ValidationErrors
                 .Select(e => new ValidationErrorDto(
                     Message: e.Message,

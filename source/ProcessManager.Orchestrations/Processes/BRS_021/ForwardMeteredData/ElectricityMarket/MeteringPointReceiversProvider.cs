@@ -246,11 +246,15 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.NotUsed:
             case var _ when meteringPointType == MeteringPointType.SurplusProductionGroup6:
             case var _ when meteringPointType == MeteringPointType.NetLossCorrection:
+            case var _ when meteringPointType == MeteringPointType.ElectricalHeating:
+            case var _ when meteringPointType == MeteringPointType.NetConsumption:
             case var _ when meteringPointType == MeteringPointType.OtherConsumption:
             case var _ when meteringPointType == MeteringPointType.OtherProduction:
+            case var _ when meteringPointType == MeteringPointType.CapacitySettlement:
             case var _ when meteringPointType == MeteringPointType.ExchangeReactiveEnergy:
             case var _ when meteringPointType == MeteringPointType.CollectiveNetProduction:
             case var _ when meteringPointType == MeteringPointType.CollectiveNetConsumption:
+            case var _ when meteringPointType == MeteringPointType.InternalUse:
                 if (meteringPointMasterData.ParentMeteringPointId is not null)
                 {
                     // It is legal for the energy supplier to be null for these metering point types

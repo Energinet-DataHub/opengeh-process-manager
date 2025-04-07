@@ -26,6 +26,43 @@ public class MeteringPointTypeValidationRuleTests
 {
     private readonly MeteringPointTypeValidationRule _sut = new();
 
+    public static TheoryData<MeteringPointType> ValidMeteringPointTypes => new()
+    {
+        MeteringPointType.Production,
+        MeteringPointType.Consumption,
+        MeteringPointType.Exchange,
+        MeteringPointType.VeProduction,
+        MeteringPointType.Analysis,
+        MeteringPointType.SurplusProductionGroup6,
+        MeteringPointType.NetProduction,
+        MeteringPointType.SupplyToGrid,
+        MeteringPointType.ConsumptionFromGrid,
+        MeteringPointType.WholesaleServicesInformation,
+        MeteringPointType.OwnProduction,
+        MeteringPointType.NetFromGrid,
+        MeteringPointType.NetToGrid,
+        MeteringPointType.TotalConsumption,
+        MeteringPointType.OtherConsumption,
+        MeteringPointType.OtherProduction,
+        MeteringPointType.ExchangeReactiveEnergy,
+        MeteringPointType.CollectiveNetProduction,
+        MeteringPointType.CollectiveNetConsumption,
+        MeteringPointType.InternalUse,
+        MeteringPointType.ElectricalHeating,
+        MeteringPointType.NetConsumption,
+        MeteringPointType.CapacitySettlement,
+        MeteringPointType.NotUsed,
+        MeteringPointType.NetLossCorrection,
+    };
+
+    public static TheoryData<MeteringPointType> InvalidMeteringPointTypes => new()
+    {
+        MeteringPointType.ActivatedDownRegulation,
+        MeteringPointType.ActivatedUpRegulation,
+        MeteringPointType.ActualConsumption,
+        MeteringPointType.ActualProduction,
+    };
+
     [Fact]
     public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()
     {
@@ -41,35 +78,11 @@ public class MeteringPointTypeValidationRuleTests
     }
 
     [Theory]
-    [InlineData("Production")]
-    [InlineData("Consumption")]
-    [InlineData("Exchange")]
-    [InlineData("VeProduction")]
-    [InlineData("Analysis")]
-    [InlineData("SurplusProductionGroup6")]
-    [InlineData("NetProduction")]
-    [InlineData("SupplyToGrid")]
-    [InlineData("ConsumptionFromGrid")]
-    [InlineData("WholesaleServicesInformation")]
-    [InlineData("OwnProduction")]
-    [InlineData("NetFromGrid")]
-    [InlineData("NetToGrid")]
-    [InlineData("TotalConsumption")]
-    [InlineData("OtherConsumption")]
-    [InlineData("OtherProduction")]
-    [InlineData("ExchangeReactiveEnergy")]
-    [InlineData("CollectiveNetProduction")]
-    [InlineData("CollectiveNetConsumption")]
-    [InlineData("InternalUse")]
-    [InlineData("ElectricalHeating")]
-    [InlineData("NetConsumption")]
-    [InlineData("CapacitySettlement")]
-    [InlineData("NotUsed")]
-    [InlineData("NetLossCorrection")]
-    public async Task Given_ValidMeteringPointType_When_Validate_Then_NoValidationError(string meteringPointType)
+    [MemberData(nameof(ValidMeteringPointTypes))]
+    public async Task Given_ValidMeteringPointType_When_Validate_Then_NoValidationError(MeteringPointType meteringPointType)
     {
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteringPointType(meteringPointType)
+            .WithMeteringPointType(meteringPointType.Name)
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -84,7 +97,7 @@ public class MeteringPointTypeValidationRuleTests
                         ActorNumber.Create("1111111111111"),
                         [],
                         ConnectionState.Connected,
-                        MeteringPointType.FromName(meteringPointType),
+                        meteringPointType,
                         MeteringPointSubType.Physical,
                         Resolution.QuarterHourly,
                         MeasurementUnit.KilowattHour,
@@ -97,12 +110,11 @@ public class MeteringPointTypeValidationRuleTests
     }
 
     [Theory]
-    [InlineData("OneNotCorrectMeteringPointType")]
-    [InlineData("AnotherNotCorrectMeteringPointType")]
-    public async Task Given_InvalidMeteringPointType_When_Validate_Then_ValidationError(string meteringPointType)
+    [MemberData(nameof(InvalidMeteringPointTypes))]
+    public async Task Given_InvalidMeteringPointType_When_Validate_Then_ValidationError(MeteringPointType meteringPointType)
     {
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteringPointType(meteringPointType)
+            .WithMeteringPointType(meteringPointType.Name)
             .Build();
 
         var result = await _sut.ValidateAsync(

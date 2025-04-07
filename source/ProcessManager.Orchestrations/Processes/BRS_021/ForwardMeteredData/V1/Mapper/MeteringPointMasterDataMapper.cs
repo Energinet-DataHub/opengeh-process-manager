@@ -61,5 +61,7 @@ public static class MeteringPointMasterDataMapper
     {
         { "PT15M", PMTypes.Resolution.QuarterHourly },
         { "PT1H", PMTypes.Resolution.Hourly },
+        { "P1M", PMTypes.Resolution.Monthly },
+        { "ANDET", PMTypes.Resolution.Other },
     };
 }

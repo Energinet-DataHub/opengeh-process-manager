@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 1.6.1
+
+- Update NuGet packages.
+
 ## Version 1.6.0
 
 - Add `IEnqueueAcceptedDataDto` and `IEnqueueRejectedDataDto` interfaces.

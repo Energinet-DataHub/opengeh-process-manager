@@ -26,42 +26,42 @@ public class MeteringPointTypeValidationRuleTests
 {
     private readonly MeteringPointTypeValidationRule _sut = new();
 
-    public static IEnumerable<object[]> ValidMeteringPointTypes()
+    public static TheoryData<MeteringPointType> ValidMeteringPointTypes => new()
     {
-        yield return [MeteringPointType.Production];
-        yield return [MeteringPointType.Consumption];
-        yield return [MeteringPointType.Exchange];
-        yield return [MeteringPointType.VeProduction];
-        yield return [MeteringPointType.Analysis];
-        yield return [MeteringPointType.SurplusProductionGroup6];
-        yield return [MeteringPointType.NetProduction];
-        yield return [MeteringPointType.SupplyToGrid];
-        yield return [MeteringPointType.ConsumptionFromGrid];
-        yield return [MeteringPointType.WholesaleServicesInformation];
-        yield return [MeteringPointType.OwnProduction];
-        yield return [MeteringPointType.NetFromGrid];
-        yield return [MeteringPointType.NetToGrid];
-        yield return [MeteringPointType.TotalConsumption];
-        yield return [MeteringPointType.OtherConsumption];
-        yield return [MeteringPointType.OtherProduction];
-        yield return [MeteringPointType.ExchangeReactiveEnergy];
-        yield return [MeteringPointType.CollectiveNetProduction];
-        yield return [MeteringPointType.CollectiveNetConsumption];
-        yield return [MeteringPointType.InternalUse];
-        yield return [MeteringPointType.ElectricalHeating];
-        yield return [MeteringPointType.NetConsumption];
-        yield return [MeteringPointType.CapacitySettlement];
-        yield return [MeteringPointType.NotUsed];
-        yield return [MeteringPointType.NetLossCorrection];
-    }
+        MeteringPointType.Production,
+        MeteringPointType.Consumption,
+        MeteringPointType.Exchange,
+        MeteringPointType.VeProduction,
+        MeteringPointType.Analysis,
+        MeteringPointType.SurplusProductionGroup6,
+        MeteringPointType.NetProduction,
+        MeteringPointType.SupplyToGrid,
+        MeteringPointType.ConsumptionFromGrid,
+        MeteringPointType.WholesaleServicesInformation,
+        MeteringPointType.OwnProduction,
+        MeteringPointType.NetFromGrid,
+        MeteringPointType.NetToGrid,
+        MeteringPointType.TotalConsumption,
+        MeteringPointType.OtherConsumption,
+        MeteringPointType.OtherProduction,
+        MeteringPointType.ExchangeReactiveEnergy,
+        MeteringPointType.CollectiveNetProduction,
+        MeteringPointType.CollectiveNetConsumption,
+        MeteringPointType.InternalUse,
+        MeteringPointType.ElectricalHeating,
+        MeteringPointType.NetConsumption,
+        MeteringPointType.CapacitySettlement,
+        MeteringPointType.NotUsed,
+        MeteringPointType.NetLossCorrection,
+    };
 
-    public static IEnumerable<object[]> InvalidMeteringPointTypes()
+    public static TheoryData<MeteringPointType> InvalidMeteringPointTypes => new()
     {
-        yield return [MeteringPointType.ActivatedDownRegulation];
-        yield return [MeteringPointType.ActivatedUpRegulation];
-        yield return [MeteringPointType.ActualConsumption];
-        yield return [MeteringPointType.ActualProduction];
-    }
+        MeteringPointType.ActivatedDownRegulation,
+        MeteringPointType.ActivatedUpRegulation,
+        MeteringPointType.ActualConsumption,
+        MeteringPointType.ActualProduction,
+    };
 
     [Fact]
     public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()

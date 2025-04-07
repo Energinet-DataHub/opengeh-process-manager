@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.18.3
+
+- No functional changes.
+
 ## Version 1.18.2
 
 - No functional changes.

@@ -172,8 +172,6 @@ internal class SearchCalculationsHandlerV1(
                 [pm].[OrchestrationDescription] AS [od]
             INNER JOIN
                 [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
-            LEFT JOIN
-                [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
             WHERE
                 [od].[Name] IN (
                     SELECT [names].[value]

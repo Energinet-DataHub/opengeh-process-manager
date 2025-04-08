@@ -67,7 +67,6 @@ internal class SearchCalculationsHandlerV1(
             .AsType<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
 
         return
-            (query.GridAreaCodes == null || calculationInput.GridAreaCodes.Any(query.GridAreaCodes.Contains)) &&
             // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
             // where a = query and b = calculationInput.
             // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
@@ -215,6 +214,23 @@ internal class SearchCalculationsHandlerV1(
                                 CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.CalculationType') AS int) IN (
                                     SELECT [calculationtypes].[value]
                                     FROM OPENJSON({wholesaleCalculationTypes}) WITH ([value] int '$') AS [calculationtypes]
+                                )
+                            )
+                        )
+                        AND (
+                            {query.GridAreaCodes} is null
+                            OR (
+                                EXISTS (
+            						SELECT
+            							value
+            						FROM
+            							OPENJSON([oi].[ParameterValue], '$.GridAreaCodes')
+            						WHERE
+            							value IN (
+            								SELECT
+            									[gridareacodes].[value]
+            								FROM OPENJSON({query.GridAreaCodes}) WITH ([value] int '$') AS [gridareacodes]
+            							)
                                 )
                             )
                         )

@@ -50,28 +50,10 @@ internal class SearchCalculationsHandlerV1(
             // TODO: Temporary in-memory filter on ParameterValues.
             // Should be refactored when we figure out how to pass filter objects to generic repository implementation.
             .Where(item =>
-                item.UniqueName.Name != Brs_023_027.Name
-                || (item.UniqueName.Name == Brs_023_027.Name && FilterBrs_023_027(query, item.Instance)))
-            // TODO: Temporary in-memory filter on ParameterValues.
-            // Should be refactored when we figure out how to pass filter objects to generic repository implementation.
-            .Where(item =>
                 item.UniqueName.Name != Brs_021_CapacitySettlementCalculation.Name
                 || (item.UniqueName.Name == Brs_021_CapacitySettlementCalculation.Name && FilterBrs_021_CapacitySettlement(query, item.Instance)))
             .Select(item => CalculationsQueryResultMapperV1.MapToDto(item.UniqueName, item.Instance))
             .ToList();
-    }
-
-    private static bool FilterBrs_023_027(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)
-    {
-        var calculationInput = orchestrationInstance.ParameterValue
-            .AsType<Abstractions.Processes.BRS_023_027.V1.Model.CalculationInputV1>();
-
-        return
-            // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
-            // where a = query and b = calculationInput.
-            // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
-            (query.PeriodStartDate == null || query.PeriodStartDate < calculationInput.PeriodEndDate) &&
-            (query.PeriodEndDate == null || calculationInput.PeriodStartDate < query.PeriodEndDate);
     }
 
     private bool FilterBrs_021_CapacitySettlement(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)
@@ -234,6 +216,23 @@ internal class SearchCalculationsHandlerV1(
                                 )
                             )
                         )
+                        -- *******************************************************************************************************************************************************
+                        -- This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
+                        -- where a = query and b = calculationInput.
+                        -- See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
+                        AND (
+                            {query.PeriodStartDate} is null
+                            OR (
+                                {query.PeriodStartDate} < CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.PeriodEndDate') AS datetime2(7))
+                            )
+                        )
+                        AND (
+                            {query.PeriodEndDate} is null
+                            OR (
+                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.PeriodStartDate') AS datetime2(7)) < {query.PeriodEndDate}
+                            )
+                        )
+                        -- *******************************************************************************************************************************************************
                     )
                 )
                 AND (

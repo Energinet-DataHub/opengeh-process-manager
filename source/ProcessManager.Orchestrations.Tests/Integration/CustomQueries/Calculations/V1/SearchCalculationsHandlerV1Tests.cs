@@ -724,7 +724,7 @@ public class SearchCalculationsHandlerV1Tests :
     /// cause exceptions if there isn't JSON in the columns.
     /// </summary>
     [Fact]
-    public async Task Given_CapacitySettlementAndWholesaleDataset_When_SearchByPeriodWhichContainsCalculationFromBothDataets_Then_ExpectedCalculationsAreRetrieved()
+    public async Task Given_CapacitySettlementAndWholesaleDataset_When_SearchByPeriodWhichContainsCalculationFromBothDataset_Then_ExpectedCalculationsAreRetrieved()
     {
         // Given
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();

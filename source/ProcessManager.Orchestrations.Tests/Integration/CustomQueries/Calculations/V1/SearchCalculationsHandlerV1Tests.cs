@@ -750,6 +750,101 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == wholesaleInstances.WholesaleFixing.Id.Value);
     }
 
+    /// <summary>
+    /// The intention of this test is to use as much as possible of the query in SQL.
+    /// </summary>
+    [Fact]
+    public async Task Given_MixOfCalculationsDataset_When_SearchByAllCommonQueryParameters_Then_ExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
+        var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+        var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            // => Common fields
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.BalanceFixing,
+                CalculationTypeQueryParameterV1.WholesaleFixing,
+                CalculationTypeQueryParameterV1.ElectricalHeating,
+                CalculationTypeQueryParameterV1.CapacitySettlement,
+                CalculationTypeQueryParameterV1.NetConsumption],
+            LifecycleStates = [
+                ApiModel.OrchestrationInstanceLifecycleState.Pending,
+                ApiModel.OrchestrationInstanceLifecycleState.Running],
+            TerminationState = null,
+            ScheduledAtOrLater = null,
+            StartedAtOrLater = new DateTimeOffset(2020, 2, 22, 23, 00, 00, TimeSpan.Zero), // Wintertime
+            TerminatedAtOrEarlier = null,
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsRunning.Id.Value,
+                result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value);
+    }
+
+    /// <summary>
+    /// The intention of this test is to use as much as possible of the query in SQL.
+    /// Because we use "Wholesale" query parameters, only those types will be retrieved.
+    /// </summary>
+    [Fact]
+    public async Task Given_MixOfCalculationsDataset_When_SearchByAllPossibleWholesaleQueryParameters_Then_ExpectedWholesaleCalculationIsRetrieved()
+    {
+        // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
+        var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+        var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            // => Common fields
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.BalanceFixing,
+                CalculationTypeQueryParameterV1.WholesaleFixing,
+                CalculationTypeQueryParameterV1.ElectricalHeating,
+                CalculationTypeQueryParameterV1.CapacitySettlement,
+                CalculationTypeQueryParameterV1.NetConsumption],
+            LifecycleStates = [
+                ApiModel.OrchestrationInstanceLifecycleState.Pending,
+                ApiModel.OrchestrationInstanceLifecycleState.Running],
+            TerminationState = null,
+            ScheduledAtOrLater = null,
+            StartedAtOrLater = null,
+            TerminatedAtOrEarlier = null,
+
+            // => Wholesale calculations
+            IsInternalCalculation = false,
+            GridAreaCodes = ["222"],
+
+            // => Wholesale + Capacity settlement calculations
+            // Query for 23/2/2025 - 1/3/2025 (not inclusive)
+            PeriodStartDate = new DateTimeOffset(2025, 2, 22, 23, 00, 00, TimeSpan.Zero), // Wintertime
+            PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(1)
+            .And.Satisfy(
+                result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == wholesaleInstances.WholesaleFixing.Id.Value);
+    }
+
     private async Task<(
             OrchestrationInstance October2024,
             OrchestrationInstance February2025)>

@@ -4,6 +4,14 @@
 
 - Delete `ForwardedByActorNumber` and `ForwardedByActorRole` from `ForwardMeteredDataRejectedV1`.
 
+## Version 1.18.3
+
+- No functional changes.
+
+## Version 1.18.2
+
+- No functional changes.
+
 ## Version 1.18.1
 
 - Use `IEnqueueAcceptedDataDto`, `IEnqueueRejectedDataDto` and `IEnqueueDataDto` marker interfaces.

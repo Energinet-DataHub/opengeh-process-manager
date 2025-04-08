@@ -143,9 +143,6 @@ internal class SearchCalculationsHandlerV1(
                 .ToList();
 
         return $"""
-            -- ************************************************************************
-            --   All except 'Brs_023_027' and 'Brs_021_CapacitySettlementCalculation'
-            -- ************************************************************************
             SELECT
                 [oi].[Id],
                 [oi].[ActorMessageId],
@@ -178,74 +175,7 @@ internal class SearchCalculationsHandlerV1(
             LEFT JOIN
                 [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
             WHERE
-                [od].[Name] NOT IN (
-                    'Brs_023_027',
-                    'Brs_021_CapacitySettlementCalculation'
-                )
-                AND [od].[Name] IN (
-                    SELECT [names].[value]
-                    FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
-                )
-                AND (
-                    {lifecycleStates} is null
-                    OR [oi].[Lifecycle_State] IN (
-                        SELECT [lifecyclestates].[value]
-                        FROM OPENJSON({lifecycleStates}) WITH ([value] int '$') AS [lifecyclestates])
-                )
-                AND (
-                    {terminationState} is null
-                    OR [oi].[Lifecycle_TerminationState] = {terminationState}
-                )
-                AND (
-                    {startedAtOrLater} is null
-                    OR {startedAtOrLater} <= [oi].[Lifecycle_StartedAt]
-                )
-                AND (
-                    {terminatedAtOrEarlier} is null
-                    OR [oi].[Lifecycle_TerminatedAt] <= {terminatedAtOrEarlier}
-                )
-                AND (
-                    {scheduledAtOrLater} is null
-                    OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
-                )
-            UNION
-            -- ************************************************************************
-            --   Only 'Brs_023_027'
-            -- ************************************************************************
-            SELECT
-                [oi].[Id],
-                [oi].[ActorMessageId],
-                [oi].[IdempotencyKey],
-                [oi].[MeteringPointId],
-                [oi].[OrchestrationDescriptionId],
-                [oi].[RowVersion],
-                [oi].[TransactionId],
-                [oi].[CustomState] as CustomState_SerializedValue,
-                [oi].[ParameterValue] as ParameterValue_SerializedValue,
-                [oi].[Lifecycle_CreatedAt],
-                [oi].[Lifecycle_QueuedAt],
-                [oi].[Lifecycle_ScheduledToRunAt],
-                [oi].[Lifecycle_StartedAt],
-                [oi].[Lifecycle_State],
-                [oi].[Lifecycle_TerminatedAt],
-                [oi].[Lifecycle_TerminationState],
-                [oi].[Lifecycle_CanceledBy_ActorNumber],
-                [oi].[Lifecycle_CanceledBy_ActorRole],
-                [oi].[Lifecycle_CanceledBy_IdentityType],
-                [oi].[Lifecycle_CanceledBy_UserId],
-                [oi].[Lifecycle_CreatedBy_ActorNumber],
-                [oi].[Lifecycle_CreatedBy_ActorRole],
-                [oi].[Lifecycle_CreatedBy_IdentityType],
-                [oi].[Lifecycle_CreatedBy_UserId]
-            FROM
-                [pm].[OrchestrationDescription] AS [od]
-            INNER JOIN
-                [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
-            LEFT JOIN
-                [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
-            WHERE
-                [od].[Name] = 'Brs_023_027'
-                AND [od].[Name] IN (
+                [od].[Name] IN (
                     SELECT [names].[value]
                     FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
                 )
@@ -272,82 +202,33 @@ internal class SearchCalculationsHandlerV1(
                     OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
                 )
                 AND (
-                    {query.IsInternalCalculation} is null
+                    [od].[Name] <> 'Brs_023_027'
                     OR (
-                        CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.IsInternalCalculation') AS bit) = {query.IsInternalCalculation}
-                    )
-                )
-                AND (
-                    {wholesaleCalculationTypes} is null
-                    OR (
-                        CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.CalculationType') AS int) IN (
-                            SELECT [calculationtypes].[value]
-                            FROM OPENJSON({wholesaleCalculationTypes}) WITH ([value] int '$') AS [calculationtypes]
+                        [od].[Name] = 'Brs_023_027'
+                        AND (
+                            {query.IsInternalCalculation} is null
+                            OR (
+                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.IsInternalCalculation') AS bit) = {query.IsInternalCalculation}
+                            )
+                        )
+                        AND (
+                            {wholesaleCalculationTypes} is null
+                            OR (
+                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.CalculationType') AS int) IN (
+                                    SELECT [calculationtypes].[value]
+                                    FROM OPENJSON({wholesaleCalculationTypes}) WITH ([value] int '$') AS [calculationtypes]
+                                )
+                            )
                         )
                     )
                 )
-            UNION
-            -- ************************************************************************
-            --   Only 'Brs_021_CapacitySettlementCalculation'
-            -- ************************************************************************
-            SELECT
-                [oi].[Id],
-                [oi].[ActorMessageId],
-                [oi].[IdempotencyKey],
-                [oi].[MeteringPointId],
-                [oi].[OrchestrationDescriptionId],
-                [oi].[RowVersion],
-                [oi].[TransactionId],
-                [oi].[CustomState] as CustomState_SerializedValue,
-                [oi].[ParameterValue] as ParameterValue_SerializedValue,
-                [oi].[Lifecycle_CreatedAt],
-                [oi].[Lifecycle_QueuedAt],
-                [oi].[Lifecycle_ScheduledToRunAt],
-                [oi].[Lifecycle_StartedAt],
-                [oi].[Lifecycle_State],
-                [oi].[Lifecycle_TerminatedAt],
-                [oi].[Lifecycle_TerminationState],
-                [oi].[Lifecycle_CanceledBy_ActorNumber],
-                [oi].[Lifecycle_CanceledBy_ActorRole],
-                [oi].[Lifecycle_CanceledBy_IdentityType],
-                [oi].[Lifecycle_CanceledBy_UserId],
-                [oi].[Lifecycle_CreatedBy_ActorNumber],
-                [oi].[Lifecycle_CreatedBy_ActorRole],
-                [oi].[Lifecycle_CreatedBy_IdentityType],
-                [oi].[Lifecycle_CreatedBy_UserId]
-            FROM
-                [pm].[OrchestrationDescription] AS [od]
-            INNER JOIN
-                [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
-            LEFT JOIN
-                [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
-            WHERE
-                [od].[Name] = 'Brs_021_CapacitySettlementCalculation'
-                AND [od].[Name] IN (
-                    SELECT [names].[value]
-                    FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
-                )
                 AND (
-                    {lifecycleStates} is null
-                    OR [oi].[Lifecycle_State] IN (
-                        SELECT [lifecyclestates].[value]
-                        FROM OPENJSON({lifecycleStates}) WITH ([value] int '$') AS [lifecyclestates])
-                )
-                AND (
-                    {terminationState} is null
-                    OR [oi].[Lifecycle_TerminationState] = {terminationState}
-                )
-                AND (
-                    {startedAtOrLater} is null
-                    OR {startedAtOrLater} <= [oi].[Lifecycle_StartedAt]
-                )
-                AND (
-                    {terminatedAtOrEarlier} is null
-                    OR [oi].[Lifecycle_TerminatedAt] <= {terminatedAtOrEarlier}
-                )
-                AND (
-                    {scheduledAtOrLater} is null
-                    OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
+                    [od].[Name] <> 'Brs_021_CapacitySettlementCalculation'
+                    OR (
+                        [od].[Name] = 'Brs_021_CapacitySettlementCalculation'
+                        --AND (
+                        --)
+                    )
                 )
             """;
     }

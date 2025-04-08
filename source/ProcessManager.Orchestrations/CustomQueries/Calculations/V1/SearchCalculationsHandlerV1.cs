@@ -64,20 +64,24 @@ internal class SearchCalculationsHandlerV1(
         var year = (int)calculationInput.Year;
         var month = (int)calculationInput.Month;
 
-        var startDate = Instant.FromDateTimeOffset(new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero));
-        startDate = _timeHelper.GetMidnightZonedDateTime(startDate);
-        var calculationInputPeriodStart = startDate.ToDateTimeOffset();
+        ////var startDate = Instant.FromDateTimeOffset(new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero));
+        ////startDate = _timeHelper.GetMidnightZonedDateTime(startDate);
+        ////var calculationInputPeriodStart = startDate.ToDateTimeOffset();
 
-        var endDate = Instant.FromDateTimeOffset(new DateTimeOffset(year, month, DateTime.DaysInMonth(year, month), 23, 59, 59, TimeSpan.Zero));
-        endDate = _timeHelper.GetMidnightZonedDateTime(endDate);
-        var calculationInputPeriodEnd = endDate.ToDateTimeOffset();
+        ////var endDate = Instant.FromDateTimeOffset(new DateTimeOffset(year, month, DateTime.DaysInMonth(year, month), 23, 59, 59, TimeSpan.Zero));
+        ////endDate = _timeHelper.GetMidnightZonedDateTime(endDate);
+        ////var calculationInputPeriodEnd = endDate.ToDateTimeOffset();
 
         return
             // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
             // where a = query and b = calculationInput.
             // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
-            (query.PeriodStartDate == null || query.PeriodStartDate < calculationInputPeriodEnd) &&
-            (query.PeriodEndDate == null || calculationInputPeriodStart < query.PeriodEndDate);
+            (query.PeriodStartDate == null
+                || query.PeriodStartDate.Value.Year < year
+                || (query.PeriodStartDate.Value.Year == year && query.PeriodStartDate.Value.Month <= month)) &&
+            (query.PeriodEndDate == null
+                || year < query.PeriodEndDate.Value.Year
+                || (year == query.PeriodEndDate.Value.Year && month <= query.PeriodEndDate.Value.Month));
     }
 
     /// <summary>

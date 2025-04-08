@@ -136,7 +136,7 @@ public class SearchCalculationsHandlerV1Tests :
 
     /// <summary>
     /// Here we also search for 'BalanceFixing' even though we know there isn't any in the database.
-    /// This impacts the JSON search as it will also search for Wholesale calsulation types.
+    /// This impacts the JSON search as it will also search for Wholesale calculation types.
     /// </summary>
     [Fact]
     public async Task Given_LifecycleDatasetInDatabase_When_SearchByCalculationTypeAndPending_Then_OnlyExpectedCalculationsAreRetrieved()

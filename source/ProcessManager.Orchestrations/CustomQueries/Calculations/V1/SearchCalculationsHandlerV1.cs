@@ -149,9 +149,9 @@ internal class SearchCalculationsHandlerV1(
                     OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
                 )
                 AND (
-                    [od].[Name] <> 'Brs_023_027'
+                    [oi].[OrchestrationDescriptionId] NOT IN (SELECT Id FROM [pm].OrchestrationDescription WHERE Name = 'Brs_023_027')
                     OR (
-                        [od].[Name] = 'Brs_023_027'
+                        [oi].[OrchestrationDescriptionId] IN (SELECT Id FROM [pm].OrchestrationDescription WHERE Name = 'Brs_023_027')
                         AND (
                             {query.IsInternalCalculation} is null
                             OR (
@@ -204,9 +204,9 @@ internal class SearchCalculationsHandlerV1(
                     )
                 )
                 AND (
-                    [od].[Name] <> 'Brs_021_CapacitySettlementCalculation'
+                    [oi].[OrchestrationDescriptionId] NOT IN (SELECT Id FROM [pm].OrchestrationDescription WHERE Name = 'Brs_021_CapacitySettlementCalculation')
                     OR (
-                        [od].[Name] = 'Brs_021_CapacitySettlementCalculation'
+                        [oi].[OrchestrationDescriptionId] IN (SELECT Id FROM [pm].OrchestrationDescription WHERE Name = 'Brs_021_CapacitySettlementCalculation')
                         AND (
                             {query.PeriodStartDate} is null
                             OR (

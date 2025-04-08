@@ -533,10 +533,15 @@ public class SearchCalculationsHandlerV1Tests :
             .BeEmpty();
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_CalculationsForGridAreas_When_SearchByMatchingGridArea_Then_ExpectedCalculationsAreRetrieved()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When

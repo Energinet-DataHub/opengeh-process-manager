@@ -142,8 +142,6 @@ internal class SearchCalculationsHandlerV1(
                 .Where(x => Enum.IsDefined(typeof(Abstractions.Processes.BRS_023_027.V1.Model.CalculationType), (int)x))
                 .ToList();
 
-        // Double $ so we can use '{}'
-        // See: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated#interpolated-raw-string-literals
         return $"""
             -- ************************************************************************
             --   All except 'Brs_023_027' and 'Brs_021_CapacitySettlementCalculation'

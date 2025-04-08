@@ -18,11 +18,8 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.EntityFrameworkCore;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 
@@ -47,41 +44,8 @@ internal class SearchCalculationsHandlerV1(
         var results = await SearchAsync(query).ConfigureAwait(false);
 
         return results
-            // TODO: Temporary in-memory filter on ParameterValues.
-            // Should be refactored when we figure out how to pass filter objects to generic repository implementation.
-            .Where(item =>
-                item.UniqueName.Name != Brs_021_CapacitySettlementCalculation.Name
-                || (item.UniqueName.Name == Brs_021_CapacitySettlementCalculation.Name && FilterBrs_021_CapacitySettlement(query, item.Instance)))
             .Select(item => CalculationsQueryResultMapperV1.MapToDto(item.UniqueName, item.Instance))
             .ToList();
-    }
-
-    private bool FilterBrs_021_CapacitySettlement(CalculationsQueryV1 query, OrchestrationInstance orchestrationInstance)
-    {
-        var calculationInput = orchestrationInstance.ParameterValue
-            .AsType<Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1>();
-
-        var year = (int)calculationInput.Year;
-        var month = (int)calculationInput.Month;
-
-        ////var startDate = Instant.FromDateTimeOffset(new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero));
-        ////startDate = _timeHelper.GetMidnightZonedDateTime(startDate);
-        ////var calculationInputPeriodStart = startDate.ToDateTimeOffset();
-
-        ////var endDate = Instant.FromDateTimeOffset(new DateTimeOffset(year, month, DateTime.DaysInMonth(year, month), 23, 59, 59, TimeSpan.Zero));
-        ////endDate = _timeHelper.GetMidnightZonedDateTime(endDate);
-        ////var calculationInputPeriodEnd = endDate.ToDateTimeOffset();
-
-        return
-            // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
-            // where a = query and b = calculationInput.
-            // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
-            (query.PeriodStartDate == null
-                || query.PeriodStartDate.Value.Year < year
-                || (query.PeriodStartDate.Value.Year == year && query.PeriodStartDate.Value.Month <= month)) &&
-            (query.PeriodEndDate == null
-                || year < query.PeriodEndDate.Value.Year
-                || (year == query.PeriodEndDate.Value.Year && month <= query.PeriodEndDate.Value.Month));
     }
 
     /// <summary>
@@ -243,8 +207,26 @@ internal class SearchCalculationsHandlerV1(
                     [od].[Name] <> 'Brs_021_CapacitySettlementCalculation'
                     OR (
                         [od].[Name] = 'Brs_021_CapacitySettlementCalculation'
-                        --AND (
-                        --)
+                        AND (
+                            {query.PeriodStartDate} is null
+                            OR (
+                                YEAR({query.PeriodStartDate}) < CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Year') AS int)
+                            )
+                            OR (
+                                YEAR({query.PeriodStartDate}) = CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Year') AS int)
+                                AND MONTH({query.PeriodStartDate}) <= CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Month') AS int)
+                            )
+                        )
+                        AND (
+                            {query.PeriodEndDate} is null
+                            OR (
+                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Year') AS int) < YEAR({query.PeriodEndDate})
+                            )
+                            OR (
+                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Year') AS int) = YEAR({query.PeriodEndDate})
+                                AND CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Month') AS int) <= MONTH({query.PeriodEndDate})
+                            )
+                        )
                     )
                 )
             """;

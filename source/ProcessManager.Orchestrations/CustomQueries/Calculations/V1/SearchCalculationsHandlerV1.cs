@@ -224,7 +224,7 @@ internal class SearchCalculationsHandlerV1(
             						SELECT
             							value
             						FROM
-            							OPENJSON([oi].[ParameterValue], '$.GridAreaCodes')
+            							OPENJSON(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null), '$.GridAreaCodes')
             						WHERE
             							value IN (
             								SELECT

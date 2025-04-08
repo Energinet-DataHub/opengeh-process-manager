@@ -147,79 +147,9 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
             .BeEquivalentTo(existingOrchestrationInstance);
     }
 
-    [Fact]
-    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_UsingSqlQueryToSearchInJsonColumnAndReturnId_Then_ExpectedIdIsReturned()
-    {
-        // Arrange
-        var expectedTestInt = 52;
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(
-            existingOrchestrationDescription,
-            testInt: expectedTestInt);
-
-        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
-        {
-            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
-            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
-            await writeDbContext.SaveChangesAsync();
-        }
-
-        // Act
-        await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
-        var actualIds = await readerContext.Database
-            .SqlQuery<Guid>($"""
-                SELECT
-                    [oi].[Id]
-                FROM
-                    [pm].[OrchestrationInstance] AS [oi]
-                WHERE
-                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
-                """)
-            .ToListAsync();
-
-        // Assert
-        actualIds.Should().Contain(existingOrchestrationInstance.Id.Value);
-        actualIds.Count.Should().Be(1);
-    }
-
-    [Fact]
-    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_UsingSqlQueryToSearchInJsonColumnAndCastResultToParameterType_Then_ExpectedParametersAreReturned()
-    {
-        // Arrange
-        var expectedTestInt = 53;
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(
-            existingOrchestrationDescription,
-            testInt: expectedTestInt);
-
-        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
-        {
-            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
-            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
-            await writeDbContext.SaveChangesAsync();
-        }
-
-        var existingParameters = existingOrchestrationInstance.ParameterValue.AsType<TestOrchestrationParameter>();
-
-        // Act
-        await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
-        var actualParameters = await readerContext.Database
-            .SqlQuery<TestOrchestrationParameter>($"""
-                SELECT
-                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestString') AS nvarchar) AS TestString,
-                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) AS TestInt
-                FROM
-                    [pm].[OrchestrationInstance] AS [oi]
-                WHERE
-                    CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
-                """)
-            .ToListAsync();
-
-        // Assert
-        actualParameters.Should().ContainEquivalentOf(existingParameters);
-        actualParameters.Count.Should().Be(1);
-    }
-
+    /// <summary>
+    /// Demo how the Database.SqlQuery method can be used to retrieve data spanning tables, using WITH and returning a type (not just a scalar).
+    /// </summary>
     [Fact]
     public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_UsingSqlQueryToSearchInJsonColumnAndCastResultToFlatOrchestrationInstanceDto_Then_ExpectedOrchestrationInstanceAreReturned()
     {
@@ -384,8 +314,11 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         actualFlatResults.Count.Should().Be(3); // TODO: Update, but for now it's one per step - must group and create instances
     }
 
+    /// <summary>
+    /// Demo how the DbSet.FromSql method can be used on OrchestrationInstances, and proves it returns all data similar to a traditional Where query.
+    /// </summary>
     [Fact]
-    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_CompareSearchUsingFromSqlRawAndTraditionalWhereQuery_Then_BothReturnsEquivalentOrchestrationInstance()
+    public async Task Given_OrchestrationInstanceWithParametersExistsInDatabase_When_CompareSearchUsingFromSqlAndTraditionalWhereQuery_Then_BothReturnsEquivalentOrchestrationInstance()
     {
         // Arrange
         var expectedTestInt = 55;
@@ -403,9 +336,9 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
 
         // Act
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
-        // => Demo how we can "fix" issue where FromSqlRaw incorrectly think the tables names are "CustomState_SerializedValue" and "ParameterValue_SerializedValue".
+        // => Demo how we can "fix" issue where FromSql incorrectly think the tables names are "CustomState_SerializedValue" and "ParameterValue_SerializedValue".
         var result01 = readerContext.OrchestrationInstances
-            .FromSqlRaw("""
+            .FromSql($"""
                 SELECT
                     [oi].[Id],
                     [oi].[ActorMessageId],
@@ -472,7 +405,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         IReadOnlyCollection<string> orchestrationDescriptionNames = [
             existingOrchestrationDescription.UniqueName.Name];
 
-        // => Demo how we can "fix" issue where FromSqlRaw incorrectly think the tables names are "CustomState_SerializedValue" and "ParameterValue_SerializedValue".
+        // => Demo how we can "fix" issue where FromSql incorrectly think the tables names are "CustomState_SerializedValue" and "ParameterValue_SerializedValue".
         var query = readerContext.OrchestrationInstances
             .FromSql($"""
                 SELECT
@@ -504,8 +437,6 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
                     [pm].[OrchestrationDescription] AS [od]
                 INNER JOIN
                     [pm].[OrchestrationInstance] AS [oi] ON [od].[Id] = [oi].[OrchestrationDescriptionId]
-                LEFT JOIN
-                    [pm].[StepInstance] AS [si] ON [oi].[Id] = [si].[OrchestrationInstanceId]
                 WHERE
                     [od].[Name] IN (
                         SELECT [names].[value]

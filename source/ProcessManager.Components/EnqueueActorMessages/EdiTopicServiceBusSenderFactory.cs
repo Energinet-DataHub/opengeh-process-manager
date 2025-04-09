@@ -19,14 +19,17 @@ using Energinet.DataHub.ProcessManager.Components.Extensions;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
 public class EdiTopicServiceBusSenderFactory(
+    ILogger<EdiTopicServiceBusSenderFactory> logger,
     IOptions<ProcessManagerOptions> options,
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
 {
+    private readonly ILogger<EdiTopicServiceBusSenderFactory> _logger = logger;
     private readonly IOptions<ProcessManagerOptions> _options = options;
     private readonly IAzureClientFactory<ServiceBusSender> _serviceBusFactory = serviceBusFactory;
 
@@ -53,7 +56,12 @@ public class EdiTopicServiceBusSenderFactory(
         // load tests) to not pollute other subsystems, and should only be enabled on dev/test environments.
         var isTestMessage = originalActorMessageId != null && originalActorMessageId.IsTestUuid();
         if (isTestMessage)
+        {
+            _logger.LogWarning(
+                "Using service bus sender mock because original actor message id was {OriginalActorMessageId}.",
+                originalActorMessageId);
             return new ServiceBusSenderStub();
+        }
 
         return CreateEdiServiceBusSender();
     }
@@ -70,7 +78,6 @@ public class EdiTopicServiceBusSenderFactory(
     {
         public override Task SendMessageAsync(ServiceBusMessage message, CancellationToken cancellationToken = default)
         {
-            // Do nothing
             return Task.CompletedTask;
         }
 

@@ -22,10 +22,13 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
 {
     public ProcessManagerSubsystemTestConfiguration()
     {
-        EnergySupplierActorNumber = Root.GetValue<string>(nameof(EnergySupplierActorNumber))
-            ?? throw new ArgumentNullException(nameof(EnergySupplierActorNumber), $"Missing configuration value for {nameof(EnergySupplierActorNumber)}");
+        EnergySupplierActorNumber = Root.GetValue<string>("ENERGY_SUPPLIER_ACTOR_NUMBER")
+            ?? throw new ArgumentNullException(nameof(EnergySupplierActorNumber), $"Missing configuration value for ENERGY_SUPPLIER_ACTOR_NUMBER");
 
-        var keyVaultConfiguration = GetKeyVaultConfiguration();
+        var sharedKeyVaultName = Root.GetValue<string>("SHARED_KEYVAULT_NAME")
+                                ?? throw new NullReferenceException($"Missing configuration value for SHARED_KEYVAULT_NAME");
+
+        var keyVaultConfiguration = GetKeyVaultConfiguration(sharedKeyVaultName);
 
         ServiceBusNamespace = keyVaultConfiguration.GetValue<string>("sb-domain-relay-namespace-endpoint")
                                        ?? throw new ArgumentNullException(nameof(ServiceBusNamespace), $"Missing configuration value for {nameof(ServiceBusNamespace)}");
@@ -73,13 +76,12 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
     /// <summary>
     /// Build configuration for loading settings from key vault secrets.
     /// </summary>
-    private IConfigurationRoot GetKeyVaultConfiguration()
+    private IConfigurationRoot GetKeyVaultConfiguration(string keyVaultName)
     {
-        var sharedKeyVaultUrl = Root.GetValue<string>("AZURE_KEYVAULT_URL")
-            ?? throw new NullReferenceException($"Missing configuration value for AZURE_KEYVAULT_URL");
+        var keyVaultUrl = $"https://{keyVaultName}.vault.azure.net/";
 
         return new ConfigurationBuilder()
-            .AddAuthenticatedAzureKeyVault(sharedKeyVaultUrl)
+            .AddAuthenticatedAzureKeyVault(keyVaultUrl)
             .Build();
     }
 }

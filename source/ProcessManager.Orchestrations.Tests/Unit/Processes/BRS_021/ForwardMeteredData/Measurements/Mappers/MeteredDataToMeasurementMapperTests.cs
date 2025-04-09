@@ -42,6 +42,7 @@ public class MeteredDataToMeasurementMapperTests
         {
             { PMTypes.Resolution.QuarterHourly, MeasurementsTypes.Resolution.RPt15M },
             { PMTypes.Resolution.Hourly, MeasurementsTypes.Resolution.RPt1H },
+            { PMTypes.Resolution.Monthly, MeasurementsTypes.Resolution.RP1M },
         };
 
         MeteredDataToMeasurementMapper.Resolution.Should().BeEquivalentTo(expectedMappings);

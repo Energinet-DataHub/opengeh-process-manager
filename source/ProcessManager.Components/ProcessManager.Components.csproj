@@ -33,7 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProcessManager.Components.Abstractions\ProcessManager.Components.Abstractions.csproj" />
-    <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" /> <!-- TODO: Is this a valid reference? -->
+    <ProjectReference Include="..\ProcessManager.Core\ProcessManager.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -21,24 +21,24 @@ using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribut
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.CustomQueries.Calculations.V1;
 
-internal class SearchTrigger_Brs_X01_InputExample(
-    SearchInputExampleHandler handler)
+internal class SearchTrigger_Examples_V1(
+    SearchExamplesHandlerV1 handler)
 {
-    private readonly SearchInputExampleHandler _handler = handler;
+    private readonly SearchExamplesHandlerV1 _handler = handler;
 
     /// <summary>
-    /// Search for instances of BRS-X01.
+    /// Search for Examples orchestration instances.
     /// </summary>
-    [Function(nameof(SearchTrigger_Brs_X01_InputExample))]
+    [Function(nameof(SearchTrigger_Examples_V1))]
     [Authorize]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = $"orchestrationinstance/query/custom/{InputExampleQuery.RouteName}")]
+            Route = $"orchestrationinstance/query/custom/{ExamplesQueryV1.RouteName}")]
         HttpRequest httpRequest,
         [FromBody]
-        InputExampleQuery query,
+        ExamplesQueryV1 query,
         FunctionContext executionContext)
     {
         var queryResultItems = await _handler.HandleAsync(query).ConfigureAwait(false);

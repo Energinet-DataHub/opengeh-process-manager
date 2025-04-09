@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
@@ -225,13 +226,13 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
             .Contain(x => x.Id == orchestrationInstanceId, "because the orchestration instance with given name, should exist");
 
         // Step 3: Custom search
-        var customQuery = new InputExampleQuery(
-            _userIdentity,
-            skippedStepTwo: input.ShouldSkipSkippableStep);
-
+        var customQuery = new ExamplesQueryV1(_userIdentity)
+        {
+            SkippedStepTwo = input.ShouldSkipSkippableStep,
+        };
         using var customQueryRequest = new HttpRequestMessage(
             HttpMethod.Post,
-            $"/api/orchestrationinstance/query/custom/{InputExampleQuery.RouteName}");
+            $"/api/orchestrationinstance/query/custom/{ExamplesQueryV1.RouteName}");
         customQueryRequest.Content = new StringContent(
             JsonSerializer.Serialize(customQueryRequest),
             Encoding.UTF8,
@@ -244,9 +245,11 @@ public class MonitorOrchestrationUsingApiScenario : IAsyncLifetime
         customQueryResponse.EnsureSuccessStatusCode();
 
         var orchestrationInstancesFromCustomQuery = await customQueryResponse.Content
-            .ReadFromJsonAsync<IReadOnlyCollection<InputExampleQueryResult>>();
+            .ReadFromJsonAsync<IReadOnlyCollection<IExamplesQueryResultV1>>();
 
         orchestrationInstancesFromCustomQuery.Should()
-            .Contain(x => x.OrchestrationInstance.Id == orchestrationInstanceId, "because the orchestration instance with orchestration description name defined in custom query, should exist");
+            .Contain(
+                item => item is InputExampleResultV1 && ((InputExampleResultV1)item).Id == orchestrationInstanceId,
+                "because the orchestration instance with orchestration description name defined in custom query, should exist");
     }
 }

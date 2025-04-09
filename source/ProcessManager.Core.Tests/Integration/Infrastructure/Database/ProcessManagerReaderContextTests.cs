@@ -16,21 +16,21 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
-using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
 
-public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCoreFixture>
+public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerDatabaseFixture>
 {
-    private readonly ProcessManagerCoreFixture _fixture;
+    private readonly ProcessManagerDatabaseFixture _fixture;
     private readonly UserIdentity _userIdentity = new(
         new UserId(Guid.NewGuid()),
         new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
-    public ProcessManagerReaderContextTests(ProcessManagerCoreFixture fixture)
+    public ProcessManagerReaderContextTests(ProcessManagerDatabaseFixture fixture)
     {
         _fixture = fixture;
     }

@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
-
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
 public class ProcessManagerDatabaseFixture : IAsyncLifetime
 {

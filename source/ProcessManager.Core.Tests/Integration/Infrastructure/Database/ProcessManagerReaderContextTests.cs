@@ -26,7 +26,6 @@ namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure
 public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerDatabaseFixture>
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
-    private readonly UserIdentity _userIdentity = ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity;
 
     public ProcessManagerReaderContextTests(ProcessManagerDatabaseFixture fixture)
     {
@@ -472,12 +471,11 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerData
 
     private OrchestrationInstance CreateOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
-        OperatingIdentity? identity = default,
         Instant? runAt = default,
         int? testInt = default,
         IdempotencyKey? idempotencyKey = default)
     {
-        var operatingIdentity = identity ?? _userIdentity;
+        var operatingIdentity = ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,

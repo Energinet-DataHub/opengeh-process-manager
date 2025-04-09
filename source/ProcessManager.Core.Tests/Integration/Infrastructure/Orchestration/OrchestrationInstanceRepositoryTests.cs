@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -597,17 +596,16 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         nowClockMock.Setup(m => m.GetCurrentInstant())
             .Returns(now);
 
-        var actor = ProcessManagerDomainTestDataFactory.EnergySupplier.ActorIdentity.Actor;
-        var otherActor = ProcessManagerDomainTestDataFactory.BalanceResponsibleParty.ActorIdentity.Actor;
-
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var existingOrchestrationDescription = CreateOrchestrationDescription(uniqueName);
 
+        var actor = ProcessManagerDomainTestDataFactory.EnergySupplier.ActorIdentity.Actor;
         var expectedOrchestrationInstance = CreateOrchestrationInstance(
             existingOrchestrationDescription,
             createdByActor: actor);
         expectedOrchestrationInstance.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
+        var otherActor = ProcessManagerDomainTestDataFactory.BalanceResponsibleParty.ActorIdentity.Actor;
         var orchestrationInstanceCreatedByOtherActor = CreateOrchestrationInstance(
             existingOrchestrationDescription,
             createdByActor: otherActor);

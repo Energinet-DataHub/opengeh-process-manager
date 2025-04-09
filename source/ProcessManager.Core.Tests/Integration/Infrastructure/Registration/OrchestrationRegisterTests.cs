@@ -36,14 +36,14 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerDatabaseFi
 
     public async Task InitializeAsync()
     {
-        await using var context = _fixture.DatabaseManager.CreateDbContext();
-        await context.Database.ExecuteSqlAsync($"DELETE FROM [pm].[StepDescription]");
-        await context.Database.ExecuteSqlAsync($"DELETE FROM [pm].[OrchestrationDescription]");
+        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
+        await dbContext.OrchestrationInstances.ExecuteDeleteAsync();
+        await dbContext.OrchestrationDescriptions.ExecuteDeleteAsync();
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
     [Fact]

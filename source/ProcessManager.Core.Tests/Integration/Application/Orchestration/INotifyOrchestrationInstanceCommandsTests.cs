@@ -60,15 +60,15 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
         _sut = _serviceProvider.GetRequiredService<INotifyOrchestrationInstanceCommands>();
     }
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public async Task InitializeAsync()
+    {
+        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
+        await dbContext.OrchestrationInstances.ExecuteDeleteAsync();
+        await dbContext.OrchestrationDescriptions.ExecuteDeleteAsync();
+    }
 
     public async Task DisposeAsync()
     {
-        // Disabling OrchestrationDescriptions so tests doesn't interfere with each other
-        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
-        await dbContext.OrchestrationDescriptions.ForEachAsync(item => item.IsEnabled = false);
-        await dbContext.SaveChangesAsync();
-
         await _serviceProvider.DisposeAsync();
     }
 

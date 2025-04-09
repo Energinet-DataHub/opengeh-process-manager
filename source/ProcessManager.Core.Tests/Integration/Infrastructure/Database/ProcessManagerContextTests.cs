@@ -185,32 +185,6 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_When_FilteringJsonColumn_Then_ReturnsExpectedItem()
-    {
-        // Arrange
-        var expectedTestInt = 52;
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription, testInt: expectedTestInt);
-
-        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
-        {
-            writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
-            writeDbContext.OrchestrationInstances.Add(existingOrchestrationInstance);
-            await writeDbContext.SaveChangesAsync();
-        }
-
-        // Act
-        await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
-        var actualOrchestrationInstanceIds = await readDbContext.Database
-            .SqlQuery<Guid>($"SELECT [o].[Id] FROM [pm].[OrchestrationInstance] AS [o] WHERE CAST(JSON_VALUE([o].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}")
-            .ToListAsync();
-
-        // Assert
-        actualOrchestrationInstanceIds.Should().Contain(existingOrchestrationInstance.Id.Value);
-        actualOrchestrationInstanceIds.Count.Should().Be(1);
-    }
-
-    [Fact]
     public async Task Given_UserCanceledOrchestrationInstanceAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange

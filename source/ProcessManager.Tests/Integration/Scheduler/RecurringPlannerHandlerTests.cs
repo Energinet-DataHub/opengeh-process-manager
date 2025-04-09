@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
 using Energinet.DataHub.ProcessManager.Scheduler;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -172,9 +172,7 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
         OrchestrationDescription orchestrationDescription,
         Instant runAt)
     {
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+        var userIdentity = ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,

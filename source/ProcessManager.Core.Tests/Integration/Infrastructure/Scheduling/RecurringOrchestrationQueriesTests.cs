@@ -30,8 +30,6 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerDa
     private readonly ProcessManagerContext _dbContext;
     private readonly RecurringOrchestrationQueries _sut;
 
-    private readonly UserIdentity _userIdentity = ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity;
-
     public RecurringOrchestrationQueriesTests(ProcessManagerDatabaseFixture fixture)
     {
         _fixture = fixture;
@@ -115,7 +113,7 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerDa
             runAt: currentInstant.PlusMinutes(10));
         scheduledToRunIn10ButUserCanceled.Lifecycle.TransitionToUserCanceled(
             SystemClock.Instance,
-            _userIdentity);
+            ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity);
 
         var existingOrchestrationDescription02 = CreateOrchestrationDescription(
             new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1));
@@ -173,8 +171,10 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerDa
         OrchestrationDescription orchestrationDescription,
         Instant? runAt = default)
     {
+        var userIdentity = ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity;
+
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-            _userIdentity,
+            userIdentity,
             orchestrationDescription,
             skipStepsBySequence: [],
             clock: SystemClock.Instance,

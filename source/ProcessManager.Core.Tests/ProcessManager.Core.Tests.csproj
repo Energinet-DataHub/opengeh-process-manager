@@ -14,6 +14,7 @@
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseFixture.cs" Link="Fixtures\ProcessManagerDatabaseFixture.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDomainTestDataFactory.cs" Link="Fixtures\ProcessManagerDomainTestDataFactory.cs" />
     <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs">
       <Link>FluentAssertionsVersionGuard.cs</Link>
     </Compile>

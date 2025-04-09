@@ -20,7 +20,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
-using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;

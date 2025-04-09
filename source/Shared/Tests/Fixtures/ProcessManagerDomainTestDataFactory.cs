@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
 /// <summary>
 /// Create types in the ProcessManager.Core.Domain namespace.

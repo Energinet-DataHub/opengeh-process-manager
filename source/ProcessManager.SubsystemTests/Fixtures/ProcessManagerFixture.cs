@@ -13,13 +13,17 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -35,6 +39,8 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
     {
         Logger = new TestDiagnosticsLogger();
 
+        Configuration = new ProcessManagerSubsystemTestConfiguration();
+
         var serviceCollection = BuildServices();
         _services = serviceCollection.BuildServiceProvider();
 
@@ -42,6 +48,8 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
 
         TestConfiguration = default;
     }
+
+    public ProcessManagerSubsystemTestConfiguration Configuration { get; }
 
     public TestDiagnosticsLogger Logger { get; }
 
@@ -61,7 +69,7 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
     public async Task InitializeAsync()
     {
         EnergySupplierActorIdentity = new ActorIdentityDto(
-            ActorNumber.Create("1234567890123"), // TODO: Get actor number from app settings
+            ActorNumber.Create(Configuration.EnergySupplierActorNumber),
             ActorRole.EnergySupplier);
 
         UserIdentity = new UserIdentityDto(
@@ -82,6 +90,67 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
         Logger.TestOutputHelper = testOutputHelper;
     }
 
+    /// <summary>
+    /// Wait for an orchestration instance to be returned by the ProcessManager http client. If step inputs are provided,
+    /// then the orchestration instance must have a step instance with the given step sequence and state.
+    /// <remarks>The lookup is based on the idempotency key of the test configuration request.</remarks>
+    /// </summary>
+    /// <param name="idempotencyKey">Find an orchestration instance with the given idempotency key.</param>
+    /// <param name="orchestrationInstanceState">If provided, then the orchestration instance have the given state.</param>
+    /// <param name="stepSequence">If provided, then the orchestration instance must have a step instance with the given sequence number.</param>
+    /// <param name="stepState">If provided, then the step should be in the given state (defaults to <see cref="StepInstanceLifecycleState.Terminated"/>).</param>
+    public async Task<(
+        bool Success,
+        OrchestrationInstanceTypedDto<TInputParameterDto>? OrchestrationInstance,
+        StepInstanceDto? StepInstance)> WaitForOrchestrationInstance<TInputParameterDto>(
+            string idempotencyKey,
+            OrchestrationInstanceLifecycleState? orchestrationInstanceState = null,
+            int? stepSequence = null,
+            StepInstanceLifecycleState? stepState = null)
+                where TInputParameterDto : class, IInputParameterDto
+    {
+        if (stepState != null && stepSequence == null)
+            throw new ArgumentNullException(nameof(stepSequence), $"{nameof(stepSequence)} must be provided if {nameof(stepState)} is not null.");
+
+        OrchestrationInstanceTypedDto<TInputParameterDto>? orchestrationInstance = null;
+        StepInstanceDto? stepInstance = null;
+
+        var success = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                orchestrationInstance = await ProcessManagerHttpClient
+                    .GetOrchestrationInstanceByIdempotencyKeyAsync<TInputParameterDto>(
+                        new GetOrchestrationInstanceByIdempotencyKeyQuery(
+                            operatingIdentity: UserIdentity,
+                            idempotencyKey: idempotencyKey),
+                        CancellationToken.None);
+
+                if (orchestrationInstance == null)
+                    return false;
+
+                if (stepSequence != null)
+                {
+                    stepInstance = orchestrationInstance.Steps
+                        .SingleOrDefault(s => s.Sequence == stepSequence.Value);
+                }
+
+                if (orchestrationInstanceState != null && orchestrationInstance.Lifecycle.State != orchestrationInstanceState)
+                    return false;
+
+                // If step sequence is not provided, only check for orchestration instance existence
+                if (stepSequence == null)
+                    return true;
+
+                return stepInstance != null
+                    ? stepInstance.Lifecycle.State == (stepState ?? StepInstanceLifecycleState.Terminated)
+                    : throw new ArgumentException($"Step instance for step sequence {stepSequence} not found", nameof(stepSequence));
+            },
+            timeLimit: TimeSpan.FromMinutes(1),
+            delay: TimeSpan.FromSeconds(1));
+
+        return (success, orchestrationInstance, stepInstance);
+    }
+
     private IServiceCollection BuildServices()
     {
         var serviceCollection = new ServiceCollection();
@@ -91,36 +160,37 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
         {
             // Message client options
             {
-                $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}",
-                "test"
+                $"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}",
+                Configuration.ProcessManagerStartTopicName
             },
             {
-                $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}",
-                "test"
+                $"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}",
+                Configuration.ProcessManagerNotifyTopicName
             },
             {
-                $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}",
-                "test"
+                $"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}",
+                Configuration.ProcessManagerBrs021StartTopicName
             },
             {
-                $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}",
-                "test"
+                $"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}",
+                Configuration.ProcessManagerBrs021NotifyTopicName
             },
             // HTTP client options
             {
-                $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}",
-                "test"
+                $"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}",
+                Configuration.ProcessManagerApplicationIdUri
             },
             {
-                $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}",
-                "test"
+                $"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}",
+                Configuration.ProcessManagerGeneralApiBaseAddress
             },
             {
-                $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}",
-                "test"
+                $"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}",
+                Configuration.ProcessManagerOrchestrationsApiBaseAddress
             },
         });
 
+        serviceCollection.AddAzureClients(b => b.AddServiceBusClientWithNamespace(Configuration.ServiceBusNamespace));
         serviceCollection.AddProcessManagerMessageClient();
         serviceCollection.AddProcessManagerHttpClients();
 

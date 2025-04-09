@@ -17,23 +17,23 @@ using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 using NodaTime;
 using NodaTime.Text;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_026_028.BRS_026.V1;
+namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_026_028.BRS_028.V1;
 
 [TestCaseOrderer(
     ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
-public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManagerFixture<RequestCalculatedEnergyTimeSeriesTestConfiguration>>
+public class RequestCalculatedWholesaleServicesTests : IClassFixture<ProcessManagerFixture<RequestCalculatedWholesaleServicesTestConfiguration>>
 {
-    private readonly ProcessManagerFixture<RequestCalculatedEnergyTimeSeriesTestConfiguration> _fixture;
+    private readonly ProcessManagerFixture<RequestCalculatedWholesaleServicesTestConfiguration> _fixture;
 
-    public RequestCalculatedEnergyTimeSeriesTests(
-        ProcessManagerFixture<RequestCalculatedEnergyTimeSeriesTestConfiguration> fixture,
+    public RequestCalculatedWholesaleServicesTests(
+        ProcessManagerFixture<RequestCalculatedWholesaleServicesTestConfiguration> fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;
@@ -45,25 +45,25 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
     public void Given_ValidRequestCalculatedEnergyTimeSeriesRequest()
     {
         var testUuid = Guid.NewGuid().ToTestMessageUuid();
-        _fixture.TestConfiguration = new RequestCalculatedEnergyTimeSeriesTestConfiguration(
-            request: new RequestCalculatedEnergyTimeSeriesCommandV1(
+        _fixture.TestConfiguration = new RequestCalculatedWholesaleServicesTestConfiguration(
+            request: new RequestCalculatedWholesaleServicesCommandV1(
                 operatingIdentity: _fixture.EnergySupplierActorIdentity,
-                inputParameter: new RequestCalculatedEnergyTimeSeriesInputV1(
+                inputParameter: new RequestCalculatedWholesaleServicesInputV1(
                     ActorMessageId: testUuid,
                     TransactionId: Guid.NewGuid().ToString(),
                     RequestedForActorNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
                     RequestedForActorRole: _fixture.EnergySupplierActorIdentity.ActorRole.Name,
                     RequestedByActorNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
                     RequestedByActorRole: _fixture.EnergySupplierActorIdentity.ActorRole.Name,
-                    BusinessReason: BusinessReason.BalanceFixing.Name,
-                    PeriodStart: InstantPattern.General.Format(Instant.FromUtc(2025, 03, 07, 23, 00)),
-                    PeriodEnd: InstantPattern.General.Format(Instant.FromUtc(2025, 03, 09, 23, 00)),
+                    BusinessReason: BusinessReason.WholesaleFixing.Name,
+                    Resolution: null,
+                    PeriodStart: InstantPattern.General.Format(Instant.FromUtc(2025, 01, 31, 23, 00)),
+                    PeriodEnd: InstantPattern.General.Format(Instant.FromUtc(2025, 02, 28, 23, 00)),
                     EnergySupplierNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
-                    BalanceResponsibleNumber: null,
+                    ChargeOwnerNumber: null,
                     GridAreas: ["804"],
-                    MeteringPointType: null,
-                    SettlementMethod: null,
-                    SettlementVersion: null),
+                    SettlementVersion: null,
+                    ChargeTypes: null),
                 idempotencyKey: testUuid));
     }
 
@@ -81,7 +81,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
     public async Task When_OrchestrationInstanceIsStarted()
     {
         var (success, orchestrationInstance, _) =
-            await _fixture.WaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
+            await _fixture.WaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
                 _fixture.TestConfiguration.IdempotencyKey);
 
         Assert.Multiple(
@@ -120,9 +120,9 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, businessValidationStep) =
-            await _fixture.WaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
+            await _fixture.WaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: _fixture.TestConfiguration.IdempotencyKey,
-                stepSequence: Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration.Steps.BusinessValidationStep.StepSequence,
+                stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.BusinessValidationStep.StepSequence,
                 stepState: StepInstanceLifecycleState.Terminated);
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
@@ -143,9 +143,9 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
-            await _fixture.WaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
+            await _fixture.WaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: _fixture.TestConfiguration.IdempotencyKey,
-                stepSequence: Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
+                stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
                 stepState: StepInstanceLifecycleState.Running);
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
@@ -164,15 +164,15 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
 
         // Send notify "EnqueueActorMessagesCompleted" message to the orchestration instance
         await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
+            new RequestCalculatedWholesaleServicesNotifyEventV1(
                 OrchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstance.Id.ToString()),
             CancellationToken.None);
 
         // Wait for the enqueue actor messages step to be terminated
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
-            await _fixture.WaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
+            await _fixture.WaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: _fixture.TestConfiguration.IdempotencyKey,
-                stepSequence: Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
+                stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
                 stepState: StepInstanceLifecycleState.Terminated);
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
@@ -190,7 +190,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, _) =
-            await _fixture.WaitForOrchestrationInstance<RequestCalculatedEnergyTimeSeriesInputV1>(
+            await _fixture.WaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: _fixture.TestConfiguration.IdempotencyKey,
                 orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated);
 

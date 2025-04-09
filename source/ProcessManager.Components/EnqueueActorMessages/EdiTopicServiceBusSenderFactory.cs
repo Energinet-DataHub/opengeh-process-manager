@@ -33,7 +33,7 @@ public class EdiTopicServiceBusSenderFactory(
     /// <summary>
     /// Create a service bus sender to send enqueue messages.
     /// <remarks>
-    /// If mocking for dependencies are allowed for the current environment, then a mock will be returned
+    /// If mocking dependencies are allowed for the current environment, then a mock will be returned
     /// if the given <paramref name="data"/> parameter has an OriginalActorMessageId, and it is a test id.
     /// </remarks>
     /// </summary>

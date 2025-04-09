@@ -16,6 +16,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 namespace Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 
+/// <summary>
+/// Marker interface for accepted data DTOs, which contains properties that all "accepted" messages must contain.
+/// </summary>
 public interface IEnqueueAcceptedDataDto : IEnqueueDataDto
 {
     string OriginalActorMessageId { get; init; }

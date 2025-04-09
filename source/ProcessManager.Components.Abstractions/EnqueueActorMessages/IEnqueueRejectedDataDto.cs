@@ -16,6 +16,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 namespace Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 
+/// <summary>
+/// Marker interface for rejected data DTOs, which contains properties that all "rejected" messages must contain.
+/// </summary>
 public interface IEnqueueRejectedDataDto : IEnqueueDataDto
 {
     string OriginalActorMessageId { get; init; }

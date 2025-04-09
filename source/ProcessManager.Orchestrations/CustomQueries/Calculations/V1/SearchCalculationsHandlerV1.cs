@@ -24,12 +24,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 
 internal class SearchCalculationsHandlerV1(
-    ProcessManagerReaderContext readerContext,
-    TimeHelper timeHelper) :
+    ProcessManagerReaderContext readerContext) :
         ISearchOrchestrationInstancesQueryHandler<CalculationsQueryV1, ICalculationsQueryResultV1>
 {
     private readonly ProcessManagerReaderContext _readerContext = readerContext;
-    private readonly TimeHelper _timeHelper = timeHelper;
 
     public async Task<IReadOnlyCollection<ICalculationsQueryResultV1>> HandleAsync(CalculationsQueryV1 query)
     {

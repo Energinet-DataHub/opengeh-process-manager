@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -66,8 +65,7 @@ public class SearchCalculationsHandlerV1Tests :
         _fixture = fixture;
         _readerContext = fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
 
-        var timeHelper = new TimeHelper(DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
-        _sut = new SearchCalculationsHandlerV1(_readerContext, timeHelper);
+        _sut = new SearchCalculationsHandlerV1(_readerContext);
     }
 
     public async Task InitializeAsync()

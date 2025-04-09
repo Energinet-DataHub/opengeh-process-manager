@@ -32,6 +32,7 @@ public static class MeteredDataToMeasurementMapper
     {
         { PMTypes.Resolution.QuarterHourly, MeasurementTypes.Resolution.RPt15M },
         { PMTypes.Resolution.Hourly, MeasurementTypes.Resolution.RPt1H },
+        { PMTypes.Resolution.Monthly, MeasurementTypes.Resolution.RP1M },
     };
 
     internal static ValueObjectsMap<PMTypes.MeasurementUnit, MeasurementTypes.Unit> MeasurementUnit { get; } = new()

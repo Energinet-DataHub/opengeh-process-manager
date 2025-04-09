@@ -463,7 +463,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             StartDateTime: "2024-12-01T23:00:00Z",
             EndDateTime: "2024-12-02T23:00:00Z",
             GridAccessProviderNumber: GridAccessProvider,
-            DelegatedGridAreaCodes: null,
             MeteredDataList:
             [
                 new("1", "112.000", Quality.AsProvided.Name),
@@ -529,7 +528,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ],
         };
 
-        // IEnumerable<MeteringPointMasterData>
+        // IEnumerable<HistoricalMeteringPointMasterData>
         var response = Response
             .Create()
             .WithStatusCode(HttpStatusCode.OK)

@@ -19,4 +19,5 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public record ForwardMeteredDataBusinessValidatedDto(
     ForwardMeteredDataInputV1 Input,
-    IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData) : IBusinessValidatedDto;
+    MeteringPointMasterData? CurrentMasterData,
+    IReadOnlyCollection<MeteringPointMasterData> HistoricalMeteringPointMasterData) : IBusinessValidatedDto;

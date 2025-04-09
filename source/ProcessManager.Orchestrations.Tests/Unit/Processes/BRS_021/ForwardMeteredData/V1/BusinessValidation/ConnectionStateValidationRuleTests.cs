@@ -39,40 +39,42 @@ public class ConnectionStateValidationRuleTests
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
 
+        var currentMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            MeteringPointType.Production,
+            MeteringPointSubType.Physical,
+            Resolution.Hourly,
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(new(
             input,
-            [
-            new MeteringPointMasterData(
-                new MeteringPointId("id"),
-                SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                new GridAreaCode("111"),
-                ActorNumber.Create("1111111111111"),
-                [],
-                connectionState,
-                MeteringPointType.Production,
-                MeteringPointSubType.Physical,
-                Resolution.Hourly,
-                MeasurementUnit.KilowattHour,
-                "product",
-                null,
-                ActorNumber.Create("1111111111112")),
-            new MeteringPointMasterData(
-                new MeteringPointId("id"),
-                SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                new GridAreaCode("111"),
-                ActorNumber.Create("1111111111111"),
-                [],
-                ConnectionState.Connected,
-                MeteringPointType.Production,
-                MeteringPointSubType.Physical,
-                Resolution.Hourly,
-                MeasurementUnit.KilowattHour,
-                "product",
-                null,
-                ActorNumber.Create("1111111111112")),
-        ]));
+            CurrentMasterData: currentMasterData,
+            HistoricalMeteringPointMasterData: [
+                new MeteringPointMasterData(
+                    new MeteringPointId("id"),
+                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                    new GridAreaCode("111"),
+                    ActorNumber.Create("1111111111111"),
+                    [],
+                    connectionState,
+                    MeteringPointType.Production,
+                    MeteringPointSubType.Physical,
+                    Resolution.Hourly,
+                    MeasurementUnit.KilowattHour,
+                    "product",
+                    null,
+                    ActorNumber.Create("1111111111112")),
+                currentMasterData,
+            ]));
 
         result.Should()
             .ContainSingle()
@@ -89,25 +91,27 @@ public class ConnectionStateValidationRuleTests
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            connectionState,
+            MeteringPointType.Production,
+            MeteringPointSubType.Physical,
+            Resolution.Hourly,
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new(
                 input,
-                [
-                    new MeteringPointMasterData(
-                        new MeteringPointId("id"),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        new GridAreaCode("111"),
-                        ActorNumber.Create("1111111111111"),
-                        [],
-                        connectionState,
-                        MeteringPointType.Production,
-                        MeteringPointSubType.Physical,
-                        Resolution.Hourly,
-                        MeasurementUnit.KilowattHour,
-                        "product",
-                        null,
-                        ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
 
         result.Should().BeEmpty();
@@ -122,6 +126,7 @@ public class ConnectionStateValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 input,
+                null,
                 []));
 
         result.Should().BeEmpty();

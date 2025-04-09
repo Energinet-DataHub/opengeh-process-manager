@@ -30,7 +30,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 using NodaTime;
-using NodaTime.Text;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
 using OrchestrationInstanceLifecycleState =
     Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
@@ -50,7 +49,8 @@ public class StartForwardMeteredDataHandlerV1(
     IMeasurementsMeteredDataClient measurementsMeteredDataClient,
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
-    IEnqueueActorMessagesClient enqueueActorMessagesClient)
+    IEnqueueActorMessagesClient enqueueActorMessagesClient,
+    DelegationProvider delegationProvider)
     : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
@@ -60,6 +60,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
     private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+    private readonly DelegationProvider _delegationProvider = delegationProvider;
     private readonly ILogger<StartForwardMeteredDataHandlerV1> _logger = logger;
 
     /// <summary>
@@ -164,6 +165,20 @@ public class StartForwardMeteredDataHandlerV1(
         // - Waits for a rejected actor messages enqueued notify response on the service bus.
     }
 
+    private static (ActorNumber StartedByActorNumber, ActorRole StartedByActorRole) GetStartedByActor(
+        OrchestrationInstance orchestrationInstance)
+    {
+        var orchestrationStartedBy = orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto();
+        return orchestrationStartedBy switch
+        {
+            ActorIdentityDto actor => (actor.ActorNumber, actor.ActorRole),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(orchestrationStartedBy),
+                orchestrationStartedBy.GetType().Name,
+                "Unknown enqueuedBy type"),
+        };
+    }
+
     /// <summary>
     /// Create an orchestration instance (if it doesn't already exist), and transition it to running.
     /// <remarks>If the orchestration instance already exists, and is already running or terminated, this method does nothing.</remarks>
@@ -242,12 +257,47 @@ public class StartForwardMeteredDataHandlerV1(
         }
 
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
-        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
+        ForwardMeteredDataCustomStateV2 forwardMeteredDataCustomState;
+        try
+        {
+            forwardMeteredDataCustomState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
+        }
+        catch (InvalidOperationException)
+        {
+            var meteringPointMasterData = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>().MeteringPointMasterData;
+            var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
+            forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
+        }
+
+        var delegationResult = await IsInputDelegated(orchestrationInstance, forwardMeteredDataCustomState)
+            .ConfigureAwait(false);
+        if (delegationResult is { IsDelegated: true })
+        {
+            if (delegationResult is { ActorNumber: null })
+            {
+                 await StepHelper.TerminateStepAndCommit(
+                  validationStep,
+                  _clock,
+                  _progressRepository,
+                  StepInstanceTerminationState.Failed)
+                      .ConfigureAwait(false);
+                 return new List<ValidationError>()
+                 {
+                     new(
+                         "Aktør ikke opsat til at må indsende måledata for det pågældende målepunkt/"
+                         + "Actor not allowed to send meterdata for the selected metering point",
+                         "D50"),
+                 };
+            }
+
+            input = input with { GridAccessProviderNumber = delegationResult.ActorNumber };
+        }
 
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,
-                    MeteringPointMasterData: customState.MeteringPointMasterData))
+                    CurrentMasterData: forwardMeteredDataCustomState.CurrentMeteringPointMasterData,
+                    HistoricalMeteringPointMasterData: forwardMeteredDataCustomState.HistoricalMeteringPointMasterData))
             .ConfigureAwait(false);
 
         var validationSuccess = validationErrors.Count == 0;
@@ -267,6 +317,24 @@ public class StartForwardMeteredDataHandlerV1(
             .ConfigureAwait(false);
 
         return validationErrors;
+    }
+
+    private async Task<(bool IsDelegated, string? ActorNumber)> IsInputDelegated(
+        OrchestrationInstance orchestrationInstance,
+        ForwardMeteredDataCustomStateV2 customState)
+    {
+        if (customState.CurrentMeteringPointMasterData is null)
+            return (false, null);
+
+        var currentGridAreaCode = customState
+            .CurrentMeteringPointMasterData.GridAreaCode;
+
+        var startedByActor = GetStartedByActor(orchestrationInstance);
+
+        return await _delegationProvider.GetDelegatedFromAsync(
+            actorNumber: startedByActor.StartedByActorNumber,
+            actorRole: startedByActor.StartedByActorRole,
+            gridAreaCode: currentGridAreaCode).ConfigureAwait(false);
     }
 
     private async Task ForwardToMeasurements(

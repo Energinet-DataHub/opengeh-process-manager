@@ -72,6 +72,7 @@ public class MeteringPointTypeValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 input,
+                null,
                 []));
 
         result.Should().BeEmpty();
@@ -85,25 +86,27 @@ public class MeteringPointTypeValidationRuleTests
             .WithMeteringPointType(meteringPointType.Name)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            meteringPointType,
+            MeteringPointSubType.Physical,
+            Resolution.QuarterHourly,
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new(
                 input,
-                [
-                    new MeteringPointMasterData(
-                        new MeteringPointId("id"),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        new GridAreaCode("111"),
-                        ActorNumber.Create("1111111111111"),
-                        [],
-                        ConnectionState.Connected,
-                        meteringPointType,
-                        MeteringPointSubType.Physical,
-                        Resolution.QuarterHourly,
-                        MeasurementUnit.KilowattHour,
-                        "product",
-                        null,
-                        ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
 
         result.Should().BeEmpty();
@@ -117,25 +120,27 @@ public class MeteringPointTypeValidationRuleTests
             .WithMeteringPointType(meteringPointType.Name)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            MeteringPointType.Production,
+            MeteringPointSubType.Physical,
+            Resolution.QuarterHourly,
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new(
                 input,
-                [
-                    new MeteringPointMasterData(
-                        new MeteringPointId("id"),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        new GridAreaCode("111"),
-                        ActorNumber.Create("1111111111111"),
-                        [],
-                        ConnectionState.Connected,
-                        MeteringPointType.Production,
-                        MeteringPointSubType.Physical,
-                        Resolution.QuarterHourly,
-                        MeasurementUnit.KilowattHour,
-                        "product",
-                        null,
-                        ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
 
         result.Should()
@@ -149,9 +154,26 @@ public class MeteringPointTypeValidationRuleTests
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            // A different MeteringPointType
+            MeteringPointType.Consumption,
+            MeteringPointSubType.Physical,
+            Resolution.QuarterHourly,
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(new(
             input,
-            [
+            CurrentMasterData: meteringPointMasterData,
+            HistoricalMeteringPointMasterData: [
                 new MeteringPointMasterData(
                     new MeteringPointId("id"),
                     SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
@@ -168,22 +190,7 @@ public class MeteringPointTypeValidationRuleTests
                     "product",
                     null,
                     ActorNumber.Create("1111111111112")),
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    // A different MeteringPointType
-                    MeteringPointType.Consumption,
-                    MeteringPointSubType.Physical,
-                    Resolution.QuarterHourly,
-                    MeasurementUnit.KilowattHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
+                meteringPointMasterData,
             ]));
 
         result.Should()
@@ -199,25 +206,27 @@ public class MeteringPointTypeValidationRuleTests
             .WithMeteringPointType("Production")
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            // MeteringPointType different from incoming
+            MeteringPointType.Consumption,
+            MeteringPointSubType.Physical,
+            Resolution.QuarterHourly,
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(new(
             input,
-            [
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    // MeteringPointType different from incoming
-                    MeteringPointType.Consumption,
-                    MeteringPointSubType.Physical,
-                    Resolution.QuarterHourly,
-                    MeasurementUnit.KilowattHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
+            CurrentMasterData: meteringPointMasterData,
+            HistoricalMeteringPointMasterData: [
+                meteringPointMasterData,
             ]));
 
         result.Should()

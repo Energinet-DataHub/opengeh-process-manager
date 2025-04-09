@@ -35,6 +35,7 @@ public class ResolutionValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 input,
+                null!,
                 []));
 
         result.Should().BeEmpty();
@@ -49,25 +50,27 @@ public class ResolutionValidationRuleTests
             .WithResolution(resolution)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            MeteringPointType.Production,
+            MeteringPointSubType.Physical,
+            Resolution.FromName(resolution),
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new(
                 input,
-                [
-                    new MeteringPointMasterData(
-                        new MeteringPointId("id"),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        new GridAreaCode("111"),
-                        ActorNumber.Create("1111111111111"),
-                        [],
-                        ConnectionState.Connected,
-                        MeteringPointType.Production,
-                        MeteringPointSubType.Physical,
-                        Resolution.FromName(resolution),
-                        MeasurementUnit.KilowattHour,
-                        "product",
-                        null,
-                        ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
 
         result.Should().BeEmpty();
@@ -82,25 +85,27 @@ public class ResolutionValidationRuleTests
             .WithMeteringPointType(MeteringPointType.VeProduction.Name)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            MeteringPointType.VeProduction,
+            MeteringPointSubType.Physical,
+            monthlyResolution,
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new(
                 input,
-                [
-                    new MeteringPointMasterData(
-                        new MeteringPointId("id"),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        new GridAreaCode("111"),
-                        ActorNumber.Create("1111111111111"),
-                        [],
-                        ConnectionState.Connected,
-                        MeteringPointType.VeProduction,
-                        MeteringPointSubType.Physical,
-                        monthlyResolution,
-                        MeasurementUnit.KilowattHour,
-                        "product",
-                        null,
-                        ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
 
         result.Should().BeEmpty();
@@ -114,24 +119,26 @@ public class ResolutionValidationRuleTests
             .WithResolution(resolution)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            MeteringPointType.Production,
+            MeteringPointSubType.Physical,
+            Resolution.FromName(resolution),
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(new(
             input,
-            [
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    MeteringPointType.Production,
-                    MeteringPointSubType.Physical,
-                    Resolution.FromName(resolution),
-                    MeasurementUnit.KilowattHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
+            CurrentMasterData: meteringPointMasterData,
+            HistoricalMeteringPointMasterData: [
+                meteringPointMasterData,
             ]));
 
         result.Should()
@@ -147,9 +154,26 @@ public class ResolutionValidationRuleTests
             .WithResolution(validResolution.Name)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            MeteringPointType.Production,
+            MeteringPointSubType.Physical,
+            // Different resolution
+            Resolution.Hourly,
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(new(
             input,
-            [
+            CurrentMasterData: meteringPointMasterData,
+            HistoricalMeteringPointMasterData: [
                 new MeteringPointMasterData(
                     new MeteringPointId("id"),
                     SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
@@ -165,22 +189,7 @@ public class ResolutionValidationRuleTests
                     "product",
                     null,
                     ActorNumber.Create("1111111111112")),
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    MeteringPointType.Production,
-                    MeteringPointSubType.Physical,
-                    // Different resolution
-                    Resolution.Hourly,
-                    MeasurementUnit.KilowattHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
+                meteringPointMasterData,
             ]));
 
         result.Should()
@@ -197,25 +206,27 @@ public class ResolutionValidationRuleTests
             .WithResolution(validResolutionForVeProduction.Name)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            // Not ve production metering point type
+            MeteringPointType.Consumption,
+            MeteringPointSubType.Physical,
+            validResolutionForVeProduction,
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(new(
             input,
-            [
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    // Not ve production metering point type
-                    MeteringPointType.Consumption,
-                    MeteringPointSubType.Physical,
-                    validResolutionForVeProduction,
-                    MeasurementUnit.KilowattHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
+            CurrentMasterData: meteringPointMasterData,
+            HistoricalMeteringPointMasterData: [
+                meteringPointMasterData,
             ]));
 
         result.Should()
@@ -233,24 +244,26 @@ public class ResolutionValidationRuleTests
             .WithResolution(validResolutionForVeProduction.Name)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            new MeteringPointId("id"),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            new GridAreaCode("111"),
+            ActorNumber.Create("1111111111111"),
+            [],
+            ConnectionState.Connected,
+            MeteringPointType.Production,
+            MeteringPointSubType.Physical,
+            validResolutionForVeProduction,
+            MeasurementUnit.KilowattHour,
+            "product",
+            null,
+            ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(new(
             input,
-            [
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    MeteringPointType.Production,
-                    MeteringPointSubType.Physical,
-                    validResolutionForVeProduction,
-                    MeasurementUnit.KilowattHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
+            CurrentMasterData: meteringPointMasterData,
+            HistoricalMeteringPointMasterData: [
+                meteringPointMasterData,
             ]));
 
         result.Should()

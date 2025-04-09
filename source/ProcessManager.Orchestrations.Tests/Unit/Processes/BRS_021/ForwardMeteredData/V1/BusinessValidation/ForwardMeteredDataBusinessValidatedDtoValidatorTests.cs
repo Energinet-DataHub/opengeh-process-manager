@@ -70,26 +70,27 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+            GridAreaCode: new GridAreaCode("804"),
+            GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+            ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            NeighborGridAreaOwners: [],
+            Resolution: Resolution.Hourly,
+            ProductId: "product",
+            ParentMeteringPointId: null,
+            EnergySupplier: ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                MeteringPointMasterData:
-                [
-                    new MeteringPointMasterData(
-                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
-                        GridAreaCode: new GridAreaCode("804"),
-                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
-                        ConnectionState: ConnectionState.Connected,
-                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
-                        MeteringPointSubType: MeteringPointSubType.Physical,
-                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
-                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        NeighborGridAreaOwners: [],
-                        Resolution: Resolution.Hourly,
-                        ProductId: "product",
-                        ParentMeteringPointId: null,
-                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
 
         result.Should().BeEmpty();
@@ -102,26 +103,27 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .WithEndDateTime(null)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+            GridAreaCode: new GridAreaCode("804"),
+            GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+            ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            NeighborGridAreaOwners: [],
+            Resolution: Resolution.Hourly,
+            ProductId: "product",
+            ParentMeteringPointId: null,
+            EnergySupplier: ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                MeteringPointMasterData:
-                [
-                    new MeteringPointMasterData(
-                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
-                        GridAreaCode: new GridAreaCode("804"),
-                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
-                        ConnectionState: ConnectionState.Connected,
-                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
-                        MeteringPointSubType: MeteringPointSubType.Physical,
-                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
-                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        NeighborGridAreaOwners: [],
-                        Resolution: Resolution.Hourly,
-                        ProductId: "product",
-                        ParentMeteringPointId: null,
-                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
 
         result.Should()
@@ -138,7 +140,8 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                MeteringPointMasterData: []));
+                CurrentMasterData: null,
+                HistoricalMeteringPointMasterData: []));
 
         result.Should()
             .ContainSingle()
@@ -152,26 +155,27 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .WithGridAccessProviderNumber("1111111111111")
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+            GridAreaCode: new GridAreaCode("804"),
+            GridAccessProvider: ActorNumber.Create("9999999999999"),
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+            ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            NeighborGridAreaOwners: [],
+            Resolution: Resolution.Hourly,
+            ProductId: "product",
+            ParentMeteringPointId: null,
+            EnergySupplier: ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                MeteringPointMasterData:
-                [
-                    new MeteringPointMasterData(
-                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
-                        GridAreaCode: new GridAreaCode("804"),
-                        GridAccessProvider: ActorNumber.Create("9999999999999"),
-                        ConnectionState: ConnectionState.Connected,
-                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
-                        MeteringPointSubType: MeteringPointSubType.Physical,
-                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
-                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        NeighborGridAreaOwners: [],
-                        Resolution: Resolution.Hourly,
-                        ProductId: "product",
-                        ParentMeteringPointId: null,
-                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
 
         result.Should()
@@ -186,27 +190,28 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .Build();
 
         var invalidConnectionState = ConnectionState.ClosedDown;
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+            GridAreaCode: new GridAreaCode("804"),
+            GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+            ConnectionState: invalidConnectionState,
+            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+            ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            NeighborGridAreaOwners: [],
+            Resolution: Resolution.Hourly,
+            ProductId: "product",
+            ParentMeteringPointId: null,
+            EnergySupplier: ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                MeteringPointMasterData: [
-                    new MeteringPointMasterData(
-                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
-                        GridAreaCode: new GridAreaCode("804"),
-                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
-                        ConnectionState: invalidConnectionState,
-                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
-                        MeteringPointSubType: MeteringPointSubType.Physical,
-                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
-                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        NeighborGridAreaOwners: [],
-                        Resolution: Resolution.Hourly,
-                        ProductId: "product",
-                        ParentMeteringPointId: null,
-                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
-
         result.Should()
             .ContainSingle()
             .And.BeEquivalentTo(ConnectionStateValidationRule.MeteringPointConnectionStateError);
@@ -228,25 +233,27 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                     .ToList())
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+            GridAreaCode: new GridAreaCode("804"),
+            GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+            ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            NeighborGridAreaOwners: [],
+            Resolution: Resolution.Hourly,
+            ProductId: "product",
+            ParentMeteringPointId: null,
+            EnergySupplier: ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                MeteringPointMasterData: [
-                    new MeteringPointMasterData(
-                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
-                        GridAreaCode: new GridAreaCode("804"),
-                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
-                        ConnectionState: ConnectionState.Connected,
-                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
-                        MeteringPointSubType: MeteringPointSubType.Physical,
-                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
-                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        NeighborGridAreaOwners: [],
-                        Resolution: Resolution.Hourly,
-                        ProductId: "product",
-                        ParentMeteringPointId: null,
-                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
 
         result.Should()
@@ -262,27 +269,28 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .WithMeteringPointType(invalidMeteringPoint)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+            GridAreaCode: new GridAreaCode("804"),
+            GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: MeteringPointType.ElectricalHeating,
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+            ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            NeighborGridAreaOwners: [],
+            Resolution: Resolution.Hourly,
+            ProductId: "product",
+            ParentMeteringPointId: null,
+            EnergySupplier: ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                MeteringPointMasterData: [
-                    new MeteringPointMasterData(
-                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
-                        GridAreaCode: new GridAreaCode("804"),
-                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
-                        ConnectionState: ConnectionState.Connected,
-                        MeteringPointType: MeteringPointType.ElectricalHeating,
-                        MeteringPointSubType: MeteringPointSubType.Physical,
-                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
-                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        NeighborGridAreaOwners: [],
-                        Resolution: Resolution.Hourly,
-                        ProductId: "product",
-                        ParentMeteringPointId: null,
-                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
-
         result.Should()
             .ContainSingle()
             .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointError);
@@ -295,26 +303,27 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .WithResolution(Resolution.QuarterHourly.Name)
             .Build();
 
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+            GridAreaCode: new GridAreaCode("804"),
+            GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+            ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            NeighborGridAreaOwners: [],
+            Resolution: Resolution.QuarterHourly,
+            ProductId: "product",
+            ParentMeteringPointId: null,
+            EnergySupplier: ActorNumber.Create("1111111111112"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                MeteringPointMasterData:
-                [
-                    new MeteringPointMasterData(
-                        MeteringPointId: new MeteringPointId(input.MeteringPointId!),
-                        GridAreaCode: new GridAreaCode("804"),
-                        GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
-                        ConnectionState: ConnectionState.Connected,
-                        MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
-                        MeteringPointSubType: MeteringPointSubType.Physical,
-                        MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
-                        ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        NeighborGridAreaOwners: [],
-                        Resolution: Resolution.QuarterHourly,
-                        ProductId: "product",
-                        ParentMeteringPointId: null,
-                        EnergySupplier: ActorNumber.Create("1111111111112")),
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
                 ]));
 
         result.Should()

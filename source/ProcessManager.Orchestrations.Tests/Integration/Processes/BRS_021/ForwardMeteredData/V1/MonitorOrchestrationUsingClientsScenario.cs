@@ -257,23 +257,25 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .NotBeNull()
             .And.Be(OrchestrationInstanceTerminationState.Succeeded);
 
-        var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV1(
-        [
-            new MeteringPointMasterData(
-                MeteringPointId: new MeteringPointId(MeteringPointId),
-                ValidFrom: _validFrom.ToDateTimeOffset(),
-                ValidTo: _validTo.ToDateTimeOffset(),
-                GridAreaCode: new GridAreaCode(GridArea),
-                GridAccessProvider: ActorNumber.Create(GridAccessProvider),
-                NeighborGridAreaOwners: [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
-                ConnectionState: ConnectionState.Connected,
-                MeteringPointType: MeteringPointType.Production,
-                MeteringPointSubType: MeteringPointSubType.Physical,
-                Resolution: Resolution.Hourly,
-                MeasurementUnit: MeasurementUnit.KilowattHour,
-                ProductId: "Tariff",
-                ParentMeteringPointId: null,
-                EnergySupplier: ActorNumber.Create(EnergySupplier)),
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId(MeteringPointId),
+            ValidFrom: _validFrom.ToDateTimeOffset(),
+            ValidTo: _validTo.ToDateTimeOffset(),
+            GridAreaCode: new GridAreaCode(GridArea),
+            GridAccessProvider: ActorNumber.Create(GridAccessProvider),
+            NeighborGridAreaOwners: [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: MeteringPointType.Production,
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            Resolution: Resolution.Hourly,
+            MeasurementUnit: MeasurementUnit.KilowattHour,
+            ProductId: "Tariff",
+            ParentMeteringPointId: null,
+            EnergySupplier: ActorNumber.Create(EnergySupplier));
+        var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
+            CurrentMeteringPointMasterData: meteringPointMasterData,
+            HistoricalMeteringPointMasterData: [
+            meteringPointMasterData,
         ]);
 
         terminatedOrchestrationInstance.CustomState.Should()
@@ -360,7 +362,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .And.Be(OrchestrationInstanceTerminationState.Failed);
 
         terminatedOrchestrationInstance.CustomState.Should()
-            .BeEquivalentTo(JsonSerializer.Serialize(new ForwardMeteredDataCustomStateV1([])));
+            .BeEquivalentTo(JsonSerializer.Serialize(new ForwardMeteredDataCustomStateV2(null, [])));
 
         terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence)
             .Should()

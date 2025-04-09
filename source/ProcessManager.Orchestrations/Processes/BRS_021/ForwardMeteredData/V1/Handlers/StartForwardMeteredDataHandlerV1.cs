@@ -106,16 +106,19 @@ public class StartForwardMeteredDataHandlerV1(
                 .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 
-            var currentMeteringPointMasterData = await _meteringPointMasterDataProvider
+            var currentMeteringPointMasterData =
+                historicalMeteringPointMasterData.Any() ?
+                await _meteringPointMasterDataProvider
                 .GetMasterData(
                     input.MeteringPointId!,
                     _clock.GetCurrentInstant().ToString(),
-                    _clock.GetCurrentInstant().Plus(Duration.FromDays(1)).ToString())
-                .ConfigureAwait(false);
+                    _clock.GetCurrentInstant().ToString())
+                .ConfigureAwait(false)
+                : null;
 
             orchestrationInstance.CustomState.SetFromInstance(
                 new ForwardMeteredDataCustomStateV2(
-                    CurrentMeteringPointMasterData: currentMeteringPointMasterData.FirstOrDefault(),
+                    CurrentMeteringPointMasterData: currentMeteringPointMasterData?.FirstOrDefault(),
                     HistoricalMeteringPointMasterData: historicalMeteringPointMasterData));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
@@ -252,6 +255,7 @@ public class StartForwardMeteredDataHandlerV1(
 
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
         ForwardMeteredDataCustomStateV2 forwardMeteredDataCustomState;
+        // TODO: remove this try-catch when all orchestration instances are migrated to the new custom state
         try
         {
             forwardMeteredDataCustomState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();

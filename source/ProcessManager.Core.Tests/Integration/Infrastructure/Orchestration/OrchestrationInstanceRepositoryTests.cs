@@ -16,7 +16,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
-using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
@@ -711,9 +710,11 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         IdempotencyKey? idempotencyKey = null,
         Actor? createdByActor = null)
     {
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            createdByActor ?? ProcessManagerDomainTestDataFactory.EnergySupplier.ActorIdentity.Actor);
+        var userIdentity = createdByActor == null
+            ? ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity
+            : new UserIdentity(
+                new UserId(Guid.NewGuid()),
+                createdByActor);
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,

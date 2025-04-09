@@ -73,6 +73,24 @@ public class EnqueueActorMessagesClient(
             subject: EnqueueActorMessagesV1.BuildServiceBusMessageSubject(orchestration.Name),
             idempotencyKey: idempotencyKey.ToString());
 
+        if (_options.Value.AllowMockDependenciesForTests && ShouldMockDependencyForTest(data))
+        {
+            // Do nothing if this is a test message (don't pollute other subsystems)
+        }
+        else
+        {
+            await _serviceBusSender.SendMessageAsync(serviceBusMessage)
+                .ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// If the message is a test message, we don't want to send it to EDI. This is used by tests (subsystem test,
+    /// load tests) to not pollute other subsystems, and should only be enabled on dev/test environments.
+    /// </summary>
+    private bool ShouldMockDependencyForTest<TEnqueueData>(TEnqueueData data)
+        where TEnqueueData : IEnqueueDataDto
+    {
         var originalActorMessageId = data switch
         {
             IEnqueueAcceptedDataDto d => d.OriginalActorMessageId,
@@ -80,16 +98,8 @@ public class EnqueueActorMessagesClient(
             _ => null,
         };
 
-        if (_options.Value.AllowMockDependenciesForTests
-            && originalActorMessageId != null
-            && originalActorMessageId.IsTestUuid())
-        {
-            // Do nothing if this is a test message (don't pollute EDI)
-        }
-        else
-        {
-            await _serviceBusSender.SendMessageAsync(serviceBusMessage)
-                .ConfigureAwait(false);
-        }
+        return _options.Value.AllowMockDependenciesForTests
+               && originalActorMessageId != null
+               && originalActorMessageId.IsTestUuid();
     }
 }

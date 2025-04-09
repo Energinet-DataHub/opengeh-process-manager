@@ -30,7 +30,7 @@ internal static class ExamplesQueryV1Extensions
         if (orchestrationDescriptionNames == null)
             orchestrationDescriptionNames = [.. ExamplesQueryResultMapperV1.SupportedOrchestrationDescriptionNames];
 
-        if (query.SkippedStepTwo.HasValue && query.SkippedStepTwo == true)
+        if (query.SkippedStepTwo.HasValue)
         {
             orchestrationDescriptionNames.RemoveAll(name
                 => name != Brs_X01_InputExample.Name);

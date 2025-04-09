@@ -146,7 +146,7 @@ internal class SearchExamplesHandlerV1(
                         AND (
                             {query.SkippedStepTwo} is null
                             OR (
-                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.SkippedStepTwo') AS bit) = {query.SkippedStepTwo}
+                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.ShouldSkipSkippableStep') AS bit) = {query.SkippedStepTwo}
                             )
                         )
                     )

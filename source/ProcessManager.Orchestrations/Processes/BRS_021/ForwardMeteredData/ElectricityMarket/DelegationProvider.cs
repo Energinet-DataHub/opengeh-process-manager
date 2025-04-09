@@ -37,43 +37,32 @@ public class DelegationProvider(IElectricityMarketViews electricityMarketViews)
     /// <summary>
     /// Get the delegated actor which is delegated from.
     /// </summary>
-    /// <param name="actorNumber">Actor number of the delegated to actor</param>
-    /// <param name="actorRole">Actor role of the delegated to actor</param>
-    /// <param name="gridAreaCode">The grid area code of the delegated from actor</param>
+    /// <param name="gridAreaOwner">GridAreaOwner which is the delegated from actor</param>
+    /// <param name="senderActorNumber">Actor number of the expected delegated to actor</param>
+    /// <param name="senderActorRole">Actor role of the expected delegated to actor</param>
+    /// <param name="gridAreaCode">The grid area code of which the delegation is expected</param>
     /// <returns>
-    ///     A boolean IsDelegated and ActorNumber of the delegated from actor if delegation exists.
+    ///     A boolean ShouldBeDelegated and ActorNumber of the delegated from actor if delegation exists.
     /// </returns>
-    public async Task<(bool IsDelegated, string? ActorNumber)> GetDelegatedFromAsync(ActorNumber actorNumber, ActorRole? actorRole, GridAreaCode gridAreaCode)
+    public async Task<(bool ShouldBeDelegated, string? ActorNumber)> GetDelegatedFromAsync(ActorNumber gridAreaOwner, ActorNumber senderActorNumber, ActorRole? senderActorRole, GridAreaCode gridAreaCode)
     {
-        if (actorRole != ActorRole.Delegated &&
-            actorRole != ActorRole.GridAccessProvider)
+        if (senderActorRole != ActorRole.Delegated &&
+            senderActorRole != ActorRole.GridAccessProvider)
         {
             // If the actor is not a Delegated or GridAccessProvider, we don't need to check for delegation
             return (false, null);
         }
 
         var delegation = await _electricityMarketViews.GetProcessDelegationAsync(
-            actorNumber.Value,
-            GetMarketRole(actorRole),
+            gridAreaOwner.Value,
+            EicFunction.GridAccessProvider,
             gridAreaCode.Value,
             DelegatedProcess.ReceiveMeteringPointData).ConfigureAwait(false);
 
-        var isDelegation = actorRole == ActorRole.Delegated
-            || delegation is not null;
+        if (delegation?.ActorNumber == senderActorNumber.Value)
+            return (true, gridAreaOwner.Value);
 
-        return (isDelegation, delegation?.ActorNumber);
-    }
-
-    private static EicFunction GetMarketRole(ActorRole actorRole)
-    {
-        return actorRole switch
-        {
-            var currentActorRole when currentActorRole == ActorRole.GridAccessProvider => EicFunction.GridAccessProvider,
-            var currentActorRole when currentActorRole == ActorRole.Delegated => EicFunction.Delegated,
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(actorRole),
-                actorRole,
-                "Unknown EicFunction actor role value"),
-        };
+        var shouldBeDelegated = senderActorRole == ActorRole.Delegated;
+        return (shouldBeDelegated, null);
     }
 }

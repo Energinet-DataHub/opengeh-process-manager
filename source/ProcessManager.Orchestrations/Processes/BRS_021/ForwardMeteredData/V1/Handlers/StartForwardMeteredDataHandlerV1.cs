@@ -283,9 +283,9 @@ public class StartForwardMeteredDataHandlerV1(
             forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
         }
 
-        var delegationResult = await IsInputDelegated(orchestrationInstance, forwardMeteredDataCustomState)
+        var delegationResult = await IsIncomingMeteredDataComingFromDelegated(orchestrationInstance, forwardMeteredDataCustomState)
             .ConfigureAwait(false);
-        if (delegationResult is { IsDelegated: true })
+        if (delegationResult is { ShouldBeDelegated: true })
         {
             if (delegationResult is { ActorNumber: null })
             {
@@ -333,22 +333,23 @@ public class StartForwardMeteredDataHandlerV1(
         return validationErrors;
     }
 
-    private async Task<(bool IsDelegated, string? ActorNumber)> IsInputDelegated(
+    private async Task<(bool ShouldBeDelegated, string? ActorNumber)> IsIncomingMeteredDataComingFromDelegated(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataCustomStateV2 customState)
     {
         if (customState.CurrentMeteringPointMasterData is null)
             return (false, null);
 
-        var currentGridAreaCode = customState
-            .CurrentMeteringPointMasterData.GridAreaCode;
+        var currentMeteringPointMasterData = customState
+            .CurrentMeteringPointMasterData;
 
         var startedByActor = GetStartedByActor(orchestrationInstance);
 
         return await _delegationProvider.GetDelegatedFromAsync(
-            actorNumber: startedByActor.StartedByActorNumber,
-            actorRole: startedByActor.StartedByActorRole,
-            gridAreaCode: currentGridAreaCode).ConfigureAwait(false);
+            gridAreaOwner: currentMeteringPointMasterData.GridAccessProvider,
+            senderActorNumber: startedByActor.StartedByActorNumber,
+            senderActorRole: startedByActor.StartedByActorRole,
+            gridAreaCode: currentMeteringPointMasterData.GridAreaCode).ConfigureAwait(false);
     }
 
     private async Task ForwardToMeasurements(

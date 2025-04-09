@@ -31,81 +31,85 @@ public class DelegationProviderTests
         var mockElectricityMarketViews = new Mock<IElectricityMarketViews>();
         var delegationProvider = new DelegationProvider(mockElectricityMarketViews.Object);
 
-        var actorNumber = ActorNumber.Create("1234567890123");
-        var actorRole = ActorRole.MeteredDataResponsible; // Not Delegated or GridAccessProvider
+        var gridAreaOwner = ActorNumber.Create("9874567890123");
+        var senderActorNumber = ActorNumber.Create("1234567890123");
+        var senderActorRole = ActorRole.MeteredDataResponsible; // Not Delegated or GridAccessProvider
         var gridAreaCode = new GridAreaCode("123");
 
         // Act
         var result = await delegationProvider.GetDelegatedFromAsync(
-            actorNumber,
-            actorRole,
+            gridAreaOwner,
+            senderActorNumber,
+            senderActorRole,
             gridAreaCode);
 
         // Assert
         Assert.Null(result.ActorNumber);
-        Assert.False(result.IsDelegated);
+        Assert.False(result.ShouldBeDelegated);
     }
 
     [Fact]
-    public async Task Given_ActorRoleDelegated_When_GetDelegationAsync_Then_IsDelegatedToActor()
+    public async Task Given_SenderActorRoleIsActorRoleDelegated_When_GetDelegationAsync_Then_IsDelegatedToActor()
     {
         // Arrange
+        var gridAreaOwner = ActorNumber.Create("9874567890123");
         var mockElectricityMarketViews = new Mock<IElectricityMarketViews>();
-        var delegation = new ProcessDelegationDto("4567890123456", EicFunction.Delegated);
+        var delegation = new ProcessDelegationDto("1234567890123", EicFunction.Delegated);
         mockElectricityMarketViews
             .Setup(x => x.GetProcessDelegationAsync(
-                "1234567890123",
-                EicFunction.Delegated,
-                "123",
-                DelegatedProcess.ReceiveMeteringPointData))
-            .ReturnsAsync(delegation);
-
-        var delegationProvider = new DelegationProvider(mockElectricityMarketViews.Object);
-
-        var actorNumber = ActorNumber.Create("1234567890123");
-        var actorRole = ActorRole.Delegated;
-        var gridAreaCode = new GridAreaCode("123");
-
-        // Act
-        var result = await delegationProvider.GetDelegatedFromAsync(
-            actorNumber,
-            actorRole,
-            gridAreaCode);
-
-        // Assert
-        Assert.Equal("4567890123456", result.ActorNumber);
-        Assert.True(result.IsDelegated);
-    }
-
-    [Fact]
-    public async Task Given_ActorRoleGridAccessProvider_When_GetDelegationAsync_Then_IsDelegatedToActor()
-    {
-        // Arrange
-        var mockElectricityMarketViews = new Mock<IElectricityMarketViews>();
-        var delegation = new ProcessDelegationDto("4567890123456", EicFunction.GridAccessProvider);
-        mockElectricityMarketViews
-            .Setup(x => x.GetProcessDelegationAsync(
-                "1234567890123",
+                gridAreaOwner.Value,
                 EicFunction.GridAccessProvider,
                 "123",
                 DelegatedProcess.ReceiveMeteringPointData))
             .ReturnsAsync(delegation);
 
         var delegationProvider = new DelegationProvider(mockElectricityMarketViews.Object);
-
-        var actorNumber = ActorNumber.Create("1234567890123");
-        var actorRole = ActorRole.GridAccessProvider;
+        var senderActorNumber = ActorNumber.Create("1234567890123");
+        var senderActorRole = ActorRole.Delegated;
         var gridAreaCode = new GridAreaCode("123");
 
         // Act
         var result = await delegationProvider.GetDelegatedFromAsync(
-            actorNumber,
-            actorRole,
+            gridAreaOwner,
+            senderActorNumber,
+            senderActorRole,
             gridAreaCode);
 
         // Assert
-        Assert.Equal("4567890123456", result.ActorNumber);
-        Assert.True(result.IsDelegated);
+        Assert.Equal("9874567890123", result.ActorNumber);
+        Assert.True(result.ShouldBeDelegated);
+    }
+
+    [Fact]
+    public async Task Given_SenderActorRoleIsGridAccessProvider_When_GetDelegationAsync_Then_IsDelegatedToActor()
+    {
+        // Arrange
+        var gridAreaOwner = ActorNumber.Create("9874567890123");
+        var mockElectricityMarketViews = new Mock<IElectricityMarketViews>();
+        var delegation = new ProcessDelegationDto("1234567890123", EicFunction.GridAccessProvider);
+        mockElectricityMarketViews
+            .Setup(x => x.GetProcessDelegationAsync(
+                gridAreaOwner.Value,
+                EicFunction.GridAccessProvider,
+                "123",
+                DelegatedProcess.ReceiveMeteringPointData))
+            .ReturnsAsync(delegation);
+
+        var delegationProvider = new DelegationProvider(mockElectricityMarketViews.Object);
+        var senderActorNumber = ActorNumber.Create("1234567890123");
+        var senderActorRole = ActorRole.GridAccessProvider;
+        var gridAreaCode = new GridAreaCode("123");
+
+        // Act
+        var result = await delegationProvider.GetDelegatedFromAsync(
+            gridAreaOwner,
+            senderActorNumber,
+            senderActorRole,
+            gridAreaCode);
+
+        // Assert
+        Assert.Equal("9874567890123", result.ActorNumber);
+        Assert.True(result.ShouldBeDelegated);
     }
 
     [Fact]
@@ -123,19 +127,21 @@ public class DelegationProviderTests
 
         var delegationProvider = new DelegationProvider(mockElectricityMarketViews.Object);
 
-        var actorNumber = ActorNumber.Create("1234567890123");
-        var actorRole = ActorRole.GridAccessProvider;
+        var gridAreaOwner = ActorNumber.Create("9874567890123");
+        var senderActorNumber = ActorNumber.Create("1234567890123");
+        var senderActorRole = ActorRole.GridAccessProvider;
         var gridAreaCode = new GridAreaCode("123");
 
         // Act
         var result = await delegationProvider.GetDelegatedFromAsync(
-            actorNumber,
-            actorRole,
+            gridAreaOwner,
+            senderActorNumber,
+            senderActorRole,
             gridAreaCode);
 
         // Assert
         Assert.Null(result.ActorNumber);
-        Assert.False(result.IsDelegated);
+        Assert.False(result.ShouldBeDelegated);
     }
 
     [Fact]
@@ -153,18 +159,20 @@ public class DelegationProviderTests
 
         var delegationProvider = new DelegationProvider(mockElectricityMarketViews.Object);
 
-        var actorNumber = ActorNumber.Create("1234567890123");
-        var actorRole = ActorRole.Delegated;
+        var gridAreaOwner = ActorNumber.Create("9874567890123");
+        var senderActorNumber = ActorNumber.Create("1234567890123");
+        var senderActorRole = ActorRole.Delegated;
         var gridAreaCode = new GridAreaCode("123");
 
         // Act
         var result = await delegationProvider.GetDelegatedFromAsync(
-            actorNumber,
-            actorRole,
+            gridAreaOwner,
+            senderActorNumber,
+            senderActorRole,
             gridAreaCode);
 
         // Assert
         Assert.Null(result.ActorNumber);
-        Assert.True(result.IsDelegated);
+        Assert.True(result.ShouldBeDelegated);
     }
 }

@@ -667,8 +667,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .UsingPost();
 
         var delegationFrom = new ProcessDelegationDto(
-            GridAccessProvider,
-            ActorRole: EicFunction.GridAccessProvider);
+            DelegatedToGridAccessProvider,
+            ActorRole: EicFunction.Delegated);
 
         var response = Response
             .Create()

@@ -26,7 +26,6 @@ namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure
 public class ProcessManagerContextTests : IClassFixture<ProcessManagerDatabaseFixture>
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
-    private readonly UserIdentity _userIdentity = ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity;
 
     public ProcessManagerContextTests(ProcessManagerDatabaseFixture fixture)
     {
@@ -189,9 +188,10 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerDatabaseFi
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance = CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            identity: _userIdentity,
             runAt: SystemClock.Instance.GetCurrentInstant());
-        existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(SystemClock.Instance, _userIdentity);
+        existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(
+            SystemClock.Instance,
+            ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -352,12 +352,11 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerDatabaseFi
 
     private OrchestrationInstance CreateOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
-        OperatingIdentity? identity = default,
         Instant? runAt = default,
         int? testInt = default,
         IdempotencyKey? idempotencyKey = default)
     {
-        var operatingIdentity = identity ?? _userIdentity;
+        var operatingIdentity = ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,

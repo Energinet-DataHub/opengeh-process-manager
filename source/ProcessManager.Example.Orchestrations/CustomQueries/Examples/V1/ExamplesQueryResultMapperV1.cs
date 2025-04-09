@@ -14,14 +14,13 @@
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.CustomQueries.Examples.V1;
 
 internal static class ExamplesQueryResultMapperV1
 {

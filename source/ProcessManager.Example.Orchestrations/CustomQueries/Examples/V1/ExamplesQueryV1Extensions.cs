@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.CustomQueries.Examples.V1;
 
 internal static class ExamplesQueryV1Extensions
 {
@@ -29,9 +28,7 @@ internal static class ExamplesQueryV1Extensions
             .ToList();
 
         if (orchestrationDescriptionNames == null)
-        {
             orchestrationDescriptionNames = [.. ExamplesQueryResultMapperV1.SupportedOrchestrationDescriptionNames];
-        }
 
         if (query.SkippedStepTwo.HasValue && query.SkippedStepTwo == true)
         {

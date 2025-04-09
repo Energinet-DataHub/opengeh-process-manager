@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.CustomQueries.Calculations.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.CustomQueries.Examples.V1;
 
 internal class SearchTrigger_Examples_V1(
     SearchExamplesHandlerV1 handler)

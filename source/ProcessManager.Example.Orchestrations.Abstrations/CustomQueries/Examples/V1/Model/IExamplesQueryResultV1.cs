@@ -13,9 +13,8 @@
 // limitations under the License.
 
 using System.Text.Json.Serialization;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 
 /// <summary>
 /// Query result from searching for Examples orchestration instances.

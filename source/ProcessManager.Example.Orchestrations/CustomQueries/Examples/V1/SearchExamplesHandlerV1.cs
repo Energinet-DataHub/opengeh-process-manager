@@ -16,12 +16,11 @@ using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.EntityFrameworkCore;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.CustomQueries.Calculations.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.CustomQueries.Examples.V1;
 
 internal class SearchExamplesHandlerV1(
     ProcessManagerReaderContext readerContext) :

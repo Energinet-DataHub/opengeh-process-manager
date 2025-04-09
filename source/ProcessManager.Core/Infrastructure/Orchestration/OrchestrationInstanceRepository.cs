@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
@@ -86,7 +87,7 @@ internal class OrchestrationInstanceRepository(
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        var query = _context
+        var queryable = _context
             .OrchestrationDescriptions
                 .Where(x => x.UniqueName.Name == name)
                 .Where(x => version == null || x.UniqueName.Version == version)
@@ -101,7 +102,11 @@ internal class OrchestrationInstanceRepository(
             .Where(x => terminatedAtOrEarlier == null || x.Lifecycle.TerminatedAt <= terminatedAtOrEarlier)
             .Where(x => scheduledAtOrLater == null || scheduledAtOrLater <= x.Lifecycle.ScheduledToRunAt);
 
-        return await query.ToListAsync().ConfigureAwait(false);
+#if DEBUG
+        var queryStringForDebugging = queryable.ToQueryString();
+#endif
+
+        return await queryable.ToListAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc />

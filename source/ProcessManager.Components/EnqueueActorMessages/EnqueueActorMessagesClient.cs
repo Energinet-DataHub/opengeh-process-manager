@@ -12,28 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
-using Energinet.DataHub.ProcessManager.Components.Extensions;
-using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
-using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
 public class EnqueueActorMessagesClient(
-    IOptions<ProcessManagerOptions> options,
-    IAzureClientFactory<ServiceBusSender> serviceBusFactory)
+    EdiTopicServiceBusSenderFactory ediTopicServiceBusSenderFactory)
         : IEnqueueActorMessagesClient
 {
-    private readonly IOptions<ProcessManagerOptions> _options = options;
-    private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.EdiTopic);
+    private readonly EdiTopicServiceBusSenderFactory _serviceBusSenderFactory = ediTopicServiceBusSenderFactory;
 
     public async Task EnqueueAsync<TEnqueueData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
@@ -73,33 +64,7 @@ public class EnqueueActorMessagesClient(
             subject: EnqueueActorMessagesV1.BuildServiceBusMessageSubject(orchestration.Name),
             idempotencyKey: idempotencyKey.ToString());
 
-        if (_options.Value.AllowMockDependenciesForTests && ShouldMockDependencyForTest(data))
-        {
-            // Do nothing if this is a test message (don't pollute other subsystems)
-        }
-        else
-        {
-            await _serviceBusSender.SendMessageAsync(serviceBusMessage)
-                .ConfigureAwait(false);
-        }
-    }
-
-    /// <summary>
-    /// If the message is a test message, we don't want to send it to EDI. This is used by tests (subsystem test,
-    /// load tests) to not pollute other subsystems, and should only be enabled on dev/test environments.
-    /// </summary>
-    private bool ShouldMockDependencyForTest<TEnqueueData>(TEnqueueData data)
-        where TEnqueueData : IEnqueueDataDto
-    {
-        var originalActorMessageId = data switch
-        {
-            IEnqueueAcceptedDataDto d => d.OriginalActorMessageId,
-            IEnqueueRejectedDataDto d => d.OriginalActorMessageId,
-            _ => null,
-        };
-
-        return _options.Value.AllowMockDependenciesForTests
-               && originalActorMessageId != null
-               && originalActorMessageId.IsTestUuid();
+        var serviceBusSender = _serviceBusSenderFactory.CreateSender(data);
+        await serviceBusSender.SendMessageAsync(serviceBusMessage).ConfigureAwait(false);
     }
 }

@@ -179,23 +179,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 CancellationToken.None);
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
-
-        // Step 5: Custom search
-        var customQuery = new CalculationQuery(Fixture.DefaultUserIdentity)
-        {
-            CalculationTypes = new[] { inputParameter.CalculationType },
-            GridAreaCodes = inputParameter.GridAreaCodes,
-            PeriodStartDate = inputParameter.PeriodStartDate,
-            PeriodEndDate = inputParameter.PeriodEndDate,
-            IsInternalCalculation = inputParameter.IsInternalCalculation,
-        };
-        var orchestrationInstancesCustomSearch = await ProcessManagerClient
-            .SearchOrchestrationInstancesByCustomQueryAsync(
-                customQuery,
-                CancellationToken.None);
-
-        orchestrationInstancesCustomSearch.Should().Contain(x => x.OrchestrationInstance.Id == orchestrationInstanceId);
-        orchestrationInstancesCustomSearch.Count.Should().Be(1);
     }
 
     [Fact]

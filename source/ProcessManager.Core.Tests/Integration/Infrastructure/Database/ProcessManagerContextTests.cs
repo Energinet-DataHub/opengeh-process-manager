@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -26,9 +26,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure
 public class ProcessManagerContextTests : IClassFixture<ProcessManagerDatabaseFixture>
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
-    private readonly UserIdentity _userIdentity = new UserIdentity(
-        new UserId(Guid.NewGuid()),
-        new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+    private readonly UserIdentity _userIdentity = ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity;
 
     public ProcessManagerContextTests(ProcessManagerDatabaseFixture fixture)
     {

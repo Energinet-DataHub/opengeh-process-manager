@@ -191,9 +191,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
 
     private async Task<OrchestrationInstance> SeedDatabaseAsync(OrchestrationDescription brsX01NoInputDescription)
     {
-        var operatingIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+        var operatingIdentity = ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,

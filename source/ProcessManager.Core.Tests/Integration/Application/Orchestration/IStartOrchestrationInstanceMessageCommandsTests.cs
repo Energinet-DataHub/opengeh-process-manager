@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
@@ -21,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
+using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -46,7 +46,7 @@ public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<Pro
     {
         _fixture = fixture;
 
-        _actorIdentity = new ActorIdentity(new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+        _actorIdentity = ProcessManagerDomainTestDataFactory.EnergySupplier.ActorIdentity;
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 

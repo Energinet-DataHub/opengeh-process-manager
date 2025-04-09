@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -47,8 +46,7 @@ internal class SearchCalculationsHandlerV1(
     }
 
     /// <summary>
-    /// Get all orchestration instances filtered by their orchestration description name
-    /// and lifecycle information.
+    /// Get all orchestration instances filtered by the query.
     /// </summary>
     /// <returns>Use the returned unique name to determine which orchestration description
     /// a given orchestration instance was created from.</returns>

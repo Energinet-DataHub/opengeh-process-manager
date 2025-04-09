@@ -12,13 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
+using System.Text.Json.Serialization;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 
 /// <summary>
-/// Query result from searching BRS-X01.
-/// Must be JSON serializable.
+/// Query result from searching for Examples orchestration instances.
+/// We use https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/polymorphism
 /// </summary>
-public record InputExampleQueryResult(OrchestrationInstanceTypedDto<InputV1> OrchestrationInstance);
+[JsonPolymorphic(UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FallBackToNearestAncestor)]
+[JsonDerivedType(typeof(IExamplesQueryResultV1), typeDiscriminator: "base")]
+[JsonDerivedType(typeof(InputExampleResultV1), typeDiscriminator: "input")]
+[JsonDerivedType(typeof(NoInputExampleResultV1), typeDiscriminator: "noinput")]
+public interface IExamplesQueryResultV1;

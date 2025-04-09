@@ -14,50 +14,54 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 
 /// <summary>
-/// Query for searching for BRS-X01.
+/// Query for searching for Examples orchestration instances.
 /// Must be JSON serializable.
 /// </summary>
-public record InputExampleQuery
-    : SearchOrchestrationInstancesByCustomQuery<InputExampleQueryResult>
+public record ExamplesQueryV1
+    : SearchOrchestrationInstancesByCustomQuery<IExamplesQueryResultV1>
 {
-    public const string RouteName = "v1/brs_x01_inputExample";
+    public const string RouteName = "v1/examples";
 
     /// <summary>
     /// Construct query.
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the query.</param>
-    /// <param name="skippedStepTwo"> search criteria to check if step two was skipped</param>
-    public InputExampleQuery(
-        UserIdentityDto operatingIdentity,
-        bool skippedStepTwo = default)
+    public ExamplesQueryV1(
+        UserIdentityDto operatingIdentity)
             : base(operatingIdentity)
     {
-        OrchestrationDescriptionName = Brs_X01_InputExample.Name;
-        SkippedStepTwo = skippedStepTwo;
     }
 
     /// <inheritdoc/>
     public override string QueryRouteName => RouteName;
 
-    /// <summary>
-    /// The name of the orchestration description to filter by.
-    /// </summary>
-    public string OrchestrationDescriptionName { get; }
-
     public IReadOnlyCollection<OrchestrationInstanceLifecycleState>? LifecycleStates { get; set; }
 
     public OrchestrationInstanceTerminationState? TerminationState { get; set; }
+
+    public DateTimeOffset? ScheduledAtOrLater { get; set; }
 
     public DateTimeOffset? StartedAtOrLater { get; set; }
 
     public DateTimeOffset? TerminatedAtOrEarlier { get; set; }
 
-    public DateTimeOffset? ScheduledAtOrLater { get; set; }
+    /// <summary>
+    /// If this is <see langword="null"/> then all example types might be included in the search.
+    /// However, if any query parameter for specific types has been specified
+    /// (e.g. <see cref="SkippedStepTwo"/> then only those types are included in the search.
+    /// </summary>
+    public IReadOnlyCollection<ExampleTypeQueryParameterV1>? ExampleTypes { get; set; }
 
-    public bool SkippedStepTwo { get; set; }
+    /// <summary>
+    /// If this is true, then only the following calculation types will be searched for:
+    ///  - BRS-X01 Input example
+    ///
+    /// Search criteria to check if step two was skipped.
+    /// </summary>
+    public bool? SkippedStepTwo { get; set; }
 }

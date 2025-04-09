@@ -75,8 +75,8 @@ public class EnqueueActorMessagesClient(
 
         var originalActorMessageId = data switch
         {
-            INotifyEnqueueAcceptedDataDto d => d.OriginalActorMessageId,
-            INotifyEnqueueRejectedDataDto d => d.OriginalActorMessageId,
+            IEnqueueAcceptedDataDto d => d.OriginalActorMessageId,
+            IEnqueueRejectedDataDto d => d.OriginalActorMessageId,
             _ => null,
         };
 

@@ -41,27 +41,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should()
@@ -83,27 +82,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(7, 6));
@@ -123,27 +121,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().BeEmpty();
@@ -163,27 +160,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should()
@@ -205,27 +201,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(4, 2));
@@ -245,27 +240,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().BeEmpty();
@@ -285,27 +279,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should()
@@ -327,27 +320,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should()
@@ -369,27 +361,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().BeEmpty();
@@ -410,27 +401,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().BeEmpty();
@@ -451,27 +441,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().BeEmpty();
@@ -492,27 +481,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().BeEmpty();
@@ -532,27 +520,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should()
@@ -574,27 +561,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().BeEmpty();
@@ -614,27 +600,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should()
@@ -657,27 +642,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().BeEmpty();
@@ -697,27 +681,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should()
@@ -739,27 +722,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(3, 2));
@@ -779,27 +761,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(3, 2));
@@ -819,27 +800,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().ContainSingle().And.Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(4, 3));
@@ -860,27 +840,26 @@ public class PositionCountValidationRuleTests
                     .ToList())
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().BeEmpty();
@@ -905,27 +884,26 @@ public class PositionCountValidationRuleTests
             ])
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should().ContainSingle().And.Contain(PositionCountValidationRule.PositionsNotConsecutiveError([10]));
@@ -950,27 +928,26 @@ public class PositionCountValidationRuleTests
             ])
             .Build();
 
-        var meteringPointMasterData = new MeteringPointMasterData(
-            new MeteringPointId("123456789012345678"),
-            DateTimeOffset.MinValue,
-            DateTimeOffset.MaxValue,
-            new GridAreaCode("804"),
-            ActorNumber.Create("1111111111111"),
-            [],
-            ConnectionState.Connected,
-            MeteringPointType.Consumption,
-            MeteringPointSubType.Physical,
-            Resolution.QuarterHourly,
-            MeasurementUnit.KilowattHour,
-            "productId",
-            null,
-            ActorNumber.Create("2222222222222"));
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    meteringPointMasterData,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
                 ]));
 
         result.Should()

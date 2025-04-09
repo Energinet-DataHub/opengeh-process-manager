@@ -28,4 +28,4 @@ public record UpdateMeteringPointConnectionStateRejectedV1(
     ActorNumber RequestedByActorNumber,
     ActorRole RequestedByActorRole,
     IReadOnlyCollection<ValidationErrorDto> ValidationErrors)
-        : INotifyEnqueueRejectedDataDto;
+    : IEnqueueRejectedDataDto;

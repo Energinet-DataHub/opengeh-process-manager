@@ -33,7 +33,7 @@ public partial class EnqueueActorMessagesV1
     public static string BuildServiceBusMessageSubject(OrchestrationDescriptionUniqueNameDto uniqueName) => BuildServiceBusMessageSubject(uniqueName.Name);
 
     public void SetData<TData>(TData data)
-        where TData : INotifyEnqueueDataDto
+        where TData : IEnqueueDataDto
     {
         Data = JsonSerializer.Serialize(data);
         DataFormat = EnqueueActorMessagesDataFormatV1.Json;
@@ -41,7 +41,7 @@ public partial class EnqueueActorMessagesV1
     }
 
     public TData ParseData<TData>()
-        where TData : INotifyEnqueueDataDto
+        where TData : IEnqueueDataDto
     {
         if (DataType != typeof(TData).Name)
         {

@@ -15,7 +15,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="DurableFunctionsMonitor.DotNetIsolated" Version="6.6.0" />
     <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="6.1.4" />
-    <PackageReference Include="Energinet.DataHub.ElectricityMarket.Integration" Version="4.3.4" />
+    <PackageReference Include="Energinet.DataHub.ElectricityMarket.Integration" Version="4.4.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.EventHubs" Version="6.3.6" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.1" />
@@ -46,6 +46,7 @@
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Shared\Api\Json\JsonPolymorphicItemContainer.cs" Link="Api\Json\JsonPolymorphicItemContainer.cs" />
     <Compile Include="..\Shared\Api\Mappers\DateTimeOffsetExtensions.cs" Link="Api\Mappers\DateTimeOffsetExtensions.cs" />
     <Compile Include="..\Shared\Api\Mappers\OrchestrationInstanceMapperExtensions.cs" Link="Api\Mappers\OrchestrationInstanceMapperExtensions.cs" />
     <Compile Include="..\Shared\Api\Mappers\DtoMapperExtensions.cs" Link="Api\Mappers\DtoMapperExtensions.cs" />

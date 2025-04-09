@@ -134,6 +134,10 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value);
     }
 
+    /// <summary>
+    /// Here we also search for 'BalanceFixing' even though we know there isn't any in the database.
+    /// This impacts the JSON search as it will also search for Wholesale calculation types.
+    /// </summary>
     [Fact]
     public async Task Given_LifecycleDatasetInDatabase_When_SearchByCalculationTypeAndPending_Then_OnlyExpectedCalculationsAreRetrieved()
     {
@@ -145,7 +149,9 @@ public class SearchCalculationsHandlerV1Tests :
         // When
         var calculationQuery = new CalculationsQueryV1(_userIdentity)
         {
-            CalculationTypes = [CalculationTypeQueryParameterV1.NetConsumption],
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.NetConsumption,
+                CalculationTypeQueryParameterV1.BalanceFixing],
             LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Pending],
         };
 
@@ -502,10 +508,15 @@ public class SearchCalculationsHandlerV1Tests :
                 });
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_CalculationsForGridAreas_When_SearchByAnotherGridArea_Then_ResultIsEmpty()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
@@ -522,10 +533,15 @@ public class SearchCalculationsHandlerV1Tests :
             .BeEmpty();
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_CalculationsForGridAreas_When_SearchByMatchingGridArea_Then_ExpectedCalculationsAreRetrieved()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
@@ -545,10 +561,15 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.WholesaleFixing.Id.Value);
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_InternalCalculation_When_SearchByIsInternalCalculation_Then_AggregationCalculationIsRetrieved()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
@@ -567,10 +588,15 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.Aggregation.Id.Value);
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_WholesaleCalculationsDataset_When_SearchByCalculationTypes_Then_ExpectedCalculationsAreRetrieved()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
@@ -592,10 +618,15 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.WholesaleFixing.Id.Value);
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_CapacitySettlementDataset_When_SearchByPeriodWhichDoesNotContainCalculations_Then_ResultIsEmpty()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
 
         // When
@@ -686,6 +717,132 @@ public class SearchCalculationsHandlerV1Tests :
             .And.Satisfy(
                 result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.October2024.Id.Value,
                 result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.February2025.Id.Value);
+    }
+
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
+    [Fact]
+    public async Task Given_CapacitySettlementAndWholesaleDataset_When_SearchByPeriodWhichContainsCalculationFromBothDataset_Then_ExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+        var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            // Query for 23/2/2025 - 1/3/2025 (not inclusive)
+            PeriodStartDate = new DateTimeOffset(2025, 2, 22, 23, 00, 00, TimeSpan.Zero), // Wintertime
+            PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == capacitySettlementInstances.February2025.Id.Value,
+                result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == wholesaleInstances.WholesaleFixing.Id.Value);
+    }
+
+    /// <summary>
+    /// The intention of this test is to use as much as possible of the query in SQL.
+    /// </summary>
+    [Fact]
+    public async Task Given_MixOfCalculationsDataset_When_SearchByAllCommonQueryParameters_Then_ExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
+        var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+        var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            // => Common fields
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.BalanceFixing,
+                CalculationTypeQueryParameterV1.WholesaleFixing,
+                CalculationTypeQueryParameterV1.ElectricalHeating,
+                CalculationTypeQueryParameterV1.CapacitySettlement,
+                CalculationTypeQueryParameterV1.NetConsumption],
+            LifecycleStates = [
+                ApiModel.OrchestrationInstanceLifecycleState.Pending,
+                ApiModel.OrchestrationInstanceLifecycleState.Running],
+            TerminationState = null,
+            ScheduledAtOrLater = null,
+            StartedAtOrLater = new DateTimeOffset(2020, 2, 22, 23, 00, 00, TimeSpan.Zero), // Wintertime
+            TerminatedAtOrEarlier = null,
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsRunning.Id.Value,
+                result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value);
+    }
+
+    /// <summary>
+    /// The intention of this test is to use as much as possible of the query in SQL.
+    /// Because we use "Wholesale" query parameters, only those types will be retrieved.
+    /// </summary>
+    [Fact]
+    public async Task Given_MixOfCalculationsDataset_When_SearchByAllPossibleWholesaleQueryParameters_Then_ExpectedWholesaleCalculationIsRetrieved()
+    {
+        // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
+        var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+        var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+
+        // When
+        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        {
+            // => Common fields
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.BalanceFixing,
+                CalculationTypeQueryParameterV1.WholesaleFixing,
+                CalculationTypeQueryParameterV1.ElectricalHeating,
+                CalculationTypeQueryParameterV1.CapacitySettlement,
+                CalculationTypeQueryParameterV1.NetConsumption],
+            LifecycleStates = [
+                ApiModel.OrchestrationInstanceLifecycleState.Pending,
+                ApiModel.OrchestrationInstanceLifecycleState.Running],
+            TerminationState = null,
+            ScheduledAtOrLater = null,
+            StartedAtOrLater = null,
+            TerminatedAtOrEarlier = null,
+
+            // => Wholesale calculations
+            IsInternalCalculation = false,
+            GridAreaCodes = ["222"],
+
+            // => Wholesale + Capacity settlement calculations
+            // Query for 23/2/2025 - 1/3/2025 (not inclusive)
+            PeriodStartDate = new DateTimeOffset(2025, 2, 22, 23, 00, 00, TimeSpan.Zero), // Wintertime
+            PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
+        };
+
+        var actual = await _sut.HandleAsync(calculationQuery);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(1)
+            .And.Satisfy(
+                result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == wholesaleInstances.WholesaleFixing.Id.Value);
     }
 
     private async Task<(

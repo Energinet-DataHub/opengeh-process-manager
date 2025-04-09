@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
@@ -23,6 +24,10 @@ using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 
+[SuppressMessage(
+    "StyleCop.CSharp.ReadabilityRules",
+    "SA1118:Parameter should not span multiple lines",
+    Justification = "Readability")]
 public class MeteringPointReceiversProvider(
     DateTimeZone dateTimeZone)
 {
@@ -65,16 +70,15 @@ public class MeteringPointReceiversProvider(
                 }));
 
         // Ensure master data is sorted by ValidFrom
-        var masterDataDictionary = meteringPointMasterDataList
-            .ToDictionary(mpmd => mpmd.ValidFrom.ToInstant());
+        var masterDataDictionary = meteringPointMasterDataList.ToDictionary(mpmd => mpmd.ValidFrom.ToInstant());
 
         // The input is already validated, so this parsing should never fail
-        var totalPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
-        var totalPeriodEnd = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
+        var inputPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
+        var inputPeriodEnd = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
 
         var allReceivers = CalculateReceiversWithMeteredDataForMasterDataPeriods(
-            totalPeriodStart,
-            totalPeriodEnd,
+            inputPeriodStart,
+            inputPeriodEnd,
             Resolution.FromName(input.Resolution!), // Resolution shouldn't change between master data periods, else validation should fail
             masterDataDictionary,
             sortedMeteredData);
@@ -90,8 +94,8 @@ public class MeteringPointReceiversProvider(
     /// </remarks>
     /// </summary>
     private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredDataForMasterDataPeriods(
-        Instant totalPeriodStart,
-        Instant totalPeriodEnd,
+        Instant inputPeriodStart,
+        Instant inputPeriodEnd,
         Resolution resolution,
         Dictionary<Instant, MeteringPointMasterData> masterData,
         SortedDictionary<int, ReceiversWithMeteredDataV1.AcceptedMeteredData> sortedMeteredData)
@@ -101,26 +105,29 @@ public class MeteringPointReceiversProvider(
             // If there is only one master data element then we can skip a lot of logic, since we don't
             // need to split the metered data into periods and recalculate positions
             var masterDataElement = masterData.Values.Single();
-            var receiversWithMeteredData = CreateReceiversWithMeteredData(masterDataElement, sortedMeteredData.Values);
+
+            var receiversWithMeteredData = CreateReceiversWithMeteredData(
+                new MasterDataWithMeteredData(
+                    masterDataElement,
+                    inputPeriodStart,
+                    inputPeriodEnd,
+                    [.. sortedMeteredData.Values]));
+
             return [receiversWithMeteredData];
         }
 
-        var currentTimestamp = totalPeriodStart;
+        var currentTimestamp = inputPeriodStart;
 
         var firstMasterData = masterData.Values.First();
-        var currentMasterData = new MasterDataWithMeteredData(
-            MasterData: firstMasterData,
-            ValidFrom: firstMasterData.ValidFrom.ToInstant(),
-            ValidTo: firstMasterData.ValidTo.ToInstant(),
-            MeteredDataList: []);
+        var currentMasterData = new MasterDataWithMeteredData(firstMasterData, inputPeriodStart, inputPeriodEnd, []);
 
         List<MasterDataWithMeteredData> masterDataWithMeteredDataList = [currentMasterData];
 
         foreach (var meteredData in sortedMeteredData.Values)
         {
             // If current timestamp is equal to (or later than) the total period, throw an exception. This assumes totalPeriodEnd is exclusive.
-            if (currentTimestamp >= totalPeriodEnd)
-                throw new InvalidOperationException($"The current timestamp is after the metered data period (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, PeriodEnd={totalPeriodEnd})");
+            if (currentTimestamp >= inputPeriodEnd)
+                throw new InvalidOperationException($"The current timestamp is after the metered data period (Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, PeriodEnd={inputPeriodEnd})");
 
             // Get master data for current timestamp. This assumes ValidTo is exclusive.
             var currentTimestampBelongsToNextMasterDataPeriod = currentTimestamp >= currentMasterData.ValidTo;
@@ -131,11 +138,7 @@ public class MeteringPointReceiversProvider(
                 if (!masterData.TryGetValue(currentTimestamp, out var nextMasterData))
                     throw new InvalidOperationException($"The master data for the current timestamp is missing (MeteringPointId={currentMasterData.MasterData.MeteringPointId.Value}, Position={meteredData.Position}, CurrentTimestamp={currentTimestamp})");
 
-                currentMasterData = new MasterDataWithMeteredData(
-                    MasterData: nextMasterData,
-                    ValidFrom: nextMasterData.ValidFrom.ToInstant(),
-                    ValidTo: nextMasterData.ValidTo.ToInstant(),
-                    MeteredDataList: []);
+                currentMasterData = new MasterDataWithMeteredData(nextMasterData, inputPeriodStart, inputPeriodEnd, []);
 
                 // Add the new master data with metered data to the list
                 masterDataWithMeteredDataList.Add(currentMasterData);
@@ -158,7 +161,7 @@ public class MeteringPointReceiversProvider(
         }
 
         return masterDataWithMeteredDataList
-            .Select(md => CreateReceiversWithMeteredData(md.MasterData, md.MeteredDataList))
+            .Select(CreateReceiversWithMeteredData)
             .ToList();
     }
 
@@ -185,18 +188,17 @@ public class MeteringPointReceiversProvider(
     }
 
     private ReceiversWithMeteredDataV1 CreateReceiversWithMeteredData(
-        MeteringPointMasterData masterData,
-        IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> meteredDataForMasterDataPeriod)
+        MasterDataWithMeteredData masterDataWithMeteredData)
     {
-        var actorReceivers = GetReceiversFromMasterData(masterData);
+        var actorReceivers = GetReceiversFromMasterData(masterDataWithMeteredData.MasterData);
 
         return new ReceiversWithMeteredDataV1(
             Actors: actorReceivers,
-            Resolution: masterData.Resolution,
-            MeasureUnit: masterData.MeasurementUnit,
-            StartDateTime: masterData.ValidFrom,
-            EndDateTime: masterData.ValidTo,
-            MeteredData: meteredDataForMasterDataPeriod);
+            Resolution: masterDataWithMeteredData.MasterData.Resolution,
+            MeasureUnit: masterDataWithMeteredData.MasterData.MeasurementUnit,
+            StartDateTime: masterDataWithMeteredData.ValidFrom.ToDateTimeOffset(),
+            EndDateTime: masterDataWithMeteredData.ValidTo.ToDateTimeOffset(),
+            MeteredData: masterDataWithMeteredData.MeteredDataList);
     }
 
     private List<MarketActorRecipientV1> GetReceiversFromMasterData(
@@ -244,11 +246,15 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.NotUsed:
             case var _ when meteringPointType == MeteringPointType.SurplusProductionGroup6:
             case var _ when meteringPointType == MeteringPointType.NetLossCorrection:
+            case var _ when meteringPointType == MeteringPointType.ElectricalHeating:
+            case var _ when meteringPointType == MeteringPointType.NetConsumption:
             case var _ when meteringPointType == MeteringPointType.OtherConsumption:
             case var _ when meteringPointType == MeteringPointType.OtherProduction:
+            case var _ when meteringPointType == MeteringPointType.CapacitySettlement:
             case var _ when meteringPointType == MeteringPointType.ExchangeReactiveEnergy:
             case var _ when meteringPointType == MeteringPointType.CollectiveNetProduction:
             case var _ when meteringPointType == MeteringPointType.CollectiveNetConsumption:
+            case var _ when meteringPointType == MeteringPointType.InternalUse:
                 if (meteringPointMasterData.ParentMeteringPointId is not null)
                 {
                     // It is legal for the energy supplier to be null for these metering point types
@@ -290,9 +296,26 @@ public class MeteringPointReceiversProvider(
         ActorNumber.Create(DataHubDetails.SystemOperatorNumber),
         ActorRole.SystemOperator);
 
-    private record MasterDataWithMeteredData(
-        MeteringPointMasterData MasterData,
-        Instant ValidFrom,
-        Instant ValidTo,
-        List<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredDataList);
+    private sealed record MasterDataWithMeteredData
+    {
+        public MasterDataWithMeteredData(
+            MeteringPointMasterData masterData,
+            Instant inputPeriodStart,
+            Instant inputPeriodEnd,
+            List<ReceiversWithMeteredDataV1.AcceptedMeteredData> meteredDataList)
+        {
+            MasterData = masterData;
+            ValidFrom = Instant.Max(inputPeriodStart, masterData.ValidFrom.ToInstant());
+            ValidTo = Instant.Min(inputPeriodEnd, masterData.ValidTo.ToInstant());
+            MeteredDataList = meteredDataList;
+        }
+
+        public MeteringPointMasterData MasterData { get; }
+
+        public Instant ValidFrom { get; }
+
+        public Instant ValidTo { get; }
+
+        public List<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredDataList { get; }
+    }
 }

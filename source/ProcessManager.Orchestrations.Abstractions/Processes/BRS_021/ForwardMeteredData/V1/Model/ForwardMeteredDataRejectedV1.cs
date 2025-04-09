@@ -22,8 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public record ForwardMeteredDataRejectedV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
-    ActorNumber ForwardedByActorNumber,
-    ActorRole ForwardedByActorRole,
+    ActorRole ForwardedForActorRole,
     BusinessReason BusinessReason,
     List<ValidationErrorDto> ValidationErrors)
-        : INotifyEnqueueRejectedDataDto;
+        : IEnqueueRejectedDataDto;

@@ -70,5 +70,6 @@ public static class MeteredDataToMeasurementMapper
             { PMTypes.MeteringPointType.ExchangeReactiveEnergy, MeasurementTypes.MeteringPointType.MptExchangeReactiveEnergy },
             { PMTypes.MeteringPointType.CollectiveNetProduction, MeasurementTypes.MeteringPointType.MptCollectiveNetProduction },
             { PMTypes.MeteringPointType.CollectiveNetConsumption, MeasurementTypes.MeteringPointType.MptCollectiveNetConsumption },
+            { PMTypes.MeteringPointType.InternalUse, MeasurementTypes.MeteringPointType.MptInternalUse },
         };
 }

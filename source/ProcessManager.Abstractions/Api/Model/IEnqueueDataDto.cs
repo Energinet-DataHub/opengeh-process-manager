@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
-
-public record CalculationEnqueueActorMessagesV1(Guid CalculationId)
-    : IEnqueueDataDto;
+/// <summary>
+/// Allows for generic type constraints of serializable data when enqueuing actor messages to EDI.
+/// </summary>
+public interface IEnqueueDataDto;

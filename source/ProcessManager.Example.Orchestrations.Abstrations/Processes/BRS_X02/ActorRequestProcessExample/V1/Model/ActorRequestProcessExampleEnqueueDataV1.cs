@@ -27,4 +27,4 @@ public record ActorRequestProcessExampleEnqueueDataV1(
     ActorNumber ActorNumber,
     ActorRole ActorRole,
     BusinessReason BusinessReason)
-        : INotifyEnqueueAcceptedDataDto;
+        : IEnqueueAcceptedDataDto;

@@ -54,6 +54,7 @@ internal class GetOrchestrationInstanceByIdTrigger(
         // so if necessary we can validate their data access.
         //
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
         var orchestrationInstance = await _queries
             .GetAsync(new OrchestrationInstanceId(query.Id))
             .ConfigureAwait(false);

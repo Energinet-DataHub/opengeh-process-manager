@@ -30,18 +30,18 @@ namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 public class EnqueueActorMessagesClient(
     IOptions<ProcessManagerOptions> options,
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
-    : IEnqueueActorMessagesClient
+        : IEnqueueActorMessagesClient
 {
     private readonly IOptions<ProcessManagerOptions> _options = options;
     private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.EdiTopic);
 
-    public async Task EnqueueAsync<TInputData>(
+    public async Task EnqueueAsync<TEnqueueData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
         Guid orchestrationInstanceId,
         IOperatingIdentityDto orchestrationStartedBy,
         Guid idempotencyKey,
-        TInputData data)
-            where TInputData : INotifyEnqueueDataDto
+        TEnqueueData data)
+            where TEnqueueData : IEnqueueDataDto
     {
         var (startedByActorNumber, startedByActorRole, startedByUserId) = orchestrationStartedBy switch
         {

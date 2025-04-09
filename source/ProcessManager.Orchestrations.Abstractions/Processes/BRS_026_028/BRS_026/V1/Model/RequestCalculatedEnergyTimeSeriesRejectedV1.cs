@@ -23,7 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// A model containing the validation errors if an energy time series request is rejected.
 /// </summary>
 public record RequestCalculatedEnergyTimeSeriesRejectedV1(
-    [property: Obsolete] string OriginalMessageId, // TODO: Remove when EDI is updated to use OriginalActorMessageId instead
+    [property: Obsolete] string OriginalMessageId, // TODO: Remove after EDI is updated to use OriginalActorMessageId
     string OriginalActorMessageId,
     string OriginalTransactionId,
     ActorNumber RequestedForActorNumber,
@@ -32,4 +32,4 @@ public record RequestCalculatedEnergyTimeSeriesRejectedV1(
     ActorRole RequestedByActorRole,
     BusinessReason BusinessReason,
     List<ValidationErrorDto> ValidationErrors)
-    : INotifyEnqueueRejectedDataDto;
+        : IEnqueueRejectedDataDto;

@@ -37,7 +37,7 @@ public record RequestCalculatedWholesaleServicesAcceptedV1(
     ActorNumber? ChargeOwnerNumber,
     SettlementVersion? SettlementVersion,
     IReadOnlyCollection<RequestCalculatedWholesaleServicesAcceptedV1.AcceptedChargeType> ChargeTypes)
-        : INotifyEnqueueAcceptedDataDto
+        : IEnqueueAcceptedDataDto
 {
     public record AcceptedChargeType(
         ChargeType? ChargeType,

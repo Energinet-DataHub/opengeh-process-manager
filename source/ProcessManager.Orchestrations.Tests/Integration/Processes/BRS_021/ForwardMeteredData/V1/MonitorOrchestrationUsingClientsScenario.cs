@@ -529,7 +529,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ],
         };
 
-        // IEnumerable<MeteringPointMasterData>
+        // IEnumerable<HistoricalMeteringPointMasterData>
         var response = Response
             .Create()
             .WithStatusCode(HttpStatusCode.OK)

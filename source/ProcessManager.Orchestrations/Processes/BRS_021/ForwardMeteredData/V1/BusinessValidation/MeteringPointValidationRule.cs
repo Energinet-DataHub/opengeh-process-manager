@@ -38,8 +38,11 @@ public class MeteringPointValidationRule(IFeatureFlagManager featureFlagManager)
     {
         if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint).ConfigureAwait(false))
         {
-            if (subject.MeteringPointMasterData.Count == 0)
+            if (subject.HistoricalMeteringPointMasterData.Count == 0
+                || subject.CurrentMasterData == null)
+            {
                 return MeteringPointDoesntExistsError;
+            }
         }
 
         return NoError;

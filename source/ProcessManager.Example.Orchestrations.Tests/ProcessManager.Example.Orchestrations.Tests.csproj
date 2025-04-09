@@ -18,6 +18,7 @@
           <Link>Fixtures\Extensions\ProcessManagerClientExtensions.cs</Link>
         </Compile>
         <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
+        <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseFixture.cs" Link="Fixtures\ProcessManagerDatabaseFixture.cs" />
         <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
         <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
         <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs">

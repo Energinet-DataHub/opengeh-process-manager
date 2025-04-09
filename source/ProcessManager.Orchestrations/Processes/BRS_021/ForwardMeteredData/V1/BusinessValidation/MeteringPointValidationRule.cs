@@ -31,7 +31,7 @@ public class MeteringPointValidationRule(IFeatureFlagManager featureFlagManager)
         Message: "Målepunktet findes ikke / The metering point does not exist",
         ErrorCode: "E10")];
 
-    private static IList<ValidationError> NoError => []mi
+    private static IList<ValidationError> NoError => [];
 
     public async Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)

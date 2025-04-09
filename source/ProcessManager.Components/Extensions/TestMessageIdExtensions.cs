@@ -23,7 +23,7 @@ public static class TestMessageIdExtensions
     /// See <see cref="ToShortUuid"/> for details on how the conversion is done.
     /// </summary>
     /// <returns>A string prefixed with <see cref="TestUuidPrefix"/>, that isn't longer than the default Guid length.</returns>
-    public static string ToTestUuid(this Guid guid)
+    public static string ToTestMessageUuid(this Guid guid)
     {
         return $"{TestUuidPrefix}{guid.ToShortUuid()}";
     }

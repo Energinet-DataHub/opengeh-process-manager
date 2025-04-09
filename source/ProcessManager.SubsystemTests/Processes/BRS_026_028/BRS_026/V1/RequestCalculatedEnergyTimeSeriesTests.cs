@@ -44,11 +44,12 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
     [ScenarioStep(1)]
     public void Given_ValidRequestCalculatedEnergyTimeSeriesRequest()
     {
+        var testUuid = Guid.NewGuid().ToTestMessageUuid();
         _fixture.TestConfiguration = new RequestCalculatedEnergyTimeSeriesTestConfiguration(
             request: new RequestCalculatedEnergyTimeSeriesCommandV1(
                 operatingIdentity: _fixture.EnergySupplierActorIdentity,
                 inputParameter: new RequestCalculatedEnergyTimeSeriesInputV1(
-                    ActorMessageId: Guid.NewGuid().ToTestUuid(),
+                    ActorMessageId: testUuid,
                     TransactionId: Guid.NewGuid().ToString(),
                     RequestedForActorNumber: _fixture.EnergySupplierActorIdentity.ActorNumber.Value,
                     RequestedForActorRole: _fixture.EnergySupplierActorIdentity.ActorRole.Name,
@@ -63,7 +64,7 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
                     MeteringPointType: null,
                     SettlementMethod: null,
                     SettlementVersion: null),
-                idempotencyKey: Guid.NewGuid().ToString()));
+                idempotencyKey: testUuid));
     }
 
     [Fact]
@@ -79,12 +80,12 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
     [ScenarioStep(3)]
     public async Task When_OrchestrationInstanceIsStarted()
     {
-        var idempotencyKey = _fixture.TestConfiguration.Request.IdempotencyKey;
-
         var (success, orchestrationInstance, _) = await WaitForOrchestrationInstance();
 
         Assert.Multiple(
-            () => Assert.True(success, $"An orchestration instance for idempotency key \"{idempotencyKey}\" should have been found"),
+            () => Assert.True(
+                success,
+                $"An orchestration instance for idempotency key \"{_fixture.TestConfiguration.Request.IdempotencyKey}\" should have been found"),
             () => Assert.NotNull(orchestrationInstance));
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
@@ -152,12 +153,13 @@ public class RequestCalculatedEnergyTimeSeriesTests : IClassFixture<ProcessManag
     {
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
-        // Send notify "EnqueueActorMessagesCompleted" message for the orchestration instance
+        // Send notify "EnqueueActorMessagesCompleted" message to the orchestration instance
         await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
                 OrchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstance.Id.ToString()),
             CancellationToken.None);
 
+        // Wait for the enqueue actor messages step to be terminated
         var (success, orchestrationInstance, enqueueActorMessagesStep) = await WaitForOrchestrationInstance(
             stepSequence: Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
             stepState: StepInstanceLifecycleState.Terminated);

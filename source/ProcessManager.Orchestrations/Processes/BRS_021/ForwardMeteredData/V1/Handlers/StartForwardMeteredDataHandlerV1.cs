@@ -242,12 +242,23 @@ public class StartForwardMeteredDataHandlerV1(
         }
 
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
-        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
+        ForwardMeteredDataCustomStateV2 forwardMeteredDataCustomState;
+        try
+        {
+            forwardMeteredDataCustomState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
+        }
+        catch (InvalidOperationException)
+        {
+            var meteringPointMasterData = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>().MeteringPointMasterData;
+            var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
+            forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
+        }
 
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,
-                    MeteringPointMasterData: customState.MeteringPointMasterData))
+                    CurrentMasterData: forwardMeteredDataCustomState.CurrentMeteringPointMasterData,
+                    HistoricalMeteringPointMasterData: forwardMeteredDataCustomState.HistoricalMeteringPointMasterData))
             .ConfigureAwait(false);
 
         var validationSuccess = validationErrors.Count == 0;

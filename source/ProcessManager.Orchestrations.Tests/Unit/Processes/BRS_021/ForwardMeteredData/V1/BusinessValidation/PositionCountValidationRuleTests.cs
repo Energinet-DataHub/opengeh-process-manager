@@ -44,6 +44,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -84,6 +85,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -122,6 +124,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -160,6 +163,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -200,6 +204,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -238,6 +243,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -276,6 +282,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -316,6 +323,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -356,6 +364,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -395,6 +404,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -434,6 +444,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -473,6 +484,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -511,6 +523,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -551,6 +564,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -589,6 +603,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -630,6 +645,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -668,6 +684,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -708,6 +725,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -746,6 +764,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -784,6 +803,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -823,6 +843,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -866,6 +887,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),
@@ -909,6 +931,7 @@ public class PositionCountValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 inputV1,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("123456789012345678"),

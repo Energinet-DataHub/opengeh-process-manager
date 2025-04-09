@@ -36,9 +36,8 @@ public class MeteringPointOwnershipValidationRule : IBusinessValidationRule<Forw
     public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
-        if (subject.MeteringPointMasterData
-            .Select(mpmd => mpmd.GridAccessProvider.Value)
-            .Any(gap => gap != subject.Input.GridAccessProviderNumber))
+        if (subject.CurrentMasterData != null && !subject.CurrentMasterData.GridAccessProvider.Value
+                .Equals(subject.Input.GridAccessProviderNumber))
         {
             return Task.FromResult(MeteringPointHasWrongOwnerError);
         }

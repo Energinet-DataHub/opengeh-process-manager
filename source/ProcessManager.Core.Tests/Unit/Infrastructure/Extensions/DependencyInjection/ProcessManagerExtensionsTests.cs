@@ -79,7 +79,7 @@ public class ProcessManagerExtensionsTests
         var expectedHandlerTypes = new List<Type>
         {
             typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.V1.StartInputExampleHandlerV1),
-            typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.SearchInputExampleHandler),
+            typeof(Example.Orchestrations.CustomQueries.Calculations.V1.SearchInputExampleHandler),
         };
 
         // Act
@@ -94,7 +94,7 @@ public class ProcessManagerExtensionsTests
         actualStartHandler.Should().NotBeNull();
 
         // => Search handler
-        var actualSearchHandler = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X01.InputExample.SearchInputExampleHandler>();
+        var actualSearchHandler = serviceProvider.GetRequiredService<Example.Orchestrations.CustomQueries.Calculations.V1.SearchInputExampleHandler>();
         actualSearchHandler.Should().NotBeNull();
     }
 

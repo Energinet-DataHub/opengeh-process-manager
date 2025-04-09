@@ -14,8 +14,9 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 
 /// <summary>
 /// Query for searching for BRS-X01.
@@ -24,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.P
 public record InputExampleQuery
     : SearchOrchestrationInstancesByCustomQuery<InputExampleQueryResult>
 {
-    public const string RouteName = "brs_x01_inputExample";
+    public const string RouteName = "v1/brs_x01_inputExample";
 
     /// <summary>
     /// Construct query.

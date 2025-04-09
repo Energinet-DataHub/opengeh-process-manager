@@ -61,6 +61,7 @@ public static class EnqueueActorMessagesExtensions
             });
 
         services.AddTransient<IEnqueueActorMessagesClient, EnqueueActorMessagesClient>();
+        services.AddTransient<EdiTopicServiceBusSenderFactory>();
 
         return services;
     }

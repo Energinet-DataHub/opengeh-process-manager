@@ -89,12 +89,12 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Running],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -113,14 +113,14 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             LifecycleStates = [
                 ApiModel.OrchestrationInstanceLifecycleState.Queued,
                 ApiModel.OrchestrationInstanceLifecycleState.Running],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -145,7 +145,7 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             CalculationTypes = [
                 CalculationTypeQueryParameterV1.NetConsumption,
@@ -153,7 +153,7 @@ public class SearchCalculationsHandlerV1Tests :
             LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Pending],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -171,13 +171,13 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Terminated],
             TerminationState = ApiModel.OrchestrationInstanceTerminationState.Succeeded,
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -196,14 +196,14 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             CalculationTypes = [CalculationTypeQueryParameterV1.ElectricalHeating],
             LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Terminated],
             TerminationState = ApiModel.OrchestrationInstanceTerminationState.Failed,
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -226,12 +226,12 @@ public class SearchCalculationsHandlerV1Tests :
             _netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             StartedAtOrLater = electricalHeatingIsRunningStartedAt.ToDateTimeOffset(),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -254,12 +254,12 @@ public class SearchCalculationsHandlerV1Tests :
             isTerminatedAsSucceededAt: netConsumptionIsTerminatedAsSucceededAt);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             TerminatedAtOrEarlier = netConsumptionIsTerminatedAsSucceededAt.ToDateTimeOffset(),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -293,14 +293,14 @@ public class SearchCalculationsHandlerV1Tests :
             calculation3]);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 19/2/2025 - 20/2/2025 (not inclusive), should give no calculations
             PeriodStartDate = new DateTimeOffset(2025, 02, 18, 23, 00, 00, TimeSpan.Zero),
             PeriodEndDate = new DateTimeOffset(2025, 02, 19, 23, 00, 00, TimeSpan.Zero),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -333,14 +333,14 @@ public class SearchCalculationsHandlerV1Tests :
             calculation3]);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 25/2/2025 - 26/2/2025 (not inclusive), should give no calculations
             PeriodStartDate = new DateTimeOffset(2025, 02, 24, 23, 00, 00, TimeSpan.Zero),
             PeriodEndDate = new DateTimeOffset(2025, 02, 25, 23, 00, 00, TimeSpan.Zero),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -373,14 +373,14 @@ public class SearchCalculationsHandlerV1Tests :
             calculation3]);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 20/2/2025 - 21/2/2025 (not inclusive), should give calculation 1
             PeriodStartDate = new DateTimeOffset(2025, 02, 19, 23, 00, 00, TimeSpan.Zero),
             PeriodEndDate = new DateTimeOffset(2025, 02, 20, 23, 00, 00, TimeSpan.Zero),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -420,14 +420,14 @@ public class SearchCalculationsHandlerV1Tests :
             calculation3]);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 21/2/2025 - 24/2/2025 (not inclusive), should give calculation 2 and 3
             PeriodStartDate = new DateTimeOffset(2025, 02, 20, 23, 00, 00, TimeSpan.Zero),
             PeriodEndDate = new DateTimeOffset(2025, 02, 23, 23, 00, 00, TimeSpan.Zero),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -473,14 +473,14 @@ public class SearchCalculationsHandlerV1Tests :
             calculation3]);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 19/2/2025 - 25/2/2025 (not inclusive), should give all calculations
             PeriodStartDate = new DateTimeOffset(2025, 02, 18, 23, 00, 00, TimeSpan.Zero),
             PeriodEndDate = new DateTimeOffset(2025, 02, 24, 23, 00, 00, TimeSpan.Zero),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -518,12 +518,12 @@ public class SearchCalculationsHandlerV1Tests :
         await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             GridAreaCodes = ["333"],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -543,12 +543,12 @@ public class SearchCalculationsHandlerV1Tests :
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             GridAreaCodes = ["222"],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -571,12 +571,12 @@ public class SearchCalculationsHandlerV1Tests :
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             IsInternalCalculation = true,
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -598,14 +598,14 @@ public class SearchCalculationsHandlerV1Tests :
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             CalculationTypes = [
                 CalculationTypeQueryParameterV1.Aggregation,
                 CalculationTypeQueryParameterV1.WholesaleFixing],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -628,14 +628,14 @@ public class SearchCalculationsHandlerV1Tests :
         var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 1/9/2024 - 1/10/2024 (not inclusive)
             PeriodStartDate = new DateTimeOffset(2024, 8, 31, 22, 00, 00, TimeSpan.Zero), // Summertime
             PeriodEndDate = new DateTimeOffset(2024, 9, 30, 22, 00, 00, TimeSpan.Zero), // Summertime
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -650,14 +650,14 @@ public class SearchCalculationsHandlerV1Tests :
         var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 1/9/2024 - 1/3/2025 (not inclusive)
             PeriodStartDate = new DateTimeOffset(2024, 8, 31, 22, 00, 00, TimeSpan.Zero), // Summertime
             PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -675,14 +675,14 @@ public class SearchCalculationsHandlerV1Tests :
         var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 1/9/2024 - 1/11/2024 (not inclusive)
             PeriodStartDate = new DateTimeOffset(2024, 8, 31, 22, 00, 00, TimeSpan.Zero), // Summertime
             PeriodEndDate = new DateTimeOffset(2024, 10, 31, 23, 00, 00, TimeSpan.Zero), // Wintertime
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -699,14 +699,14 @@ public class SearchCalculationsHandlerV1Tests :
         var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 11/10/2024 - 3/2/2024 (not inclusive)
             PeriodStartDate = new DateTimeOffset(2024, 10, 10, 22, 00, 00, TimeSpan.Zero), // Summertime
             PeriodEndDate = new DateTimeOffset(2025, 2, 2, 23, 00, 00, TimeSpan.Zero), // Wintertime
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -730,14 +730,14 @@ public class SearchCalculationsHandlerV1Tests :
         var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 23/2/2025 - 1/3/2025 (not inclusive)
             PeriodStartDate = new DateTimeOffset(2025, 2, 22, 23, 00, 00, TimeSpan.Zero), // Wintertime
             PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -762,7 +762,7 @@ public class SearchCalculationsHandlerV1Tests :
         var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // => Common fields
             CalculationTypes = [
@@ -780,7 +780,7 @@ public class SearchCalculationsHandlerV1Tests :
             TerminatedAtOrEarlier = null,
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -806,7 +806,7 @@ public class SearchCalculationsHandlerV1Tests :
         var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // => Common fields
             CalculationTypes = [
@@ -833,7 +833,7 @@ public class SearchCalculationsHandlerV1Tests :
             PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual

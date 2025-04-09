@@ -101,12 +101,22 @@ public class StartForwardMeteredDataHandlerV1(
         // Fetch metering point master data and store if needed
         if (orchestrationInstance.CustomState.IsEmpty)
         {
-            var meteringPointMasterData = await _meteringPointMasterDataProvider
+            var historicalMeteringPointMasterData =
+                await _meteringPointMasterDataProvider
                 .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 
+            var currentMeteringPointMasterData = await _meteringPointMasterDataProvider
+                .GetMasterData(
+                    input.MeteringPointId!,
+                    _clock.GetCurrentInstant().ToString(),
+                    _clock.GetCurrentInstant().Plus(Duration.FromDays(1)).ToString())
+                .ConfigureAwait(false);
+
             orchestrationInstance.CustomState.SetFromInstance(
-                new ForwardMeteredDataCustomStateV1(meteringPointMasterData));
+                new ForwardMeteredDataCustomStateV2(
+                    CurrentMeteringPointMasterData: currentMeteringPointMasterData.FirstOrDefault(),
+                    HistoricalMeteringPointMasterData: historicalMeteringPointMasterData));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }

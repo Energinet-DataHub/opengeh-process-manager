@@ -30,7 +30,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 using NodaTime;
-using NodaTime.Text;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
 using OrchestrationInstanceLifecycleState =
     Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
@@ -102,12 +101,25 @@ public class StartForwardMeteredDataHandlerV1(
         // Fetch metering point master data and store if needed
         if (orchestrationInstance.CustomState.IsEmpty)
         {
-            var meteringPointMasterData = await _meteringPointMasterDataProvider
+            var historicalMeteringPointMasterData =
+                await _meteringPointMasterDataProvider
                 .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 
+            var currentMeteringPointMasterData =
+                historicalMeteringPointMasterData.Any() ?
+                await _meteringPointMasterDataProvider
+                .GetMasterData(
+                    input.MeteringPointId!,
+                    _clock.GetCurrentInstant().ToString(),
+                    _clock.GetCurrentInstant().ToString())
+                .ConfigureAwait(false)
+                : null;
+
             orchestrationInstance.CustomState.SetFromInstance(
-                new ForwardMeteredDataCustomStateV1(meteringPointMasterData));
+                new ForwardMeteredDataCustomStateV2(
+                    CurrentMeteringPointMasterData: currentMeteringPointMasterData?.FirstOrDefault(),
+                    HistoricalMeteringPointMasterData: historicalMeteringPointMasterData));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
@@ -242,12 +254,24 @@ public class StartForwardMeteredDataHandlerV1(
         }
 
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
-        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
+        ForwardMeteredDataCustomStateV2 forwardMeteredDataCustomState;
+        // TODO: remove this try-catch when all orchestration instances are migrated to the new custom state
+        try
+        {
+            forwardMeteredDataCustomState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
+        }
+        catch (InvalidOperationException)
+        {
+            var meteringPointMasterData = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>().MeteringPointMasterData;
+            var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
+            forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
+        }
 
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,
-                    MeteringPointMasterData: customState.MeteringPointMasterData))
+                    CurrentMasterData: forwardMeteredDataCustomState.CurrentMeteringPointMasterData,
+                    HistoricalMeteringPointMasterData: forwardMeteredDataCustomState.HistoricalMeteringPointMasterData))
             .ConfigureAwait(false);
 
         var validationSuccess = validationErrors.Count == 0;

@@ -88,7 +88,18 @@ public class EnqueueMeteredDataHandlerV1(
     {
         var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.FindReceiversStep);
 
-        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
+        ForwardMeteredDataCustomStateV2 customState;
+        // TODO: remove this try-catch when all orchestration instances are migrated to the new custom state
+        try
+        {
+            customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
+        }
+        catch (InvalidOperationException)
+        {
+            var meteringPointMasterData = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>().MeteringPointMasterData;
+            var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
+            customState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
+        }
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (findReceiversStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
@@ -120,12 +131,12 @@ public class EnqueueMeteredDataHandlerV1(
     /// </remarks>
     /// </summary>
     private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredData(
-        ForwardMeteredDataCustomStateV1 customState,
+        ForwardMeteredDataCustomStateV2 customState,
         ForwardMeteredDataInputV1 forwardMeteredDataInput)
     {
         var receiversWithMeteredData = _meteringPointReceiversProvider
             .GetReceiversWithMeteredDataFromMasterDataList(
-                customState.MeteringPointMasterData,
+                customState.HistoricalMeteringPointMasterData,
                 forwardMeteredDataInput);
 
         return receiversWithMeteredData;

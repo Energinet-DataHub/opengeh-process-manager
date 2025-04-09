@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using NodaTime;
@@ -31,8 +32,8 @@ public class OrchestrationInstanceMapperExtensionsTests
     {
         return new List<object[]>
         {
-            new object[] { new ActorIdentity(new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier)), typeof(ActorIdentityDto) },
-            new object[] { new UserIdentity(new UserId(Guid.NewGuid()), new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier)), typeof(UserIdentityDto) },
+            new object[] { ProcessManagerDomainTestDataFactory.EnergySupplier.ActorIdentity, typeof(ActorIdentityDto) },
+            new object[] { ProcessManagerDomainTestDataFactory.EnergySupplier.UserIdentity, typeof(UserIdentityDto) },
         };
     }
 

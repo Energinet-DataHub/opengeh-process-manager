@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_026_028.BRS_026.V1;
 
-public class RequestCalculatedEnergyTimeSeriesTestConfiguration(
+public class RequestCalculatedEnergyTimeSeriesScenarioState(
     RequestCalculatedEnergyTimeSeriesCommandV1 request)
 {
     public RequestCalculatedEnergyTimeSeriesCommandV1 Request { get; } = request;

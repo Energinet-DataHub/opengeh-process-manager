@@ -34,7 +34,11 @@ public class DelegationProvider(IElectricityMarketViews electricityMarketViews)
     /// <returns>
     ///     A boolean ShouldBeDelegated, if delegation is expected and ActorNumber of the delegated from actor if delegation exists.
     /// </returns>
-    public async Task<(bool ShouldBeDelegated, string? DelegatedFromActorNumber)> GetDelegatedFromAsync(ActorNumber gridAreaOwner, GridAreaCode gridAreaCode, ActorNumber senderActorNumber, ActorRole? senderActorRole)
+    public async Task<(bool ShouldBeDelegated, string? DelegatedFromActorNumber)> GetDelegatedFromAsync(
+        ActorNumber gridAreaOwner,
+        GridAreaCode gridAreaCode,
+        ActorNumber senderActorNumber,
+        ActorRole? senderActorRole)
     {
         if (senderActorRole != ActorRole.Delegated &&
             senderActorRole != ActorRole.GridAccessProvider)

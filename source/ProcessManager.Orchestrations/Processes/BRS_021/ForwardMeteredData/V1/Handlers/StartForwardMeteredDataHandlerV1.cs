@@ -283,7 +283,7 @@ public class StartForwardMeteredDataHandlerV1(
             forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
         }
 
-        var delegationResult = await IsIncomingMeteredDataComingFromDelegated(orchestrationInstance, forwardMeteredDataCustomState)
+        var delegationResult = await IsIncomingMeteredDataDelegated(orchestrationInstance, forwardMeteredDataCustomState)
             .ConfigureAwait(false);
         if (delegationResult is { ShouldBeDelegated: true })
         {
@@ -333,7 +333,7 @@ public class StartForwardMeteredDataHandlerV1(
         return validationErrors;
     }
 
-    private async Task<(bool ShouldBeDelegated, string? DelegatedFromActorNumber)> IsIncomingMeteredDataComingFromDelegated(
+    private async Task<(bool ShouldBeDelegated, string? DelegatedFromActorNumber)> IsIncomingMeteredDataDelegated(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataCustomStateV2 customState)
     {

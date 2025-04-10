@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -25,11 +25,11 @@ using NJsonSchema;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Registration;
 
-public class OrchestrationRegisterTests : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
+public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
 {
-    private readonly ProcessManagerDatabaseFixture _fixture;
+    private readonly ProcessManagerCoreFixture _fixture;
 
-    public OrchestrationRegisterTests(ProcessManagerDatabaseFixture fixture)
+    public OrchestrationRegisterTests(ProcessManagerCoreFixture fixture)
     {
         _fixture = fixture;
     }

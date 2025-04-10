@@ -21,7 +21,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -31,9 +31,9 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Application.Orchestration;
 
-public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
+public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
 {
-    private readonly ProcessManagerDatabaseFixture _fixture;
+    private readonly ProcessManagerCoreFixture _fixture;
 
     private readonly ActorIdentity _actorIdentity;
 
@@ -44,7 +44,7 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
 
     private readonly INotifyOrchestrationInstanceCommands _sut;
 
-    public INotifyOrchestrationInstanceCommandsTests(ProcessManagerDatabaseFixture fixture)
+    public INotifyOrchestrationInstanceCommandsTests(ProcessManagerCoreFixture fixture)
     {
         _fixture = fixture;
 
@@ -147,7 +147,7 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
     }
 
     private static ServiceCollection ConfigureServices(
-        ProcessManagerDatabaseFixture fixture,
+        ProcessManagerCoreFixture fixture,
         IMock<IOrchestrationInstanceExecutor> executorMock)
     {
         var services = new ServiceCollection();

@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -29,13 +29,13 @@ using OrchestrationInstanceTerminationState = Energinet.DataHub.ProcessManager.C
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
 
-public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
+public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
 {
-    private readonly ProcessManagerDatabaseFixture _fixture;
+    private readonly ProcessManagerCoreFixture _fixture;
     private readonly ProcessManagerContext _dbContext;
     private readonly OrchestrationInstanceRepository _sut;
 
-    public OrchestrationInstanceRepositoryTests(ProcessManagerDatabaseFixture fixture)
+    public OrchestrationInstanceRepositoryTests(ProcessManagerCoreFixture fixture)
     {
         _fixture = fixture;
         _dbContext = _fixture.DatabaseManager.CreateDbContext();

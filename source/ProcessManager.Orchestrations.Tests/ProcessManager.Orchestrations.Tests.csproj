@@ -18,7 +18,6 @@
     </Compile>
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceBusReceivedMessageExtensions.cs" Link="Fixtures\Extensions\ServiceBusReceivedMessageExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\OrchestrationsAppManager.cs" Link="Fixtures\OrchestrationsAppManager.cs" />
-    <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseFixture.cs" Link="Fixtures\ProcessManagerDatabaseFixture.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />

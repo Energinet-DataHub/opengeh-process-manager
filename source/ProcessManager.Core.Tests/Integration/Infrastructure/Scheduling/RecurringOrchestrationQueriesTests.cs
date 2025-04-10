@@ -17,16 +17,16 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Scheduling;
 
-public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
+public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
 {
-    private readonly ProcessManagerDatabaseFixture _fixture;
+    private readonly ProcessManagerCoreFixture _fixture;
     private readonly ProcessManagerContext _dbContext;
     private readonly RecurringOrchestrationQueries _sut;
 
@@ -34,7 +34,7 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerDa
         new UserId(Guid.NewGuid()),
         new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
-    public RecurringOrchestrationQueriesTests(ProcessManagerDatabaseFixture fixture)
+    public RecurringOrchestrationQueriesTests(ProcessManagerCoreFixture fixture)
     {
         _fixture = fixture;
         _dbContext = _fixture.DatabaseManager.CreateDbContext();

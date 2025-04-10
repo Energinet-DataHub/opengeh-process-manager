@@ -43,17 +43,17 @@ public static class DomainTestDataFactory
 
     /// <summary>
     /// Create an Orchestration Description with the following properties:
+    ///  - Is enabled by default (can be changed using <paramref name="isEnabled"/>)
     ///  - Can be scheduled
     ///  - Is used with Durable Functions
+    ///  - Isn't recurring (can be changed using <paramref name="recurringCronExpression"/>)
     ///  - Has input paramters of type <see cref="OrchestrationParameter"/>
     ///  - Has 3 steps, of which the last can be skipped
-    ///
-    /// Optionally it might:
-    ///  - Be recurring (depends on <paramref name="recurringCronExpression"/>)
     /// </summary>
     public static OrchestrationDescription CreateOrchestrationDescription(
         OrchestrationDescriptionUniqueName? uniqueName = default,
-        string? recurringCronExpression = default)
+        string? recurringCronExpression = default,
+        bool isEnabled = true)
     {
         var orchestrationDescription = new OrchestrationDescription(
             uniqueName: uniqueName ?? new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
@@ -69,13 +69,15 @@ public static class DomainTestDataFactory
         orchestrationDescription.AppendStepDescription("Test step 2");
         orchestrationDescription.AppendStepDescription("Test step 3", canBeSkipped: true, skipReason: "Because we are testing");
 
+        orchestrationDescription.IsEnabled = isEnabled;
+
         return orchestrationDescription;
     }
 
     /// <summary>
     /// Create an Orchestration Instance by a UserIdentity from an Orchestration Description that
     /// should be created similar to how it is done by
-    /// <see cref="CreateOrchestrationDescription(OrchestrationDescriptionUniqueName?, string?)"/>.
+    /// <see cref="CreateOrchestrationDescription(OrchestrationDescriptionUniqueName?, string?, bool)"/>.
     /// </summary>
     public static OrchestrationInstance CreateUserInitiatedOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
@@ -114,7 +116,7 @@ public static class DomainTestDataFactory
     /// <summary>
     /// Create an Orchestration Instance by an ActorIdentity from an Orchestration Description that
     /// should be created similar to how it is done by
-    /// <see cref="CreateOrchestrationDescription(OrchestrationDescriptionUniqueName?, string?)"/>.
+    /// <see cref="CreateOrchestrationDescription(OrchestrationDescriptionUniqueName?, string?, bool)"/>.
     /// </summary>
     public static OrchestrationInstance CreateActorInitiatedOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,

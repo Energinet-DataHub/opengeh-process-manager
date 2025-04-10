@@ -43,8 +43,6 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
         var serviceCollection = BuildServices();
         _services = serviceCollection.BuildServiceProvider();
 
-        // var configuration = _services.GetRequiredService<IConfiguration>();
-
         TestConfiguration = default;
     }
 
@@ -72,7 +70,7 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
             ActorRole.EnergySupplier);
 
         UserIdentity = new UserIdentityDto(
-            UserId: _subsystemTestUserId, // TODO: Get from app settings or use hardcoded value?
+            UserId: _subsystemTestUserId,
             ActorNumber: EnergySupplierActorIdentity.ActorNumber,
             ActorRole: EnergySupplierActorIdentity.ActorRole);
 

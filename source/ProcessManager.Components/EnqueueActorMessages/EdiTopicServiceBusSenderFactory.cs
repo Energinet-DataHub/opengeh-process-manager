@@ -56,12 +56,7 @@ public class EdiTopicServiceBusSenderFactory(
         // load tests) to not pollute other subsystems, and should only be enabled on dev/test environments.
         var isTestMessage = originalActorMessageId != null && originalActorMessageId.IsTestUuid();
         if (isTestMessage)
-        {
-            _logger.LogWarning(
-                "Using service bus sender mock because original actor message id was {OriginalActorMessageId}.",
-                originalActorMessageId);
-            return new ServiceBusSenderStub();
-        }
+            return new ServiceBusSenderMock();
 
         return CreateEdiServiceBusSender();
     }
@@ -72,9 +67,9 @@ public class EdiTopicServiceBusSenderFactory(
     }
 
     /// <summary>
-    /// A service bus sender stub that does not send messages.
+    /// A service bus sender mock that does not send messages.
     /// </summary>
-    private class ServiceBusSenderStub : ServiceBusSender
+    private class ServiceBusSenderMock : ServiceBusSender
     {
         public override Task SendMessageAsync(ServiceBusMessage message, CancellationToken cancellationToken = default)
         {
@@ -83,7 +78,6 @@ public class EdiTopicServiceBusSenderFactory(
 
         public override Task SendMessagesAsync(IEnumerable<ServiceBusMessage> messages, CancellationToken cancellationToken = default)
         {
-            // Do nothing
             return Task.CompletedTask;
         }
 
@@ -91,7 +85,6 @@ public class EdiTopicServiceBusSenderFactory(
             ServiceBusMessageBatch messageBatch,
             CancellationToken cancellationToken = default)
         {
-            // Do nothing
             return Task.CompletedTask;
         }
 
@@ -100,7 +93,6 @@ public class EdiTopicServiceBusSenderFactory(
             DateTimeOffset scheduledEnqueueTime,
             CancellationToken cancellationToken = default)
         {
-            // Do nothing
             return Task.FromResult(long.MinValue);
         }
 
@@ -109,7 +101,6 @@ public class EdiTopicServiceBusSenderFactory(
             DateTimeOffset scheduledEnqueueTime,
             CancellationToken cancellationToken = default)
         {
-            // Do nothing
             return Task.FromResult((IReadOnlyList<long>)[]);
         }
     }

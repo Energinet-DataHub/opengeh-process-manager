@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
-using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_026_028.BRS_026.V1;
 
@@ -23,8 +21,6 @@ public class RequestCalculatedEnergyTimeSeriesTestConfiguration(
     RequestCalculatedEnergyTimeSeriesCommandV1 request)
 {
     public RequestCalculatedEnergyTimeSeriesCommandV1 Request { get; } = request;
-
-    public string IdempotencyKey { get; } = request.IdempotencyKey;
 
     public OrchestrationInstanceTypedDto<RequestCalculatedEnergyTimeSeriesInputV1>? OrchestrationInstance { get; set; }
 }

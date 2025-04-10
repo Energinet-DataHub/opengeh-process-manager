@@ -22,7 +22,5 @@ public class RequestCalculatedWholesaleServicesScenarioState(
 {
     public RequestCalculatedWholesaleServicesCommandV1 Request { get; } = request;
 
-    public string IdempotencyKey { get; } = request.IdempotencyKey;
-
     public OrchestrationInstanceTypedDto<RequestCalculatedWholesaleServicesInputV1>? OrchestrationInstance { get; set; }
 }

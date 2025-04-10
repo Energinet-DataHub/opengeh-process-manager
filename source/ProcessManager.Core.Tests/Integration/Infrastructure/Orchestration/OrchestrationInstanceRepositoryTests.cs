@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -712,7 +713,11 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         IdempotencyKey? idempotencyKey = null,
         Actor? createdByActor = null)
     {
-        var userIdentity = DomainTestDataFactory.EnergySupplier.UserIdentity;
+        var userIdentity = createdByActor == null
+            ? DomainTestDataFactory.EnergySupplier.UserIdentity
+            : new UserIdentity(
+                new UserId(Guid.NewGuid()),
+                createdByActor);
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,

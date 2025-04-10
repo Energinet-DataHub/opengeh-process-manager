@@ -26,19 +26,17 @@ namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure
 public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixture>
 {
     private readonly ProcessManagerCoreFixture _fixture;
-    private readonly UserIdentity _userIdentity;
 
     public ProcessManagerContextTests(ProcessManagerCoreFixture fixture)
     {
         _fixture = fixture;
-        _userIdentity = DomainTestDataFactory.EnergySupplier.UserIdentity;
     }
 
     [Fact]
     public async Task Given_OrchestrationDescriptionAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -61,7 +59,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_RecurringOrchestrationDescriptionAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription(recurringCronExpression: "0 0 * * *");
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(recurringCronExpression: "0 0 * * *");
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -84,8 +82,8 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_OrchestrationInstanceWithStepsAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(existingOrchestrationDescription);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -109,8 +107,8 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_OrchestrationInstanceWithUniqueIdempotencyKeyAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
 
@@ -136,11 +134,11 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_MultipleOrchestrationInstancesWithNullInIdempotencyKeyAddedToDbContext_When_SaveChangesAsync_Then_NoExceptionThrown()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var newOrchestrationInstance01 = CreateOrchestrationInstance(
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var newOrchestrationInstance01 = DomainTestDataFactory.CreateOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: null);
-        var newOrchestrationInstance02 = CreateOrchestrationInstance(
+        var newOrchestrationInstance02 = DomainTestDataFactory.CreateOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: null);
 
@@ -159,11 +157,11 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     {
         // Arrange
         var idempotencyKey = new IdempotencyKey(Guid.NewGuid().ToString());
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var newOrchestrationInstance01 = CreateOrchestrationInstance(
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var newOrchestrationInstance01 = DomainTestDataFactory.CreateOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: idempotencyKey);
-        var newOrchestrationInstance02 = CreateOrchestrationInstance(
+        var newOrchestrationInstance02 = DomainTestDataFactory.CreateOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: idempotencyKey);
 
@@ -187,12 +185,11 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_UserCanceledOrchestrationInstanceAddedToDbContext_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(
             existingOrchestrationDescription,
-            identity: _userIdentity,
             runAt: SystemClock.Instance.GetCurrentInstant());
-        existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(SystemClock.Instance, _userIdentity);
+        existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(SystemClock.Instance, DomainTestDataFactory.EnergySupplier.UserIdentity);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -216,7 +213,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_OrchestrationDescriptionChangedFromMultipleConsumer_AndGiven_ConsumerUsesOneDatabaseContext_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
@@ -248,7 +245,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_OrchestrationDescriptionChangedFromMultipleConsumer_AndGiven_ConsumerUsesTwoDatabaseContext_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
@@ -274,8 +271,8 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_OrchestrationInstanceChangedFromMultipleConsumers_AndGiven_ConsumerUsesOneDatabaseContext_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(existingOrchestrationDescription);
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
@@ -308,8 +305,8 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_OrchestrationInstanceChangedFromMultipleConsumers_AndGiven_ConsumerUsesTwoDatabaseContext_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(existingOrchestrationDescription);
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
@@ -330,60 +327,6 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
 
         // Assert
         await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
-    }
-
-    private static OrchestrationDescription CreateOrchestrationDescription(string? recurringCronExpression = default)
-    {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
-            canBeScheduled: true,
-            functionName: "TestOrchestrationFunction");
-
-        if (recurringCronExpression != null)
-            orchestrationDescription.RecurringCronExpression = recurringCronExpression;
-
-        orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
-
-        orchestrationDescription.AppendStepDescription("Test step 1");
-        orchestrationDescription.AppendStepDescription("Test step 2");
-        orchestrationDescription.AppendStepDescription("Test step 3", canBeSkipped: true, skipReason: "Because we are testing");
-
-        return orchestrationDescription;
-    }
-
-    private OrchestrationInstance CreateOrchestrationInstance(
-        OrchestrationDescription orchestrationDescription,
-        OperatingIdentity? identity = default,
-        Instant? runAt = default,
-        int? testInt = default,
-        IdempotencyKey? idempotencyKey = default)
-    {
-        var operatingIdentity = identity ?? _userIdentity;
-
-        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-            operatingIdentity,
-            orchestrationDescription,
-            skipStepsBySequence: [3],
-            clock: SystemClock.Instance,
-            runAt: runAt,
-            idempotencyKey: idempotencyKey,
-            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
-            transactionId: new TransactionId(Guid.NewGuid().ToString()),
-            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
-
-        orchestrationInstance.CustomState.SetFromInstance(new TestOrchestrationInstanceCustomState
-        {
-            TestId = Guid.NewGuid(),
-            TestString = "Something new",
-        });
-
-        orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
-        {
-            TestString = "Test string",
-            TestInt = testInt ?? 42,
-        });
-
-        return orchestrationInstance;
     }
 
     /// <summary>
@@ -440,19 +383,5 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
             dbContext.OrchestrationInstances.Update(orchestrationInstance);
             await dbContext.SaveChangesAsync();
         }
-    }
-
-    private class TestOrchestrationParameter
-    {
-        public string? TestString { get; set; }
-
-        public int? TestInt { get; set; }
-    }
-
-    private class TestOrchestrationInstanceCustomState
-    {
-        public Guid TestId { get; set; }
-
-        public string? TestString { get; set; }
     }
 }

@@ -26,12 +26,10 @@ namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure
 public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCoreFixture>
 {
     private readonly ProcessManagerCoreFixture _fixture;
-    private readonly UserIdentity _userIdentity;
 
     public ProcessManagerReaderContextTests(ProcessManagerCoreFixture fixture)
     {
         _fixture = fixture;
-        _userIdentity = DomainTestDataFactory.EnergySupplier.UserIdentity;
     }
 
     [Fact]
@@ -478,7 +476,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         int? testInt = default,
         IdempotencyKey? idempotencyKey = default)
     {
-        var operatingIdentity = identity ?? _userIdentity;
+        var operatingIdentity = identity ?? DomainTestDataFactory.EnergySupplier.UserIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,

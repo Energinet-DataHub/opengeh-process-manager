@@ -59,7 +59,6 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
     private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
-    private readonly ILogger<StartForwardMeteredDataHandlerV1> _logger = logger;
 
     /// <summary>
     /// This method has multiple commits to the database, to immediately transition lifecycles. This means that

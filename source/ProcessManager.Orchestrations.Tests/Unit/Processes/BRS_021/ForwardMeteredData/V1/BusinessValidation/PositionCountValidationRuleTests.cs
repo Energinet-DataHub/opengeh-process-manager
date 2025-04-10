@@ -147,6 +147,45 @@ public class PositionCountValidationRuleTests
     }
 
     [Fact]
+    public async Task Given_MontlyResolutionWithCorrectPeriodBothAtTheEndOfTheMonthAndCount_When_Validate_Then_NoValidationError2()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2025-02-28T23:00:00Z")
+            .WithEndDateTime("2025-03-31T22:00:00Z")
+            .WithResolution(Resolution.Monthly.Name)
+            .WithMeteredData(
+                Enumerable.Range(1, 1)
+                    .Select(
+                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                    .ToList())
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                null,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.Monthly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task Given_HourlyResolutionAndWrongPeriod_When_Validate_Then_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()

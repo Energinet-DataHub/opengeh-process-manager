@@ -42,7 +42,7 @@ public class RequestCalculatedWholesaleServicesScenario : IClassFixture<ProcessM
 
     [SubsystemFact]
     [ScenarioStep(1)]
-    public void Given_ValidRequestCalculatedEnergyTimeSeriesRequest()
+    public void Given_ValidRequestCalculatedWholesaleServicesRequest()
     {
         var testUuid = Guid.NewGuid().ToTestMessageUuid();
         _fixture.TestConfiguration = new RequestCalculatedWholesaleServicesScenarioState(

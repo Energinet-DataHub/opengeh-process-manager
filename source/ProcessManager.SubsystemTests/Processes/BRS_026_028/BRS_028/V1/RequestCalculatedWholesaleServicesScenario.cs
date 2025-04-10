@@ -28,24 +28,24 @@ namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_026_028.
 [TestCaseOrderer(
     ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
-public class RequestCalculatedWholesaleServicesTests : IClassFixture<ProcessManagerFixture<RequestCalculatedWholesaleServicesTestConfiguration>>
+public class RequestCalculatedWholesaleServicesScenario : IClassFixture<ProcessManagerFixture<RequestCalculatedWholesaleServicesScenarioState>>
 {
-    private readonly ProcessManagerFixture<RequestCalculatedWholesaleServicesTestConfiguration> _fixture;
+    private readonly ProcessManagerFixture<RequestCalculatedWholesaleServicesScenarioState> _fixture;
 
-    public RequestCalculatedWholesaleServicesTests(
-        ProcessManagerFixture<RequestCalculatedWholesaleServicesTestConfiguration> fixture,
+    public RequestCalculatedWholesaleServicesScenario(
+        ProcessManagerFixture<RequestCalculatedWholesaleServicesScenarioState> fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;
         _fixture.SetTestOutputHelper(testOutputHelper);
     }
 
-    [Fact]
+    [SubsystemFact]
     [ScenarioStep(1)]
     public void Given_ValidRequestCalculatedEnergyTimeSeriesRequest()
     {
         var testUuid = Guid.NewGuid().ToTestMessageUuid();
-        _fixture.TestConfiguration = new RequestCalculatedWholesaleServicesTestConfiguration(
+        _fixture.TestConfiguration = new RequestCalculatedWholesaleServicesScenarioState(
             request: new RequestCalculatedWholesaleServicesCommandV1(
                 operatingIdentity: _fixture.EnergySupplierActorIdentity,
                 inputParameter: new RequestCalculatedWholesaleServicesInputV1(
@@ -67,7 +67,7 @@ public class RequestCalculatedWholesaleServicesTests : IClassFixture<ProcessMana
                 idempotencyKey: testUuid));
     }
 
-    [Fact]
+    [SubsystemFact]
     [ScenarioStep(2)]
     public async Task AndGiven_StartNewOrchestrationInstanceIsSent()
     {
@@ -76,12 +76,12 @@ public class RequestCalculatedWholesaleServicesTests : IClassFixture<ProcessMana
             CancellationToken.None);
     }
 
-    [Fact]
+    [SubsystemFact]
     [ScenarioStep(3)]
     public async Task When_OrchestrationInstanceIsStarted()
     {
         var (success, orchestrationInstance, _) =
-            await _fixture.WaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
+            await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
                 _fixture.TestConfiguration.IdempotencyKey);
 
         Assert.Multiple(
@@ -93,7 +93,7 @@ public class RequestCalculatedWholesaleServicesTests : IClassFixture<ProcessMana
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
     }
 
-    [Fact]
+    [SubsystemFact]
     [ScenarioStep(4)]
     public void Then_OrchestrationInstanceHasCorrectValues()
     {
@@ -113,14 +113,14 @@ public class RequestCalculatedWholesaleServicesTests : IClassFixture<ProcessMana
             () => Assert.Null(orchestrationInstance.MeteringPointId));
     }
 
-    [Fact]
+    [SubsystemFact]
     [ScenarioStep(5)]
     public async Task AndThen_BusinessValidationStepIsSuccessful()
     {
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, businessValidationStep) =
-            await _fixture.WaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
+            await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: _fixture.TestConfiguration.IdempotencyKey,
                 stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.BusinessValidationStep.StepSequence,
                 stepState: StepInstanceLifecycleState.Terminated);
@@ -136,14 +136,14 @@ public class RequestCalculatedWholesaleServicesTests : IClassFixture<ProcessMana
             () => Assert.Equal(StepInstanceTerminationState.Succeeded, businessValidationStep?.Lifecycle.TerminationState));
     }
 
-    [Fact]
+    [SubsystemFact]
     [ScenarioStep(6)]
     public async Task AndThen_EnqueueActorMessagesStepIsRunning()
     {
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
-            await _fixture.WaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
+            await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: _fixture.TestConfiguration.IdempotencyKey,
                 stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
                 stepState: StepInstanceLifecycleState.Running);
@@ -156,7 +156,7 @@ public class RequestCalculatedWholesaleServicesTests : IClassFixture<ProcessMana
             () => Assert.Null(enqueueActorMessagesStep?.Lifecycle.TerminationState));
     }
 
-    [Fact]
+    [SubsystemFact]
     [ScenarioStep(7)]
     public async Task AndThen_ReceivingNotifyEnqueueActorMessagesCompletedTransitionsEnqueueActorMessagesStepToSuccessful()
     {
@@ -170,7 +170,7 @@ public class RequestCalculatedWholesaleServicesTests : IClassFixture<ProcessMana
 
         // Wait for the enqueue actor messages step to be terminated
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
-            await _fixture.WaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
+            await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: _fixture.TestConfiguration.IdempotencyKey,
                 stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
                 stepState: StepInstanceLifecycleState.Terminated);
@@ -183,14 +183,14 @@ public class RequestCalculatedWholesaleServicesTests : IClassFixture<ProcessMana
             () => Assert.Equal(StepInstanceTerminationState.Succeeded, enqueueActorMessagesStep?.Lifecycle.TerminationState));
     }
 
-    [Fact]
+    [SubsystemFact]
     [ScenarioStep(8)]
     public async Task AndThen_OrchestrationInstanceIsTerminatedWithSuccess()
     {
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, _) =
-            await _fixture.WaitForOrchestrationInstance<RequestCalculatedWholesaleServicesInputV1>(
+            await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
                 idempotencyKey: _fixture.TestConfiguration.IdempotencyKey,
                 orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated);
 

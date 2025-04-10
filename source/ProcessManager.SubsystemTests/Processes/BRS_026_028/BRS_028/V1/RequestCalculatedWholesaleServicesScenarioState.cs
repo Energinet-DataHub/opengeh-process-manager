@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_026_028.BRS_028.V1;
 
-public class RequestCalculatedWholesaleServicesTestConfiguration(
+public class RequestCalculatedWholesaleServicesScenarioState(
     RequestCalculatedWholesaleServicesCommandV1 request)
 {
     public RequestCalculatedWholesaleServicesCommandV1 Request { get; } = request;

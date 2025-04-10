@@ -27,6 +27,11 @@ public static class EnqueueActorMessagesExtensions
 {
     public static IServiceCollection AddEnqueueActorMessages(this IServiceCollection services, TokenCredential azureCredential)
     {
+        services
+            .AddOptions<ProcessManagerComponentsOptions>()
+            .BindConfiguration(ProcessManagerComponentsOptions.SectionName)
+            .ValidateDataAnnotations();
+
         services.AddOptions<ServiceBusNamespaceOptions>()
             .BindConfiguration(ServiceBusNamespaceOptions.SectionName)
             .ValidateDataAnnotations();

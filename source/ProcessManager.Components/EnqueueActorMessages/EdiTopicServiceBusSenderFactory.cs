@@ -17,20 +17,17 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
 public class EdiTopicServiceBusSenderFactory(
-    ILogger<EdiTopicServiceBusSenderFactory> logger,
-    IOptions<ProcessManagerOptions> options,
+    IOptions<ProcessManagerComponentsOptions> options,
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
 {
-    private readonly ILogger<EdiTopicServiceBusSenderFactory> _logger = logger;
-    private readonly IOptions<ProcessManagerOptions> _options = options;
+    private readonly IOptions<ProcessManagerComponentsOptions> _options = options;
     private readonly IAzureClientFactory<ServiceBusSender> _serviceBusFactory = serviceBusFactory;
 
     /// <summary>

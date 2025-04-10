@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
 using Energinet.DataHub.ProcessManager.Scheduler;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Tests.Integration.Scheduler;
 
@@ -69,7 +67,9 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
     {
         // Arrange
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var orchestrationDescription = CreateOrchestrationDescription(uniqueName, "0 12,17 * * *");
+        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(
+            uniqueName,
+            "0 12,17 * * *");
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -99,13 +99,15 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
     {
         // Arrange
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var orchestrationDescription = CreateOrchestrationDescription(uniqueName, "0 12,17 * * *");
+        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(
+            uniqueName,
+            "0 12,17 * * *");
 
-        var scheduledToRun01 = CreateOrchestrationInstance(
+        var scheduledToRun01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             orchestrationDescription,
             runAt: _fixture.DkFirstOfDecember2024At1200.ToInstant());
 
-        var scheduledToRun02 = CreateOrchestrationInstance(
+        var scheduledToRun02 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             orchestrationDescription,
             runAt: _fixture.DkFirstOfDecember2024At1700.ToInstant());
 
@@ -129,9 +131,11 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
     {
         // Arrange
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var orchestrationDescription = CreateOrchestrationDescription(uniqueName, "0 12,17 * * *");
+        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(
+            uniqueName,
+            "0 12,17 * * *");
 
-        var scheduledToRun01 = CreateOrchestrationInstance(
+        var scheduledToRun01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             orchestrationDescription,
             runAt: _fixture.DkFirstOfDecember2024At1200.ToInstant());
 
@@ -152,37 +156,5 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
                 uniqueName,
                 _fixture.DkFirstOfDecember2024At1700.ToInstant()));
         _managerMock.VerifyNoOtherCalls();
-    }
-
-    private static OrchestrationDescription CreateOrchestrationDescription(
-        OrchestrationDescriptionUniqueName uniqueName,
-        string recurringCronExpression)
-    {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName,
-            canBeScheduled: true,
-            functionName: "TestOrchestrationFunction");
-
-        orchestrationDescription.RecurringCronExpression = recurringCronExpression;
-
-        return orchestrationDescription;
-    }
-
-    private static OrchestrationInstance CreateOrchestrationInstance(
-        OrchestrationDescription orchestrationDescription,
-        Instant runAt)
-    {
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
-
-        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-            userIdentity,
-            orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance,
-            runAt: runAt);
-
-        return orchestrationInstance;
     }
 }

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="..\Shared\Tests\Fixtures\AuthenticationOptionsForTests.cs" Link="Fixtures\AuthenticationOptionsForTests.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\DomainTestDataFactory.cs" Link="Fixtures\DomainTestDataFactory.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ExampleOrchestrationsAppManager.cs" Link="Fixtures\ExampleOrchestrationsAppManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />

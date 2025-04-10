@@ -20,31 +20,21 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 
-/// <summary>
-/// Retrieves delegation information for a given actor number and role when receiving metering point data.
-/// </summary>
-/// <param name="electricityMarketViews"></param>
-/// <remarks>
-/// Has 3 possible outcomes:
-/// 1. IsDelegated = false, ActorNumber = null -> No Delegation.
-/// 2. IsDelegated = true, ActorNumber != null -> Delegation from ActorNumber.
-/// 3. IsDelegated = true, ActorNumber = null -> Could not find expected delegation.
-/// </remarks>
 public class DelegationProvider(IElectricityMarketViews electricityMarketViews)
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
 
     /// <summary>
-    /// Get the delegated actor which is delegated from.
+    /// Checks if delegation is expected and gets the actor which is delegated from.
     /// </summary>
-    /// <param name="gridAreaOwner">GridAreaOwner which is the delegated from actor</param>
-    /// <param name="senderActorNumber">Actor number of the expected delegated to actor</param>
-    /// <param name="senderActorRole">Actor role of the expected delegated to actor</param>
-    /// <param name="gridAreaCode">The grid area code of which the delegation is expected</param>
+    /// <param name="gridAreaOwner">used to get the delegation as the delegated from actor</param>
+    /// <param name="gridAreaCode">used to get the delegation</param>
+    /// <param name="senderActorNumber">used to check against the found delegation, Actor number of the expected delegated to actor</param>
+    /// <param name="senderActorRole">used to check for allow delegation roles and if delegation is expected, when role is Delegated</param>
     /// <returns>
-    ///     A boolean ShouldBeDelegated and ActorNumber of the delegated from actor if delegation exists.
+    ///     A boolean ShouldBeDelegated, if delegation is expected and ActorNumber of the delegated from actor if delegation exists.
     /// </returns>
-    public async Task<(bool ShouldBeDelegated, string? ActorNumber)> GetDelegatedFromAsync(ActorNumber gridAreaOwner, ActorNumber senderActorNumber, ActorRole? senderActorRole, GridAreaCode gridAreaCode)
+    public async Task<(bool ShouldBeDelegated, string? DelegatedFromActorNumber)> GetDelegatedFromAsync(ActorNumber gridAreaOwner, GridAreaCode gridAreaCode, ActorNumber senderActorNumber, ActorRole? senderActorRole)
     {
         if (senderActorRole != ActorRole.Delegated &&
             senderActorRole != ActorRole.GridAccessProvider)

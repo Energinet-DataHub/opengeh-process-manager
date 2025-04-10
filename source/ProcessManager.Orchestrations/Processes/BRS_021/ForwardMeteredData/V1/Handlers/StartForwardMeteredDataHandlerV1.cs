@@ -287,7 +287,7 @@ public class StartForwardMeteredDataHandlerV1(
             .ConfigureAwait(false);
         if (delegationResult is { ShouldBeDelegated: true })
         {
-            if (delegationResult is { ActorNumber: null })
+            if (delegationResult is { DelegatedFromActorNumber: null })
             {
                 await StepHelper.TerminateStepAndCommit(
                         validationStep,
@@ -304,7 +304,7 @@ public class StartForwardMeteredDataHandlerV1(
                 };
             }
 
-            input = input with { GridAccessProviderNumber = delegationResult.ActorNumber };
+            input = input with { GridAccessProviderNumber = delegationResult.DelegatedFromActorNumber };
         }
 
         var validationErrors = await _validator.ValidateAsync(
@@ -333,7 +333,7 @@ public class StartForwardMeteredDataHandlerV1(
         return validationErrors;
     }
 
-    private async Task<(bool ShouldBeDelegated, string? ActorNumber)> IsIncomingMeteredDataComingFromDelegated(
+    private async Task<(bool ShouldBeDelegated, string? DelegatedFromActorNumber)> IsIncomingMeteredDataComingFromDelegated(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataCustomStateV2 customState)
     {
@@ -347,9 +347,9 @@ public class StartForwardMeteredDataHandlerV1(
 
         return await _delegationProvider.GetDelegatedFromAsync(
             gridAreaOwner: currentMeteringPointMasterData.GridAccessProvider,
+            gridAreaCode: currentMeteringPointMasterData.GridAreaCode,
             senderActorNumber: startedByActor.StartedByActorNumber,
-            senderActorRole: startedByActor.StartedByActorRole,
-            gridAreaCode: currentMeteringPointMasterData.GridAreaCode).ConfigureAwait(false);
+            senderActorRole: startedByActor.StartedByActorRole).ConfigureAwait(false);
     }
 
     private async Task ForwardToMeasurements(

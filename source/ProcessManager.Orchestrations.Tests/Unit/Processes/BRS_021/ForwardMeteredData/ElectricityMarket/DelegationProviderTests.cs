@@ -25,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 public class DelegationProviderTests
 {
     [Fact]
-    public async Task Given_ActorRoleNotDelegatedOrGridAccessProvider_When_GetDelegationAsync_Then_IsNotDelegated()
+    public async Task Given_ActorRoleNotDelegatedOrGridAccessProvider_When_GetDelegationAsync_Then_ShouldNotBeDelegated()
     {
         // Arrange
         var mockElectricityMarketViews = new Mock<IElectricityMarketViews>();
@@ -39,17 +39,17 @@ public class DelegationProviderTests
         // Act
         var result = await delegationProvider.GetDelegatedFromAsync(
             gridAreaOwner,
+            gridAreaCode,
             senderActorNumber,
-            senderActorRole,
-            gridAreaCode);
+            senderActorRole);
 
         // Assert
-        Assert.Null(result.ActorNumber);
         Assert.False(result.ShouldBeDelegated);
+        Assert.Null(result.DelegatedFromActorNumber);
     }
 
     [Fact]
-    public async Task Given_SenderActorRoleIsActorRoleDelegated_When_GetDelegationAsync_Then_IsDelegatedToActor()
+    public async Task Given_SenderActorRoleIsActorRoleDelegated_When_GetDelegationAsync_Then_ShouldBeDelegatedToActor()
     {
         // Arrange
         var gridAreaOwner = ActorNumber.Create("9874567890123");
@@ -71,17 +71,17 @@ public class DelegationProviderTests
         // Act
         var result = await delegationProvider.GetDelegatedFromAsync(
             gridAreaOwner,
+            gridAreaCode,
             senderActorNumber,
-            senderActorRole,
-            gridAreaCode);
+            senderActorRole);
 
         // Assert
-        Assert.Equal("9874567890123", result.ActorNumber);
         Assert.True(result.ShouldBeDelegated);
+        Assert.Equal("9874567890123", result.DelegatedFromActorNumber);
     }
 
     [Fact]
-    public async Task Given_SenderActorRoleIsGridAccessProvider_When_GetDelegationAsync_Then_IsDelegatedToActor()
+    public async Task Given_SenderActorRoleIsGridAccessProvider_When_GetDelegationAsync_Then_ShouldBeDelegatedToActor()
     {
         // Arrange
         var gridAreaOwner = ActorNumber.Create("9874567890123");
@@ -103,17 +103,17 @@ public class DelegationProviderTests
         // Act
         var result = await delegationProvider.GetDelegatedFromAsync(
             gridAreaOwner,
+            gridAreaCode,
             senderActorNumber,
-            senderActorRole,
-            gridAreaCode);
+            senderActorRole);
 
         // Assert
-        Assert.Equal("9874567890123", result.ActorNumber);
         Assert.True(result.ShouldBeDelegated);
+        Assert.Equal("9874567890123", result.DelegatedFromActorNumber);
     }
 
     [Fact]
-    public async Task Given_NoDelegationAndActorRoleGridAccessProvider_When_GetDelegationAsync_Then_IsNotDelegated()
+    public async Task Given_NoDelegationAndActorRoleGridAccessProvider_When_GetDelegationAsync_Then_ShouldNotBeDelegated()
     {
         // Arrange
         var mockElectricityMarketViews = new Mock<IElectricityMarketViews>();
@@ -135,17 +135,17 @@ public class DelegationProviderTests
         // Act
         var result = await delegationProvider.GetDelegatedFromAsync(
             gridAreaOwner,
+            gridAreaCode,
             senderActorNumber,
-            senderActorRole,
-            gridAreaCode);
+            senderActorRole);
 
         // Assert
-        Assert.Null(result.ActorNumber);
         Assert.False(result.ShouldBeDelegated);
+        Assert.Null(result.DelegatedFromActorNumber);
     }
 
     [Fact]
-    public async Task Given_NoDelegationAndActorRoleDelegated_When_GetDelegationAsync_Then_IsDelegationAndNoActorNumber()
+    public async Task Given_NoDelegationAndActorRoleDelegated_When_GetDelegationAsync_Then_ShouldBeDelegatedAndToActorNotFound()
     {
         // Arrange
         var mockElectricityMarketViews = new Mock<IElectricityMarketViews>();
@@ -167,12 +167,12 @@ public class DelegationProviderTests
         // Act
         var result = await delegationProvider.GetDelegatedFromAsync(
             gridAreaOwner,
+            gridAreaCode,
             senderActorNumber,
-            senderActorRole,
-            gridAreaCode);
+            senderActorRole);
 
         // Assert
-        Assert.Null(result.ActorNumber);
+        Assert.Null(result.DelegatedFromActorNumber);
         Assert.True(result.ShouldBeDelegated);
     }
 }

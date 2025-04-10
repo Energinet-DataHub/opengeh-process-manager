@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using NodaTime;
 using CoreDomain = Energinet.DataHub.ProcessManager.Core.Domain;
@@ -82,9 +82,7 @@ public class OrchestrationInstanceStepsTests
         CoreDomain.OrchestrationDescription.OrchestrationDescription orchestrationDescription,
         Instant? runAt = default)
     {
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+        var userIdentity = DomainTestDataFactory.EnergySupplier.UserIdentity;
 
         var orchestrationInstance = CoreDomain.OrchestrationInstance.OrchestrationInstance.CreateFromDescription(
             userIdentity,

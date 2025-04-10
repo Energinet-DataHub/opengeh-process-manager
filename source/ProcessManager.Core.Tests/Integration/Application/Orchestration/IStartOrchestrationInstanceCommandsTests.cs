@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
@@ -22,8 +21,8 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -46,7 +45,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
     {
         _fixture = fixture;
 
-        _actorIdentity = new ActorIdentity(new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+        _actorIdentity = DomainTestDataFactory.EnergySupplier.ActorIdentity;
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 
@@ -61,10 +60,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
 
     public async Task DisposeAsync()
     {
-        // Disabling OrchestrationDescriptions so tests doesn't interfere with each other
-        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
-        await dbContext.OrchestrationDescriptions.ForEachAsync(item => item.IsEnabled = false);
-        await dbContext.SaveChangesAsync();
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
 
         await _serviceProvider.DisposeAsync();
     }

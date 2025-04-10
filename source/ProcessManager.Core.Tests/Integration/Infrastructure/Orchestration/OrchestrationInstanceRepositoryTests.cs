@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -596,8 +596,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         nowClockMock.Setup(m => m.GetCurrentInstant())
             .Returns(now);
 
-        var actor = new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier);
-        var otherActor = new Actor(ActorNumber.Create("1234567890123"), ActorRole.BalanceResponsibleParty);
+        var actor = DomainTestDataFactory.EnergySupplier.ActorIdentity.Actor;
+        var otherActor = DomainTestDataFactory.BalanceResponsibleParty.ActorIdentity.Actor;
 
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var existingOrchestrationDescription = CreateOrchestrationDescription(uniqueName);
@@ -651,13 +651,13 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var existingOrchestrationDescription = CreateOrchestrationDescription(uniqueName);
 
-        var actor1 = new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier);
+        var actor1 = DomainTestDataFactory.EnergySupplier.ActorIdentity.Actor;
         var orchestrationInstanceByActor1 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
             createdByActor: actor1);
         orchestrationInstanceByActor1.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
-        var actor2 = new Actor(ActorNumber.Create("1234567890123"), ActorRole.BalanceResponsibleParty);
+        var actor2 = DomainTestDataFactory.BalanceResponsibleParty.ActorIdentity.Actor;
         var orchestrationInstanceByActor2 = CreateOrchestrationInstance(
             existingOrchestrationDescription,
             createdByActor: actor2);
@@ -712,9 +712,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         IdempotencyKey? idempotencyKey = null,
         Actor? createdByActor = null)
     {
-        var userIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            createdByActor ?? new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+        var userIdentity = DomainTestDataFactory.EnergySupplier.UserIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             userIdentity,

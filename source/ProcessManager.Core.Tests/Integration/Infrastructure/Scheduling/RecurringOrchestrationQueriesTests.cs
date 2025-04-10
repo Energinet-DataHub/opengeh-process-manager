@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using NodaTime;
@@ -30,13 +30,12 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
     private readonly ProcessManagerContext _dbContext;
     private readonly RecurringOrchestrationQueries _sut;
 
-    private readonly UserIdentity _userIdentity = new UserIdentity(
-        new UserId(Guid.NewGuid()),
-        new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+    private readonly UserIdentity _userIdentity;
 
     public RecurringOrchestrationQueriesTests(ProcessManagerCoreFixture fixture)
     {
         _fixture = fixture;
+        _userIdentity = DomainTestDataFactory.EnergySupplier.UserIdentity;
         _dbContext = _fixture.DatabaseManager.CreateDbContext();
         _sut = new RecurringOrchestrationQueries(_dbContext);
     }

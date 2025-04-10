@@ -41,11 +41,22 @@ public static class DomainTestDataFactory
             "0CBB5427-E406-4E6F-A975-E21A69A3CA2A");
     }
 
+    /// <summary>
+    /// Create an Orchestration Description with the following properties:
+    ///  - Can be scheduled
+    ///  - Is used with Durable Functions
+    ///  - Has input paramters of type <see cref="OrchestrationParameter"/>
+    ///  - Has 3 steps, of which the last can be skipped
+    ///
+    /// Optionally it might:
+    ///  - Be recurring (depends on <paramref name="recurringCronExpression"/>)
+    /// </summary>
     public static OrchestrationDescription CreateOrchestrationDescription(
+        OrchestrationDescriptionUniqueName? uniqueName = default,
         string? recurringCronExpression = default)
     {
         var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
+            uniqueName: uniqueName ?? new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
             canBeScheduled: true,
             functionName: "TestOrchestrationFunction");
 
@@ -61,25 +72,35 @@ public static class DomainTestDataFactory
         return orchestrationDescription;
     }
 
-    public static OrchestrationInstance CreateOrchestrationInstance(
+    /// <summary>
+    /// Create an Orchestration Instance by a UserIdentity from an Orchestration Description that
+    /// should be created similar to how it is done by
+    /// <see cref="CreateOrchestrationDescription(OrchestrationDescriptionUniqueName?, string?)"/>.
+    /// </summary>
+    public static OrchestrationInstance CreateUserInitiatedOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
-        OperatingIdentity? identity = default,
+        UserIdentity? createdByUserIdentity = default,
         Instant? runAt = default,
-        int? testInt = default,
-        IdempotencyKey? idempotencyKey = default)
+        int? testInt = default)
     {
-        var operatingIdentity = identity ?? EnergySupplier.UserIdentity;
+        var operatingIdentity = createdByUserIdentity ?? EnergySupplier.UserIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,
             orchestrationDescription,
-            skipStepsBySequence: [3],
+            skipStepsBySequence: [],
             clock: SystemClock.Instance,
             runAt: runAt,
-            idempotencyKey: idempotencyKey,
-            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
-            transactionId: new TransactionId(Guid.NewGuid().ToString()),
-            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
+            idempotencyKey: null,
+            actorMessageId: null,
+            transactionId: null,
+            meteringPointId: null);
+
+        orchestrationInstance.ParameterValue.SetFromInstance(new OrchestrationParameter
+        {
+            TestString = "Test string",
+            TestInt = testInt ?? 42,
+        });
 
         orchestrationInstance.CustomState.SetFromInstance(new OrchestrationInstanceCustomState
         {
@@ -87,11 +108,31 @@ public static class DomainTestDataFactory
             TestString = "Something new",
         });
 
-        orchestrationInstance.ParameterValue.SetFromInstance(new OrchestrationParameter
-        {
-            TestString = "Test string",
-            TestInt = testInt ?? 42,
-        });
+        return orchestrationInstance;
+    }
+
+    /// <summary>
+    /// Create an Orchestration Instance by an ActorIdentity from an Orchestration Description that
+    /// should be created similar to how it is done by
+    /// <see cref="CreateOrchestrationDescription(OrchestrationDescriptionUniqueName?, string?)"/>.
+    /// </summary>
+    public static OrchestrationInstance CreateActorInitiatedOrchestrationInstance(
+        OrchestrationDescription orchestrationDescription,
+        ActorIdentity? createdByActorIdentity = default,
+        IdempotencyKey? idempotencyKey = default)
+    {
+        var operatingIdentity = createdByActorIdentity ?? EnergySupplier.ActorIdentity;
+
+        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
+            operatingIdentity,
+            orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance,
+            runAt: null,
+            idempotencyKey: idempotencyKey,
+            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
         return orchestrationInstance;
     }

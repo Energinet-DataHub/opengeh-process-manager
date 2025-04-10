@@ -123,7 +123,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     {
         // Arrange
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(existingOrchestrationDescription);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -152,7 +152,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         // Arrange
         var expectedTestInt = 54;
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             testInt: expectedTestInt);
 
@@ -319,7 +319,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         // Arrange
         var expectedTestInt = 55;
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             testInt: expectedTestInt);
 
@@ -384,7 +384,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
         // Arrange
         var expectedTestInt = 56;
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             testInt: expectedTestInt);
 
@@ -438,7 +438,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
                         SELECT [names].[value]
                         FROM OPENJSON({orchestrationDescriptionNames}) WITH ([value] nvarchar(max) '$') AS [names]
                     )
-                    AND CAST(JSON_VALUE([oi].[ParameterValue],'$.TestInt') AS int) = {expectedTestInt}
+                    AND CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.TestInt') AS int) = {expectedTestInt}
             """);
         // => Show query for easy debugging
         var queryString = query.ToQueryString();

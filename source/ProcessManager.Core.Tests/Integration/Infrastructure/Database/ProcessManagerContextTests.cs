@@ -83,7 +83,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     {
         // Arrange
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -108,7 +108,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     {
         // Arrange
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
 
@@ -135,12 +135,10 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     {
         // Arrange
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var newOrchestrationInstance01 = DomainTestDataFactory.CreateOrchestrationInstance(
-            existingOrchestrationDescription,
-            idempotencyKey: null);
-        var newOrchestrationInstance02 = DomainTestDataFactory.CreateOrchestrationInstance(
-            existingOrchestrationDescription,
-            idempotencyKey: null);
+        var newOrchestrationInstance01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+            existingOrchestrationDescription);
+        var newOrchestrationInstance02 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+            existingOrchestrationDescription);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -158,10 +156,10 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         // Arrange
         var idempotencyKey = new IdempotencyKey(Guid.NewGuid().ToString());
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var newOrchestrationInstance01 = DomainTestDataFactory.CreateOrchestrationInstance(
+        var newOrchestrationInstance01 = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: idempotencyKey);
-        var newOrchestrationInstance02 = DomainTestDataFactory.CreateOrchestrationInstance(
+        var newOrchestrationInstance02 = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: idempotencyKey);
 
@@ -186,7 +184,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     {
         // Arrange
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             runAt: SystemClock.Instance.GetCurrentInstant());
         existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(
@@ -274,7 +272,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     {
         // Arrange
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(existingOrchestrationDescription);
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);
@@ -308,7 +306,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     {
         // Arrange
         var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(existingOrchestrationDescription);
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
             writeDbContext.OrchestrationDescriptions.Add(existingOrchestrationDescription);

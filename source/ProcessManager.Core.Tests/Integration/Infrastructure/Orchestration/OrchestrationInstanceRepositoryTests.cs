@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -72,8 +71,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     public async Task Given_OrchestrationInstanceIdInDatabase_When_GetById_Then_ExpectedOrchestrationInstanceIsRetrieved()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -94,8 +93,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     public async Task Given_OrchestrationInstanceChangedFromMultipleConsumers_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -127,8 +126,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     public async Task Given_StepInstanceChangedFromMultipleConsumers_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -173,8 +172,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     public async Task Given_OrchestrationInstanceInDatabase_When_GetByIdempotencyKey_Then_ExpectedOrchestrationInstanceIsRetrieved()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
-        var existingOrchestrationInstance = CreateOrchestrationInstance(
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var existingOrchestrationInstance = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
 
@@ -197,8 +196,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     public async Task Given_OrchestrationDescriptionNotInDatabase_When_AddOrchestrationInstance_Then_ThrowsException()
     {
         // Arrange
-        var newOrchestrationDescription = CreateOrchestrationDescription();
-        var newOrchestrationInstance = CreateOrchestrationInstance(newOrchestrationDescription);
+        var newOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var newOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(newOrchestrationDescription);
 
         // Act
         await _sut.AddAsync(newOrchestrationInstance);
@@ -215,7 +214,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     public async Task Given_OrchestrationDescriptionInDatabase_When_AddOrchestrationInstance_Then_OrchestrationInstanceIsAdded()
     {
         // Arrange
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -223,7 +222,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             await writeDbContext.SaveChangesAsync();
         }
 
-        var newOrchestrationInstance = CreateOrchestrationInstance(existingOrchestrationDescription);
+        var newOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription);
 
         // Act
         await _sut.AddAsync(newOrchestrationInstance);
@@ -241,13 +240,13 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         // Arrange
         var currentInstant = SystemClock.Instance.GetCurrentInstant();
 
-        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
 
-        var notScheduled = CreateOrchestrationInstance(existingOrchestrationDescription);
-        var scheduledToRun = CreateOrchestrationInstance(
+        var notScheduled = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription);
+        var scheduledToRun = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             runAt: currentInstant.PlusMinutes(1));
-        var scheduledIntoTheFarFuture = CreateOrchestrationInstance(
+        var scheduledIntoTheFarFuture = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             runAt: currentInstant.PlusDays(5));
 
@@ -275,13 +274,13 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     {
         // Arrange
         var uniqueName1 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var existingOrchestrationDescription01 = CreateOrchestrationDescription(uniqueName1);
+        var existingOrchestrationDescription01 = DomainTestDataFactory.CreateOrchestrationDescription(uniqueName1);
 
         var uniqueName2 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var existingOrchestrationDescription02 = CreateOrchestrationDescription(uniqueName2);
+        var existingOrchestrationDescription02 = DomainTestDataFactory.CreateOrchestrationDescription(uniqueName2);
 
-        var basedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
-        var basedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02);
+        var basedOn01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription01);
+        var basedOn02 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription02);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -305,11 +304,11 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     {
         // Arrange
         var name = Guid.NewGuid().ToString();
-        var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
-        var existingOrchestrationDescriptionV2 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 2));
+        var existingOrchestrationDescriptionV1 = DomainTestDataFactory.CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
+        var existingOrchestrationDescriptionV2 = DomainTestDataFactory.CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 2));
 
-        var basedOnV1 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
-        var basedOnV2 = CreateOrchestrationInstance(existingOrchestrationDescriptionV2);
+        var basedOnV1 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var basedOnV2 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV2);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -333,18 +332,18 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     {
         // Arrange
         var name = Guid.NewGuid().ToString();
-        var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
-        var existingOrchestrationDescriptionV2 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 2));
+        var existingOrchestrationDescriptionV1 = DomainTestDataFactory.CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
+        var existingOrchestrationDescriptionV2 = DomainTestDataFactory.CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 2));
 
-        var isPendingV1 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isPendingV1 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
 
-        var isRunningV1 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isRunningV1 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
         isRunningV1.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isRunningV1.Lifecycle.TransitionToRunning(SystemClock.Instance);
 
-        var isPendingV2 = CreateOrchestrationInstance(existingOrchestrationDescriptionV2);
+        var isPendingV2 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV2);
 
-        var isRunningV2 = CreateOrchestrationInstance(existingOrchestrationDescriptionV2);
+        var isRunningV2 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV2);
         isRunningV2.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isRunningV2.Lifecycle.TransitionToRunning(SystemClock.Instance);
 
@@ -374,19 +373,19 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     {
         // Arrange
         var name = Guid.NewGuid().ToString();
-        var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
-        var existingOrchestrationDescriptionV2 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 2));
+        var existingOrchestrationDescriptionV1 = DomainTestDataFactory.CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
+        var existingOrchestrationDescriptionV2 = DomainTestDataFactory.CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 2));
 
-        var isPendingV1 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isPendingV1 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
 
-        var isTerminatedAsSucceededV1 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isTerminatedAsSucceededV1 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
         isTerminatedAsSucceededV1.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isTerminatedAsSucceededV1.Lifecycle.TransitionToRunning(SystemClock.Instance);
         isTerminatedAsSucceededV1.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
 
-        var isPendingV2 = CreateOrchestrationInstance(existingOrchestrationDescriptionV2);
+        var isPendingV2 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV2);
 
-        var isTerminatedAsFailedV2 = CreateOrchestrationInstance(existingOrchestrationDescriptionV2);
+        var isTerminatedAsFailedV2 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV2);
         isTerminatedAsFailedV2.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isTerminatedAsFailedV2.Lifecycle.TransitionToRunning(SystemClock.Instance);
         isTerminatedAsFailedV2.Lifecycle.TransitionToFailed(SystemClock.Instance);
@@ -423,15 +422,15 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             .Returns(startedAt01);
 
         var name = Guid.NewGuid().ToString();
-        var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
+        var existingOrchestrationDescriptionV1 = DomainTestDataFactory.CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
 
-        var isPending = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isPending = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
 
-        var isRunning01 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isRunning01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
         isRunning01.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isRunning01.Lifecycle.TransitionToRunning(startedAtClockMock01.Object);
 
-        var isRunning02 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isRunning02 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
         isRunning02.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isRunning02.Lifecycle.TransitionToRunning(SystemClock.Instance);
 
@@ -464,20 +463,20 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             .Returns(terminatedAt01);
 
         var name = Guid.NewGuid().ToString();
-        var existingOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
+        var existingOrchestrationDescriptionV1 = DomainTestDataFactory.CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(name, 1));
 
-        var isPending = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isPending = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
 
-        var isRunning = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isRunning = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
         isRunning.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isRunning.Lifecycle.TransitionToRunning(SystemClock.Instance);
 
-        var isTerminated01 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isTerminated01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
         isTerminated01.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isTerminated01.Lifecycle.TransitionToRunning(SystemClock.Instance);
         isTerminated01.Lifecycle.TransitionToSucceeded(terminatedAtClockMock01.Object);
 
-        var isTerminated02 = CreateOrchestrationInstance(existingOrchestrationDescriptionV1);
+        var isTerminated02 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescriptionV1);
         isTerminated02.Lifecycle.TransitionToQueued(SystemClock.Instance);
         isTerminated02.Lifecycle.TransitionToRunning(SystemClock.Instance);
         isTerminated02.Lifecycle.TransitionToFailed(SystemClock.Instance);
@@ -520,37 +519,37 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
 
         // => Orchestration description 01
         var uniqueName01 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var existingOrchestrationDescription01 = CreateOrchestrationDescription(uniqueName01);
+        var existingOrchestrationDescription01 = DomainTestDataFactory.CreateOrchestrationDescription(uniqueName01);
 
-        var isPendingBasedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
+        var isPendingBasedOn01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription01);
 
-        var isQueuedNowBasedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
+        var isQueuedNowBasedOn01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription01);
         isQueuedNowBasedOn01.Lifecycle.TransitionToQueued(SystemClock.Instance);
 
-        var isQueuedTomorrowBasedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
+        var isQueuedTomorrowBasedOn01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription01);
         isQueuedTomorrowBasedOn01.Lifecycle.TransitionToQueued(tomorrowClockMock.Object);
 
-        var isQueuedDayAfterTomorrowBasedOn01 = CreateOrchestrationInstance(existingOrchestrationDescription01);
+        var isQueuedDayAfterTomorrowBasedOn01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription01);
         isQueuedDayAfterTomorrowBasedOn01.Lifecycle.TransitionToQueued(dayAfterTomorrowClockMock.Object);
 
         // => Orchestration description 02
         var uniqueName02 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var existingOrchestrationDescription02 = CreateOrchestrationDescription(uniqueName02);
+        var existingOrchestrationDescription02 = DomainTestDataFactory.CreateOrchestrationDescription(uniqueName02);
 
-        var isScheduledToRunNowBasedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02, runAt: now);
+        var isScheduledToRunNowBasedOn02 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription02, runAt: now);
 
-        var isScheduledToRunTomorrowBasedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02, runAt: tomorrow);
+        var isScheduledToRunTomorrowBasedOn02 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription02, runAt: tomorrow);
 
-        var isScheduledToRunDayAfterTomorrowBasedOn02 = CreateOrchestrationInstance(existingOrchestrationDescription02, runAt: dayAfterTomorrow);
+        var isScheduledToRunDayAfterTomorrowBasedOn02 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription02, runAt: dayAfterTomorrow);
 
         // => Orchestration description 03
         var uniqueName03 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var existingOrchestrationDescription03 = CreateOrchestrationDescription(uniqueName03);
+        var existingOrchestrationDescription03 = DomainTestDataFactory.CreateOrchestrationDescription(uniqueName03);
 
-        var isQueuedNowBasedOn03 = CreateOrchestrationInstance(existingOrchestrationDescription03);
+        var isQueuedNowBasedOn03 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription03);
         isQueuedNowBasedOn03.Lifecycle.TransitionToQueued(SystemClock.Instance);
 
-        var isQueuedTomorrowBasedOn03 = CreateOrchestrationInstance(existingOrchestrationDescription03);
+        var isQueuedTomorrowBasedOn03 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(existingOrchestrationDescription03);
         isQueuedTomorrowBasedOn03.Lifecycle.TransitionToQueued(tomorrowClockMock.Object);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
@@ -597,20 +596,20 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         nowClockMock.Setup(m => m.GetCurrentInstant())
             .Returns(now);
 
-        var actor = DomainTestDataFactory.EnergySupplier.ActorIdentity.Actor;
-        var otherActor = DomainTestDataFactory.BalanceResponsibleParty.ActorIdentity.Actor;
+        var actorIdentity = DomainTestDataFactory.EnergySupplier.ActorIdentity;
+        var otherActorIdentity = DomainTestDataFactory.BalanceResponsibleParty.ActorIdentity;
 
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var existingOrchestrationDescription = CreateOrchestrationDescription(uniqueName);
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(uniqueName);
 
-        var expectedOrchestrationInstance = CreateOrchestrationInstance(
+        var expectedOrchestrationInstance = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActor: actor);
+            createdByActorIdentity: actorIdentity);
         expectedOrchestrationInstance.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
-        var orchestrationInstanceCreatedByOtherActor = CreateOrchestrationInstance(
+        var orchestrationInstanceCreatedByOtherActor = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActor: otherActor);
+            createdByActorIdentity: otherActorIdentity);
         orchestrationInstanceCreatedByOtherActor.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
@@ -627,8 +626,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             orchestrationDescriptionNames: [uniqueName.Name],
             activatedAtOrLater: now,
             activatedAtOrEarlier: now,
-            createdByActorNumber: actor.Number,
-            createdByActorRole: actor.Role);
+            createdByActorNumber: actorIdentity.Actor.Number,
+            createdByActorRole: actorIdentity.Actor.Role);
 
         // Assert
         actual.Should()
@@ -650,18 +649,18 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
             .Returns(now);
 
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var existingOrchestrationDescription = CreateOrchestrationDescription(uniqueName);
+        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(uniqueName);
 
-        var actor1 = DomainTestDataFactory.EnergySupplier.ActorIdentity.Actor;
-        var orchestrationInstanceByActor1 = CreateOrchestrationInstance(
+        var actorIdentity1 = DomainTestDataFactory.EnergySupplier.ActorIdentity;
+        var orchestrationInstanceByActor1 = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActor: actor1);
+            createdByActorIdentity: actorIdentity1);
         orchestrationInstanceByActor1.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
-        var actor2 = DomainTestDataFactory.BalanceResponsibleParty.ActorIdentity.Actor;
-        var orchestrationInstanceByActor2 = CreateOrchestrationInstance(
+        var actorIdentity2 = DomainTestDataFactory.BalanceResponsibleParty.ActorIdentity;
+        var orchestrationInstanceByActor2 = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
-            createdByActor: actor2);
+            createdByActorIdentity: actorIdentity2);
         orchestrationInstanceByActor2.Lifecycle.TransitionToQueued(nowClockMock.Object);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
@@ -687,62 +686,5 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
                 (uniqueName01: uniqueName, orchestrationInstanceByActor1),
                 (uniqueName01: uniqueName, orchestrationInstanceByActor2),
             ]);
-    }
-
-    private OrchestrationDescription CreateOrchestrationDescription(OrchestrationDescriptionUniqueName? uniqueName = default)
-    {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: uniqueName ?? new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
-            canBeScheduled: true,
-            functionName: "TestOrchestrationFunction");
-
-        orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
-
-        orchestrationDescription.AppendStepDescription("Test step 1");
-        orchestrationDescription.AppendStepDescription("Test step 2");
-        orchestrationDescription.AppendStepDescription("Test step 3");
-
-        orchestrationDescription.IsUnderDevelopment = true;
-
-        return orchestrationDescription;
-    }
-
-    private OrchestrationInstance CreateOrchestrationInstance(
-        OrchestrationDescription orchestrationDescription,
-        Instant? runAt = null,
-        IdempotencyKey? idempotencyKey = null,
-        Actor? createdByActor = null)
-    {
-        var userIdentity = createdByActor == null
-            ? DomainTestDataFactory.EnergySupplier.UserIdentity
-            : new UserIdentity(
-                new UserId(Guid.NewGuid()),
-                createdByActor);
-
-        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-            userIdentity,
-            orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance,
-            runAt: runAt,
-            idempotencyKey: idempotencyKey,
-            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
-            transactionId: new TransactionId(Guid.NewGuid().ToString()),
-            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
-
-        orchestrationInstance.ParameterValue.SetFromInstance(new TestOrchestrationParameter
-        {
-            TestString = "Test string",
-            TestInt = 42,
-        });
-
-        return orchestrationInstance;
-    }
-
-    private class TestOrchestrationParameter
-    {
-        public string? TestString { get; set; }
-
-        public int? TestInt { get; set; }
     }
 }

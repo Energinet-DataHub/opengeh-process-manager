@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using NodaTime;
 using NodaTime.Extensions;
+using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
@@ -76,11 +77,6 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
         var endDate = endDateResult.Value;
         var errors = new List<ValidationError>();
 
-        var period = Period.Between(
-            startDate.ToDateTimeUtc().ToLocalDateTime(),
-            endDate.ToDateTimeUtc().ToLocalDateTime(),
-            PeriodUnits.Months | PeriodUnits.Days);
-
         // In case there is a residual,
         // the expected count will be a decimal number and as such will never be equal to the actual count
         var expectedPositionCount = subject.Input.Resolution switch
@@ -88,7 +84,7 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
             var pt15m when pt15m == Resolution.QuarterHourly.Name => (endDate - startDate).TotalMinutes / 15d,
             var pt1h when pt1h == Resolution.Hourly.Name => (endDate - startDate).TotalHours,
             var p1d when p1d == Resolution.Daily.Name => (endDate - startDate).TotalDays,
-            var p1m when p1m == Resolution.Monthly.Name => period.Months + (period.Days / 100d),
+            var p1m when p1m == Resolution.Monthly.Name => ExpectedPositionCountForMonthly(startDate, endDate),
             _ => 0d,
         };
 
@@ -137,5 +133,31 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
         }
 
         return Task.FromResult<IList<ValidationError>>(errors);
+    }
+
+    private static double ExpectedPositionCountForMonthly(Instant startDate, Instant endDate)
+    {
+        var localStartDate = startDate.ToDateTimeUtc().ToLocalDateTime();
+        var localEndDate = endDate.ToDateTimeUtc().ToLocalDateTime();
+        var period = Period.Between(
+            localStartDate,
+            localEndDate,
+            PeriodUnits.Months | PeriodUnits.Days);
+
+        var startEndOfMonth = localStartDate.With(DateAdjusters.EndOfMonth);
+        var endEndOfMonth = localEndDate.With(DateAdjusters.EndOfMonth);
+
+        if (localStartDate == startEndOfMonth && localEndDate == endEndOfMonth)
+        {
+            // if the start and end date are both at the end of the month, we can just return the number of months
+            // To avoid cases like this:
+            // Start: "2025-02-28T23:00:00Z"
+            // End: "2025-03-31T23:00:00Z"
+            // From "2025-02-28T23:00:00Z" to "2025-03-28T23:00:00Z" is 1 month.
+            // From "2025-03-28T23:00:00Z" to "2025-03-31T22:00:00Z" is 2 days..
+            return period.Months;
+        }
+
+        return period.Months + (period.Days / 100d);
     }
 }

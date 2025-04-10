@@ -189,7 +189,9 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         var existingOrchestrationInstance = DomainTestDataFactory.CreateOrchestrationInstance(
             existingOrchestrationDescription,
             runAt: SystemClock.Instance.GetCurrentInstant());
-        existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(SystemClock.Instance, DomainTestDataFactory.EnergySupplier.UserIdentity);
+        existingOrchestrationInstance.Lifecycle.TransitionToUserCanceled(
+            SystemClock.Instance,
+            DomainTestDataFactory.EnergySupplier.UserIdentity);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {

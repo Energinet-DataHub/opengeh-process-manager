@@ -99,7 +99,7 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
     public async Task<(
         bool Success,
         OrchestrationInstanceTypedDto<TInputParameterDto>? OrchestrationInstance,
-        StepInstanceDto? StepInstance)> WaitForOrchestrationInstance<TInputParameterDto>(
+        StepInstanceDto? StepInstance)> WaitForOrchestrationInstanceAsync<TInputParameterDto>(
             string idempotencyKey,
             OrchestrationInstanceLifecycleState? orchestrationInstanceState = null,
             int? stepSequence = null,

@@ -21,11 +21,11 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Application.Orchestration;
 
@@ -47,7 +47,7 @@ public class IStartOrchestrationInstanceCommandsTests :
     {
         _fixture = fixture;
 
-        _actorIdentity = DomainTestDataFactory.EnergySupplier.ActorIdentity;
+        _actorIdentity = EnergySupplier.ActorIdentity;
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 
@@ -71,7 +71,7 @@ public class IStartOrchestrationInstanceCommandsTests :
     public async Task
         Given_DurableFunctionWithoutInput_When_StartNewOrchestrationInstanceAsync_Then_ExecutorInvoked()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var orchestrationDescription = CreateOrchestrationDescription();
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
@@ -92,7 +92,7 @@ public class IStartOrchestrationInstanceCommandsTests :
     public async Task
         Given_NonDurableFunctionWithoutInput_When_StartNewOrchestrationInstanceAsync_Then_ExecutorIsNotInvoked()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(isDurableFunction: false);
+        var orchestrationDescription = CreateOrchestrationDescription(isDurableFunction: false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
@@ -108,13 +108,13 @@ public class IStartOrchestrationInstanceCommandsTests :
     public async Task
         Given_DurableFunctionWithInput_When_StartNewOrchestrationInstanceAsync_Then_ExecutorInvoked()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var orchestrationDescription = CreateOrchestrationDescription();
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new DomainTestDataFactory.OrchestrationParameter("inputString"),
+            new OrchestrationParameter("inputString"),
             []);
 
         orchestrationInstanceId.Value.Should().NotBeEmpty();
@@ -133,13 +133,13 @@ public class IStartOrchestrationInstanceCommandsTests :
     public async Task
         Given_NonDurableFunctionWithInput_When_StartNewOrchestrationInstanceAsync_Then_ExecutorIsNotInvoked()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(isDurableFunction: false);
+        var orchestrationDescription = CreateOrchestrationDescription(isDurableFunction: false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new DomainTestDataFactory.OrchestrationParameter("inputString"),
+            new OrchestrationParameter("inputString"),
             []);
 
         orchestrationInstanceId.Value.Should().NotBeEmpty();

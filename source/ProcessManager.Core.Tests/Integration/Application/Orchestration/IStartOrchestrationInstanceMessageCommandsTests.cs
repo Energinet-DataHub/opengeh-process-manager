@@ -21,11 +21,11 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Application.Orchestration;
 
@@ -47,7 +47,7 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
     {
         _fixture = fixture;
 
-        _actorIdentity = DomainTestDataFactory.EnergySupplier.ActorIdentity;
+        _actorIdentity = EnergySupplier.ActorIdentity;
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 
@@ -71,13 +71,13 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
     public async Task
         Given_MeteringPointId_When_StartNewOrchestrationInstanceAsync_Then_OrchestrationInstanceContainsMeteringPointId()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var orchestrationDescription = CreateOrchestrationDescription();
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new DomainTestDataFactory.OrchestrationParameter("inputString"),
+            new OrchestrationParameter("inputString"),
             [],
             new IdempotencyKey(Guid.NewGuid().ToString()),
             new ActorMessageId("actorMessageId"),
@@ -101,13 +101,13 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
     public async Task
         Given_NoMeteringPointId_When_StartNewOrchestrationInstanceAsync_Then_OrchestrationInstanceContainsNoMeteringPointId()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var orchestrationDescription = CreateOrchestrationDescription();
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new DomainTestDataFactory.OrchestrationParameter("inputString"),
+            new OrchestrationParameter("inputString"),
             [],
             new IdempotencyKey(Guid.NewGuid().ToString()),
             new ActorMessageId("actorMessageId"),
@@ -131,13 +131,13 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
     public async Task
         Given_NonDurableFunctionDescription_When_StartNewOrchestrationInstanceAsync_Then_ExecutorIsNotInvoked()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(isDurableFunction: false);
+        var orchestrationDescription = CreateOrchestrationDescription(isDurableFunction: false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new DomainTestDataFactory.OrchestrationParameter("inputString"),
+            new OrchestrationParameter("inputString"),
             [],
             new IdempotencyKey(Guid.NewGuid().ToString()),
             new ActorMessageId("actorMessageId"),

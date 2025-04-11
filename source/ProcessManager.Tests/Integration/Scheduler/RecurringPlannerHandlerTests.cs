@@ -17,10 +17,10 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
 using Energinet.DataHub.ProcessManager.Scheduler;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using Microsoft.Extensions.Logging;
 using Moq;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Tests.Integration.Scheduler;
 
@@ -63,7 +63,7 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
     {
         // Arrange
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(
+        var orchestrationDescription = CreateOrchestrationDescription(
             uniqueName,
             recurringCronExpression: "0 12,17 * * *");
 
@@ -95,15 +95,15 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
     {
         // Arrange
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(
+        var orchestrationDescription = CreateOrchestrationDescription(
             uniqueName,
             recurringCronExpression: "0 12,17 * * *");
 
-        var scheduledToRun01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledToRun01 = CreateUserInitiatedOrchestrationInstance(
             orchestrationDescription,
             runAt: _fixture.DkFirstOfDecember2024At1200.ToInstant());
 
-        var scheduledToRun02 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledToRun02 = CreateUserInitiatedOrchestrationInstance(
             orchestrationDescription,
             runAt: _fixture.DkFirstOfDecember2024At1700.ToInstant());
 
@@ -127,11 +127,11 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
     {
         // Arrange
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(
+        var orchestrationDescription = CreateOrchestrationDescription(
             uniqueName,
             recurringCronExpression: "0 12,17 * * *");
 
-        var scheduledToRun01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledToRun01 = CreateUserInitiatedOrchestrationInstance(
             orchestrationDescription,
             runAt: _fixture.DkFirstOfDecember2024At1200.ToInstant());
 

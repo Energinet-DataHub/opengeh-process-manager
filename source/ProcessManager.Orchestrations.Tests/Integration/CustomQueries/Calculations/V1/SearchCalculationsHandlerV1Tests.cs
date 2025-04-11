@@ -22,10 +22,10 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries
 using Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using NodaTime;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.CustomQueries.Calculations.V1;
@@ -1019,7 +1019,7 @@ public class SearchCalculationsHandlerV1Tests :
             Instant isTerminatedAsSucceededAt = default)
     {
         var orchestrationDescription = builder.Build();
-        var orchestrationInstances = DomainTestDataFactory.CreateLifecycleDataset(
+        var orchestrationInstances = CreateLifecycleDataset(
             orchestrationDescription,
             isRunningStartedAt,
             isTerminatedAsSucceededAt);
@@ -1054,7 +1054,7 @@ public class SearchCalculationsHandlerV1Tests :
             canBeScheduled: true,
             functionName: "TestOrchestrationFunction");
 
-        var johnDoe = DomainTestDataFactory.CreateLifecycleDataset(johnDoeV1Description);
+        var johnDoe = CreateLifecycleDataset(johnDoeV1Description);
 
         var isTerminatedAsUserCancelled = OrchestrationInstance.CreateFromDescription(
             identity: _userIdentity.MapToDomain(),

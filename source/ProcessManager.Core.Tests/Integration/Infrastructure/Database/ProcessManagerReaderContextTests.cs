@@ -15,10 +15,10 @@
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Database;
 
@@ -35,7 +35,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     public async Task Given_OrchestrationDescriptionAddedToDbContext_When_SaveChangesAsync_Then_ThrowsExpectedException()
     {
         // Arrange
-        var newOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var newOrchestrationDescription = CreateOrchestrationDescription();
 
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
         readerContext.OrchestrationDescriptions.Add(newOrchestrationDescription);
@@ -51,7 +51,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     public async Task Given_OrchestrationDescriptionAddedToDbContext_When_SaveChangesAsyncWithAcceptAllChangesOnSuccess_Then_ThrowsExpectedException()
     {
         // Arrange
-        var newOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var newOrchestrationDescription = CreateOrchestrationDescription();
 
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
         readerContext.OrchestrationDescriptions.Add(newOrchestrationDescription);
@@ -67,7 +67,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     public async Task Given_OrchestrationDescriptionAddedToDbContext_When_SaveChanges_Then_ThrowsExpectedException()
     {
         // Arrange
-        var newOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var newOrchestrationDescription = CreateOrchestrationDescription();
 
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
         readerContext.OrchestrationDescriptions.Add(newOrchestrationDescription);
@@ -83,7 +83,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     public async Task Given_OrchestrationDescriptionAddedToDbContext_When_SaveChangesWithAcceptAllChangesOnSuccess_Then_ThrowsExpectedException()
     {
         // Arrange
-        var newOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var newOrchestrationDescription = CreateOrchestrationDescription();
 
         await using var readerContext = _fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
         readerContext.OrchestrationDescriptions.Add(newOrchestrationDescription);
@@ -99,7 +99,7 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     public async Task Given_OrchestrationDescriptionExistsInDatabase_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
-        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -122,8 +122,8 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     public async Task Given_OrchestrationInstanceExistsInDatabase_When_RetrievingFromDatabase_Then_HasCorrectValues()
     {
         // Arrange
-        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateActorInitiatedOrchestrationInstance(existingOrchestrationDescription);
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateActorInitiatedOrchestrationInstance(existingOrchestrationDescription);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -151,8 +151,8 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     {
         // Arrange
         var expectedTestInt = 54;
-        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             testInt: expectedTestInt);
 
@@ -318,8 +318,8 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     {
         // Arrange
         var expectedTestInt = 55;
-        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             testInt: expectedTestInt);
 
@@ -383,8 +383,8 @@ public class ProcessManagerReaderContextTests : IClassFixture<ProcessManagerCore
     {
         // Arrange
         var expectedTestInt = 56;
-        var existingOrchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var existingOrchestrationInstance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var existingOrchestrationDescription = CreateOrchestrationDescription();
+        var existingOrchestrationInstance = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
             testInt: expectedTestInt);
 

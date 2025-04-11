@@ -17,10 +17,10 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using NodaTime;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Tests.Unit.Api.Mappers;
 
@@ -30,8 +30,8 @@ public class OrchestrationInstanceMapperExtensionsTests
     {
         return new List<object[]>
         {
-            new object[] { DomainTestDataFactory.BalanceResponsibleParty.ActorIdentity, typeof(ActorIdentityDto) },
-            new object[] { DomainTestDataFactory.BalanceResponsibleParty.UserIdentity, typeof(UserIdentityDto) },
+            new object[] { BalanceResponsibleParty.ActorIdentity, typeof(ActorIdentityDto) },
+            new object[] { BalanceResponsibleParty.UserIdentity, typeof(UserIdentityDto) },
         };
     }
 
@@ -97,10 +97,10 @@ public class OrchestrationInstanceMapperExtensionsTests
         OperatingIdentity? createdBy = default,
         IdempotencyKey? idempotencyKey = default)
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var orchestrationDescription = CreateOrchestrationDescription();
 
         var operatingIdentity = createdBy
-            ?? DomainTestDataFactory.EnergySupplier.UserIdentity;
+            ?? EnergySupplier.UserIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,

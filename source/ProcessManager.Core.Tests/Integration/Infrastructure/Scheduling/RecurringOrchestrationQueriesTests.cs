@@ -16,10 +16,10 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using NodaTime;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Scheduling;
 
@@ -51,14 +51,14 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
     {
         // Arrange
         var enabledName = Guid.NewGuid().ToString();
-        var enabledOrchestrationDescriptionV1 = DomainTestDataFactory.CreateOrchestrationDescription(
+        var enabledOrchestrationDescriptionV1 = CreateOrchestrationDescription(
             new OrchestrationDescriptionUniqueName(enabledName, 1));
-        var enabledOrchestrationDescriptionV2 = DomainTestDataFactory.CreateOrchestrationDescription(
+        var enabledOrchestrationDescriptionV2 = CreateOrchestrationDescription(
             new OrchestrationDescriptionUniqueName(enabledName, 2),
             recurringCronExpression: "0 0 * * *");
 
         var disabledName = Guid.NewGuid().ToString();
-        var disabledOrchestrationDescriptionV1 = DomainTestDataFactory.CreateOrchestrationDescription(
+        var disabledOrchestrationDescriptionV1 = CreateOrchestrationDescription(
             new OrchestrationDescriptionUniqueName(disabledName, 1),
             recurringCronExpression: "0 0 * * *",
             isEnabled: false);
@@ -87,37 +87,37 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
         var currentInstant = SystemClock.Instance.GetCurrentInstant();
 
         var uniqueName1 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
-        var existingOrchestrationDescription01 = DomainTestDataFactory.CreateOrchestrationDescription(uniqueName1);
+        var existingOrchestrationDescription01 = CreateOrchestrationDescription(uniqueName1);
 
-        var scheduledToRunIn09 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledToRunIn09 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(09));
-        var scheduledToRunIn10 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledToRunIn10 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(10));
-        var scheduledToRunIn20_01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledToRunIn20_01 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(20));
-        var scheduledToRunIn30 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledToRunIn30 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(30));
-        var scheduledToRunIn31 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledToRunIn31 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(31));
-        var scheduledIntoTheFarFuture = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledIntoTheFarFuture = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusDays(5));
 
-        var scheduledToRunIn10ButUserCanceled = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledToRunIn10ButUserCanceled = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(10));
         scheduledToRunIn10ButUserCanceled.Lifecycle.TransitionToUserCanceled(
             SystemClock.Instance,
-            DomainTestDataFactory.EnergySupplier.UserIdentity);
+            EnergySupplier.UserIdentity);
 
-        var existingOrchestrationDescription02 = DomainTestDataFactory.CreateOrchestrationDescription(
+        var existingOrchestrationDescription02 = CreateOrchestrationDescription(
             new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1));
-        var scheduledToRunIn20_02 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
+        var scheduledToRunIn20_02 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription02,
             runAt: currentInstant.PlusMinutes(20));
 

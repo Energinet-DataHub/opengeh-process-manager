@@ -20,12 +20,12 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NodaTime;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Application.Orchestration;
 
@@ -48,7 +48,7 @@ public class INotifyOrchestrationInstanceCommandsTests :
     {
         _fixture = fixture;
 
-        _actorIdentity = DomainTestDataFactory.EnergySupplier.ActorIdentity;
+        _actorIdentity = EnergySupplier.ActorIdentity;
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 
@@ -75,7 +75,7 @@ public class INotifyOrchestrationInstanceCommandsTests :
         var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
             new OrchestrationInstanceId(Guid.NewGuid()),
             "anyEvent",
-            new DomainTestDataFactory.OrchestrationParameter("inputString"));
+            new OrchestrationParameter("inputString"));
 
         await act.Should()
             .ThrowAsync<InvalidOperationException>()
@@ -88,7 +88,7 @@ public class INotifyOrchestrationInstanceCommandsTests :
     [Fact]
     public async Task Given_NonDurableFunctionInstance_When_NotifyOrchestrationInstanceAsync_Then_NothingHappens()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(isDurableFunction: false);
+        var orchestrationDescription = CreateOrchestrationDescription(isDurableFunction: false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
@@ -103,7 +103,7 @@ public class INotifyOrchestrationInstanceCommandsTests :
         var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
             orchestrationInstance.Id,
             "anyEvent",
-            new DomainTestDataFactory.OrchestrationParameter("inputString"));
+            new OrchestrationParameter("inputString"));
 
         await act.Should().NotThrowAsync();
 
@@ -114,7 +114,7 @@ public class INotifyOrchestrationInstanceCommandsTests :
     [Fact]
     public async Task Given_DurableFunctionInstance_When_NotifyOrchestrationInstanceAsync_Then_ExecutorIsInvoked()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
+        var orchestrationDescription = CreateOrchestrationDescription();
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
@@ -129,7 +129,7 @@ public class INotifyOrchestrationInstanceCommandsTests :
         var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
             orchestrationInstance.Id,
             "anyEvent",
-            new DomainTestDataFactory.OrchestrationParameter("inputString"));
+            new OrchestrationParameter("inputString"));
 
         await act.Should().NotThrowAsync();
 
@@ -137,7 +137,7 @@ public class INotifyOrchestrationInstanceCommandsTests :
             x => x.NotifyOrchestrationInstanceAsync(
                 orchestrationInstance.Id,
                 "anyEvent",
-                It.Is<DomainTestDataFactory.OrchestrationParameter>(p => p.TestString == "inputString")),
+                It.Is<OrchestrationParameter>(p => p.TestString == "inputString")),
             Times.Once);
 
         _executorMock.VerifyNoOtherCalls();

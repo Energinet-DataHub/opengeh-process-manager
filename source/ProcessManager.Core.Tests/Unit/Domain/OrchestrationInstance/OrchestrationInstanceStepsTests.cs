@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Domain.OrchestrationInstance;
 
@@ -22,8 +22,8 @@ public class OrchestrationInstanceStepsTests
     [Fact]
     public void ExistingStepSequence_WhenGetStep_StepWithSequenceIsReturned()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var instance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(orchestrationDescription);
+        var orchestrationDescription = CreateOrchestrationDescription();
+        var instance = CreateUserInitiatedOrchestrationInstance(orchestrationDescription);
         const int stepSequence = 1;
 
         // Act
@@ -35,8 +35,8 @@ public class OrchestrationInstanceStepsTests
     [Fact]
     public void ExistingStepSequence_WhenTryGetStep_StepWithSequenceIsReturned()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var instance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(orchestrationDescription);
+        var orchestrationDescription = CreateOrchestrationDescription();
+        var instance = CreateUserInitiatedOrchestrationInstance(orchestrationDescription);
         const int stepSequence = 1;
 
         // Act
@@ -50,8 +50,8 @@ public class OrchestrationInstanceStepsTests
     [Fact]
     public void UnknownStepSequence_WhenTryGetStep_ReturnsNoStep()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var instance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(orchestrationDescription);
+        var orchestrationDescription = CreateOrchestrationDescription();
+        var instance = CreateUserInitiatedOrchestrationInstance(orchestrationDescription);
         const int stepSequence = -1;
 
         // Act
@@ -64,8 +64,8 @@ public class OrchestrationInstanceStepsTests
     [Fact]
     public void UnknownStepSequence_WhenGetStep_ThrowsArgumentOfOfRangeException()
     {
-        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
-        var instance = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(orchestrationDescription);
+        var orchestrationDescription = CreateOrchestrationDescription();
+        var instance = CreateUserInitiatedOrchestrationInstance(orchestrationDescription);
         const int stepSequence = -1;
 
         // Act

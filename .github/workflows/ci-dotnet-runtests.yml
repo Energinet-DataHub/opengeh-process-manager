@@ -62,12 +62,66 @@ jobs:
           $matrixBuilds = @()
 
           foreach ($project in $affectedProjects) {
-            if ($project.Name -like '*Tests*' -and $project.Name -notlike '*.SubsystemTests') {
+            if ($project.Name -like '*.SubsystemTests') {
+              # Skip
+            }
+            else if ($project.Name -like '*ProcessManager.Orchestrations.Tests') {
+              # All tests not in a bucket + those in the 'Default' bucket
+              $matrixBuilds += [PSCustomObject]@{
+                name              = $project.Name
+                filepath          = $project.FilePath
+                assembly_name     = "Energinet.DataHub.$($project.Name).dll"
+                dotnet_version    = "${{ inputs.dotnet_version }}"
+                filter_expression = WorkflowBucket!~Bucket)
+              }
+              # Bucket01
+              $matrixBuilds += [PSCustomObject]@{
+                name              = $project.Name
+                filepath          = $project.FilePath
+                assembly_name     = "Energinet.DataHub.$($project.Name).dll"
+                dotnet_version    = "${{ inputs.dotnet_version }}"
+                filter_expression = WorkflowBucket=Bucket01
+              }
+              # Bucket02
+              $matrixBuilds += [PSCustomObject]@{
+                name              = $project.Name
+                filepath          = $project.FilePath
+                assembly_name     = "Energinet.DataHub.$($project.Name).dll"
+                dotnet_version    = "${{ inputs.dotnet_version }}"
+                filter_expression = WorkflowBucket=Bucket02
+              }
+              # Bucket03
+              $matrixBuilds += [PSCustomObject]@{
+                name              = $project.Name
+                filepath          = $project.FilePath
+                assembly_name     = "Energinet.DataHub.$($project.Name).dll"
+                dotnet_version    = "${{ inputs.dotnet_version }}"
+                filter_expression = WorkflowBucket=Bucket03
+              }
+              # Bucket04
+              $matrixBuilds += [PSCustomObject]@{
+                name              = $project.Name
+                filepath          = $project.FilePath
+                assembly_name     = "Energinet.DataHub.$($project.Name).dll"
+                dotnet_version    = "${{ inputs.dotnet_version }}"
+                filter_expression = WorkflowBucket=Bucket04
+              }
+              # Bucket05
+              $matrixBuilds += [PSCustomObject]@{
+                name              = $project.Name
+                filepath          = $project.FilePath
+                assembly_name     = "Energinet.DataHub.$($project.Name).dll"
+                dotnet_version    = "${{ inputs.dotnet_version }}"
+                filter_expression = WorkflowBucket=Bucket05
+              }
+            }
+            else if ($project.Name -like '*Tests*') {
               $matrixBuilds += [PSCustomObject]@{
                 name           = $project.Name
                 filepath       = $project.FilePath
                 assembly_name  = "Energinet.DataHub.$($project.Name).dll"
                 dotnet_version = "${{ inputs.dotnet_version }}"
+                filter_expression = empty # Means skip.
               }
             }
           }
@@ -108,7 +162,6 @@ jobs:
       azure_keyvault_url: ${{ vars.integration_test_azure_keyvault_url }}
       environment: AzureAuth
       run_integration_tests: true
-      tests_filter_expression: empty # Means skip.
       use_azure_functions_tools: true
       azure_functions_core_tools_version: 4.0.5455
       aspnetcore_test_contentroot_variable_name: empty
@@ -119,4 +172,5 @@ jobs:
       # Matrix parameters
       testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ needs.build_matrix.outputs.pr_number }}
       testproject_name: ${{ matrix.project.name }}
-      tests_dll_file_path: \source\${{ matrix.project.name}}\bin\Release\${{matrix.project.dotnet_version}}\${{ matrix.project.assembly_name }}
+      tests_dll_file_path: \source\${{ matrix.project.name }}\bin\Release\${{ matrix.project.dotnet_version }}\${{ matrix.project.assembly_name }}
+      tests_filter_expression: ${{ matrix.project.filter_expression }}

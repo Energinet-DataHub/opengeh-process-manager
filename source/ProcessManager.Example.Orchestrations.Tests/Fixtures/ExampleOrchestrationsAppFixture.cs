@@ -18,6 +18,8 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
@@ -89,6 +91,15 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
     public IDurableClient? DurableClient { get; private set; }
 
     public ServiceBusListenerMock EnqueueBrs101ServiceBusListener { get; }
+
+    public ActorIdentityDto DefaultActorIdentity => new ActorIdentityDto(
+        ActorNumber.Create("1234567890123"),
+        ActorRole.EnergySupplier);
+
+    public UserIdentityDto DefaultUserIdentity => new UserIdentityDto(
+        Guid.NewGuid(),
+        DefaultActorIdentity.ActorNumber,
+        DefaultActorIdentity.ActorRole);
 
     private ProcessManagerDatabaseManager DatabaseManager { get; }
 

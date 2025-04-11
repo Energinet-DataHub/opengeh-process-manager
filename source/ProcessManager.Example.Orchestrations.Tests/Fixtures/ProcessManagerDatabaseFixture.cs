@@ -14,13 +14,13 @@
 
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 
 public class ProcessManagerDatabaseFixture : IAsyncLifetime
 {
     public ProcessManagerDatabaseFixture()
     {
-        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManager_Orchestrations");
+        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManager_Examples");
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }

@@ -52,18 +52,35 @@ jobs:
 
       - name: Build ${{ inputs.release_name }}
         run: |
+          dotnet build \
+            '${{ inputs.project_file }}' \
+            --configuration Release \
+            -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }}
+
+      - name: Build subsystem tests
+        if: ${{ inputs.release_name == 'process_manager_orchestrations' }}
+        run: |
+          dotnet build \
+            'source/ProcessManager.SubsystemTests/ProcessManager.SubsystemTests.csproj' \
+            --configuration Release \
+            -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }}
+
+      - name: Publish ${{ inputs.release_name }}
+        run: |
           dotnet publish \
             '${{ inputs.project_file }}' \
             --configuration Release \
+            --no-build \
             -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
             --output '${{ env.RELEASE_FOLDER_PATH }}/app/'
 
-      - name: Build subsystem tests
+      - name: Publish subsystem tests
         if: ${{ inputs.release_name == 'process_manager_orchestrations' }}
         run: |
           dotnet publish \
             'source/ProcessManager.SubsystemTests/ProcessManager.SubsystemTests.csproj' \
             --configuration Release \
+            --no-build \
             -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
             --output '${{ env.RELEASE_FOLDER_PATH }}/subsystemtests/'
 

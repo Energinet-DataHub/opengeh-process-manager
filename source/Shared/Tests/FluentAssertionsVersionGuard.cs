@@ -17,6 +17,7 @@ using Xunit;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests;
 
+// TODO: Remove this change, it was to trigger all test project and thereby test the workflow changes
 public class FluentAssertionsVersionGuard
 {
     /// <summary>

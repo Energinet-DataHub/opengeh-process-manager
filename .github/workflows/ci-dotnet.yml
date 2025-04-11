@@ -65,15 +65,6 @@ jobs:
             --configuration Release \
             -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }}
 
-      - name: Publish ${{ inputs.release_name }}
-        run: |
-          dotnet publish \
-            '${{ inputs.project_file }}' \
-            --configuration Release \
-            --no-build \
-            -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
-            --output '${{ env.RELEASE_FOLDER_PATH }}/app/'
-
       - name: Publish subsystem tests
         if: ${{ inputs.release_name == 'process_manager_orchestrations' }}
         run: |
@@ -83,6 +74,15 @@ jobs:
             --no-build \
             -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
             --output '${{ env.RELEASE_FOLDER_PATH }}/subsystemtests/'
+    
+      - name: Publish ${{ inputs.release_name }}
+        run: |
+          dotnet publish \
+            '${{ inputs.project_file }}' \
+            --configuration Release \
+            --no-build \
+            -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
+            --output '${{ env.RELEASE_FOLDER_PATH }}/app/'
 
       - name: Get release strings
         uses: Energinet-Datahub/.github/.github/actions/github-get-releaseversion-strings@v14

@@ -65,7 +65,7 @@ jobs:
             if ($project.Name -like '*.SubsystemTests') {
               # Skip
             }
-            else if ($project.Name -like '*ProcessManager.Orchestrations.Tests') {
+            elseif ($project.Name -like '*ProcessManager.Orchestrations.Tests') {
               # All tests not in a bucket + those in the 'Default' bucket
               $matrixBuilds += [PSCustomObject]@{
                 name              = $project.Name
@@ -115,7 +115,7 @@ jobs:
                 filter_expression = WorkflowBucket=Bucket05
               }
             }
-            else if ($project.Name -like '*Tests*') {
+            elseif ($project.Name -like '*Tests*') {
               $matrixBuilds += [PSCustomObject]@{
                 name           = $project.Name
                 filepath       = $project.FilePath

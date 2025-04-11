@@ -30,8 +30,8 @@ public class OrchestrationInstanceMapperExtensionsTests
     {
         return new List<object[]>
         {
-            new object[] { DomainTestDataFactory.BalanceResponsibleParty.ActorIdentity },
-            new object[] { DomainTestDataFactory.BalanceResponsibleParty.UserIdentity },
+            new object[] { DomainTestDataFactory.BalanceResponsibleParty.ActorIdentity, typeof(ActorIdentityDto) },
+            new object[] { DomainTestDataFactory.BalanceResponsibleParty.UserIdentity, typeof(UserIdentityDto) },
         };
     }
 
@@ -78,7 +78,9 @@ public class OrchestrationInstanceMapperExtensionsTests
 
     [Theory]
     [MemberData(nameof(GetOperatingIdentity))]
-    public void MapToDto_WhenOrchestrationInstanceWithOperatingIdentity_DeserializedToExpectedType(OperatingIdentity operatingIdentity, Type expectedType)
+    public void MapToDto_WhenOrchestrationInstanceWithOperatingIdentity_DeserializedToExpectedType(
+        OperatingIdentity operatingIdentity,
+        Type expectedType)
     {
         var orchestrationInstance = CreateOrchestrationInstance(operatingIdentity);
 

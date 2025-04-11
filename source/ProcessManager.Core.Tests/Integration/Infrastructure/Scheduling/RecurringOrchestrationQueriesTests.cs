@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using NodaTime;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Scheduling;
 
@@ -29,10 +28,6 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
     private readonly ProcessManagerCoreFixture _fixture;
     private readonly ProcessManagerContext _dbContext;
     private readonly RecurringOrchestrationQueries _sut;
-
-    private readonly UserIdentity _userIdentity = new UserIdentity(
-        new UserId(Guid.NewGuid()),
-        new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
     public RecurringOrchestrationQueriesTests(ProcessManagerCoreFixture fixture)
     {
@@ -56,7 +51,8 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
     {
         // Arrange
         var enabledName = Guid.NewGuid().ToString();
-        var enabledOrchestrationDescriptionV1 = CreateOrchestrationDescription(new OrchestrationDescriptionUniqueName(enabledName, 1));
+        var enabledOrchestrationDescriptionV1 = CreateOrchestrationDescription(
+            new OrchestrationDescriptionUniqueName(enabledName, 1));
         var enabledOrchestrationDescriptionV2 = CreateOrchestrationDescription(
             new OrchestrationDescriptionUniqueName(enabledName, 2),
             recurringCronExpression: "0 0 * * *");
@@ -93,35 +89,35 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
         var uniqueName1 = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var existingOrchestrationDescription01 = CreateOrchestrationDescription(uniqueName1);
 
-        var scheduledToRunIn09 = CreateOrchestrationInstance(
+        var scheduledToRunIn09 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(09));
-        var scheduledToRunIn10 = CreateOrchestrationInstance(
+        var scheduledToRunIn10 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(10));
-        var scheduledToRunIn20_01 = CreateOrchestrationInstance(
+        var scheduledToRunIn20_01 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(20));
-        var scheduledToRunIn30 = CreateOrchestrationInstance(
+        var scheduledToRunIn30 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(30));
-        var scheduledToRunIn31 = CreateOrchestrationInstance(
+        var scheduledToRunIn31 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(31));
-        var scheduledIntoTheFarFuture = CreateOrchestrationInstance(
+        var scheduledIntoTheFarFuture = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusDays(5));
 
-        var scheduledToRunIn10ButUserCanceled = CreateOrchestrationInstance(
+        var scheduledToRunIn10ButUserCanceled = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription01,
             runAt: currentInstant.PlusMinutes(10));
         scheduledToRunIn10ButUserCanceled.Lifecycle.TransitionToUserCanceled(
             SystemClock.Instance,
-            _userIdentity);
+            EnergySupplier.UserIdentity);
 
         var existingOrchestrationDescription02 = CreateOrchestrationDescription(
             new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1));
-        var scheduledToRunIn20_02 = CreateOrchestrationInstance(
+        var scheduledToRunIn20_02 = CreateUserInitiatedOrchestrationInstance(
             existingOrchestrationDescription02,
             runAt: currentInstant.PlusMinutes(20));
 
@@ -151,40 +147,5 @@ public class RecurringOrchestrationQueriesTests : IClassFixture<ProcessManagerCo
         // Assert
         actual.Should()
             .BeEquivalentTo(new[] { scheduledToRunIn10, scheduledToRunIn20_01, scheduledToRunIn30 });
-    }
-
-    private static OrchestrationDescription CreateOrchestrationDescription(
-        OrchestrationDescriptionUniqueName uniqueName,
-        string? recurringCronExpression = default,
-        bool isEnabled = true)
-    {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName,
-            canBeScheduled: true,
-            functionName: "TestOrchestrationFunction");
-
-        if (recurringCronExpression != null)
-            orchestrationDescription.RecurringCronExpression = recurringCronExpression;
-
-        orchestrationDescription.IsEnabled = isEnabled;
-
-        return orchestrationDescription;
-    }
-
-    private OrchestrationInstance CreateOrchestrationInstance(
-        OrchestrationDescription orchestrationDescription,
-        Instant? runAt = default)
-    {
-        var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-            _userIdentity,
-            orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance,
-            runAt: runAt,
-            actorMessageId: new ActorMessageId(Guid.NewGuid().ToString()),
-            transactionId: new TransactionId(Guid.NewGuid().ToString()),
-            meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
-
-        return orchestrationInstance;
     }
 }

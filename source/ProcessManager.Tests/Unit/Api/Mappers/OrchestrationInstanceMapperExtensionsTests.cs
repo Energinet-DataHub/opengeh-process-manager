@@ -15,13 +15,12 @@
 using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using NodaTime;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Tests.Unit.Api.Mappers;
 
@@ -31,8 +30,8 @@ public class OrchestrationInstanceMapperExtensionsTests
     {
         return new List<object[]>
         {
-            new object[] { new ActorIdentity(new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier)), typeof(ActorIdentityDto) },
-            new object[] { new UserIdentity(new UserId(Guid.NewGuid()), new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier)), typeof(UserIdentityDto) },
+            new object[] { BalanceResponsibleParty.ActorIdentity, typeof(ActorIdentityDto) },
+            new object[] { BalanceResponsibleParty.UserIdentity, typeof(UserIdentityDto) },
         };
     }
 
@@ -79,7 +78,9 @@ public class OrchestrationInstanceMapperExtensionsTests
 
     [Theory]
     [MemberData(nameof(GetOperatingIdentity))]
-    public void MapToDto_WhenOrchestrationInstanceWithOperatingIdentity_DeserializedToExpectedType(OperatingIdentity operatingIdentity, Type expectedType)
+    public void MapToDto_WhenOrchestrationInstanceWithOperatingIdentity_DeserializedToExpectedType(
+        OperatingIdentity operatingIdentity,
+        Type expectedType)
     {
         var orchestrationInstance = CreateOrchestrationInstance(operatingIdentity);
 
@@ -92,26 +93,17 @@ public class OrchestrationInstanceMapperExtensionsTests
         dto!.Lifecycle.CreatedBy.Should().BeOfType(expectedType);
     }
 
-    private static OrchestrationInstance CreateOrchestrationInstance(OperatingIdentity? createdBy = default, IdempotencyKey? idempotencyKey = default)
+    private static OrchestrationInstance CreateOrchestrationInstance(
+        OperatingIdentity? createdBy = default,
+        IdempotencyKey? idempotencyKey = default)
     {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName("name", 1),
-            canBeScheduled: false,
-            functionName: "functionName");
+        var orchestrationDescription = CreateOrchestrationDescription();
 
-        orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
-
-        orchestrationDescription.AppendStepDescription("Test step 1");
-        orchestrationDescription.AppendStepDescription("Test step 2");
-        orchestrationDescription.AppendStepDescription("Test step 3");
-
-        var userIdentity = createdBy
-            ?? new UserIdentity(
-                new UserId(Guid.NewGuid()),
-                new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+        var operatingIdentity = createdBy
+            ?? EnergySupplier.UserIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
-            userIdentity,
+            operatingIdentity,
             orchestrationDescription,
             skipStepsBySequence: [],
             clock: SystemClock.Instance,

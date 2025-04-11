@@ -14,7 +14,6 @@
 
 using DurableTask.Core.Exceptions;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
@@ -25,6 +24,7 @@ using FluentAssertions.Execution;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using Xunit.Abstractions;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
 
@@ -191,9 +191,7 @@ public class DurableOrchestrationInstanceExecutorTests : IAsyncLifetime
 
     private async Task<OrchestrationInstance> SeedDatabaseAsync(OrchestrationDescription brsX01NoInputDescription)
     {
-        var operatingIdentity = new UserIdentity(
-            new UserId(Guid.NewGuid()),
-            new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+        var operatingIdentity = EnergySupplier.UserIdentity;
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
             operatingIdentity,

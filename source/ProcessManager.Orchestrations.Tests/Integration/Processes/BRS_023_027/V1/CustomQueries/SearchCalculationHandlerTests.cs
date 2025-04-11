@@ -23,7 +23,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.Cust
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_023_027.V1.CustomQueries;
@@ -49,9 +48,7 @@ public class SearchCalculationHandlerTests : IClassFixture<ProcessManagerDatabas
 
     public async Task InitializeAsync()
     {
-        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
-        await dbContext.OrchestrationInstances.ExecuteDeleteAsync();
-        await dbContext.OrchestrationDescriptions.ExecuteDeleteAsync();
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
     }
 
     public async Task DisposeAsync()

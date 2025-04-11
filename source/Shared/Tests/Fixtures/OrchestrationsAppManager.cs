@@ -387,13 +387,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // => Databricks workspaces
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
-            IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
+            MockServer.Url!); // Default to use MockServer
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
-            IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl);
+            MockServer.Url!); // Default to use MockServer
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);

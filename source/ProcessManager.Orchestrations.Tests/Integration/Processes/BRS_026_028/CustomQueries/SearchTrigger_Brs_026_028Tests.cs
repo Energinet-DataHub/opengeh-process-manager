@@ -24,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -38,6 +39,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 /// Test collection that verifies the Process Manager clients can be used to
 /// perform a custom search for BRS 026 + 028 orchestration instances.
 /// </summary>
+[ParallelWorkflow(WorkflowBucket.Bucket02)]
 [Collection(nameof(OrchestrationsAppCollection))]
 public class SearchTrigger_Brs_026_028Tests : IAsyncLifetime
 {

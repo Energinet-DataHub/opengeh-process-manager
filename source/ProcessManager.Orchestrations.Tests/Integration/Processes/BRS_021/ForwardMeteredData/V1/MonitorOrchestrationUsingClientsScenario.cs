@@ -37,6 +37,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -76,6 +77,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 /// Test collection that verifies the Process Manager clients can be used to start a
 /// forward metered data flow
 /// </summary>
+[ParallelWorkflow(WorkflowBucket.Bucket03)]
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {

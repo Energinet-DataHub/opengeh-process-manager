@@ -23,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -38,6 +39,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 /// Test case where we verify the Process Manager clients can be used to start a
 /// calculation orchestration (with input parameter) and monitor its status during its lifetime.
 /// </summary>
+[ParallelWorkflow(WorkflowBucket.Bucket01)]
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {

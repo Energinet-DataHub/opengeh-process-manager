@@ -13,25 +13,25 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NodaTime;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Application.Orchestration;
 
-public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
+public class INotifyOrchestrationInstanceCommandsTests :
+    IClassFixture<ProcessManagerCoreFixture>,
+    IAsyncLifetime
 {
     private readonly ProcessManagerCoreFixture _fixture;
 
@@ -48,7 +48,7 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
     {
         _fixture = fixture;
 
-        _actorIdentity = new ActorIdentity(new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+        _actorIdentity = EnergySupplier.ActorIdentity;
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 
@@ -64,10 +64,7 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
 
     public async Task DisposeAsync()
     {
-        // Disabling OrchestrationDescriptions so tests doesn't interfere with each other
-        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
-        await dbContext.OrchestrationDescriptions.ForEachAsync(item => item.IsEnabled = false);
-        await dbContext.SaveChangesAsync();
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
 
         await _serviceProvider.DisposeAsync();
     }
@@ -78,7 +75,7 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
         var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
             new OrchestrationInstanceId(Guid.NewGuid()),
             "anyEvent",
-            new TestOrchestrationParameter("inputString"));
+            new OrchestrationParameter("inputString"));
 
         await act.Should()
             .ThrowAsync<InvalidOperationException>()
@@ -91,7 +88,7 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
     [Fact]
     public async Task Given_NonDurableFunctionInstance_When_NotifyOrchestrationInstanceAsync_Then_NothingHappens()
     {
-        var orchestrationDescription = CreateOrchestrationDescription(false);
+        var orchestrationDescription = CreateOrchestrationDescription(isDurableFunction: false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstance = OrchestrationInstance.CreateFromDescription(
@@ -106,7 +103,7 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
         var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
             orchestrationInstance.Id,
             "anyEvent",
-            new TestOrchestrationParameter("inputString"));
+            new OrchestrationParameter("inputString"));
 
         await act.Should().NotThrowAsync();
 
@@ -132,7 +129,7 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
         var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
             orchestrationInstance.Id,
             "anyEvent",
-            new TestOrchestrationParameter("inputString"));
+            new OrchestrationParameter("inputString"));
 
         await act.Should().NotThrowAsync();
 
@@ -140,7 +137,7 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
             x => x.NotifyOrchestrationInstanceAsync(
                 orchestrationInstance.Id,
                 "anyEvent",
-                It.Is<TestOrchestrationParameter>(p => p.InputString == "inputString")),
+                It.Is<OrchestrationParameter>(p => p.TestString == "inputString")),
             Times.Once);
 
         _executorMock.VerifyNoOtherCalls();
@@ -185,18 +182,4 @@ public class INotifyOrchestrationInstanceCommandsTests : IClassFixture<ProcessMa
 
         return services;
     }
-
-    private static OrchestrationDescription CreateOrchestrationDescription(bool isDurableFunction = true)
-    {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1),
-            canBeScheduled: true,
-            functionName: isDurableFunction ? "TestOrchestrationFunction" : string.Empty);
-
-        orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
-
-        return orchestrationDescription;
-    }
-
-    public sealed record TestOrchestrationParameter(string InputString);
 }

@@ -17,7 +17,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -36,9 +35,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
 
     public async Task InitializeAsync()
     {
-        await using var context = _fixture.DatabaseManager.CreateDbContext();
-        await context.Database.ExecuteSqlAsync($"DELETE FROM [pm].[StepDescription]");
-        await context.Database.ExecuteSqlAsync($"DELETE FROM [pm].[OrchestrationDescription]");
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
     }
 
     public async Task DisposeAsync()

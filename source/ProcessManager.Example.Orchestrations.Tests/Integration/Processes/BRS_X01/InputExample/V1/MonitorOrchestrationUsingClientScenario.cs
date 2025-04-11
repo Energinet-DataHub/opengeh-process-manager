@@ -20,8 +20,8 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -138,21 +138,6 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 CancellationToken.None);
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
-
-        // Step 4: Custom search
-        var customQuery = new InputExampleQuery(
-            _userIdentity,
-            skippedStepTwo: input.ShouldSkipSkippableStep);
-
-        var orchestrationInstancesCustomSearch = await processManagerClient
-            .SearchOrchestrationInstancesByCustomQueryAsync(
-                customQuery,
-                CancellationToken.None);
-
-        orchestrationInstancesCustomSearch.Should().Contain(x => x.OrchestrationInstance.Id == orchestrationInstanceId);
-
-        // TODO: Enable when custom filtering has been implemented correct
-        ////orchestrationInstancesCustomSearch.Count.Should().Be(1);
     }
 
     [Fact]

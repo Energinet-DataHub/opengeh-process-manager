@@ -5,6 +5,12 @@
     <RootNamespace>Energinet.DataHub.ProcessManager.SubsystemTests</RootNamespace>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!--
+     ErrorOnDuplicatePublishOutputFiles=false is needed since we're referincing multiple function app projects,
+     a host.json would be published for both projects which causes the publish to fail (duplicate files). We must
+      disable that for the subsystem tests publish.
+    -->
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <ItemGroup>

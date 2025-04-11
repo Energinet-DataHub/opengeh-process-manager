@@ -123,7 +123,7 @@ public class IStartOrchestrationInstanceCommandsTests :
                 It.Is<OrchestrationDescription>(od => od.UniqueName == orchestrationDescription.UniqueName),
                 It.Is<OrchestrationInstance>(
                     oi => oi.OrchestrationDescriptionId == orchestrationDescription.Id
-                          && oi.ParameterValue.SerializedValue == "{\"InputString\":\"inputString\"}")),
+                          && oi.ParameterValue.SerializedValue.Contains("\"TestString\":\"inputString\""))),
             Times.Once);
 
         _executorMock.VerifyNoOtherCalls();

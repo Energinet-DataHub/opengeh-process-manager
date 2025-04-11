@@ -71,13 +71,13 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
     public async Task
         Given_MeteringPointId_When_StartNewOrchestrationInstanceAsync_Then_OrchestrationInstanceContainsMeteringPointId()
     {
-        var orchestrationDescription = CreateOrchestrationDescription();
+        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new TestOrchestrationParameter("inputString"),
+            new DomainTestDataFactory.OrchestrationParameter("inputString"),
             [],
             new IdempotencyKey(Guid.NewGuid().ToString()),
             new ActorMessageId("actorMessageId"),
@@ -101,13 +101,13 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
     public async Task
         Given_NoMeteringPointId_When_StartNewOrchestrationInstanceAsync_Then_OrchestrationInstanceContainsNoMeteringPointId()
     {
-        var orchestrationDescription = CreateOrchestrationDescription();
+        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new TestOrchestrationParameter("inputString"),
+            new DomainTestDataFactory.OrchestrationParameter("inputString"),
             [],
             new IdempotencyKey(Guid.NewGuid().ToString()),
             new ActorMessageId("actorMessageId"),
@@ -131,13 +131,13 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
     public async Task
         Given_NonDurableFunctionDescription_When_StartNewOrchestrationInstanceAsync_Then_ExecutorIsNotInvoked()
     {
-        var orchestrationDescription = CreateOrchestrationDescription(false);
+        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(isDurableFunction: false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new TestOrchestrationParameter("inputString"),
+            new DomainTestDataFactory.OrchestrationParameter("inputString"),
             [],
             new IdempotencyKey(Guid.NewGuid().ToString()),
             new ActorMessageId("actorMessageId"),
@@ -186,18 +186,4 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
 
         return services;
     }
-
-    private static OrchestrationDescription CreateOrchestrationDescription(bool isDurableFunction = true)
-    {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1),
-            canBeScheduled: true,
-            functionName: isDurableFunction ? "TestOrchestrationFunction" : string.Empty);
-
-        orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
-
-        return orchestrationDescription;
-    }
-
-    public sealed record TestOrchestrationParameter(string InputString);
 }

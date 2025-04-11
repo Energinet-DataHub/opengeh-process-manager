@@ -16,19 +16,19 @@ using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.EntityFrameworkCore;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.CustomQueries.Examples.V1;
 
-internal class SearchCalculationsHandlerV1(
+internal class SearchExamplesHandlerV1(
     ProcessManagerReaderContext readerContext) :
-        ISearchOrchestrationInstancesQueryHandler<CalculationsQueryV1, ICalculationsQueryResultV1>
+        ISearchOrchestrationInstancesQueryHandler<ExamplesQueryV1, IExamplesQueryResultV1>
 {
     private readonly ProcessManagerReaderContext _readerContext = readerContext;
 
-    public async Task<IReadOnlyCollection<ICalculationsQueryResultV1>> HandleAsync(CalculationsQueryV1 query)
+    public async Task<IReadOnlyCollection<IExamplesQueryResultV1>> HandleAsync(ExamplesQueryV1 query)
     {
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         //
@@ -41,7 +41,7 @@ internal class SearchCalculationsHandlerV1(
         var results = await SearchAsync(query).ConfigureAwait(false);
 
         return results
-            .Select(item => CalculationsQueryResultMapperV1.MapToDto(item.UniqueName, item.Instance))
+            .Select(item => ExamplesQueryResultMapperV1.MapToDto(item.UniqueName, item.Instance))
             .ToList();
     }
 
@@ -54,7 +54,7 @@ internal class SearchCalculationsHandlerV1(
             OrchestrationDescriptionUniqueName UniqueName,
             OrchestrationInstance Instance)>>
         SearchAsync(
-            CalculationsQueryV1 query)
+            ExamplesQueryV1 query)
     {
         var orchestrationDescriptionNames = query.GetOrchestrationDescriptionNames();
         var uniqueNamesById = await GetUniqueNamesByIdDictionaryAsync(orchestrationDescriptionNames).ConfigureAwait(false);
@@ -73,7 +73,7 @@ internal class SearchCalculationsHandlerV1(
 
     private FormattableString BuildSql(
         IReadOnlyCollection<string> orchestrationDescriptionNames,
-        CalculationsQueryV1 query)
+        ExamplesQueryV1 query)
     {
         var lifecycleStates = query.LifecycleStates.MapToDomain();
         var terminationState = query.TerminationState.MapToDomain();
@@ -81,11 +81,6 @@ internal class SearchCalculationsHandlerV1(
         var scheduledAtOrLater = query.ScheduledAtOrLater.ToNullableInstant();
         var startedAtOrLater = query.StartedAtOrLater.ToNullableInstant();
         var terminatedAtOrEarlier = query.TerminatedAtOrEarlier.ToNullableInstant();
-
-        var wholesaleCalculationTypes = query
-            .CalculationTypes?
-                .Where(x => Enum.IsDefined(typeof(Abstractions.Processes.BRS_023_027.V1.Model.CalculationType), (int)x))
-                .ToList();
 
         return $"""
             SELECT
@@ -145,82 +140,13 @@ internal class SearchCalculationsHandlerV1(
                     OR {scheduledAtOrLater} <= [oi].[Lifecycle_ScheduledToRunAt]
                 )
                 AND (
-                    [oi].[OrchestrationDescriptionId] NOT IN (SELECT Id FROM [pm].OrchestrationDescription WHERE Name = 'Brs_023_027')
+                    [oi].[OrchestrationDescriptionId] NOT IN (SELECT Id FROM [pm].OrchestrationDescription WHERE Name = 'Brs_X01_InputExample')
                     OR (
-                        [oi].[OrchestrationDescriptionId] IN (SELECT Id FROM [pm].OrchestrationDescription WHERE Name = 'Brs_023_027')
+                        [oi].[OrchestrationDescriptionId] IN (SELECT Id FROM [pm].OrchestrationDescription WHERE Name = 'Brs_X01_InputExample')
                         AND (
-                            {query.IsInternalCalculation} is null
+                            {query.SkippedStepTwo} is null
                             OR (
-                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.IsInternalCalculation') AS bit) = {query.IsInternalCalculation}
-                            )
-                        )
-                        AND (
-                            {wholesaleCalculationTypes} is null
-                            OR (
-                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.CalculationType') AS int) IN (
-                                    SELECT [calculationtypes].[value]
-                                    FROM OPENJSON({wholesaleCalculationTypes}) WITH ([value] int '$') AS [calculationtypes]
-                                )
-                            )
-                        )
-                        AND (
-                            {query.GridAreaCodes} is null
-                            OR (
-                                EXISTS (
-            						SELECT
-            							value
-            						FROM
-            							OPENJSON(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null), '$.GridAreaCodes')
-            						WHERE
-            							value IN (
-            								SELECT
-            									[gridareacodes].[value]
-            								FROM OPENJSON({query.GridAreaCodes}) WITH ([value] int '$') AS [gridareacodes]
-            							)
-                                )
-                            )
-                        )
-                        -- *******************************************************************************************************************************************************
-                        -- This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
-                        -- where a = query and b = calculationInput.
-                        -- See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
-                        AND (
-                            {query.PeriodStartDate} is null
-                            OR (
-                                {query.PeriodStartDate} < CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.PeriodEndDate') AS datetime2(7))
-                            )
-                        )
-                        AND (
-                            {query.PeriodEndDate} is null
-                            OR (
-                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.PeriodStartDate') AS datetime2(7)) < {query.PeriodEndDate}
-                            )
-                        )
-                        -- *******************************************************************************************************************************************************
-                    )
-                )
-                AND (
-                    [oi].[OrchestrationDescriptionId] NOT IN (SELECT Id FROM [pm].OrchestrationDescription WHERE Name = 'Brs_021_CapacitySettlementCalculation')
-                    OR (
-                        [oi].[OrchestrationDescriptionId] IN (SELECT Id FROM [pm].OrchestrationDescription WHERE Name = 'Brs_021_CapacitySettlementCalculation')
-                        AND (
-                            {query.PeriodStartDate} is null
-                            OR (
-                                YEAR({query.PeriodStartDate}) < CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Year') AS int)
-                            )
-                            OR (
-                                YEAR({query.PeriodStartDate}) = CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Year') AS int)
-                                AND MONTH({query.PeriodStartDate}) <= CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Month') AS int)
-                            )
-                        )
-                        AND (
-                            {query.PeriodEndDate} is null
-                            OR (
-                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Year') AS int) < YEAR({query.PeriodEndDate})
-                            )
-                            OR (
-                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Year') AS int) = YEAR({query.PeriodEndDate})
-                                AND CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.Month') AS int) <= MONTH({query.PeriodEndDate})
+                                CAST(JSON_VALUE(IIF(ISJSON([oi].[ParameterValue]) = 1, [oi].[ParameterValue], null),'$.ShouldSkipSkippableStep') AS bit) = {query.SkippedStepTwo}
                             )
                         )
                     )

@@ -15,6 +15,7 @@
 using System.Reflection;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -74,12 +75,12 @@ public class ProcessManagerExtensionsTests
     {
         // Arrange
         Services.AddSingleton(Mock.Of<IStartOrchestrationInstanceCommands>());
-        Services.AddSingleton(Mock.Of<IOrchestrationInstanceQueries>());
+        Services.AddSingleton(new ProcessManagerReaderContext(new Microsoft.EntityFrameworkCore.DbContextOptions<ProcessManagerReaderContext>()));
 
         var expectedHandlerTypes = new List<Type>
         {
             typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.V1.StartInputExampleHandlerV1),
-            typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.SearchInputExampleHandler),
+            typeof(Example.Orchestrations.CustomQueries.Examples.V1.SearchExamplesHandlerV1),
         };
 
         // Act
@@ -94,7 +95,7 @@ public class ProcessManagerExtensionsTests
         actualStartHandler.Should().NotBeNull();
 
         // => Search handler
-        var actualSearchHandler = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X01.InputExample.SearchInputExampleHandler>();
+        var actualSearchHandler = serviceProvider.GetRequiredService<Example.Orchestrations.CustomQueries.Examples.V1.SearchExamplesHandlerV1>();
         actualSearchHandler.Should().NotBeNull();
     }
 

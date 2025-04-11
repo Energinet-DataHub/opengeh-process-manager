@@ -12,26 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-
-public class ProcessManagerCoreFixture : IAsyncLifetime
+public enum ExampleTypeQueryParameterV1
 {
-    public ProcessManagerCoreFixture()
-    {
-        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManager_Core");
-    }
+    /// <summary>
+    /// BRS-X01 Input example
+    /// </summary>
+    Input = 0,
 
-    public ProcessManagerDatabaseManager DatabaseManager { get; }
-
-    public async Task InitializeAsync()
-    {
-        await DatabaseManager.CreateDatabaseAsync();
-    }
-
-    public async Task DisposeAsync()
-    {
-        await DatabaseManager.DeleteDatabaseAsync();
-    }
+    /// <summary>
+    /// BRS-X01 No Input example
+    /// </summary>
+    NoInput = 1,
 }

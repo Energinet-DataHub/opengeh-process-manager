@@ -29,7 +29,9 @@ using Moq;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Application.Orchestration;
 
-public class IStartOrchestrationInstanceMessageCommandsTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
+public class IStartOrchestrationInstanceMessageCommandsTests :
+    IClassFixture<ProcessManagerCoreFixture>,
+    IAsyncLifetime
 {
     private readonly ProcessManagerCoreFixture _fixture;
 

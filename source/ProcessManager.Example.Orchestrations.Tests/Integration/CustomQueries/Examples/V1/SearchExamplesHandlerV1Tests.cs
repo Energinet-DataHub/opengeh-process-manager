@@ -22,9 +22,9 @@ using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Custo
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.CustomQueries.Examples.V1;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using NodaTime;
 using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
@@ -228,7 +228,7 @@ public class SearchExamplesHandlerV1Tests :
             Instant isTerminatedAsSucceededAt = default)
     {
         var orchestrationDescription = builder.Build();
-        var orchestrationInstances = CreateLifecycleDataset(
+        var orchestrationInstances = DomainTestDataFactory.CreateLifecycleDataset(
             orchestrationDescription,
             isRunningStartedAt,
             isTerminatedAsSucceededAt);
@@ -243,94 +243,6 @@ public class SearchExamplesHandlerV1Tests :
         await dbContext.SaveChangesAsync();
 
         return orchestrationInstances;
-    }
-
-    /// <summary>
-    /// Create orchestration instances from <paramref name="orchestrationDescription"/>
-    /// in the following lifecycle states:
-    ///  - Pending
-    ///  - Queued
-    ///  - Running
-    ///  - Terminated as succeeded
-    ///  - Terminated as failed
-    ///
-    /// If <paramref name="isRunningStartedAt"/> is specified, then this value
-    /// is used when transitioning to Running.
-    ///
-    /// If <paramref name="isTerminatedAsSucceededAt"/> is specified, then this value
-    /// is used when transitioning to terminated as succeeded.
-    /// </summary>
-    private (
-            OrchestrationInstance IsPending,
-            OrchestrationInstance IsQueued,
-            OrchestrationInstance IsRunning,
-            OrchestrationInstance IsTerminatedAsSucceeded,
-            OrchestrationInstance IsTerminatedAsFailed)
-        CreateLifecycleDataset(
-            OrchestrationDescription orchestrationDescription,
-            Instant isRunningStartedAt = default,
-            Instant isTerminatedAsSucceededAt = default)
-    {
-        var isPending = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-
-        var isQueued = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isQueued.Lifecycle.TransitionToQueued(SystemClock.Instance);
-
-        var isRunning = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isRunning.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        if (isRunningStartedAt == default)
-        {
-            isRunning.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        }
-        else
-        {
-            var clockMock = new Mock<IClock>();
-            clockMock.Setup(m => m.GetCurrentInstant())
-                .Returns(isRunningStartedAt);
-            isRunning.Lifecycle.TransitionToRunning(clockMock.Object);
-        }
-
-        var isTerminatedAsSucceeded = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isTerminatedAsSucceeded.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isTerminatedAsSucceeded.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        if (isTerminatedAsSucceededAt == default)
-        {
-            isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
-        }
-        else
-        {
-            var clockMock = new Mock<IClock>();
-            clockMock.Setup(m => m.GetCurrentInstant())
-                .Returns(isTerminatedAsSucceededAt);
-            isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(clockMock.Object);
-        }
-
-        var isTerminatedAsFailed = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isTerminatedAsFailed.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isTerminatedAsFailed.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        isTerminatedAsFailed.Lifecycle.TransitionToFailed(SystemClock.Instance);
-
-        return (isPending, isQueued, isRunning, isTerminatedAsSucceeded, isTerminatedAsFailed);
     }
 
     /// <summary>
@@ -351,7 +263,7 @@ public class SearchExamplesHandlerV1Tests :
             canBeScheduled: true,
             functionName: "TestOrchestrationFunction");
 
-        var johnDoe = CreateLifecycleDataset(johnDoeV1Description);
+        var johnDoe = DomainTestDataFactory.CreateLifecycleDataset(johnDoeV1Description);
 
         var isTerminatedAsUserCancelled = OrchestrationInstance.CreateFromDescription(
             identity: _userIdentity.MapToDomain(),

@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Moq;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -134,6 +135,94 @@ public static class DomainTestDataFactory
             meteringPointId: new MeteringPointId(Guid.NewGuid().ToString()));
 
         return orchestrationInstance;
+    }
+
+    /// <summary>
+    /// Create orchestration instances from <paramref name="orchestrationDescription"/>
+    /// in the following lifecycle states:
+    ///  - Pending
+    ///  - Queued
+    ///  - Running
+    ///  - Terminated as succeeded
+    ///  - Terminated as failed
+    ///
+    /// If <paramref name="isRunningStartedAt"/> is specified, then this value
+    /// is used when transitioning to Running.
+    ///
+    /// If <paramref name="isTerminatedAsSucceededAt"/> is specified, then this value
+    /// is used when transitioning to terminated as succeeded.
+    /// </summary>
+    public static (
+            OrchestrationInstance IsPending,
+            OrchestrationInstance IsQueued,
+            OrchestrationInstance IsRunning,
+            OrchestrationInstance IsTerminatedAsSucceeded,
+            OrchestrationInstance IsTerminatedAsFailed)
+        CreateLifecycleDataset(
+            OrchestrationDescription orchestrationDescription,
+            Instant isRunningStartedAt = default,
+            Instant isTerminatedAsSucceededAt = default)
+    {
+        var isPending = OrchestrationInstance.CreateFromDescription(
+            identity: EnergySupplier.UserIdentity,
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+
+        var isQueued = OrchestrationInstance.CreateFromDescription(
+            identity: EnergySupplier.UserIdentity,
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isQueued.Lifecycle.TransitionToQueued(SystemClock.Instance);
+
+        var isRunning = OrchestrationInstance.CreateFromDescription(
+            identity: EnergySupplier.UserIdentity,
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isRunning.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        if (isRunningStartedAt == default)
+        {
+            isRunning.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        }
+        else
+        {
+            var clockMock = new Mock<IClock>();
+            clockMock.Setup(m => m.GetCurrentInstant())
+                .Returns(isRunningStartedAt);
+            isRunning.Lifecycle.TransitionToRunning(clockMock.Object);
+        }
+
+        var isTerminatedAsSucceeded = OrchestrationInstance.CreateFromDescription(
+            identity: EnergySupplier.UserIdentity,
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isTerminatedAsSucceeded.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isTerminatedAsSucceeded.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        if (isTerminatedAsSucceededAt == default)
+        {
+            isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
+        }
+        else
+        {
+            var clockMock = new Mock<IClock>();
+            clockMock.Setup(m => m.GetCurrentInstant())
+                .Returns(isTerminatedAsSucceededAt);
+            isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(clockMock.Object);
+        }
+
+        var isTerminatedAsFailed = OrchestrationInstance.CreateFromDescription(
+            identity: EnergySupplier.UserIdentity,
+            description: orchestrationDescription,
+            skipStepsBySequence: [],
+            clock: SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToQueued(SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToRunning(SystemClock.Instance);
+        isTerminatedAsFailed.Lifecycle.TransitionToFailed(SystemClock.Instance);
+
+        return (isPending, isQueued, isRunning, isTerminatedAsSucceeded, isTerminatedAsFailed);
     }
 
     public sealed record OrchestrationParameter(

@@ -69,7 +69,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
     public async Task
         Given_DurableFunctionWithoutInput_When_StartNewOrchestrationInstanceAsync_Then_ExecutorInvoked()
     {
-        var orchestrationDescription = CreateOrchestrationDescription();
+        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
@@ -90,7 +90,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
     public async Task
         Given_NonDurableFunctionWithoutInput_When_StartNewOrchestrationInstanceAsync_Then_ExecutorIsNotInvoked()
     {
-        var orchestrationDescription = CreateOrchestrationDescription(false);
+        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(isDurableFunction: false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
@@ -106,13 +106,13 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
     public async Task
         Given_DurableFunctionWithInput_When_StartNewOrchestrationInstanceAsync_Then_ExecutorInvoked()
     {
-        var orchestrationDescription = CreateOrchestrationDescription();
+        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription();
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new TestOrchestrationParameter("inputString"),
+            new DomainTestDataFactory.OrchestrationParameter("inputString"),
             []);
 
         orchestrationInstanceId.Value.Should().NotBeEmpty();
@@ -131,13 +131,13 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
     public async Task
         Given_NonDurableFunctionWithInput_When_StartNewOrchestrationInstanceAsync_Then_ExecutorIsNotInvoked()
     {
-        var orchestrationDescription = CreateOrchestrationDescription(false);
+        var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(isDurableFunction: false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new TestOrchestrationParameter("inputString"),
+            new DomainTestDataFactory.OrchestrationParameter("inputString"),
             []);
 
         orchestrationInstanceId.Value.Should().NotBeEmpty();
@@ -182,18 +182,4 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
 
         return services;
     }
-
-    private static OrchestrationDescription CreateOrchestrationDescription(bool isDurableFunction = true)
-    {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1),
-            canBeScheduled: true,
-            functionName: isDurableFunction ? "TestOrchestrationFunction" : string.Empty);
-
-        orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
-
-        return orchestrationDescription;
-    }
-
-    public sealed record TestOrchestrationParameter(string InputString);
 }

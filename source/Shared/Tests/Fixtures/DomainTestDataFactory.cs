@@ -136,11 +136,11 @@ public static class DomainTestDataFactory
         return orchestrationInstance;
     }
 
-    public record OrchestrationParameter(
+    public sealed record OrchestrationParameter(
         string? TestString,
-        int? TestInt);
+        int? TestInt = default);
 
-    public record OrchestrationInstanceCustomState(
+    public sealed record OrchestrationInstanceCustomState(
         Guid TestId,
         string? TestString);
 

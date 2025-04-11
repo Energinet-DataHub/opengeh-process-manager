@@ -75,7 +75,7 @@ public class INotifyOrchestrationInstanceCommandsTests :
         var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
             new OrchestrationInstanceId(Guid.NewGuid()),
             "anyEvent",
-            new DomainTestDataFactory.OrchestrationParameter("inputString", 1));
+            new DomainTestDataFactory.OrchestrationParameter("inputString"));
 
         await act.Should()
             .ThrowAsync<InvalidOperationException>()
@@ -103,7 +103,7 @@ public class INotifyOrchestrationInstanceCommandsTests :
         var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
             orchestrationInstance.Id,
             "anyEvent",
-            new DomainTestDataFactory.OrchestrationParameter("inputString", 1));
+            new DomainTestDataFactory.OrchestrationParameter("inputString"));
 
         await act.Should().NotThrowAsync();
 
@@ -129,7 +129,7 @@ public class INotifyOrchestrationInstanceCommandsTests :
         var act = async () => await _sut.NotifyOrchestrationInstanceAsync(
             orchestrationInstance.Id,
             "anyEvent",
-            new DomainTestDataFactory.OrchestrationParameter("inputString", 1));
+            new DomainTestDataFactory.OrchestrationParameter("inputString"));
 
         await act.Should().NotThrowAsync();
 

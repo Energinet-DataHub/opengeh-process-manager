@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
@@ -30,6 +31,7 @@ using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.Orchest
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.CustomQueries.Calculations.V1;
 
+[ParallelWorkflow(WorkflowBucket.Bucket01)]
 public class SearchCalculationsHandlerV1Tests :
     IClassFixture<ProcessManagerDatabaseFixture>,
     IAsyncLifetime

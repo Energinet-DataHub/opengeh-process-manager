@@ -45,20 +45,21 @@ public static class DomainTestDataFactory
     /// Create an Orchestration Description with the following properties:
     ///  - Is enabled by default (can be changed using <paramref name="isEnabled"/>)
     ///  - Can be scheduled
-    ///  - Is used with Durable Functions
+    ///  - Is used with Durable Functions (can be changed using <paramref name="isDurableFunction"/>)
     ///  - Isn't recurring (can be changed using <paramref name="recurringCronExpression"/>)
     ///  - Has input paramters of type <see cref="OrchestrationParameter"/>
     ///  - Has 3 steps, of which the last can be skipped
     /// </summary>
     public static OrchestrationDescription CreateOrchestrationDescription(
         OrchestrationDescriptionUniqueName? uniqueName = default,
+        bool isDurableFunction = true,
         string? recurringCronExpression = default,
         bool isEnabled = true)
     {
         var orchestrationDescription = new OrchestrationDescription(
             uniqueName: uniqueName ?? new OrchestrationDescriptionUniqueName("TestOrchestration", 4),
             canBeScheduled: true,
-            functionName: "TestOrchestrationFunction");
+            functionName: isDurableFunction ? "TestOrchestrationFunction" : string.Empty);
 
         if (recurringCronExpression != null)
             orchestrationDescription.RecurringCronExpression = recurringCronExpression;
@@ -77,7 +78,7 @@ public static class DomainTestDataFactory
     /// <summary>
     /// Create an Orchestration Instance by a UserIdentity from an Orchestration Description that
     /// should be created similar to how it is done by
-    /// <see cref="CreateOrchestrationDescription(OrchestrationDescriptionUniqueName?, string?, bool)"/>.
+    /// <see cref="CreateOrchestrationDescription(OrchestrationDescriptionUniqueName?, bool, string?, bool)"/>.
     /// </summary>
     public static OrchestrationInstance CreateUserInitiatedOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
@@ -98,17 +99,13 @@ public static class DomainTestDataFactory
             transactionId: null,
             meteringPointId: null);
 
-        orchestrationInstance.ParameterValue.SetFromInstance(new OrchestrationParameter
-        {
-            TestString = "Test string",
-            TestInt = testInt ?? 42,
-        });
+        orchestrationInstance.ParameterValue.SetFromInstance(new OrchestrationParameter(
+            TestString: "Test string",
+            TestInt: testInt ?? 42));
 
-        orchestrationInstance.CustomState.SetFromInstance(new OrchestrationInstanceCustomState
-        {
-            TestId = Guid.NewGuid(),
-            TestString = "Something new",
-        });
+        orchestrationInstance.CustomState.SetFromInstance(new OrchestrationInstanceCustomState(
+            TestId: Guid.NewGuid(),
+            TestString: "Something new"));
 
         return orchestrationInstance;
     }
@@ -116,7 +113,7 @@ public static class DomainTestDataFactory
     /// <summary>
     /// Create an Orchestration Instance by an ActorIdentity from an Orchestration Description that
     /// should be created similar to how it is done by
-    /// <see cref="CreateOrchestrationDescription(OrchestrationDescriptionUniqueName?, string?, bool)"/>.
+    /// <see cref="CreateOrchestrationDescription(OrchestrationDescriptionUniqueName?, bool, string?, bool)"/>.
     /// </summary>
     public static OrchestrationInstance CreateActorInitiatedOrchestrationInstance(
         OrchestrationDescription orchestrationDescription,
@@ -139,19 +136,13 @@ public static class DomainTestDataFactory
         return orchestrationInstance;
     }
 
-    public class OrchestrationParameter
-    {
-        public string? TestString { get; set; }
+    public record OrchestrationParameter(
+        string? TestString,
+        int? TestInt);
 
-        public int? TestInt { get; set; }
-    }
-
-    public class OrchestrationInstanceCustomState
-    {
-        public Guid TestId { get; set; }
-
-        public string? TestString { get; set; }
-    }
+    public record OrchestrationInstanceCustomState(
+        Guid TestId,
+        string? TestString);
 
     #region IdentityTuple
 

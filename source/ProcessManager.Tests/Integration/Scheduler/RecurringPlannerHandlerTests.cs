@@ -69,7 +69,7 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(
             uniqueName,
-            "0 12,17 * * *");
+            recurringCronExpression: "0 12,17 * * *");
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -101,7 +101,7 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(
             uniqueName,
-            "0 12,17 * * *");
+            recurringCronExpression: "0 12,17 * * *");
 
         var scheduledToRun01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             orchestrationDescription,
@@ -133,7 +133,7 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
         var uniqueName = new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1);
         var orchestrationDescription = DomainTestDataFactory.CreateOrchestrationDescription(
             uniqueName,
-            "0 12,17 * * *");
+            recurringCronExpression: "0 12,17 * * *");
 
         var scheduledToRun01 = DomainTestDataFactory.CreateUserInitiatedOrchestrationInstance(
             orchestrationDescription,

@@ -12,33 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.CustomQueries.Examples.V1;
 
-internal class SearchTrigger_Brs_X01_InputExample(
-    SearchInputExampleHandler handler)
+internal class SearchTrigger_Examples_V1(
+    SearchExamplesHandlerV1 handler)
 {
-    private readonly SearchInputExampleHandler _handler = handler;
+    private readonly SearchExamplesHandlerV1 _handler = handler;
 
     /// <summary>
-    /// Search for instances of BRS-X01.
+    /// Search for Examples orchestration instances.
     /// </summary>
-    [Function(nameof(SearchTrigger_Brs_X01_InputExample))]
+    [Function(nameof(SearchTrigger_Examples_V1))]
     [Authorize]
     public async Task<IActionResult> Run(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = $"orchestrationinstance/query/custom/{InputExampleQuery.RouteName}")]
+            Route = $"orchestrationinstance/query/custom/{ExamplesQueryV1.RouteName}")]
         HttpRequest httpRequest,
         [FromBody]
-        InputExampleQuery query,
+        ExamplesQueryV1 query,
         FunctionContext executionContext)
     {
         var queryResultItems = await _handler.HandleAsync(query).ConfigureAwait(false);

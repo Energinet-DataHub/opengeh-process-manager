@@ -13,12 +13,27 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 
-/// <summary>
-/// Query result from searching BRS-X01.
-/// Must be JSON serializable.
-/// </summary>
-public record InputExampleQueryResult(OrchestrationInstanceTypedDto<InputV1> OrchestrationInstance);
+public record InputExampleResultV1 :
+    OrchestrationInstanceTypedDto<InputV1>,
+    IExamplesQueryResultV1
+{
+    public InputExampleResultV1(
+        Guid id,
+        OrchestrationInstanceLifecycleDto lifecycle,
+        IReadOnlyCollection<StepInstanceDto> steps,
+        string customState,
+        InputV1 parameterValue)
+            : base(
+                id,
+                lifecycle,
+                steps,
+                customState,
+                parameterValue)
+    {
+    }
+}

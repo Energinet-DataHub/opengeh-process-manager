@@ -72,7 +72,7 @@ jobs:
                 filepath          = $project.FilePath
                 assembly_name     = "Energinet.DataHub.$($project.Name).dll"
                 dotnet_version    = "${{ inputs.dotnet_version }}"
-                filter_expression = WorkflowBucket!~Bucket)
+                filter_expression = "WorkflowBucket!~Bucket"
               }
               # Bucket01
               $matrixBuilds += [PSCustomObject]@{
@@ -80,7 +80,7 @@ jobs:
                 filepath          = $project.FilePath
                 assembly_name     = "Energinet.DataHub.$($project.Name).dll"
                 dotnet_version    = "${{ inputs.dotnet_version }}"
-                filter_expression = WorkflowBucket=Bucket01
+                filter_expression = "WorkflowBucket=Bucket01"
               }
               # Bucket02
               $matrixBuilds += [PSCustomObject]@{
@@ -88,7 +88,7 @@ jobs:
                 filepath          = $project.FilePath
                 assembly_name     = "Energinet.DataHub.$($project.Name).dll"
                 dotnet_version    = "${{ inputs.dotnet_version }}"
-                filter_expression = WorkflowBucket=Bucket02
+                filter_expression = "WorkflowBucket=Bucket02"
               }
               # Bucket03
               $matrixBuilds += [PSCustomObject]@{
@@ -96,7 +96,7 @@ jobs:
                 filepath          = $project.FilePath
                 assembly_name     = "Energinet.DataHub.$($project.Name).dll"
                 dotnet_version    = "${{ inputs.dotnet_version }}"
-                filter_expression = WorkflowBucket=Bucket03
+                filter_expression = "WorkflowBucket=Bucket03"
               }
               # Bucket04
               $matrixBuilds += [PSCustomObject]@{
@@ -104,7 +104,7 @@ jobs:
                 filepath          = $project.FilePath
                 assembly_name     = "Energinet.DataHub.$($project.Name).dll"
                 dotnet_version    = "${{ inputs.dotnet_version }}"
-                filter_expression = WorkflowBucket=Bucket04
+                filter_expression = "WorkflowBucket=Bucket04"
               }
               # Bucket05
               $matrixBuilds += [PSCustomObject]@{
@@ -112,16 +112,16 @@ jobs:
                 filepath          = $project.FilePath
                 assembly_name     = "Energinet.DataHub.$($project.Name).dll"
                 dotnet_version    = "${{ inputs.dotnet_version }}"
-                filter_expression = WorkflowBucket=Bucket05
+                filter_expression = "WorkflowBucket=Bucket05"
               }
             }
             elseif ($project.Name -like '*Tests*') {
               $matrixBuilds += [PSCustomObject]@{
-                name           = $project.Name
-                filepath       = $project.FilePath
-                assembly_name  = "Energinet.DataHub.$($project.Name).dll"
-                dotnet_version = "${{ inputs.dotnet_version }}"
-                filter_expression = empty # Means skip.
+                name              = $project.Name
+                filepath          = $project.FilePath
+                assembly_name     = "Energinet.DataHub.$($project.Name).dll"
+                dotnet_version    = "${{ inputs.dotnet_version }}"
+                filter_expression = "empty"
               }
             }
           }

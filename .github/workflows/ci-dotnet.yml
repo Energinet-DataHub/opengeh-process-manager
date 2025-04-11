@@ -58,7 +58,7 @@ jobs:
             -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
             --output '${{ env.RELEASE_FOLDER_PATH }}'
 
-      - name: Build SubsystemTests
+      - name: Build subsystem tests
         if: ${{ inputs.release_name == 'process_manager_orchestrations' }}
         run: |
           dotnet publish \

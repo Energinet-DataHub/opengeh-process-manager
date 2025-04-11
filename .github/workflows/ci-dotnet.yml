@@ -59,7 +59,7 @@ jobs:
             --output '${{ env.RELEASE_FOLDER_PATH }}'
 
       - name: Build SubsystemTests
-        if: ${{ inputs.project_file == 'ProcessManager.Orchestrations.csproj' }}
+        if: ${{ inputs.release_name == 'Orchestrations' }}
         run: |
           dotnet publish \
             'source/ProcessManager.SubsystemTests\ProcessManager.SubsystemTests.csproj' \

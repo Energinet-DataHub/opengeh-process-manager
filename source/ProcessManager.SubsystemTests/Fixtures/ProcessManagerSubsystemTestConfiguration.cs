@@ -48,6 +48,10 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
         ProcessManagerApplicationIdUri = keyVaultConfiguration.GetValue<string>("processmanager-application-id-uri")
             ?? throw new ArgumentNullException(nameof(ProcessManagerApplicationIdUri), $"Missing configuration value for {nameof(ProcessManagerApplicationIdUri)}");
 
+        // /.default must be added when running in the CD, else we get the following error: "Client credential flows
+        // must have a scope value with /.default suffixed to the resource identifier (application ID URI)"
+        ProcessManagerApplicationIdUri = $"{ProcessManagerApplicationIdUri}/.default";
+
         ProcessManagerGeneralApiBaseAddress = keyVaultConfiguration.GetValue<string>("func-api-pmcore-base-url")
             ?? throw new ArgumentNullException(nameof(ProcessManagerGeneralApiBaseAddress), $"Missing configuration value for {nameof(ProcessManagerGeneralApiBaseAddress)}");
 

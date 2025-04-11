@@ -56,7 +56,7 @@ jobs:
             '${{ inputs.project_file }}' \
             --configuration Release \
             -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
-            --output '${{ env.RELEASE_FOLDER_PATH }}'
+            --output '${{ env.RELEASE_FOLDER_PATH }}/app/'
 
       - name: Build subsystem tests
         if: ${{ inputs.release_name == 'process_manager_orchestrations' }}

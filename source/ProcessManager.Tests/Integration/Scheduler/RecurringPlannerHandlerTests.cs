@@ -56,10 +56,7 @@ public class RecurringPlannerHandlerTests : IClassFixture<RecurringPlannerHandle
 
     public async Task DisposeAsync()
     {
-        // Disabling OrchestrationDescriptions so tests doesn't interfere with each other
-        await _dbContext.OrchestrationDescriptions.ForEachAsync(item => item.IsEnabled = false);
-        await _dbContext.SaveChangesAsync();
-        await _dbContext.DisposeAsync();
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
     }
 
     [Fact]

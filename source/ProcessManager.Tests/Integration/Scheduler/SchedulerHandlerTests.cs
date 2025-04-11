@@ -74,10 +74,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
 
     public async Task DisposeAsync()
     {
-        // Disabling OrchestrationDescriptions so tests doesn't interfere with each other
-        using var dbContext = _fixture.DatabaseManager.CreateDbContext();
-        await dbContext.OrchestrationDescriptions.ForEachAsync(item => item.IsEnabled = false);
-        await dbContext.SaveChangesAsync();
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
 
         await _serviceProvider.DisposeAsync();
     }

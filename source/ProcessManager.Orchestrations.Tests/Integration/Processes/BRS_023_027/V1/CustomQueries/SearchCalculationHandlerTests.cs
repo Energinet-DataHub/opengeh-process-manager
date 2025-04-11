@@ -49,9 +49,7 @@ public class SearchCalculationHandlerTests : IClassFixture<ProcessManagerDatabas
 
     public async Task InitializeAsync()
     {
-        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
-        await dbContext.OrchestrationInstances.ExecuteDeleteAsync();
-        await dbContext.OrchestrationDescriptions.ExecuteDeleteAsync();
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
     }
 
     public async Task DisposeAsync()

@@ -36,9 +36,7 @@ public class OrchestrationRegisterTests : IClassFixture<ProcessManagerCoreFixtur
 
     public async Task InitializeAsync()
     {
-        await using var context = _fixture.DatabaseManager.CreateDbContext();
-        await context.Database.ExecuteSqlAsync($"DELETE FROM [pm].[StepDescription]");
-        await context.Database.ExecuteSqlAsync($"DELETE FROM [pm].[OrchestrationDescription]");
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
     }
 
     public async Task DisposeAsync()

@@ -160,7 +160,6 @@ public class ForwardMeteredDataInputV1Builder
             StartDateTime: _startDateTime,
             EndDateTime: _endDateTime,
             GridAccessProviderNumber: _gridAccessProviderNumber,
-            DelegatedGridAreaCodes: null,
             MeteredDataList: _meteredData);
     }
 }

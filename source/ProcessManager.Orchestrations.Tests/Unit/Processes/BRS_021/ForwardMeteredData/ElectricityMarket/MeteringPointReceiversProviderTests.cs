@@ -953,7 +953,6 @@ public class MeteringPointReceiversProviderTests
             StartDateTime: from,
             EndDateTime: to,
             GridAccessProviderNumber: masterData.First().GridAccessProvider.Value,
-            DelegatedGridAreaCodes: [],
             MeteredDataList: meteredData);
     }
 }

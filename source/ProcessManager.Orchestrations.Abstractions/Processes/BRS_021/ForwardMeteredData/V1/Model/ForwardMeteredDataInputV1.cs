@@ -34,7 +34,6 @@ public record ForwardMeteredDataInputV1(
     string StartDateTime,
     string? EndDateTime,
     string GridAccessProviderNumber,
-    IReadOnlyCollection<string>? DelegatedGridAreaCodes,
     IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> MeteredDataList)
     : IInputParameterDto
 {

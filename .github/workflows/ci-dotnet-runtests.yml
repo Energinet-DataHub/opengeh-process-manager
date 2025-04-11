@@ -62,7 +62,7 @@ jobs:
           $matrixBuilds = @()
 
           foreach ($project in $affectedProjects) {
-            if ($project.Name -like '*Tests*') {
+            if ($project.Name -like '*Tests*' -and $project.Name -notlike '*.SubsystemTests') {
               $matrixBuilds += [PSCustomObject]@{
                 name           = $project.Name
                 filepath       = $project.FilePath

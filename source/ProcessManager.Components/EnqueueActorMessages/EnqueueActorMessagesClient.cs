@@ -12,22 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
-using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Shared.Extensions;
-using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
 public class EnqueueActorMessagesClient(
-    IAzureClientFactory<ServiceBusSender> serviceBusFactory)
-    : IEnqueueActorMessagesClient
+    EdiTopicServiceBusSenderFactory ediTopicServiceBusSenderFactory)
+        : IEnqueueActorMessagesClient
 {
-    private readonly ServiceBusSender _serviceBusSender = serviceBusFactory.CreateClient(ServiceBusSenderNames.EdiTopic);
+    private readonly EdiTopicServiceBusSenderFactory _serviceBusSenderFactory = ediTopicServiceBusSenderFactory;
 
     public async Task EnqueueAsync<TEnqueueData>(
         OrchestrationDescriptionUniqueNameDto orchestration,
@@ -67,7 +64,7 @@ public class EnqueueActorMessagesClient(
             subject: EnqueueActorMessagesV1.BuildServiceBusMessageSubject(orchestration.Name),
             idempotencyKey: idempotencyKey.ToString());
 
-        await _serviceBusSender.SendMessageAsync(serviceBusMessage)
-            .ConfigureAwait(false);
+        var serviceBusSender = _serviceBusSenderFactory.CreateSender(data);
+        await serviceBusSender.SendMessageAsync(serviceBusMessage).ConfigureAwait(false);
     }
 }

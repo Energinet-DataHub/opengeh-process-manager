@@ -58,6 +58,15 @@ jobs:
             -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
             --output '${{ env.RELEASE_FOLDER_PATH }}'
 
+      - name: Build SubsystemTests
+        if: ${{ inputs.project_file == 'ProcessManager.Orchestrations.csproj' }}
+        run: |
+          dotnet publish \
+            'source/ProcessManager.SubsystemTests\ProcessManager.SubsystemTests.csproj' \
+            --configuration Release \
+            -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
+            --output '${{ env.RELEASE_FOLDER_PATH }}\tests\ProcessManager.SubsystemTests'
+
       - name: Get release strings
         uses: Energinet-Datahub/.github/.github/actions/github-get-releaseversion-strings@v14
         id: get_release_version

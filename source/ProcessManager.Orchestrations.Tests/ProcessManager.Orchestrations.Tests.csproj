@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Compile Include="..\Shared\Tests\Fixtures\AuthenticationOptionsForTests.cs" Link="Fixtures\AuthenticationOptionsForTests.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\DomainTestDataFactory.cs" Link="Fixtures\DomainTestDataFactory.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ElectricityMarketViewsExtensions.cs">
       <Link>Fixtures\Extensions\ElectricityMarketViewsExtensions.cs</Link>
     </Compile>

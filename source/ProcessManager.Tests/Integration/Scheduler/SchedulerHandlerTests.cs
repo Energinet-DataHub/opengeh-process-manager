@@ -24,12 +24,12 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Scheduler;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NodaTime;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Tests.Integration.Scheduler;
 
@@ -73,10 +73,7 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
 
     public async Task DisposeAsync()
     {
-        // Disabling OrchestrationDescriptions so tests doesn't interfere with each other
-        using var dbContext = _fixture.DatabaseManager.CreateDbContext();
-        await dbContext.OrchestrationDescriptions.ForEachAsync(item => item.IsEnabled = false);
-        await dbContext.SaveChangesAsync();
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
 
         await _serviceProvider.DisposeAsync();
     }
@@ -250,15 +247,5 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
         services.AddScoped<SchedulerHandler>();
 
         return services;
-    }
-
-    private static OrchestrationDescription CreateOrchestrationDescription()
-    {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1),
-            canBeScheduled: true,
-            functionName: "TestOrchestrationFunction");
-
-        return orchestrationDescription;
     }
 }

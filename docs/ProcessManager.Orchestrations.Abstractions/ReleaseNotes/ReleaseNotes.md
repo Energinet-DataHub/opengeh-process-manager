@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.19.1
+
+- No functional changes.
+
 ## Version 1.19.0
 
 - Delete `ForwardedByActorNumber` and `ForwardedByActorRole` from `ForwardMeteredDataRejectedV1`.

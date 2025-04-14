@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -33,6 +34,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Cust
 /// Test collection that verifies the Process Manager clients can be used to
 /// perform a custom search for Calculations orchestration instances.
 /// </summary>
+[ParallelWorkflow(WorkflowBucket.Bucket01)]
 [Collection(nameof(OrchestrationsAppCollection))]
 public class SearchTrigger_Calculations_V1Tests : IAsyncLifetime
 {

@@ -29,7 +29,7 @@ on:
         description: Cache key prefix
         required: false
         type: string
-        default: nuget-${{ github.ref }}-${{ runner.os }}
+        default: nuget-${{ github.ref }}
       dotnet_version:
         description: The version of dotnet to use
         required: false
@@ -170,7 +170,7 @@ jobs:
       aspnetcore_test_contentroot_variable_name: empty
       aspnetcore_test_contentroot_variable_value: empty
       solution_file_path: source\ProcessManager.sln
-      nuget_cache_key_prefix: ${{ inputs.nuget_cache_key_prefix }}
+      nuget_cache_key_prefix: ${{ inputs.nuget_cache_key_prefix }}-${{ runner.os }}
       nuget_cache_path: ${{ github.workspace }}/.nuget/packages
 
       # Matrix parameters

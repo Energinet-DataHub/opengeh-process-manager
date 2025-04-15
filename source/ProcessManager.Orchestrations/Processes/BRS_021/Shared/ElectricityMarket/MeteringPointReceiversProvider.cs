@@ -223,7 +223,7 @@ public class MeteringPointReceiversProvider(
                 receivers.AddRange(
                     meteringPointMasterData.NeighborGridAreaOwners
                         .Select(ActorNumber.Create)
-                        .Select(NeighborGridAccessProviderReceiver));
+                        .Select(GridAccessProviderReceiver));
                 break;
             case var _ when meteringPointType == MeteringPointType.VeProduction:
                 receivers.Add(SystemOperatorReceiver());
@@ -235,6 +235,14 @@ public class MeteringPointReceiversProvider(
                 }
 
                 break;
+            case var _ when meteringPointType == MeteringPointType.ElectricalHeating:
+            case var _ when meteringPointType == MeteringPointType.NetConsumption:
+            case var _ when meteringPointType == MeteringPointType.CapacitySettlement:
+                // Electrical heating, net consumption and capacity settlement metering points always sends to the energy supplier and grid access provider
+                receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier!)); // TODO: How to get parent energy supplier?
+                receivers.Add(GridAccessProviderReceiver(meteringPointMasterData.GridAccessProvider));
+                break;
+
             case var _ when meteringPointType == MeteringPointType.NetProduction:
             case var _ when meteringPointType == MeteringPointType.SupplyToGrid:
             case var _ when meteringPointType == MeteringPointType.ConsumptionFromGrid:
@@ -285,8 +293,8 @@ public class MeteringPointReceiversProvider(
     private MarketActorRecipientV1 EnergySupplierReceiver(ActorNumber energySupplierId) =>
         new(energySupplierId, ActorRole.EnergySupplier);
 
-    private MarketActorRecipientV1 NeighborGridAccessProviderReceiver(ActorNumber neighborGridAccessProviderId) => new(
-        neighborGridAccessProviderId,
+    private MarketActorRecipientV1 GridAccessProviderReceiver(ActorNumber gridAccessProviderId) => new(
+        gridAccessProviderId,
         ActorRole.GridAccessProvider);
 
     private MarketActorRecipientV1 DanishEnergyAgencyReceiver() => new(

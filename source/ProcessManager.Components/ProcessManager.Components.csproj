@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.Azure.Messaging.EventHubs" Version="9.0.0" />
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
-    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.1" />
+    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.6" />
     <PackageReference Include="Energinet.DataHub.ElectricityMarket.Integration" Version="4.4.0" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.11.0" />
     <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="6.1.4" />

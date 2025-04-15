@@ -29,7 +29,7 @@ on:
         description: Cache key prefix
         required: false
         type: string
-        default: nuget-${{ github.ref }}
+        default: nuget-${{ github.ref }}-${{ runner.os }}
       dotnet_version:
         description: The version of dotnet to use
         required: false

@@ -24,7 +24,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.Shared.
     ElectricityMarket;
 
 [SuppressMessage(

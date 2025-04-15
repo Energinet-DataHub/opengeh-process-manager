@@ -20,7 +20,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.E
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Moq;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.Shared.ElectricityMarket;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.Shared.ElectricityMarket;
 
 public class DelegationProviderTests
 {

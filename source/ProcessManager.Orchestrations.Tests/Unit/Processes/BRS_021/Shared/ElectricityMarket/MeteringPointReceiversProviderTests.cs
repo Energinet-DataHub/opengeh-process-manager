@@ -26,7 +26,7 @@ using NodaTime;
 using NodaTime.Extensions;
 using NodaTime.Text;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.Shared.
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.Shared.
     ElectricityMarket;
 
 [SuppressMessage(

@@ -45,6 +45,8 @@ jobs:
         with:
           path: ~/.nuget/packages
           key: ${{ inputs.nuget_cache_key_prefix }}-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ inputs.nuget_cache_key_prefix }}-${{ runner.os }}-
 
       - name: Find associated pull request
         uses: Energinet-DataHub/.github/.github/actions/find-related-pr-number@v14

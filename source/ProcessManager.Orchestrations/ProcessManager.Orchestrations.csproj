@@ -74,6 +74,8 @@
 
     <ItemGroup>
       <Folder Include="InternalProcesses\" />
+      <Folder Include="Processes\BRS_021\ForwardMeteredData\Mappers\" />
+      <Folder Include="Processes\BRS_021\Shared\" />
     </ItemGroup>
 
 </Project>

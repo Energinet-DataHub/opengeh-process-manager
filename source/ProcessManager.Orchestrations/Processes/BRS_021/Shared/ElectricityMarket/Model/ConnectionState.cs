@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 
-public record ForwardMeteredDataCustomStateV1(
-    IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData);
-
-public record ForwardMeteredDataCustomStateV2(
-    MeteringPointMasterData? CurrentMeteringPointMasterData,
-    IReadOnlyCollection<MeteringPointMasterData> HistoricalMeteringPointMasterData);
+public enum ConnectionState
+{
+    NotUsed,
+    ClosedDown,
+    New,
+    Connected,
+    Disconnected,
+}

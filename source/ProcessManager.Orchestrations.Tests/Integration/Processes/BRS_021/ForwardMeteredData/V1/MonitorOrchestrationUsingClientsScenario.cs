@@ -55,14 +55,14 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
 using ConnectionState =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ConnectionState;
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model.ConnectionState;
 using GridAreaCode =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode;
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model.GridAreaCode;
 using MeteringPointMasterData =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model.
     MeteringPointMasterData;
 using MeteringPointSubType =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType;
+    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model.MeteringPointSubType;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
 using OrchestrationInstanceTerminationState =
     Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationState;
@@ -278,10 +278,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
-            CurrentMeteringPointMasterData: meteringPointMasterData,
-            HistoricalMeteringPointMasterData: [
-            meteringPointMasterData,
-        ]);
+            CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData),
+            HistoricalMeteringPointMasterData:
+            [
+                ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData)
+            ]);
 
         terminatedOrchestrationInstance.CustomState.Should()
             .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));
@@ -391,10 +392,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
-            CurrentMeteringPointMasterData: meteringPointMasterData,
-            HistoricalMeteringPointMasterData: [
-            meteringPointMasterData,
-        ]);
+            CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData
+                .FromMeteringPointMasterData(meteringPointMasterData),
+            HistoricalMeteringPointMasterData:
+            [
+                ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData),
+            ]);
 
         terminatedOrchestrationInstance.CustomState.Should()
             .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));

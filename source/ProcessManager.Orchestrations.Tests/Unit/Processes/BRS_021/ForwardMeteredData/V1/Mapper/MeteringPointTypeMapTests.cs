@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
 
@@ -26,7 +26,7 @@ public class MeteringPointTypeMapTests
 
         foreach (MeteringPointType masterDataMeteringPointType in allMasterDataMeteringPointTypes)
         {
-            var processManagerMeteringPointTypeResult = MeteringPointMasterDataMapper
+            var processManagerMeteringPointTypeResult = ElectricityMarketMasterDataMapper
                 .MeteringPointTypeMap.Map(masterDataMeteringPointType);
             Assert.NotNull(processManagerMeteringPointTypeResult);
         }

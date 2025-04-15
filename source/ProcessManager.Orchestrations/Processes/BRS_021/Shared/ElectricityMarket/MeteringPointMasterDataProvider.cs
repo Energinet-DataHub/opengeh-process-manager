@@ -15,20 +15,16 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ElectricityMarket.Integration;
-using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Mapper;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Microsoft.Extensions.Logging;
 using NodaTime;
-using PMGridAreaCode =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode;
-using PMMeteringPointMasterData =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.
-    MeteringPointMasterData;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
+using ElectricityMarketModels = Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
+
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
 
 [SuppressMessage(
     "StyleCop.CSharp.ReadabilityRules",
@@ -41,12 +37,12 @@ public class MeteringPointMasterDataProvider(
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
 
-    internal async Task<IReadOnlyCollection<PMMeteringPointMasterData>> GetMasterData(
+    internal async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
         string startDate,
         string endDate)
     {
-        var id = new MeteringPointIdentification(meteringPointId);
+        var id = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId);
         var startDateTime = InstantPatternWithOptionalSeconds.Parse(startDate);
         var endDateTime = InstantPatternWithOptionalSeconds.Parse(endDate);
 
@@ -55,7 +51,7 @@ public class MeteringPointMasterDataProvider(
             return [];
         }
 
-        IEnumerable<MeteringPointMasterData> masterDataChanges;
+        IEnumerable<ElectricityMarketModels.MeteringPointMasterData> masterDataChanges;
         try
         {
             masterDataChanges = await _electricityMarketViews
@@ -82,14 +78,14 @@ public class MeteringPointMasterDataProvider(
             .Where(parent => parent.Id is not null)
             .ToList();
 
-        var parentMeteringPointMasterData = new Dictionary<string, IReadOnlyCollection<MeteringPointMasterData>>();
+        var parentMeteringPointMasterData = new Dictionary<string, IReadOnlyCollection<ElectricityMarketModels.MeteringPointMasterData>>();
         foreach (var (parentId, parentFrom, parentTo) in parents)
         {
             try
             {
                 var newParentMasterData = (await _electricityMarketViews
                     .GetMeteringPointMasterDataChangesAsync(
-                        new MeteringPointIdentification(parentId!.Value),
+                        new ElectricityMarketModels.MeteringPointIdentification(parentId!.Value),
                         new Interval(parentFrom, parentTo))
                     .ConfigureAwait(false)).ToImmutableList();
 
@@ -119,7 +115,7 @@ public class MeteringPointMasterDataProvider(
         }
 
         // Try-catch to prevent PREPROD from going up in flames
-        IReadOnlyCollection<PMMeteringPointMasterData> meteringPointMasterDataPoints;
+        IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterDataPoints;
         try
         {
             meteringPointMasterDataPoints = meteringPointMasterData
@@ -139,21 +135,21 @@ public class MeteringPointMasterDataProvider(
         return meteringPointMasterDataPoints;
     }
 
-    private IReadOnlyCollection<PMMeteringPointMasterData> GetMeteringPointMasterDataPerEnergySupplier(
-            MeteringPointMasterData meteringPointMasterData,
-            IReadOnlyDictionary<string, IReadOnlyCollection<MeteringPointMasterData>> parentMeteringPointMasterData) =>
-        meteringPointMasterData.ParentIdentification is not null
-            ? FlattenMasterDataForChild(meteringPointMasterData, parentMeteringPointMasterData)
-            : FlattenMasterDataForParent(meteringPointMasterData);
+    private IReadOnlyCollection<MeteringPointMasterData> GetMeteringPointMasterDataPerEnergySupplier(
+        ElectricityMarketModels.MeteringPointMasterData meteringPointMasterData,
+        IReadOnlyDictionary<string, IReadOnlyCollection<ElectricityMarketModels.MeteringPointMasterData>> parentMeteringPointMasterData) =>
+            meteringPointMasterData.ParentIdentification is not null
+                ? FlattenMasterDataForChild(meteringPointMasterData, parentMeteringPointMasterData)
+                : FlattenMasterDataForParent(meteringPointMasterData);
 
-    private IReadOnlyCollection<PMMeteringPointMasterData> FlattenMasterDataForParent(
-        MeteringPointMasterData meteringPointMasterData)
+    private IReadOnlyCollection<MeteringPointMasterData> FlattenMasterDataForParent(
+        ElectricityMarketModels.MeteringPointMasterData meteringPointMasterData)
     {
         if (meteringPointMasterData.EnergySuppliers.Count <= 0)
         {
             return
             [
-                CreatePMMeteringPointMasterData(
+                CreateMeteringPointMasterData(
                     meteringPointMasterData,
                     meteringPointMasterData.ValidFrom.ToDateTimeOffset(),
                     meteringPointMasterData.ValidTo.ToDateTimeOffset()),
@@ -163,7 +159,7 @@ public class MeteringPointMasterDataProvider(
         return meteringPointMasterData.EnergySuppliers
             .Select(
                 meteringPointEnergySupplier =>
-                    CreatePMMeteringPointMasterData(
+                    CreateMeteringPointMasterData(
                         meteringPointMasterData,
                         meteringPointEnergySupplier.StartDate.ToDateTimeOffset(),
                         meteringPointEnergySupplier.EndDate.ToDateTimeOffset(),
@@ -173,9 +169,9 @@ public class MeteringPointMasterDataProvider(
             .AsReadOnly();
     }
 
-    private IReadOnlyCollection<PMMeteringPointMasterData> FlattenMasterDataForChild(
-        MeteringPointMasterData meteringPointMasterData,
-        IReadOnlyDictionary<string, IReadOnlyCollection<MeteringPointMasterData>> parentMeteringPointMasterData) =>
+    private IReadOnlyCollection<MeteringPointMasterData> FlattenMasterDataForChild(
+        Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData meteringPointMasterData,
+        IReadOnlyDictionary<string, IReadOnlyCollection<Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>> parentMeteringPointMasterData) =>
         parentMeteringPointMasterData[meteringPointMasterData.ParentIdentification!.Value]
                 .SelectMany(
                     mpmd =>
@@ -184,7 +180,7 @@ public class MeteringPointMasterDataProvider(
                         {
                             return
                             [
-                                CreatePMMeteringPointMasterData(
+                                CreateMeteringPointMasterData(
                                     meteringPointMasterData,
                                     mpmd.ValidFrom.ToDateTimeOffset(),
                                     mpmd.ValidTo.ToDateTimeOffset(),
@@ -194,7 +190,7 @@ public class MeteringPointMasterDataProvider(
 
                         return mpmd.EnergySuppliers
                             .Select(
-                                mpes => CreatePMMeteringPointMasterData(
+                                mpes => CreateMeteringPointMasterData(
                                     meteringPointMasterData,
                                     mpes.StartDate.ToDateTimeOffset(),
                                     mpes.EndDate.ToDateTimeOffset(),
@@ -204,24 +200,25 @@ public class MeteringPointMasterDataProvider(
                 .ToList()
                 .AsReadOnly();
 
-    private PMMeteringPointMasterData CreatePMMeteringPointMasterData(
-        MeteringPointMasterData meteringPointMasterData,
+    private MeteringPointMasterData CreateMeteringPointMasterData(
+        ElectricityMarketModels.MeteringPointMasterData meteringPointMasterData,
         DateTimeOffset validFrom,
         DateTimeOffset validTo,
         MeteringPointId? parentId = null,
-        ActorNumber? energySupplier = null) => new(
-        new MeteringPointId(meteringPointMasterData.Identification.Value),
-        validFrom,
-        validTo,
-        new PMGridAreaCode(meteringPointMasterData.GridAreaCode.Value),
-        ActorNumber.Create(meteringPointMasterData.GridAccessProvider),
-        meteringPointMasterData.NeighborGridAreaOwners,
-        MeteringPointMasterDataMapper.ConnectionStateMap.Map(meteringPointMasterData.ConnectionState),
-        MeteringPointMasterDataMapper.MeteringPointTypeMap.Map(meteringPointMasterData.Type),
-        MeteringPointMasterDataMapper.MeteringPointSubTypeMap.Map(meteringPointMasterData.SubType),
-        MeteringPointMasterDataMapper.ResolutionMap.Map(meteringPointMasterData.Resolution.Value),
-        MeteringPointMasterDataMapper.MeasureUnitMap.Map(meteringPointMasterData.Unit),
-        meteringPointMasterData.ProductId.ToString(),
-        parentId,
-        energySupplier);
+        ActorNumber? energySupplier = null) =>
+            new(
+                MeteringPointId: new MeteringPointId(meteringPointMasterData.Identification.Value),
+                ValidFrom: validFrom,
+                ValidTo: validTo,
+                GridAreaCode: new GridAreaCode(meteringPointMasterData.GridAreaCode.Value),
+                GridAccessProvider: ActorNumber.Create(meteringPointMasterData.GridAccessProvider),
+                NeighborGridAreaOwners: meteringPointMasterData.NeighborGridAreaOwners,
+                ConnectionState: ElectricityMarketMasterDataMapper.ConnectionStateMap.Map(meteringPointMasterData.ConnectionState),
+                MeteringPointType: ElectricityMarketMasterDataMapper.MeteringPointTypeMap.Map(meteringPointMasterData.Type),
+                MeteringPointSubType: ElectricityMarketMasterDataMapper.MeteringPointSubTypeMap.Map(meteringPointMasterData.SubType),
+                Resolution: ElectricityMarketMasterDataMapper.ResolutionMap.Map(meteringPointMasterData.Resolution.Value),
+                MeasurementUnit: ElectricityMarketMasterDataMapper.MeasureUnitMap.Map(meteringPointMasterData.Unit),
+                ProductId: meteringPointMasterData.ProductId.ToString(),
+                ParentMeteringPointId: parentId,
+                EnergySupplier: energySupplier);
 }

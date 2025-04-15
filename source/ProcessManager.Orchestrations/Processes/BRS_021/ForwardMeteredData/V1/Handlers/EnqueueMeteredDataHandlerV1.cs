@@ -17,9 +17,9 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
 
@@ -96,7 +96,13 @@ public class EnqueueMeteredDataHandlerV1(
         }
         catch (InvalidOperationException)
         {
-            var meteringPointMasterData = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>().MeteringPointMasterData;
+            var meteringPointMasterData = orchestrationInstance
+                .CustomState
+                .AsType<ForwardMeteredDataCustomStateV1>()
+                .MeteringPointMasterData
+                .Select(mpmd => mpmd.ToV2())
+                .ToList();
+
             var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
             customState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
         }
@@ -136,7 +142,9 @@ public class EnqueueMeteredDataHandlerV1(
     {
         var receiversWithMeteredData = _meteringPointReceiversProvider
             .GetReceiversWithMeteredDataFromMasterDataList(
-                customState.HistoricalMeteringPointMasterData,
+                customState.HistoricalMeteringPointMasterData
+                    .Select(mpmd => mpmd.ToMeteringPointMasterData())
+                    .ToList(),
                 forwardMeteredDataInput);
 
         return receiversWithMeteredData;

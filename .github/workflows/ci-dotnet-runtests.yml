@@ -37,7 +37,7 @@ on:
         default: net8.0
 
 env:
-  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
 
 jobs:
   build_matrix:
@@ -171,7 +171,7 @@ jobs:
       aspnetcore_test_contentroot_variable_value: empty
       solution_file_path: source\ProcessManager.sln
       nuget_cache_key_prefix: ${{ inputs.nuget_cache_key_prefix }}
-      nuget_cache_path: ${{ github.workspace }}/.nuget/packages
+      nuget_cache_path: ${{ github.workspace }}\.nuget\packages
 
       # Matrix parameters
       testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ needs.build_matrix.outputs.pr_number }}

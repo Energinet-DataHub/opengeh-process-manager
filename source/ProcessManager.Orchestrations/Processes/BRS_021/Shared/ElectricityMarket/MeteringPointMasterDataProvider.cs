@@ -37,32 +37,41 @@ public class MeteringPointMasterDataProvider(
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
 
-    internal async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
+    internal Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
         string startDate,
         string endDate)
     {
-        var id = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId);
         var startDateTime = InstantPatternWithOptionalSeconds.Parse(startDate);
         var endDateTime = InstantPatternWithOptionalSeconds.Parse(endDate);
 
         if (!startDateTime.Success || !endDateTime.Success)
         {
-            return [];
+            return Task.FromResult<IReadOnlyCollection<MeteringPointMasterData>>([]);
         }
+
+        return GetMasterData(meteringPointId, startDateTime.Value, endDateTime.Value);
+    }
+
+    internal async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
+        string meteringPointId,
+        Instant startDateTime,
+        Instant endDateTime)
+    {
+        var id = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId);
 
         IEnumerable<ElectricityMarketModels.MeteringPointMasterData> masterDataChanges;
         try
         {
             masterDataChanges = await _electricityMarketViews
-                .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
+                .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime, endDateTime))
                 .ConfigureAwait(false);
         }
         catch (Exception e)
         {
             _logger.LogError(
                 e,
-                $"Failed to get metering point master data for metering point '{meteringPointId}' in the period {startDateTime.Value}--{endDateTime.Value}.");
+                $"Failed to get metering point master data for metering point '{meteringPointId}' in the period {startDateTime}--{endDateTime}.");
 
             return [];
         }
@@ -127,7 +136,7 @@ public class MeteringPointMasterDataProvider(
         {
             _logger.LogError(
                 e,
-                $"Failed to unpack metering point master data for '{meteringPointId}' in the period {startDateTime.Value}--{endDateTime.Value}.");
+                $"Failed to unpack metering point master data for '{meteringPointId}' in the period {startDateTime}--{endDateTime}.");
 
             return [];
         }

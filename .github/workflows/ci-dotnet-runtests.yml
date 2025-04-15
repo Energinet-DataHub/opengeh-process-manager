@@ -36,6 +36,9 @@ on:
         type: string
         default: net8.0
 
+env:
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
 jobs:
   build_matrix:
     name: Build matrix
@@ -154,7 +157,7 @@ jobs:
       fail-fast: false
       matrix:
         project: ${{fromJson(needs.build_matrix.outputs.matrix_builds)}}
-    uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test-monorepo.yml@lanni/add_restore_key
+    uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test-monorepo.yml@lanni/custom_nuget_cache_path
     with:
       azure_integrationtest_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
       azure_integrationtest_subscription_id: ${{ vars.integration_test_azure_subscription_id }}
@@ -168,6 +171,7 @@ jobs:
       aspnetcore_test_contentroot_variable_value: empty
       solution_file_path: source\ProcessManager.sln
       nuget_cache_key_prefix: ${{ inputs.nuget_cache_key_prefix }}
+      nuget_cache_path: ${{ github.workspace }}/.nuget/packages
 
       # Matrix parameters
       testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ needs.build_matrix.outputs.pr_number }}

@@ -167,7 +167,7 @@ jobs:
       aspnetcore_test_contentroot_variable_name: empty
       aspnetcore_test_contentroot_variable_value: empty
       solution_file_path: source\ProcessManager.sln
-      nuget_cache_key_prefix: ${{ inputs.nuget_cache_key_prefix }}
+      nuget_cache_key_prefix: ${{ inputs.nuget_cache_key_prefix }}-${{ runner.os }}
 
       # Matrix parameters
       testproject_artifact_name: pm-tests-${{ matrix.project.name }}-${{ needs.build_matrix.outputs.pr_number }}

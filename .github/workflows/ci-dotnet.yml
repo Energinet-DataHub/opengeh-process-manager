@@ -29,7 +29,7 @@ on:
         description: Cache key prefix
         required: false
         type: string
-        default: nuget-${{ github.ref }}
+        default: nuget-${{ github.ref }}-${{ runner.os }}
 
 jobs:
   build_artifact:

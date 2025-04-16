@@ -399,20 +399,6 @@ public class MeteringPointReceiversProviderTests
             from: DateTimeOffset.MinValue.ToInstant(),
             to: DateTimeOffset.MaxValue.ToInstant());
 
-        // var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
-        //     .WithStartDateTime("2025-02-01T23:00:00Z")
-        //     .WithEndDateTime("2025-03-01T00:00:00Z")
-        //     .WithResolution(Resolution.Hourly.Name)
-        //     .WithMeteredData(
-        //         Enumerable.Range(1, 649)
-        //             .Select(
-        //                 i => new ForwardMeteredDataInputV1.MeteredData(
-        //                     Position: i.ToString(),
-        //                     EnergyQuantity: "1.4",
-        //                     QuantityQuality: Quality.AsProvided.Name))
-        //             .ToList())
-        //     .Build();
-
         var findReceiversInput = CreateFindReceiversInput(
             [masterData],
             startDateTime: Instant.FromUtc(2025, 02, 01, 23, 00),
@@ -436,20 +422,6 @@ public class MeteringPointReceiversProviderTests
             from: DateTimeOffset.MinValue.ToInstant(),
             to: new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero).ToInstant());
 
-        // var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
-        //     .WithStartDateTime("2025-02-01T23:00:00Z")
-        //     .WithEndDateTime("2025-03-01T00:00:00Z")
-        //     .WithResolution(Resolution.Hourly.Name)
-        //     .WithMeteredData(
-        //         Enumerable.Range(1, 649)
-        //             .Select(
-        //                 i => new ForwardMeteredDataInputV1.MeteredData(
-        //                     Position: i.ToString(),
-        //                     EnergyQuantity: "1.4",
-        //                     QuantityQuality: Quality.AsProvided.Name))
-        //             .ToList())
-        //     .Build();
-
         var findReceiversInput = CreateFindReceiversInput(
             [masterData],
             startDateTime: Instant.FromUtc(2025, 02, 01, 23, 00),
@@ -472,20 +444,6 @@ public class MeteringPointReceiversProviderTests
             resolution: Resolution.Hourly,
             from: new DateTimeOffset(2025, 2, 1, 23, 0, 0, TimeSpan.Zero).ToInstant(),
             to: DateTimeOffset.MaxValue.ToInstant());
-
-        // var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
-        //     .WithStartDateTime("2025-02-01T23:00:00Z")
-        //     .WithEndDateTime("2025-03-01T00:00:00Z")
-        //     .WithResolution(Resolution.Hourly.Name)
-        //     .WithMeteredData(
-        //         Enumerable.Range(1, 649)
-        //             .Select(
-        //                 i => new ForwardMeteredDataInputV1.MeteredData(
-        //                     Position: i.ToString(),
-        //                     EnergyQuantity: "1.4",
-        //                     QuantityQuality: Quality.AsProvided.Name))
-        //             .ToList())
-        //     .Build();
 
         var findReceiversInput = CreateFindReceiversInput(
             [masterData],
@@ -515,20 +473,6 @@ public class MeteringPointReceiversProviderTests
             resolution: Resolution.Daily,
             from: new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero).ToInstant(),
             to: DateTimeOffset.MaxValue.ToInstant());
-
-        // var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
-        //     .WithStartDateTime("2025-02-01T00:00:00Z")
-        //     .WithEndDateTime("2025-04-01T00:00:00Z")
-        //     .WithResolution(Resolution.Daily.Name)
-        //     .WithMeteredData(
-        //         Enumerable.Range(1, 59)
-        //             .Select(
-        //                 i => new ForwardMeteredDataInputV1.MeteredData(
-        //                     Position: i.ToString(),
-        //                     EnergyQuantity: "1.4",
-        //                     QuantityQuality: Quality.AsProvided.Name))
-        //             .ToList())
-        //     .Build();
 
         var findReceiversInput = CreateFindReceiversInput(
             [masterData1, masterData2],
@@ -566,20 +510,6 @@ public class MeteringPointReceiversProviderTests
             from: new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero).ToInstant(),
             to: new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero).ToInstant());
 
-        // var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
-        //     .WithStartDateTime("2025-02-01T00:00:00Z")
-        //     .WithEndDateTime("2025-04-01T00:00:00Z")
-        //     .WithResolution(Resolution.Daily.Name)
-        //     .WithMeteredData(
-        //         Enumerable.Range(1, 59)
-        //             .Select(
-        //                 i => new ForwardMeteredDataInputV1.MeteredData(
-        //                     Position: i.ToString(),
-        //                     EnergyQuantity: "1.4",
-        //                     QuantityQuality: Quality.AsProvided.Name))
-        //             .ToList())
-        //     .Build();
-
         var findReceiversInput = CreateFindReceiversInput(
             [masterData1, masterData2],
             startDateTime: Instant.FromUtc(2025, 02, 01, 00, 00),
@@ -615,20 +545,6 @@ public class MeteringPointReceiversProviderTests
             resolution: Resolution.Daily,
             from: new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero).ToInstant(),
             to: DateTimeOffset.MaxValue.ToInstant());
-
-        // var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
-        //     .WithStartDateTime("2025-02-01T00:00:00Z")
-        //     .WithEndDateTime("2025-04-01T00:00:00Z")
-        //     .WithResolution(Resolution.Daily.Name)
-        //     .WithMeteredData(
-        //         Enumerable.Range(1, 59)
-        //             .Select(
-        //                 i => new ForwardMeteredDataInputV1.MeteredData(
-        //                     Position: i.ToString(),
-        //                     EnergyQuantity: "1.4",
-        //                     QuantityQuality: Quality.AsProvided.Name))
-        //             .ToList())
-        //     .Build();
 
         var findReceiversInput = CreateFindReceiversInput(
             [masterData1, masterData2],
@@ -671,20 +587,6 @@ public class MeteringPointReceiversProviderTests
             resolution: Resolution.Daily,
             from: new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero).ToInstant(),
             to: DateTimeOffset.MaxValue.ToInstant());
-
-        // var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
-        //     .WithStartDateTime("2025-02-01T00:00:00Z")
-        //     .WithEndDateTime("2025-05-01T00:00:00Z")
-        //     .WithResolution(Resolution.Daily.Name)
-        //     .WithMeteredData(
-        //         Enumerable.Range(1, 89)
-        //             .Select(
-        //                 i => new ForwardMeteredDataInputV1.MeteredData(
-        //                     Position: i.ToString(),
-        //                     EnergyQuantity: "1.4",
-        //                     QuantityQuality: Quality.AsProvided.Name))
-        //             .ToList())
-        //     .Build();
 
         var findReceiversInput = CreateFindReceiversInput(
             [masterData1, masterData2, masterData3],
@@ -733,20 +635,6 @@ public class MeteringPointReceiversProviderTests
             from: new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero).ToInstant(),
             to: new DateTimeOffset(2025, 5, 1, 0, 0, 0, TimeSpan.Zero).ToInstant());
 
-        // var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
-        //     .WithStartDateTime("2025-02-01T00:00:00Z")
-        //     .WithEndDateTime("2025-05-01T00:00:00Z")
-        //     .WithResolution(Resolution.Daily.Name)
-        //     .WithMeteredData(
-        //         Enumerable.Range(1, 89)
-        //             .Select(
-        //                 i => new ForwardMeteredDataInputV1.MeteredData(
-        //                     Position: i.ToString(),
-        //                     EnergyQuantity: "1.4",
-        //                     QuantityQuality: Quality.AsProvided.Name))
-        //             .ToList())
-        //     .Build();
-
         var findReceiversInput = CreateFindReceiversInput(
             [masterData1, masterData2, masterData3],
             startDateTime: Instant.FromUtc(2025, 02, 01, 00, 00),
@@ -794,20 +682,6 @@ public class MeteringPointReceiversProviderTests
             from: new DateTimeOffset(2025, 4, 1, 0, 0, 0, TimeSpan.Zero).ToInstant(),
             to: DateTimeOffset.MaxValue.ToInstant());
 
-        // var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
-        //     .WithStartDateTime("2025-02-01T00:00:00Z")
-        //     .WithEndDateTime("2025-05-01T00:00:00Z")
-        //     .WithResolution(Resolution.Daily.Name)
-        //     .WithMeteredData(
-        //         Enumerable.Range(1, 89)
-        //             .Select(
-        //                 i => new ForwardMeteredDataInputV1.MeteredData(
-        //                     Position: i.ToString(),
-        //                     EnergyQuantity: "1.4",
-        //                     QuantityQuality: Quality.AsProvided.Name))
-        //             .ToList())
-        //     .Build();
-
         var findReceiversInput = CreateFindReceiversInput(
             [masterData1, masterData2, masterData3],
             startDateTime: Instant.FromUtc(2025, 02, 01, 00, 00),
@@ -854,20 +728,6 @@ public class MeteringPointReceiversProviderTests
             resolution: Resolution.Daily,
             from: new DateTimeOffset(2025, 4, 15, 0, 0, 0, TimeSpan.Zero).ToInstant(),
             to: DateTimeOffset.MaxValue.ToInstant());
-
-        // var forwardMeteredDataInput = new ForwardMeteredDataInputV1Builder()
-        //     .WithStartDateTime("2025-02-01T00:00:00Z")
-        //     .WithEndDateTime("2025-05-01T00:00:00Z")
-        //     .WithResolution(Resolution.Daily.Name)
-        //     .WithMeteredData(
-        //         Enumerable.Range(1, 89)
-        //             .Select(
-        //                 i => new ForwardMeteredDataInputV1.MeteredData(
-        //                     Position: i.ToString(),
-        //                     EnergyQuantity: "1.4",
-        //                     QuantityQuality: Quality.AsProvided.Name))
-        //             .ToList())
-        //     .Build();
 
         var findReceiversInput = CreateFindReceiversInput(
             [masterData1, masterData2, masterData3],
@@ -924,66 +784,6 @@ public class MeteringPointReceiversProviderTests
                 : energySupplier ?? _defaultEnergySupplier);
     }
 
-    // private ForwardMeteredDataInputV1 CreateForwardMeteredDataInput(
-    //     IReadOnlyCollection<MeteringPointMasterData> masterData)
-    // {
-    //     var currentPosition = 1;
-    //     var meteredData = masterData
-    //         .OrderBy(mpmd => mpmd.ValidFrom)
-    //         .SelectMany(
-    //             mpmd =>
-    //             {
-    //                 var resolutionAsDuration = mpmd.Resolution switch
-    //                 {
-    //                     var r when r == Resolution.QuarterHourly => Duration.FromMinutes(15),
-    //                     var r when r == Resolution.Hourly => Duration.FromHours(1),
-    //                     var r when r == Resolution.Daily => Duration.FromDays(1),
-    //                     _ => throw new ArgumentOutOfRangeException(
-    //                         paramName: nameof(mpmd.Resolution),
-    //                         actualValue: mpmd.Resolution.Name,
-    //                         message: "Invalid resolution"),
-    //                 };
-    //
-    //                 var currentTimestamp = mpmd.ValidFrom.ToInstant();
-    //                 var meteredDataForMasterData = new List<ForwardMeteredDataInputV1.MeteredData>();
-    //                 while (currentTimestamp < mpmd.ValidTo.ToInstant())
-    //                 {
-    //                     meteredDataForMasterData.Add(
-    //                         new ForwardMeteredDataInputV1.MeteredData(
-    //                             Position: currentPosition.ToString(),
-    //                             EnergyQuantity: "1.4",
-    //                             QuantityQuality: Quality.AsProvided.Name));
-    //
-    //                     currentTimestamp = currentTimestamp.Plus(resolutionAsDuration);
-    //
-    //                     currentPosition++;
-    //                 }
-    //
-    //                 return meteredDataForMasterData;
-    //             })
-    //         .ToList();
-    //
-    //     var from = InstantPattern.General.Format(masterData.First().ValidFrom.ToInstant());
-    //     var to = InstantPattern.General.Format(masterData.Last().ValidTo.ToInstant());
-    //
-    //     return new ForwardMeteredDataInputV1(
-    //         ActorMessageId: "1",
-    //         TransactionId: "2",
-    //         ActorNumber: "1234567890123",
-    //         ActorRole: ActorRole.GridAccessProvider.Name,
-    //         BusinessReason: BusinessReason.PeriodicMetering.Name,
-    //         MeteringPointId: "1234567890123",
-    //         MeteringPointType: masterData.First().MeteringPointType.Name,
-    //         ProductNumber: "3",
-    //         MeasureUnit: MeasurementUnit.KilowattHour.Name,
-    //         RegistrationDateTime: from,
-    //         Resolution: masterData.First().Resolution.Name,
-    //         StartDateTime: from,
-    //         EndDateTime: to,
-    //         GridAccessProviderNumber: masterData.First().GridAccessProvider.Value,
-    //         MeteredDataList: meteredData);
-    // }
-
     private MeteringPointReceiversProvider.FindReceiversInput CreateFindReceiversInput(
         IReadOnlyCollection<MeteringPointMasterData> masterData,
         Resolution? resolution = null,
@@ -1037,35 +837,4 @@ public class MeteringPointReceiversProviderTests
             MasterData: masterData,
             MeteredData: meteredData);
     }
-
-    // private MeteringPointReceiversProvider.FindReceiversInput CreateFindReceiversInput(
-    //     IReadOnlyCollection<MeteringPointMasterData> masterData,
-    //     ForwardMeteredDataInputV1 forwardMeteredDataInput)
-    // {
-    //     var meteredData = forwardMeteredDataInput.MeteredDataList
-    //         .Select(
-    //             md =>
-    //             {
-    //                 var position = int.Parse(md.Position!);
-    //
-    //                 var energyQuantity = decimal.Parse(
-    //                     md.EnergyQuantity!,
-    //                     NumberFormatInfo.InvariantInfo);
-    //
-    //                 // The input is already validated, so converting these should not fail.
-    //                 return new ReceiversWithMeasureData.MeasureData(
-    //                     Position: position,
-    //                     EnergyQuantity: energyQuantity,
-    //                     QuantityQuality: Quality.FromName(md.QuantityQuality!));
-    //             })
-    //         .ToList();
-    //
-    //     return new MeteringPointReceiversProvider.FindReceiversInput(
-    //         MeteringPointId: forwardMeteredDataInput.MeteringPointId!,
-    //         StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime!).Value,
-    //         EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value,
-    //         Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution!),
-    //         MasterData: masterData,
-    //         MeteredData: meteredData);
-    // }
 }

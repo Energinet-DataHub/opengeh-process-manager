@@ -816,6 +816,54 @@ public class MeteringPointMasterDataProviderTests
                     {
                         Identification = new MeteringPointIdentification("parent-metering-point-id-two"),
                         ValidFrom = Instant.FromUtc(2021, 3, 1, 0, 0),
+                        ValidTo = Instant.FromUtc(2021, 3, 16, 0, 0),
+                        GridAreaCode = new GridAreaCode("804"),
+                        GridAccessProvider = "9999999999999",
+                        ConnectionState = ConnectionState.Connected,
+                        Type = MeteringPointType.Consumption,
+                        SubType = MeteringPointSubType.Physical,
+                        Resolution = new Resolution("PT1H"),
+                        Unit = MeasureUnit.kWh,
+                        ProductId = ProductId.PowerActive,
+                        ParentIdentification = null,
+                        EnergySupplier = "9090909090909",
+                    },
+                     new()
+                    {
+                        Identification = new MeteringPointIdentification("parent-metering-point-id-two"),
+                        ValidFrom = Instant.FromUtc(2021, 3, 16, 0, 0),
+                        ValidTo = Instant.FromUtc(2021, 4, 1, 0, 0),
+                        GridAreaCode = new GridAreaCode("804"),
+                        GridAccessProvider = "9999999999999",
+                        ConnectionState = ConnectionState.Connected,
+                        Type = MeteringPointType.Consumption,
+                        SubType = MeteringPointSubType.Physical,
+                        Resolution = new Resolution("PT1H"),
+                        Unit = MeasureUnit.kWh,
+                        ProductId = ProductId.PowerActive,
+                        ParentIdentification = null,
+                        EnergySupplier = "8989898989898",
+                    },
+                     new()
+                    {
+                        Identification = new MeteringPointIdentification("parent-metering-point-id-two"),
+                        ValidFrom = Instant.FromUtc(2021, 4, 1, 0, 0),
+                        ValidTo = Instant.FromUtc(2021, 4, 16, 0, 0),
+                        GridAreaCode = new GridAreaCode("804"),
+                        GridAccessProvider = "9999999999999",
+                        ConnectionState = ConnectionState.Connected,
+                        Type = MeteringPointType.Consumption,
+                        SubType = MeteringPointSubType.Physical,
+                        Resolution = new Resolution("PT1H"),
+                        Unit = MeasureUnit.kWh,
+                        ProductId = ProductId.PowerActive,
+                        ParentIdentification = null,
+                        EnergySupplier = "7878787878787",
+                    },
+                     new()
+                    {
+                        Identification = new MeteringPointIdentification("parent-metering-point-id-two"),
+                        ValidFrom = Instant.FromUtc(2021, 4, 16, 0, 0),
                         ValidTo = Instant.FromUtc(2021, 5, 1, 0, 0),
                         GridAreaCode = new GridAreaCode("804"),
                         GridAccessProvider = "9999999999999",
@@ -826,37 +874,7 @@ public class MeteringPointMasterDataProviderTests
                         Unit = MeasureUnit.kWh,
                         ProductId = ProductId.PowerActive,
                         ParentIdentification = null,
-                        EnergySuppliers =
-                        [
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("parent-metering-point-id-two"),
-                                EnergySupplier = "9090909090909",
-                                StartDate = Instant.FromUtc(2021, 3, 1, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 3, 16, 0, 0),
-                            },
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("parent-metering-point-id-two"),
-                                EnergySupplier = "8989898989898",
-                                StartDate = Instant.FromUtc(2021, 3, 16, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 4, 1, 0, 0),
-                            },
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("parent-metering-point-id-two"),
-                                EnergySupplier = "7878787878787",
-                                StartDate = Instant.FromUtc(2021, 4, 1, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 4, 16, 0, 0),
-                            },
-                            new()
-                            {
-                                Identification = new MeteringPointIdentification("parent-metering-point-id-two"),
-                                EnergySupplier = "6767676767676",
-                                StartDate = Instant.FromUtc(2021, 4, 16, 0, 0),
-                                EndDate = Instant.FromUtc(2021, 5, 1, 0, 0),
-                            },
-                        ],
+                        EnergySupplier = "6767676767676",
                     },
                 ]),
                 _ => throw new ArgumentOutOfRangeException(

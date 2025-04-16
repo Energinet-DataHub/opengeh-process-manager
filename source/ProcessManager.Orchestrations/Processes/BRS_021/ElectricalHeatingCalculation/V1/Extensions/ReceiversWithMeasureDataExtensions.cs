@@ -19,12 +19,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 
 public static class ReceiversWithMeasureDataExtensions
 {
-    public static List<ElectricalHeatingCalculationReceiversWithMeasureDataV1> ToElectricalHeatingCalculationReceiversWithMeasureDataV1(
+    public static List<ReceiversWithMeasureDataV1> ToElectricalHeatingCalculationReceiversWithMeasureDataV1(
         this IReadOnlyCollection<ReceiversWithMeasureData> receiversWithMeasureData)
     {
         return receiversWithMeasureData
             .Select(
-                rmd => new ElectricalHeatingCalculationReceiversWithMeasureDataV1(
+                rmd => new ReceiversWithMeasureDataV1(
                     Actors: rmd.Receivers.ToReceivers(),
                     Resolution: rmd.Resolution,
                     MeasureUnit: rmd.MeasureUnit,
@@ -34,22 +34,22 @@ public static class ReceiversWithMeasureDataExtensions
             .ToList();
     }
 
-    private static IReadOnlyCollection<ElectricalHeatingCalculationReceiversWithMeasureDataV1.Receiver> ToReceivers(
+    private static IReadOnlyCollection<ReceiversWithMeasureDataV1.Receiver> ToReceivers(
         this IReadOnlyCollection<ReceiversWithMeasureData.ActorReceiver> receivers)
     {
         return receivers.Select(
-                r => new ElectricalHeatingCalculationReceiversWithMeasureDataV1.Receiver(
+                r => new ReceiversWithMeasureDataV1.Receiver(
                     ActorNumber: r.ActorNumber,
                     ActorRole: r.ActorRole))
             .ToList();
     }
 
-    private static IReadOnlyCollection<ElectricalHeatingCalculationReceiversWithMeasureDataV1.MeasureData> ToMeasureData(
+    private static IReadOnlyCollection<ReceiversWithMeasureDataV1.MeasureData> ToMeasureData(
         this IReadOnlyCollection<ReceiversWithMeasureData.MeasureData> measuredata)
     {
         return measuredata
             .Select(
-                md => new ElectricalHeatingCalculationReceiversWithMeasureDataV1.MeasureData(
+                md => new ReceiversWithMeasureDataV1.MeasureData(
                     Position: md.Position,
                     EnergyQuantity: md.EnergyQuantity!.Value, // TODO: Can this be null?
                     QuantityQuality: md.QuantityQuality!)) // TODO: Can this be null?

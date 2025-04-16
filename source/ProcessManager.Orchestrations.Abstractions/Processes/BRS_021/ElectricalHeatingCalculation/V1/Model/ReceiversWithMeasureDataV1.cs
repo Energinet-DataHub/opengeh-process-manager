@@ -17,13 +17,13 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 
-public record ElectricalHeatingCalculationReceiversWithMeasureDataV1(
-    IReadOnlyCollection<ElectricalHeatingCalculationReceiversWithMeasureDataV1.Receiver> Actors,
+public record ReceiversWithMeasureDataV1(
+    IReadOnlyCollection<ReceiversWithMeasureDataV1.Receiver> Actors,
     Resolution Resolution,
     MeasurementUnit MeasureUnit,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
-    IReadOnlyCollection<ElectricalHeatingCalculationReceiversWithMeasureDataV1.MeasureData> MeasureDataList)
+    IReadOnlyCollection<ReceiversWithMeasureDataV1.MeasureData> MeasureDataList)
 {
     public sealed record Receiver(ActorNumber ActorNumber, ActorRole ActorRole);
 

@@ -20,5 +20,5 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// TODO: Update with actual required values for enqueueing actor messages
 /// </summary>
 public record EnqueueActorMessagesForMeteringPointV1(
-    IReadOnlyCollection<ElectricalHeatingCalculationReceiversWithMeasureDataV1> ReceiversWithMeasureData)
+    IReadOnlyCollection<ReceiversWithMeasureDataV1> ReceiversWithMeasureData)
         : IEnqueueDataDto;

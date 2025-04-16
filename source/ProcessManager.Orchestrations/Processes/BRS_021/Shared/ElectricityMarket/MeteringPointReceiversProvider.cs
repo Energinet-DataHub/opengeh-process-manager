@@ -54,10 +54,6 @@ public class MeteringPointReceiversProvider(
         // Ensure master data is sorted by ValidFrom
         var masterDataDictionary = input.MasterData.ToDictionary(mpmd => mpmd.ValidFrom.ToInstant());
 
-        // The input is already validated, so this parsing should never fail
-        // var inputPeriodStart = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
-        // var inputPeriodEnd = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
-
         var allReceivers = CalculateReceiversWithMeteredDataForMasterDataPeriods(
             input.StartDateTime,
             input.EndDateTime,

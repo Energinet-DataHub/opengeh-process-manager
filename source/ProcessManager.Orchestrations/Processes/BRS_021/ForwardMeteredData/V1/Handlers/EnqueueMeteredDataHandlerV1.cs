@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Globalization;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
@@ -140,12 +141,45 @@ public class EnqueueMeteredDataHandlerV1(
         ForwardMeteredDataCustomStateV2 customState,
         ForwardMeteredDataInputV1 forwardMeteredDataInput)
     {
+        // The input is already validated, so this parsing should never fail
+        var meteringPointId = forwardMeteredDataInput.MeteringPointId ?? throw new NullReferenceException("MeteringPointId was null");
+        var inputPeriodStart = InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value;
+        var inputPeriodEnd = InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value;
+        var resolution = Resolution.FromName(forwardMeteredDataInput.Resolution!);
+
+        var meteringPointMasterData = customState.HistoricalMeteringPointMasterData
+            .Select(mpmd => mpmd.ToMeteringPointMasterData())
+            .ToList();
+
+        var meteredDataList = forwardMeteredDataInput.MeteredDataList
+            .Select(
+                md =>
+                {
+                    // TODO: Shouldn't position be an "int?" in the input?
+                    var position = int.Parse(md.Position!);
+
+                    var canParseEnergyQuantity = decimal.TryParse(
+                        md.EnergyQuantity,
+                        NumberFormatInfo.InvariantInfo,
+                        out var energyQuantity);
+
+                    // The input is already validated, so converting these should not fail.
+                    return new ReceiversWithMeteredDataV1.AcceptedMeteredData(
+                        Position: position,
+                        EnergyQuantity: canParseEnergyQuantity ? energyQuantity : null,
+                        QuantityQuality: Quality.FromNameOrDefault(md.QuantityQuality));
+                })
+            .ToList();
+
         var receiversWithMeteredData = _meteringPointReceiversProvider
             .GetReceiversWithMeteredDataFromMasterDataList(
-                customState.HistoricalMeteringPointMasterData
-                    .Select(mpmd => mpmd.ToMeteringPointMasterData())
-                    .ToList(),
-                forwardMeteredDataInput);
+                new MeteringPointReceiversProvider.FindReceiversInput(
+                    meteringPointId,
+                    inputPeriodStart,
+                    inputPeriodEnd,
+                    resolution,
+                    meteringPointMasterData,
+                    meteredDataList));
 
         return receiversWithMeteredData;
     }

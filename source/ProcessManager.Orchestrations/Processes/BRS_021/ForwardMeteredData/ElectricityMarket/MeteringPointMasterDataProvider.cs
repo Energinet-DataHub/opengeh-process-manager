@@ -149,7 +149,7 @@ public class MeteringPointMasterDataProvider(
     private IReadOnlyCollection<PMMeteringPointMasterData> FlattenMasterDataForParent(
         MeteringPointMasterData meteringPointMasterData)
     {
-        if (meteringPointMasterData.EnergySuppliers.Count <= 0)
+        if (meteringPointMasterData.EnergySupplier == null)
         {
             return
             [
@@ -160,49 +160,51 @@ public class MeteringPointMasterDataProvider(
             ];
         }
 
-        return meteringPointMasterData.EnergySuppliers
-            .Select(
-                meteringPointEnergySupplier =>
-                    CreatePMMeteringPointMasterData(
-                        meteringPointMasterData,
-                        meteringPointEnergySupplier.StartDate.ToDateTimeOffset(),
-                        meteringPointEnergySupplier.EndDate.ToDateTimeOffset(),
-                        null,
-                        ActorNumber.Create(meteringPointEnergySupplier.EnergySupplier)))
-            .ToList()
-            .AsReadOnly();
+        return
+        [
+            CreatePMMeteringPointMasterData(
+                meteringPointMasterData,
+                meteringPointMasterData.ValidFrom.ToDateTimeOffset(),
+                meteringPointMasterData.ValidTo.ToDateTimeOffset(),
+                null,
+                ActorNumber.Create(meteringPointMasterData.EnergySupplier)),
+        ];
     }
 
     private IReadOnlyCollection<PMMeteringPointMasterData> FlattenMasterDataForChild(
         MeteringPointMasterData meteringPointMasterData,
-        IReadOnlyDictionary<string, IReadOnlyCollection<MeteringPointMasterData>> parentMeteringPointMasterData) =>
-        parentMeteringPointMasterData[meteringPointMasterData.ParentIdentification!.Value]
-                .SelectMany(
-                    mpmd =>
+        IReadOnlyDictionary<string, IReadOnlyCollection<MeteringPointMasterData>> parentMeteringPointMasterData)
+    {
+        var result = parentMeteringPointMasterData[meteringPointMasterData.ParentIdentification!.Value]
+            .SelectMany((MeteringPointMasterData mpmd) =>
+            {
+                if (mpmd.EnergySupplier == null)
+                {
+                    return (IEnumerable<PMMeteringPointMasterData>)new[]
                     {
-                        if (mpmd.EnergySuppliers.Count <= 0)
-                        {
-                            return
-                            [
-                                CreatePMMeteringPointMasterData(
-                                    meteringPointMasterData,
-                                    mpmd.ValidFrom.ToDateTimeOffset(),
-                                    mpmd.ValidTo.ToDateTimeOffset(),
-                                    new MeteringPointId(mpmd.Identification.Value)),
-                            ];
-                        }
+                        CreatePMMeteringPointMasterData(
+                            meteringPointMasterData,
+                            mpmd.ValidFrom.ToDateTimeOffset(),
+                            mpmd.ValidTo.ToDateTimeOffset(),
+                            new MeteringPointId(mpmd.Identification.Value)),
+                    };
+                }
 
-                        return mpmd.EnergySuppliers
-                            .Select(
-                                mpes => CreatePMMeteringPointMasterData(
-                                    meteringPointMasterData,
-                                    mpes.StartDate.ToDateTimeOffset(),
-                                    mpes.EndDate.ToDateTimeOffset(),
-                                    new MeteringPointId(mpmd.Identification.Value),
-                                    ActorNumber.Create(mpes.EnergySupplier)));
-                    })
-                .ToList()
-                .AsReadOnly();
+                return new[]
+                {
+                    CreatePMMeteringPointMasterData(
+                        meteringPointMasterData,
+                        mpmd.ValidFrom.ToDateTimeOffset(),
+                        mpmd.ValidTo.ToDateTimeOffset(),
+                        new MeteringPointId(mpmd.Identification.Value),
+                        ActorNumber.Create(mpmd.EnergySupplier)),
+                };
+            })
+            .ToList()
+            .AsReadOnly();
+
+        return result;
+    }
 
     private PMMeteringPointMasterData CreatePMMeteringPointMasterData(
         MeteringPointMasterData meteringPointMasterData,

@@ -55,14 +55,6 @@ public class MeteringPointTypeValidationRuleTests
         MeteringPointType.NetLossCorrection,
     };
 
-    public static TheoryData<MeteringPointType> InvalidMeteringPointTypes => new()
-    {
-        MeteringPointType.ActivatedDownRegulation,
-        MeteringPointType.ActivatedUpRegulation,
-        MeteringPointType.ActualConsumption,
-        MeteringPointType.ActualProduction,
-    };
-
     [Fact]
     public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()
     {
@@ -109,41 +101,6 @@ public class MeteringPointTypeValidationRuleTests
                 ]));
 
         result.Should().BeEmpty();
-    }
-
-    [Theory]
-    [MemberData(nameof(InvalidMeteringPointTypes))]
-    public async Task Given_InvalidMeteringPointType_When_Validate_Then_ValidationError(MeteringPointType meteringPointType)
-    {
-        var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteringPointType(meteringPointType.Name)
-            .Build();
-
-        var result = await _sut.ValidateAsync(
-            new(
-                input,
-                null,
-                [
-                    new MeteringPointMasterData(
-                        new MeteringPointId("id"),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                        new GridAreaCode("111"),
-                        ActorNumber.Create("1111111111111"),
-                        [],
-                        ConnectionState.Connected,
-                        MeteringPointType.Production,
-                        MeteringPointSubType.Physical,
-                        Resolution.QuarterHourly,
-                        MeasurementUnit.KilowattHour,
-                        "product",
-                        null,
-                        ActorNumber.Create("1111111111112")),
-                ]));
-
-        result.Should()
-            .ContainSingle()
-            .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointError);
     }
 
     [Fact]

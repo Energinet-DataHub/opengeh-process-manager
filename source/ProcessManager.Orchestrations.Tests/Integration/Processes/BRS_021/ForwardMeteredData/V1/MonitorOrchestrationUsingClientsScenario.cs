@@ -637,16 +637,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             Unit = MeasureUnit.kWh,
             ProductId = ProductId.Tariff,
             ParentIdentification = null,
-            EnergySuppliers =
-            [
-                new MeteringPointEnergySupplier
-                {
-                    Identification = new MeteringPointIdentification(MeteringPointId),
-                    EnergySupplier = EnergySupplier,
-                    StartDate = _validFrom,
-                    EndDate = _validTo,
-                },
-            ],
+            EnergySupplier = EnergySupplier,
         };
 
         // IEnumerable<HistoricalMeteringPointMasterData>

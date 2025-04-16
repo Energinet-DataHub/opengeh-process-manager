@@ -19,23 +19,23 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 
 public static class ReceiversWithMeasureDataExtensions
 {
-    public static List<ReceiversWithMeasureDataV1> ToElectricalHeatingCalculationReceiversWithMeasureDataV1(
-        this IReadOnlyCollection<ReceiversWithMeasureData> receiversWithMeasureData)
+    public static List<ReceiversWithMeasureDataV1> ToElectricalHeatingReceiversWithMeasureDataV1(
+        this IEnumerable<ReceiversWithMeasureData> receiversWithMeasureData)
     {
         return receiversWithMeasureData
             .Select(
                 rmd => new ReceiversWithMeasureDataV1(
-                    Actors: rmd.Receivers.ToReceivers(),
+                    Actors: rmd.Receivers.ToElectricalHeatingReceivers(),
                     Resolution: rmd.Resolution,
                     MeasureUnit: rmd.MeasureUnit,
                     StartDateTime: rmd.StartDateTime,
                     EndDateTime: rmd.EndDateTime,
-                    MeasureDataList: rmd.MeasureDataList.ToMeasureData()))
+                    MeasureDataList: rmd.MeasureDataList.ToElectricalHeatingMeasureData()))
             .ToList();
     }
 
-    private static IReadOnlyCollection<ReceiversWithMeasureDataV1.Receiver> ToReceivers(
-        this IReadOnlyCollection<ReceiversWithMeasureData.ActorReceiver> receivers)
+    private static List<ReceiversWithMeasureDataV1.Receiver> ToElectricalHeatingReceivers(
+        this IEnumerable<ReceiversWithMeasureData.ActorReceiver> receivers)
     {
         return receivers.Select(
                 r => new ReceiversWithMeasureDataV1.Receiver(
@@ -44,10 +44,10 @@ public static class ReceiversWithMeasureDataExtensions
             .ToList();
     }
 
-    private static IReadOnlyCollection<ReceiversWithMeasureDataV1.MeasureData> ToMeasureData(
-        this IReadOnlyCollection<ReceiversWithMeasureData.MeasureData> measuredata)
+    private static List<ReceiversWithMeasureDataV1.MeasureData> ToElectricalHeatingMeasureData(
+        this IEnumerable<ReceiversWithMeasureData.MeasureData> measureData)
     {
-        return measuredata
+        return measureData
             .Select(
                 md => new ReceiversWithMeasureDataV1.MeasureData(
                     Position: md.Position,

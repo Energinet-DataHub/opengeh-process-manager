@@ -19,23 +19,23 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public static class ReceiversWithMeasureDataExtensions
 {
-    public static List<ReceiversWithMeteredDataV1> ToReceiversWithMeteredDataV1(
-        this IReadOnlyCollection<ReceiversWithMeasureData> receiversWithMeasureData)
+    public static List<ReceiversWithMeteredDataV1> ToForwardMeteredDataReceiversWithMeteredDataV1(
+        this IEnumerable<ReceiversWithMeasureData> receiversWithMeasureData)
     {
         return receiversWithMeasureData
             .Select(
                 rmd => new ReceiversWithMeteredDataV1(
-                    Actors: rmd.Receivers.ToMarketActorRecipientV1(),
+                    Actors: rmd.Receivers.ToForwardMeteredDataMarketActorRecipientV1(),
                     Resolution: rmd.Resolution,
                     MeasureUnit: rmd.MeasureUnit,
                     StartDateTime: rmd.StartDateTime,
                     EndDateTime: rmd.EndDateTime,
-                    MeteredData: rmd.MeasureDataList.ToAcceptedMeteredData()))
+                    MeteredData: rmd.MeasureDataList.ToForwardMeteredDataAcceptedMeteredData()))
             .ToList();
     }
 
-    private static IReadOnlyCollection<MarketActorRecipientV1> ToMarketActorRecipientV1(
-        this IReadOnlyCollection<ReceiversWithMeasureData.ActorReceiver> receivers)
+    private static List<MarketActorRecipientV1> ToForwardMeteredDataMarketActorRecipientV1(
+        this IEnumerable<ReceiversWithMeasureData.ActorReceiver> receivers)
     {
         return receivers.Select(
                 r => new MarketActorRecipientV1(
@@ -44,8 +44,8 @@ public static class ReceiversWithMeasureDataExtensions
             .ToList();
     }
 
-    private static IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> ToAcceptedMeteredData(
-        this IReadOnlyCollection<ReceiversWithMeasureData.MeasureData> measuredata)
+    private static List<ReceiversWithMeteredDataV1.AcceptedMeteredData> ToForwardMeteredDataAcceptedMeteredData(
+        this IEnumerable<ReceiversWithMeasureData.MeasureData> measuredata)
     {
         return measuredata
             .Select(

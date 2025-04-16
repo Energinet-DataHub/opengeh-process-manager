@@ -183,7 +183,7 @@ public class EnqueueMeteredDataHandlerV1(
                     meteringPointMasterData,
                     measureDataList));
 
-        return receiversWithMeteredData.ToReceiversWithMeteredDataV1();
+        return receiversWithMeteredData.ToForwardMeteredDataReceiversWithMeteredDataV1();
     }
 
     private async Task EnqueueAcceptedActorMessagesAsync(

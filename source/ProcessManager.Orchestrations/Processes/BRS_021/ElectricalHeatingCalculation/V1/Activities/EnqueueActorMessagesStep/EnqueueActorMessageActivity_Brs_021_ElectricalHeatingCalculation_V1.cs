@@ -82,7 +82,7 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
                         // so rerunning the activity generates the same idempotency keys as previous run.
                         idempotencyKey: Guid.NewGuid(),
                         data: new EnqueueActorMessagesForMeteringPointV1(
-                            ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingCalculationReceiversWithMeasureDataV1()))
+                            ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingReceiversWithMeasureDataV1()))
                     .ConfigureAwait(false);
             }
         }

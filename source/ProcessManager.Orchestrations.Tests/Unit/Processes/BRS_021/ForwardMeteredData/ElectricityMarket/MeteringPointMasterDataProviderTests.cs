@@ -524,7 +524,7 @@ public class MeteringPointMasterDataProviderTests
                                     "two-master-data-with-two-energy-suppliers-please"),
                             ValidFrom = Instant.FromUtc(
                                 2021,
-                                1,
+                                2,
                                 1,
                                 0,
                                 0),
@@ -602,7 +602,7 @@ public class MeteringPointMasterDataProviderTests
                             Unit = MeasureUnit.kWh,
                             ProductId = ProductId.PowerActive,
                             ParentIdentification = null,
-                            EnergySupplier = "22222222222222",
+                            EnergySupplier = "3333333333333",
                         },
                     ]),
                 "two-parents-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(

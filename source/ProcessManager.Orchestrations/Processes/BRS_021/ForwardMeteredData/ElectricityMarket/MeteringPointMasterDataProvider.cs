@@ -42,169 +42,130 @@ public class MeteringPointMasterDataProvider(
     private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
 
     internal async Task<IReadOnlyCollection<PMMeteringPointMasterData>> GetMasterData(
-        string meteringPointId,
-        string startDate,
-        string endDate)
+    string meteringPointId,
+    string startDate,
+    string endDate)
+{
+    var id = new MeteringPointIdentification(meteringPointId);
+    var startDateTime = InstantPatternWithOptionalSeconds.Parse(startDate);
+    var endDateTime = InstantPatternWithOptionalSeconds.Parse(endDate);
+
+    if (!startDateTime.Success || !endDateTime.Success)
+        return [];
+
+    IEnumerable<MeteringPointMasterData> masterDataChanges;
+
+    try
     {
-        var id = new MeteringPointIdentification(meteringPointId);
-        var startDateTime = InstantPatternWithOptionalSeconds.Parse(startDate);
-        var endDateTime = InstantPatternWithOptionalSeconds.Parse(endDate);
+        masterDataChanges = await _electricityMarketViews
+            .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
+            .ConfigureAwait(false);
+    }
+    catch (Exception e)
+    {
+        _logger.LogError(e, $"Failed to get metering point master data for '{meteringPointId}' in {startDateTime.Value}–{endDateTime.Value}.");
+        return [];
+    }
 
-        if (!startDateTime.Success || !endDateTime.Success)
-        {
-            return [];
-        }
+    var meteringPointMasterDataList = masterDataChanges.OrderBy(mpmd => mpmd.ValidFrom).ToList();
 
-        IEnumerable<MeteringPointMasterData> masterDataChanges;
+    // Collect parent periods needed
+    var parentsToFetch = meteringPointMasterDataList
+        .Where(mpmd => mpmd.ParentIdentification is not null)
+        .Select(mpmd => (
+            Id: mpmd.ParentIdentification!.Value,
+            From: mpmd.ValidFrom,
+            To: mpmd.ValidTo))
+        .ToList();
+
+    var parentData = new Dictionary<string, List<MeteringPointMasterData>>();
+
+    foreach (var (parentId, from, to) in parentsToFetch)
+    {
         try
         {
-            masterDataChanges = await _electricityMarketViews
-                .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
+            var parentMasterData = await _electricityMarketViews
+                .GetMeteringPointMasterDataChangesAsync(new MeteringPointIdentification(parentId), new Interval(from, to))
                 .ConfigureAwait(false);
+
+            if (!parentData.ContainsKey(parentId))
+                parentData[parentId] = [];
+
+            parentData[parentId].AddRange(parentMasterData);
         }
         catch (Exception e)
         {
-            _logger.LogError(
-                e,
-                $"Failed to get metering point master data for metering point '{meteringPointId}' in the period {startDateTime.Value}--{endDateTime.Value}.");
-
-            return [];
+            _logger.LogError(e, $"Failed to get master data for parent '{parentId}' during {from}–{to}.");
         }
-
-        var meteringPointMasterData = masterDataChanges.OrderBy(mpmd => mpmd.ValidFrom).ToList();
-        if (meteringPointMasterData.Count <= 0)
-        {
-            return [];
-        }
-
-        var parents = meteringPointMasterData
-            .Select(mpmd => (Id: mpmd.ParentIdentification, From: mpmd.ValidFrom, To: mpmd.ValidTo))
-            .Where(parent => parent.Id is not null)
-            .ToList();
-
-        var parentMeteringPointMasterData = new Dictionary<string, IReadOnlyCollection<MeteringPointMasterData>>();
-        foreach (var (parentId, parentFrom, parentTo) in parents)
-        {
-            try
-            {
-                var newParentMasterData = (await _electricityMarketViews
-                    .GetMeteringPointMasterDataChangesAsync(
-                        new MeteringPointIdentification(parentId!.Value),
-                        new Interval(parentFrom, parentTo))
-                    .ConfigureAwait(false)).ToImmutableList();
-
-                if (parentMeteringPointMasterData.TryGetValue(parentId.Value, out var existingParentMasterData))
-                {
-                    parentMeteringPointMasterData[parentId.Value] = [.. existingParentMasterData, .. newParentMasterData];
-                }
-                else
-                {
-                    parentMeteringPointMasterData.Add(parentId.Value, newParentMasterData);
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(
-                    e,
-                    $"Failed to get metering point master data for parent metering point '{parentId}' in the period {parentFrom}--{parentTo}.");
-            }
-        }
-
-        if (parentMeteringPointMasterData.Count != parents.Count)
-        {
-            _logger.LogError(
-                $"Parent metering point master data count '{parentMeteringPointMasterData.Count}' does not match the number of parent metering points '{parents.Count}'.");
-
-            return [];
-        }
-
-        // Try-catch to prevent PREPROD from going up in flames
-        IReadOnlyCollection<PMMeteringPointMasterData> meteringPointMasterDataPoints;
-        try
-        {
-            meteringPointMasterDataPoints = meteringPointMasterData
-                .SelectMany(mpmd => GetMeteringPointMasterDataPerEnergySupplier(mpmd, parentMeteringPointMasterData))
-                .ToList()
-                .AsReadOnly();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(
-                e,
-                $"Failed to unpack metering point master data for '{meteringPointId}' in the period {startDateTime.Value}--{endDateTime.Value}.");
-
-            return [];
-        }
-
-        return meteringPointMasterDataPoints;
     }
 
-    private IReadOnlyCollection<PMMeteringPointMasterData> GetMeteringPointMasterDataPerEnergySupplier(
-            MeteringPointMasterData meteringPointMasterData,
-            IReadOnlyDictionary<string, IReadOnlyCollection<MeteringPointMasterData>> parentMeteringPointMasterData) =>
-        meteringPointMasterData.ParentIdentification is not null
-            ? FlattenMasterDataForChild(meteringPointMasterData, parentMeteringPointMasterData)
-            : FlattenMasterDataForParent(meteringPointMasterData);
+    var result = new List<PMMeteringPointMasterData>();
 
-    private IReadOnlyCollection<PMMeteringPointMasterData> FlattenMasterDataForParent(
-        MeteringPointMasterData meteringPointMasterData)
+    foreach (var child in meteringPointMasterDataList)
     {
-        if (meteringPointMasterData.EnergySupplier == null)
-        {
-            return
-            [
-                CreatePMMeteringPointMasterData(
-                    meteringPointMasterData,
-                    meteringPointMasterData.ValidFrom.ToDateTimeOffset(),
-                    meteringPointMasterData.ValidTo.ToDateTimeOffset()),
-            ];
-        }
+        var from = child.ValidFrom;
+        var to = child.ValidTo;
 
-        return
-        [
-            CreatePMMeteringPointMasterData(
-                meteringPointMasterData,
-                meteringPointMasterData.ValidFrom.ToDateTimeOffset(),
-                meteringPointMasterData.ValidTo.ToDateTimeOffset(),
+        if (child.ParentIdentification is null)
+        {
+            result.Add(CreatePMMeteringPointMasterData(
+                child,
+                from.ToDateTimeOffset(),
+                to.ToDateTimeOffset(),
                 null,
-                ActorNumber.Create(meteringPointMasterData.EnergySupplier)),
-        ];
-    }
+                child.EnergySupplier is not null ? ActorNumber.Create(child.EnergySupplier) : null));
+            continue;
+        }
 
-    private IReadOnlyCollection<PMMeteringPointMasterData> FlattenMasterDataForChild(
-        MeteringPointMasterData meteringPointMasterData,
-        IReadOnlyDictionary<string, IReadOnlyCollection<MeteringPointMasterData>> parentMeteringPointMasterData)
-    {
-        var result = parentMeteringPointMasterData[meteringPointMasterData.ParentIdentification!.Value]
-            .SelectMany((MeteringPointMasterData mpmd) =>
+        var parentId = child.ParentIdentification.Value;
+
+        if (!parentData.TryGetValue(parentId, out var parentEntries) || parentEntries.Count == 0)
+        {
+            result.Add(CreatePMMeteringPointMasterData(
+                child,
+                from.ToDateTimeOffset(),
+                to.ToDateTimeOffset(),
+                new MeteringPointId(parentId),
+                child.EnergySupplier is not null ? ActorNumber.Create(child.EnergySupplier) : null));
+            continue;
+        }
+
+        // Get all boundaries for slicing: child start, end + relevant parent transitions
+        var boundaries = new SortedSet<Instant> { from, to };
+
+        foreach (var parent in parentEntries)
+        {
+            if (parent.ValidFrom < to && parent.ValidTo > from)
             {
-                if (mpmd.EnergySupplier == null)
-                {
-                    return (IEnumerable<PMMeteringPointMasterData>)new[]
-                    {
-                        CreatePMMeteringPointMasterData(
-                            meteringPointMasterData,
-                            mpmd.ValidFrom.ToDateTimeOffset(),
-                            mpmd.ValidTo.ToDateTimeOffset(),
-                            new MeteringPointId(mpmd.Identification.Value)),
-                    };
-                }
+                boundaries.Add(Instant.Max(from, parent.ValidFrom));
+                boundaries.Add(Instant.Min(to, parent.ValidTo));
+            }
+        }
 
-                return new[]
-                {
-                    CreatePMMeteringPointMasterData(
-                        meteringPointMasterData,
-                        mpmd.ValidFrom.ToDateTimeOffset(),
-                        mpmd.ValidTo.ToDateTimeOffset(),
-                        new MeteringPointId(mpmd.Identification.Value),
-                        ActorNumber.Create(mpmd.EnergySupplier)),
-                };
-            })
-            .ToList()
-            .AsReadOnly();
+        var ordered = boundaries.OrderBy(b => b).ToList();
 
-        return result;
+        for (var i = 0; i < ordered.Count - 1; i++)
+        {
+            var sliceFrom = ordered[i];
+            var sliceTo = ordered[i + 1];
+
+            var parentSlice = parentEntries
+                .FirstOrDefault(p =>
+                    p.ValidFrom <= sliceFrom && p.ValidTo >= sliceTo && p.EnergySupplier is not null);
+
+            var supplier = parentSlice?.EnergySupplier ?? child.EnergySupplier;
+
+            result.Add(CreatePMMeteringPointMasterData(
+                child,
+                sliceFrom.ToDateTimeOffset(),
+                sliceTo.ToDateTimeOffset(),
+                new MeteringPointId(parentId),
+                supplier is not null ? ActorNumber.Create(supplier) : null));
+        }
     }
+
+    return result.AsReadOnly();
+}
 
     private PMMeteringPointMasterData CreatePMMeteringPointMasterData(
         MeteringPointMasterData meteringPointMasterData,

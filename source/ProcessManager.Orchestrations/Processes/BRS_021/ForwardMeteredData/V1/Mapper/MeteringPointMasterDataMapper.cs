@@ -46,6 +46,10 @@ public static class MeteringPointMasterDataMapper
         { MeteringPointType.ExchangeReactiveEnergy, PMTypes.MeteringPointType.ExchangeReactiveEnergy },
         { MeteringPointType.CollectiveNetProduction, PMTypes.MeteringPointType.CollectiveNetProduction },
         { MeteringPointType.CollectiveNetConsumption, PMTypes.MeteringPointType.CollectiveNetConsumption },
+        { MeteringPointType.ActivatedDownregulation, PMTypes.MeteringPointType.ActivatedDownRegulation },
+        { MeteringPointType.ActivatedUpregulation, PMTypes.MeteringPointType.ActivatedUpRegulation },
+        { MeteringPointType.ActualConsumption, PMTypes.MeteringPointType.ActualConsumption },
+        { MeteringPointType.ActualProduction, PMTypes.MeteringPointType.ActualProduction },
         { MeteringPointType.InternalUse, PMTypes.MeteringPointType.InternalUse },
     };
 

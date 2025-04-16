@@ -1,10 +1,5 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 1.20.1
-
-- Add `EnqueueActorMessagesForMeteringPointV1` for Electrical Heating calculation.
-- Add `ReceiversWithMeasureDataV1` for Electrical Heating calculation.
-
 ## Version 1.19.1
 
 - No functional changes.

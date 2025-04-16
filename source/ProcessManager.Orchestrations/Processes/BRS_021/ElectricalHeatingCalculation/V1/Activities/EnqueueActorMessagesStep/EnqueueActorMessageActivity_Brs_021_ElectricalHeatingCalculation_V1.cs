@@ -28,12 +28,10 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities.EnqueueActorMessagesStep;
 
 public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1(
-    IClock clock,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
     MeteringPointReceiversProvider meteringPointReceiversProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
-    private readonly IClock _clock = clock;
     private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
@@ -62,8 +60,6 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
                         input.CalculationPeriodStart,
                         input.CalculationPeriodEnd)
                     .ConfigureAwait(false);
-
-                if (input.CalculationPeriodEnd < _clock.GetCurrentInstant().)
 
                 var receiversForMeteringPoint = _meteringPointReceiversProvider
                     .GetReceiversWithMeteredDataFromMasterDataList(

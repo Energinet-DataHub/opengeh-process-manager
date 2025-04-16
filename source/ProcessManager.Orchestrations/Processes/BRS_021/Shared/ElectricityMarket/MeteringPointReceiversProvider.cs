@@ -283,7 +283,6 @@ public class MeteringPointReceiversProvider(
         Instant StartDateTime,
         Instant EndDateTime,
         Resolution Resolution,
-        ActorNumber CurrentGridAccessProvider,
         IReadOnlyCollection<MeteringPointMasterData> MasterData,
         IReadOnlyCollection<ReceiversWithMeasureData.MeasureData> MeteredData);
 

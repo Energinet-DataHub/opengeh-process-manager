@@ -12,16 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Mappers;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 
-public sealed class ValueObjectsMap<TKey, TValue> : Dictionary<TKey, TValue>
-    where TKey : notnull
-    where TValue : notnull
+public enum MeteringPointSubType // Målepunktsart, consider promoting this to a datahub ValueObject
 {
-    public TValue Map(TKey source)
-    {
-        return !TryGetValue(source, out var result)
-            ? throw new ArgumentOutOfRangeException(nameof(source), source, null)
-            : result;
-    }
+    Physical,
+    Virtual,
+    Calculated,
 }

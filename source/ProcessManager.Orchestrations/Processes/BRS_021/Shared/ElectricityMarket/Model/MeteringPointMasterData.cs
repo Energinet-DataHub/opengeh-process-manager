@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 
 public sealed record MeteringPointMasterData(
     MeteringPointId MeteringPointId,
@@ -33,5 +33,3 @@ public sealed record MeteringPointMasterData(
     string ProductId,
     MeteringPointId? ParentMeteringPointId,
     ActorNumber? EnergySupplier);
-
-public record GridAreaCode(string Value);

@@ -1,5 +1,10 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.20.0
+
+- Add `EnqueueActorMessagesForMeteringPointV1` for BRS-021 Electrical Heating calculation.
+- Add `ReceiversWithMeasureDataV1` for BRS-021 Electrical Heating calculation.
+
 ## Version 1.19.1
 
 - No functional changes.
@@ -85,7 +90,7 @@
 
 ## Version 1.9.0
 
-- Remove internal process: Migrate Calculations From Wholesale.~~~~
+- Remove internal process: Migrate Calculations From Wholesale.
 
 ## Version 1.8.0
 

@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Globalization;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
 
@@ -96,7 +99,13 @@ public class EnqueueMeteredDataHandlerV1(
         }
         catch (InvalidOperationException)
         {
-            var meteringPointMasterData = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>().MeteringPointMasterData;
+            var meteringPointMasterData = orchestrationInstance
+                .CustomState
+                .AsType<ForwardMeteredDataCustomStateV1>()
+                .MeteringPointMasterData
+                .Select(mpmd => mpmd.ToV2())
+                .ToList();
+
             var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
             customState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
         }
@@ -134,12 +143,47 @@ public class EnqueueMeteredDataHandlerV1(
         ForwardMeteredDataCustomStateV2 customState,
         ForwardMeteredDataInputV1 forwardMeteredDataInput)
     {
+        // The input is already validated, so this parsing should never fail
+        var meteringPointId = forwardMeteredDataInput.MeteringPointId ?? throw new NullReferenceException("MeteringPointId was null");
+        var inputPeriodStart = InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value;
+        var inputPeriodEnd = InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value;
+        var resolution = Resolution.FromName(forwardMeteredDataInput.Resolution!);
+
+        var meteringPointMasterData = customState.HistoricalMeteringPointMasterData
+            .Select(mpmd => mpmd.ToMeteringPointMasterData())
+            .ToList();
+
+        var measureDataList = forwardMeteredDataInput.MeteredDataList
+            .Select(
+                md =>
+                {
+                    // TODO: Shouldn't position be an "int?" in the input?
+                    var position = int.Parse(md.Position!);
+
+                    var canParseEnergyQuantity = decimal.TryParse(
+                        md.EnergyQuantity,
+                        NumberFormatInfo.InvariantInfo,
+                        out var energyQuantity);
+
+                    // The input is already validated, so converting these should not fail.
+                    return new ReceiversWithMeasureData.MeasureData(
+                        Position: position,
+                        EnergyQuantity: canParseEnergyQuantity ? energyQuantity : null,
+                        QuantityQuality: Quality.FromNameOrDefault(md.QuantityQuality));
+                })
+            .ToList();
+
         var receiversWithMeteredData = _meteringPointReceiversProvider
             .GetReceiversWithMeteredDataFromMasterDataList(
-                customState.HistoricalMeteringPointMasterData,
-                forwardMeteredDataInput);
+                new MeteringPointReceiversProvider.FindReceiversInput(
+                    meteringPointId,
+                    inputPeriodStart,
+                    inputPeriodEnd,
+                    resolution,
+                    meteringPointMasterData,
+                    measureDataList));
 
-        return receiversWithMeteredData;
+        return receiversWithMeteredData.ToForwardMeteredDataReceiversWithMeteredDataV1();
     }
 
     private async Task EnqueueAcceptedActorMessagesAsync(

@@ -16,7 +16,7 @@ using System.Globalization;
 using NodaTime;
 using NodaTime.Text;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 
 public class InstantPatternWithOptionalSeconds
 {

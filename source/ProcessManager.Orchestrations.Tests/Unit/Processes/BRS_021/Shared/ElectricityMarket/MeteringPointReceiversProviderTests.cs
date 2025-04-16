@@ -980,7 +980,7 @@ public class MeteringPointReceiversProviderTests
         IReadOnlyCollection<MeteringPointMasterData> masterData,
         ForwardMeteredDataInputV1 forwardMeteredDataInput)
     {
-        var measureData = forwardMeteredDataInput.MeteredDataList
+        var meteredData = forwardMeteredDataInput.MeteredDataList
             .Select(
                 md =>
                 {
@@ -999,11 +999,11 @@ public class MeteringPointReceiversProviderTests
             .ToList();
 
         return new MeteringPointReceiversProvider.FindReceiversInput(
-            forwardMeteredDataInput.MeteringPointId!,
-            InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime!).Value,
-            InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value,
-            masterData.First().Resolution,
-            masterData,
-            measureData);
+            MeteringPointId: forwardMeteredDataInput.MeteringPointId!,
+            StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime!).Value,
+            EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value,
+            Resolution: Resolution.FromName(forwardMeteredDataInput.Resolution!),
+            MasterData: masterData,
+            MeteredData: meteredData);
     }
 }

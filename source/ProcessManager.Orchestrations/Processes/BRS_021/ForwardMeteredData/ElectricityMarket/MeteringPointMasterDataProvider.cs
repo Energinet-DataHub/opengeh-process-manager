@@ -106,9 +106,10 @@ public class MeteringPointMasterDataProvider(
         var from = child.ValidFrom;
         var to = child.ValidTo;
 
+        // If no parent: use the child's own energy supplier (even if null)
         if (child.ParentIdentification is null)
         {
-            result.Add(CreatePMMeteringPointMasterData(
+            result.Add(CreatePmMeteringPointMasterData(
                 child,
                 from.ToDateTimeOffset(),
                 to.ToDateTimeOffset(),
@@ -119,9 +120,10 @@ public class MeteringPointMasterDataProvider(
 
         var parentId = child.ParentIdentification.Value;
 
+        // If no parent data was fetched, fall back to child supplier
         if (!parentData.TryGetValue(parentId, out var parentEntries) || parentEntries.Count == 0)
         {
-            result.Add(CreatePMMeteringPointMasterData(
+            result.Add(CreatePmMeteringPointMasterData(
                 child,
                 from.ToDateTimeOffset(),
                 to.ToDateTimeOffset(),
@@ -130,32 +132,38 @@ public class MeteringPointMasterDataProvider(
             continue;
         }
 
-        // Get all boundaries for slicing: child start, end + relevant parent transitions
-        var boundaries = new SortedSet<Instant> { from, to };
+        // STEP 1: Identify time boundaries where supplier might change
+        var sliceBoundaries = new SortedSet<Instant> { from, to };
 
         foreach (var parent in parentEntries)
         {
-            if (parent.ValidFrom < to && parent.ValidTo > from)
-            {
-                boundaries.Add(Instant.Max(from, parent.ValidFrom));
-                boundaries.Add(Instant.Min(to, parent.ValidTo));
-            }
+            var overlapsChild = parent.ValidFrom < to && parent.ValidTo > from;
+            if (!overlapsChild) continue;
+
+            var overlapStart = Instant.Max(from, parent.ValidFrom);
+            var overlapEnd = Instant.Min(to, parent.ValidTo);
+
+            sliceBoundaries.Add(overlapStart);
+            sliceBoundaries.Add(overlapEnd);
         }
 
-        var ordered = boundaries.OrderBy(b => b).ToList();
+        // STEP 2: Build one segment per interval between boundaries
+        var orderedBoundaries = sliceBoundaries.OrderBy(b => b).ToList();
 
-        for (var i = 0; i < ordered.Count - 1; i++)
+        for (var i = 0; i < orderedBoundaries.Count - 1; i++)
         {
-            var sliceFrom = ordered[i];
-            var sliceTo = ordered[i + 1];
+            var sliceFrom = orderedBoundaries[i];
+            var sliceTo = orderedBoundaries[i + 1];
 
-            var parentSlice = parentEntries
-                .FirstOrDefault(p =>
-                    p.ValidFrom <= sliceFrom && p.ValidTo >= sliceTo && p.EnergySupplier is not null);
+            // Find parent supplier valid in this slice
+            var matchingParent = parentEntries.FirstOrDefault(p =>
+                p.ValidFrom <= sliceFrom &&
+                p.ValidTo >= sliceTo &&
+                p.EnergySupplier is not null);
 
-            var supplier = parentSlice?.EnergySupplier ?? child.EnergySupplier;
+            var supplier = matchingParent?.EnergySupplier ?? child.EnergySupplier;
 
-            result.Add(CreatePMMeteringPointMasterData(
+            result.Add(CreatePmMeteringPointMasterData(
                 child,
                 sliceFrom.ToDateTimeOffset(),
                 sliceTo.ToDateTimeOffset(),
@@ -167,7 +175,7 @@ public class MeteringPointMasterDataProvider(
     return result.AsReadOnly();
 }
 
-    private PMMeteringPointMasterData CreatePMMeteringPointMasterData(
+    private static PMMeteringPointMasterData CreatePmMeteringPointMasterData(
         MeteringPointMasterData meteringPointMasterData,
         DateTimeOffset validFrom,
         DateTimeOffset validTo,

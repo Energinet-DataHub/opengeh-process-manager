@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+
+/// <summary>
+/// TODO: Update with actual required values for enqueueing actor messages
+/// </summary>
+public record EnqueueActorMessagesForMeteringPointV1(
+    IReadOnlyCollection<ElectricalHeatingCalculationReceiversWithMeasureDataV1> ReceiversWithMeasureData)
+        : IEnqueueDataDto;

@@ -23,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.E
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
+using ReceiversWithMeteredDataV1 = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model.ReceiversWithMeteredDataV1;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 

@@ -18,12 +18,12 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
-using ReceiversWithMeteredDataV1 = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model.ReceiversWithMeteredDataV1;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities.EnqueueActorMessagesStep;
 
@@ -45,7 +45,7 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
 
         // The returned data stream must (in the end) be a list of
         string? currentMeteringPointId = null;
-        List<ReceiversWithMeteredDataV1.AcceptedMeteredData> currentMeteredData = [];
+        List<ReceiversWithMeasureData.MeasureData> currentMeteredData = [];
         await foreach (var data in dataStream)
         {
             if (currentMeteringPointId == null)
@@ -61,7 +61,7 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
                         input.CalculationPeriodEnd)
                     .ConfigureAwait(false);
 
-                var receiversForMasterData = _meteringPointReceiversProvider
+                var receiversForMeteringPoint = _meteringPointReceiversProvider
                     .GetReceiversWithMeteredDataFromMasterDataList(
                         new MeteringPointReceiversProvider.FindReceiversInput(
                             data.MeteringPointId,
@@ -82,64 +82,10 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
                         // so rerunning the activity generates the same idempotency keys as previous run.
                         idempotencyKey: Guid.NewGuid(),
                         data: new EnqueueActorMessagesForMeteringPointV1(
-
-
-                            ))
+                            ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingCalculationReceiversWithMeasureDataV1()))
                     .ConfigureAwait(false);
             }
         }
-    }
-
-    /// <summary>
-    /// Simulate querying data rows from a data source.
-    /// </summary>
-    private async IAsyncEnumerable<
-            (string MeteringPointId,
-            Resolution Resolution,
-            List<(Instant Timestamp, int Quantity, Quality Quality)> MeasureData)>
-        QueryData(Instant start, Instant end)
-    {
-        var meteringPointId1 = Guid.NewGuid().ToString();
-        var meteringPointId2 = Guid.NewGuid().ToString();
-        var meteringPointId3 = Guid.NewGuid().ToString();
-
-        var data = new List<(string MeteringPointId, Instant Timestamp, Resolution Resolution, int Quantity)>
-        {
-            (meteringPointId1, SystemClock.Instance.GetCurrentInstant(), Resolution.QuarterHourly, 42),
-            (meteringPointId1, SystemClock.Instance.GetCurrentInstant(), Resolution.QuarterHourly, 42),
-            (meteringPointId1, SystemClock.Instance.GetCurrentInstant(), Resolution.QuarterHourly, 42),
-            (meteringPointId2, SystemClock.Instance.GetCurrentInstant(), Resolution.QuarterHourly, 42),
-            (meteringPointId2, SystemClock.Instance.GetCurrentInstant(), Resolution.QuarterHourly, 42),
-            (meteringPointId2, SystemClock.Instance.GetCurrentInstant(), Resolution.QuarterHourly, 42),
-            (meteringPointId3, SystemClock.Instance.GetCurrentInstant(), Resolution.QuarterHourly, 42),
-            (meteringPointId3, SystemClock.Instance.GetCurrentInstant(), Resolution.QuarterHourly, 42),
-            (meteringPointId3, SystemClock.Instance.GetCurrentInstant(), Resolution.QuarterHourly, 42),
-            (meteringPointId3, SystemClock.Instance.GetCurrentInstant(), Resolution.QuarterHourly, 42),
-        };
-
-        string? currentMeteringPointId = null;
-        var currentDataRows = new List<(string MeteringPointId, Instant Timestamp, Resolution Resolution, int Quantity)>();
-        foreach (var dataRow in data)
-        {
-            if (currentMeteringPointId == null)
-                currentMeteringPointId = dataRow.MeteringPointId;
-
-            if (currentMeteringPointId != dataRow.MeteringPointId)
-            {
-                yield return (
-                    Guid.NewGuid().ToString(),
-                    Resolution.QuarterHourly,
-                    currentDataRows
-                        .Select(d => (d.Timestamp, d.Quantity, Quality.Calculated))
-                        .ToList());
-                currentDataRows = [];
-                currentMeteringPointId = dataRow.MeteringPointId;
-            }
-
-            currentDataRows.Add(dataRow);
-        }
-
-        await Task.CompletedTask.ConfigureAwait(false);
     }
 
     /// <summary>

@@ -18,12 +18,13 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using NodaTime;
-using ReceiversWithMeteredDataV1 = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model.ReceiversWithMeteredDataV1;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
@@ -152,7 +153,7 @@ public class EnqueueMeteredDataHandlerV1(
             .Select(mpmd => mpmd.ToMeteringPointMasterData())
             .ToList();
 
-        var meteredDataList = forwardMeteredDataInput.MeteredDataList
+        var measureDataList = forwardMeteredDataInput.MeteredDataList
             .Select(
                 md =>
                 {
@@ -165,7 +166,7 @@ public class EnqueueMeteredDataHandlerV1(
                         out var energyQuantity);
 
                     // The input is already validated, so converting these should not fail.
-                    return new ReceiversWithMeteredDataV1.AcceptedMeteredData(
+                    return new ReceiversWithMeasureData.MeasureData(
                         Position: position,
                         EnergyQuantity: canParseEnergyQuantity ? energyQuantity : null,
                         QuantityQuality: Quality.FromNameOrDefault(md.QuantityQuality));
@@ -180,9 +181,9 @@ public class EnqueueMeteredDataHandlerV1(
                     inputPeriodEnd,
                     resolution,
                     meteringPointMasterData,
-                    meteredDataList));
+                    measureDataList));
 
-        return receiversWithMeteredData;
+        return receiversWithMeteredData.ToReceiversWithMeteredDataV1();
     }
 
     private async Task EnqueueAcceptedActorMessagesAsync(

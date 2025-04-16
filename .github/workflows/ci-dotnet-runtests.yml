@@ -154,7 +154,7 @@ jobs:
       fail-fast: false
       matrix:
         project: ${{fromJson(needs.build_matrix.outputs.matrix_builds)}}
-    uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test-monorepo.yml@lanni/custom_nuget_cache_path
+    uses: Energinet-DataHub/.github/.github/workflows/dotnet-postbuild-test-monorepo.yml@v14
     with:
       azure_integrationtest_tenant_id: ${{ vars.integration_test_azure_tenant_id }}
       azure_integrationtest_subscription_id: ${{ vars.integration_test_azure_subscription_id }}

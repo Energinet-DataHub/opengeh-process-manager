@@ -208,11 +208,17 @@ public class MeteringPointReceiversProvider(
                 }
 
                 break;
+
+            // Electrical heating, net consumption and capacity settlement metering points always sends to the energy supplier and grid access provider
             case var _ when meteringPointType == MeteringPointType.ElectricalHeating:
             case var _ when meteringPointType == MeteringPointType.NetConsumption:
             case var _ when meteringPointType == MeteringPointType.CapacitySettlement:
-                // Electrical heating, net consumption and capacity settlement metering points always sends to the energy supplier and grid access provider
-                receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier!)); // TODO: How to get parent energy supplier?
+
+                // There can be periods where no energy supplier is assigned to the parent/child metering point,
+                // thus we can only send to the energy supplier if there actually is one.
+                if (meteringPointMasterData.EnergySupplier is not null)
+                    receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+
                 receivers.Add(GridAccessProviderReceiver(meteringPointMasterData.GridAccessProvider));
                 break;
 

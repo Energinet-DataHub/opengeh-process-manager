@@ -69,76 +69,48 @@ public class MeteringPointMasterDataProvider(
 
     var meteringPointMasterDataList = masterDataChanges.OrderBy(mpmd => mpmd.ValidFrom).ToList();
 
-    // Collect parent periods needed
-    var parentsToFetch = meteringPointMasterDataList
-        .Where(mpmd => mpmd.ParentIdentification is not null)
-        .Select(mpmd => (
-            Id: mpmd.ParentIdentification!.Value,
-            From: mpmd.ValidFrom,
-            To: mpmd.ValidTo))
-        .ToList();
-
-    var parentData = new Dictionary<string, List<MeteringPointMasterData>>();
-
-    foreach (var (parentId, from, to) in parentsToFetch)
-    {
-        try
-        {
-            var parentMasterData = await _electricityMarketViews
-                .GetMeteringPointMasterDataChangesAsync(new MeteringPointIdentification(parentId), new Interval(from, to))
-                .ConfigureAwait(false);
-
-            if (!parentData.ContainsKey(parentId))
-                parentData[parentId] = [];
-
-            parentData[parentId].AddRange(parentMasterData);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, $"Failed to get master data for parent '{parentId}' during {from}–{to}.");
-        }
-    }
-
     var result = new List<PMMeteringPointMasterData>();
 
-    foreach (var child in meteringPointMasterDataList)
+    foreach (var meteringPointMasterData in meteringPointMasterDataList)
     {
-        var from = child.ValidFrom;
-        var to = child.ValidTo;
+        var from = meteringPointMasterData.ValidFrom;
+        var to = meteringPointMasterData.ValidTo;
 
-        // If no parent: use the child's own energy supplier (even if null)
-        if (child.ParentIdentification is null)
+        // If no parent: use own energy supplier (even if null)
+        if (meteringPointMasterData.ParentIdentification is null)
         {
             result.Add(CreatePmMeteringPointMasterData(
-                child,
+                meteringPointMasterData,
                 from.ToDateTimeOffset(),
                 to.ToDateTimeOffset(),
                 null,
-                child.EnergySupplier is not null ? ActorNumber.Create(child.EnergySupplier) : null));
+                meteringPointMasterData.EnergySupplier is not null ? ActorNumber.Create(meteringPointMasterData.EnergySupplier) : null));
             continue;
         }
 
-        var parentId = child.ParentIdentification.Value;
+        var parentId = meteringPointMasterData.ParentIdentification.Value;
+        var parentMasterData = (await _electricityMarketViews
+                .GetMeteringPointMasterDataChangesAsync(new MeteringPointIdentification(parentId), new Interval(from, to))
+                .ConfigureAwait(false))
+            .ToList();
 
-        // If no parent data was fetched, fall back to child supplier
-        if (!parentData.TryGetValue(parentId, out var parentEntries) || parentEntries.Count == 0)
+        // If no parent data was fetched, fall back to own energy supplier (even if null)
+        if (parentMasterData.Count == 0)
         {
+            // TODO: Should this throw an exception instead?
             result.Add(CreatePmMeteringPointMasterData(
-                child,
+                meteringPointMasterData,
                 from.ToDateTimeOffset(),
                 to.ToDateTimeOffset(),
                 new MeteringPointId(parentId),
-                child.EnergySupplier is not null ? ActorNumber.Create(child.EnergySupplier) : null));
+                meteringPointMasterData.EnergySupplier is not null ? ActorNumber.Create(meteringPointMasterData.EnergySupplier) : null));
             continue;
         }
 
-        // STEP 1: Identify time boundaries where supplier might change
-        var parentMasterDataPeriods = new List<Interval>
-        {
-            new Interval(from, to),
-        };
+        // STEP 1: Identify time boundaries where energy supplier might change
+        var parentMasterDataPeriods = new List<Interval>();
 
-        foreach (var parent in parentEntries.OrderBy(p => p.ValidFrom).ThenBy(p => p.ValidTo))
+        foreach (var parent in parentMasterData.OrderBy(p => p.ValidFrom).ThenBy(p => p.ValidTo))
         {
             var overlapStart = Instant.Max(from, parent.ValidFrom);
             var overlapEnd = Instant.Min(to, parent.ValidTo);
@@ -146,26 +118,20 @@ public class MeteringPointMasterDataProvider(
             var period = new Interval(overlapStart, overlapEnd);
 
             parentMasterDataPeriods.Add(period);
-            // parentMasterDataPeriods.Add(overlapEnd);
         }
 
         // STEP 2: Build one segment per interval between boundaries
-        var orderedParentMasterDataPeriods = parentMasterDataPeriods.OrderBy(b => b).ToList();
-
-        foreach (var currentPeriod in orderedParentMasterDataPeriods)
+        foreach (var currentPeriod in parentMasterDataPeriods)
         {
-            // var sliceFrom = orderedParentMasterDataPeriods[i];
-            // var sliceTo = orderedParentMasterDataPeriods[i + 1];
-
             // Find parent supplier valid in this slice
-            var matchingParent = parentEntries.Single(p =>
+            var matchingParent = parentMasterData.Single(p =>
                 p.ValidFrom <= currentPeriod.Start &&
                 p.ValidTo >= currentPeriod.End);
 
-            var supplier = matchingParent.EnergySupplier ?? child.EnergySupplier;
+            var supplier = matchingParent.EnergySupplier ?? meteringPointMasterData.EnergySupplier;
 
             result.Add(CreatePmMeteringPointMasterData(
-                child,
+                meteringPointMasterData,
                 currentPeriod.Start.ToDateTimeOffset(),
                 currentPeriod.End.ToDateTimeOffset(),
                 new MeteringPointId(parentId),

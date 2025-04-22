@@ -56,12 +56,12 @@ public class MeteringPointMasterDataProviderTests
         var result = await _sut.GetMasterData(
             "no-energy-suppliers-please",
             "2021-01-01T00:00:00Z",
-            "2021-01-01T00:00:00Z");
+            "2021-01-02T00:00:00Z");
 
         var singleMasterData = result.Should().ContainSingle().Subject;
         singleMasterData.MeteringPointId.Value.Should().Be("no-energy-suppliers-please");
         singleMasterData.ValidFrom.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
-        singleMasterData.ValidTo.Should().Be(new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        singleMasterData.ValidTo.Should().Be(new DateTimeOffset(2021, 1, 2, 0, 0, 0, TimeSpan.Zero));
         singleMasterData.EnergySupplier.Should().BeNull();
     }
 
@@ -122,7 +122,7 @@ public class MeteringPointMasterDataProviderTests
         var meteringPointMasterData = await _sut.GetMasterData(
             "two-master-data-with-two-energy-suppliers-please",
             "2021-01-01T00:00:00Z",
-            "2021-01-05T00:00:00Z");
+            "2021-05-01T00:00:00Z");
 
         meteringPointMasterData
             .Should()
@@ -171,7 +171,7 @@ public class MeteringPointMasterDataProviderTests
         var result = await _sut.GetMasterData(
             "faulty-two-master-data-please",
             "2021-01-01T00:00:00Z",
-            "2021-01-05T00:00:00Z");
+            "2021-05-01T00:00:00Z");
 
         result.Should()
             .SatisfyRespectively(
@@ -354,11 +354,11 @@ public class MeteringPointMasterDataProviderTests
         /// The id describes the scenario the data is supposed to mimic.
         /// The <paramref name="interval"/> is not used in this mock and is ignored.
         /// </summary>
-        public Task<IEnumerable<MeteringPointMasterData>> GetMeteringPointMasterDataChangesAsync(
+        public async Task<IEnumerable<MeteringPointMasterData>> GetMeteringPointMasterDataChangesAsync(
             MeteringPointIdentification meteringPointIdentification,
             Interval interval)
         {
-            return meteringPointIdentification.Value switch
+            var masterDataTask = meteringPointIdentification.Value switch
             {
                 "no-master-data-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>([]),
                 "no-energy-suppliers-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
@@ -367,7 +367,7 @@ public class MeteringPointMasterDataProviderTests
                     {
                         Identification = new MeteringPointIdentification("no-energy-suppliers-please"),
                         ValidFrom = Instant.FromUtc(2021, 1, 1, 0, 0),
-                        ValidTo = Instant.FromUtc(2021, 1, 1, 0, 0),
+                        ValidTo = Instant.FromUtc(2021, 1, 2, 0, 0),
                         GridAreaCode = new GridAreaCode("804"),
                         GridAccessProvider = "9999999999999",
                         ConnectionState = ConnectionState.Connected,
@@ -882,6 +882,15 @@ public class MeteringPointMasterDataProviderTests
                     meteringPointIdentification,
                     null),
             };
+
+            var masterData = await masterDataTask;
+
+            // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
+            // where a = md and b = interval.
+            // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.
+            return masterData
+                .Where(md => md.ValidFrom < interval.End && interval.Start < md.ValidTo)
+                .ToList();
         }
 
         public Task<ProcessDelegationDto?> GetProcessDelegationAsync(

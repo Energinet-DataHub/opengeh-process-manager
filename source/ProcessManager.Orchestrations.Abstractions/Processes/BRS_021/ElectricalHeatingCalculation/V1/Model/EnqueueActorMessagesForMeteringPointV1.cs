@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
-public enum MeteringPointSubType // Målepunktsart, consider promoting this to a datahub ValueObject
-{
-    Physical,
-    Virtual,
-    Calculated,
-}
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+
+/// <summary>
+/// TODO: Update with actual required values for enqueueing actor messages
+/// </summary>
+public record EnqueueActorMessagesForMeteringPointV1(
+    IReadOnlyCollection<ReceiversWithMeasureDataV1> ReceiversWithMeasureData)
+        : IEnqueueDataDto;

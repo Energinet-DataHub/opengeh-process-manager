@@ -143,7 +143,7 @@ public class MeteringPointMasterDataProvider(
                         p.ValidFrom <= currentPeriod.Start &&
                         p.ValidTo >= currentPeriod.End);
 
-                var supplier = matchingParent.EnergySupplier ?? meteringPointMasterData.EnergySupplier;
+                var supplier = matchingParent.EnergySupplier;
 
                 result.Add(
                     CreateMeteringPointMasterData(

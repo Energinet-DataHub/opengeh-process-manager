@@ -36,139 +36,157 @@ public class MeteringPointMasterDataProvider(
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
 
+    internal Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
+        string meteringPointId,
+        string startDate,
+        string endDate)
+    {
+        var startDateTime = InstantPatternWithOptionalSeconds.Parse(startDate);
+        var endDateTime = InstantPatternWithOptionalSeconds.Parse(endDate);
+
+        if (!startDateTime.Success || !endDateTime.Success)
+            return Task.FromResult<IReadOnlyCollection<MeteringPointMasterData>>([]);
+
+        return GetMasterData(meteringPointId, startDateTime.Value, endDateTime.Value);
+    }
+
     internal async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
-    string meteringPointId,
-    string startDate,
-    string endDate)
-{
-    var id = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId);
-    var startDateTime = InstantPatternWithOptionalSeconds.Parse(startDate);
-    var endDateTime = InstantPatternWithOptionalSeconds.Parse(endDate);
-
-    if (!startDateTime.Success || !endDateTime.Success)
-        return [];
-
-    IEnumerable<ElectricityMarketModels.MeteringPointMasterData> masterDataChanges;
-
-    try
+        string meteringPointId,
+        Instant startDateTime,
+        Instant endDateTime)
     {
-        masterDataChanges = await _electricityMarketViews
-            .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime.Value, endDateTime.Value))
-            .ConfigureAwait(false);
-    }
-    catch (Exception e)
-    {
-        _logger.LogError(e, $"Failed to get metering point master data for '{meteringPointId}' in {startDateTime.Value}–{endDateTime.Value}.");
-        return [];
-    }
+        var id = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId);
 
-    var meteringPointMasterDataList = masterDataChanges.OrderBy(mpmd => mpmd.ValidFrom).ToList();
+        IEnumerable<ElectricityMarketModels.MeteringPointMasterData> masterDataChanges;
 
-    // Collect parent periods needed
-    var parentsToFetch = meteringPointMasterDataList
-        .Where(mpmd => mpmd.ParentIdentification is not null)
-        .Select(mpmd => (
-            Id: mpmd.ParentIdentification!.Value,
-            From: mpmd.ValidFrom,
-            To: mpmd.ValidTo))
-        .ToList();
-
-    var parentData = new Dictionary<string, List<ElectricityMarketModels.MeteringPointMasterData>>();
-
-    foreach (var (parentId, from, to) in parentsToFetch)
-    {
         try
         {
-            var parentMasterData = await _electricityMarketViews
-                .GetMeteringPointMasterDataChangesAsync(new ElectricityMarketModels.MeteringPointIdentification(parentId), new Interval(from, to))
+            masterDataChanges = await _electricityMarketViews
+                .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime, endDateTime))
                 .ConfigureAwait(false);
-
-            if (!parentData.ContainsKey(parentId))
-                parentData[parentId] = [];
-
-            parentData[parentId].AddRange(parentMasterData);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to get master data for parent '{parentId}' during {from}–{to}.");
+            _logger.LogError(
+                e,
+                $"Failed to get metering point master data for '{meteringPointId}' in {startDateTime}–{endDateTime}.");
+            return [];
         }
+
+        var meteringPointMasterDataList = masterDataChanges.OrderBy(mpmd => mpmd.ValidFrom).ToList();
+
+        // Collect parent periods needed
+        var parentsToFetch = meteringPointMasterDataList
+            .Where(mpmd => mpmd.ParentIdentification is not null)
+            .Select(
+                mpmd => (
+                    Id: mpmd.ParentIdentification!.Value,
+                    From: mpmd.ValidFrom,
+                    To: mpmd.ValidTo))
+            .ToList();
+
+        var parentData = new Dictionary<string, List<ElectricityMarketModels.MeteringPointMasterData>>();
+
+        foreach (var (parentId, from, to) in parentsToFetch)
+        {
+            try
+            {
+                var parentMasterData = await _electricityMarketViews
+                    .GetMeteringPointMasterDataChangesAsync(
+                        new ElectricityMarketModels.MeteringPointIdentification(parentId),
+                        new Interval(from, to))
+                    .ConfigureAwait(false);
+
+                if (!parentData.ContainsKey(parentId))
+                    parentData[parentId] = [];
+
+                parentData[parentId].AddRange(parentMasterData);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to get master data for parent '{parentId}' during {from}–{to}.");
+            }
+        }
+
+        var result = new List<MeteringPointMasterData>();
+
+        foreach (var child in meteringPointMasterDataList)
+        {
+            var from = child.ValidFrom;
+            var to = child.ValidTo;
+
+            // If no parent: use the child's own energy supplier (even if null)
+            if (child.ParentIdentification is null)
+            {
+                result.Add(
+                    CreatePmMeteringPointMasterData(
+                        child,
+                        from.ToDateTimeOffset(),
+                        to.ToDateTimeOffset(),
+                        null,
+                        child.EnergySupplier is not null ? ActorNumber.Create(child.EnergySupplier) : null));
+                continue;
+            }
+
+            var parentId = child.ParentIdentification.Value;
+
+            // If no parent data was fetched, fall back to child supplier
+            if (!parentData.TryGetValue(parentId, out var parentEntries) || parentEntries.Count == 0)
+            {
+                result.Add(
+                    CreatePmMeteringPointMasterData(
+                        child,
+                        from.ToDateTimeOffset(),
+                        to.ToDateTimeOffset(),
+                        new MeteringPointId(parentId),
+                        child.EnergySupplier is not null ? ActorNumber.Create(child.EnergySupplier) : null));
+                continue;
+            }
+
+            // STEP 1: Identify time boundaries where supplier might change
+            var sliceBoundaries = new SortedSet<Instant> { from, to };
+
+            foreach (var parent in parentEntries)
+            {
+                var overlapsChild = parent.ValidFrom < to && parent.ValidTo > from;
+                if (!overlapsChild) continue;
+
+                var overlapStart = Instant.Max(from, parent.ValidFrom);
+                var overlapEnd = Instant.Min(to, parent.ValidTo);
+
+                sliceBoundaries.Add(overlapStart);
+                sliceBoundaries.Add(overlapEnd);
+            }
+
+            // STEP 2: Build one segment per interval between boundaries
+            var orderedBoundaries = sliceBoundaries.OrderBy(b => b).ToList();
+
+            for (var i = 0; i < orderedBoundaries.Count - 1; i++)
+            {
+                var sliceFrom = orderedBoundaries[i];
+                var sliceTo = orderedBoundaries[i + 1];
+
+                // Find parent supplier valid in this slice
+                var matchingParent = parentEntries.FirstOrDefault(
+                    p =>
+                        p.ValidFrom <= sliceFrom &&
+                        p.ValidTo >= sliceTo &&
+                        p.EnergySupplier is not null);
+
+                var supplier = matchingParent?.EnergySupplier ?? child.EnergySupplier;
+
+                result.Add(
+                    CreatePmMeteringPointMasterData(
+                        child,
+                        sliceFrom.ToDateTimeOffset(),
+                        sliceTo.ToDateTimeOffset(),
+                        new MeteringPointId(parentId),
+                        supplier is not null ? ActorNumber.Create(supplier) : null));
+            }
+        }
+
+        return result.AsReadOnly();
     }
-
-    var result = new List<MeteringPointMasterData>();
-
-    foreach (var child in meteringPointMasterDataList)
-    {
-        var from = child.ValidFrom;
-        var to = child.ValidTo;
-
-        // If no parent: use the child's own energy supplier (even if null)
-        if (child.ParentIdentification is null)
-        {
-            result.Add(CreatePmMeteringPointMasterData(
-                child,
-                from.ToDateTimeOffset(),
-                to.ToDateTimeOffset(),
-                null,
-                child.EnergySupplier is not null ? ActorNumber.Create(child.EnergySupplier) : null));
-            continue;
-        }
-
-        var parentId = child.ParentIdentification.Value;
-
-        // If no parent data was fetched, fall back to child supplier
-        if (!parentData.TryGetValue(parentId, out var parentEntries) || parentEntries.Count == 0)
-        {
-            result.Add(CreatePmMeteringPointMasterData(
-                child,
-                from.ToDateTimeOffset(),
-                to.ToDateTimeOffset(),
-                new MeteringPointId(parentId),
-                child.EnergySupplier is not null ? ActorNumber.Create(child.EnergySupplier) : null));
-            continue;
-        }
-
-        // STEP 1: Identify time boundaries where supplier might change
-        var sliceBoundaries = new SortedSet<Instant> { from, to };
-
-        foreach (var parent in parentEntries)
-        {
-            var overlapsChild = parent.ValidFrom < to && parent.ValidTo > from;
-            if (!overlapsChild) continue;
-
-            var overlapStart = Instant.Max(from, parent.ValidFrom);
-            var overlapEnd = Instant.Min(to, parent.ValidTo);
-
-            sliceBoundaries.Add(overlapStart);
-            sliceBoundaries.Add(overlapEnd);
-        }
-
-        // STEP 2: Build one segment per interval between boundaries
-        var orderedBoundaries = sliceBoundaries.OrderBy(b => b).ToList();
-
-        for (var i = 0; i < orderedBoundaries.Count - 1; i++)
-        {
-            var sliceFrom = orderedBoundaries[i];
-            var sliceTo = orderedBoundaries[i + 1];
-
-            // Find parent supplier valid in this slice
-            var matchingParent = parentEntries.FirstOrDefault(p =>
-                p.ValidFrom <= sliceFrom &&
-                p.ValidTo >= sliceTo &&
-                p.EnergySupplier is not null);
-
-            var supplier = matchingParent?.EnergySupplier ?? child.EnergySupplier;
-
-            result.Add(CreatePmMeteringPointMasterData(
-                child,
-                sliceFrom.ToDateTimeOffset(),
-                sliceTo.ToDateTimeOffset(),
-                new MeteringPointId(parentId),
-                supplier is not null ? ActorNumber.Create(supplier) : null));
-        }
-    }
-
-    return result.AsReadOnly();
-}
 
     private static MeteringPointMasterData CreatePmMeteringPointMasterData(
         ElectricityMarketModels.MeteringPointMasterData meteringPointMasterData,
@@ -176,19 +194,21 @@ public class MeteringPointMasterDataProvider(
         DateTimeOffset validTo,
         MeteringPointId? parentId = null,
         ActorNumber? energySupplier = null) =>
-            new(
-                MeteringPointId: new MeteringPointId(meteringPointMasterData.Identification.Value),
-                ValidFrom: validFrom,
-                ValidTo: validTo,
-                GridAreaCode: new GridAreaCode(meteringPointMasterData.GridAreaCode.Value),
-                GridAccessProvider: ActorNumber.Create(meteringPointMasterData.GridAccessProvider),
-                NeighborGridAreaOwners: meteringPointMasterData.NeighborGridAreaOwners,
-                ConnectionState: ElectricityMarketMasterDataMapper.ConnectionStateMap.Map(meteringPointMasterData.ConnectionState),
-                MeteringPointType: ElectricityMarketMasterDataMapper.MeteringPointTypeMap.Map(meteringPointMasterData.Type),
-                MeteringPointSubType: ElectricityMarketMasterDataMapper.MeteringPointSubTypeMap.Map(meteringPointMasterData.SubType),
-                Resolution: ElectricityMarketMasterDataMapper.ResolutionMap.Map(meteringPointMasterData.Resolution.Value),
-                MeasurementUnit: ElectricityMarketMasterDataMapper.MeasureUnitMap.Map(meteringPointMasterData.Unit),
-                ProductId: meteringPointMasterData.ProductId.ToString(),
-                ParentMeteringPointId: parentId,
-                EnergySupplier: energySupplier);
+        new(
+            MeteringPointId: new MeteringPointId(meteringPointMasterData.Identification.Value),
+            ValidFrom: validFrom,
+            ValidTo: validTo,
+            GridAreaCode: new GridAreaCode(meteringPointMasterData.GridAreaCode.Value),
+            GridAccessProvider: ActorNumber.Create(meteringPointMasterData.GridAccessProvider),
+            NeighborGridAreaOwners: meteringPointMasterData.NeighborGridAreaOwners,
+            ConnectionState: ElectricityMarketMasterDataMapper.ConnectionStateMap.Map(
+                meteringPointMasterData.ConnectionState),
+            MeteringPointType: ElectricityMarketMasterDataMapper.MeteringPointTypeMap.Map(meteringPointMasterData.Type),
+            MeteringPointSubType: ElectricityMarketMasterDataMapper.MeteringPointSubTypeMap.Map(
+                meteringPointMasterData.SubType),
+            Resolution: ElectricityMarketMasterDataMapper.ResolutionMap.Map(meteringPointMasterData.Resolution.Value),
+            MeasurementUnit: ElectricityMarketMasterDataMapper.MeasureUnitMap.Map(meteringPointMasterData.Unit),
+            ProductId: meteringPointMasterData.ProductId.ToString(),
+            ParentMeteringPointId: parentId,
+            EnergySupplier: energySupplier);
 }

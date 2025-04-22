@@ -40,10 +40,12 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
-        // Simulate getting a stream of data
+        // Simulate getting a stream of data.
+        // - Data must be ordered by metering point id and then by timestamp.
+        // - There must not be any gaps in the data / timestamps.
         var dataStream = QueryDataAsync(input.CalculationPeriodStart, input.CalculationPeriodEnd);
 
-        // The returned data stream must (in the end) be a list of
+        // Bundle
         string? currentMeteringPointId = null;
         List<(string MeteringPointId, Instant Timestamp, Resolution Resolution, int Quantity)> currentMeasureData = [];
         await foreach (var data in dataStream)
@@ -51,7 +53,8 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
             if (currentMeteringPointId == null)
                 currentMeteringPointId = data.MeteringPointId;
 
-            // Metering point id has changed, create a "packaged" message for the previous metering point id and enqueue to EDI.
+            // Metering point id has changed, create a message (with a measure data "bundle") for the previous
+            // metering point id and enqueue it to EDI.
             if (currentMeteringPointId != data.MeteringPointId)
             {
                 await EnqueueMessageForMeasureData(

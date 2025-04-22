@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 
 public record ReceiversWithMeasureDataV1(
-    IReadOnlyCollection<ReceiversWithMeasureDataV1.Receiver> Actors,
+    IReadOnlyCollection<ReceiversWithMeasureDataV1.Receiver> Receivers,
     Resolution Resolution,
     MeasurementUnit MeasureUnit,
     DateTimeOffset StartDateTime,

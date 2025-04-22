@@ -25,7 +25,7 @@ public static class ReceiversWithMeasureDataExtensions
         return receiversWithMeasureData
             .Select(
                 rmd => new ReceiversWithMeasureDataV1(
-                    Actors: rmd.Receivers.ToElectricalHeatingReceivers(),
+                    Receivers: rmd.Receivers.ToElectricalHeatingReceivers(),
                     Resolution: rmd.Resolution,
                     MeasureUnit: rmd.MeasureUnit,
                     StartDateTime: rmd.StartDateTime,

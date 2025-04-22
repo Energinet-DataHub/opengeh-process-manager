@@ -127,8 +127,8 @@ public class MeteringPointReceiversProvider(
                 throw new InvalidOperationException($"The current timestamp is equal to or after the master data period end (MeteringPointId={currentMasterData.MasterData.MeteringPointId.Value}, Position={meteredData.Position}, CurrentTimestamp={currentTimestamp}, MasterDataValidTo={currentMasterData.ValidTo})");
 
             // Position is 1-indexed, so the new position is the current count + 1 (if the list is empty, the new position should be 1)
-            var newPosition = currentMasterData.MeteredDataList.Count + 1;
-            currentMasterData.MeteredDataList.Add(meteredData with { Position = newPosition });
+            var newPosition = currentMasterData.MeasureData.Count + 1;
+            currentMasterData.MeasureData.Add(meteredData with { Position = newPosition });
 
             // Get next timestamp
             currentTimestamp = AddResolutionToTimestamp(currentTimestamp, resolution);
@@ -172,7 +172,7 @@ public class MeteringPointReceiversProvider(
             MeasureUnit: masterDataWithMeteredData.MasterData.MeasurementUnit,
             StartDateTime: masterDataWithMeteredData.ValidFrom.ToDateTimeOffset(),
             EndDateTime: masterDataWithMeteredData.ValidTo.ToDateTimeOffset(),
-            MeasureDataList: masterDataWithMeteredData.MeteredDataList);
+            MeasureDataList: masterDataWithMeteredData.MeasureData);
     }
 
     private List<ReceiversWithMeasureData.Receiver> GetReceiversFromMasterData(
@@ -298,12 +298,12 @@ public class MeteringPointReceiversProvider(
             MeteringPointMasterData masterData,
             Instant inputPeriodStart,
             Instant inputPeriodEnd,
-            List<ReceiversWithMeasureData.MeasureData> meteredDataList)
+            List<ReceiversWithMeasureData.MeasureData> measureData)
         {
             MasterData = masterData;
             ValidFrom = Instant.Max(inputPeriodStart, masterData.ValidFrom.ToInstant());
             ValidTo = Instant.Min(inputPeriodEnd, masterData.ValidTo.ToInstant());
-            MeteredDataList = meteredDataList;
+            MeasureData = measureData;
         }
 
         public MeteringPointMasterData MasterData { get; }
@@ -312,6 +312,6 @@ public class MeteringPointReceiversProvider(
 
         public Instant ValidTo { get; }
 
-        public List<ReceiversWithMeasureData.MeasureData> MeteredDataList { get; }
+        public List<ReceiversWithMeasureData.MeasureData> MeasureData { get; }
     }
 }

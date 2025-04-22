@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 
+// TODO: Update data types to match electrical heating calculation. Like can energy supplier / quantity quality be null?
 public record ReceiversWithMeasureDataV1(
     IReadOnlyCollection<ReceiversWithMeasureDataV1.Receiver> Receivers,
     Resolution Resolution,
@@ -29,6 +30,6 @@ public record ReceiversWithMeasureDataV1(
 
     public record MeasureData(
         int Position,
-        decimal EnergyQuantity,
-        Quality QuantityQuality);
+        decimal EnergyQuantity, // TODO: Can this be null?
+        Quality QuantityQuality); // TODO: Can this be null?
 }

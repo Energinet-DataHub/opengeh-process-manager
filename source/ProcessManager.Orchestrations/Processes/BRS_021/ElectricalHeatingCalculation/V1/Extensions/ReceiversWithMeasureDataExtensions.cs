@@ -35,7 +35,7 @@ public static class ReceiversWithMeasureDataExtensions
     }
 
     private static List<ReceiversWithMeasureDataV1.Receiver> ToElectricalHeatingReceivers(
-        this IEnumerable<ReceiversWithMeasureData.ActorReceiver> receivers)
+        this IEnumerable<ReceiversWithMeasureData.Actor> receivers)
     {
         return receivers.Select(
                 r => new ReceiversWithMeasureDataV1.Receiver(

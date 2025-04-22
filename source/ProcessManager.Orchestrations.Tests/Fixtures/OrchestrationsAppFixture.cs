@@ -176,7 +176,6 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         // => Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
         await OrchestrationsAppManager.StartAsync(ediEnqueueTopicResources, integrationEventTopicResources);
 
-        // Use new event hub namespace (with support for more event hubs) until TestCommon is updated with the new namespace.
         EventHubListener = new EventHubListenerMock(
             testLogger: new TestDiagnosticsLogger(),
             eventHubFullyQualifiedNamespace: OrchestrationsAppManager.EventHubFullyQualifiedNamespace,

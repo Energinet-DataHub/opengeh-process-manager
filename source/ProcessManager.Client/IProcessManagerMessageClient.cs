@@ -32,14 +32,14 @@ public interface IProcessManagerMessageClient
     /// <summary>
     /// Send a notify event to an orchestration instance.
     /// </summary>
-    public Task NotifyOrchestrationInstanceAsync(
+    Task NotifyOrchestrationInstanceAsync(
         NotifyOrchestrationInstanceEvent notifyEvent,
         CancellationToken cancellationToken);
 
     /// <summary>
     /// Send a notify event (with data) to an orchestration instance.
     /// </summary>
-    public Task NotifyOrchestrationInstanceAsync<TNotifyDataDto>(
+    Task NotifyOrchestrationInstanceAsync<TNotifyDataDto>(
         NotifyOrchestrationInstanceEvent<TNotifyDataDto> notifyEvent,
         CancellationToken cancellationToken)
         where TNotifyDataDto : class, INotifyDataDto;

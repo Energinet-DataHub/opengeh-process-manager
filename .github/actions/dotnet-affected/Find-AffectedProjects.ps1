@@ -56,7 +56,7 @@ function Write-AffectedProjectsFile {
         $ToSha
     )
 
-    dotnet tool install dotnet-affected --global --version v6.0.0-preview-1 #See https://github.com/leonardochaia/dotnet-affected/issues/112
+    dotnet tool install dotnet-affected --global --version 6.0.0-preview-1 #See https://github.com/leonardochaia/dotnet-affected/issues/112
     Write-Host "dotnet affected --solution-path $solutionPath -p $workspacePath --from $fromSha --to $toSha --format traversal json"
 
     dotnet affected --solution-path $solutionPath -p $workspacePath --from $fromSha --to $toSha --format traversal json

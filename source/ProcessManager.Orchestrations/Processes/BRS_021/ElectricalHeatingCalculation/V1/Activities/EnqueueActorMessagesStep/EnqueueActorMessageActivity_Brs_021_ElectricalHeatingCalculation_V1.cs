@@ -71,6 +71,12 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
         }
     }
 
+    /// <summary>
+    /// Enqueue measure data for a metering point.
+    /// <remarks>
+    /// The measure data MUST be ordered by timestamp, and MUST not contain any gaps in the data !!!.
+    /// </remarks>
+    /// </summary>
     private async Task EnqueueMessageForMeasureData(
         OrchestrationInstanceId orchestrationInstanceId,
         string currentMeteringPointId,
@@ -96,7 +102,7 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
                     MasterData: masterDataForMeteringPoint,
                     MeasureData: measureData
                         .Select((md, i) => new ReceiversWithMeasureData.MeasureData(
-                            Position: i + 1, // Position is 1-based, so if the list is empty the first position is 1.
+                            Position: i + 1, // Position is 1-based, so the first position must be 1.
                             EnergyQuantity: md.Quantity,
                             QuantityQuality: Quality.Calculated))
                         .ToList()));
@@ -117,7 +123,10 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
     }
 
     /// <summary>
-    /// Simulate querying data rows from a data source.
+    /// Simulate querying data rows from a data source. This is just dummy code,
+    /// the only important parts are:
+    /// - The data is ordered by metering point id and then by timestamp.
+    /// - There is no gaps in the data / timestamps.
     /// </summary>
     private async IAsyncEnumerable<
         (string MeteringPointId,

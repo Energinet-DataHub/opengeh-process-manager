@@ -175,10 +175,10 @@ public class MeteringPointReceiversProvider(
             MeasureDataList: masterDataWithMeteredData.MeteredDataList);
     }
 
-    private List<ReceiversWithMeasureData.Actor> GetReceiversFromMasterData(
+    private List<ReceiversWithMeasureData.Receiver> GetReceiversFromMasterData(
         MeteringPointMasterData meteringPointMasterData)
     {
-        var receivers = new List<ReceiversWithMeasureData.Actor>();
+        var receivers = new List<ReceiversWithMeasureData.Receiver>();
         var meteringPointType = meteringPointMasterData.MeteringPointType;
 
         switch (meteringPointType)
@@ -269,18 +269,18 @@ public class MeteringPointReceiversProvider(
         return distinctReceivers;
     }
 
-    private ReceiversWithMeasureData.Actor EnergySupplierReceiver(ActorNumber energySupplierId) =>
+    private ReceiversWithMeasureData.Receiver EnergySupplierReceiver(ActorNumber energySupplierId) =>
         new(energySupplierId, ActorRole.EnergySupplier);
 
-    private ReceiversWithMeasureData.Actor GridAccessProviderReceiver(ActorNumber gridAccessProviderId) => new(
+    private ReceiversWithMeasureData.Receiver GridAccessProviderReceiver(ActorNumber gridAccessProviderId) => new(
         gridAccessProviderId,
         ActorRole.GridAccessProvider);
 
-    private ReceiversWithMeasureData.Actor DanishEnergyAgencyReceiver() => new(
+    private ReceiversWithMeasureData.Receiver DanishEnergyAgencyReceiver() => new(
         ActorNumber.Create(DataHubDetails.DanishEnergyAgencyNumber),
         ActorRole.DanishEnergyAgency);
 
-    private ReceiversWithMeasureData.Actor SystemOperatorReceiver() => new(
+    private ReceiversWithMeasureData.Receiver SystemOperatorReceiver() => new(
         ActorNumber.Create(DataHubDetails.SystemOperatorNumber),
         ActorRole.SystemOperator);
 

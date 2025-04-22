@@ -27,14 +27,14 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shar
 /// <param name="EndDateTime">The end date and time of the period.</param>
 /// <param name="MeasureDataList">The measure data in the given period.</param>
 public record ReceiversWithMeasureData(
-    IReadOnlyCollection<ReceiversWithMeasureData.Actor> Receivers,
+    IReadOnlyCollection<ReceiversWithMeasureData.Receiver> Receivers,
     Resolution Resolution,
     MeasurementUnit MeasureUnit,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
     IReadOnlyCollection<ReceiversWithMeasureData.MeasureData> MeasureDataList)
 {
-    public sealed record Actor(ActorNumber ActorNumber, ActorRole ActorRole);
+    public sealed record Receiver(ActorNumber ActorNumber, ActorRole ActorRole);
 
     public record MeasureData(
         int Position,

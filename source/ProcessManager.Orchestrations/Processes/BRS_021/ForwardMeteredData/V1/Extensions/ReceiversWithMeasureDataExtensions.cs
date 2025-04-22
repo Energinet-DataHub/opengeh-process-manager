@@ -35,7 +35,7 @@ public static class ReceiversWithMeasureDataExtensions
     }
 
     private static List<MarketActorRecipientV1> ToForwardMeteredDataMarketActorRecipientV1(
-        this IEnumerable<ReceiversWithMeasureData.Actor> receivers)
+        this IEnumerable<ReceiversWithMeasureData.Receiver> receivers)
     {
         return receivers.Select(
                 r => new MarketActorRecipientV1(

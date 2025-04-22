@@ -884,7 +884,7 @@ public class MeteringPointMasterDataProviderTests
             };
 
             var masterData = await masterDataTask;
-
+// Only  masterdata within the requested period should be returned, to mimic the behavior of `ElectricityMarket`
             // This period check follows the algorithm "bool overlap = a.start < b.end && b.start < a.end"
             // where a = md and b = interval.
             // See https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods for more info.

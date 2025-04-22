@@ -86,13 +86,13 @@ public class MeteringPointReceiversProviderTests
             .And.SatisfyRespectively(
                 a =>
                 {
-                    a.ActorNumber.Should().Be(_defaultEnergySupplier);
-                    a.ActorRole.Should().Be(ActorRole.EnergySupplier);
+                    a.Number.Should().Be(_defaultEnergySupplier);
+                    a.Role.Should().Be(ActorRole.EnergySupplier);
                 },
                 a =>
                 {
-                    a.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
-                    a.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
+                    a.Number.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
+                    a.Role.Should().Be(ActorRole.DanishEnergyAgency);
                 });
     }
 
@@ -112,13 +112,13 @@ public class MeteringPointReceiversProviderTests
             .And.SatisfyRespectively(
                 a =>
                 {
-                    a.ActorNumber.Should().Be(_defaultEnergySupplier);
-                    a.ActorRole.Should().Be(ActorRole.EnergySupplier);
+                    a.Number.Should().Be(_defaultEnergySupplier);
+                    a.Role.Should().Be(ActorRole.EnergySupplier);
                 },
                 a =>
                 {
-                    a.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
-                    a.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
+                    a.Number.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
+                    a.Role.Should().Be(ActorRole.DanishEnergyAgency);
                 });
     }
 
@@ -138,13 +138,13 @@ public class MeteringPointReceiversProviderTests
             .And.SatisfyRespectively(
                 a =>
                 {
-                    a.ActorNumber.Should().Be(_defaultGridAccessProviderNeighbor1);
-                    a.ActorRole.Should().Be(ActorRole.GridAccessProvider);
+                    a.Number.Should().Be(_defaultGridAccessProviderNeighbor1);
+                    a.Role.Should().Be(ActorRole.GridAccessProvider);
                 },
                 a =>
                 {
-                    a.ActorNumber.Should().Be(_defaultGridAccessProviderNeighbor2);
-                    a.ActorRole.Should().Be(ActorRole.GridAccessProvider);
+                    a.Number.Should().Be(_defaultGridAccessProviderNeighbor2);
+                    a.Role.Should().Be(ActorRole.GridAccessProvider);
                 });
     }
 
@@ -164,18 +164,18 @@ public class MeteringPointReceiversProviderTests
             .And.SatisfyRespectively(
                 a =>
                 {
-                    a.ActorNumber.Value.Should().Be(DataHubDetails.SystemOperatorNumber);
-                    a.ActorRole.Should().Be(ActorRole.SystemOperator);
+                    a.Number.Value.Should().Be(DataHubDetails.SystemOperatorNumber);
+                    a.Role.Should().Be(ActorRole.SystemOperator);
                 },
                 a =>
                 {
-                    a.ActorNumber.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
-                    a.ActorRole.Should().Be(ActorRole.DanishEnergyAgency);
+                    a.Number.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
+                    a.Role.Should().Be(ActorRole.DanishEnergyAgency);
                 },
                 a =>
                 {
-                    a.ActorNumber.Should().Be(_defaultEnergySupplier);
-                    a.ActorRole.Should().Be(ActorRole.EnergySupplier);
+                    a.Number.Should().Be(_defaultEnergySupplier);
+                    a.Role.Should().Be(ActorRole.EnergySupplier);
                 });
     }
 
@@ -207,7 +207,7 @@ public class MeteringPointReceiversProviderTests
                     r.StartDateTime.Should().Be(findReceiversInput.StartDateTime.ToDateTimeOffset());
                     r.EndDateTime.Should().Be(findReceiversInput.EndDateTime.ToDateTimeOffset());
                     r.Receivers.Should()
-                        .ContainSingle(a => a.ActorNumber == _defaultEnergySupplier);
+                        .ContainSingle(a => a.Number == _defaultEnergySupplier);
                     r.MeasureDataList.Should().HaveSameCount(findReceiversInput.MeasureData);
                     r.MeasureDataList.First().Position.Should().Be(1);
                     r.MeasureDataList.Last().Position.Should().Be(r.MeasureDataList.Count);
@@ -275,8 +275,8 @@ public class MeteringPointReceiversProviderTests
                     r.StartDateTime.Should().Be(masterData1Start.ToDateTimeOffset());
                     r.EndDateTime.Should().Be(masterData1End.ToDateTimeOffset());
                     r.Receivers.Should()
-                        .ContainSingle(a => a.ActorNumber == masterData1Receiver)
-                        .And.NotContain(a => a.ActorNumber == masterData2Receiver || a.ActorNumber == masterData3Receiver);
+                        .ContainSingle(a => a.Number == masterData1Receiver)
+                        .And.NotContain(a => a.Number == masterData2Receiver || a.Number == masterData3Receiver);
                     r.MeasureDataList.Should().HaveCount(masterData1Days * elementsPerDayForResolution);
                     r.MeasureDataList.First().Position.Should().Be(1);
                     r.MeasureDataList.Last().Position.Should().Be(r.MeasureDataList.Count);
@@ -286,8 +286,8 @@ public class MeteringPointReceiversProviderTests
                     r.StartDateTime.Should().Be(masterData2Start.ToDateTimeOffset());
                     r.EndDateTime.Should().Be(masterData2End.ToDateTimeOffset());
                     r.Receivers.Should()
-                        .ContainSingle(a => a.ActorNumber == masterData2Receiver)
-                        .And.NotContain(a => a.ActorNumber == masterData1Receiver || a.ActorNumber == masterData3Receiver);
+                        .ContainSingle(a => a.Number == masterData2Receiver)
+                        .And.NotContain(a => a.Number == masterData1Receiver || a.Number == masterData3Receiver);
                     r.MeasureDataList.Should().HaveCount(masterData2Days * elementsPerDayForResolution);
                     r.MeasureDataList.First().Position.Should().Be(1);
                     r.MeasureDataList.Last().Position.Should().Be(r.MeasureDataList.Count);
@@ -297,8 +297,8 @@ public class MeteringPointReceiversProviderTests
                     r.StartDateTime.Should().Be(masterData3Start.ToDateTimeOffset());
                     r.EndDateTime.Should().Be(masterData3End.ToDateTimeOffset());
                     r.Receivers.Should()
-                        .ContainSingle(a => a.ActorNumber == masterData3Receiver)
-                        .And.NotContain(a => a.ActorNumber == masterData1Receiver || a.ActorNumber == masterData2Receiver);
+                        .ContainSingle(a => a.Number == masterData3Receiver)
+                        .And.NotContain(a => a.Number == masterData1Receiver || a.Number == masterData2Receiver);
                     r.MeasureDataList.Should().HaveCount(masterData3Days * elementsPerDayForResolution);
                     r.MeasureDataList.First().Position.Should().Be(1);
                     r.MeasureDataList.Last().Position.Should().Be(r.MeasureDataList.Count);
@@ -384,8 +384,8 @@ public class MeteringPointReceiversProviderTests
             .And.SatisfyRespectively(
                 mar =>
                 {
-                    mar.ActorNumber.Should().Be(_defaultParentEnergySupplier);
-                    mar.ActorRole.Should().Be(ActorRole.EnergySupplier);
+                    mar.Number.Should().Be(_defaultParentEnergySupplier);
+                    mar.Role.Should().Be(ActorRole.EnergySupplier);
                 });
     }
 

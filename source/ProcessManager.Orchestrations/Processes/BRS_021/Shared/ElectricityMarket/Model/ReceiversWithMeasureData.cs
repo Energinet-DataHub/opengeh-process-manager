@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 
@@ -27,15 +27,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shar
 /// <param name="EndDateTime">The end date and time of the period.</param>
 /// <param name="MeasureDataList">The measure data in the given period.</param>
 public record ReceiversWithMeasureData(
-    IReadOnlyCollection<ReceiversWithMeasureData.Receiver> Receivers,
+    IReadOnlyCollection<Actor> Receivers,
     Resolution Resolution,
     MeasurementUnit MeasureUnit,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
     IReadOnlyCollection<ReceiversWithMeasureData.MeasureData> MeasureDataList)
 {
-    public sealed record Receiver(ActorNumber ActorNumber, ActorRole ActorRole);
-
     public record MeasureData(
         int Position,
         decimal? EnergyQuantity,

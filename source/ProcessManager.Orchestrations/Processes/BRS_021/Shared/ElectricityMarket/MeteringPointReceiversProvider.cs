@@ -15,6 +15,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using NodaTime;
 using NodaTime.Extensions;
@@ -175,10 +176,10 @@ public class MeteringPointReceiversProvider(
             MeasureDataList: masterDataWithMeteredData.MeasureData);
     }
 
-    private List<ReceiversWithMeasureData.Receiver> GetReceiversFromMasterData(
+    private List<Actor> GetReceiversFromMasterData(
         MeteringPointMasterData meteringPointMasterData)
     {
-        var receivers = new List<ReceiversWithMeasureData.Receiver>();
+        var receivers = new List<Actor>();
         var meteringPointType = meteringPointMasterData.MeteringPointType;
 
         switch (meteringPointType)
@@ -263,24 +264,24 @@ public class MeteringPointReceiversProvider(
         }
 
         var distinctReceivers = receivers
-            .DistinctBy(r => (r.ActorNumber.Value, r.ActorRole.Name))
+            .DistinctBy(r => (r.Number.Value, r.Role.Name))
             .ToList();
 
         return distinctReceivers;
     }
 
-    private ReceiversWithMeasureData.Receiver EnergySupplierReceiver(ActorNumber energySupplierId) =>
+    private Actor EnergySupplierReceiver(ActorNumber energySupplierId) =>
         new(energySupplierId, ActorRole.EnergySupplier);
 
-    private ReceiversWithMeasureData.Receiver GridAccessProviderReceiver(ActorNumber gridAccessProviderId) => new(
+    private Actor GridAccessProviderReceiver(ActorNumber gridAccessProviderId) => new(
         gridAccessProviderId,
         ActorRole.GridAccessProvider);
 
-    private ReceiversWithMeasureData.Receiver DanishEnergyAgencyReceiver() => new(
+    private Actor DanishEnergyAgencyReceiver() => new(
         ActorNumber.Create(DataHubDetails.DanishEnergyAgencyNumber),
         ActorRole.DanishEnergyAgency);
 
-    private ReceiversWithMeasureData.Receiver SystemOperatorReceiver() => new(
+    private Actor SystemOperatorReceiver() => new(
         ActorNumber.Create(DataHubDetails.SystemOperatorNumber),
         ActorRole.SystemOperator);
 

@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.0.0
+
+- Upgraded to .NET 9
+
 ## Version 1.19.1
 
 - No functional changes.

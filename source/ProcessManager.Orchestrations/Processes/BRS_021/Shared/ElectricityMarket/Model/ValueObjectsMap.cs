@@ -12,13 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 
-public enum ConnectionState
+public sealed class ValueObjectsMap<TKey, TValue> : Dictionary<TKey, TValue>
+    where TKey : notnull
+    where TValue : notnull
 {
-    NotUsed,
-    ClosedDown,
-    New,
-    Connected,
-    Disconnected,
+    public TValue Map(TKey source)
+    {
+        return !TryGetValue(source, out var result)
+            ? throw new ArgumentOutOfRangeException(nameof(source), source, null)
+            : result;
+    }
 }

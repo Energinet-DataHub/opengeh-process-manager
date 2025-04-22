@@ -14,6 +14,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.Core.FunctionApp.TestCommon;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
@@ -175,13 +176,14 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         // => Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
         await OrchestrationsAppManager.StartAsync(ediEnqueueTopicResources, integrationEventTopicResources);
 
+        // Use new event hub namespace (with support for more event hubs) until TestCommon is updated with the new namespace.
         EventHubListener = new EventHubListenerMock(
-            new TestDiagnosticsLogger(),
-            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+            testLogger: new TestDiagnosticsLogger(),
+            eventHubFullyQualifiedNamespace: OrchestrationsAppManager.EventHubFullyQualifiedNamespace,
             eventHubName: OrchestrationsAppManager.MeasurementEventHubName,
-            AzuriteManager.BlobStorageServiceUri,
+            blobStorageServiceUri: AzuriteManager.BlobStorageServiceUri,
             blobContainerName: "container-01",
-            IntegrationTestConfiguration.Credential);
+            credential: IntegrationTestConfiguration.Credential);
         await EventHubListener.InitializeAsync();
     }
 

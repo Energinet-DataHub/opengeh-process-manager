@@ -51,8 +51,8 @@ public static class ReceiversWithMeasureDataExtensions
             .Select(
                 md => new ReceiversWithMeasureDataV1.MeasureData(
                     Position: md.Position,
-                    EnergyQuantity: md.EnergyQuantity!.Value, // TODO: Can this be null?
-                    QuantityQuality: md.QuantityQuality!)) // TODO: Can this be null?
+                    EnergyQuantity: md.EnergyQuantity,
+                    QuantityQuality: md.QuantityQuality))
             .ToList();
     }
 }

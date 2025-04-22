@@ -30,6 +30,6 @@ public record ReceiversWithMeasureDataV1(
 
     public record MeasureData(
         int Position,
-        decimal EnergyQuantity, // TODO: Can this be null?
-        Quality QuantityQuality); // TODO: Can this be null?
+        decimal? EnergyQuantity, // TODO: Can this be null for electrical heating?
+        Quality? QuantityQuality); // TODO: Can this be null for electrical heating?
 }

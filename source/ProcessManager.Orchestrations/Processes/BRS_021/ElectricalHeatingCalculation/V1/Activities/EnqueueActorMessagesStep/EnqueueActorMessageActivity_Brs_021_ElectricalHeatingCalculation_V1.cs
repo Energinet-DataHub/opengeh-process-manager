@@ -45,47 +45,72 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
 
         // The returned data stream must (in the end) be a list of
         string? currentMeteringPointId = null;
-        List<ReceiversWithMeasureData.MeasureData> currentMeteredData = [];
+        List<(string MeteringPointId, Instant Timestamp, Resolution Resolution, int Quantity)> currentMeasureData = [];
         await foreach (var data in dataStream)
         {
             if (currentMeteringPointId == null)
                 currentMeteringPointId = data.MeteringPointId;
 
-            // Metering point id has changed, create a "packaged" message and enqueue to EDI.
+            // Metering point id has changed, create a "packaged" message for the previous metering point id and enqueue to EDI.
             if (currentMeteringPointId != data.MeteringPointId)
             {
-                // We need to get master data & receivers for each metering point id
-                var masterDataForMeteringPoint = await _meteringPointMasterDataProvider.GetMasterData(
-                        currentMeteringPointId,
-                        input.CalculationPeriodStart,
-                        input.CalculationPeriodEnd)
+                await EnqueueMessageForMeasureData(
+                        orchestrationInstanceId: input.OrchestrationInstanceId,
+                        currentMeteringPointId: currentMeteringPointId,
+                        measureData: currentMeasureData)
                     .ConfigureAwait(false);
 
-                var receiversForMeteringPoint = _meteringPointReceiversProvider
-                    .GetReceiversWithMeteredDataFromMasterDataList(
-                        new MeteringPointReceiversProvider.FindReceiversInput(
-                            data.MeteringPointId,
-                            input.CalculationPeriodStart,
-                            input.CalculationPeriodEnd,
-                            data.Resolution,
-                            masterDataForMeteringPoint,
-                            currentMeteredData));
-
-                // Enqueue to EDI
-                // TODO: This probably needs to be handled differently, since this requires the orchestration to wait
-                // for each enqueued messages event to be returned.
-                await _enqueueActorMessagesClient.EnqueueAsync(
-                        orchestration: Orchestration_Brs_021_ElectricalHeatingCalculation_V1.UniqueName,
-                        orchestrationInstanceId: input.OrchestrationInstanceId.Value,
-                        orchestrationStartedBy: new ActorIdentityDto(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider),
-                        // We need to create unique deterministic idempotency keys for each message sent to EDI instead,
-                        // so rerunning the activity generates the same idempotency keys as previous run.
-                        idempotencyKey: Guid.NewGuid(),
-                        data: new EnqueueActorMessagesForMeteringPointV1(
-                            ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingReceiversWithMeasureDataV1()))
-                    .ConfigureAwait(false);
+                currentMeasureData = [];
+                currentMeteringPointId = data.MeteringPointId;
             }
+
+            currentMeasureData.Add(data);
         }
+    }
+
+    private async Task EnqueueMessageForMeasureData(
+        OrchestrationInstanceId orchestrationInstanceId,
+        string currentMeteringPointId,
+        List<(string MeteringPointId, Instant Timestamp, Resolution Resolution, int Quantity)> measureData)
+    {
+        var from = measureData.First().Timestamp;
+        var to = measureData.Last().Timestamp;
+
+        // We need to get master data & receivers for each metering point id
+        var masterDataForMeteringPoint = await _meteringPointMasterDataProvider.GetMasterData(
+                meteringPointId: currentMeteringPointId,
+                startDateTime: from,
+                endDateTime: to)
+            .ConfigureAwait(false);
+
+        var receiversForMeteringPoint = _meteringPointReceiversProvider
+            .GetReceiversWithMeteredDataFromMasterDataList(
+                new MeteringPointReceiversProvider.FindReceiversInput(
+                    MeteringPointId: currentMeteringPointId,
+                    StartDateTime: from,
+                    EndDateTime: to,
+                    Resolution: measureData.First().Resolution,
+                    MasterData: masterDataForMeteringPoint,
+                    MeasureData: measureData
+                        .Select((md, i) => new ReceiversWithMeasureData.MeasureData(
+                            Position: i + 1, // Position is 1-based, so if the list is empty the first position is 1.
+                            EnergyQuantity: md.Quantity,
+                            QuantityQuality: Quality.Calculated))
+                        .ToList()));
+
+        // Enqueue to EDI
+        // TODO: This probably needs to be handled differently, since this requires the orchestration to wait
+        // for each enqueued messages event to be returned.
+        await _enqueueActorMessagesClient.EnqueueAsync(
+                orchestration: Orchestration_Brs_021_ElectricalHeatingCalculation_V1.UniqueName,
+                orchestrationInstanceId: orchestrationInstanceId.Value,
+                orchestrationStartedBy: new ActorIdentityDto(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider), // TODO: Get this from the orchestration instance
+                // TODO: We need to create unique deterministic idempotency keys for each message sent to EDI instead,
+                // so rerunning the activity generates the same idempotency keys as previous run.
+                idempotencyKey: Guid.NewGuid(),
+                data: new EnqueueActorMessagesForMeteringPointV1(
+                    ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingReceiversWithMeasureDataV1()))
+            .ConfigureAwait(false);
     }
 
     /// <summary>

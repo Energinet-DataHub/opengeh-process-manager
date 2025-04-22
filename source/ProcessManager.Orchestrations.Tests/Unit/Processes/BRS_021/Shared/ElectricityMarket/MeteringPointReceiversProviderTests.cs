@@ -208,7 +208,7 @@ public class MeteringPointReceiversProviderTests
                     r.EndDateTime.Should().Be(findReceiversInput.EndDateTime.ToDateTimeOffset());
                     r.Receivers.Should()
                         .ContainSingle(a => a.ActorNumber == _defaultEnergySupplier);
-                    r.MeasureDataList.Should().HaveSameCount(findReceiversInput.MeteredData);
+                    r.MeasureDataList.Should().HaveSameCount(findReceiversInput.MeasureData);
                     r.MeasureDataList.First().Position.Should().Be(1);
                     r.MeasureDataList.Last().Position.Should().Be(r.MeasureDataList.Count);
                 });
@@ -835,6 +835,6 @@ public class MeteringPointReceiversProviderTests
             EndDateTime: endDateTime ?? masterData.Last().ValidTo.ToInstant(),
             Resolution: masterData.First().Resolution,
             MasterData: masterData,
-            MeteredData: meteredData);
+            MeasureData: meteredData);
     }
 }

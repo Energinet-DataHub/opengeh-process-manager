@@ -45,7 +45,7 @@ public class MeteringPointReceiversProvider(
 
         // Ensure metered data is sorted by position
         var sortedMeteredData = new SortedDictionary<int, ReceiversWithMeasureData.MeasureData>(
-            input.MeteredData.ToDictionary(md => md.Position));
+            input.MeasureData.ToDictionary(md => md.Position));
 
         // Ensure master data is sorted by ValidFrom
         var masterDataDictionary = input.MasterData.ToDictionary(mpmd => mpmd.ValidFrom.ToInstant());
@@ -290,7 +290,7 @@ public class MeteringPointReceiversProvider(
         Instant EndDateTime,
         Resolution Resolution,
         IReadOnlyCollection<MeteringPointMasterData> MasterData,
-        IReadOnlyCollection<ReceiversWithMeasureData.MeasureData> MeteredData);
+        IReadOnlyCollection<ReceiversWithMeasureData.MeasureData> MeasureData);
 
     private sealed record MasterDataWithMeteredData
     {

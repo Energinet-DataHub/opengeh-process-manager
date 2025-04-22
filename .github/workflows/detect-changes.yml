@@ -48,6 +48,9 @@ jobs:
           show-progress: true
           fetch-depth: 0 # Fetch all history so that we can determine the base commit
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+
       - name: List checked out files
         if: ${{ inputs.print_debug_output == 'true' }}
         run: |

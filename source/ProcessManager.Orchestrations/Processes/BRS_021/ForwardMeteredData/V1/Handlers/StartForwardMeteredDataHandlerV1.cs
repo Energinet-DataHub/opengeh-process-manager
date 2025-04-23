@@ -436,7 +436,8 @@ public class StartForwardMeteredDataHandlerV1(
                     BusinessReason.FromName(forwardMeteredDataInput.BusinessReason),
                     validationErrors
                         .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))
-                        .ToList()))
+                        .ToList(),
+                    MeteringPointId: forwardMeteredDataInput.MeteringPointId!))
             .ConfigureAwait(false);
     }
 

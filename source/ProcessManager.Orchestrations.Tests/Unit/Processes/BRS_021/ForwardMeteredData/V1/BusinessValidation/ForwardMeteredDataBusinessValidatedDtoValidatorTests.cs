@@ -331,4 +331,39 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .ContainSingle()
             .And.BeEquivalentTo(PositionCountValidationRule.IncorrectNumberOfPositionsError(744, 2976));
     }
+
+    [Fact]
+    public async Task Given_InvalidMeasurementUnit_When_Validate_Then_ValidationError()
+    {
+        var invalidMeasurementUnit = "InvalidMeasurementUnit";
+        var input = new ForwardMeteredDataInputV1Builder()
+            .WithMeasureUnit(invalidMeasurementUnit)
+            .Build();
+
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+            GridAreaCode: new GridAreaCode("804"),
+            GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            MeasurementUnit: MeasurementUnit.KilowattHour,
+            ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            NeighborGridAreaOwners: [],
+            Resolution: Resolution.Hourly,
+            ProductId: "product",
+            ParentMeteringPointId: null,
+            EnergySupplier: ActorNumber.Create("1111111111112"));
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                Input: input,
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
+                ]));
+        result.Should()
+            .ContainSingle()
+            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeteringPointConnectionStateError);
+    }
 }

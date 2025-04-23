@@ -445,6 +445,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         .HaveCount(1)
                         .And.ContainSingle(
                             (e) => e.Message.Equals(PeriodValidationRule.InvalidEndDate.Message));
+                    forwardMeteredDataRejectedV1.MeteringPointId.Should()
+                        .Be(MeteringPointId);
                     return forwardMeteredDataRejectedV1.OriginalTransactionId == invalidForwardCommand.InputParameter.TransactionId;
                 })
             .VerifyCountAsync(1);

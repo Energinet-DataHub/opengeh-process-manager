@@ -73,5 +73,8 @@
       <Generator>MSBuild:Compile</Generator>
     </Protobuf>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="InternalProcesses\" />
+  </ItemGroup>
 
 </Project>

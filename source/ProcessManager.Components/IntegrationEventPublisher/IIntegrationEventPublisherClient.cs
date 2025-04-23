@@ -18,7 +18,7 @@ namespace Energinet.DataHub.ProcessManager.Components.IntegrationEventPublisher;
 
 public interface IIntegrationEventPublisherClient
 {
-    public Task PublishAsync(
+    Task PublishAsync(
         Guid eventIdentification,
         string eventName,
         int eventMinorVersion,

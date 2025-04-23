@@ -82,7 +82,8 @@ public class RequestCalculatedWholesaleServicesScenario : IClassFixture<ProcessM
     {
         var (success, orchestrationInstance, _) =
             await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
-                _fixture.TestConfiguration.Request.IdempotencyKey);
+                _fixture.TestConfiguration.Request.IdempotencyKey,
+                OrchestrationInstanceLifecycleState.Queued);
 
         Assert.Multiple(
             () => Assert.True(

@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 5.0.0
+
+- Upgraded to .NET 9
+
 ## Version 4.0.0
 
 - Add `IEnqueueDataDto` and use it as generic for `EnqueueActorMessagesV1` data.

@@ -22,11 +22,11 @@ using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 using NodaTime;
@@ -119,8 +119,8 @@ public class StartForwardMeteredDataHandlerV1(
 
             orchestrationInstance.CustomState.SetFromInstance(
                 new ForwardMeteredDataCustomStateV2(
-                    CurrentMeteringPointMasterData: currentMeteringPointMasterData?.FirstOrDefault(),
-                    HistoricalMeteringPointMasterData: historicalMeteringPointMasterData));
+                    CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.TryFromMeteringPointMasterData(currentMeteringPointMasterData?.FirstOrDefault()),
+                    HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
@@ -277,7 +277,12 @@ public class StartForwardMeteredDataHandlerV1(
         }
         catch (InvalidOperationException)
         {
-            var meteringPointMasterData = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>().MeteringPointMasterData;
+            var meteringPointMasterData = orchestrationInstance.CustomState
+                .AsType<ForwardMeteredDataCustomStateV1>()
+                .MeteringPointMasterData
+                .Select(mpmd => mpmd.ToV2())
+                .ToList();
+
             var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
             forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
         }
@@ -309,8 +314,10 @@ public class StartForwardMeteredDataHandlerV1(
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,
-                    CurrentMasterData: forwardMeteredDataCustomState.CurrentMeteringPointMasterData,
-                    HistoricalMeteringPointMasterData: forwardMeteredDataCustomState.HistoricalMeteringPointMasterData))
+                    CurrentMasterData: forwardMeteredDataCustomState.CurrentMeteringPointMasterData?.ToMeteringPointMasterData(),
+                    HistoricalMeteringPointMasterData: forwardMeteredDataCustomState.HistoricalMeteringPointMasterData
+                        .Select(mpmd => mpmd.ToMeteringPointMasterData())
+                        .ToList()))
             .ConfigureAwait(false);
 
         var validationSuccess = validationErrors.Count == 0;
@@ -340,7 +347,8 @@ public class StartForwardMeteredDataHandlerV1(
             return (false, null);
 
         var currentMeteringPointMasterData = customState
-            .CurrentMeteringPointMasterData;
+            .CurrentMeteringPointMasterData
+            .ToMeteringPointMasterData();
 
         var startedByActor = GetStartedByActor(orchestrationInstance);
 
@@ -428,7 +436,8 @@ public class StartForwardMeteredDataHandlerV1(
                     BusinessReason.FromName(forwardMeteredDataInput.BusinessReason),
                     validationErrors
                         .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))
-                        .ToList()))
+                        .ToList(),
+                    MeteringPointId: forwardMeteredDataInput.MeteringPointId!))
             .ConfigureAwait(false);
     }
 

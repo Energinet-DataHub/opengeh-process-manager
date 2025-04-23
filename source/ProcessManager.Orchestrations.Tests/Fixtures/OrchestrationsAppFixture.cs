@@ -14,6 +14,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
+using Energinet.DataHub.Core.FunctionApp.TestCommon;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
@@ -176,12 +177,12 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await OrchestrationsAppManager.StartAsync(ediEnqueueTopicResources, integrationEventTopicResources);
 
         EventHubListener = new EventHubListenerMock(
-            new TestDiagnosticsLogger(),
-            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+            testLogger: new TestDiagnosticsLogger(),
+            eventHubFullyQualifiedNamespace: OrchestrationsAppManager.EventHubFullyQualifiedNamespace,
             eventHubName: OrchestrationsAppManager.MeasurementEventHubName,
-            AzuriteManager.BlobStorageServiceUri,
+            blobStorageServiceUri: AzuriteManager.BlobStorageServiceUri,
             blobContainerName: "container-01",
-            IntegrationTestConfiguration.Credential);
+            credential: IntegrationTestConfiguration.Credential);
         await EventHubListener.InitializeAsync();
     }
 

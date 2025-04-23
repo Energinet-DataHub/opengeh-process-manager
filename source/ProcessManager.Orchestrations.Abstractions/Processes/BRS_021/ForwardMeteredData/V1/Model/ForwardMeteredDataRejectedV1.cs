@@ -24,5 +24,6 @@ public record ForwardMeteredDataRejectedV1(
     string OriginalTransactionId,
     ActorRole ForwardedForActorRole,
     BusinessReason BusinessReason,
-    List<ValidationErrorDto> ValidationErrors)
+    List<ValidationErrorDto> ValidationErrors,
+    string MeteringPointId)
         : IEnqueueRejectedDataDto;

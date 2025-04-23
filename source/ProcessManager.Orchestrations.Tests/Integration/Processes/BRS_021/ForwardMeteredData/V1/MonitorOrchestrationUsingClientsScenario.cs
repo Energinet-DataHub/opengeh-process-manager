@@ -20,7 +20,6 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.Common;
-using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.ProcessDelegation;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
@@ -38,6 +37,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -54,24 +54,14 @@ using NodaTime.Serialization.SystemTextJson;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
-using ConnectionState =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.ConnectionState;
-using GridAreaCode =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.GridAreaCode;
-using MeteringPointMasterData =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.
-    MeteringPointMasterData;
-using MeteringPointSubType =
-    Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model.MeteringPointSubType;
+
+using ElectricityMarketModels = Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
-using OrchestrationInstanceTerminationState =
-    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationState;
+using OrchestrationInstanceTerminationState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationState;
 using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
-using StepInstanceLifecycleState =
-    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceLifecycleState;
-using StepInstanceTerminationState =
-    Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceTerminationState;
+using StepInstanceLifecycleState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceLifecycleState;
+using StepInstanceTerminationState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
@@ -118,13 +108,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"]
                 = _fixture.OrchestrationsAppManager.MeasurementEventHubName,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"]
-                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+                = _fixture.OrchestrationsAppManager.EventHubFullyQualifiedNamespace,
 
             // Process Manager Eventhub client to simulate the notification event from measurements
             [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.EventHubName)}"]
                 = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
             [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}"]
-                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+                = _fixture.OrchestrationsAppManager.EventHubFullyQualifiedNamespace,
 
             // Process Manager message client
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
@@ -278,10 +268,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
-            CurrentMeteringPointMasterData: meteringPointMasterData,
-            HistoricalMeteringPointMasterData: [
-            meteringPointMasterData,
-        ]);
+            CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData),
+            HistoricalMeteringPointMasterData:
+            [
+                ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData)
+            ]);
 
         terminatedOrchestrationInstance.CustomState.Should()
             .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));
@@ -391,10 +382,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
-            CurrentMeteringPointMasterData: meteringPointMasterData,
-            HistoricalMeteringPointMasterData: [
-            meteringPointMasterData,
-        ]);
+            CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData
+                .FromMeteringPointMasterData(meteringPointMasterData),
+            HistoricalMeteringPointMasterData:
+            [
+                ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData),
+            ]);
 
         terminatedOrchestrationInstance.CustomState.Should()
             .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));
@@ -452,6 +445,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                         .HaveCount(1)
                         .And.ContainSingle(
                             (e) => e.Message.Equals(PeriodValidationRule.InvalidEndDate.Message));
+                    forwardMeteredDataRejectedV1.MeteringPointId.Should()
+                        .Be(MeteringPointId);
                     return forwardMeteredDataRejectedV1.OriginalTransactionId == invalidForwardCommand.InputParameter.TransactionId;
                 })
             .VerifyCountAsync(1);
@@ -622,9 +617,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .WithBody(_ => true)
             .UsingPost();
 
-        var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData()
+        var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData
         {
-            Identification = new MeteringPointIdentification(MeteringPointId),
+            Identification = new ElectricityMarketModels.MeteringPointIdentification(MeteringPointId),
             ValidFrom = _validFrom,
             ValidTo = _validTo,
             GridAreaCode = new ElectricityMarket.Integration.Models.MasterData.GridAreaCode(GridArea),
@@ -634,8 +629,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             Type = ElectricityMarket.Integration.Models.MasterData.MeteringPointType.Production,
             SubType = ElectricityMarket.Integration.Models.MasterData.MeteringPointSubType.Physical,
             Resolution = new ElectricityMarket.Integration.Models.MasterData.Resolution("PT1H"),
-            Unit = MeasureUnit.kWh,
-            ProductId = ProductId.Tariff,
+            Unit = ElectricityMarketModels.MeasureUnit.kWh,
+            ProductId = ElectricityMarketModels.ProductId.Tariff,
             ParentIdentification = null,
             EnergySupplier = EnergySupplier,
         };

@@ -108,13 +108,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"]
                 = _fixture.OrchestrationsAppManager.MeasurementEventHubName,
             [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"]
-                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+                = _fixture.OrchestrationsAppManager.EventHubFullyQualifiedNamespace,
 
             // Process Manager Eventhub client to simulate the notification event from measurements
             [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.EventHubName)}"]
                 = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
             [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}"]
-                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+                = _fixture.OrchestrationsAppManager.EventHubFullyQualifiedNamespace,
 
             // Process Manager message client
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]

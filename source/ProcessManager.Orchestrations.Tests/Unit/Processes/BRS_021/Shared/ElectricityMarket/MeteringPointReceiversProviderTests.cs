@@ -138,13 +138,18 @@ public class MeteringPointReceiversProviderTests
 
         var masterData3 = CreateMasterData(meteringPointType, secondPeriodWithEnergySupplier.Start, secondPeriodWithEnergySupplier.End);
 
+        IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterData = [masterData, masterData2, masterData3];
         var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
-            CreateFindReceiversInput([masterData, masterData2, masterData3]));
+            CreateFindReceiversInput(meteringPointMasterData));
 
         // Assert that the EnergySupplier only receives data for periods where it is the supplier
         using var assertionScope = new AssertionScope();
         receiversWithMeteredData.Where(x => x.Receivers.Contains(
-            new Actor(_defaultEnergySupplier, ActorRole.EnergySupplier))).Should().SatisfyRespectively(
+            new Actor(_defaultEnergySupplier, ActorRole.EnergySupplier)))
+            .Should()
+            .HaveCount(2)
+            .And
+            .SatisfyRespectively(
             a =>
             {
                 a.StartDateTime.Should().Be(firstPeriodWithEnergySupplier.Start.ToDateTimeOffset());
@@ -160,7 +165,11 @@ public class MeteringPointReceiversProviderTests
         receiversWithMeteredData.Where(x => x.Receivers.Contains(
             new Actor(
                 ActorNumber.Create(DataHubDetails.DanishEnergyAgencyNumber),
-                ActorRole.DanishEnergyAgency))).Should().SatisfyRespectively(
+                ActorRole.DanishEnergyAgency)))
+            .Should()
+            .HaveCount(meteringPointMasterData.Count)
+            .And
+            .SatisfyRespectively(
             a =>
             {
                 a.StartDateTime.Should().Be(firstPeriodWithEnergySupplier.Start.ToDateTimeOffset());

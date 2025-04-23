@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 1.20.1
+
+- Added `MeteringPointId` to `ForwardMeteredDataRejectedV1`.
+
 ## Version 1.20.0
 
 - Add `EnqueueActorMessagesForMeteringPointV1` for BRS-021 Electrical Heating calculation.

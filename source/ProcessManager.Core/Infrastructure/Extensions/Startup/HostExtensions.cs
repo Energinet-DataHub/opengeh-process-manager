@@ -57,12 +57,15 @@ public static class HostExtensions
                     od.Steps,
                 }));
 
-            var register = host.Services.GetRequiredService<IOrchestrationRegister>();
-            await register
-                .SynchronizeAsync(
-                    hostName: hostName,
-                    orchestrationDescriptions)
-                .ConfigureAwait(false);
+            using (var serviceScope = host.Services.CreateScope())
+            {
+                var register = serviceScope.ServiceProvider.GetRequiredService<IOrchestrationRegister>();
+                await register
+                    .SynchronizeAsync(
+                        hostName: hostName,
+                        orchestrationDescriptions)
+                    .ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {

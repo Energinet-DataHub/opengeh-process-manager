@@ -48,7 +48,7 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
         // Bundle
         string? currentMeteringPointId = null;
         List<(string MeteringPointId, Instant Timestamp, Resolution Resolution, int Quantity)> currentMeasureData = [];
-        await foreach (var data in dataStream)
+        await foreach (var data in dataStream.ConfigureAwait(false))
         {
             if (currentMeteringPointId == null)
                 currentMeteringPointId = data.MeteringPointId;

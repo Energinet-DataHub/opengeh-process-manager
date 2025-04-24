@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements.Mappe
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Mappers;
 
 // TODO - XDAST: We will investigate if we can implement a "common" reusable mapper, but for now we use this for Electrical Heating only
-public static class MeteringPointTypeMapper
+internal static class MeteringPointTypeMapper
 {
     public static MeteringPointType FromDeltaTableValue(string? meteringPointType)
     {

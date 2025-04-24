@@ -28,7 +28,7 @@ public class MeteringPointSubTypeValidationRule
 
     private static IList<ValidationError> NoError => [];
 
-    private static IReadOnlyCollection<MeteringPointSubType> AllowedMeteringPointTypes => new[]
+    private static IReadOnlyCollection<MeteringPointSubType> AllowedMeteringPointSubTypes => new[]
     {
         MeteringPointSubType.Physical,
         MeteringPointSubType.Virtual,
@@ -53,7 +53,7 @@ public class MeteringPointSubTypeValidationRule
 
         // Check if the metering point subtype is allowed
         var meteringPointSubType = uniqueMeteringPointSubTypes.First();
-        if (!AllowedMeteringPointTypes.Contains(meteringPointSubType))
+        if (!AllowedMeteringPointSubTypes.Contains(meteringPointSubType))
         {
             return Task.FromResult(WrongMeteringPointSubTypeError);
         }

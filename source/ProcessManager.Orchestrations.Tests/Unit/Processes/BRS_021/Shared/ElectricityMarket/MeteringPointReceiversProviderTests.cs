@@ -122,6 +122,77 @@ public class MeteringPointReceiversProviderTests
                 });
     }
 
+    [Theory]
+    [InlineData("Consumption")]
+    [InlineData("Production")]
+    public void Given_MeteringPointType_When_GetReceivers_Then_PeriodsAreCorrectForEnergySupplierAndDanishEnergyAgency(string mp)
+    {
+        var meteringPointType = MeteringPointType.FromName(mp);
+        var firstPeriodWithEnergySupplier = new Interval(
+            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 1, hourOfDay: 23, minuteOfHour: 00),
+            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 2, hourOfDay: 23, minuteOfHour: 00));
+        var periodWithoutEnergySupplier = new Interval(
+            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 2, hourOfDay: 23, minuteOfHour: 00),
+            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 3, hourOfDay: 23, minuteOfHour: 00));
+        var secondPeriodWithEnergySupplier = new Interval(
+            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 3, hourOfDay: 23, minuteOfHour: 00),
+            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 4, hourOfDay: 23, minuteOfHour: 00));
+
+        var masterData = CreateMasterData(meteringPointType, firstPeriodWithEnergySupplier.Start, firstPeriodWithEnergySupplier.End);
+
+        var masterData2 = CreateMasterDataWithoutParentOrEnergySupplier(periodWithoutEnergySupplier, meteringPointType);
+
+        var masterData3 = CreateMasterData(meteringPointType, secondPeriodWithEnergySupplier.Start, secondPeriodWithEnergySupplier.End);
+
+        IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterData = [masterData, masterData2, masterData3];
+        var receiversWithMeteredData = _sut.GetReceiversWithMeteredDataFromMasterDataList(
+            CreateFindReceiversInput(meteringPointMasterData));
+
+        // Assert that the EnergySupplier only receives data for periods where it is the supplier
+        using var assertionScope = new AssertionScope();
+        receiversWithMeteredData.Where(x => x.Receivers.Contains(
+            new Actor(_defaultEnergySupplier, ActorRole.EnergySupplier)))
+            .Should()
+            .HaveCount(2)
+            .And
+            .SatisfyRespectively(
+            a =>
+            {
+                a.StartDateTime.Should().Be(firstPeriodWithEnergySupplier.Start.ToDateTimeOffset());
+                a.EndDateTime.Should().Be(firstPeriodWithEnergySupplier.End.ToDateTimeOffset());
+            },
+            a =>
+            {
+                a.StartDateTime.Should().Be(secondPeriodWithEnergySupplier.Start.ToDateTimeOffset());
+                a.EndDateTime.Should().Be(secondPeriodWithEnergySupplier.End.ToDateTimeOffset());
+            });
+
+        // Assert that the DanishEnergyAgency receives data for the full duration.
+        receiversWithMeteredData.Where(x => x.Receivers.Contains(
+            new Actor(
+                ActorNumber.Create(DataHubDetails.DanishEnergyAgencyNumber),
+                ActorRole.DanishEnergyAgency)))
+            .Should()
+            .HaveCount(meteringPointMasterData.Count)
+            .And
+            .SatisfyRespectively(
+            a =>
+            {
+                a.StartDateTime.Should().Be(firstPeriodWithEnergySupplier.Start.ToDateTimeOffset());
+                a.EndDateTime.Should().Be(firstPeriodWithEnergySupplier.End.ToDateTimeOffset());
+            },
+            a =>
+            {
+                a.StartDateTime.Should().Be(periodWithoutEnergySupplier.Start.ToDateTimeOffset());
+                a.EndDateTime.Should().Be(periodWithoutEnergySupplier.End.ToDateTimeOffset());
+            },
+            a =>
+            {
+                a.StartDateTime.Should().Be(secondPeriodWithEnergySupplier.Start.ToDateTimeOffset());
+                a.EndDateTime.Should().Be(secondPeriodWithEnergySupplier.End.ToDateTimeOffset());
+            });
+    }
+
     [Fact]
     public void Given_MeteringPointTypeExchange_When_GetReceivers_Then_ReceiversAreGridAccessProviderNeighbors()
     {
@@ -836,5 +907,24 @@ public class MeteringPointReceiversProviderTests
             Resolution: masterData.First().Resolution,
             MasterData: masterData,
             MeasureData: meteredData);
+    }
+
+    private MeteringPointMasterData CreateMasterDataWithoutParentOrEnergySupplier(Interval period, MeteringPointType? mp)
+    {
+        return new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId("1"),
+            ValidFrom: period.Start.ToDateTimeOffset(),
+            ValidTo: period.End.ToDateTimeOffset(),
+            GridAreaCode: new GridAreaCode("1"),
+            GridAccessProvider: _defaultGridAccessProvider,
+            NeighborGridAreaOwners: [_defaultGridAccessProviderNeighbor1.Value, _defaultGridAccessProviderNeighbor2.Value],
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: mp ?? _defaultMeteringPointType,
+            MeteringPointSubType: MeteringPointSubType.Physical,
+            Resolution: _defaultResolution,
+            MeasurementUnit: MeasurementUnit.KilowattHour,
+            ProductId: "1",
+            ParentMeteringPointId: null,
+            EnergySupplier: null);
     }
 }

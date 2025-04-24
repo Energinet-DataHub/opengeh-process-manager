@@ -33,7 +33,7 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 ///  - WireMockInspector: https://github.com/WireMock-Net/WireMockInspector/blob/main/README.md
 ///  - WireMock.Net examples: https://github.com/WireMock-Net/WireMock.Net-examples
 /// </summary>
-public static class DatabricksApiWireMockExtensions
+public static class DatabricksJobsApiWireMockExtensions
 {
     public static WireMockServer MockJobsList(this WireMockServer server, long jobId, string jobName)
     {

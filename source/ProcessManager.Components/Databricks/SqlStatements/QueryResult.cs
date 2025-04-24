@@ -15,6 +15,7 @@
 namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 
 public sealed record QueryResult<TResult>
+    where TResult : IQueryResultDto
 {
     private QueryResult(bool isSuccess, TResult? result)
     {
@@ -26,13 +27,11 @@ public sealed record QueryResult<TResult>
 
     public TResult? Result { get; }
 
-    // TODO AJW Was internal before
     public static QueryResult<TResult> Success(TResult result)
     {
         return new(true, result);
     }
 
-    // TODO AJW Was internal before
     public static QueryResult<TResult> Error()
     {
         return new(false, default);

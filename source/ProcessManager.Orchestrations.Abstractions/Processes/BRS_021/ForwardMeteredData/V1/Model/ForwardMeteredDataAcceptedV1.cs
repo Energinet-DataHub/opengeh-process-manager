@@ -29,5 +29,6 @@ public record ForwardMeteredDataAcceptedV1(
     DateTimeOffset RegistrationDateTime,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
-    IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData)
+    IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData,
+    string GridAreaCode)
         : IEnqueueAcceptedDataDto;

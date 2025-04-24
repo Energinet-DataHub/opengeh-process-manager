@@ -13,7 +13,6 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="DurableFunctionsMonitor.DotNetIsolated" Version="6.6.0" />
-    <PackageReference Include="Energinet.DataHub.Core.Databricks.SqlStatementExecution" Version="12.1.0" />
     <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="6.1.4" />
     <PackageReference Include="Energinet.DataHub.ElectricityMarket.Integration" Version="4.3.4" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.EventHubs" Version="6.3.6" />
@@ -74,6 +73,7 @@
 
     <ItemGroup>
       <Folder Include="InternalProcesses\" />
+      <Folder Include="Processes\BRS_021\ElectricalHeatingCalculation\SqlStatements\" />
     </ItemGroup>
 
 </Project>

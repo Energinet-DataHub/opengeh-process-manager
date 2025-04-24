@@ -129,13 +129,13 @@ public class MeteringPointReceiversProviderTests
     {
         var meteringPointType = MeteringPointType.FromName(mp);
         var firstPeriodWithEnergySupplier = new Interval(
-            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 1, hourOfDay: 23, 00),
+            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 1, hourOfDay: 23, minuteOfHour: 00),
             Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 2, hourOfDay: 23, minuteOfHour: 00));
         var periodWithoutEnergySupplier = new Interval(
-            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 2, hourOfDay: 23, 00),
+            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 2, hourOfDay: 23, minuteOfHour: 00),
             Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 3, hourOfDay: 23, minuteOfHour: 00));
         var secondPeriodWithEnergySupplier = new Interval(
-            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 3, hourOfDay: 23, 00),
+            Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 3, hourOfDay: 23, minuteOfHour: 00),
             Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 4, hourOfDay: 23, minuteOfHour: 00));
 
         var masterData = CreateMasterData(meteringPointType, firstPeriodWithEnergySupplier.Start, firstPeriodWithEnergySupplier.End);

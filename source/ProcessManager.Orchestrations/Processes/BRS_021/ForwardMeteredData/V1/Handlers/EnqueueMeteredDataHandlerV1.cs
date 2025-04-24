@@ -224,7 +224,7 @@ public class EnqueueMeteredDataHandlerV1(
         }
 
         var gridAreaCode = GetForwardMeteredDataCustomState(orchestrationInstance)
-                               .CurrentMeteringPointMasterData?.GridAreaCode
+                               .HistoricalMeteringPointMasterData.First().GridAreaCode
                            ?? throw new InvalidOperationException($"Grid area code is required to enqueue accepted message with id {orchestrationInstance.Id}");
 
         // These checks should already (when implemented) be handled by the business validation

@@ -333,15 +333,15 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 
         var meteringPointMasterData = new MeteringPointMasterData(
             MeteringPointId: new MeteringPointId(input.MeteringPointId!),
-            GridAreaCode: new GridAreaCode("804"),
-            GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+            CurrentGridAreaCode: new GridAreaCode("804"),
+            CurrentGridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
             ConnectionState: ConnectionState.Connected,
             MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
             MeteringPointSubType: invalidMeteringPointSubType,
             MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
             ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
             ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-            NeighborGridAreaOwners: [],
+            CurrentNeighborGridAreaOwners: [],
             Resolution: Resolution.Hourly,
             ProductId: "product",
             ParentMeteringPointId: null,
@@ -349,7 +349,6 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
                 HistoricalMeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));

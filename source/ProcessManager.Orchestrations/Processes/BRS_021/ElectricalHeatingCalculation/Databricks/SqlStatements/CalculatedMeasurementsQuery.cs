@@ -20,9 +20,9 @@ using Microsoft.Extensions.Logging;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
 
 internal class CalculatedMeasurementsQuery(
+    ILogger logger,
     DatabricksQueryOptions databricksOptions,
-    Guid orchestrationInstanceId,
-    ILogger logger) :
+    Guid orchestrationInstanceId) :
         QueryBase<CalculatedMeasurement>(
             logger,
             databricksOptions,

@@ -102,21 +102,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
 
-        // Use new event hub namespace (with support for more event hubs) until TestCommon is updated with the new namespace.
-        EventHubNamespace = IntegrationTestConfiguration.Configuration.GetValue("AZURE-EVENTHUB-NAMESPACE-PREMIUM");
         EventHubResourceProvider = new EventHubResourceProvider(
             new TestDiagnosticsLogger(),
-            EventHubNamespace,
+            IntegrationTestConfiguration.EventHubNamespaceName,
             IntegrationTestConfiguration.ResourceManagementSettings,
             IntegrationTestConfiguration.Credential);
 
         MockServer = WireMockServer.Start(port: wireMockServerPort);
     }
-
-    // Use new event hub namespace (with support for more event hubs) until TestCommon is updated with the new namespace.
-    public string EventHubNamespace { get; }
-
-    public string EventHubFullyQualifiedNamespace => $"{EventHubNamespace}.servicebus.windows.net";
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
 
@@ -423,7 +416,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             processManagerEventhubResource.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}",
-            EventHubFullyQualifiedNamespace);
+            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
 
         // Measurements Metered Data Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -431,7 +424,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             MeasurementEventHubName);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}",
-            EventHubFullyQualifiedNamespace);
+            IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
 
         // Electric Market client
         appHostSettings.ProcessEnvironmentVariables.Add(

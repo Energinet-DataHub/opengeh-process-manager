@@ -178,7 +178,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         EventHubListener = new EventHubListenerMock(
             testLogger: new TestDiagnosticsLogger(),
-            eventHubFullyQualifiedNamespace: OrchestrationsAppManager.EventHubFullyQualifiedNamespace,
+            eventHubFullyQualifiedNamespace: IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
             eventHubName: OrchestrationsAppManager.MeasurementEventHubName,
             blobStorageServiceUri: AzuriteManager.BlobStorageServiceUri,
             blobContainerName: "container-01",

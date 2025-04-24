@@ -33,17 +33,17 @@ internal class CalculatedMeasurementsQuery(
 
     public override Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => new()
     {
-        { CalculatedMeasurementsColumnNames.OrchestrationType, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.OrchestrationInstanceId, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.TransactionId, (DeltaTableCommonTypes.Timestamp, false) },
-        { CalculatedMeasurementsColumnNames.TransactionCreationDatetime, (DeltaTableCommonTypes.Timestamp, false) },
-        { CalculatedMeasurementsColumnNames.MeteringPointId, (DeltaTableCommonTypes.BigInt, false) },
-        { CalculatedMeasurementsColumnNames.MeteringPointType, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.ObservationTime, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.Quantity, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.QuantityUnit, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.QuantityQuality, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.Resolution, (DeltaTableCommonTypes.Timestamp, false) },
+        { CalculatedMeasurementsColumnNames.OrchestrationType,              (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.OrchestrationInstanceId,        (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.TransactionId,                  (DeltaTableCommonTypes.Timestamp,   false) },
+        { CalculatedMeasurementsColumnNames.TransactionCreationDatetime,    (DeltaTableCommonTypes.Timestamp,   false) },
+        { CalculatedMeasurementsColumnNames.MeteringPointId,                (DeltaTableCommonTypes.BigInt,      false) },
+        { CalculatedMeasurementsColumnNames.MeteringPointType,              (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.ObservationTime,                (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.Quantity,                       (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.QuantityUnit,                   (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.QuantityQuality,                (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.Resolution,                     (DeltaTableCommonTypes.Timestamp,   false) },
     };
 
     protected override Task<QueryResult<CalculatedMeasurement>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> groupOfRows)

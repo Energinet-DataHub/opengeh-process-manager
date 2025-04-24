@@ -41,7 +41,7 @@ public class MeteringPointSubTypeValidationRule
             return Task.FromResult(NoError);
         }
 
-        // Check if the metering point subtype is same for all historic master data
+        // Check if the metering point subtype is the same for all historic master data
         var uniqueMeteringPointSubTypes = subject.HistoricalMeteringPointMasterData
             .Select(mpmd => mpmd.MeteringPointSubType)
             .Distinct()

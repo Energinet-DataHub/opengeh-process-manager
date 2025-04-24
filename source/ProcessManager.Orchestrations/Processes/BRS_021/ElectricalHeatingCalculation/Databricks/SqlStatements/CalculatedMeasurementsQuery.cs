@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
+using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Model;
 using Microsoft.Extensions.Logging;

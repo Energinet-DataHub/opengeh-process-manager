@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Mappers;
+namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements.Mappers;
 
 public static class MeasurementUnitMapper
 {

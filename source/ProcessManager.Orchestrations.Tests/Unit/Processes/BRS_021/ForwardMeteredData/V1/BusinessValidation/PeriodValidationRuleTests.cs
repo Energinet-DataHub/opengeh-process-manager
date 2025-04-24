@@ -12,26 +12,54 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation.Validators;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Moq;
 using NodaTime;
+using NodaTime.Text;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.
-    BusinessValidation;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
 public class PeriodValidationRuleTests
 {
+    private readonly PeriodValidationRule _sut;
+
+    public PeriodValidationRuleTests()
+    {
+        _sut = GetPeriodValidationRule(Instant.FromUtc(2025, 1, 1, 0, 0, 0));
+    }
+
+    [Theory]
+    [InlineData("00")]
+    [InlineData("15")]
+    [InlineData("30")]
+    [InlineData("45")]
+    public async Task Given_ValidMinutes_AndGiven_ResolutionIsQuarterHourly_When_ValidateAsync_Then_NoError(string minutes)
+    {
+        var result = await _sut.ValidateAsync(
+            new(
+                new ForwardMeteredDataInputV1Builder()
+                    .WithStartDateTime($"2025-01-01T23:{minutes}:00Z")
+                    .WithEndDateTime($"2025-01-31T23:{minutes}:00Z")
+                    .WithResolution(Resolution.QuarterHourly.Name)
+                    .Build(),
+                null,
+                []));
+
+        result.Should().BeEmpty();
+    }
+
     [Fact]
     public async Task Given_StartDateIsNotParsable_When_ValidateAsync_Then_Error()
     {
-        var sut = GetPeriodValidationRule(Instant.FromUtc(2025, 1, 1, 0, 0, 0));
-
-        var result = await sut.ValidateAsync(
+        var result = await _sut.ValidateAsync(
             new(
                 new ForwardMeteredDataInputV1Builder()
-                .WithStartDateTime("invalid").Build(),
+                    .WithStartDateTime("invalid")
+                    .Build(),
                 null,
                 []));
 
@@ -43,9 +71,7 @@ public class PeriodValidationRuleTests
     [InlineData("invalid")]
     public async Task Given_EndDateIsNotParsable_When_ValidateAsync_Then_Error(string? endDate)
     {
-        var sut = GetPeriodValidationRule(Instant.FromUtc(2025, 1, 1, 0, 0, 0));
-
-        var result = await sut.ValidateAsync(
+        var result = await _sut.ValidateAsync(
             new(
                 new ForwardMeteredDataInputV1Builder().WithEndDateTime(endDate).Build(),
                 null,
@@ -57,9 +83,7 @@ public class PeriodValidationRuleTests
     [Fact]
     public async Task Given_StartDateIsTooOld_When_ValidateAsync_Then_Error()
     {
-        var sut = GetPeriodValidationRule(Instant.FromUtc(2025, 1, 1, 0, 0, 0));
-
-        var result = await sut.ValidateAsync(
+        var result = await _sut.ValidateAsync(
             new(
                 new ForwardMeteredDataInputV1Builder()
                     .WithStartDateTime("2021-11-30T23:00:00Z")
@@ -69,6 +93,122 @@ public class PeriodValidationRuleTests
                 []));
 
         result.Should().ContainSingle().And.Contain(PeriodValidationRule.StartDateIsTooOld);
+    }
+
+    [Fact]
+    public async Task Given_EndIsBeforeStart_When_ValidateAsync_Then_Error()
+    {
+        var result = await _sut.ValidateAsync(
+            new(
+                new ForwardMeteredDataInputV1Builder()
+                    .WithStartDateTime("2025-02-01T23:00:00Z")
+                    .WithEndDateTime("2025-01-31T23:00:00Z")
+                    .Build(),
+                null,
+                []));
+
+        result.Should().ContainSingle().And.Contain(PeriodValidationRule.EndIsBeforeStart);
+    }
+
+    [Fact]
+    public async Task Given_NotStartingAtAWholeQuarter_When_ValidateAsync_Then_Error()
+    {
+        var startWhichIsNotAWholeQuarter = InstantPattern.General.Parse("2025-01-01T23:05:00Z");
+
+        var result = await _sut.ValidateAsync(
+            new(
+                new ForwardMeteredDataInputV1Builder()
+                    .WithStartDateTime(startWhichIsNotAWholeQuarter.Value.ToString())
+                    .WithEndDateTime(startWhichIsNotAWholeQuarter.Value.PlusHours(4).ToString())
+                    .WithResolution(Resolution.QuarterHourly.Name)
+                    .Build(),
+                null,
+                []));
+
+        result.Should().HaveCount(2)
+            .And.BeEquivalentTo(
+                [
+                PeriodValidationRule.MinuteIsNotAWholeQuarter.WithPropertyName("start"),
+                PeriodValidationRule.MinuteIsNotAWholeQuarter.WithPropertyName("end"),
+                ]);
+    }
+
+    [Theory]
+    [InlineData("QuarterHourly", "PT15M")]
+    [InlineData("Hourly", "PT1H")]
+    public async Task Given_PeriodOf3Hours_When_ValidateAsync_Then_Error(string resolution, string resolutionCode)
+    {
+        var result = await _sut.ValidateAsync(
+            new(
+                new ForwardMeteredDataInputV1Builder()
+                    .WithStartDateTime("2025-03-24T22:00:00Z")
+                    .WithEndDateTime("2025-03-25T01:00:00Z")
+                    .WithResolution(resolution)
+                    .Build(),
+                null,
+                []));
+
+        result.Should().ContainSingle().And.Contain(PeriodValidationRule.PeriodMustBeGreaterThan4Hours.WithPropertyName(resolutionCode));
+    }
+
+    [Fact]
+    public async Task Given_PeriodOf4Hours_AndGiven_ValidDaylightSavingOverlap_When_ValidateAsync_Then_NoError()
+    {
+        var result = await _sut.ValidateAsync(
+            new(
+                new ForwardMeteredDataInputV1Builder()
+                    .WithStartDateTime("2025-03-29T23:00:00Z")
+                    .WithEndDateTime("2025-03-30T03:00:00Z")
+                    .WithResolution(Resolution.Hourly.Name)
+                    .Build(),
+                null,
+                []));
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Given_PeriodOf1Month_AndGiven_StartAndIsNotFirstOfMonth_When_ValidateAsync_Then_Error()
+    {
+        var result = await _sut.ValidateAsync(
+            new(
+                new ForwardMeteredDataInputV1Builder()
+                    .WithStartDateTime("2025-06-02T22:00:00Z")
+                    .WithEndDateTime("2025-07-02T22:00:00Z")
+                    .WithResolution(Resolution.Monthly.Name)
+                    .Build(),
+                null,
+                []));
+
+        result.Should()
+            .HaveCount(2)
+            .And.BeEquivalentTo(
+            [
+                PeriodValidationRule.IsNotFirstOfMonthMidnightSummertime.WithPropertyName("start"),
+                PeriodValidationRule.IsNotFirstOfMonthMidnightSummertime.WithPropertyName("end"),
+            ]);
+    }
+
+    [Fact]
+    public async Task Given_PeriodOf1Month_AndGiven_StartAndEndIsNotMidnight_When_ValidateAsync_Then_Error()
+    {
+        var result = await _sut.ValidateAsync(
+            new(
+                new ForwardMeteredDataInputV1Builder()
+                    .WithStartDateTime("2025-06-30T22:05:00Z")
+                    .WithEndDateTime("2025-07-31T22:05:00Z")
+                    .WithResolution(Resolution.Monthly.Name)
+                    .Build(),
+                null,
+                []));
+
+        result.Should()
+            .HaveCount(2)
+            .And.BeEquivalentTo(
+            [
+                PeriodValidationRule.IsNotFirstOfMonthMidnightSummertime.WithPropertyName("start"),
+                PeriodValidationRule.IsNotFirstOfMonthMidnightSummertime.WithPropertyName("end"),
+            ]);
     }
 
     private PeriodValidationRule GetPeriodValidationRule(Instant now)

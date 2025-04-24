@@ -26,7 +26,7 @@ public class MeasurementUnitValidationRule
         ErrorCode: "E73")];
 
     public static IList<ValidationError> MeasurementUnitNotAllowedError => [new(
-        Message: "Energienhed skal være KWH eller Kvarh/Measure unit must be  KWH or Kvarh",
+        Message: "Energienhed skal være KWH eller Kvarh/Measure unit must be KWH or Kvarh",
         ErrorCode: "E73")];
 
     private static IList<ValidationError> NoError => [];

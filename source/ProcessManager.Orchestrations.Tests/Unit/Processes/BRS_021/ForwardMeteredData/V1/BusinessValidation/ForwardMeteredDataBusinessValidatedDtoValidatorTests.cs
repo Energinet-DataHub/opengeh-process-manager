@@ -364,6 +364,6 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                 ]));
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeteringPointConnectionStateError);
+            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeasurementUnitError);
     }
 }

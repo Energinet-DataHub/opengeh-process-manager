@@ -125,7 +125,7 @@ public class MeasurementUnitValidationRuleTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeteringPointConnectionStateError);
+            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeasurementUnitError);
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public class MeasurementUnitValidationRuleTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeteringPointConnectionStateError);
+            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeasurementUnitNotAllowedError);
     }
 
     [Fact]
@@ -209,6 +209,6 @@ public class MeasurementUnitValidationRuleTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeteringPointConnectionStateError);
+            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeasurementUnitNotAllowedError);
     }
 }

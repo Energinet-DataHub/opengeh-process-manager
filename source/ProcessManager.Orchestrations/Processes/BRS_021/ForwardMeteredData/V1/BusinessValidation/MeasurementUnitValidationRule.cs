@@ -21,8 +21,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class MeasurementUnitValidationRule
     : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
-    public static IList<ValidationError> MeteringPointConnectionStateError => [new(
+    public static IList<ValidationError> MeasurementUnitError => [new(
         Message: "Energienhed skal svare til energienhed på målepunktet/Measure unit must be the same as the one registrered on the meteringpoint",
+        ErrorCode: "E73")];
+
+    public static IList<ValidationError> MeasurementUnitNotAllowedError => [new(
+        Message: "Energienhed skal være KWH eller Kvarh/Measure unit must be  KWH or Kvarh",
         ErrorCode: "E73")];
 
     private static IList<ValidationError> NoError => [];
@@ -44,7 +48,7 @@ public class MeasurementUnitValidationRule
         var incomingMeasurementUnit = MeasurementUnit.FromNameOrDefault(subject.Input.MeasureUnit);
         if (!AllowedMeasurementUnits.Contains(incomingMeasurementUnit))
         {
-            return Task.FromResult(MeteringPointConnectionStateError);
+            return Task.FromResult(MeasurementUnitError);
         }
 
         // Check if the measure unit is same for all historic master data
@@ -52,7 +56,7 @@ public class MeasurementUnitValidationRule
             .Select(mpmd => mpmd.MeasurementUnit)
             .Any(meteringPointType => meteringPointType != incomingMeasurementUnit))
         {
-            return Task.FromResult(MeteringPointConnectionStateError);
+            return Task.FromResult(MeasurementUnitNotAllowedError);
         }
 
         return Task.FromResult(NoError);

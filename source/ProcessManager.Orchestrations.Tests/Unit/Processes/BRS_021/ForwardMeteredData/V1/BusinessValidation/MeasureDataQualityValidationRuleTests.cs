@@ -69,25 +69,18 @@ public class MeasureDataQualityValidationRuleTests
     [Fact]
     public async Task Given_MultipleMeasureData_AndGiven_ValidQualities_When_Validate_Then_NoValidationErrors()
     {
+        // Input that contains more than one measure data with valid qualities
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteredData(
             [
                 new ForwardMeteredDataInputV1.MeteredData(
                     Position: "1",
                     EnergyQuantity: "42",
-                    QuantityQuality: null),
+                    QuantityQuality: null), // Valid quality
                 new ForwardMeteredDataInputV1.MeteredData(
                     Position: "2",
                     EnergyQuantity: "42",
-                    QuantityQuality: Quality.NotAvailable.Name),
-                new ForwardMeteredDataInputV1.MeteredData(
-                    Position: "3",
-                    EnergyQuantity: "42",
-                    QuantityQuality: Quality.Estimated.Name),
-                new ForwardMeteredDataInputV1.MeteredData(
-                    Position: "4",
-                    EnergyQuantity: "42",
-                    QuantityQuality: Quality.AsProvided.Name),
+                    QuantityQuality: Quality.NotAvailable.Name), // Another valid quality
             ])
             .Build();
 

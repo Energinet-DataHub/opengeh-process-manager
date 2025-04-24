@@ -331,6 +331,9 @@ public class StartForwardMeteredDataHandlerV1(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataCustomStateV2 customState)
     {
+        if (customState.HistoricalMeteringPointMasterData.Count == 0)
+            return (false, null);
+
         // Grid area owner is and code is always the current metering point master data.
         var currentMeteringPointMasterData = customState
             .HistoricalMeteringPointMasterData.First()

@@ -59,7 +59,7 @@ internal class CalculatedMeasurementsQuery(
                 calculatedMeasurements.Add(calculatedMeasurement);
             }
 
-            // TODO: Here we should "groupd by" common properties and create the result based on that
+            // TODO - XDAST: Here we should "groupd by" common properties and create the result based on that
             var result = calculatedMeasurements.First();
             return Task.FromResult(QueryResult<CalculatedMeasurement>.Success(result));
         }
@@ -99,16 +99,11 @@ internal class CalculatedMeasurementsQuery(
             databricksSqlRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId),
             databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.TransactionCreationDatetime),
             databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointId),
-            GuardValidMeteringPointType(MeteringPointTypeMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointType))),
+            MeteringPointTypeMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointType)),
             MeasurementUnitMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit)),
             ResolutionMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution)),
             databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.ObservationTime),
             databricksSqlRow.ToDecimal(CalculatedMeasurementsColumnNames.Quantity),
             databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityQuality));
-    }
-
-    private static MeteringPointType GuardValidMeteringPointType(MeteringPointType meteringPointType)
-    {
-        throw new NotImplementedException();
     }
 }

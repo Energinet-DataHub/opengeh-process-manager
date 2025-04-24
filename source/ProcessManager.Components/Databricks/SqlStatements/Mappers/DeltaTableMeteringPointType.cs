@@ -20,6 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 /// </summary>
 public static class DeltaTableMeteringPointType
 {
+    // TODO - XDAST: We will investigate if we can implement a "common" reusable mapper and then drop this static class
     public const string Consumption = "consumption";
     public const string Production = "production";
     public const string Exchange = "exchange";

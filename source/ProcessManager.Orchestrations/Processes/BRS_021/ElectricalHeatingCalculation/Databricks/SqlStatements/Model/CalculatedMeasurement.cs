@@ -18,7 +18,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Model;
 
-// TODO: Should be a "result" that is "grouped by" the "meta data" (all except: observation_time, quantity, quantity_quality ???)
+// TODO - XDAST: Should be a "result" that is "grouped by" the "meta data" (all except: observation_time, quantity, quantity_quality ???)
 internal sealed record CalculatedMeasurement(
     string OrchestrationType,
     Guid OrchestrationInstanceId,

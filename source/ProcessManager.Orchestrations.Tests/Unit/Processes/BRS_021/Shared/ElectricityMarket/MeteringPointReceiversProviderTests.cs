@@ -125,7 +125,7 @@ public class MeteringPointReceiversProviderTests
     [Theory]
     [InlineData("Consumption")]
     [InlineData("Production")]
-    public void Given_MeteringPointTypeConsumption_When_GetReceivers_Then_PeriodsAreCorrectForEnergySupplierAndDanishEnergyAgency(string mp)
+    public void Given_MeteringPointType_When_GetReceivers_Then_PeriodsAreCorrectForEnergySupplierAndDanishEnergyAgency(string mp)
     {
         var meteringPointType = MeteringPointType.FromName(mp);
         var firstPeriodWithEnergySupplier = new Interval(Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 1, hourOfDay: 23, minuteOfHour: 00), Instant.FromUtc(2025, 1, 2, 23, 00));
@@ -905,7 +905,7 @@ public class MeteringPointReceiversProviderTests
 
     private MeteringPointMasterData CreateMasterDataWithoutParentOrEnergySupplier(Interval period, MeteringPointType? mp)
     {
-        var masterData2 = new MeteringPointMasterData(
+        return new MeteringPointMasterData(
             MeteringPointId: new MeteringPointId("1"),
             ValidFrom: period.Start.ToDateTimeOffset(),
             ValidTo: period.End.ToDateTimeOffset(),
@@ -920,6 +920,5 @@ public class MeteringPointReceiversProviderTests
             ProductId: "1",
             ParentMeteringPointId: null,
             EnergySupplier: null);
-        return masterData2;
     }
 }

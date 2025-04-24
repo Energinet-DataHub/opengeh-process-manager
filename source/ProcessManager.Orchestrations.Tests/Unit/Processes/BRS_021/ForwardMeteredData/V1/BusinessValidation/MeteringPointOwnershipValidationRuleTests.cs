@@ -59,7 +59,7 @@ public class MeteringPointOwnershipValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 new ForwardMeteredDataInputV1Builder().WithGridAccessProviderNumber("9999999999999").Build(),
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
                     new MeteringPointMasterData(
                         MeteringPointId: new MeteringPointId("1"),
                         ValidFrom: DateTimeOffset.Now,

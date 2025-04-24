@@ -35,7 +35,9 @@ public class MeteringPointOwnershipValidationRule : IBusinessValidationRule<Forw
     public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
-        var meteringPointMasterData = subject.HistoricalMeteringPointMasterData.FirstOrDefault();
+        // All the historical metering point master data, have the current grid access provider provided.
+        var meteringPointMasterData = subject.MeteringPointMasterData.FirstOrDefault();
+
         if (meteringPointMasterData != null && !meteringPointMasterData.CurrentGridAccessProvider.Value
                 .Equals(subject.Input.GridAccessProviderNumber))
         {

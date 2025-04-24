@@ -30,7 +30,7 @@ public class ConnectionStateValidationRule
     public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
-        if (subject.HistoricalMeteringPointMasterData
+        if (subject.MeteringPointMasterData
             .Any(x => x.ConnectionState != ConnectionState.Connected && x.ConnectionState != ConnectionState.Disconnected))
         {
             return Task.FromResult(MeteringPointConnectionStateError);

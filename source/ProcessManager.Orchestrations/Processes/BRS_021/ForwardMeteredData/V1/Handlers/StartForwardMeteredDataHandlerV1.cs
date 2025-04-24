@@ -109,7 +109,7 @@ public class StartForwardMeteredDataHandlerV1(
 
             orchestrationInstance.CustomState.SetFromInstance(
                 new ForwardMeteredDataCustomStateV2(
-                    HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
+                    MeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
@@ -302,7 +302,7 @@ public class StartForwardMeteredDataHandlerV1(
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,
-                    HistoricalMeteringPointMasterData: forwardMeteredDataCustomState.HistoricalMeteringPointMasterData
+                    MeteringPointMasterData: forwardMeteredDataCustomState.MeteringPointMasterData
                         .Select(mpmd => mpmd.ToMeteringPointMasterData())
                         .ToList()))
             .ConfigureAwait(false);
@@ -330,12 +330,12 @@ public class StartForwardMeteredDataHandlerV1(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataCustomStateV2 customState)
     {
-        if (customState.HistoricalMeteringPointMasterData.Count == 0)
+        if (customState.MeteringPointMasterData.Count == 0)
             return (false, null);
 
         // Grid area owner is and code is always the current metering point master data.
         var currentMeteringPointMasterData = customState
-            .HistoricalMeteringPointMasterData.First()
+            .MeteringPointMasterData.First()
             .ToMeteringPointMasterData();
 
         var startedByActor = GetStartedByActor(orchestrationInstance);

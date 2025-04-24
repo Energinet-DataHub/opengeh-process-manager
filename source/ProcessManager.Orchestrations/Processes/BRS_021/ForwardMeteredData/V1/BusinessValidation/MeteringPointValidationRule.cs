@@ -38,7 +38,7 @@ public class MeteringPointValidationRule(IFeatureFlagManager featureFlagManager)
     {
         if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint).ConfigureAwait(false))
         {
-            if (subject.HistoricalMeteringPointMasterData.Count == 0)
+            if (subject.MeteringPointMasterData.Count == 0)
                 return MeteringPointDoesntExistsError;
         }
 

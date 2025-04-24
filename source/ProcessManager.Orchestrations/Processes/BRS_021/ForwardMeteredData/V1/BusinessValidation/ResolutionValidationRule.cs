@@ -37,7 +37,7 @@ public class ResolutionValidationRule
     public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
-        if (subject.HistoricalMeteringPointMasterData.Count == 0)
+        if (subject.MeteringPointMasterData.Count == 0)
         {
             return Task.FromResult(NoError);
         }
@@ -54,7 +54,7 @@ public class ResolutionValidationRule
         }
 
         // Check if the resolution is same for all historic master data
-        if (subject.HistoricalMeteringPointMasterData
+        if (subject.MeteringPointMasterData
             .Select(mpmd => mpmd.Resolution)
             .Any(resolution => resolution != incomingResolution))
         {
@@ -75,7 +75,7 @@ public class ResolutionValidationRule
         var isVeProductionMeteringPointFromInput = MeteringPointType
             .FromNameOrDefault(subject.Input.MeteringPointType) == MeteringPointType.VeProduction;
 
-        var isVeProductionMeteringPointFromMasterData = subject.HistoricalMeteringPointMasterData
+        var isVeProductionMeteringPointFromMasterData = subject.MeteringPointMasterData
             .All(mpmd => mpmd.MeteringPointType == MeteringPointType.VeProduction);
 
         return isVeProductionMeteringPointFromInput && isVeProductionMeteringPointFromMasterData;

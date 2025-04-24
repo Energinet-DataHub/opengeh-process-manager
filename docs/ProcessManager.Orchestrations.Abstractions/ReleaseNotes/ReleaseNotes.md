@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.0.1
+
+- Added `GridAreaCode` to `ForwardMeteredDataAcceptedV1`.
+
 ## Version 2.0.0
 
 - Upgraded to .NET 9

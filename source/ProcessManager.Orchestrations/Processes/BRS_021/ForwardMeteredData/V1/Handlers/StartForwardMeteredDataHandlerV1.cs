@@ -107,19 +107,8 @@ public class StartForwardMeteredDataHandlerV1(
                 .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 
-            var currentMeteringPointMasterData =
-                historicalMeteringPointMasterData.Any() ?
-                await _meteringPointMasterDataProvider
-                .GetMasterData(
-                    input.MeteringPointId!,
-                    _clock.GetCurrentInstant().ToString(),
-                    _clock.GetCurrentInstant().ToString())
-                .ConfigureAwait(false)
-                : null;
-
             orchestrationInstance.CustomState.SetFromInstance(
                 new ForwardMeteredDataCustomStateV2(
-                    CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.TryFromMeteringPointMasterData(currentMeteringPointMasterData?.FirstOrDefault()),
                     HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
@@ -284,7 +273,7 @@ public class StartForwardMeteredDataHandlerV1(
                 .ToList();
 
             var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
-            forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
+            forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(meteringPointMasterData);
         }
 
         var delegationResult = await IsIncomingMeteredDataDelegated(orchestrationInstance, forwardMeteredDataCustomState)
@@ -314,7 +303,6 @@ public class StartForwardMeteredDataHandlerV1(
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,
-                    CurrentMasterData: forwardMeteredDataCustomState.CurrentMeteringPointMasterData?.ToMeteringPointMasterData(),
                     HistoricalMeteringPointMasterData: forwardMeteredDataCustomState.HistoricalMeteringPointMasterData
                         .Select(mpmd => mpmd.ToMeteringPointMasterData())
                         .ToList()))
@@ -343,11 +331,9 @@ public class StartForwardMeteredDataHandlerV1(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataCustomStateV2 customState)
     {
-        if (customState.CurrentMeteringPointMasterData is null)
-            return (false, null);
-
+        // Grid area owner is and code is always the current metering point master data.
         var currentMeteringPointMasterData = customState
-            .CurrentMeteringPointMasterData
+            .HistoricalMeteringPointMasterData.First()
             .ToMeteringPointMasterData();
 
         var startedByActor = GetStartedByActor(orchestrationInstance);

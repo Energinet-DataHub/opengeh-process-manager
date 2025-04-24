@@ -33,54 +33,9 @@ public class MeteringPointOwnershipValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 new ForwardMeteredDataInputV1Builder().Build(),
-                null,
                 []));
 
         result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task Given_MasterDataWithAtLeastOneWrongOwner_When_ValidateAsync_Then_Error()
-    {
-        var meteringPointMasterData = new MeteringPointMasterData(
-            MeteringPointId: new MeteringPointId("1"),
-            ValidFrom: DateTimeOffset.Now,
-            ValidTo: DateTimeOffset.Now,
-            CurrentGridAreaCode: new GridAreaCode("1"),
-            CurrentGridAccessProvider: ActorNumber.Create("8888888888888"),
-            CurrentNeighborGridAreaOwners: [],
-            ConnectionState: ConnectionState.Connected,
-            MeteringPointType: MeteringPointType.Consumption,
-            MeteringPointSubType: MeteringPointSubType.Physical,
-            Resolution: Resolution.Hourly,
-            MeasurementUnit: MeasurementUnit.KilowattHour,
-            ProductId: "1",
-            ParentMeteringPointId: null,
-            EnergySupplier: ActorNumber.Create("1111111111111"));
-        var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
-                new ForwardMeteredDataInputV1Builder().WithGridAccessProviderNumber("9999999999999").Build(),
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    new MeteringPointMasterData(
-                        MeteringPointId: new MeteringPointId("1"),
-                        ValidFrom: DateTimeOffset.Now,
-                        ValidTo: DateTimeOffset.Now,
-                        CurrentGridAreaCode: new GridAreaCode("1"),
-                        CurrentGridAccessProvider: ActorNumber.Create("9999999999999"),
-                        CurrentNeighborGridAreaOwners: [],
-                        ConnectionState: ConnectionState.Connected,
-                        MeteringPointType: MeteringPointType.Consumption,
-                        MeteringPointSubType: MeteringPointSubType.Physical,
-                        Resolution: Resolution.Hourly,
-                        MeasurementUnit: MeasurementUnit.KilowattHour,
-                        ProductId: "1",
-                        ParentMeteringPointId: null,
-                        EnergySupplier: ActorNumber.Create("1111111111111")),
-                    meteringPointMasterData,
-                ]));
-
-        result.Should().Contain(MeteringPointOwnershipValidationRule.MeteringPointHasWrongOwnerError);
     }
 
     [Fact]
@@ -104,7 +59,6 @@ public class MeteringPointOwnershipValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 new ForwardMeteredDataInputV1Builder().WithGridAccessProviderNumber("9999999999999").Build(),
-                CurrentMasterData: meteringPointMasterData,
                 HistoricalMeteringPointMasterData: [
                     new MeteringPointMasterData(
                         MeteringPointId: new MeteringPointId("1"),
@@ -122,49 +76,6 @@ public class MeteringPointOwnershipValidationRuleTests
                         ParentMeteringPointId: null,
                         EnergySupplier: ActorNumber.Create("1111111111111")),
                     meteringPointMasterData,
-                ]));
-
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task Given_CurrentMasterDataWithCorrectOwnerAndHistoricalMeteringPointMasterDataWithDifferentOwner_When_ValidateAsync_Then_NoError()
-    {
-        var currentMeteringPointMasterData = new MeteringPointMasterData(
-            MeteringPointId: new MeteringPointId("1"),
-            ValidFrom: DateTimeOffset.Now,
-            ValidTo: DateTimeOffset.Now,
-            CurrentGridAreaCode: new GridAreaCode("1"),
-            CurrentGridAccessProvider: ActorNumber.Create("9999999999888"),
-            CurrentNeighborGridAreaOwners: [],
-            ConnectionState: ConnectionState.Connected,
-            MeteringPointType: MeteringPointType.Consumption,
-            MeteringPointSubType: MeteringPointSubType.Physical,
-            Resolution: Resolution.Hourly,
-            MeasurementUnit: MeasurementUnit.KilowattHour,
-            ProductId: "1",
-            ParentMeteringPointId: null,
-            EnergySupplier: ActorNumber.Create("1111111111111"));
-        var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
-                new ForwardMeteredDataInputV1Builder().WithGridAccessProviderNumber("9999999999888").Build(),
-                CurrentMasterData: currentMeteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
-                    new MeteringPointMasterData(
-                        MeteringPointId: new MeteringPointId("1"),
-                        ValidFrom: DateTimeOffset.Now,
-                        ValidTo: DateTimeOffset.Now,
-                        CurrentGridAreaCode: new GridAreaCode("1"),
-                        CurrentGridAccessProvider: ActorNumber.Create("9999999999999"),
-                        CurrentNeighborGridAreaOwners: [],
-                        ConnectionState: ConnectionState.Connected,
-                        MeteringPointType: MeteringPointType.Consumption,
-                        MeteringPointSubType: MeteringPointSubType.Physical,
-                        Resolution: Resolution.Hourly,
-                        MeasurementUnit: MeasurementUnit.KilowattHour,
-                        ProductId: "1",
-                        ParentMeteringPointId: null,
-                        EnergySupplier: ActorNumber.Create("1111111111111"))
                 ]));
 
         result.Should().BeEmpty();

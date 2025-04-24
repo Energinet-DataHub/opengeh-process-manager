@@ -107,7 +107,7 @@ public class EnqueueMeteredDataHandlerV1(
                 .ToList();
 
             var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
-            customState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
+            customState = new ForwardMeteredDataCustomStateV2(meteringPointMasterData);
         }
 
         // If the step is already terminated (idempotency/retry check), do nothing.

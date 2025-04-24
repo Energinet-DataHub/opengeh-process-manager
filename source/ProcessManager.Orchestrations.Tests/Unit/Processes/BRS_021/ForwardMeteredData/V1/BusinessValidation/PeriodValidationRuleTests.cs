@@ -32,7 +32,6 @@ public class PeriodValidationRuleTests
             new(
                 new ForwardMeteredDataInputV1Builder()
                 .WithStartDateTime("invalid").Build(),
-                null,
                 []));
 
         result.Should().ContainSingle().And.Contain(PeriodValidationRule.InvalidStartDate);
@@ -48,7 +47,6 @@ public class PeriodValidationRuleTests
         var result = await sut.ValidateAsync(
             new(
                 new ForwardMeteredDataInputV1Builder().WithEndDateTime(endDate).Build(),
-                null,
                 []));
 
         result.Should().ContainSingle().And.Contain(PeriodValidationRule.InvalidEndDate);
@@ -65,7 +63,6 @@ public class PeriodValidationRuleTests
                     .WithStartDateTime("2021-11-30T23:00:00Z")
                     .WithEndDateTime("2021-12-31T23:00:00Z")
                     .Build(),
-                null,
                 []));
 
         result.Should().ContainSingle().And.Contain(PeriodValidationRule.StartDateIsTooOld);

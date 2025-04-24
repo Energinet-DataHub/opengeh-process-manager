@@ -268,7 +268,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
-            CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData),
             HistoricalMeteringPointMasterData:
             [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData)
@@ -382,8 +381,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
-            CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData
-                .FromMeteringPointMasterData(meteringPointMasterData),
             HistoricalMeteringPointMasterData:
             [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData),
@@ -475,7 +472,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .And.Be(OrchestrationInstanceTerminationState.Failed);
 
         terminatedOrchestrationInstance.CustomState.Should()
-            .BeEquivalentTo(JsonSerializer.Serialize(new ForwardMeteredDataCustomStateV2(null, [])));
+            .BeEquivalentTo(JsonSerializer.Serialize(new ForwardMeteredDataCustomStateV2([])));
 
         terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence)
             .Should()

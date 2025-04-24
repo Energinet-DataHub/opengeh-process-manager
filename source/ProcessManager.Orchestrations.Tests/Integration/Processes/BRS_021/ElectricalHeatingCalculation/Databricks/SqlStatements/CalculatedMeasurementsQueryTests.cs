@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
-using ProtoBuf.Reflection;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
 

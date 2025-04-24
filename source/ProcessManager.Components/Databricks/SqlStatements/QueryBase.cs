@@ -20,25 +20,18 @@ namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 /// Common base class for querying Databricks.
 /// </summary>
 public abstract class QueryBase<TResult>(
-    DatabricksQueryOptions databricksOptions,
-    Guid orchestrationInstanceId)
-    : IDeltaTableSchemaDescription
+    DatabricksQueryOptions queryOptions,
+    Guid orchestrationInstanceId) :
+        IDeltaTableSchemaDescription
+            where TResult : IQueryResultDto
 {
-    /// <summary>
-    /// Name of database to query in.
-    /// </summary>
-    public string DatabaseName => $"{databricksOptions.CatalogName}.{databricksOptions.DatabaseName}";
+    /// <inheritdoc/>
+    public string DatabaseName => $"{queryOptions.CatalogName}.{queryOptions.DatabaseName}";
 
-    /// <summary>
-    /// Name of view or table to query in.
-    /// </summary>
+    /// <inheritdoc/>
     public abstract string DataObjectName { get; }
 
-    /// <summary>
-    /// The schema definition of the view expressed as (Column name, Data type, Is nullable).
-    ///
-    /// Can be used in tests to create a matching data object (e.g. table).
-    /// </summary>
+    /// <inheritdoc/>
     public abstract Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition { get; }
 
     public Guid OrchestrationInstanceId { get; } = orchestrationInstanceId;
@@ -53,36 +46,38 @@ public abstract class QueryBase<TResult>(
             .Build();
 
         DatabricksSqlRow? previousRow = null;
-        var currentSet = new List<DatabricksSqlRow>();
+        var currentGroupOfRows = new List<DatabricksSqlRow>();
 
         await foreach (var currentRow in databricksSqlWarehouseQueryExecutor.ExecuteQueryAsync(statement).ConfigureAwait(false))
         {
-            if (previousRow == null || BelongsToSameSet(currentRow, previousRow))
+            if (previousRow == null || BelongsToSameGroup(currentRow, previousRow))
             {
-                currentSet.Add(currentRow);
+                currentGroupOfRows.Add(currentRow);
                 previousRow = currentRow;
                 continue;
             }
 
-            yield return await CreateQueryResultAsync(currentSet).ConfigureAwait(false);
+            yield return await CreateResultAsync(currentGroupOfRows).ConfigureAwait(false);
 
-            // Next set
-            currentSet =
+            // Next group
+            currentGroupOfRows =
             [
                 currentRow,
             ];
             previousRow = currentRow;
         }
 
-        // Last set (if any)
-        if (currentSet.Count != 0)
-            yield return await CreateQueryResultAsync(currentSet).ConfigureAwait(false);
+        // Last group (if any)
+        if (currentGroupOfRows.Count != 0)
+            yield return await CreateResultAsync(currentGroupOfRows).ConfigureAwait(false);
     }
 
-    protected abstract Task<QueryResult<TResult>> CreateQueryResultAsync(
-        List<DatabricksSqlRow> currentSet);
+    protected abstract Task<QueryResult<TResult>> CreateResultAsync(
+        IList<DatabricksSqlRow> currentGroupOfRows);
 
-    protected abstract bool BelongsToSameSet(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow);
+    protected abstract bool BelongsToSameGroup(
+        DatabricksSqlRow currentRow,
+        DatabricksSqlRow previousRow);
 
     protected abstract string BuildSqlQuery();
 }

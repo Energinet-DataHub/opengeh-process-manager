@@ -22,13 +22,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 internal class CalculatedMeasurementsQuery(
     DatabricksQueryOptions databricksOptions,
     Guid orchestrationInstanceId,
-    ILogger<CalculatedMeasurementsQuery> logger) :
+    ILogger logger) :
         QueryBase<CalculatedMeasurement>(
+            logger,
             databricksOptions,
             orchestrationInstanceId)
 {
-    private readonly ILogger _logger = logger;
-
     public override string DataObjectName => "calculated_measurements_v1";
 
     public override Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => new()
@@ -66,7 +65,7 @@ internal class CalculatedMeasurementsQuery(
         {
             var transactionId = firstRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
             var orchestrationType = firstRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType);
-            _logger.LogWarning(
+            Logger.LogWarning(
                 ex,
                 "Creating calculated measurements ({OrchestrationType}) failed for orchestration instance id='{OrchestrationInstanceId}', TransactionId='{TransactionId}'.",
                 orchestrationType,

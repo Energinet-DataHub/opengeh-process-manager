@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
+using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 
@@ -20,6 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 /// Common base class for querying Databricks.
 /// </summary>
 public abstract class QueryBase<TResult>(
+    ILogger logger,
     DatabricksQueryOptions queryOptions,
     Guid orchestrationInstanceId) :
         IDeltaTableSchemaDescription
@@ -35,6 +37,8 @@ public abstract class QueryBase<TResult>(
     public abstract Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition { get; }
 
     public Guid OrchestrationInstanceId { get; } = orchestrationInstanceId;
+
+    protected ILogger Logger { get; } = logger;
 
     internal async IAsyncEnumerable<QueryResult<TResult>> GetAsync(
         DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor)

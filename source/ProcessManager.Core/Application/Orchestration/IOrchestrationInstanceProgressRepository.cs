@@ -25,7 +25,7 @@ public interface IOrchestrationInstanceProgressRepository
     /// <summary>
     /// Use <see cref="IUnitOfWork.CommitAsync"/> to save changes.
     /// </summary>
-    public IUnitOfWork UnitOfWork { get; }
+    IUnitOfWork UnitOfWork { get; }
 
     /// <summary>
     /// Get existing orchestration instance.

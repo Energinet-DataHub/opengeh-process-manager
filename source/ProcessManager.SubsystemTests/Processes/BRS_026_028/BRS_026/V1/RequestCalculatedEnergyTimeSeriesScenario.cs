@@ -82,7 +82,8 @@ public class RequestCalculatedEnergyTimeSeriesScenario : IClassFixture<ProcessMa
     {
         var (success, orchestrationInstance, _) =
             await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedEnergyTimeSeriesInputV1>(
-                _fixture.TestConfiguration.Request.IdempotencyKey);
+                _fixture.TestConfiguration.Request.IdempotencyKey,
+                OrchestrationInstanceLifecycleState.Queued);
 
         Assert.Multiple(
             () => Assert.True(

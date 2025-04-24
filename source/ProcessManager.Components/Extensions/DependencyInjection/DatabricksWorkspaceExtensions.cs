@@ -84,9 +84,12 @@ public static class DatabricksWorkspaceExtensions
 
         serviceCollection.AddKeyedSingleton(serviceKey: configSectionPath, (sp, key) =>
         {
-            var snapshot = sp.GetRequiredService<IOptionsSnapshot<DatabricksWorkspaceOptions>>();
-            var options = snapshot.Get(configSectionPath);
-            return DatabricksClient.CreateClient(options.BaseUrl, options.Token);
+            using (var serviceScope = sp.CreateScope())
+            {
+                var snapshot = serviceScope.ServiceProvider.GetRequiredService<IOptionsSnapshot<DatabricksWorkspaceOptions>>();
+                var options = snapshot.Get(configSectionPath);
+                return DatabricksClient.CreateClient(options.BaseUrl, options.Token);
+            }
         });
 
         serviceCollection.AddKeyedTransient<IDatabricksJobsClient>(serviceKey: configSectionPath, (sp, key) =>

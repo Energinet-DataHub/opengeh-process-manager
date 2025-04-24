@@ -193,7 +193,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         var appHostSettings = new FunctionAppHostConfigurationBuilder()
             .CreateFunctionAppHostSettings();
 
-        appHostSettings.FunctionApplicationPath = $"..\\..\\..\\..\\{csprojName}\\bin\\{buildConfiguration}\\net8.0";
+        appHostSettings.FunctionApplicationPath = $"..\\..\\..\\..\\{csprojName}\\bin\\{buildConfiguration}\\net9.0";
         appHostSettings.Port = _appPort;
 
         // It seems the host + worker is not ready if we use the default startup log message, so we override it here

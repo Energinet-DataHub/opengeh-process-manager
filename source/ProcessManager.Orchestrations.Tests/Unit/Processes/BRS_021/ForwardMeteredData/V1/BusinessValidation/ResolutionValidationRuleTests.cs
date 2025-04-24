@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using FluentAssertions;
 using NodaTime;
 
@@ -35,6 +36,7 @@ public class ResolutionValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 input,
+                null,
                 []));
 
         result.Should().BeEmpty();
@@ -52,6 +54,7 @@ public class ResolutionValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 input,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("id"),
@@ -85,6 +88,7 @@ public class ResolutionValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 input,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("id"),
@@ -116,6 +120,7 @@ public class ResolutionValidationRuleTests
 
         var result = await _sut.ValidateAsync(new(
             input,
+            null,
             [
                 new MeteringPointMasterData(
                     new MeteringPointId("id"),
@@ -149,6 +154,7 @@ public class ResolutionValidationRuleTests
 
         var result = await _sut.ValidateAsync(new(
             input,
+            null,
             [
                 new MeteringPointMasterData(
                     new MeteringPointId("id"),
@@ -199,6 +205,7 @@ public class ResolutionValidationRuleTests
 
         var result = await _sut.ValidateAsync(new(
             input,
+            null,
             [
                 new MeteringPointMasterData(
                     new MeteringPointId("id"),
@@ -235,6 +242,7 @@ public class ResolutionValidationRuleTests
 
         var result = await _sut.ValidateAsync(new(
             input,
+            null,
             [
                 new MeteringPointMasterData(
                     new MeteringPointId("id"),

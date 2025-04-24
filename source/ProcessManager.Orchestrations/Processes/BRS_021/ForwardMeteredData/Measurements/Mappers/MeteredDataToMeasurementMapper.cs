@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Mappers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using MeasurementTypes = Energinet.DataHub.Measurements.Contracts;
 using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
@@ -32,6 +32,7 @@ public static class MeteredDataToMeasurementMapper
     {
         { PMTypes.Resolution.QuarterHourly, MeasurementTypes.Resolution.RPt15M },
         { PMTypes.Resolution.Hourly, MeasurementTypes.Resolution.RPt1H },
+        { PMTypes.Resolution.Monthly, MeasurementTypes.Resolution.RP1M },
     };
 
     internal static ValueObjectsMap<PMTypes.MeasurementUnit, MeasurementTypes.Unit> MeasurementUnit { get; } = new()

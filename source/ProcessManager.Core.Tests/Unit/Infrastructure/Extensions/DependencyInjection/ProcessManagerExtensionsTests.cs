@@ -15,6 +15,7 @@
 using System.Reflection;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X01.InputExample.V1.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -74,13 +75,7 @@ public class ProcessManagerExtensionsTests
     {
         // Arrange
         Services.AddSingleton(Mock.Of<IStartOrchestrationInstanceCommands>());
-        Services.AddSingleton(Mock.Of<IOrchestrationInstanceQueries>());
-
-        var expectedHandlerTypes = new List<Type>
-        {
-            typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.V1.StartInputExampleHandlerV1),
-            typeof(Example.Orchestrations.Processes.BRS_X01.InputExample.SearchInputExampleHandler),
-        };
+        Services.AddSingleton(new ProcessManagerReaderContext(new Microsoft.EntityFrameworkCore.DbContextOptions<ProcessManagerReaderContext>()));
 
         // Act
         Services.AddCustomHandlersForHttpTriggers(assemblyToScan: ExampleOrchestrationsAssembly);
@@ -93,9 +88,13 @@ public class ProcessManagerExtensionsTests
         var actualStartHandler = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X01.InputExample.V1.StartInputExampleHandlerV1>();
         actualStartHandler.Should().NotBeNull();
 
-        // => Search handler
-        var actualSearchHandler = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X01.InputExample.SearchInputExampleHandler>();
-        actualSearchHandler.Should().NotBeNull();
+        // => Search handler for list
+        var actualSearchPluralHandler = serviceProvider.GetRequiredService<Example.Orchestrations.CustomQueries.Examples.V1.SearchExamplesHandlerV1>();
+        actualSearchPluralHandler.Should().NotBeNull();
+
+        // => Search handler for id
+        var actualSearchSingleHandler = serviceProvider.GetRequiredService<Example.Orchestrations.CustomQueries.Examples.V1.SearchExampleByIdHandlerV1>();
+        actualSearchSingleHandler.Should().NotBeNull();
     }
 
     [Fact]

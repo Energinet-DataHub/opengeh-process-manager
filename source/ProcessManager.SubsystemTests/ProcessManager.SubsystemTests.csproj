@@ -5,6 +5,12 @@
     <RootNamespace>Energinet.DataHub.ProcessManager.SubsystemTests</RootNamespace>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!--
+     ErrorOnDuplicatePublishOutputFiles=false is needed since we're referincing multiple function app projects,
+     a host.json is published for twice (for both projects) which causes the publish to fail (duplicate files). We
+     must disable that for the subsystem tests publish.
+    -->
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,10 +24,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="7.2.2" />
+    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ProcessManager.Client\ProcessManager.Client.csproj" />
     <ProjectReference Include="..\ProcessManager.Orchestrations\ProcessManager.Orchestrations.csproj" />
     <ProjectReference Include="..\ProcessManager\ProcessManager.csproj" />
   </ItemGroup>
@@ -30,7 +37,7 @@
     <None Update="functionapphost.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="integrationtest.local.settings.json">
+    <None Update="subsystemtest.local.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -40,10 +47,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Fixtures\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs">
+      <Link>Fixtures\Extensions\ServiceCollectionExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs" Link="FluentAssertionsVersionGuard.cs" />
     <Compile Include="..\Shared\Tests\LongFilePathsGuard.cs" Link="LongFilePathsGuard.cs" />
   </ItemGroup>

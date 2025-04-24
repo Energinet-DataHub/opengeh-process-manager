@@ -49,6 +49,13 @@ public class ProcessManagerDatabaseManager(string name)
         return (TDatabaseContext)Activator.CreateInstance(typeof(TDatabaseContext), optionsBuilder.Options)!;
     }
 
+    public async Task ExecuteDeleteOnEntitiesAsync()
+    {
+        await using var dbContext = CreateDbContext();
+        await dbContext.OrchestrationInstances.ExecuteDeleteAsync();
+        await dbContext.OrchestrationDescriptions.ExecuteDeleteAsync();
+    }
+
     /// <summary>
     /// Creates the database schema using DbUp instead of a database context.
     /// </summary>

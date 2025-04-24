@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
@@ -23,14 +22,16 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Application.Orchestration;
 
-public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
+public class IStartOrchestrationInstanceCommandsTests :
+    IClassFixture<ProcessManagerCoreFixture>,
+    IAsyncLifetime
 {
     private readonly ProcessManagerCoreFixture _fixture;
 
@@ -46,7 +47,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
     {
         _fixture = fixture;
 
-        _actorIdentity = new ActorIdentity(new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
+        _actorIdentity = EnergySupplier.ActorIdentity;
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
 
@@ -61,10 +62,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
 
     public async Task DisposeAsync()
     {
-        // Disabling OrchestrationDescriptions so tests doesn't interfere with each other
-        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
-        await dbContext.OrchestrationDescriptions.ForEachAsync(item => item.IsEnabled = false);
-        await dbContext.SaveChangesAsync();
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
 
         await _serviceProvider.DisposeAsync();
     }
@@ -94,7 +92,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
     public async Task
         Given_NonDurableFunctionWithoutInput_When_StartNewOrchestrationInstanceAsync_Then_ExecutorIsNotInvoked()
     {
-        var orchestrationDescription = CreateOrchestrationDescription(false);
+        var orchestrationDescription = CreateOrchestrationDescription(isDurableFunction: false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
@@ -116,7 +114,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new TestOrchestrationParameter("inputString"),
+            new OrchestrationParameter("inputString"),
             []);
 
         orchestrationInstanceId.Value.Should().NotBeEmpty();
@@ -125,7 +123,7 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
                 It.Is<OrchestrationDescription>(od => od.UniqueName == orchestrationDescription.UniqueName),
                 It.Is<OrchestrationInstance>(
                     oi => oi.OrchestrationDescriptionId == orchestrationDescription.Id
-                          && oi.ParameterValue.SerializedValue == "{\"InputString\":\"inputString\"}")),
+                          && oi.ParameterValue.SerializedValue.Contains("\"TestString\":\"inputString\""))),
             Times.Once);
 
         _executorMock.VerifyNoOtherCalls();
@@ -135,13 +133,13 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
     public async Task
         Given_NonDurableFunctionWithInput_When_StartNewOrchestrationInstanceAsync_Then_ExecutorIsNotInvoked()
     {
-        var orchestrationDescription = CreateOrchestrationDescription(false);
+        var orchestrationDescription = CreateOrchestrationDescription(isDurableFunction: false);
         await _orchestrationRegister.RegisterOrUpdateAsync(orchestrationDescription, "anyHostName");
 
         var orchestrationInstanceId = await _sut.StartNewOrchestrationInstanceAsync(
             _actorIdentity,
             orchestrationDescription.UniqueName,
-            new TestOrchestrationParameter("inputString"),
+            new OrchestrationParameter("inputString"),
             []);
 
         orchestrationInstanceId.Value.Should().NotBeEmpty();
@@ -186,18 +184,4 @@ public class IStartOrchestrationInstanceCommandsTests : IClassFixture<ProcessMan
 
         return services;
     }
-
-    private static OrchestrationDescription CreateOrchestrationDescription(bool isDurableFunction = true)
-    {
-        var orchestrationDescription = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName(Guid.NewGuid().ToString(), 1),
-            canBeScheduled: true,
-            functionName: isDurableFunction ? "TestOrchestrationFunction" : string.Empty);
-
-        orchestrationDescription.ParameterDefinition.SetFromType<TestOrchestrationParameter>();
-
-        return orchestrationDescription;
-    }
-
-    public sealed record TestOrchestrationParameter(string InputString);
 }

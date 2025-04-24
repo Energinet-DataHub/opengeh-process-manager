@@ -22,15 +22,14 @@ using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 using NodaTime;
-using NodaTime.Text;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
 using OrchestrationInstanceLifecycleState =
     Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
@@ -50,7 +49,8 @@ public class StartForwardMeteredDataHandlerV1(
     IMeasurementsMeteredDataClient measurementsMeteredDataClient,
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
-    IEnqueueActorMessagesClient enqueueActorMessagesClient)
+    IEnqueueActorMessagesClient enqueueActorMessagesClient,
+    DelegationProvider delegationProvider)
     : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
@@ -60,7 +60,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
     private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
-    private readonly ILogger<StartForwardMeteredDataHandlerV1> _logger = logger;
+    private readonly DelegationProvider _delegationProvider = delegationProvider;
 
     /// <summary>
     /// This method has multiple commits to the database, to immediately transition lifecycles. This means that
@@ -102,12 +102,25 @@ public class StartForwardMeteredDataHandlerV1(
         // Fetch metering point master data and store if needed
         if (orchestrationInstance.CustomState.IsEmpty)
         {
-            var meteringPointMasterData = await _meteringPointMasterDataProvider
+            var historicalMeteringPointMasterData =
+                await _meteringPointMasterDataProvider
                 .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 
+            var currentMeteringPointMasterData =
+                historicalMeteringPointMasterData.Any() ?
+                await _meteringPointMasterDataProvider
+                .GetMasterData(
+                    input.MeteringPointId!,
+                    _clock.GetCurrentInstant().ToString(),
+                    _clock.GetCurrentInstant().ToString())
+                .ConfigureAwait(false)
+                : null;
+
             orchestrationInstance.CustomState.SetFromInstance(
-                new ForwardMeteredDataCustomStateV1(meteringPointMasterData));
+                new ForwardMeteredDataCustomStateV2(
+                    CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.TryFromMeteringPointMasterData(currentMeteringPointMasterData?.FirstOrDefault()),
+                    HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
@@ -162,6 +175,20 @@ public class StartForwardMeteredDataHandlerV1(
         // The orchestration instance is now in a state where it either:
         // - Waits for a notify response from measurements on the event hub.
         // - Waits for a rejected actor messages enqueued notify response on the service bus.
+    }
+
+    private static (ActorNumber StartedByActorNumber, ActorRole StartedByActorRole) GetStartedByActor(
+        OrchestrationInstance orchestrationInstance)
+    {
+        var orchestrationStartedBy = orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto();
+        return orchestrationStartedBy switch
+        {
+            ActorIdentityDto actor => (actor.ActorNumber, actor.ActorRole),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(orchestrationStartedBy),
+                orchestrationStartedBy.GetType().Name,
+                "Unknown enqueuedBy type"),
+        };
     }
 
     /// <summary>
@@ -242,12 +269,55 @@ public class StartForwardMeteredDataHandlerV1(
         }
 
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
-        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV1>();
+        ForwardMeteredDataCustomStateV2 forwardMeteredDataCustomState;
+        // TODO: remove this try-catch when all orchestration instances are migrated to the new custom state
+        try
+        {
+            forwardMeteredDataCustomState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
+        }
+        catch (InvalidOperationException)
+        {
+            var meteringPointMasterData = orchestrationInstance.CustomState
+                .AsType<ForwardMeteredDataCustomStateV1>()
+                .MeteringPointMasterData
+                .Select(mpmd => mpmd.ToV2())
+                .ToList();
+
+            var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
+            forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(newestMasterData, meteringPointMasterData);
+        }
+
+        var delegationResult = await IsIncomingMeteredDataDelegated(orchestrationInstance, forwardMeteredDataCustomState)
+            .ConfigureAwait(false);
+        if (delegationResult is { ShouldBeDelegated: true })
+        {
+            if (delegationResult is { DelegatedFromActorNumber: null })
+            {
+                await StepHelper.TerminateStepAndCommit(
+                        validationStep,
+                        _clock,
+                        _progressRepository,
+                        StepInstanceTerminationState.Failed)
+                    .ConfigureAwait(false);
+                return new List<ValidationError>()
+                {
+                    new(
+                        "Aktør ikke opsat til at må indsende måledata for det pågældende målepunkt/"
+                        + "Actor not allowed to send meterdata for the selected metering point",
+                        "D50"),
+                };
+            }
+
+            input = input with { GridAccessProviderNumber = delegationResult.DelegatedFromActorNumber };
+        }
 
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,
-                    MeteringPointMasterData: customState.MeteringPointMasterData))
+                    CurrentMasterData: forwardMeteredDataCustomState.CurrentMeteringPointMasterData?.ToMeteringPointMasterData(),
+                    HistoricalMeteringPointMasterData: forwardMeteredDataCustomState.HistoricalMeteringPointMasterData
+                        .Select(mpmd => mpmd.ToMeteringPointMasterData())
+                        .ToList()))
             .ConfigureAwait(false);
 
         var validationSuccess = validationErrors.Count == 0;
@@ -267,6 +337,26 @@ public class StartForwardMeteredDataHandlerV1(
             .ConfigureAwait(false);
 
         return validationErrors;
+    }
+
+    private async Task<(bool ShouldBeDelegated, string? DelegatedFromActorNumber)> IsIncomingMeteredDataDelegated(
+        OrchestrationInstance orchestrationInstance,
+        ForwardMeteredDataCustomStateV2 customState)
+    {
+        if (customState.CurrentMeteringPointMasterData is null)
+            return (false, null);
+
+        var currentMeteringPointMasterData = customState
+            .CurrentMeteringPointMasterData
+            .ToMeteringPointMasterData();
+
+        var startedByActor = GetStartedByActor(orchestrationInstance);
+
+        return await _delegationProvider.GetDelegatedFromAsync(
+            gridAreaOwner: currentMeteringPointMasterData.GridAccessProvider,
+            gridAreaCode: currentMeteringPointMasterData.GridAreaCode,
+            senderActorNumber: startedByActor.StartedByActorNumber,
+            senderActorRole: startedByActor.StartedByActorRole).ConfigureAwait(false);
     }
 
     private async Task ForwardToMeasurements(
@@ -342,13 +432,12 @@ public class StartForwardMeteredDataHandlerV1(
                 new ForwardMeteredDataRejectedV1(
                     forwardMeteredDataInput.ActorMessageId,
                     forwardMeteredDataInput.TransactionId,
-                    ForwardedByActorNumber: ActorNumber.Create(forwardMeteredDataInput.ActorNumber), // TODO: delete when EDI is refactored
-                    ForwardedByActorRole: ActorRole.FromName(forwardMeteredDataInput.ActorRole), // TODO: delete when EDI is refactored
                     ForwardedForActorRole: ActorRole.FromName(forwardMeteredDataInput.ActorRole),
                     BusinessReason.FromName(forwardMeteredDataInput.BusinessReason),
                     validationErrors
                         .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))
-                        .ToList()))
+                        .ToList(),
+                    MeteringPointId: forwardMeteredDataInput.MeteringPointId!))
             .ConfigureAwait(false);
     }
 

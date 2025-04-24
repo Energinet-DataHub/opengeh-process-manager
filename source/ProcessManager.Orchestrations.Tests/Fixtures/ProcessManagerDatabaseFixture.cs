@@ -20,7 +20,7 @@ public class ProcessManagerDatabaseFixture : IAsyncLifetime
 {
     public ProcessManagerDatabaseFixture()
     {
-        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManager");
+        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManager_Orchestrations");
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }

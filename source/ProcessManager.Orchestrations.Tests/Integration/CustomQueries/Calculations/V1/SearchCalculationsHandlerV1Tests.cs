@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -22,16 +21,17 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.CustomQueries.Calculations.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
-using Moq;
 using NodaTime;
+using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
 using ApiModel = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.CustomQueries.Calculations.V1;
 
+[ParallelWorkflow(WorkflowBucket.Bucket01)]
 public class SearchCalculationsHandlerV1Tests :
     IClassFixture<ProcessManagerDatabaseFixture>,
     IAsyncLifetime
@@ -66,15 +66,12 @@ public class SearchCalculationsHandlerV1Tests :
         _fixture = fixture;
         _readerContext = fixture.DatabaseManager.CreateDbContext<ProcessManagerReaderContext>();
 
-        var timeHelper = new TimeHelper(DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
-        _sut = new SearchCalculationsHandlerV1(_readerContext, timeHelper);
+        _sut = new SearchCalculationsHandlerV1(_readerContext);
     }
 
     public async Task InitializeAsync()
     {
-        await using var dbContext = _fixture.DatabaseManager.CreateDbContext();
-        await dbContext.OrchestrationInstances.ExecuteDeleteAsync();
-        await dbContext.OrchestrationDescriptions.ExecuteDeleteAsync();
+        await _fixture.DatabaseManager.ExecuteDeleteOnEntitiesAsync();
     }
 
     public async Task DisposeAsync()
@@ -91,12 +88,12 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Running],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -115,14 +112,14 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             LifecycleStates = [
                 ApiModel.OrchestrationInstanceLifecycleState.Queued,
                 ApiModel.OrchestrationInstanceLifecycleState.Running],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -134,6 +131,10 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value);
     }
 
+    /// <summary>
+    /// Here we also search for 'BalanceFixing' even though we know there isn't any in the database.
+    /// This impacts the JSON search as it will also search for Wholesale calculation types.
+    /// </summary>
     [Fact]
     public async Task Given_LifecycleDatasetInDatabase_When_SearchByCalculationTypeAndPending_Then_OnlyExpectedCalculationsAreRetrieved()
     {
@@ -143,13 +144,15 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
-            CalculationTypes = [CalculationTypeQueryParameterV1.NetConsumption],
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.NetConsumption,
+                CalculationTypeQueryParameterV1.BalanceFixing],
             LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Pending],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -167,13 +170,13 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Terminated],
             TerminationState = ApiModel.OrchestrationInstanceTerminationState.Succeeded,
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -192,14 +195,14 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             CalculationTypes = [CalculationTypeQueryParameterV1.ElectricalHeating],
             LifecycleStates = [ApiModel.OrchestrationInstanceLifecycleState.Terminated],
             TerminationState = ApiModel.OrchestrationInstanceTerminationState.Failed,
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -222,12 +225,12 @@ public class SearchCalculationsHandlerV1Tests :
             _netConsumptionDescriptionBuilder);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             StartedAtOrLater = electricalHeatingIsRunningStartedAt.ToDateTimeOffset(),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -250,12 +253,12 @@ public class SearchCalculationsHandlerV1Tests :
             isTerminatedAsSucceededAt: netConsumptionIsTerminatedAsSucceededAt);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             TerminatedAtOrEarlier = netConsumptionIsTerminatedAsSucceededAt.ToDateTimeOffset(),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Assert
         actual.Should()
@@ -289,14 +292,14 @@ public class SearchCalculationsHandlerV1Tests :
             calculation3]);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 19/2/2025 - 20/2/2025 (not inclusive), should give no calculations
             PeriodStartDate = new DateTimeOffset(2025, 02, 18, 23, 00, 00, TimeSpan.Zero),
             PeriodEndDate = new DateTimeOffset(2025, 02, 19, 23, 00, 00, TimeSpan.Zero),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -329,14 +332,14 @@ public class SearchCalculationsHandlerV1Tests :
             calculation3]);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 25/2/2025 - 26/2/2025 (not inclusive), should give no calculations
             PeriodStartDate = new DateTimeOffset(2025, 02, 24, 23, 00, 00, TimeSpan.Zero),
             PeriodEndDate = new DateTimeOffset(2025, 02, 25, 23, 00, 00, TimeSpan.Zero),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -369,14 +372,14 @@ public class SearchCalculationsHandlerV1Tests :
             calculation3]);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 20/2/2025 - 21/2/2025 (not inclusive), should give calculation 1
             PeriodStartDate = new DateTimeOffset(2025, 02, 19, 23, 00, 00, TimeSpan.Zero),
             PeriodEndDate = new DateTimeOffset(2025, 02, 20, 23, 00, 00, TimeSpan.Zero),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -416,14 +419,14 @@ public class SearchCalculationsHandlerV1Tests :
             calculation3]);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 21/2/2025 - 24/2/2025 (not inclusive), should give calculation 2 and 3
             PeriodStartDate = new DateTimeOffset(2025, 02, 20, 23, 00, 00, TimeSpan.Zero),
             PeriodEndDate = new DateTimeOffset(2025, 02, 23, 23, 00, 00, TimeSpan.Zero),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -469,14 +472,14 @@ public class SearchCalculationsHandlerV1Tests :
             calculation3]);
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 19/2/2025 - 25/2/2025 (not inclusive), should give all calculations
             PeriodStartDate = new DateTimeOffset(2025, 02, 18, 23, 00, 00, TimeSpan.Zero),
             PeriodEndDate = new DateTimeOffset(2025, 02, 24, 23, 00, 00, TimeSpan.Zero),
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -502,19 +505,24 @@ public class SearchCalculationsHandlerV1Tests :
                 });
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_CalculationsForGridAreas_When_SearchByAnotherGridArea_Then_ResultIsEmpty()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             GridAreaCodes = ["333"],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -522,19 +530,24 @@ public class SearchCalculationsHandlerV1Tests :
             .BeEmpty();
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_CalculationsForGridAreas_When_SearchByMatchingGridArea_Then_ExpectedCalculationsAreRetrieved()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             GridAreaCodes = ["222"],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -545,19 +558,24 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.WholesaleFixing.Id.Value);
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_InternalCalculation_When_SearchByIsInternalCalculation_Then_AggregationCalculationIsRetrieved()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             IsInternalCalculation = true,
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -567,21 +585,26 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.Aggregation.Id.Value);
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_WholesaleCalculationsDataset_When_SearchByCalculationTypes_Then_ExpectedCalculationsAreRetrieved()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             CalculationTypes = [
                 CalculationTypeQueryParameterV1.Aggregation,
                 CalculationTypeQueryParameterV1.WholesaleFixing],
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -592,21 +615,26 @@ public class SearchCalculationsHandlerV1Tests :
                 result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == orchestrationInstances.WholesaleFixing.Id.Value);
     }
 
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
     [Fact]
     public async Task Given_CapacitySettlementDataset_When_SearchByPeriodWhichDoesNotContainCalculations_Then_ResultIsEmpty()
     {
         // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 1/9/2024 - 1/10/2024 (not inclusive)
             PeriodStartDate = new DateTimeOffset(2024, 8, 31, 22, 00, 00, TimeSpan.Zero), // Summertime
             PeriodEndDate = new DateTimeOffset(2024, 9, 30, 22, 00, 00, TimeSpan.Zero), // Summertime
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -621,14 +649,14 @@ public class SearchCalculationsHandlerV1Tests :
         var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 1/9/2024 - 1/3/2025 (not inclusive)
             PeriodStartDate = new DateTimeOffset(2024, 8, 31, 22, 00, 00, TimeSpan.Zero), // Summertime
             PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -646,14 +674,14 @@ public class SearchCalculationsHandlerV1Tests :
         var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 1/9/2024 - 1/11/2024 (not inclusive)
             PeriodStartDate = new DateTimeOffset(2024, 8, 31, 22, 00, 00, TimeSpan.Zero), // Summertime
             PeriodEndDate = new DateTimeOffset(2024, 10, 31, 23, 00, 00, TimeSpan.Zero), // Wintertime
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -670,14 +698,14 @@ public class SearchCalculationsHandlerV1Tests :
         var orchestrationInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
 
         // When
-        var calculationQuery = new CalculationsQueryV1(_userIdentity)
+        var query = new CalculationsQueryV1(_userIdentity)
         {
             // Query for 11/10/2024 - 3/2/2024 (not inclusive)
             PeriodStartDate = new DateTimeOffset(2024, 10, 10, 22, 00, 00, TimeSpan.Zero), // Summertime
             PeriodEndDate = new DateTimeOffset(2025, 2, 2, 23, 00, 00, TimeSpan.Zero), // Wintertime
         };
 
-        var actual = await _sut.HandleAsync(calculationQuery);
+        var actual = await _sut.HandleAsync(query);
 
         // Then
         actual
@@ -686,6 +714,132 @@ public class SearchCalculationsHandlerV1Tests :
             .And.Satisfy(
                 result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.October2024.Id.Value,
                 result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == orchestrationInstances.February2025.Id.Value);
+    }
+
+    /// <summary>
+    /// We also seed database with the John Doe dataset, to ensure the JSON search doesn't
+    /// cause exceptions if there isn't JSON in the columns.
+    /// </summary>
+    [Fact]
+    public async Task Given_CapacitySettlementAndWholesaleDataset_When_SearchByPeriodWhichContainsCalculationFromBothDataset_Then_ExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+        var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+
+        // When
+        var query = new CalculationsQueryV1(_userIdentity)
+        {
+            // Query for 23/2/2025 - 1/3/2025 (not inclusive)
+            PeriodStartDate = new DateTimeOffset(2025, 2, 22, 23, 00, 00, TimeSpan.Zero), // Wintertime
+            PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
+        };
+
+        var actual = await _sut.HandleAsync(query);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is CapacitySettlementCalculationResultV1 && ((CapacitySettlementCalculationResultV1)result).Id == capacitySettlementInstances.February2025.Id.Value,
+                result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == wholesaleInstances.WholesaleFixing.Id.Value);
+    }
+
+    /// <summary>
+    /// The intention of this test is to use as much as possible of the query in SQL.
+    /// </summary>
+    [Fact]
+    public async Task Given_MixOfCalculationsDataset_When_SearchByAllCommonQueryParameters_Then_ExpectedCalculationsAreRetrieved()
+    {
+        // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
+        var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+        var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+
+        // When
+        var query = new CalculationsQueryV1(_userIdentity)
+        {
+            // => Common fields
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.BalanceFixing,
+                CalculationTypeQueryParameterV1.WholesaleFixing,
+                CalculationTypeQueryParameterV1.ElectricalHeating,
+                CalculationTypeQueryParameterV1.CapacitySettlement,
+                CalculationTypeQueryParameterV1.NetConsumption],
+            LifecycleStates = [
+                ApiModel.OrchestrationInstanceLifecycleState.Pending,
+                ApiModel.OrchestrationInstanceLifecycleState.Running],
+            TerminationState = null,
+            ScheduledAtOrLater = null,
+            StartedAtOrLater = new DateTimeOffset(2020, 2, 22, 23, 00, 00, TimeSpan.Zero), // Wintertime
+            TerminatedAtOrEarlier = null,
+        };
+
+        var actual = await _sut.HandleAsync(query);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(2)
+            .And.Satisfy(
+                result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsRunning.Id.Value,
+                result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value);
+    }
+
+    /// <summary>
+    /// The intention of this test is to use as much as possible of the query in SQL.
+    /// Because we use "Wholesale" query parameters, only those types will be retrieved.
+    /// </summary>
+    [Fact]
+    public async Task Given_MixOfCalculationsDataset_When_SearchByAllPossibleWholesaleQueryParameters_Then_ExpectedWholesaleCalculationIsRetrieved()
+    {
+        // Given
+        await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
+        var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
+        var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
+        var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
+        var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+
+        // When
+        var query = new CalculationsQueryV1(_userIdentity)
+        {
+            // => Common fields
+            CalculationTypes = [
+                CalculationTypeQueryParameterV1.BalanceFixing,
+                CalculationTypeQueryParameterV1.WholesaleFixing,
+                CalculationTypeQueryParameterV1.ElectricalHeating,
+                CalculationTypeQueryParameterV1.CapacitySettlement,
+                CalculationTypeQueryParameterV1.NetConsumption],
+            LifecycleStates = [
+                ApiModel.OrchestrationInstanceLifecycleState.Pending,
+                ApiModel.OrchestrationInstanceLifecycleState.Running],
+            TerminationState = null,
+            ScheduledAtOrLater = null,
+            StartedAtOrLater = null,
+            TerminatedAtOrEarlier = null,
+
+            // => Wholesale calculations
+            IsInternalCalculation = false,
+            GridAreaCodes = ["222"],
+
+            // => Wholesale + Capacity settlement calculations
+            // Query for 23/2/2025 - 1/3/2025 (not inclusive)
+            PeriodStartDate = new DateTimeOffset(2025, 2, 22, 23, 00, 00, TimeSpan.Zero), // Wintertime
+            PeriodEndDate = new DateTimeOffset(2025, 2, 28, 23, 00, 00, TimeSpan.Zero), // Wintertime
+        };
+
+        var actual = await _sut.HandleAsync(query);
+
+        // Then
+        actual
+            .Should()
+            .HaveCount(1)
+            .And.Satisfy(
+                result => result is WholesaleCalculationResultV1 && ((WholesaleCalculationResultV1)result).Id == wholesaleInstances.WholesaleFixing.Id.Value);
     }
 
     private async Task<(
@@ -882,94 +1036,6 @@ public class SearchCalculationsHandlerV1Tests :
         await dbContext.SaveChangesAsync();
 
         return orchestrationInstances;
-    }
-
-    /// <summary>
-    /// Create orchestration instances from <paramref name="orchestrationDescription"/>
-    /// in the following lifecycle states:
-    ///  - Pending
-    ///  - Queued
-    ///  - Running
-    ///  - Terminated as succeeded
-    ///  - Terminated as failed
-    ///
-    /// If <paramref name="isRunningStartedAt"/> is specified, then this value
-    /// is used when transitioning to Running.
-    ///
-    /// If <paramref name="isTerminatedAsSucceededAt"/> is specified, then this value
-    /// is used when transitioning to terminated as succeeded.
-    /// </summary>
-    private (
-            OrchestrationInstance IsPending,
-            OrchestrationInstance IsQueued,
-            OrchestrationInstance IsRunning,
-            OrchestrationInstance IsTerminatedAsSucceeded,
-            OrchestrationInstance IsTerminatedAsFailed)
-        CreateLifecycleDataset(
-            OrchestrationDescription orchestrationDescription,
-            Instant isRunningStartedAt = default,
-            Instant isTerminatedAsSucceededAt = default)
-    {
-        var isPending = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-
-        var isQueued = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isQueued.Lifecycle.TransitionToQueued(SystemClock.Instance);
-
-        var isRunning = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isRunning.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        if (isRunningStartedAt == default)
-        {
-            isRunning.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        }
-        else
-        {
-            var clockMock = new Mock<IClock>();
-            clockMock.Setup(m => m.GetCurrentInstant())
-                .Returns(isRunningStartedAt);
-            isRunning.Lifecycle.TransitionToRunning(clockMock.Object);
-        }
-
-        var isTerminatedAsSucceeded = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isTerminatedAsSucceeded.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isTerminatedAsSucceeded.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        if (isTerminatedAsSucceededAt == default)
-        {
-            isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(SystemClock.Instance);
-        }
-        else
-        {
-            var clockMock = new Mock<IClock>();
-            clockMock.Setup(m => m.GetCurrentInstant())
-                .Returns(isTerminatedAsSucceededAt);
-            isTerminatedAsSucceeded.Lifecycle.TransitionToSucceeded(clockMock.Object);
-        }
-
-        var isTerminatedAsFailed = OrchestrationInstance.CreateFromDescription(
-            identity: _userIdentity.MapToDomain(),
-            description: orchestrationDescription,
-            skipStepsBySequence: [],
-            clock: SystemClock.Instance);
-        isTerminatedAsFailed.Lifecycle.TransitionToQueued(SystemClock.Instance);
-        isTerminatedAsFailed.Lifecycle.TransitionToRunning(SystemClock.Instance);
-        isTerminatedAsFailed.Lifecycle.TransitionToFailed(SystemClock.Instance);
-
-        return (isPending, isQueued, isRunning, isTerminatedAsSucceeded, isTerminatedAsFailed);
     }
 
     /// <summary>

@@ -29,6 +29,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.O
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Wiremock;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -47,6 +48,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 /// <summary>
 /// Test to verify the state of an orchestration.
 /// </summary>
+[ParallelWorkflow(WorkflowBucket.Bucket01)]
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 {

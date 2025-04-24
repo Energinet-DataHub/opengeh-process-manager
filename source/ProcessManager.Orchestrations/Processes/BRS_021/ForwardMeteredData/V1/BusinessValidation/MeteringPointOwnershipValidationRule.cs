@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
@@ -36,9 +35,8 @@ public class MeteringPointOwnershipValidationRule : IBusinessValidationRule<Forw
     public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
-        if (subject.MeteringPointMasterData
-            .Select(mpmd => mpmd.GridAccessProvider.Value)
-            .Any(gap => gap != subject.Input.GridAccessProviderNumber))
+        if (subject.CurrentMasterData != null && !subject.CurrentMasterData.GridAccessProvider.Value
+                .Equals(subject.Input.GridAccessProviderNumber))
         {
             return Task.FromResult(MeteringPointHasWrongOwnerError);
         }

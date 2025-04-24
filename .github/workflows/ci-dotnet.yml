@@ -41,22 +41,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+
       - uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ inputs.nuget_cache_key_prefix }}-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          key: ${{ inputs.nuget_cache_key_prefix }}-partial-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ inputs.nuget_cache_key_prefix }}-${{ runner.os }}-
 
       - name: Find associated pull request
         uses: Energinet-DataHub/.github/.github/actions/find-related-pr-number@v14
         id: find_pull_request
 
-      - name: Build ${{ inputs.release_name }}
+      - name: Publish ${{ inputs.release_name }}
         run: |
           dotnet publish \
             '${{ inputs.project_file }}' \
             --configuration Release \
             -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
             --output '${{ env.RELEASE_FOLDER_PATH }}'
+
+      - name: Publish subsystem tests
+        if: ${{ inputs.release_name == 'process_manager_orchestrations' }}
+        run: |
+          dotnet publish \
+            'source/ProcessManager.SubsystemTests/ProcessManager.SubsystemTests.csproj' \
+            --configuration Release \
+            -p:SourceRevisionId=PR_${{ steps.find_pull_request.outputs.pull_request_number }}+SHA_${{ github.sha }} \
+            --output '${{ env.RELEASE_FOLDER_PATH }}/subsystemtests/'
 
       - name: Get release strings
         uses: Energinet-Datahub/.github/.github/actions/github-get-releaseversion-strings@v14

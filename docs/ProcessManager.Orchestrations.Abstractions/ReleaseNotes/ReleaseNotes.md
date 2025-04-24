@@ -1,5 +1,38 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.0.1
+
+- Added `GridAreaCode` to `ForwardMeteredDataAcceptedV1`.
+
+## Version 2.0.0
+
+- Upgraded to .NET 9
+
+## Version 1.20.1
+
+- Added `MeteringPointId` to `ForwardMeteredDataRejectedV1`.
+
+## Version 1.20.0
+
+- Add `EnqueueActorMessagesForMeteringPointV1` for BRS-021 Electrical Heating calculation.
+- Add `ReceiversWithMeasureDataV1` for BRS-021 Electrical Heating calculation.
+
+## Version 1.19.1
+
+- No functional changes.
+
+## Version 1.19.0
+
+- Delete `ForwardedByActorNumber` and `ForwardedByActorRole` from `ForwardMeteredDataRejectedV1`.
+
+## Version 1.18.3
+
+- No functional changes.
+
+## Version 1.18.2
+
+- No functional changes.
+
 ## Version 1.18.1
 
 - Use `IEnqueueAcceptedDataDto`, `IEnqueueRejectedDataDto` and `IEnqueueDataDto` marker interfaces.
@@ -14,7 +47,7 @@
 
 ## Version 1.17.1
 
-- Add `ForwardedForActorRole`, to `ForwardMeteredDataRejectedV1`
+- Add `ForwardedForActorRole`, to `ForwardMeteredDataRejectedV1`.
 
 ## Version 1.17.0
 
@@ -69,7 +102,7 @@
 
 ## Version 1.9.0
 
-- Remove internal process: Migrate Calculations From Wholesale.~~~~
+- Remove internal process: Migrate Calculations From Wholesale.
 
 ## Version 1.8.0
 

@@ -65,7 +65,7 @@ public class DatabricksJobsClientTests
             run.Status.TerminationDetails = new TerminationDetails { Code = runTerminationCode.Value };
 
         JobsApiMock
-            .Setup(mock => mock.RunsGet(It.IsAny<long>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .Setup(mock => mock.RunsGet(It.IsAny<long>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((run, null));
 
         // Act
@@ -87,7 +87,7 @@ public class DatabricksJobsClientTests
             run.Status.TerminationDetails = new TerminationDetails { Code = runTerminationCode.Value };
 
         JobsApiMock
-            .Setup(mock => mock.RunsGet(It.IsAny<long>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .Setup(mock => mock.RunsGet(It.IsAny<long>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((run, null));
 
         // Act

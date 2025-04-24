@@ -22,11 +22,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public record ForwardMeteredDataRejectedV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
-    [property: Obsolete("Delete when EDI is refactored")]
-    ActorNumber ForwardedByActorNumber,
-    [property: Obsolete("Delete when EDI is refactored")]
-    ActorRole ForwardedByActorRole,
     ActorRole ForwardedForActorRole,
     BusinessReason BusinessReason,
-    List<ValidationErrorDto> ValidationErrors)
+    List<ValidationErrorDto> ValidationErrors,
+    string MeteringPointId)
         : IEnqueueRejectedDataDto;

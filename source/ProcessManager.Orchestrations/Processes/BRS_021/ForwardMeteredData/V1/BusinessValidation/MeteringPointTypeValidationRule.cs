@@ -61,7 +61,7 @@ public class MeteringPointTypeValidationRule
 
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
     {
-        if (subject.MeteringPointMasterData.Count == 0)
+        if (subject.HistoricalMeteringPointMasterData.Count == 0)
         {
             return Task.FromResult(NoError);
         }
@@ -73,7 +73,7 @@ public class MeteringPointTypeValidationRule
         }
 
         // Check if the metering point type is same for all historic master data
-        if (subject.MeteringPointMasterData
+        if (subject.HistoricalMeteringPointMasterData
             .Select(mpmd => mpmd.MeteringPointType)
             .Any(meteringPointType => meteringPointType != incomingMeteringPointType))
         {

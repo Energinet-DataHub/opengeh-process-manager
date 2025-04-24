@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using FluentAssertions;
 using Microsoft.FeatureManagement;
 using Moq;
@@ -39,6 +40,7 @@ public class MeteringPointValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 input,
+                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("id"),
@@ -71,7 +73,8 @@ public class MeteringPointValidationRuleTests
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
 
-        var result = await _sut.ValidateAsync(new(input, []));
+        var result = await _sut.ValidateAsync(
+            new(input, null, []));
 
         result.Should()
             .ContainSingle()

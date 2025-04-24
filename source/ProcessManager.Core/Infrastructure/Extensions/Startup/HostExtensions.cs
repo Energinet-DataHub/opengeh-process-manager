@@ -57,23 +57,26 @@ public static class HostExtensions
                     od.Steps,
                 }));
 
-            var register = host.Services.GetRequiredService<IOrchestrationRegister>();
-            await register
-                .SynchronizeAsync(
-                    hostName: hostName,
-                    orchestrationDescriptions)
-                .ConfigureAwait(false);
+            using (var serviceScope = host.Services.CreateScope())
+            {
+                var register = serviceScope.ServiceProvider.GetRequiredService<IOrchestrationRegister>();
+                await register
+                    .SynchronizeAsync(
+                        hostName: hostName,
+                        orchestrationDescriptions)
+                    .ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Could not register orchestrations during startup.");
 
-            #if DEBUG
+#if DEBUG
             // Test logger isn't available this early in the application lifecycle, so we log to console as well.
             Console.WriteLine(
                 "Could not register orchestrations during startup. Exception:\n{0}",
                 ex);
-            #endif
+#endif
 
             // Set exception in the orchestration register context singleton, to enable reporting the exception in
             // the orchestration register healthcheck.

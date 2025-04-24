@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <PackageId>Energinet.DataHub.ProcessManager.Orchestrations.Abstractions</PackageId>
-    <PackageVersion>1.18.1$(VersionSuffix)</PackageVersion>
+    <PackageVersion>2.0.1$(VersionSuffix)</PackageVersion>
     <Title>DH3 Process Manager Orchestrations Abstractions library</Title>
     <Company>Energinet-DataHub</Company>
     <Authors>Energinet-DataHub</Authors>
@@ -48,7 +48,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.30.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.30.2" />
     <PackageReference Include="Grpc.Tools" Version="2.71.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -57,7 +57,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NodaTime" Version="3.2.1" />
+    <PackageReference Include="NodaTime" Version="3.2.2" />
   </ItemGroup>
 
   <ItemGroup>

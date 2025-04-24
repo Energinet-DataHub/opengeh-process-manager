@@ -58,7 +58,7 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
         await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
     }
 
-    private Core.Domain.OrchestrationInstance.OrchestrationInstanceId HandleV1(BinaryData messageEventBody)
+    private static Core.Domain.OrchestrationInstance.OrchestrationInstanceId HandleV1(BinaryData messageEventBody)
     {
         var notifyV1 = Brs021ForwardMeteredDataNotifyV1.Parser.ParseFrom(messageEventBody);
 

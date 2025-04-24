@@ -39,6 +39,7 @@ public class CalculatedMeasurementsQueryTests : IClassFixture<CalculatedMeasurem
             _fixture.QueryOptions,
             orchestrationInstanceId);
 
+        // TODO: Move seeding of data and the creation of Sut to the fixture
         await _fixture.DatabricksSchemaManager.CreateTableAsync(sut.DataObjectName, sut.SchemaDefinition);
         await _fixture.DatabricksSchemaManager.InsertAsync(
             sut.DataObjectName,

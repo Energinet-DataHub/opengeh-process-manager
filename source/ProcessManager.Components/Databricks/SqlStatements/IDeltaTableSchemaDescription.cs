@@ -12,25 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatementApi;
+namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 
-public static class DeltaTableCommonTypes
+/// <summary>
+/// Contains information about a Databricks delta table schema.
+/// </summary>
+public interface IDeltaTableSchemaDescription
 {
-    public const string String = "STRING";
-
-    public const string Timestamp = "TIMESTAMP";
+    /// <summary>
+    /// Name of database.
+    /// </summary>
+    string DatabaseName { get; }
 
     /// <summary>
-    /// Int or Int32 in C#
+    /// Name of view or table.
     /// </summary>
-    public const string Int = "INT";
+    string DataObjectName { get; }
 
     /// <summary>
-    /// Long or Int64 in C#
+    /// The schema definition of the view or table expressed as (Column name, Data type, Is nullable).
+    ///
+    /// Can be used in tests to create a matching data object (e.g. table).
     /// </summary>
-    public const string BigInt = "BIGINT";
-
-    public const string Decimal18X3 = "DECIMAL(18, 3)";
-
-    public const string ArrayOfStrings = "ARRAY<STRING>";
+    Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition { get; }
 }

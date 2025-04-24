@@ -14,13 +14,13 @@
 
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
 
-namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatementApi;
+namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 
 /// <summary>
 /// Common base class for querying Databricks.
 /// </summary>
 public abstract class QueryBase<TResult>(
-    DatabricksOptions databricksOptions,
+    DatabricksQueryOptions databricksOptions,
     Guid orchestrationInstanceId)
     : IDeltaTableSchemaDescription
 {
@@ -76,9 +76,7 @@ public abstract class QueryBase<TResult>(
 
         // Last set (if any)
         if (currentSet.Count != 0)
-        {
             yield return await CreateQueryResultAsync(currentSet).ConfigureAwait(false);
-        }
     }
 
     protected abstract Task<QueryResult<TResult>> CreateQueryResultAsync(

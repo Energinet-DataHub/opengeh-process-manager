@@ -13,13 +13,13 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatementApi;
+using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 
-public class CalculatedMeasurementsQuery(DatabricksOptions databricksOptions, Guid orchestrationInstanceId, ILogger logger)
+public class CalculatedMeasurementsQuery(DatabricksQueryOptions databricksOptions, Guid orchestrationInstanceId, ILogger logger)
      : QueryBase<CalculatedMeasurementsV1>(databricksOptions, orchestrationInstanceId)
 {
     private readonly ILogger _logger = logger;

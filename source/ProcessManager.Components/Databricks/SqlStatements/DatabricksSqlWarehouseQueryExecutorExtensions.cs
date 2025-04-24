@@ -16,7 +16,7 @@ using System.Runtime.CompilerServices;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution.Formats;
 
-namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatementApi;
+namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 
 public static class DatabricksSqlWarehouseQueryExecutorExtensions
 {

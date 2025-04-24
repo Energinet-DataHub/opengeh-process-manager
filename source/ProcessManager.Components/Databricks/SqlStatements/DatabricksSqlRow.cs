@@ -16,7 +16,7 @@ using System.Globalization;
 using NodaTime;
 using NodaTime.Text;
 
-namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatementApi;
+namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 
 /// <summary>
 /// This class is used to wrap the result (a dynamic type) of a Databricks SQL query row.

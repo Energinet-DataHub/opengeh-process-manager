@@ -12,27 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatementApi;
+using System.ComponentModel.DataAnnotations;
+
+namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 
 /// <summary>
-/// Contains information about a Databricks delta table schema.
+/// Options for a Databricks query.
 /// </summary>
-public interface IDeltaTableSchemaDescription
+public class DatabricksQueryOptions
 {
-    /// <summary>
-    /// Name of database.
-    /// </summary>
-    public string DatabaseName { get; }
+    public const string SectionName = "DatabricksQuery";
 
     /// <summary>
-    /// Name of view or table.
+    /// Name of the Databricks database.
     /// </summary>
-    public string DataObjectName { get; }
+    [Required]
+    public string DatabaseName { get; set; } = "measurements_calculated";
 
     /// <summary>
-    /// The schema definition of the view or table expressed as (Column name, Data type, Is nullable).
-    ///
-    /// Can be used in tests to create a matching data object (e.g. table).
+    /// Name of the Databricks catalog.
     /// </summary>
-    public Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition { get; }
+    /// <remarks>
+    /// Should point at the unity catalog when running in Azure,
+    /// and use hive_metastore when running in tests.
+    /// </remarks>
+    [Required]
+    public string CatalogName { get; set; } = null!;
 }

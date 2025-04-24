@@ -12,26 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel.DataAnnotations;
+namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 
-namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatementApi;
-
-/// <summary>
-/// Options for the Databricks.
-/// </summary>
-public class DatabricksOptions
+public static class DeltaTableCommonTypes
 {
-    public const string SectionName = "Databricks";
+    public const string String = "STRING";
+
+    public const string Timestamp = "TIMESTAMP";
 
     /// <summary>
-    /// Name of the Databricks database.
+    /// Int or Int32 in C#
     /// </summary>
-    [Required]
-    public string DatabaseName { get; set; } = "measurements_calculated";
+    public const string Int = "INT";
 
     /// <summary>
-    /// Name of the Databricks catalog.
+    /// Long or Int64 in C#
     /// </summary>
-    [Required]
-    public string CatalogName { get; set; } = null!;
+    public const string BigInt = "BIGINT";
+
+    public const string Decimal18X3 = "DECIMAL(18, 3)";
+
+    public const string ArrayOfStrings = "ARRAY<STRING>";
 }

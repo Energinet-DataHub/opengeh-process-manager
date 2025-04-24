@@ -22,7 +22,7 @@ internal interface IOrchestrationInstanceRepository
     /// <summary>
     /// Use <see cref="IUnitOfWork.CommitAsync"/> to save changes.
     /// </summary>
-    public IUnitOfWork UnitOfWork { get; }
+    IUnitOfWork UnitOfWork { get; }
 
     /// <summary>
     /// Add the orchestration instance.

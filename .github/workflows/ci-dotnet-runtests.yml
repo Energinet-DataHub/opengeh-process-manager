@@ -34,7 +34,7 @@ on:
         description: The version of dotnet to use
         required: false
         type: string
-        default: net8.0
+        default: net9.0
 
 jobs:
   build_matrix:

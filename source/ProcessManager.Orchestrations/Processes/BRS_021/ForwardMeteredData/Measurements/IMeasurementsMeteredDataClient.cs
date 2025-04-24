@@ -23,5 +23,5 @@ public interface IMeasurementsMeteredDataClient
     /// </summary>
     /// <param name="meteredDataForMeteringPoint"></param>
     /// <param name="cancellationToken"></param>
-    public Task SendAsync(MeteredDataForMeteringPoint meteredDataForMeteringPoint, CancellationToken cancellationToken);
+    Task SendAsync(MeteredDataForMeteringPoint meteredDataForMeteringPoint, CancellationToken cancellationToken);
 }

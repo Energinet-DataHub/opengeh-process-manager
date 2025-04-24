@@ -148,7 +148,7 @@ public static class ProcessManagerExtensions
         services.TryAddScoped<OrchestrationInstanceManager, OrchestrationInstanceManager>();
         // => Orchestration Descriptions registration during startup
         services.AddOrchestrationDescriptionBuilders(assemblyToScan);
-        services.TryAddTransient<IOrchestrationRegister, OrchestrationRegister>();
+        services.TryAddScoped<IOrchestrationRegister, OrchestrationRegister>();
         // => Start instance (manager)
         services.TryAddScoped<IOrchestrationInstanceExecutor, DurableOrchestrationInstanceExecutor>();
         services.TryAddScoped<IOrchestrationRegisterQueries, OrchestrationRegister>();

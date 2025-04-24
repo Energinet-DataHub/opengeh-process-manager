@@ -242,7 +242,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var input = new ForwardMeteredDataInputV1Builder()
             .WithResolution(Resolution.QuarterHourly.Name)
             .WithStartDateTime("2024-04-24T22:00:00Z")
-            .WithEndDateTime("2024-04-24T22:30:00Z") // 30 minutes should be 2 positions
+            .WithEndDateTime("2024-04-24T22:30:00Z") // 30 minutes should contain 2 positions
             .WithMeteredData([
                 new ForwardMeteredDataInputV1.MeteredData(
                     Position: "1",

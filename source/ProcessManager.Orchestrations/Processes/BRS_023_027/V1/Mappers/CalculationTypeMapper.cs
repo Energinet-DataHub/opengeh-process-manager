@@ -31,7 +31,7 @@ internal static class CalculationTypeMapper
             DeltaTableCalculationType.ThirdCorrectionSettlement => CalculationType.ThirdCorrectionSettlement,
 
             _ => throw new ArgumentOutOfRangeException(
-                nameof(calculationType),
+                paramName: nameof(calculationType),
                 actualValue: calculationType,
                 "Value does not contain a valid string representation of a calculation type."),
         };
@@ -49,7 +49,7 @@ internal static class CalculationTypeMapper
             CalculationType.ThirdCorrectionSettlement => DeltaTableCalculationType.ThirdCorrectionSettlement,
 
             _ => throw new ArgumentOutOfRangeException(
-                nameof(calculationType),
+                paramName: nameof(calculationType),
                 actualValue: calculationType,
                 "Value cannot be mapped to a string representation of a DeltaTableCalculation type."),
         };

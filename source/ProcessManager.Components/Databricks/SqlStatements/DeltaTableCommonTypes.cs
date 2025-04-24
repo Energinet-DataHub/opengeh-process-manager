@@ -30,7 +30,7 @@ public static class DeltaTableCommonTypes
     /// </summary>
     public const string BigInt = "BIGINT";
 
-    public const string Decimal18X3 = "DECIMAL(18, 3)";
+    public const string Decimal18x3 = "DECIMAL(18, 3)";
 
     public const string ArrayOfStrings = "ARRAY<STRING>";
 }

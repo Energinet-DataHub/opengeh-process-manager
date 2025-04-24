@@ -57,7 +57,7 @@ public abstract class QueryBase<TResult>(
                 continue;
             }
 
-            yield return await CreateResultAsync(currentGroupOfRows).ConfigureAwait(false);
+            yield return await CreateResultFromGroupAsync(currentGroupOfRows).ConfigureAwait(false);
 
             // Next group
             currentGroupOfRows =
@@ -69,10 +69,10 @@ public abstract class QueryBase<TResult>(
 
         // Last group (if any)
         if (currentGroupOfRows.Count != 0)
-            yield return await CreateResultAsync(currentGroupOfRows).ConfigureAwait(false);
+            yield return await CreateResultFromGroupAsync(currentGroupOfRows).ConfigureAwait(false);
     }
 
-    protected abstract Task<QueryResult<TResult>> CreateResultAsync(
+    protected abstract Task<QueryResult<TResult>> CreateResultFromGroupAsync(
         IList<DatabricksSqlRow> currentGroupOfRows);
 
     protected abstract bool BelongsToSameGroup(

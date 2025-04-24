@@ -47,28 +47,32 @@ internal class CalculatedMeasurementsQuery(
         { CalculatedMeasurementsColumnNames.Resolution, (DeltaTableCommonTypes.Timestamp, false) },
     };
 
-    protected override Task<QueryResult<CalculatedMeasurement>> CreateResultAsync(IList<DatabricksSqlRow> groupOfRows)
+    protected override Task<QueryResult<CalculatedMeasurement>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> groupOfRows)
     {
+        var firstRow = groupOfRows.First();
+
         try
         {
-            var calculatedMeasurements = new List<CalculatedMeasurement>();
+            var measureDataList = new List<MeasureData>();
 
             foreach (var row in groupOfRows)
             {
-                var calculatedMeasurement = CreateCalculatedMeasurement(row);
-                calculatedMeasurements.Add(calculatedMeasurement);
+                measureDataList.Add(CreateMeasureData(row));
             }
 
-            // TODO - XDAST: Here we should "groupd by" common properties and create the result based on that
-            var result = calculatedMeasurements.First();
+            var result = CreateCalculatedMeasurement(firstRow, measureDataList);
             return Task.FromResult(QueryResult<CalculatedMeasurement>.Success(result));
         }
         catch (Exception ex)
         {
-            var firstRow = groupOfRows.First();
             var transactionId = firstRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
             var orchestrationType = firstRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType);
-            _logger.LogWarning(ex, $"Creating calculated measurements ({orchestrationType}) failed for orchestration instance id='{OrchestrationInstanceId}', TransactionId='{transactionId}'.");
+            _logger.LogWarning(
+                ex,
+                "Creating calculated measurements ({OrchestrationType}) failed for orchestration instance id='{OrchestrationInstanceId}', TransactionId='{TransactionId}'.",
+                orchestrationType,
+                OrchestrationInstanceId,
+                transactionId);
         }
 
         return Task.FromResult(QueryResult<CalculatedMeasurement>.Error());
@@ -91,19 +95,25 @@ internal class CalculatedMeasurementsQuery(
             """;
     }
 
-    private static CalculatedMeasurement CreateCalculatedMeasurement(DatabricksSqlRow databricksSqlRow)
+    private static MeasureData CreateMeasureData(DatabricksSqlRow databricksSqlRow)
+    {
+        return new MeasureData(
+            ObservationTime: databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.ObservationTime),
+            Quantity: databricksSqlRow.ToDecimal(CalculatedMeasurementsColumnNames.Quantity),
+            QuantityQuality: databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityQuality));
+    }
+
+    private static CalculatedMeasurement CreateCalculatedMeasurement(DatabricksSqlRow databricksSqlRow, IReadOnlyCollection<MeasureData> measureDataList)
     {
         return new CalculatedMeasurement(
-            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType),
-            databricksSqlRow.ToGuid(CalculatedMeasurementsColumnNames.OrchestrationInstanceId),
-            databricksSqlRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId),
-            databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.TransactionCreationDatetime),
-            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointId),
-            MeteringPointTypeMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointType)),
-            MeasurementUnitMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit)),
-            ResolutionMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution)),
-            databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.ObservationTime),
-            databricksSqlRow.ToDecimal(CalculatedMeasurementsColumnNames.Quantity),
-            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityQuality));
+            OrchestrationType: databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType),
+            OrchestrationInstanceId: databricksSqlRow.ToGuid(CalculatedMeasurementsColumnNames.OrchestrationInstanceId),
+            TransactionId: databricksSqlRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId),
+            TransactionCreationDatetime: databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.TransactionCreationDatetime),
+            MeteringPointId: databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointId),
+            MeteringPointType: MeteringPointTypeMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointType)),
+            QuantityUnit: MeasurementUnitMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit)),
+            Resolution: ResolutionMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution)),
+            MeasureData: measureDataList);
     }
 }

@@ -26,6 +26,8 @@ public class MeteringPointMasterDataBuilder
 {
     public MeteringPointMasterData BuildFromInput(
         ForwardMeteredDataInputV1 input,
+        MeteringPointSubType? meteringPointSubType = null,
+        MeasurementUnit? measurementUnit = null,
         string? gridAccessProvider = null,
         MeteringPointType? meteringPointType = null,
         ConnectionState? connectionState = null,
@@ -40,8 +42,8 @@ public class MeteringPointMasterDataBuilder
             GridAccessProvider: gridAccessProvider != null ? ActorNumber.Create(gridAccessProvider) : ActorNumber.Create(input.GridAccessProviderNumber),
             ConnectionState: connectionState ?? ConnectionState.Connected,
             MeteringPointType: meteringPointType ?? MeteringPointType.FromName(input.MeteringPointType!),
-            MeteringPointSubType: MeteringPointSubType.Physical,
-            MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+            MeteringPointSubType: meteringPointSubType ?? MeteringPointSubType.Physical,
+            MeasurementUnit: measurementUnit ?? MeasurementUnit.FromName(input.MeasureUnit!),
             ValidFrom: start.ToDateTimeOffset(),
             ValidTo: end.ToDateTimeOffset(),
             NeighborGridAreaOwners: [],

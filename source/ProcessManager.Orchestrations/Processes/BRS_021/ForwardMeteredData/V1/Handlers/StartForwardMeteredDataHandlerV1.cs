@@ -272,7 +272,6 @@ public class StartForwardMeteredDataHandlerV1(
                 .Select(mpmd => mpmd.ToV2())
                 .ToList();
 
-            var newestMasterData = meteringPointMasterData.OrderByDescending(x => x.ValidFrom).FirstOrDefault();
             forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(meteringPointMasterData);
         }
 

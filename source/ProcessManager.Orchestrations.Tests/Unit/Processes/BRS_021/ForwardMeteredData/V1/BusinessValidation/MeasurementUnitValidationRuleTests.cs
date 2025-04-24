@@ -129,9 +129,10 @@ public class MeasurementUnitValidationRuleTests
     }
 
     [Fact]
-    public async Task Given_DifferentMeasurementUnitFromMasterData_When_Validate_Then_ValidationError()
+    public async Task Given_MultipleMasterDataWhereMeasurementUnitDoesntMatchOneOfThem_When_Validate_Then_ValidationError()
     {
         var input = new ForwardMeteredDataInputV1Builder()
+            .WithMeasureUnit(MeasurementUnit.KilowattHour.Name)
             .Build();
 
         var result = await _sut.ValidateAsync(new(
@@ -149,7 +150,7 @@ public class MeasurementUnitValidationRuleTests
                     MeteringPointType.Production,
                     MeteringPointSubType.Physical,
                     Resolution.QuarterHourly,
-                    // One MeasurementUnit
+                    // Correct MeasurementUnit
                     MeasurementUnit.KilowattHour,
                     "product",
                     null,
@@ -165,43 +166,8 @@ public class MeasurementUnitValidationRuleTests
                     MeteringPointType.Production,
                     MeteringPointSubType.Physical,
                     Resolution.QuarterHourly,
-                    // A different MeasurementUnit
+                    // Incorrect MeasurementUnit
                     MeasurementUnit.KiloVoltAmpereReactiveHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
-            ]));
-
-        result.Should()
-            .ContainSingle()
-            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeasurementUnitNotAllowedError);
-    }
-
-    [Fact]
-    public async Task Given_IncomingMeasurementUnitDoesNotMatchMasterDataMeasurementUnit_When_Validate_Then_ValidationError()
-    {
-        var input = new ForwardMeteredDataInputV1Builder()
-            // Incoming MeasurementUnit
-            .WithMeasureUnit(MeasurementUnit.KiloVoltAmpereReactiveHour.Name)
-            .Build();
-
-        var result = await _sut.ValidateAsync(new(
-            input,
-            null,
-            [
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    MeteringPointType.Consumption,
-                    MeteringPointSubType.Physical,
-                    Resolution.QuarterHourly,
-                    // MeasurementUnit different from incoming
-                    MeasurementUnit.KilowattHour,
                     "product",
                     null,
                     ActorNumber.Create("1111111111112")),

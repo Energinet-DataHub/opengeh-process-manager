@@ -27,12 +27,12 @@ public sealed record QueryResult<TResult>
 
     public TResult? Result { get; }
 
-    internal static QueryResult<TResult> Success(TResult result)
+    public static QueryResult<TResult> Success(TResult result)
     {
         return new(true, result);
     }
 
-    internal static QueryResult<TResult> Error()
+    public static QueryResult<TResult> Error()
     {
         return new(false, default);
     }

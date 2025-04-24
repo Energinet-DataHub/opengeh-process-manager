@@ -29,6 +29,8 @@ internal static class ResolutionMapper
                 "Value does not contain a valid string representation of a resolution."),
         };
 
+
+    // TODO: NOt used, delete for now?
     public static string ToDeltaTableValue(Resolution resolution) =>
         resolution switch
         {

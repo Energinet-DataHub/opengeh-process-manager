@@ -40,7 +40,7 @@ public abstract class QueryBase<TResult>(
 
     protected ILogger Logger { get; } = logger;
 
-    internal async IAsyncEnumerable<QueryResult<TResult>> GetAsync(
+    public async IAsyncEnumerable<QueryResult<TResult>> GetAsync(
         DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor)
     {
         ArgumentNullException.ThrowIfNull(databricksSqlWarehouseQueryExecutor);

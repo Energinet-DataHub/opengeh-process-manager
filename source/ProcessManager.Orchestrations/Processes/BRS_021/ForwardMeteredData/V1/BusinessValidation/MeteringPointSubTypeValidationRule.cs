@@ -23,7 +23,7 @@ public class MeteringPointSubTypeValidationRule
     : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
     public static IList<ValidationError> WrongMeteringPointSubTypeError => [new(
-        Message: "Målepunktet skal være enten fysisk eller virtuelt/meteringpoint must be either physical or virtual",
+        Message: "Målepunktet skal være enten fysisk eller virtuelt/metering point must be either physical or virtual",
         ErrorCode: "D37")];
 
     private static IList<ValidationError> NoError => [];

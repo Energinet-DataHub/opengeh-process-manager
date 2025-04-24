@@ -31,8 +31,9 @@ public interface IDeltaTableSchemaDescription
 
     /// <summary>
     /// The schema definition of the view or table expressed as (Column name, Data type, Is nullable).
-    ///
-    /// Can be used in tests to create a matching data object (e.g. table).
     /// </summary>
+    /// <remarks>
+    /// Can be used in tests to create a matching data object (e.g. table).
+    /// </remarks>
     Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition { get; }
 }

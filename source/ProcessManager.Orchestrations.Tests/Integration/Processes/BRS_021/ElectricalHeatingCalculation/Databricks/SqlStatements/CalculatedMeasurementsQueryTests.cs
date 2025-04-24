@@ -40,12 +40,15 @@ public class CalculatedMeasurementsQueryTests : IClassFixture<CalculatedMeasurem
             orchestrationInstanceId);
 
         await _fixture.DatabricksSchemaManager.CreateTableAsync(sut.DataObjectName, sut.SchemaDefinition);
-        ////await _fixture.DatabricksSchemaManager.InsertAsync(
-        ////    sut.DataObjectName,
-        ////    [
-        ////        ["'61d60f89-bbc5-4f7a-be98-6139aab1c1b2'", "'balance_fixing'", "'2023-02-01 23:00:00.000000'", "'2023-02-12 23:00:00.000000'", "'111'", "'10e4e982-91dc-4e1c-9079-514ed45a64a8'", "'543'", "'5790001662234'", "'7080000729821'", "'production'", "NULL", "'PT1H'", "'2023-02-01 23:00:00.000000'", "'39471.336'", "'kWh'", "Array('measured')"],
-        ////        ["'61d60f89-bbc5-4f7a-be98-6139aab1c1b2'", "'balance_fixing'", "'2023-02-01 23:00:00.000000'", "'2023-02-12 23:00:00.000000'", "'111'", "'10e4e982-91dc-4e1c-9079-514ed45a64a8'", "'543'", "'5790001662234'", "'7080000729821'", "'production'", "NULL", "'PT1H'", "'2023-02-02 00:00:00.000000'", "'39472.336'", "'kWh'", "Array('measured')"],
-        ////        ["'61d60f89-bbc5-4f7a-be98-6139aab1c1b2'", "'balance_fixing'", "'2023-02-01 23:00:00.000000'", "'2023-02-12 23:00:00.000000'", "'111'", "'10e4e982-91dc-4e1c-9079-514ed45a64a8'", "'543'", "'5790001662234'", "'7080000729821'", "'production'", "NULL", "'PT1H'", "'2023-02-02 05:00:00.000000'", "'39473.336'", "'kWh'", "Array('measured')"],
-        ////    ]);
+        await _fixture.DatabricksSchemaManager.InsertAsync(
+            sut.DataObjectName,
+            [
+                // First transaction
+                ["'capacity_settlement'", "'48362f74-37e0-4330-b071-b64d0d564b9c'", "'1a0c19a9-8310-5e59-b2e0-d1533927c6b9'", "'2025-04-07T10:04:55.692'", "'190000040000000001'", "'capacity_settlement'", "'2025-01-14T22:00:00.000'", "'0.000'", "'kWh'", "'calculated'", "NULL", "'PT1H'"],
+                ["'capacity_settlement'", "'48362f74-37e0-4330-b071-b64d0d564b9c'", "'1a0c19a9-8310-5e59-b2e0-d1533927c6b9'", "'2025-04-07T10:04:55.692'", "'190000040000000001'", "'capacity_settlement'", "'2025-01-14T23:00:00.000'", "'4.739'", "'kWh'", "'calculated'", "NULL", "'PT1H'"],
+                // Second transaction
+                ["'capacity_settlement'", "'48362f74-37e0-4330-b071-b64d0d564b9c'", "'1a790ec1-e1d8-51ed-84fd-15d37ad5021a'", "'2025-04-07T10:04:55.692'", "'190000040000000001'", "'capacity_settlement'", "'2025-01-29T22:00:00.000'", "'0.000'", "'kWh'", "'calculated'", "NULL", "'PT1H'"],
+                ["'capacity_settlement'", "'48362f74-37e0-4330-b071-b64d0d564b9c'", "'1a790ec1-e1d8-51ed-84fd-15d37ad5021a'", "'2025-04-07T10:04:55.692'", "'190000040000000001'", "'capacity_settlement'", "'2025-01-29T23:00:00.000'", "'0.000'", "'kWh'", "'calculated'", "NULL", "'PT1H'"],
+            ]);
     }
 }

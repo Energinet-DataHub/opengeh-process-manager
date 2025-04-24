@@ -323,4 +323,38 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .ContainSingle()
             .And.BeEquivalentTo(PositionCountValidationRule.IncorrectNumberOfPositionsError(744, 2976));
     }
+
+    [Fact]
+    public async Task Given_InvalidMeteringPointSubType_When_Validate_Then_ValidationError()
+    {
+        var invalidMeteringPointSubType = MeteringPointSubType.Calculated;
+        var input = new ForwardMeteredDataInputV1Builder()
+            .Build();
+
+        var meteringPointMasterData = new MeteringPointMasterData(
+            MeteringPointId: new MeteringPointId(input.MeteringPointId!),
+            GridAreaCode: new GridAreaCode("804"),
+            GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
+            ConnectionState: ConnectionState.Connected,
+            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
+            MeteringPointSubType: invalidMeteringPointSubType,
+            MeasurementUnit: MeasurementUnit.FromName(input.MeasureUnit!),
+            ValidFrom: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            ValidTo: SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+            NeighborGridAreaOwners: [],
+            Resolution: Resolution.Hourly,
+            ProductId: "product",
+            ParentMeteringPointId: null,
+            EnergySupplier: ActorNumber.Create("1111111111112"));
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                Input: input,
+                CurrentMasterData: meteringPointMasterData,
+                HistoricalMeteringPointMasterData: [
+                    meteringPointMasterData,
+                ]));
+        result.Should()
+            .ContainSingle()
+            .And.BeEquivalentTo(MeteringPointSubTypeValidationRule.WrongMeteringPointSubTypeError);
+    }
 }

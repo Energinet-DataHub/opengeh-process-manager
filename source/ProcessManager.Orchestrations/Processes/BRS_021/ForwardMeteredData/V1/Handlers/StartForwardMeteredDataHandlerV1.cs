@@ -353,8 +353,8 @@ public class StartForwardMeteredDataHandlerV1(
         var startedByActor = GetStartedByActor(orchestrationInstance);
 
         return await _delegationProvider.GetDelegatedFromAsync(
-            gridAreaOwner: currentMeteringPointMasterData.GridAccessProvider,
-            gridAreaCode: currentMeteringPointMasterData.GridAreaCode,
+            gridAreaOwner: currentMeteringPointMasterData.CurrentGridAccessProvider,
+            gridAreaCode: currentMeteringPointMasterData.CurrentGridAreaCode,
             senderActorNumber: startedByActor.StartedByActorNumber,
             senderActorRole: startedByActor.StartedByActorRole).ConfigureAwait(false);
     }

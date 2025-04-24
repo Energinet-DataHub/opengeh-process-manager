@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 
@@ -31,10 +32,12 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shar
     Justification = "Readability")]
 public class MeteringPointMasterDataProvider(
     IElectricityMarketViews electricityMarketViews,
-    ILogger<MeteringPointMasterDataProvider> logger)
+    ILogger<MeteringPointMasterDataProvider> logger,
+    IClock clock)
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
+    private readonly IClock _clock = clock;
 
     internal Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
@@ -58,12 +61,18 @@ public class MeteringPointMasterDataProvider(
         var id = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId);
 
         IEnumerable<ElectricityMarketModels.MeteringPointMasterData> masterDataChanges;
+        ElectricityMarketModels.MeteringPointMasterData currentMasterDataChanges;
 
         try
         {
             masterDataChanges = await _electricityMarketViews
                 .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime, endDateTime))
                 .ConfigureAwait(false);
+
+            // Get current master data to get the current grid area owner, and current grid areas neighboring grid area owners.
+            currentMasterDataChanges = (await _electricityMarketViews
+                .GetMeteringPointMasterDataChangesAsync(id, new Interval(_clock.GetCurrentInstant(), _clock.GetCurrentInstant().PlusSeconds(1)))
+                .ConfigureAwait(false)).Single();
         }
         catch (Exception e)
         {
@@ -88,6 +97,7 @@ public class MeteringPointMasterDataProvider(
                 result.Add(
                     CreateMeteringPointMasterData(
                         meteringPointMasterData,
+                        currentMasterDataChanges,
                         from.ToDateTimeOffset(),
                         to.ToDateTimeOffset(),
                         null,
@@ -112,6 +122,7 @@ public class MeteringPointMasterDataProvider(
                 result.Add(
                     CreateMeteringPointMasterData(
                         meteringPointMasterData,
+                        currentMasterDataChanges,
                         from.ToDateTimeOffset(),
                         to.ToDateTimeOffset(),
                         new MeteringPointId(parentId),
@@ -148,6 +159,7 @@ public class MeteringPointMasterDataProvider(
                 result.Add(
                     CreateMeteringPointMasterData(
                         meteringPointMasterData,
+                        currentMasterDataChanges,
                         currentPeriod.Start.ToDateTimeOffset(),
                         currentPeriod.End.ToDateTimeOffset(),
                         new MeteringPointId(parentId),
@@ -160,6 +172,7 @@ public class MeteringPointMasterDataProvider(
 
     private static MeteringPointMasterData CreateMeteringPointMasterData(
         ElectricityMarketModels.MeteringPointMasterData meteringPointMasterData,
+        ElectricityMarketModels.MeteringPointMasterData currentMeteringPointMasterData,
         DateTimeOffset validFrom,
         DateTimeOffset validTo,
         MeteringPointId? parentId = null,
@@ -167,9 +180,9 @@ public class MeteringPointMasterDataProvider(
         MeteringPointId: new MeteringPointId(meteringPointMasterData.Identification.Value),
         ValidFrom: validFrom,
         ValidTo: validTo,
-        GridAreaCode: new GridAreaCode(meteringPointMasterData.GridAreaCode.Value),
-        GridAccessProvider: ActorNumber.Create(meteringPointMasterData.GridAccessProvider),
-        NeighborGridAreaOwners: meteringPointMasterData.NeighborGridAreaOwners,
+        CurrentGridAreaCode: new GridAreaCode(currentMeteringPointMasterData.GridAreaCode.Value),
+        CurrentGridAccessProvider: ActorNumber.Create(currentMeteringPointMasterData.GridAccessProvider),
+        CurrentNeighborGridAreaOwners: currentMeteringPointMasterData.NeighborGridAreaOwners,
         ConnectionState: ElectricityMarketMasterDataMapper.ConnectionStateMap.Map(meteringPointMasterData.ConnectionState),
         MeteringPointType: ElectricityMarketMasterDataMapper.MeteringPointTypeMap.Map(meteringPointMasterData.Type),
         MeteringPointSubType: ElectricityMarketMasterDataMapper.MeteringPointSubTypeMap.Map(meteringPointMasterData.SubType),

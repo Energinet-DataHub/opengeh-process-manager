@@ -17,6 +17,4 @@ namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 /// <summary>
 /// Allows for generic type constraints of query result data.
 /// </summary>
-public interface IQueryResultDto
-{
-}
+public interface IQueryResultDto;

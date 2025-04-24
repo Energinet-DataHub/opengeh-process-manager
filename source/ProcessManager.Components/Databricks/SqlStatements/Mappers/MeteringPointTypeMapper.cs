@@ -13,11 +13,10 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements.Mappers;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Mappers;
 
-internal static class MeteringPointTypeMapper
+public static class MeteringPointTypeMapper
 {
     public static MeteringPointType FromDeltaTableValue(string? meteringPointType)
     {

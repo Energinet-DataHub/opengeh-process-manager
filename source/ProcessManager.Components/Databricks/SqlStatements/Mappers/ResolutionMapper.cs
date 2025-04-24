@@ -14,9 +14,9 @@
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements.Mappers;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Mappers;
 
-internal static class ResolutionMapper
+public static class ResolutionMapper
 {
     public static Resolution FromDeltaTableValue(string resolution) =>
         resolution switch
@@ -27,17 +27,5 @@ internal static class ResolutionMapper
                 nameof(resolution),
                 actualValue: resolution,
                 "Value does not contain a valid string representation of a resolution."),
-        };
-
-    // TODO: Not used, delete for now?
-    public static string ToDeltaTableValue(Resolution resolution) =>
-        resolution switch
-        {
-            var res when res == Resolution.QuarterHourly => "PT15M",
-            var res when res == Resolution.Hourly => "PT1H",
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(resolution),
-                actualValue: resolution,
-                $"Cannot map ${nameof(Resolution)} to delta table value"),
         };
 }

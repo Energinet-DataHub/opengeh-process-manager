@@ -13,11 +13,10 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Model;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
 
 internal class CalculatedMeasurementsQuery(
     DatabricksQueryOptions databricksOptions,
@@ -100,10 +99,10 @@ internal class CalculatedMeasurementsQuery(
             databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.TransactionCreationDatetime),
             databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointId),
             databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointType),
+            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit),
+            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution),
             databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.ObservationTime),
             databricksSqlRow.ToDecimal(CalculatedMeasurementsColumnNames.Quantity),
-            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit),
-            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityQuality),
-            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution));
+            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityQuality));
     }
 }

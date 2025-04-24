@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Model;
 
 // TODO: Should be a "result" that is "grouped by" the "meta data" (all except: observation_time, quantity, quantity_quality ???)
 internal sealed record CalculatedMeasurement(
@@ -25,9 +25,9 @@ internal sealed record CalculatedMeasurement(
     Instant TransactionCreationDatetime,
     string MeteringPointId,
     string MeteringPointType,
+    string QuantityUnit,
+    string Resolution,
     Instant ObservationTime,
     decimal Quantity,
-    string QuantityUnit,
-    string QuantityQuality,
-    string Resolution)
+    string QuantityQuality)
         : IQueryResultDto;

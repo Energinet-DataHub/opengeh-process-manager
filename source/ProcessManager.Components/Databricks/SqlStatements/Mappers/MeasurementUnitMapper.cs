@@ -14,9 +14,9 @@
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Mappers;
 
-internal static class MeasurementUnitMapper
+public static class MeasurementUnitMapper
 {
     public static MeasurementUnit FromDeltaTableValue(string? measurementUnit)
     {

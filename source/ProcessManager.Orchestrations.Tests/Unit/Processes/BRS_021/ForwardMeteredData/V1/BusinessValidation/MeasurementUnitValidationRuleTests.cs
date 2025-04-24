@@ -95,7 +95,7 @@ public class MeasurementUnitValidationRuleTests
 
     [Theory]
     [MemberData(nameof(InvalidMeasurementUnits))]
-    public async Task Given_InvalidMeasurementUnits_When_Validate_Then_NoValidationError(MeasurementUnit measurementUnit)
+    public async Task Given_InvalidMeasurementUnits_When_Validate_Then_ValidationError(MeasurementUnit measurementUnit)
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeasureUnit(measurementUnit.Name)

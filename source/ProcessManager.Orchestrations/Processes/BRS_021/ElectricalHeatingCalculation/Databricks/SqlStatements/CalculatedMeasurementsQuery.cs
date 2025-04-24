@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Model;
 using Microsoft.Extensions.Logging;
 
@@ -89,7 +91,6 @@ internal class CalculatedMeasurementsQuery(
             """;
     }
 
-    // TODO: Use mappers to map as soon as possible
     private static CalculatedMeasurement CreateCalculatedMeasurement(DatabricksSqlRow databricksSqlRow)
     {
         return new CalculatedMeasurement(
@@ -98,11 +99,16 @@ internal class CalculatedMeasurementsQuery(
             databricksSqlRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId),
             databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.TransactionCreationDatetime),
             databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointId),
-            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointType),
-            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit),
-            databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution),
+            GuardValidMeteringPointType(MeteringPointTypeMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointType))),
+            MeasurementUnitMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit)),
+            ResolutionMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution)),
             databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.ObservationTime),
             databricksSqlRow.ToDecimal(CalculatedMeasurementsColumnNames.Quantity),
             databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityQuality));
+    }
+
+    private static MeteringPointType GuardValidMeteringPointType(MeteringPointType meteringPointType)
+    {
+        throw new NotImplementedException();
     }
 }

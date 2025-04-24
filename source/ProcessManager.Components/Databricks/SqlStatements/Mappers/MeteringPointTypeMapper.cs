@@ -25,8 +25,9 @@ public static class MeteringPointTypeMapper
             DeltaTableMeteringPointType.Consumption => MeteringPointType.CapacitySettlement,
             DeltaTableMeteringPointType.Production => MeteringPointType.ElectricalHeating,
             DeltaTableMeteringPointType.Exchange => MeteringPointType.NetConsumption,
+
             _ => throw new ArgumentOutOfRangeException(
-                nameof(meteringPointType),
+                paramName: nameof(meteringPointType),
                 actualValue: meteringPointType,
                 "Value does not contain a valid string representation of a metering point type."),
         };

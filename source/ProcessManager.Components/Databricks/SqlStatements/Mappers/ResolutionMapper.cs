@@ -18,14 +18,17 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 
 public static class ResolutionMapper
 {
-    public static Resolution FromDeltaTableValue(string resolution) =>
-        resolution switch
+    public static Resolution FromDeltaTableValue(string resolution)
+    {
+        return resolution switch
         {
             "PT15M" => Resolution.QuarterHourly,
             "PT1H" => Resolution.Hourly,
+
             _ => throw new ArgumentOutOfRangeException(
-                nameof(resolution),
+                paramName: nameof(resolution),
                 actualValue: resolution,
                 "Value does not contain a valid string representation of a resolution."),
         };
+    }
 }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using NodaTime;
 
@@ -24,9 +25,9 @@ internal sealed record CalculatedMeasurement(
     Guid TransactionId,
     Instant TransactionCreationDatetime,
     string MeteringPointId,
-    string MeteringPointType,
-    string QuantityUnit,
-    string Resolution,
+    MeteringPointType MeteringPointType,
+    MeasurementUnit QuantityUnit,
+    Resolution Resolution,
     Instant ObservationTime,
     decimal Quantity,
     string QuantityQuality)

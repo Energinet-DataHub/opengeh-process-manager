@@ -24,8 +24,9 @@ public static class MeasurementUnitMapper
         {
             "kWh" => MeasurementUnit.KilowattHour,
             "pcs" => MeasurementUnit.Pieces,
+
             _ => throw new ArgumentOutOfRangeException(
-                nameof(MeasurementUnit),
+                paramName: nameof(MeasurementUnit),
                 measurementUnit,
                 "Value does not contain a valid string representation of a measurement unit."),
         };

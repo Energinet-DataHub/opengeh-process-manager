@@ -12,15 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements.Model;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 
-public class CalculatedMeasurementsQuery(DatabricksQueryOptions databricksOptions, Guid orchestrationInstanceId, ILogger logger)
-     : QueryBase<CalculatedMeasurementsV1>(databricksOptions, orchestrationInstanceId)
+internal class CalculatedMeasurementsQuery(
+    DatabricksQueryOptions databricksOptions,
+    Guid orchestrationInstanceId,
+    ILogger<CalculatedMeasurementsQuery> logger) :
+        QueryBase<CalculatedMeasurement>(
+            databricksOptions,
+            orchestrationInstanceId)
 {
     private readonly ILogger _logger = logger;
 
@@ -41,33 +46,34 @@ public class CalculatedMeasurementsQuery(DatabricksQueryOptions databricksOption
         { CalculatedMeasurementsColumnNames.Resolution, (DeltaTableCommonTypes.Timestamp, false) },
     };
 
-    protected override async Task<QueryResult<CalculatedMeasurementsV1>> CreateQueryResultAsync(List<DatabricksSqlRow> currentSet)
+    protected override Task<QueryResult<CalculatedMeasurement>> CreateResultAsync(IList<DatabricksSqlRow> groupOfRows)
     {
         try
         {
             var calculatedMeasurements = new List<CalculatedMeasurement>();
 
-            foreach (var row in currentSet)
+            foreach (var row in groupOfRows)
             {
                 var calculatedMeasurement = CreateCalculatedMeasurement(row);
                 calculatedMeasurements.Add(calculatedMeasurement);
             }
 
-            var result = await CreateCalculatedMeasurementsV1Async(calculatedMeasurements).ConfigureAwait(false);
-            return QueryResult<CalculatedMeasurementsV1>.Success(result);
+            // TODO: Here we should "groupd by" common properties and create the result based on that
+            var result = calculatedMeasurements.First();
+            return Task.FromResult(QueryResult<CalculatedMeasurement>.Success(result));
         }
         catch (Exception ex)
         {
-            var firstRow = currentSet.First();
+            var firstRow = groupOfRows.First();
             var transactionId = firstRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
             var orchestrationType = firstRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType);
             _logger.LogWarning(ex, $"Creating calculated measurements ({orchestrationType}) failed for orchestration instance id='{OrchestrationInstanceId}', TransactionId='{transactionId}'.");
         }
 
-        return QueryResult<CalculatedMeasurementsV1>.Error();
+        return Task.FromResult(QueryResult<CalculatedMeasurement>.Error());
     }
 
-    protected override bool BelongsToSameSet(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow)
+    protected override bool BelongsToSameGroup(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow)
     {
         return previousRow?.ToGuid(CalculatedMeasurementsColumnNames.TransactionId) == currentRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
     }
@@ -77,13 +83,14 @@ public class CalculatedMeasurementsQuery(DatabricksQueryOptions databricksOption
         var columnNames = SchemaDefinition.Keys.ToArray();
 
         return $"""
-                SELECT {string.Join(", ", columnNames)}
-                FROM {DatabaseName}.{DataObjectName}
-                WHERE {CalculatedMeasurementsColumnNames.OrchestrationInstanceId} = '{OrchestrationInstanceId}'
-                ORDER BY {CalculatedMeasurementsColumnNames.TransactionId}, {CalculatedMeasurementsColumnNames.ObservationTime}
-                """;
+            SELECT {string.Join(", ", columnNames)}
+            FROM {DatabaseName}.{DataObjectName}
+            WHERE {CalculatedMeasurementsColumnNames.OrchestrationInstanceId} = '{OrchestrationInstanceId}'
+            ORDER BY {CalculatedMeasurementsColumnNames.TransactionId}, {CalculatedMeasurementsColumnNames.ObservationTime}
+            """;
     }
 
+    // TODO: Use mappers to map as soon as possible
     private static CalculatedMeasurement CreateCalculatedMeasurement(DatabricksSqlRow databricksSqlRow)
     {
         return new CalculatedMeasurement(
@@ -98,34 +105,5 @@ public class CalculatedMeasurementsQuery(DatabricksQueryOptions databricksOption
             databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit),
             databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityQuality),
             databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution));
-    }
-
-    private Task<CalculatedMeasurementsV1> CreateCalculatedMeasurementsV1Async(
-        IReadOnlyCollection<CalculatedMeasurement> calculatedMeasurements)
-    {
-        // TODO AJW
-        var firstCalculatedMeasurement = calculatedMeasurements.First();
-
-        return Task.FromResult(
-            new CalculatedMeasurementsV1(
-                MeteringPointId: firstCalculatedMeasurement.MeteringPointId,
-                MeteringPointType: CalculatedMeasurementsMeteringPointTypeMapper.FromDeltaTableValue(firstCalculatedMeasurement.MeteringPointType),
-                RegistrationDateTime: firstCalculatedMeasurement.TransactionCreationDatetime.ToDateTimeOffset(),
-                StartDateTime: DateTimeOffset.Now,
-                EndDateTime: DateTimeOffset.Now,
-                ReceiversWithMeteredData: Mapper(calculatedMeasurements)));
-    }
-
-    private IReadOnlyCollection<ReceiversWithMeasurementsV1> Mapper(IReadOnlyCollection<CalculatedMeasurement> calculatedMeasurements)
-    {
-        // TODO AJW
-        return calculatedMeasurements.Select(x => new ReceiversWithMeasurementsV1(
-            Actors: new List<MarketActorRecipientV1>(),
-            Resolution: ResolutionMapper.FromDeltaTableValue(x.Resolution),
-            MeasureUnit: MeasurementUnitMapper.FromDeltaTableValue(x.QuantityUnit),
-            StartDateTime: DateTimeOffset.Now,
-            EndDateTime: DateTimeOffset.Now,
-            Measurements: new List<ReceiversWithMeasurementsV1.AcceptedMeasurements>()))
-            .ToList();
     }
 }

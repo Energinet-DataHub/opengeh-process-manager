@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements.Model;
 
-public sealed record CalculatedMeasurement(
+// TODO: Should be a "result" that is "grouped by" the "meta data" (all except: observation_time, quantity, quantity_quality ???)
+internal sealed record CalculatedMeasurement(
     string OrchestrationType,
     Guid OrchestrationInstanceId,
     Guid TransactionId,
@@ -27,4 +29,5 @@ public sealed record CalculatedMeasurement(
     decimal Quantity,
     string QuantityUnit,
     string QuantityQuality,
-    string Resolution);
+    string Resolution)
+        : IQueryResultDto;

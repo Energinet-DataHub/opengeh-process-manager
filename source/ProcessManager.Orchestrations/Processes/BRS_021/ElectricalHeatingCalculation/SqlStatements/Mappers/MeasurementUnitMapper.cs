@@ -14,21 +14,20 @@
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements;
 
-public static class CalculatedMeasurementsMeteringPointTypeMapper
+internal static class MeasurementUnitMapper
 {
-    public static MeteringPointType FromDeltaTableValue(string? meteringPointType)
+    public static MeasurementUnit FromDeltaTableValue(string? measurementUnit)
     {
-        return meteringPointType switch
+        return measurementUnit switch
         {
-            DeltaTableMeteringPointType.Consumption => MeteringPointType.CapacitySettlement,
-            DeltaTableMeteringPointType.Production => MeteringPointType.ElectricalHeating,
-            DeltaTableMeteringPointType.Exchange => MeteringPointType.NetConsumption,
+            "kWh" => MeasurementUnit.KilowattHour,
+            "pcs" => MeasurementUnit.Pieces,
             _ => throw new ArgumentOutOfRangeException(
-                nameof(meteringPointType),
-                actualValue: meteringPointType,
-                "Value does not contain a valid string representation of a metering point type."),
+                nameof(MeasurementUnit),
+                measurementUnit,
+                "Value does not contain a valid string representation of a measurement unit."),
         };
     }
 }

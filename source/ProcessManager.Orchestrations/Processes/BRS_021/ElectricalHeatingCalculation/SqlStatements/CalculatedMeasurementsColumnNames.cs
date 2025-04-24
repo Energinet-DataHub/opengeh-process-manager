@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements;
 
-public static class CalculatedMeasurementsColumnNames
+internal static class CalculatedMeasurementsColumnNames
 {
     public const string OrchestrationType = "orchestration_type";
     public const string OrchestrationInstanceId = "orchestration_instance_id";

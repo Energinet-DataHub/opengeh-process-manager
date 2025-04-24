@@ -14,9 +14,9 @@
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.SqlStatements.Mappers;
 
-public static class ResolutionMapper
+internal static class ResolutionMapper
 {
     public static Resolution FromDeltaTableValue(string resolution) =>
         resolution switch

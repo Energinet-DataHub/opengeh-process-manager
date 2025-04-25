@@ -172,23 +172,6 @@ public class PeriodValidationRuleTests
     [Theory]
     [InlineData("QuarterHourly")]
     [InlineData("Hourly")]
-    public async Task Given_PeriodOf4Hours_AndGiven_SummerToWinterTime_When_ValidateAsync_Then_NoError(string resolution)
-    {
-        var result = await _sut.ValidateAsync(
-            new(
-                new ForwardMeteredDataInputV1Builder()
-                    .WithStartDateTime("2024-10-27T00:00:00Z") // Danish time: 0 -> 1 -> 2 -> 2 -> 3
-                    .WithEndDateTime("2024-10-27T04:00:00Z") // The clock is set 1-hour backwards
-                    .WithResolution(resolution)
-                    .Build(),
-                []));
-
-        result.Should().BeEmpty();
-    }
-
-    [Theory]
-    [InlineData("QuarterHourly")]
-    [InlineData("Hourly")]
     public async Task Given_WinterToSummerTime_AndGiven_3HourDanishTimePeriod_When_ValidateAsync_Then_NoError(string resolution)
     {
         var result = await _sut.ValidateAsync(

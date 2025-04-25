@@ -256,9 +256,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             MeteringPointId: new MeteringPointId(MeteringPointId),
             ValidFrom: _validFrom.ToDateTimeOffset(),
             ValidTo: _validTo.ToDateTimeOffset(),
-            GridAreaCode: new GridAreaCode(GridArea),
-            GridAccessProvider: ActorNumber.Create(GridAccessProvider),
-            NeighborGridAreaOwners: [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
+            CurrentGridAreaCode: new GridAreaCode(GridArea),
+            CurrentGridAccessProvider: ActorNumber.Create(GridAccessProvider),
+            CurrentNeighborGridAreaOwners: [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
             ConnectionState: ConnectionState.Connected,
             MeteringPointType: MeteringPointType.Production,
             MeteringPointSubType: MeteringPointSubType.Physical,
@@ -268,7 +268,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
-            CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData),
             HistoricalMeteringPointMasterData:
             [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData)
@@ -370,9 +369,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             MeteringPointId: new MeteringPointId(MeteringPointId),
             ValidFrom: _validFrom.ToDateTimeOffset(),
             ValidTo: _validTo.ToDateTimeOffset(),
-            GridAreaCode: new GridAreaCode(GridArea),
-            GridAccessProvider: ActorNumber.Create(GridAccessProvider),
-            NeighborGridAreaOwners: [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
+            CurrentGridAreaCode: new GridAreaCode(GridArea),
+            CurrentGridAccessProvider: ActorNumber.Create(GridAccessProvider),
+            CurrentNeighborGridAreaOwners: [NeighborGridAreaOwner1, NeighborGridAreaOwner2],
             ConnectionState: ConnectionState.Connected,
             MeteringPointType: MeteringPointType.Production,
             MeteringPointSubType: MeteringPointSubType.Physical,
@@ -382,8 +381,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
-            CurrentMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData
-                .FromMeteringPointMasterData(meteringPointMasterData),
             HistoricalMeteringPointMasterData:
             [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData),
@@ -475,7 +472,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .And.Be(OrchestrationInstanceTerminationState.Failed);
 
         terminatedOrchestrationInstance.CustomState.Should()
-            .BeEquivalentTo(JsonSerializer.Serialize(new ForwardMeteredDataCustomStateV2(null, [])));
+            .BeEquivalentTo(JsonSerializer.Serialize(new ForwardMeteredDataCustomStateV2([])));
 
         terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence)
             .Should()

@@ -64,7 +64,6 @@ public class MeteringPointTypeValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 input,
-                null,
                 []));
 
         result.Should().BeEmpty();
@@ -81,7 +80,6 @@ public class MeteringPointTypeValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 input,
-                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("id"),
@@ -111,7 +109,6 @@ public class MeteringPointTypeValidationRuleTests
 
         var result = await _sut.ValidateAsync(new(
             input,
-            null,
             [
                 new MeteringPointMasterData(
                     new MeteringPointId("id"),
@@ -162,7 +159,6 @@ public class MeteringPointTypeValidationRuleTests
 
         var result = await _sut.ValidateAsync(new(
             input,
-            null,
             [
                 new MeteringPointMasterData(
                     new MeteringPointId("id"),

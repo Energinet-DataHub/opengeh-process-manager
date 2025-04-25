@@ -37,15 +37,15 @@ public class MeteringPointMasterDataBuilder
 
         return new MeteringPointMasterData(
             MeteringPointId: new MeteringPointId(input.MeteringPointId!),
-            GridAreaCode: new GridAreaCode("804"),
-            GridAccessProvider: gridAccessProvider != null ? ActorNumber.Create(gridAccessProvider) : ActorNumber.Create(input.GridAccessProviderNumber),
+            CurrentGridAreaCode: new GridAreaCode("804"),
+            CurrentGridAccessProvider: gridAccessProvider != null ? ActorNumber.Create(gridAccessProvider) : ActorNumber.Create(input.GridAccessProviderNumber),
             ConnectionState: connectionState ?? ConnectionState.Connected,
             MeteringPointType: meteringPointType ?? MeteringPointType.FromName(input.MeteringPointType!),
             MeteringPointSubType: meteringPointSubType ?? MeteringPointSubType.Physical,
             MeasurementUnit: measurementUnit ?? MeasurementUnit.FromName(input.MeasureUnit!),
             ValidFrom: start.ToDateTimeOffset(),
             ValidTo: end.ToDateTimeOffset(),
-            NeighborGridAreaOwners: [],
+            CurrentNeighborGridAreaOwners: [],
             Resolution: Resolution.FromName(input.Resolution!),
             ProductId: "product",
             ParentMeteringPointId: null,

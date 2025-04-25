@@ -36,13 +36,13 @@ public class MeteringPointSubTypeValidationRule
 
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
     {
-        if (subject.HistoricalMeteringPointMasterData.Count == 0)
+        if (subject.MeteringPointMasterData.Count == 0)
         {
             return Task.FromResult(NoError);
         }
 
         // Check if the metering point subtype is the same for all historic master data
-        var uniqueMeteringPointSubTypes = subject.HistoricalMeteringPointMasterData
+        var uniqueMeteringPointSubTypes = subject.MeteringPointMasterData
             .Select(mpmd => mpmd.MeteringPointSubType)
             .Distinct()
             .ToList();

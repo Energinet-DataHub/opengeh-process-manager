@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 public record ForwardMeteredDataCustomStateV1(
-    IReadOnlyCollection<ForwardMeteredDataCustomStateV1.MasterData> MeteringPointMasterData)
+    IReadOnlyCollection<ForwardMeteredDataCustomStateV1.MasterData> HistoricalMeteringPointMasterData)
 {
     public enum ConnectionState
     {
@@ -80,9 +80,9 @@ public record ForwardMeteredDataCustomStateV1(
                 MeteringPointId: masterData.MeteringPointId,
                 ValidFrom: masterData.ValidFrom,
                 ValidTo: masterData.ValidTo,
-                GridAreaCode: new GridAreaCode(masterData.GridAreaCode.Value),
-                GridAccessProvider: masterData.GridAccessProvider,
-                NeighborGridAreaOwners: masterData.NeighborGridAreaOwners,
+                GridAreaCode: new GridAreaCode(masterData.CurrentGridAreaCode.Value),
+                GridAccessProvider: masterData.CurrentGridAccessProvider,
+                NeighborGridAreaOwners: masterData.CurrentNeighborGridAreaOwners,
                 ConnectionState: connectionState,
                 MeteringPointType: masterData.MeteringPointType,
                 MeteringPointSubType: meteringPointSubType,
@@ -117,9 +117,9 @@ public record ForwardMeteredDataCustomStateV1(
                 MeteringPointId: MeteringPointId,
                 ValidFrom: ValidFrom,
                 ValidTo: ValidTo,
-                GridAreaCode: new Shared.ElectricityMarket.Model.GridAreaCode(GridAreaCode.Value),
-                GridAccessProvider: GridAccessProvider,
-                NeighborGridAreaOwners: NeighborGridAreaOwners,
+                CurrentGridAreaCode: new Shared.ElectricityMarket.Model.GridAreaCode(GridAreaCode.Value),
+                CurrentGridAccessProvider: GridAccessProvider,
+                CurrentNeighborGridAreaOwners: NeighborGridAreaOwners,
                 ConnectionState: connectionState,
                 MeteringPointType: MeteringPointType,
                 MeteringPointSubType: meteringPointSubType,

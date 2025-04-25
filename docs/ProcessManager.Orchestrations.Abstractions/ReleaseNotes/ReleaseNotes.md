@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.1.0
+
+- Removed obsolete types `CalculationQuery` and `CalculationQueryResult`.
+
 ## Version 2.0.1
 
 - Added `GridAreaCode` to `ForwardMeteredDataAcceptedV1`.

@@ -424,6 +424,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{QueryOptionsSectionNames.ElectricalHeatingQuery}__{nameof(DatabricksQueryOptions.CatalogName)}",
             "hive_metastore");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{QueryOptionsSectionNames.ElectricalHeatingQuery}__{nameof(DatabricksQueryOptions.DatabaseName)}",
+            "measurements_calculated");
 
         // Process Manager Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(

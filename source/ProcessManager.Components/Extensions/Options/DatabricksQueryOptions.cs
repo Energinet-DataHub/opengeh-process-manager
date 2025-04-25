@@ -37,5 +37,5 @@ public class DatabricksQueryOptions
     /// Name of the Databricks database.
     /// </summary>
     [Required]
-    public string DatabaseName { get; set; } = "measurements_calculated";
+    public string DatabaseName { get; set; } = null!;
 }

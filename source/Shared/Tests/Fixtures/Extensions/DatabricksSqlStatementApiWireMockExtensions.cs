@@ -42,7 +42,8 @@ public static class DatabricksSqlStatementApiWireMockExtensions
     /// Setup Databricks api response mocks to be able to respond with calculated measurements
     /// </summary>
     public static WireMockServer MockCalculatedMeasurementsResponse(
-        this WireMockServer server)
+        this WireMockServer server,
+        Func<Guid> getOrchestrationInstanceId)
     {
         // => Databricks SQL Statement API
         var chunkIndex = 0;
@@ -52,7 +53,7 @@ public static class DatabricksSqlStatementApiWireMockExtensions
         server
             .MockSqlStatements<CalculatedMeasurementsColumnNames>(statementId, chunkIndex)
             .MockSqlStatementsResultChunks(statementId, chunkIndex, dataUrlPath)
-            .MockSqlStatementsResultStream(dataUrlPath, DatabricksCalculatedMeasurementsResultMock);
+            .MockSqlStatementsResultStream(dataUrlPath, () => DatabricksCalculatedMeasurementsResultMock(getOrchestrationInstanceId));
 
         return server;
     }
@@ -225,22 +226,22 @@ public static class DatabricksSqlStatementApiWireMockExtensions
     /// <remarks>
     /// Note that QuantityQualities is a string, containing a list of strings.
     /// </remarks>>
-    private static string DatabricksCalculatedMeasurementsResultMock(Guid orchestrationInstanceId)
+    private static string DatabricksCalculatedMeasurementsResultMock(Func<Guid> getOrchestrationInstanceId)
     {
         // Make sure that the order of the data matches the order of the columns defined in 'DatabricksEnergyStatementResponseMock'
         var data = GetFieldNames<CalculatedMeasurementsColumnNames>().Select(columnName => columnName switch
         {
             CalculatedMeasurementsColumnNames.OrchestrationType => $"\"???\"",
-            CalculatedMeasurementsColumnNames.OrchestrationInstanceId => $"\"{orchestrationInstanceId}\"",
+            CalculatedMeasurementsColumnNames.OrchestrationInstanceId => $"\"{getOrchestrationInstanceId()}\"",
             CalculatedMeasurementsColumnNames.TransactionId => $"\"{Guid.NewGuid()}\"",
-            CalculatedMeasurementsColumnNames.TransactionCreationDatetime => "\"2022-05-16T03:00:00.000Z\"",
+            CalculatedMeasurementsColumnNames.TransactionCreationDatetime => "\"2025-04-25T03:00:00.000Z\"",
             CalculatedMeasurementsColumnNames.MeteringPointId => $"\"1234567890123456\"",
-            CalculatedMeasurementsColumnNames.MeteringPointType => "\"805\"",
-            CalculatedMeasurementsColumnNames.ObservationTime => "\"900\"",
-            CalculatedMeasurementsColumnNames.Quantity => $"\"1236552000028\"",
-            CalculatedMeasurementsColumnNames.QuantityUnit => "\"2236552000028\"",
-            CalculatedMeasurementsColumnNames.QuantityQuality => "\"2022-05-16T03:00:00.000Z\"",
-            CalculatedMeasurementsColumnNames.Resolution => "\"1.123\"",
+            CalculatedMeasurementsColumnNames.MeteringPointType => "\"production\"",
+            CalculatedMeasurementsColumnNames.ObservationTime => "\"2022-04-25T03:00:00.000Z\"",
+            CalculatedMeasurementsColumnNames.Quantity => $"\"42.123\"",
+            CalculatedMeasurementsColumnNames.QuantityUnit => "\"kWh\"",
+            CalculatedMeasurementsColumnNames.QuantityQuality => "\"Calculated\"",
+            CalculatedMeasurementsColumnNames.Resolution => "\"PT15M\"",
             _ => throw new ArgumentOutOfRangeException(nameof(columnName), columnName, null),
         }).ToArray();
         var temp = $"""[[{string.Join(",", data)}]]""";

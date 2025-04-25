@@ -17,6 +17,8 @@ using System.Text.Json;
 using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Microsoft.Net.Http.Headers;
+using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -36,13 +38,13 @@ public static class ElectricityMarketViewsWireMockExtensions
         var request = Request
             .Create()
             .WithPath("/api/get-metering-point-master-data")
-            .UsingGet();
+            .UsingPost();
 
         var response = Response
             .Create()
             .WithStatusCode(HttpStatusCode.OK)
             .WithHeader(HeaderNames.ContentType, "application/json")
-            .WithBody(JsonSerializer.Serialize(mockData));
+            .WithBody(JsonSerializer.Serialize(mockData, new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb)));
 
         server
             .Given(request)

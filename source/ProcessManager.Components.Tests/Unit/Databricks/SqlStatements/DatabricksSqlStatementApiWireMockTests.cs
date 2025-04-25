@@ -15,6 +15,7 @@
 using System.Globalization;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Extensions.Configuration;

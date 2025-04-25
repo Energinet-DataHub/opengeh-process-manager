@@ -79,8 +79,8 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
+                    meteringPointMasterData,
                     meteringPointMasterData,
                 ]));
 
@@ -102,8 +102,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));
 
@@ -121,8 +120,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: null,
-                HistoricalMeteringPointMasterData: []));
+                MeteringPointMasterData: []));
 
         result.Should()
             .ContainSingle()
@@ -144,8 +142,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));
 
@@ -169,8 +166,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));
         result.Should()
@@ -201,8 +197,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));
 
@@ -227,8 +222,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));
         result.Should()
@@ -257,8 +251,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));
 
@@ -288,8 +281,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));
 
@@ -313,8 +305,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));
         result.Should()
@@ -339,8 +330,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: meteringPointMasterData,
-                HistoricalMeteringPointMasterData: [
+                MeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));
 

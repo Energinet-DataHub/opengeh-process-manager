@@ -40,7 +40,6 @@ public class MeteringPointValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 input,
-                null,
                 [
                     new MeteringPointMasterData(
                         new MeteringPointId("id"),
@@ -74,7 +73,7 @@ public class MeteringPointValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new(input, null, []));
+            new(input, []));
 
         result.Should()
             .ContainSingle()

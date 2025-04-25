@@ -40,7 +40,7 @@ public class MeasurementUnitValidationRule
     public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
-        if (subject.HistoricalMeteringPointMasterData.Count == 0)
+        if (subject.MeteringPointMasterData.Count == 0)
         {
             return Task.FromResult(NoError);
         }
@@ -52,7 +52,7 @@ public class MeasurementUnitValidationRule
         }
 
         // Check if the measure unit is same for all historic master data
-        if (subject.HistoricalMeteringPointMasterData
+        if (subject.MeteringPointMasterData
             .Select(mpmd => mpmd.MeasurementUnit)
             .Any(meteringPointType => meteringPointType != incomingMeasurementUnit))
         {

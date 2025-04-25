@@ -37,9 +37,15 @@ public class MeteringPointMasterDataProviderTests
 
     public MeteringPointMasterDataProviderTests()
     {
+        var clock = new Mock<IClock>();
+        clock.Setup(c => c.GetCurrentInstant())
+            .Returns(Instant.FromDateTimeOffset(
+                new DateTimeOffset(year: 2021, month: 1, day: 1, hour: 0, minute: 0, second: 0, offset: TimeSpan.Zero)));
+
         _sut = new MeteringPointMasterDataProvider(
             new ElectricityMarketViewsMock(),
-            new Mock<ILogger<MeteringPointMasterDataProvider>>().Object);
+            new Mock<ILogger<MeteringPointMasterDataProvider>>().Object,
+            clock.Object);
     }
 
     [Fact]

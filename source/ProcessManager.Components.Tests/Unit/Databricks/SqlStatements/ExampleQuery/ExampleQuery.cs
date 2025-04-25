@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;

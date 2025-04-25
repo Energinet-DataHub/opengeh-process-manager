@@ -13,9 +13,11 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities.EnqueueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Orchestration.Steps;
 
@@ -33,9 +35,13 @@ internal class EnqueueActorMessagesStep(
 
     protected override int StepSequenceNumber => EnqueueActorMessagesStepSequence;
 
-    protected override Task<StepInstanceTerminationState> OnExecuteAsync()
+    protected override async Task<StepInstanceTerminationState> OnExecuteAsync()
     {
-        var queryOptions = orchestrationInstanceContext.DatabricksQueryOptions;
+        await Context.CallActivityAsync(
+            nameof(EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1),
+            new EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+                OrchestrationInstanceId: orchestrationInstanceContext.OrchestrationInstanceId),
+            DefaultRetryOptions);
 
         // TODO - Alex: Implement and call activities to enqueue messages
         // 1. step
@@ -54,6 +60,6 @@ internal class EnqueueActorMessagesStep(
         //    .ConfigureAwait(false);
         // Blocking: Kvitteringer from many messages?
 
-        return Task.FromResult(StepInstanceTerminationState.Succeeded);
+        return StepInstanceTerminationState.Succeeded;
     }
 }

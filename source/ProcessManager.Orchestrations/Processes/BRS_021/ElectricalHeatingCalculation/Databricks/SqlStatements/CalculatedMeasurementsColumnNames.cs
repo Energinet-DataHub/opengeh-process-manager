@@ -14,7 +14,7 @@
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
 
-internal static class CalculatedMeasurementsColumnNames
+internal class CalculatedMeasurementsColumnNames
 {
     public const string OrchestrationType = "orchestration_type";
     public const string OrchestrationInstanceId = "orchestration_instance_id";

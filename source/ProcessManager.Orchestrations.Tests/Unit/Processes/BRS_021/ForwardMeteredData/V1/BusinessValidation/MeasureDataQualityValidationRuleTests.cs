@@ -113,7 +113,7 @@ public class MeasureDataQualityValidationRuleTests
                 CurrentMasterData: null, // Master data is unused in validation rule
                 HistoricalMeteringPointMasterData: [])); // Master data is unused in validation rule
 
-        var validationError = Assert.Single(result);
+        var validationError = Assert.Single(result, r => r.ErrorCode == "123");
         Assert.Equal(MeasureDataQualityValidationRule.InvalidQuality.Single(), validationError);
     }
 

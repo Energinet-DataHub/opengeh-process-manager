@@ -50,7 +50,7 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Given_MockedDatabricks_When_QueryingForCalculatedMeasurements_Then_ReturnsMockedData()
+    public async Task Given_MockedDatabricks_When_QueryingCalculatedMeasurements_Then_ReturnsMockedData()
     {
         var orchestrationInstanceId = Guid.NewGuid();
 
@@ -58,27 +58,29 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
             getOrchestrationInstanceId: () => orchestrationInstanceId);
 
         var query = new CalculatedMeasurementsQuery(
-            Mock.Of<DatabricksQueryOptions>(),
-            orchestrationInstanceId,
-            Mock.Of<ILogger<CalculatedMeasurementsQuery>>());
+            logger: Mock.Of<ILogger>(),
+            databricksOptions: Mock.Of<DatabricksQueryOptions>(),
+            orchestrationInstanceId: orchestrationInstanceId);
 
-        var result = await query.GetAsync(_databricksQueryExecutor)
+        var queryResults = await query.GetAsync(_databricksQueryExecutor)
             .ToListAsync();
 
-        Assert.Single(
-            result,
-            r =>
-                r is { IsSuccess: true, Result: not null } &&
-                r.Result.OrchestrationInstanceId == orchestrationInstanceId);
+        var queryResult = Assert.Single(queryResults);
+
+        Assert.Multiple(
+            () => Assert.True(queryResult.IsSuccess),
+            () => Assert.NotNull(queryResult.Result));
+
+        Assert.Equal(orchestrationInstanceId, queryResult.Result!.OrchestrationInstanceId);
     }
 
     private static DatabricksSqlWarehouseQueryExecutor CreateDatabricksExecutor(
-        string workspaceUrl)
+        string mockUrl)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["WorkspaceUrl"] = workspaceUrl,
+                ["WorkspaceUrl"] = mockUrl,
                 ["WarehouseId"] = "dummy",
                 ["WorkspaceToken"] = "dummy",
             })

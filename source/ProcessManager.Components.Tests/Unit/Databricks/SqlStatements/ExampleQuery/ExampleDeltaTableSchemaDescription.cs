@@ -13,15 +13,17 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
-using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;
 
-public class ExampleViewSchemaDescription(
-    DatabricksQueryOptions queryOptions) :
+public class ExampleDeltaTableSchemaDescription(
+    string databaseFullName) :
         IDeltaTableSchemaDescription
 {
-    public string DatabaseName => $"{queryOptions.CatalogName}.{queryOptions.DatabaseName}";
+    /// <summary>
+    /// Full name of database (catalogue + database name).
+    /// </summary>
+    public string DatabaseName => databaseFullName;
 
     public string DataObjectName => "example_view_v1";
 

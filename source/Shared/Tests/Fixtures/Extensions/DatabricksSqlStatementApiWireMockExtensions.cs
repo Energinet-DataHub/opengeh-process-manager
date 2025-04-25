@@ -25,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 /// <summary>
 /// A collection of WireMock extensions for mock configuration of
-/// Databricks REST API endpoints.
+/// Databricks SQL statement API endpoints (docs: https://docs.databricks.com/api/azure/workspace/statementexecution)
 ///
 /// IMPORTANT developer tips:
 ///  - It's possible to start the WireMock server in Proxy mode, this means
@@ -143,11 +143,10 @@ public static class DatabricksSqlStatementApiWireMockExtensions
             GetFieldNames<TColumnNames>()
                 .Select(name => $" {{\"name\": \"{name}\" }}"));
 
-        return json.Replace("{statementId}", statementId)
+        return json
+            .Replace("{statementId}", statementId)
             .Replace("{chunkIndex}", chunkIndex.ToString())
-            .Replace(
-                "{columnArray}",
-                columns);
+            .Replace("{columnArray}", columns);
     }
 
     /// <summary>

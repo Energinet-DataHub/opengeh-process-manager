@@ -20,9 +20,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensi
 
 /// <summary>
 /// A collection of extensions methods that provides abstractions on top of
-/// the more technical databricks api extensions in <see cref="DatabricksApiWireMockExtensions"/>
+/// the more technical databricks api extensions in <see cref="DatabricksJobsApiWireMockExtensions"/>
 /// </summary>
-public static class DatabricksAbstractionExtensions
+public static class DatabricksJobsApiAbstractionExtensions
 {
     /// <summary>
     /// Setup databricks api response mocks to be able to respond with the job state provided by <paramref name="state"/>

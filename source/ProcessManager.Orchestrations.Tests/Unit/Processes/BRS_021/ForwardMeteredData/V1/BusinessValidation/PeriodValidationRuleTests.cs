@@ -172,7 +172,7 @@ public class PeriodValidationRuleTests
     [Theory]
     [InlineData("QuarterHourly")]
     [InlineData("Hourly")]
-    public async Task Given_PeriodOf4Hours_AndGiven_SummerTimeToWinterTime_When_ValidateAsync_Then_NoError(string resolution)
+    public async Task Given_PeriodOf4Hours_AndGiven_SummerToWinterTime_When_ValidateAsync_Then_NoError(string resolution)
     {
         var result = await _sut.ValidateAsync(
             new(
@@ -189,7 +189,7 @@ public class PeriodValidationRuleTests
     [Theory]
     [InlineData("QuarterHourly")]
     [InlineData("Hourly")]
-    public async Task Given_WinterTimeToSummerTime_When_ValidateAsync_Then_Error(string resolution)
+    public async Task Given_WinterToSummerTime_AndGiven_3HourDanishTimePeriod_When_ValidateAsync_Then_NoError(string resolution)
     {
         var result = await _sut.ValidateAsync(
             new(
@@ -204,7 +204,7 @@ public class PeriodValidationRuleTests
     }
 
     [Fact]
-    public async Task Given_PeriodOf1Month_AndGiven_WinterTimeToSummerTime_When_ValidateAsync_Then_Error()
+    public async Task Given_PeriodOf1Month_AndGiven_WinterTimeToSummerTime_When_ValidateAsync_Then_NoError()
     {
         var result = await _sut.ValidateAsync(
             new(

@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 2.0.1
+
+- No functional changes.
+
 ## Version 2.0.0
 
 - Upgraded to .NET 9

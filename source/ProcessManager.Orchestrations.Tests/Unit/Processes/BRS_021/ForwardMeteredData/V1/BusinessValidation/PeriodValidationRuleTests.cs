@@ -46,7 +46,6 @@ public class PeriodValidationRuleTests
                     .WithEndDateTime($"2025-01-31T23:{minutes}:00Z")
                     .WithResolution(Resolution.QuarterHourly.Name)
                     .Build(),
-                null,
                 []));
 
         result.Should().BeEmpty();
@@ -101,7 +100,6 @@ public class PeriodValidationRuleTests
                     .WithStartDateTime("2025-02-01T23:00:00Z")
                     .WithEndDateTime("2025-01-31T23:00:00Z")
                     .Build(),
-                null,
                 []));
 
         result.Should().ContainSingle().And.Contain(PeriodValidationRule.EndIsBeforeStart);
@@ -119,7 +117,6 @@ public class PeriodValidationRuleTests
                     .WithEndDateTime(startWhichIsNotAWholeQuarter.Value.PlusHours(4).ToString())
                     .WithResolution(Resolution.QuarterHourly.Name)
                     .Build(),
-                null,
                 []));
 
         result.Should().HaveCount(2)
@@ -142,7 +139,6 @@ public class PeriodValidationRuleTests
                     .WithEndDateTime("2025-03-25T01:00:00Z")
                     .WithResolution(resolution)
                     .Build(),
-                null,
                 []));
 
         result.Should().ContainSingle().And.Contain(PeriodValidationRule.PeriodMustBeGreaterThan4Hours.WithPropertyName(resolutionCode));
@@ -160,7 +156,6 @@ public class PeriodValidationRuleTests
                     .WithEndDateTime("2024-10-27T04:00:00Z") // The clock is set 1 hour backwards
                     .WithResolution(resolution)
                     .Build(),
-                null,
                 []));
 
         result.Should().BeEmpty();
@@ -178,7 +173,6 @@ public class PeriodValidationRuleTests
                     .WithEndDateTime("2025-03-30T04:00:00Z") // The clock is set 1 hour forward
                     .WithResolution(resolution)
                     .Build(),
-                null,
                 []));
 
         result.Should().BeEmpty();
@@ -194,7 +188,6 @@ public class PeriodValidationRuleTests
                     .WithEndDateTime("2025-03-31T22:00:00Z")
                     .WithResolution(Resolution.Monthly.Name)
                     .Build(),
-                null,
                 []));
 
         result.Should().BeEmpty();
@@ -210,7 +203,6 @@ public class PeriodValidationRuleTests
                     .WithEndDateTime("2025-07-02T22:00:00Z")
                     .WithResolution(Resolution.Monthly.Name)
                     .Build(),
-                null,
                 []));
 
         result.Should()
@@ -232,7 +224,6 @@ public class PeriodValidationRuleTests
                     .WithEndDateTime("2025-07-31T22:05:00Z")
                     .WithResolution(Resolution.Monthly.Name)
                     .Build(),
-                null,
                 []));
 
         result.Should()

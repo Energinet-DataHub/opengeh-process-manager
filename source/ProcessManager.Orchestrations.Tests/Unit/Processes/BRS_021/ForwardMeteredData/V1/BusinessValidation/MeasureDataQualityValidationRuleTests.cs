@@ -110,7 +110,7 @@ public class MeasureDataQualityValidationRuleTests
                 Input: input,
                 MeteringPointMasterData: [])); // Master data is unused in validation rule
 
-        var validationError = Assert.Single(result, r => r.ErrorCode == "123");
+        var validationError = Assert.Single(result);
         Assert.Equal(MeasureDataQualityValidationRule.InvalidQuality.Single(), validationError);
     }
 

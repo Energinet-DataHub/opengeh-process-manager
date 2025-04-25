@@ -268,7 +268,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
-            MeteringPointMasterData:
+            HistoricalMeteringPointMasterData:
             [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData)
             ]);
@@ -381,7 +381,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
         var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
-            MeteringPointMasterData:
+            HistoricalMeteringPointMasterData:
             [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData),
             ]);

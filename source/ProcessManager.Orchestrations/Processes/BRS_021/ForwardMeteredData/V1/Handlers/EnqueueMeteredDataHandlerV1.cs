@@ -82,7 +82,7 @@ public class EnqueueMeteredDataHandlerV1(
             var meteringPointMasterData = orchestrationInstance
                 .CustomState
                 .AsType<ForwardMeteredDataCustomStateV1>()
-                .MeteringPointMasterData
+                .HistoricalMeteringPointMasterData
                 .Select(mpmd => mpmd.ToV2())
                 .ToList();
 
@@ -156,7 +156,7 @@ public class EnqueueMeteredDataHandlerV1(
         var inputPeriodEnd = InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value;
         var resolution = Resolution.FromName(forwardMeteredDataInput.Resolution!);
 
-        var meteringPointMasterData = customState.MeteringPointMasterData
+        var meteringPointMasterData = customState.HistoricalMeteringPointMasterData
             .Select(mpmd => mpmd.ToMeteringPointMasterData())
             .ToList();
 
@@ -223,7 +223,7 @@ public class EnqueueMeteredDataHandlerV1(
             idempotencyKey = enqueueStep.CustomState.AsType<EnqueueActorMessagesStepCustomStateV1>().IdempotencyKey;
         }
 
-        var gridAreaCode = GetForwardMeteredDataCustomState(orchestrationInstance).MeteringPointMasterData.FirstOrDefault()?.GridAreaCode
+        var gridAreaCode = GetForwardMeteredDataCustomState(orchestrationInstance).HistoricalMeteringPointMasterData.FirstOrDefault()?.GridAreaCode
                            ?? throw new InvalidOperationException($"Grid area code is required to enqueue accepted message with id {orchestrationInstance.Id}");
 
         // These checks should already (when implemented) be handled by the business validation

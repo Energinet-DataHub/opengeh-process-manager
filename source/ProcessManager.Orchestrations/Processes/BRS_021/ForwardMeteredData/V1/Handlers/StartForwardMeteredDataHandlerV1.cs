@@ -109,7 +109,7 @@ public class StartForwardMeteredDataHandlerV1(
 
             orchestrationInstance.CustomState.SetFromInstance(
                 new ForwardMeteredDataCustomStateV2(
-                    MeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
+                    HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
@@ -268,7 +268,7 @@ public class StartForwardMeteredDataHandlerV1(
         {
             var meteringPointMasterData = orchestrationInstance.CustomState
                 .AsType<ForwardMeteredDataCustomStateV1>()
-                .MeteringPointMasterData
+                .HistoricalMeteringPointMasterData
                 .Select(mpmd => mpmd.ToV2())
                 .ToList();
 
@@ -302,7 +302,7 @@ public class StartForwardMeteredDataHandlerV1(
         var validationErrors = await _validator.ValidateAsync(
                 new ForwardMeteredDataBusinessValidatedDto(
                     Input: input,
-                    MeteringPointMasterData: forwardMeteredDataCustomState.MeteringPointMasterData
+                    MeteringPointMasterData: forwardMeteredDataCustomState.HistoricalMeteringPointMasterData
                         .Select(mpmd => mpmd.ToMeteringPointMasterData())
                         .ToList()))
             .ConfigureAwait(false);
@@ -330,12 +330,12 @@ public class StartForwardMeteredDataHandlerV1(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataCustomStateV2 customState)
     {
-        if (customState.MeteringPointMasterData.Count == 0)
+        if (customState.HistoricalMeteringPointMasterData.Count == 0)
             return (false, null);
 
         // Grid area owner is and code is always the current metering point master data.
         var currentMeteringPointMasterData = customState
-            .MeteringPointMasterData.First()
+            .HistoricalMeteringPointMasterData.First()
             .ToMeteringPointMasterData();
 
         var startedByActor = GetStartedByActor(orchestrationInstance);

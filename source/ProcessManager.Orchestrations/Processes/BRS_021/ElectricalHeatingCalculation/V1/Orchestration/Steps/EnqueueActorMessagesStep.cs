@@ -35,6 +35,8 @@ internal class EnqueueActorMessagesStep(
 
     protected override Task<StepInstanceTerminationState> OnExecuteAsync()
     {
+        var queryOptions = orchestrationInstanceContext.DatabricksQueryOptions;
+
         // TODO - Alex: Implement and call activities to enqueue messages
         // 1. step
         // build statement

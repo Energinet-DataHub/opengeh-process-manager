@@ -28,6 +28,7 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Extensions.DependencyInjection;
+using NodaTime;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ElectricalHeatingCalculation.V1;
@@ -89,7 +90,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
-        // Mocking the databricks api. Forcing it to return a terminated successful job status
+        // Mocking the databricks jobs api, forcing it to return a terminated successful job status
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
@@ -102,6 +103,20 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 new StartElectricalHeatingCalculationCommandV1(
                     Fixture.DefaultUserIdentity),
                 CancellationToken.None);
+
+        // Mocking the databricks sql statements api
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksCalculatedMeasurementsQueryResponse(
+            mockData:
+            [
+                new(
+                    OrchestrationInstanceId: orchestrationInstanceId,
+                    TransactionId: Guid.NewGuid(),
+                    TransactionCreationDatetime: Instant.FromUtc(2025, 04, 25, 13, 37),
+                    MeteringPointId: "1234567890123456",
+                    MeteringPointType: "electrical_heating",
+                    ObservationTime: Instant.FromUtc(2025, 04, 25, 13, 30),
+                    Quantity: 1337.42m),
+            ]);
 
         // Step 2: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(

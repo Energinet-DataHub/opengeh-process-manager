@@ -30,6 +30,10 @@ internal class CalculatedMeasurementsQuery(
 {
     public override string DataObjectName => "calculated_measurements_v1";
 
+    /// <summary>
+    /// The columns in the Databricks schema.
+    /// <remarks>Must be equal (including the order) to <see cref="CalculatedMeasurementsColumnNames"/>.</remarks>
+    /// </summary>
     public override Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => new()
     {
         { CalculatedMeasurementsColumnNames.OrchestrationType,              (DeltaTableCommonTypes.String,      false) },

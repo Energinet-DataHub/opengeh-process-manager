@@ -24,7 +24,7 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 /// <summary>
 /// A collection of WireMock extensions for easy mock configuration of
-/// Databricks REST API endpoints.
+/// Databricks jobs API endpoints (docs: https://docs.databricks.com/api/azure/workspace/jobs).
 ///
 /// IMPORTANT developer tips:
 ///  - It's possible to start the WireMock server in Proxy mode, this means

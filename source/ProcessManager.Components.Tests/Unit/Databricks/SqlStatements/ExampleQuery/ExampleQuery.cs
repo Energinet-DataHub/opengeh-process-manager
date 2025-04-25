@@ -39,13 +39,13 @@ public class ExampleQuery(
     {
         var row = currentGroupOfRows.Single();
 
-        var exampleRow = new ExampleQueryRowData(
+        var rowData = new ExampleQueryRowData(
             Id: row.ToGuid(ExampleQueryColumnNames.Id),
             Value: row.ToDecimal(ExampleQueryColumnNames.Value));
 
-        var result = QueryResult<ExampleQueryRowData>.Success(exampleRow);
+        var rowDataResult = QueryResult<ExampleQueryRowData>.Success(rowData);
 
-        return Task.FromResult(result);
+        return Task.FromResult(rowDataResult);
     }
 
     protected override bool BelongsToSameGroup(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow)

@@ -46,7 +46,7 @@ public static class DatabricksSqlStatementApiCalculatedMeasurementsExtensions
     {
         return columnName switch
         {
-            CalculatedMeasurementsColumnNames.OrchestrationType => "???",
+            CalculatedMeasurementsColumnNames.OrchestrationType => data.OrchestrationType,
             CalculatedMeasurementsColumnNames.OrchestrationInstanceId => data.OrchestrationInstanceId.ToString(),
             CalculatedMeasurementsColumnNames.TransactionId => data.TransactionId.ToString(),
             CalculatedMeasurementsColumnNames.TransactionCreationDatetime => InstantPattern.ExtendedIso.Format(data.TransactionCreationDatetime),
@@ -54,9 +54,9 @@ public static class DatabricksSqlStatementApiCalculatedMeasurementsExtensions
             CalculatedMeasurementsColumnNames.MeteringPointType => data.MeteringPointType,
             CalculatedMeasurementsColumnNames.ObservationTime => InstantPattern.ExtendedIso.Format(data.ObservationTime),
             CalculatedMeasurementsColumnNames.Quantity => data.Quantity.ToString(CultureInfo.InvariantCulture),
-            CalculatedMeasurementsColumnNames.QuantityUnit => "kWh",
-            CalculatedMeasurementsColumnNames.QuantityQuality => "Calculated",
-            CalculatedMeasurementsColumnNames.Resolution => "PT15M",
+            CalculatedMeasurementsColumnNames.QuantityUnit => data.QuantityUnit,
+            CalculatedMeasurementsColumnNames.QuantityQuality => data.QuantityQuality,
+            CalculatedMeasurementsColumnNames.Resolution => data.Resolution,
             _ => throw new ArgumentOutOfRangeException(nameof(columnName), columnName, null),
         };
     }
@@ -68,5 +68,9 @@ public static class DatabricksSqlStatementApiCalculatedMeasurementsExtensions
         string MeteringPointId,
         string MeteringPointType,
         Instant ObservationTime,
-        decimal Quantity);
+        decimal Quantity,
+        string OrchestrationType = "???",
+        string QuantityUnit = "kWh",
+        string QuantityQuality = "Calculated",
+        string Resolution = "PT15M");
 }

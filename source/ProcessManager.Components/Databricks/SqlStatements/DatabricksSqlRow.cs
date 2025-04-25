@@ -21,9 +21,14 @@ namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 /// <summary>
 /// This class is used to wrap the result (a dynamic type) of a Databricks SQL query row.
 /// </summary>
-public class DatabricksSqlRow(IDictionary<string, object?> columns)
+public sealed record DatabricksSqlRow
 {
-    private readonly IDictionary<string, object?> _columns = columns;
+    private readonly IDictionary<string, object?> _columns;
+
+    public DatabricksSqlRow(IDictionary<string, object?> columns)
+    {
+        _columns = columns;
+    }
 
     public string? this[string key]
     {
@@ -54,7 +59,7 @@ public class DatabricksSqlRow(IDictionary<string, object?> columns)
     public string ToNonEmptyString(string columnName)
     {
         var value = ToNullableString(columnName);
-        // We set 'parameterName' to the 'columnName' so we get the name of the column which we failed on parsing.
+        // We set 'paramName' to the 'columnName' so we get the name of the column which we failed on parsing.
         ArgumentException.ThrowIfNullOrWhiteSpace(value, paramName: columnName);
 
         return value;

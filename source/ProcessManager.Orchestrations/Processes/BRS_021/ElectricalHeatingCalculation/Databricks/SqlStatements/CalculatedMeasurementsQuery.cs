@@ -14,37 +14,35 @@
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements.Mappers;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Model;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
 
 internal class CalculatedMeasurementsQuery(
+    ILogger logger,
     DatabricksQueryOptions databricksOptions,
-    Guid orchestrationInstanceId,
-    ILogger<CalculatedMeasurementsQuery> logger) :
+    Guid orchestrationInstanceId) :
         QueryBase<CalculatedMeasurement>(
+            logger,
             databricksOptions,
             orchestrationInstanceId)
 {
-    private readonly ILogger _logger = logger;
-
     public override string DataObjectName => "calculated_measurements_v1";
 
     public override Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => new()
     {
-        { CalculatedMeasurementsColumnNames.OrchestrationType, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.OrchestrationInstanceId, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.TransactionId, (DeltaTableCommonTypes.Timestamp, false) },
-        { CalculatedMeasurementsColumnNames.TransactionCreationDatetime, (DeltaTableCommonTypes.Timestamp, false) },
-        { CalculatedMeasurementsColumnNames.MeteringPointId, (DeltaTableCommonTypes.BigInt, false) },
-        { CalculatedMeasurementsColumnNames.MeteringPointType, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.ObservationTime, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.Quantity, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.QuantityUnit, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.QuantityQuality, (DeltaTableCommonTypes.String, false) },
-        { CalculatedMeasurementsColumnNames.Resolution, (DeltaTableCommonTypes.Timestamp, false) },
+        { CalculatedMeasurementsColumnNames.OrchestrationType,              (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.OrchestrationInstanceId,        (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.TransactionId,                  (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.TransactionCreationDatetime,    (DeltaTableCommonTypes.Timestamp,   false) },
+        { CalculatedMeasurementsColumnNames.MeteringPointId,                (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.MeteringPointType,              (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.ObservationTime,                (DeltaTableCommonTypes.Timestamp,   false) },
+        { CalculatedMeasurementsColumnNames.Quantity,                       (DeltaTableCommonTypes.Decimal18x3, false) },
+        { CalculatedMeasurementsColumnNames.QuantityUnit,                   (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.QuantityQuality,                (DeltaTableCommonTypes.String,      false) },
+        { CalculatedMeasurementsColumnNames.Resolution,                     (DeltaTableCommonTypes.String,      false) },
     };
 
     protected override Task<QueryResult<CalculatedMeasurement>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> groupOfRows)
@@ -67,7 +65,7 @@ internal class CalculatedMeasurementsQuery(
         {
             var transactionId = firstRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
             var orchestrationType = firstRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType);
-            _logger.LogWarning(
+            Logger.LogWarning(
                 ex,
                 "Creating calculated measurements ({OrchestrationType}) failed for orchestration instance id='{OrchestrationInstanceId}', TransactionId='{TransactionId}'.",
                 orchestrationType,

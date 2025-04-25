@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
@@ -24,9 +25,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 /// Get the <see cref="OrchestrationInstanceContext"/> for the orchestration instance.
 /// </summary>
 internal class GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1(
-    IOptions<OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1> orchestrationOptions)
+    IOptions<OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1> orchestrationOptions,
+    IOptionsSnapshot<DatabricksQueryOptions> databricksQueryOptions)
 {
     private readonly OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1 _orchestrationOptions = orchestrationOptions.Value;
+    private readonly IOptionsSnapshot<DatabricksQueryOptions> _databricksQueryOptions = databricksQueryOptions;
 
     [Function(nameof(GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeatingCalculation_V1))]
     public Task<OrchestrationInstanceContext> Run(
@@ -34,6 +37,7 @@ internal class GetOrchestrationInstanceContextActivity_Brs_021_ElectricalHeating
     {
         return Task.FromResult(new OrchestrationInstanceContext(
             _orchestrationOptions,
+            _databricksQueryOptions.Get(QueryOptionsSectionNames.ElectricalHeatingQuery),
             input.InstanceId));
     }
 

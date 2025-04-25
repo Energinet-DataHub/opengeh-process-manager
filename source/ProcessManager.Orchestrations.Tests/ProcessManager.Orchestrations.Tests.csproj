@@ -66,5 +66,6 @@
 
   <ItemGroup>
     <Folder Include="Integration\InternalProcesses\" />
+    <Folder Include="Integration\Processes\BRS_021\Shared\" />
   </ItemGroup>
 </Project>

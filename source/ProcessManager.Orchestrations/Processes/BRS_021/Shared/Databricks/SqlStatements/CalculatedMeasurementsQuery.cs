@@ -14,10 +14,10 @@
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements.Mappers;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements.Model;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
 
 internal class CalculatedMeasurementsQuery(
     ILogger logger,

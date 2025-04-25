@@ -29,7 +29,7 @@ internal class EnqueueActorMessagesStep(
         orchestrationInstanceContext.OrchestrationInstanceId)
 {
     internal const string StepDescription = "Besked dannelse";
-    internal const int EnqueueActorMessagesStepSequence = 2;
+    internal const int EnqueueActorMessagesStepSequence = 3;
 
     protected override int StepSequenceNumber => EnqueueActorMessagesStepSequence;
 

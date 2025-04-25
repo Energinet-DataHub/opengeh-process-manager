@@ -33,7 +33,7 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
 
     public DatabricksSqlStatementApiWireMockTests()
     {
-        _mockServer = WireMockServer.Start(port: 1111);
+        _mockServer = WireMockServer.Start(port: 1112);
         _databricksQueryExecutor = CreateDatabricksExecutor(_mockServer.Url!);
     }
 

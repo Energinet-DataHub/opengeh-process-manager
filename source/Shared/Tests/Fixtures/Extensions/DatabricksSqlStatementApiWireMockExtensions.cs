@@ -36,18 +36,6 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 /// </summary>
 public static class DatabricksSqlStatementApiWireMockExtensions
 {
-    // /// <summary>
-    // /// Setup Databricks SQL statement API mock to be able to respond to a calculated measurements query
-    // /// </summary>
-    // public static WireMockServer MockDatabricksCalculatedMeasurementsQueryResponse(
-    //     this WireMockServer server,
-    //     Func<Guid> getOrchestrationInstanceId)
-    // {
-    //     return server
-    //         .MockDatabricksSqlStatementApi<CalculatedMeasurementsColumnNames>(
-    //             getMockedResponseJson: () => DatabricksCalculatedMeasurementsResultMock(getOrchestrationInstanceId));
-    // }
-
     /// <summary>
     /// Setup Databricks SQL statement api mock.
     /// </summary>
@@ -238,35 +226,6 @@ public static class DatabricksSqlStatementApiWireMockExtensions
 
         return server;
     }
-
-    // /// <summary>
-    // /// Creates a JSON response of a single row in the energy databricks table.
-    // /// This is the data that is fetched from the 'external_link' defined in the 'DatabricksEnergyStatementExternalLinkResponseMock'.
-    // /// </summary>
-    // /// <remarks>
-    // /// Note that QuantityQualities is a string, containing a list of strings.
-    // /// </remarks>>
-    // private static string DatabricksCalculatedMeasurementsResultMock(Func<Guid> getOrchestrationInstanceId)
-    // {
-    //     // Make sure that the order of the data matches the order of the columns defined in 'CalculatedMeasurementsColumnNames'
-    //     var data = GetFieldNames<CalculatedMeasurementsColumnNames>().Select(columnName => columnName switch
-    //     {
-    //         CalculatedMeasurementsColumnNames.OrchestrationType => "\"???\"",
-    //         CalculatedMeasurementsColumnNames.OrchestrationInstanceId => $"\"{getOrchestrationInstanceId()}\"",
-    //         CalculatedMeasurementsColumnNames.TransactionId => $"\"{Guid.NewGuid()}\"",
-    //         CalculatedMeasurementsColumnNames.TransactionCreationDatetime => "\"2025-04-25T03:00:00.000Z\"",
-    //         CalculatedMeasurementsColumnNames.MeteringPointId => $"\"{MockMeteringPointId}\"",
-    //         CalculatedMeasurementsColumnNames.MeteringPointType => "\"production\"",
-    //         CalculatedMeasurementsColumnNames.ObservationTime => "\"2022-04-25T03:00:00.000Z\"",
-    //         CalculatedMeasurementsColumnNames.Quantity => "\"42.123\"",
-    //         CalculatedMeasurementsColumnNames.QuantityUnit => "\"kWh\"",
-    //         CalculatedMeasurementsColumnNames.QuantityQuality => "\"Calculated\"",
-    //         CalculatedMeasurementsColumnNames.Resolution => "\"PT15M\"",
-    //         _ => throw new ArgumentOutOfRangeException(nameof(columnName), columnName, null),
-    //     }).ToArray();
-    //     var jsonArray = $"""[[{string.Join(",", data)}]]""";
-    //     return jsonArray;
-    // }
 
     private static List<string> GetFieldNames<TColumnNames>()
     {

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
 
@@ -22,7 +23,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 /// By returning it from the first activity we get key information stored in the orchestration history.
 /// </summary>
 /// <param name="OrchestrationOptions">Options for configuration of the orchestration execution.</param>
+/// <param name="DatabricksQueryOptions">Options for the query that retrieves data from databricks.</param>
 /// <param name="OrchestrationInstanceId">The id of the orchestration instance</param>
 public record OrchestrationInstanceContext(
     OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1 OrchestrationOptions,
+    DatabricksQueryOptions DatabricksQueryOptions,
     OrchestrationInstanceId OrchestrationInstanceId);

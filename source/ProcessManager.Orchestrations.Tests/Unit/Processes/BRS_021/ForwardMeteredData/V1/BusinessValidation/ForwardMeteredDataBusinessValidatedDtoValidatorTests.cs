@@ -285,7 +285,6 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                     meteringPointMasterData,
                 ]));
 
-
         result.Should()
             .ContainSingle()
             .And.BeEquivalentTo(MeasureDataQualityValidationRule.InvalidQuality);
@@ -334,7 +333,6 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                 MeteringPointMasterData: [
                     meteringPointMasterData,
                 ]));
-
 
         result.Should()
             .ContainSingle()

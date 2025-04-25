@@ -16,10 +16,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 
 /// <summary>
 /// The column names in the calculated measurements databricks view.
-/// <remarks>
-/// Must be equal (including the order) to the <see cref="CalculatedMeasurementsQuery.SchemaDefinition"/>
-/// in <see cref="CalculatedMeasurementsQuery"/>.
-/// </remarks>
 /// </summary>
 internal class CalculatedMeasurementsColumnNames
 {

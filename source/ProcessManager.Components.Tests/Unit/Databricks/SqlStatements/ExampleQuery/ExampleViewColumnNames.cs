@@ -12,24 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
-
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;
 
-public class ExampleDeltaTableSchemaDescription(
-    string databaseFullName) :
-        IDeltaTableSchemaDescription
+/// <summary>
+/// The column names in the example databricks view.
+/// </summary>
+public class ExampleViewColumnNames
 {
-    /// <summary>
-    /// Full name of database (catalogue + database name).
-    /// </summary>
-    public string DatabaseName => databaseFullName;
-
-    public string DataObjectName => "example_view_v1";
-
-    public Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => new()
-    {
-        { ExampleQueryColumnNames.Id,    (DeltaTableCommonTypes.String,      false) },
-        { ExampleQueryColumnNames.Value, (DeltaTableCommonTypes.Decimal18x3, false) },
-    };
+    public const string Id = "id";
+    public const string Value = "value";
 }

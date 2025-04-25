@@ -12,13 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
-/// <summary>
-/// Must be equal (including the order) to <see cref="ExampleQuery"/>.<see cref="ExampleQuery.SchemaDefinition"/>.
-/// </summary>
-public class ExampleQueryColumnNames
+namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
+
+public abstract class SchemaDescriptionBase(
+    DatabricksQueryOptions queryOptions) :
+        IDeltaTableSchemaDescription
 {
-    public const string Id = "id";
-    public const string Value = "value";
+    /// <inheritdoc/>
+    public string DatabaseName => $"{queryOptions.CatalogName}.{queryOptions.DatabaseName}";
+
+    /// <inheritdoc/>
+    public abstract string DataObjectName { get; }
+
+    /// <inheritdoc/>
+    public abstract Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition { get; }
 }

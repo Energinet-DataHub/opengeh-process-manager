@@ -60,16 +60,17 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
             new(Guid.NewGuid(), 1337.42m),
         };
 
-        _mockServer.MockDatabricksSqlStatementApi<ExampleQueryColumnNames, ExampleQueryRowData>(
+        _mockServer.MockDatabricksSqlStatementApi<ExampleViewColumnNames, ExampleQueryRowData>(
             mockData,
             ColumnNameToStringValueConverter);
 
+        var schemaDescription = new ExampleViewSchemaDescription(Mock.Of<DatabricksQueryOptions>());
         var query = new ExampleQuery.ExampleQuery(
             logger: Mock.Of<ILogger>(),
-            queryOptions: Mock.Of<DatabricksQueryOptions>(),
+            schemaDescription: schemaDescription,
             orchestrationInstanceId: Guid.NewGuid());
 
-        // When querying calculated measurements
+        // When querying
         var queryResults = await query.GetAsync(_databricksQueryExecutor)
             .ToListAsync();
 
@@ -94,8 +95,8 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
     {
         return columnName switch
         {
-            ExampleQueryColumnNames.Id => rowData.Id.ToString(),
-            ExampleQueryColumnNames.Value => rowData.Value.ToString(CultureInfo.InvariantCulture),
+            ExampleViewColumnNames.Id => rowData.Id.ToString(),
+            ExampleViewColumnNames.Value => rowData.Value.ToString(CultureInfo.InvariantCulture),
             _ => throw new ArgumentOutOfRangeException(nameof(columnName), columnName, null),
         };
     }

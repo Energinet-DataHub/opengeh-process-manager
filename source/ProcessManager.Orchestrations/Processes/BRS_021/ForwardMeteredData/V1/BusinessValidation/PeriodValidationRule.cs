@@ -27,6 +27,8 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
 {
     public const int MaxAllowedPeriodAgeInYears = 3;
 
+    public const int MinimalPeriodSizeInHours = 4;
+
     public static readonly ValidationError InvalidEndDate = new(
         Message: "Slut dato mangler eller er invalid / End date is missing or invalid",
         ErrorCode: "E50");
@@ -46,17 +48,17 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
     public static readonly ValidationError MinuteIsNotAWholeQuarter = new(
         Message: "Forkert format for {PropertyName} tidspunkt. {PropertyName} tidspunkt skal være xx:00, xx:15, xx:30 eller xx:45 for PT15M opløsning "
                  + "/ Incorrect format for {PropertyName} time. {PropertyName} time must be xx:00, xx:15, xx:30 or xx:45 for PT15M resolution",
-        ErrorCode: "E66");
+        ErrorCode: "D66");
 
     public static readonly ValidationError HourIsNotAWholeHour = new(
-        Message: "Forkert format for {PropertyName} tidspunkt. {PropertyName} tidspunkt skal være xx:00,for PT1H opløsning "
+        Message: "Forkert format for {PropertyName} tidspunkt. {PropertyName} tidspunkt skal være xx:00 for PT1H opløsning "
                  + "/ Incorrect format for {PropertyName} time. {PropertyName} time must be xx:00 for PT1H resolution",
-        ErrorCode: "E66");
+        ErrorCode: "D66");
 
     // TODO: Add the correct message and error code
     public static readonly ValidationError PeriodMustBeGreaterThan4Hours = new(
-        Message: "Tidsintervallet skal være større end 4 timer når man anvender opløsningen: {PropertyName} "
-                 + "/ The time interval must be greater than 4 hours when using the resolution: {PropertyName}",
+        Message: $"Tidsintervallet skal være større end {MinimalPeriodSizeInHours} timer når man anvender opløsningen: {{PropertyName}} "
+                 + $"/ The time interval must be greater than {MinimalPeriodSizeInHours} hours when using the resolution: {{PropertyName}}",
         ErrorCode: "MISSING");
 
     public static readonly ValidationError IsNotFirstOfMonthMidnightSummertime = new(
@@ -134,7 +136,7 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
             errors.Add(MinuteIsNotAWholeQuarter.WithPropertyName(nameof(end)));
         }
 
-        if (PeriodIsShorterThan4Hours(start, end))
+        if (PeriodIsShorterThanMinimalPeriod(start, end))
         {
             errors.Add(PeriodMustBeGreaterThan4Hours.WithPropertyName("PT15M"));
         }
@@ -156,7 +158,7 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
             errors.Add(HourIsNotAWholeHour.WithPropertyName(nameof(end)));
         }
 
-        if (PeriodIsShorterThan4Hours(start, end))
+        if (PeriodIsShorterThanMinimalPeriod(start, end))
         {
             errors.Add(PeriodMustBeGreaterThan4Hours.WithPropertyName("PT1H"));
         }
@@ -184,9 +186,20 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
         return [error];
     }
 
-    private bool PeriodIsShorterThan4Hours(Instant start, Instant end)
+    private bool PeriodIsShorterThanMinimalPeriod(Instant start, Instant end)
     {
-        return double.Abs((end - start).TotalTicks) < Duration.FromHours(4).TotalTicks;
+        var periodInTicks = double.Abs((end - start).TotalTicks);
+
+        var startIsSummerTime = _periodValidator.IsSummerTime(start);
+        var endIsSummerTime = _periodValidator.IsSummerTime(end);
+
+        if (startIsSummerTime && !endIsSummerTime)
+            return periodInTicks < Duration.FromHours(MinimalPeriodSizeInHours - 1).TotalTicks;
+
+        if (!startIsSummerTime && endIsSummerTime)
+            return periodInTicks < Duration.FromHours(MinimalPeriodSizeInHours + 1).TotalTicks;
+
+        return periodInTicks < Duration.FromHours(MinimalPeriodSizeInHours).TotalTicks;
     }
 
     private Instant? TryParseInstant(string? dateTime)

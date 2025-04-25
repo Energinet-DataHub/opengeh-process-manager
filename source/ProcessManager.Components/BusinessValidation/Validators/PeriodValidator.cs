@@ -63,4 +63,11 @@ public class PeriodValidator(DateTimeZone dateTimeZone, IClock clock)
 
         return actualEndDate.LocalDateTime > lastestAllowedEndDate;
     }
+
+    public bool IsSummerTime(Instant instant)
+    {
+        var zonedDateTime = instant.InZone(_dateTimeZone);
+
+        return zonedDateTime.IsDaylightSavingTime();
+    }
 }

@@ -66,11 +66,11 @@ internal class CalculatedMeasurementsQuery(
 
     protected override string BuildSqlQuery()
     {
-        var columnNames = SchemaDefinition.Keys.ToArray();
+        var columnNames = SchemaDescription.SchemaDefinition.Keys.ToArray();
 
         return $"""
             SELECT {string.Join(", ", columnNames)}
-            FROM {DatabaseName}.{DataObjectName}
+            FROM {SchemaDescription.DatabaseName}.{SchemaDescription.DataObjectName}
             WHERE {CalculatedMeasurementsColumnNames.OrchestrationInstanceId} = '{OrchestrationInstanceId}'
             ORDER BY {CalculatedMeasurementsColumnNames.TransactionId}, {CalculatedMeasurementsColumnNames.ObservationTime}
             """;

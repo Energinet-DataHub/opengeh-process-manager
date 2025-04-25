@@ -23,19 +23,11 @@ namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 public abstract class QueryBase<TResult, TSchemaDescription>(
     ILogger logger,
     TSchemaDescription schemaDescription,
-    Guid orchestrationInstanceId) :
-        IDeltaTableSchemaDescription
-            where TResult : IQueryResultDto
-            where TSchemaDescription : SchemaDescriptionBase
+    Guid orchestrationInstanceId)
+        where TResult : IQueryResultDto
+        where TSchemaDescription : SchemaDescriptionBase
 {
-    /// <inheritdoc/>
-    public string DatabaseName => schemaDescription.DatabaseName;
-
-    /// <inheritdoc/>
-    public string DataObjectName => schemaDescription.DataObjectName;
-
-    /// <inheritdoc/>
-    public Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => schemaDescription.SchemaDefinition;
+    public TSchemaDescription SchemaDescription => schemaDescription;
 
     public Guid OrchestrationInstanceId { get; } = orchestrationInstanceId;
 

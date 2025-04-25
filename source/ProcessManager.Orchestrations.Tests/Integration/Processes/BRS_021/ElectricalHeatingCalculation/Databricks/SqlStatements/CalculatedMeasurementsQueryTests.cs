@@ -33,7 +33,7 @@ public class CalculatedMeasurementsQueryTests : IClassFixture<CalculatedMeasurem
         // Act
         var actual = await sut.GetAsync(_fixture.QueryExecutor).ToListAsync();
 
-        Assert.True(actual.Count == 0, "Unexpected number of query results");
+        Assert.Empty(actual);
     }
 
     [Fact]
@@ -49,24 +49,21 @@ public class CalculatedMeasurementsQueryTests : IClassFixture<CalculatedMeasurem
                 actual.Count == 2,
                 "Unexpected number of query results"),
             () => Assert.True(
-                actual.All(x => x.IsSuccess),
+                actual.All(x =>
+                    x.IsSuccess),
                 "Unexpected status in query result"),
             () => Assert.True(
                 actual.All(x =>
                     x.Result != null
                     && x.Result.OrchestrationInstanceId == _fixture.OrchestrationInstanceId),
                 "Unexpected id in query result"),
-            () => Assert.True(
-                null != actual.SingleOrDefault(x =>
+            () => Assert.Single(actual, x =>
                     x.Result != null
                     && x.Result.TransactionId == Guid.Parse("1a0c19a9-8310-5e59-b2e0-d1533927c6b9")
                     && x.Result.MeasureData.Count == 2),
-                "Expected to find transaction"),
-            () => Assert.True(
-                null != actual.SingleOrDefault(x =>
+            () => Assert.Single(actual, x =>
                     x.Result != null
                     && x.Result.TransactionId == Guid.Parse("1a790ec1-e1d8-51ed-84fd-15d37ad5021a")
-                    && x.Result.MeasureData.Count == 2),
-                "Expected to find transaction"));
+                    && x.Result.MeasureData.Count == 2));
     }
 }

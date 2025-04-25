@@ -110,13 +110,13 @@ public class PeriodValidationRuleTests
     [Fact]
     public async Task Given_NotStartingAtAWholeQuarter_AndGiven_ResolutionIsQuarterly_When_ValidateAsync_Then_Error()
     {
-        var startWhichIsNotAWholeQuarter = InstantPattern.General.Parse("2025-01-01T23:05:00Z");
+        var startWhichIsNotAWholeQuarter = InstantPattern.General.Parse("2025-01-01T23:05:00Z").Value;
 
         var result = await _sut.ValidateAsync(
             new(
                 new ForwardMeteredDataInputV1Builder()
-                    .WithStartDateTime(startWhichIsNotAWholeQuarter.Value.ToString())
-                    .WithEndDateTime(startWhichIsNotAWholeQuarter.Value.PlusHours(4).ToString())
+                    .WithStartDateTime(startWhichIsNotAWholeQuarter.ToString())
+                    .WithEndDateTime(startWhichIsNotAWholeQuarter.PlusHours(4).ToString())
                     .WithResolution(Resolution.QuarterHourly.Name)
                     .Build(),
                 []));
@@ -132,13 +132,13 @@ public class PeriodValidationRuleTests
     [Fact]
     public async Task Given_NotStartingAtAWholeHour_AndGiven_ResolutionIsHourly_When_ValidateAsync_Then_Error()
     {
-        var startWhichIsNotAWholeHour = InstantPattern.General.Parse("2025-01-01T23:05:00Z");
+        var startWhichIsNotAWholeHour = InstantPattern.General.Parse("2025-01-01T23:05:00Z").Value;
 
         var result = await _sut.ValidateAsync(
             new(
                 new ForwardMeteredDataInputV1Builder()
-                    .WithStartDateTime(startWhichIsNotAWholeHour.Value.ToString())
-                    .WithEndDateTime(startWhichIsNotAWholeHour.Value.PlusHours(4).ToString())
+                    .WithStartDateTime(startWhichIsNotAWholeHour.ToString())
+                    .WithEndDateTime(startWhichIsNotAWholeHour.PlusHours(4).ToString())
                     .WithResolution(Resolution.Hourly.Name)
                     .Build(),
                 []));

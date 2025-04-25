@@ -115,19 +115,13 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
         var errors = new List<ValidationError>();
 
         if (start.IsNotMultipleOf(Duration.FromMinutes(15)))
-        {
             errors.Add(MinuteIsNotAWholeQuarter.WithPropertyName(nameof(start)));
-        }
 
         if (end.IsNotMultipleOf(Duration.FromMinutes(15)))
-        {
             errors.Add(MinuteIsNotAWholeQuarter.WithPropertyName(nameof(end)));
-        }
 
         if (PeriodIsShorterThanMinimalPeriod(start, end))
-        {
             errors.Add(PeriodMustBeGreaterThan4Hours.WithPropertyName("PT15M"));
-        }
 
         return errors;
     }
@@ -137,19 +131,13 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
         var errors = new List<ValidationError>();
 
         if (start.IsNotMultipleOf(Duration.FromHours(1)))
-        {
             errors.Add(HourIsNotAWholeHour.WithPropertyName(nameof(start)));
-        }
 
         if (end.IsNotMultipleOf(Duration.FromHours(1)))
-        {
             errors.Add(HourIsNotAWholeHour.WithPropertyName(nameof(end)));
-        }
 
         if (PeriodIsShorterThanMinimalPeriod(start, end))
-        {
             errors.Add(PeriodMustBeGreaterThan4Hours.WithPropertyName("PT1H"));
-        }
 
         return errors;
     }

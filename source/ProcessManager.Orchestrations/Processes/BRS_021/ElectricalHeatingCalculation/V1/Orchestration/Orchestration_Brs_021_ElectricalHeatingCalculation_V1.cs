@@ -57,12 +57,6 @@ internal class Orchestration_Brs_021_ElectricalHeatingCalculation_V1
                 orchestrationInstanceContext)
             .ExecuteAsync();
 
-        await new CalculationResultStep(
-            context,
-            _defaultRetryOptions,
-            orchestrationInstanceContext)
-            .ExecuteAsync();
-
         await new EnqueueActorMessagesStep(
                 context,
                 _defaultRetryOptions,

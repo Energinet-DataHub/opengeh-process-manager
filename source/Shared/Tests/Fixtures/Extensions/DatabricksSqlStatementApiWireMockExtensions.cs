@@ -39,11 +39,26 @@ public static class DatabricksSqlStatementApiWireMockExtensions
     public const string MockMeteringPointId = "1234567890123456";
 
     /// <summary>
-    /// Setup Databricks api response mocks to be able to respond with calculated measurements
+    /// Setup Databricks SQL statement API mock to be able to respond to a calculated measurements query
     /// </summary>
-    public static WireMockServer MockCalculatedMeasurementsQueryResponse(
+    public static WireMockServer MockDatabricksCalculatedMeasurementsQueryResponse(
         this WireMockServer server,
         Func<Guid> getOrchestrationInstanceId)
+    {
+        return server
+            .MockDatabricksSqlStatementApi<CalculatedMeasurementsColumnNames>(
+                getMockedResponseJson: () => DatabricksCalculatedMeasurementsResultMock(getOrchestrationInstanceId));
+    }
+
+    /// <summary>
+    /// Setup Databricks SQL statement api mock.
+    /// </summary>
+    /// <param name="server"></param>
+    /// <param name="getMockedResponseJson">Should return a JSON array of values that has the same order as the column name properties in <typeparamref name="TColumnNames"/>.</param>
+    /// <typeparam name="TColumnNames">A type only containing string fields symbolizing the name of the mocked columns. See <see cref="CalculatedMeasurementsColumnNames"/> for an example.</typeparam>
+    public static WireMockServer MockDatabricksSqlStatementApi<TColumnNames>(
+        this WireMockServer server,
+        Func<string> getMockedResponseJson)
     {
         // => Databricks SQL Statement API
         var chunkIndex = 0;
@@ -51,9 +66,9 @@ public static class DatabricksSqlStatementApiWireMockExtensions
         var dataUrlPath = "GetDatabricksDataPath";
 
         server
-            .MockSqlStatements<CalculatedMeasurementsColumnNames>(statementId, chunkIndex)
+            .MockSqlStatements<TColumnNames>(statementId, chunkIndex)
             .MockSqlStatementsResultChunks(statementId, chunkIndex, dataUrlPath)
-            .MockSqlStatementsResultStream(dataUrlPath, () => DatabricksCalculatedMeasurementsResultMock(getOrchestrationInstanceId));
+            .MockSqlStatementsResultStream(dataUrlPath, getMockedResponseJson);
 
         return server;
     }

@@ -50,11 +50,12 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Given_MockedDatabricks_When_QueryingCalculatedMeasurements_Then_ReturnsMockedData()
+    public async Task Given_MockDatabricksSqlStatementApi_When_QueryingCalculatedMeasurements_Then_ReturnsMockedData()
     {
+        // Given mocked Databricks SQL statement API
         var orchestrationInstanceId = Guid.NewGuid();
 
-        _mockServer.MockCalculatedMeasurementsQueryResponse(
+        _mockServer.MockDatabricksCalculatedMeasurementsQueryResponse(
             getOrchestrationInstanceId: () => orchestrationInstanceId);
 
         var query = new CalculatedMeasurementsQuery(
@@ -62,16 +63,20 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
             databricksOptions: Mock.Of<DatabricksQueryOptions>(),
             orchestrationInstanceId: orchestrationInstanceId);
 
+        // When querying calculated measurements
         var queryResults = await query.GetAsync(_databricksQueryExecutor)
             .ToListAsync();
 
+        // Then returns mocked data
         var queryResult = Assert.Single(queryResults);
 
         Assert.Multiple(
             () => Assert.True(queryResult.IsSuccess),
             () => Assert.NotNull(queryResult.Result));
 
-        Assert.Equal(orchestrationInstanceId, queryResult.Result!.OrchestrationInstanceId);
+        Assert.Multiple(
+            () => Assert.Equal(orchestrationInstanceId, queryResult.Result!.OrchestrationInstanceId),
+            () => Assert.Equal(DatabricksSqlStatementApiWireMockExtensions.MockMeteringPointId, queryResult.Result!.MeteringPointId));
     }
 
     private static DatabricksSqlWarehouseQueryExecutor CreateDatabricksExecutor(

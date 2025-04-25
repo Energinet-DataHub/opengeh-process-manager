@@ -14,7 +14,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
 /// <summary>
 /// Options for a Databricks query.
@@ -22,12 +22,6 @@ namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 public class DatabricksQueryOptions
 {
     public const string SectionName = "DatabricksQuery";
-
-    /// <summary>
-    /// Name of the Databricks database.
-    /// </summary>
-    [Required]
-    public string DatabaseName { get; set; } = "measurements_calculated";
 
     /// <summary>
     /// Name of the Databricks catalog.
@@ -38,4 +32,10 @@ public class DatabricksQueryOptions
     /// </remarks>
     [Required]
     public string CatalogName { get; set; } = null!;
+
+    /// <summary>
+    /// Name of the Databricks database.
+    /// </summary>
+    [Required]
+    public string DatabaseName { get; set; } = "measurements_calculated";
 }

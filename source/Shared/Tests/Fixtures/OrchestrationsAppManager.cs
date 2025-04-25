@@ -33,6 +33,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
@@ -409,6 +410,20 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
             "20");
+
+        // => BRS 021 Electrical Heating options
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.CalculationJobStatusPollingIntervalInSeconds)}",
+            "3");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.CalculationJobStatusExpiryTimeInSeconds)}",
+            "20");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
+            "20");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{QueryOptionsSectionNames.ElectricalHeatingQuery}__{nameof(DatabricksQueryOptions.CatalogName)}",
+            "hive_metastore");
 
         // Process Manager Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(

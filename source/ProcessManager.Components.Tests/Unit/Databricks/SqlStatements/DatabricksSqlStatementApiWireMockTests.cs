@@ -53,13 +53,13 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
     public async Task Given_MockDatabricksSqlStatementApi_When_QueryingCalculatedMeasurements_Then_ReturnsMockedData()
     {
         // Given mocked Databricks SQL statement API
-        var mockData = new List<ExampleQuery.ExampleQuery.ExampleQueryData>
+        var mockData = new List<ExampleQueryRowData>
         {
             new(Guid.NewGuid(), 123.45m),
             new(Guid.NewGuid(), 1337.42m),
         };
 
-        _mockServer.MockDatabricksSqlStatementApi<ExampleQueryColumnNames, ExampleQuery.ExampleQuery.ExampleQueryData>(
+        _mockServer.MockDatabricksSqlStatementApi<ExampleQueryColumnNames, ExampleQueryRowData>(
             mockData,
             ColumnNameToStringValueConverter);
 
@@ -89,12 +89,12 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
         Assert.Equal(mockData, queryResultsData);
     }
 
-    private static string ColumnNameToStringValueConverter(ExampleQuery.ExampleQuery.ExampleQueryData data, string columnName)
+    private static string ColumnNameToStringValueConverter(ExampleQueryRowData rowData, string columnName)
     {
         return columnName switch
         {
-            ExampleQueryColumnNames.Id => data.Id.ToString(),
-            ExampleQueryColumnNames.Value => data.Value.ToString(CultureInfo.InvariantCulture),
+            ExampleQueryColumnNames.Id => rowData.Id.ToString(),
+            ExampleQueryColumnNames.Value => rowData.Value.ToString(CultureInfo.InvariantCulture),
             _ => throw new ArgumentOutOfRangeException(nameof(columnName), columnName, null),
         };
     }

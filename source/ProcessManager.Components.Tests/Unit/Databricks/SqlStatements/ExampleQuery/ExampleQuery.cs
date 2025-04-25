@@ -21,7 +21,7 @@ public class ExampleQuery(
     ILogger logger,
     DatabricksQueryOptions queryOptions,
     Guid orchestrationInstanceId)
-        : QueryBase<ExampleQuery.ExampleQueryData>(logger, queryOptions, orchestrationInstanceId)
+        : QueryBase<ExampleQueryRowData>(logger, queryOptions, orchestrationInstanceId)
 {
     public override string DataObjectName => "doesn't matter because result is mocked";
 
@@ -34,15 +34,15 @@ public class ExampleQuery(
         { ExampleQueryColumnNames.Value, (DeltaTableCommonTypes.Decimal18x3, false) },
     };
 
-    protected override Task<QueryResult<ExampleQueryData>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> currentGroupOfRows)
+    protected override Task<QueryResult<ExampleQueryRowData>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> currentGroupOfRows)
     {
         var row = currentGroupOfRows.Single();
 
-        var exampleRow = new ExampleQueryData(
+        var exampleRow = new ExampleQueryRowData(
             Id: row.ToGuid(ExampleQueryColumnNames.Id),
             Value: row.ToDecimal(ExampleQueryColumnNames.Value));
 
-        var result = QueryResult<ExampleQueryData>.Success(exampleRow);
+        var result = QueryResult<ExampleQueryRowData>.Success(exampleRow);
 
         return Task.FromResult(result);
     }
@@ -56,9 +56,4 @@ public class ExampleQuery(
     {
         return "doesn't matter because result is mocked";
     }
-
-    public record ExampleQueryData(
-        Guid Id,
-        decimal Value)
-            : IQueryResultDto;
 }

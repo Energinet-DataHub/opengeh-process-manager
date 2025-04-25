@@ -29,10 +29,10 @@ public static class DatabricksSqlStatementApiCalculatedMeasurementsExtensions
     /// </summary>
     public static WireMockServer MockDatabricksCalculatedMeasurementsQueryResponse(
         this WireMockServer server,
-        List<CalculatedMeasurementsMockData> mockData)
+        List<CalculatedMeasurementsRowData> mockData)
     {
         return server
-            .MockDatabricksSqlStatementApi<CalculatedMeasurementsColumnNames, CalculatedMeasurementsMockData>(
+            .MockDatabricksSqlStatementApi<CalculatedMeasurementsColumnNames, CalculatedMeasurementsRowData>(
                 mockData,
                 ColumnNameToStringValueConverter);
     }
@@ -42,7 +42,7 @@ public static class DatabricksSqlStatementApiCalculatedMeasurementsExtensions
     /// </summary>
     /// <param name="data"></param>
     /// <param name="columnName"></param>
-    private static string ColumnNameToStringValueConverter(CalculatedMeasurementsMockData data, string columnName)
+    private static string ColumnNameToStringValueConverter(CalculatedMeasurementsRowData data, string columnName)
     {
         return columnName switch
         {
@@ -61,7 +61,7 @@ public static class DatabricksSqlStatementApiCalculatedMeasurementsExtensions
         };
     }
 
-    public record CalculatedMeasurementsMockData(
+    public record CalculatedMeasurementsRowData(
         Guid OrchestrationInstanceId,
         Guid TransactionId,
         Instant TransactionCreationDatetime,

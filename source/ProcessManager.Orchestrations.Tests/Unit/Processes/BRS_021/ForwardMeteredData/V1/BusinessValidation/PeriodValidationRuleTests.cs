@@ -159,8 +159,8 @@ public class PeriodValidationRuleTests
         var result = await _sut.ValidateAsync(
             new(
                 new ForwardMeteredDataInputV1Builder()
-                    .WithStartDateTime("2024-10-27T00:00:00Z") // 0 -> 1 -> 2 -> 2 -> 3 -> 4
-                    .WithEndDateTime("2024-10-27T03:00:00Z") // The clock is set 1 hour backwards
+                    .WithStartDateTime("2024-10-27T00:00:00Z") // Danish time: 0 -> 1 -> 2 -> 2 -> 3
+                    .WithEndDateTime("2024-10-27T04:00:00Z") // The clock is set 1 hour backwards
                     .WithResolution(resolution)
                     .Build(),
                 null,
@@ -170,21 +170,37 @@ public class PeriodValidationRuleTests
     }
 
     [Theory]
-    [InlineData("QuarterHourly", "PT15M")]
-    [InlineData("Hourly", "PT1H")]
-    public async Task Given_PeriodOf3Hours_AndGiven_WinterTimeToSummerTime_When_ValidateAsync_Then_Error(string resolution, string resolutionCode)
+    [InlineData("QuarterHourly")]
+    [InlineData("Hourly")]
+    public async Task Given_AndGiven_WinterTimeToSummerTime_When_ValidateAsync_Then_Error(string resolution)
     {
         var result = await _sut.ValidateAsync(
             new(
                 new ForwardMeteredDataInputV1Builder()
-                    .WithStartDateTime("2025-03-30T00:00:00Z") // 0 -> 1 -> 3 -> 4
+                    .WithStartDateTime("2025-03-30T00:00:00Z") // Danish time: 0 -> 1 -> 3 -> 4
                     .WithEndDateTime("2025-03-30T04:00:00Z") // The clock is set 1 hour forward
                     .WithResolution(resolution)
                     .Build(),
                 null,
                 []));
 
-        result.Should().ContainSingle().And.Contain(PeriodValidationRule.PeriodMustBeGreaterThan4Hours.WithPropertyName(resolutionCode));
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Given_PeriodOf1Month_AndGiven_WinterTimeToSummerTime_When_ValidateAsync_Then_Error()
+    {
+        var result = await _sut.ValidateAsync(
+            new(
+                new ForwardMeteredDataInputV1Builder()
+                    .WithStartDateTime("2025-02-28T23:00:00Z")
+                    .WithEndDateTime("2025-03-31T22:00:00Z")
+                    .WithResolution(Resolution.Monthly.Name)
+                    .Build(),
+                null,
+                []));
+
+        result.Should().BeEmpty();
     }
 
     [Fact]

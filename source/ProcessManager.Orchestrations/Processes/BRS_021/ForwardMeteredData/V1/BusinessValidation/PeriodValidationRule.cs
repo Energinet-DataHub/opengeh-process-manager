@@ -190,15 +190,6 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
     {
         var periodInTicks = double.Abs((end - start).TotalTicks);
 
-        var startIsSummerTime = _periodValidator.IsSummerTime(start);
-        var endIsSummerTime = _periodValidator.IsSummerTime(end);
-
-        if (startIsSummerTime && !endIsSummerTime)
-            return periodInTicks < Duration.FromHours(MinimalPeriodSizeInHours - 1).TotalTicks;
-
-        if (!startIsSummerTime && endIsSummerTime)
-            return periodInTicks < Duration.FromHours(MinimalPeriodSizeInHours + 1).TotalTicks;
-
         return periodInTicks < Duration.FromHours(MinimalPeriodSizeInHours).TotalTicks;
     }
 

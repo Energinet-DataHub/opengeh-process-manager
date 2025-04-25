@@ -60,8 +60,7 @@ public class MeasureDataQualityValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: null, // Master data is unused in validation rule
-                HistoricalMeteringPointMasterData: [])); // Master data is unused in validation rule
+                MeteringPointMasterData: [])); // Master data is unused in validation rule
 
         Assert.Empty(result);
     }
@@ -87,8 +86,7 @@ public class MeasureDataQualityValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: null, // Master data is unused in validation rule
-                HistoricalMeteringPointMasterData: [])); // Master data is unused in validation rule
+                MeteringPointMasterData: [])); // Master data is unused in validation rule
 
         Assert.Empty(result);
     }
@@ -110,8 +108,7 @@ public class MeasureDataQualityValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: null, // Master data is unused in validation rule
-                HistoricalMeteringPointMasterData: [])); // Master data is unused in validation rule
+                MeteringPointMasterData: [])); // Master data is unused in validation rule
 
         var validationError = Assert.Single(result);
         Assert.Equal(MeasureDataQualityValidationRule.InvalidQuality.Single(), validationError);
@@ -141,8 +138,7 @@ public class MeasureDataQualityValidationRuleTests
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(
                 Input: input,
-                CurrentMasterData: null, // Master data is unused in validation rule
-                HistoricalMeteringPointMasterData: [])); // Master data is unused in validation rule
+                MeteringPointMasterData: [])); // Master data is unused in validation rule
 
         var validationError = Assert.Single(result);
         Assert.Equal(MeasureDataQualityValidationRule.InvalidQuality.Single(), validationError);

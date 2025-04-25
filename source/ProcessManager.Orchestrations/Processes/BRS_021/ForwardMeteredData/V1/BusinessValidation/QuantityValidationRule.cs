@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Globalization;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
@@ -32,7 +33,32 @@ public class QuantityValidationRule
 
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
     {
+        var errors = new List<ValidationError>();
         var measureData = subject.Input.MeteredDataList;
-        return Task.FromResult<IList<ValidationError>>([]);
+
+        foreach (var data in measureData)
+        {
+            if (data.EnergyQuantity == null)
+                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+
+            decimal quantity;
+            if (!decimal.TryParse(data.EnergyQuantity, out quantity))
+                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+
+            if (GetDecimalPart(quantity).ToString(CultureInfo.InvariantCulture).Length > 10)
+                errors.Add(WrongFormatForQuantity.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+
+            // TODO: Check for 4 or more dicimals
+
+            if (quantity < 0)
+                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+        }
+
+        return Task.FromResult<IList<ValidationError>>(errors);
+    }
+
+    private static decimal GetDecimalPart(decimal value)
+    {
+        return value - Math.Floor(value);
     }
 }

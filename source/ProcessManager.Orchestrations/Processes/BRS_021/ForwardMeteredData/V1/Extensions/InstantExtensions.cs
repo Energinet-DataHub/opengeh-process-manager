@@ -18,8 +18,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public static class InstantExtensions
 {
-    public static bool ComesBefore(this Instant instant, Instant compareInstant)
+    public static bool IsBefore(this Instant instant, Instant compareInstant)
     {
         return instant < compareInstant;
+    }
+
+    public static bool IsNotMultipleOf(this Instant instant, Duration duration)
+    {
+        return instant.ToUnixTimeTicks() % duration.TotalTicks != 0;
     }
 }

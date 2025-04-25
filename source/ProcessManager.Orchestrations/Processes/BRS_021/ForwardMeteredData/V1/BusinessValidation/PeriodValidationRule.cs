@@ -25,24 +25,29 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class PeriodValidationRule(PeriodValidator periodValidator)
         : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
-    public const int MaxAllowedPeriodAgeInYears = 3;
+    private const int MaxAllowedPeriodAgeInYears = 3;
 
-    public const int MinimalPeriodSizeInHours = 4;
+    private const int MinimalPeriodSizeInHours = 4;
 
     public static readonly ValidationError InvalidEndDate = new(
-        Message: "Slut dato mangler eller er invalid / End date is missing or invalid",
+        Message: "Slut dato mangler eller er ugyldig / End date is missing or invalid",
         ErrorCode: "E50");
 
     public static readonly ValidationError InvalidStartDate = new(
-        Message: "Start dato mangler eller er invalid / Start date is missing or invalid",
+        Message: "Start dato mangler eller er ugyldig / Start date is missing or invalid",
         ErrorCode: "E50");
 
     public static readonly ValidationError StartDateIsTooOld = new(
         Message: $"Måledata er ældre end de tilladte {MaxAllowedPeriodAgeInYears} år / Measurements are older than the allowed {MaxAllowedPeriodAgeInYears} years",
         ErrorCode: "E17");
 
-    public static readonly ValidationError EndIsBeforeStart = new(
-        Message: "Slut tidspunktet kan ikke være før start tidspunktet / End of period can not be before start of period",
+    public static readonly ValidationError StartMustBeBeforeEnd = new(
+        Message: "Start tidspunktet skal være før slut tidspunktet / Start of period must be before end of period",
+        ErrorCode: "E50");
+
+    public static readonly ValidationError PeriodMustBeGreaterThan4Hours = new(
+        Message: $"Tidsintervallet skal være større end {MinimalPeriodSizeInHours} timer når man anvender opløsningen: {{PropertyName}} "
+                 + $"/ The time interval must be greater than {MinimalPeriodSizeInHours} hours when using the resolution: {{PropertyName}}",
         ErrorCode: "E50");
 
     public static readonly ValidationError MinuteIsNotAWholeQuarter = new(
@@ -54,12 +59,6 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
         Message: "Forkert format for {PropertyName} tidspunkt. {PropertyName} tidspunkt skal være xx:00 for PT1H opløsning "
                  + "/ Incorrect format for {PropertyName} time. {PropertyName} time must be xx:00 for PT1H resolution",
         ErrorCode: "D66");
-
-    // TODO: Add the correct message and error code
-    public static readonly ValidationError PeriodMustBeGreaterThan4Hours = new(
-        Message: $"Tidsintervallet skal være større end {MinimalPeriodSizeInHours} timer når man anvender opløsningen: {{PropertyName}} "
-                 + $"/ The time interval must be greater than {MinimalPeriodSizeInHours} hours when using the resolution: {{PropertyName}}",
-        ErrorCode: "MISSING");
 
     public static readonly ValidationError IsNotFirstOfMonthMidnightSummertime = new(
         Message: "Forkert dato format for {PropertyName}, skal være YYYY-MM-{Sidste dag i måneden}T22:00:00Z "
@@ -84,54 +83,43 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
             errors.Add(InvalidEndDate);
 
         if (start is null)
-        {
             errors.Add(InvalidStartDate);
-            return Task.FromResult((IList<ValidationError>)errors);
-        }
-
-        // Measurements age check
-        if (_periodValidator.IsDateOlderThanAllowed(start.Value, MaxAllowedPeriodAgeInYears, 0))
-        {
-            errors.Add(StartDateIsTooOld);
-        }
 
         if (errors.Any())
-        {
             return Task.FromResult((IList<ValidationError>)errors);
-        }
 
-        if (end!.Value.ComesBefore(start.Value))
-        {
-            errors.Add(EndIsBeforeStart);
-        }
+        if (_periodValidator.IsDateOlderThanAllowed(start!.Value, MaxAllowedPeriodAgeInYears, 0))
+            errors.Add(StartDateIsTooOld);
 
-        // There should be no other Resolutions, since they will be rejected by ResolutionValidationRule
-        if (subject.Input.Resolution == Resolution.QuarterHourly.Name)
-        {
-            errors.AddRange(PerformPeriodValidationForQuarterHourlyResolution(start.Value, end.Value));
-        }
-        else if (subject.Input.Resolution == Resolution.Hourly.Name)
-        {
-            errors.AddRange(PerformPeriodValidationForHourlyResolution(start.Value, end.Value));
-        }
-        else if (subject.Input.Resolution == Resolution.Monthly.Name)
-        {
-            errors.AddRange(PerformPeriodValidationForMonthlyResolution(start.Value, end.Value));
-        }
+        if (!start.Value.IsBefore(end!.Value))
+            errors.Add(StartMustBeBeforeEnd);
+
+        errors.AddRange(PeriodValidationForResolution(subject.Input.Resolution, start.Value, end.Value));
 
         return Task.FromResult((IList<ValidationError>)errors);
+    }
+
+    private IList<ValidationError> PeriodValidationForResolution(string? resolution, Instant start, Instant end)
+    {
+        return resolution switch
+        {
+            var res when res == Resolution.QuarterHourly.Name => PerformPeriodValidationForQuarterHourlyResolution(start, end),
+            var res when res == Resolution.Hourly.Name => PerformPeriodValidationForHourlyResolution(start, end),
+            var res when res == Resolution.Monthly.Name => PerformPeriodValidationForMonthlyResolution(start, end),
+            _ => [],
+        };
     }
 
     private IList<ValidationError> PerformPeriodValidationForQuarterHourlyResolution(Instant start, Instant end)
     {
         var errors = new List<ValidationError>();
 
-        if (start.ToUnixTimeTicks() % Duration.FromMinutes(15).TotalTicks != 0)
+        if (start.IsNotMultipleOf(Duration.FromMinutes(15)))
         {
             errors.Add(MinuteIsNotAWholeQuarter.WithPropertyName(nameof(start)));
         }
 
-        if (end.ToUnixTimeTicks() % Duration.FromMinutes(15).TotalTicks != 0)
+        if (end.IsNotMultipleOf(Duration.FromMinutes(15)))
         {
             errors.Add(MinuteIsNotAWholeQuarter.WithPropertyName(nameof(end)));
         }
@@ -148,12 +136,12 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
     {
         var errors = new List<ValidationError>();
 
-        if (start.ToUnixTimeTicks() % Duration.FromHours(1).TotalTicks != 0)
+        if (start.IsNotMultipleOf(Duration.FromHours(1)))
         {
             errors.Add(HourIsNotAWholeHour.WithPropertyName(nameof(start)));
         }
 
-        if (end.ToUnixTimeTicks() % Duration.FromHours(1).TotalTicks != 0)
+        if (end.IsNotMultipleOf(Duration.FromHours(1)))
         {
             errors.Add(HourIsNotAWholeHour.WithPropertyName(nameof(end)));
         }

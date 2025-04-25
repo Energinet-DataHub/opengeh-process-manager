@@ -70,8 +70,7 @@ public static class ProcessManagerClientExtensions
     /// <param name="client"></param>
     /// <param name="orchestrationInstanceId">The id of the orchestration instance, used to find the correct orchestration instance.</param>
     /// <param name="comparer">The comparer method used to determine whether the orchestration instance is in a correct state.</param>
-    public static async Task<(bool Succes, OrchestrationInstanceTypedDto? OrchestrationInstance)>
-        TryWaitForOrchestrationInstance(
+    public static async Task<(bool Success, OrchestrationInstanceTypedDto? OrchestrationInstance)> TryWaitForOrchestrationInstance(
             this IProcessManagerClient client,
             Guid orchestrationInstanceId,
             Func<OrchestrationInstanceTypedDto, bool> comparer)
@@ -108,7 +107,7 @@ public static class ProcessManagerClientExtensions
     /// <param name="client"></param>
     /// <param name="idempotencyKey">The idempotency key of the orchestration instance, used to find the correct orchestration instance.</param>
     /// <param name="terminationState">The termination state the orchestration instance should be in.</param>
-    public static Task<(bool Succes, OrchestrationInstanceTypedDto<TInput>? OrchestrationInstance)> WaitForOrchestrationInstanceTerminated<TInput>(
+    public static Task<(bool Success, OrchestrationInstanceTypedDto<TInput>? OrchestrationInstance)> WaitForOrchestrationInstanceTerminated<TInput>(
         this IProcessManagerClient client,
         string idempotencyKey,
         OrchestrationInstanceTerminationState? terminationState = null)
@@ -130,7 +129,7 @@ public static class ProcessManagerClientExtensions
     /// <param name="client"></param>
     /// <param name="orchestrationInstanceId">The id of the orchestration instance, used to find the correct orchestration instance.</param>
     /// <param name="terminationState">The termination state the orchestration instance should be in.</param>
-    public static Task<(bool Succes, OrchestrationInstanceTypedDto? OrchestrationInstance)> WaitForOrchestrationInstanceTerminated(
+    public static Task<(bool Success, OrchestrationInstanceTypedDto? OrchestrationInstance)> WaitForOrchestrationInstanceTerminated(
         this IProcessManagerClient client,
         Guid orchestrationInstanceId,
         OrchestrationInstanceTerminationState? terminationState = null)
@@ -151,7 +150,7 @@ public static class ProcessManagerClientExtensions
     /// <param name="client"></param>
     /// <param name="idempotencyKey">The idempotency key of the orchestration instance, used to find the correct orchestration instance.</param>
     /// <param name="stepSequence">The sequence number of the step that should be in the <see cref="StepInstanceLifecycleState.Running"/> state.</param>
-    public static Task<(bool Succes, OrchestrationInstanceTypedDto<TInput>? OrchestrationInstance)> WaitForStepToBeRunning<TInput>(
+    public static Task<(bool Success, OrchestrationInstanceTypedDto<TInput>? OrchestrationInstance)> WaitForStepToBeRunning<TInput>(
         this IProcessManagerClient client,
         string idempotencyKey,
         int stepSequence)
@@ -175,7 +174,7 @@ public static class ProcessManagerClientExtensions
     /// <param name="client"></param>
     /// <param name="orchestrationInstanceId">The idempotency key of the orchestration instance, used to find the correct orchestration instance.</param>
     /// <param name="stepSequence">The sequence number of the step that should be in the <see cref="StepInstanceLifecycleState.Running"/> state.</param>
-    public static Task<(bool Succes, OrchestrationInstanceTypedDto? OrchestrationInstance)> WaitForStepToBeRunning<TInput>(
+    public static Task<(bool Success, OrchestrationInstanceTypedDto? OrchestrationInstance)> WaitForStepToBeRunning<TInput>(
         this IProcessManagerClient client,
         Guid orchestrationInstanceId,
         int stepSequence)

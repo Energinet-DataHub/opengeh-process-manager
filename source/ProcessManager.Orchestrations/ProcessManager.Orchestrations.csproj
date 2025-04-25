@@ -10,6 +10,7 @@
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Orchestrations.Tests" />
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.Components.Tests" />
     <InternalsVisibleTo Include="Energinet.DataHub.ProcessManager.SubsystemTests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
   <ItemGroup>

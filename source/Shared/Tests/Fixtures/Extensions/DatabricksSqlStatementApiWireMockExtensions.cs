@@ -15,9 +15,7 @@
 using System.Net;
 using System.Reflection;
 using System.Text;
-using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
-using Microsoft.Azure.Databricks.Client.Models;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -26,7 +24,7 @@ using HeaderNames = Microsoft.Net.Http.Headers.HeaderNames;
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 /// <summary>
-/// A collection of WireMock extensions for easy mock configuration of
+/// A collection of WireMock extensions for mock configuration of
 /// Databricks REST API endpoints.
 ///
 /// IMPORTANT developer tips:
@@ -38,10 +36,12 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 /// </summary>
 public static class DatabricksSqlStatementApiWireMockExtensions
 {
+    public const string MockMeteringPointId = "1234567890123456";
+
     /// <summary>
     /// Setup Databricks api response mocks to be able to respond with calculated measurements
     /// </summary>
-    public static WireMockServer MockCalculatedMeasurementsResponse(
+    public static WireMockServer MockCalculatedMeasurementsQueryResponse(
         this WireMockServer server,
         Func<Guid> getOrchestrationInstanceId)
     {
@@ -228,24 +228,24 @@ public static class DatabricksSqlStatementApiWireMockExtensions
     /// </remarks>>
     private static string DatabricksCalculatedMeasurementsResultMock(Func<Guid> getOrchestrationInstanceId)
     {
-        // Make sure that the order of the data matches the order of the columns defined in 'DatabricksEnergyStatementResponseMock'
+        // Make sure that the order of the data matches the order of the columns defined in 'CalculatedMeasurementsColumnNames'
         var data = GetFieldNames<CalculatedMeasurementsColumnNames>().Select(columnName => columnName switch
         {
-            CalculatedMeasurementsColumnNames.OrchestrationType => $"\"???\"",
+            CalculatedMeasurementsColumnNames.OrchestrationType => "\"???\"",
             CalculatedMeasurementsColumnNames.OrchestrationInstanceId => $"\"{getOrchestrationInstanceId()}\"",
             CalculatedMeasurementsColumnNames.TransactionId => $"\"{Guid.NewGuid()}\"",
             CalculatedMeasurementsColumnNames.TransactionCreationDatetime => "\"2025-04-25T03:00:00.000Z\"",
-            CalculatedMeasurementsColumnNames.MeteringPointId => $"\"1234567890123456\"",
+            CalculatedMeasurementsColumnNames.MeteringPointId => $"\"{MockMeteringPointId}\"",
             CalculatedMeasurementsColumnNames.MeteringPointType => "\"production\"",
             CalculatedMeasurementsColumnNames.ObservationTime => "\"2022-04-25T03:00:00.000Z\"",
-            CalculatedMeasurementsColumnNames.Quantity => $"\"42.123\"",
+            CalculatedMeasurementsColumnNames.Quantity => "\"42.123\"",
             CalculatedMeasurementsColumnNames.QuantityUnit => "\"kWh\"",
             CalculatedMeasurementsColumnNames.QuantityQuality => "\"Calculated\"",
             CalculatedMeasurementsColumnNames.Resolution => "\"PT15M\"",
             _ => throw new ArgumentOutOfRangeException(nameof(columnName), columnName, null),
         }).ToArray();
-        var temp = $"""[[{string.Join(",", data)}]]""";
-        return temp;
+        var jsonArray = $"""[[{string.Join(",", data)}]]""";
+        return jsonArray;
     }
 
     private static List<string> GetFieldNames<TColumnNames>()

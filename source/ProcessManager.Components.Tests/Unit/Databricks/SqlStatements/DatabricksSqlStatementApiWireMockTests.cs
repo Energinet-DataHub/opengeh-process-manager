@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WireMock.Server;
@@ -24,10 +29,12 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlS
 public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
 {
     private readonly WireMockServer _mockServer;
+    private readonly DatabricksSqlWarehouseQueryExecutor _databricksQueryExecutor;
 
     public DatabricksSqlStatementApiWireMockTests()
     {
         _mockServer = WireMockServer.Start(port: 1111);
+        _databricksQueryExecutor = CreateDatabricksExecutor(_mockServer.Url!);
     }
 
     public Task InitializeAsync()
@@ -47,11 +54,40 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
     {
         var orchestrationInstanceId = Guid.NewGuid();
 
+        _mockServer.MockCalculatedMeasurementsQueryResponse(
+            getOrchestrationInstanceId: () => orchestrationInstanceId);
+
         var query = new CalculatedMeasurementsQuery(
             Mock.Of<DatabricksQueryOptions>(),
             orchestrationInstanceId,
             Mock.Of<ILogger<CalculatedMeasurementsQuery>>());
 
-        var result = await query.GetAsync()
+        var result = await query.GetAsync(_databricksQueryExecutor)
+            .ToListAsync();
+
+        Assert.Single(
+            result,
+            r =>
+                r is { IsSuccess: true, Result: not null } &&
+                r.Result.OrchestrationInstanceId == orchestrationInstanceId);
+    }
+
+    private static DatabricksSqlWarehouseQueryExecutor CreateDatabricksExecutor(
+        string workspaceUrl)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["WorkspaceUrl"] = workspaceUrl,
+                ["WarehouseId"] = "dummy",
+                ["WorkspaceToken"] = "dummy",
+            })
+            .Build();
+
+        var serviceProvider = new ServiceCollection()
+            .AddDatabricksSqlStatementExecution(configuration)
+            .BuildServiceProvider();
+
+        return serviceProvider.GetRequiredService<DatabricksSqlWarehouseQueryExecutor>();
     }
 }

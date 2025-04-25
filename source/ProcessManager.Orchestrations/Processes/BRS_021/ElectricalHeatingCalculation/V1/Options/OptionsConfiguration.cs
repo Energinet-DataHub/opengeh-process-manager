@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Application;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,6 +25,11 @@ public class OptionsConfiguration : IOptionsConfiguration
         services
             .AddOptions<OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1>()
             .BindConfiguration(OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.SectionName)
+            .ValidateDataAnnotations();
+
+        services
+            .AddOptions<DatabricksQueryOptions>(name: QueryOptionsSectionNames.ElectricalHeatingQuery)
+            .BindConfiguration(QueryOptionsSectionNames.ElectricalHeatingQuery)
             .ValidateDataAnnotations();
 
         return services;

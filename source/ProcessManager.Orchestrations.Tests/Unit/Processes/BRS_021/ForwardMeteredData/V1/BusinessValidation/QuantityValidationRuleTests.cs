@@ -46,7 +46,7 @@ public class QuantityValidationRuleTests
     {
         var meteredData = new List<ForwardMeteredDataInputV1.MeteredData>
         {
-            CreateMeteredData(position: 1, quantity: "0.1234"),
+            CreateMeteredData(position: 1, quantity: "0,1234"), // TODO: Fix "," to "."
         };
 
         var result = await _sut.ValidateAsync(

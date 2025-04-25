@@ -21,14 +21,17 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class QuantityValidationRule
     : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
+    private const int MaximinNumbersOfIntegers = 10;
+    private const int MaximumNumbersOfDecimals = 3;
+
     public static readonly ValidationError QuantityMustBePositive = new(
         Message: "Kvantum skal være et positivt tal, fejl ved position: {PropertyName} "
                  + "/ Quantity must be a positive number, error at position: {PropertyName}",
         ErrorCode: "E86");
 
     public static readonly ValidationError WrongFormatForQuantity = new(
-        Message: "Kvantum må højst være 10 tal og med max 3 decimaler, fejl ved position: {PropertyName} "
-                 + "/ A maximum of 10 digits and 3 decimals are allowed for quality, error at position: {PropertyName}",
+        Message: $"Kvantum må højst være {MaximinNumbersOfIntegers} tal og med max {MaximumNumbersOfDecimals} decimaler, fejl ved position: {{PropertyName}} "
+                 + $"/ A maximum of {MaximinNumbersOfIntegers} digits and {MaximumNumbersOfDecimals} decimals are allowed for quality, error at position: {{PropertyName}}",
         ErrorCode: "E86");
 
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
@@ -45,10 +48,12 @@ public class QuantityValidationRule
             if (!decimal.TryParse(data.EnergyQuantity, out quantity))
                 errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
-            if (GetDecimalPart(quantity).ToString(CultureInfo.InvariantCulture).Length > 10)
+            if (GetIntegers(quantity).ToString(CultureInfo.InvariantCulture).Length > MaximinNumbersOfIntegers)
                 errors.Add(WrongFormatForQuantity.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
-            // TODO: Check for 4 or more dicimals
+            //if (quantity != Math.Round(quantity, 3))
+            if (GetDecimals(quantity).ToString(CultureInfo.InvariantCulture).Length > MaximumNumbersOfDecimals)
+                errors.Add(WrongFormatForQuantity.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
             if (quantity < 0)
                 errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
@@ -57,7 +62,12 @@ public class QuantityValidationRule
         return Task.FromResult<IList<ValidationError>>(errors);
     }
 
-    private static decimal GetDecimalPart(decimal value)
+    private static decimal GetIntegers(decimal value)
+    {
+        return Math.Floor(value);
+    }
+
+    private static decimal GetDecimals(decimal value)
     {
         return value - Math.Floor(value);
     }

@@ -195,7 +195,7 @@ public class MeteringPointReceiversProvider(
                 break;
             case var _ when meteringPointType == MeteringPointType.Exchange:
                 receivers.AddRange(
-                    meteringPointMasterData.NeighborGridAreaOwners
+                    meteringPointMasterData.CurrentNeighborGridAreaOwners
                         .Select(ActorNumber.Create)
                         .Select(GridAccessProviderReceiver));
                 break;
@@ -220,7 +220,7 @@ public class MeteringPointReceiversProvider(
                 if (meteringPointMasterData.EnergySupplier is not null)
                     receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
 
-                receivers.Add(GridAccessProviderReceiver(meteringPointMasterData.GridAccessProvider));
+                receivers.Add(GridAccessProviderReceiver(meteringPointMasterData.CurrentGridAccessProvider));
                 break;
 
             case var _ when meteringPointType == MeteringPointType.NetProduction:

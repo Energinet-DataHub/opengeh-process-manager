@@ -40,7 +40,7 @@ public class DatabricksJobsClientWiremockTests : IAsyncLifetime
             [$"{_wholesaleSectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = "not-empty",
         });
 
-        Services.AddDatabricksJobs(_wholesaleSectionName);
+        Services.AddDatabricksJobsApi(_wholesaleSectionName);
 
         ServiceProvider = Services.BuildServiceProvider();
         Sut = ServiceProvider.GetRequiredKeyedService<IDatabricksJobsClient>(_wholesaleSectionName);

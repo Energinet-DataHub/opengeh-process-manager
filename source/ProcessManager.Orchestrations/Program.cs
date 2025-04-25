@@ -55,9 +55,10 @@ var host = new HostBuilder()
         services.AddNodaTimeForApplication();
         services.AddServiceBusClientForApplication(context.Configuration);
 
-        // Databricks Workspaces
-        services.AddDatabricksJobs(DatabricksWorkspaceNames.Wholesale);
-        services.AddDatabricksJobs(DatabricksWorkspaceNames.Measurements);
+        // Databricks
+        services.AddDatabricksJobsApi(DatabricksWorkspaceNames.Wholesale);
+        services.AddDatabricksJobsApi(DatabricksWorkspaceNames.Measurements);
+        services.AddDatabricksSqlStatementApi(context.Configuration);
 
         // Enqueue Messages in EDI
         services.AddEnqueueActorMessages(azureCredential);

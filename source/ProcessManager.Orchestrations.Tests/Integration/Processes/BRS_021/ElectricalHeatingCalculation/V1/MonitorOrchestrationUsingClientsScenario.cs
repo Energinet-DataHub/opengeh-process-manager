@@ -89,7 +89,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Calculation_WhenStarted_CanMonitorLifecycle()
+    public async Task Given_StartElectricalHeatingCalculationCommand_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         // Mocking the databricks jobs api, forcing it to return a terminated successful job status
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(

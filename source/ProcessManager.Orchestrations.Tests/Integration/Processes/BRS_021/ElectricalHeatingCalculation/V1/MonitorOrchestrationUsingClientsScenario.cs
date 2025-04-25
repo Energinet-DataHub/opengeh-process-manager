@@ -27,6 +27,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attri
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
@@ -142,27 +143,35 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     Quantity: 1337.42m),
             ]);
 
-        // Step 2: Query until terminated with succeeded
-        var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
-            async () =>
-            {
-                var orchestrationInstance = await processManagerClient
-                    .GetOrchestrationInstanceByIdAsync(
-                        new GetOrchestrationInstanceByIdQuery(
-                            Fixture.DefaultUserIdentity,
-                            orchestrationInstanceId),
-                        CancellationToken.None);
+        // Step 2: Query until terminated
+        var (isTerminated, terminatedOrchestrationInstance) = await processManagerClient
+            .WaitForOrchestrationInstanceTerminated(
+                orchestrationInstanceId: orchestrationInstanceId);
 
-                return
-                    orchestrationInstance.Lifecycle.State == OrchestrationInstanceLifecycleState.Terminated
-                    && orchestrationInstance.Lifecycle.TerminationState == OrchestrationInstanceTerminationState.Succeeded;
-            },
-            timeLimit: TimeSpan.FromSeconds(20),
-            delay: TimeSpan.FromSeconds(3));
+        isTerminated.Should().BeTrue("because the orchestration instance should be terminated within given wait time");
 
-        isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
+        using (_ = new AssertionScope())
+        {
+            // Orchestration instance and all steps should be Succeeded
+            terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
+                .NotBeNull()
+                .And.Be(OrchestrationInstanceTerminationState.Succeeded);
+
+            terminatedOrchestrationInstance.Steps.Should()
+                .AllSatisfy(
+                    s =>
+                    {
+                        s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
+                        s.Lifecycle.TerminationState.Should()
+                            .NotBeNull()
+                            .And.Be(StepInstanceTerminationState.Succeeded);
+                    });
+        }
+
+        // TODO: Assert that messages has been enqueued to EDI
 
         // Step 3: General search using name and termination state
+        // TODO: I'm not sure why this search is relevant in this test?
         var orchestrationInstancesGeneralSearch = await processManagerClient
             .SearchOrchestrationInstancesByNameAsync(
                 new SearchOrchestrationInstancesByNameQuery(

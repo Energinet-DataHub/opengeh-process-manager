@@ -44,7 +44,9 @@ public static class ElectricityMarketViewsWireMockExtensions
             .Create()
             .WithStatusCode(HttpStatusCode.OK)
             .WithHeader(HeaderNames.ContentType, "application/json")
-            .WithBody(JsonSerializer.Serialize(mockData, new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb)));
+            .WithBody(JsonSerializer.Serialize(
+                    mockData,
+                    new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb)));
 
         server
             .Given(request)

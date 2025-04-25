@@ -15,7 +15,7 @@
 using System.Net;
 using System.Reflection;
 using System.Text;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
+using System.Text.Json.Nodes;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -36,39 +36,44 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 /// </summary>
 public static class DatabricksSqlStatementApiWireMockExtensions
 {
-    public const string MockMeteringPointId = "1234567890123456";
-
-    /// <summary>
-    /// Setup Databricks SQL statement API mock to be able to respond to a calculated measurements query
-    /// </summary>
-    public static WireMockServer MockDatabricksCalculatedMeasurementsQueryResponse(
-        this WireMockServer server,
-        Func<Guid> getOrchestrationInstanceId)
-    {
-        return server
-            .MockDatabricksSqlStatementApi<CalculatedMeasurementsColumnNames>(
-                getMockedResponseJson: () => DatabricksCalculatedMeasurementsResultMock(getOrchestrationInstanceId));
-    }
+    // /// <summary>
+    // /// Setup Databricks SQL statement API mock to be able to respond to a calculated measurements query
+    // /// </summary>
+    // public static WireMockServer MockDatabricksCalculatedMeasurementsQueryResponse(
+    //     this WireMockServer server,
+    //     Func<Guid> getOrchestrationInstanceId)
+    // {
+    //     return server
+    //         .MockDatabricksSqlStatementApi<CalculatedMeasurementsColumnNames>(
+    //             getMockedResponseJson: () => DatabricksCalculatedMeasurementsResultMock(getOrchestrationInstanceId));
+    // }
 
     /// <summary>
     /// Setup Databricks SQL statement api mock.
     /// </summary>
     /// <param name="server"></param>
-    /// <param name="getMockedResponseJson">Should return a JSON array of values that has the same order as the column name properties in <typeparamref name="TColumnNames"/>.</param>
-    /// <typeparam name="TColumnNames">A type only containing string fields symbolizing the name of the mocked columns. See <see cref="CalculatedMeasurementsColumnNames"/> for an example.</typeparam>
-    public static WireMockServer MockDatabricksSqlStatementApi<TColumnNames>(
+    /// <param name="mockData">The mock data to return.</param>
+    /// <param name="columnNameToStringValueConverter">
+    /// A method that takes an instance of <typeparamref name="TMockData"/> and a column name, and must return
+    /// the string value for the column, for the given input.
+    /// See DatabricksSqlStatementApiWireMockTests.ColumnNameToStringValueConverter for an example.
+    /// </param>
+    /// <typeparam name="TColumnNames">A type only containing string fields symbolizing the name of the mocked columns. See ExampleQueryColumnNames for an example.</typeparam>
+    /// <typeparam name="TMockData">The mock data type, which should have the same columns as the fields in <typeparamref name="TColumnNames"/>. See ExampleQuery.ExampleQueryData for an example.</typeparam>
+    public static WireMockServer MockDatabricksSqlStatementApi<TColumnNames, TMockData>(
         this WireMockServer server,
-        Func<string> getMockedResponseJson)
+        IEnumerable<TMockData> mockData,
+        Func<TMockData, string, string> columnNameToStringValueConverter)
     {
         // => Databricks SQL Statement API
-        var chunkIndex = 0;
+        const int chunkIndex = 0;
         var statementId = Guid.NewGuid().ToString();
-        var dataUrlPath = "GetDatabricksDataPath";
+        const string dataUrlPath = "GetDatabricksDataPath";
 
         server
             .MockSqlStatements<TColumnNames>(statementId, chunkIndex)
             .MockSqlStatementsResultChunks(statementId, chunkIndex, dataUrlPath)
-            .MockSqlStatementsResultStream(dataUrlPath, getMockedResponseJson);
+            .MockSqlStatementsResultStream(dataUrlPath, () => GetMockedDataAsJsonBody<TColumnNames, TMockData>(mockData, columnNameToStringValueConverter));
 
         return server;
     }
@@ -234,38 +239,66 @@ public static class DatabricksSqlStatementApiWireMockExtensions
         return server;
     }
 
-    /// <summary>
-    /// Creates a JSON response of a single row in the energy databricks table.
-    /// This is the data that is fetched from the 'external_link' defined in the 'DatabricksEnergyStatementExternalLinkResponseMock'.
-    /// </summary>
-    /// <remarks>
-    /// Note that QuantityQualities is a string, containing a list of strings.
-    /// </remarks>>
-    private static string DatabricksCalculatedMeasurementsResultMock(Func<Guid> getOrchestrationInstanceId)
-    {
-        // Make sure that the order of the data matches the order of the columns defined in 'CalculatedMeasurementsColumnNames'
-        var data = GetFieldNames<CalculatedMeasurementsColumnNames>().Select(columnName => columnName switch
-        {
-            CalculatedMeasurementsColumnNames.OrchestrationType => "\"???\"",
-            CalculatedMeasurementsColumnNames.OrchestrationInstanceId => $"\"{getOrchestrationInstanceId()}\"",
-            CalculatedMeasurementsColumnNames.TransactionId => $"\"{Guid.NewGuid()}\"",
-            CalculatedMeasurementsColumnNames.TransactionCreationDatetime => "\"2025-04-25T03:00:00.000Z\"",
-            CalculatedMeasurementsColumnNames.MeteringPointId => $"\"{MockMeteringPointId}\"",
-            CalculatedMeasurementsColumnNames.MeteringPointType => "\"production\"",
-            CalculatedMeasurementsColumnNames.ObservationTime => "\"2022-04-25T03:00:00.000Z\"",
-            CalculatedMeasurementsColumnNames.Quantity => "\"42.123\"",
-            CalculatedMeasurementsColumnNames.QuantityUnit => "\"kWh\"",
-            CalculatedMeasurementsColumnNames.QuantityQuality => "\"Calculated\"",
-            CalculatedMeasurementsColumnNames.Resolution => "\"PT15M\"",
-            _ => throw new ArgumentOutOfRangeException(nameof(columnName), columnName, null),
-        }).ToArray();
-        var jsonArray = $"""[[{string.Join(",", data)}]]""";
-        return jsonArray;
-    }
+    // /// <summary>
+    // /// Creates a JSON response of a single row in the energy databricks table.
+    // /// This is the data that is fetched from the 'external_link' defined in the 'DatabricksEnergyStatementExternalLinkResponseMock'.
+    // /// </summary>
+    // /// <remarks>
+    // /// Note that QuantityQualities is a string, containing a list of strings.
+    // /// </remarks>>
+    // private static string DatabricksCalculatedMeasurementsResultMock(Func<Guid> getOrchestrationInstanceId)
+    // {
+    //     // Make sure that the order of the data matches the order of the columns defined in 'CalculatedMeasurementsColumnNames'
+    //     var data = GetFieldNames<CalculatedMeasurementsColumnNames>().Select(columnName => columnName switch
+    //     {
+    //         CalculatedMeasurementsColumnNames.OrchestrationType => "\"???\"",
+    //         CalculatedMeasurementsColumnNames.OrchestrationInstanceId => $"\"{getOrchestrationInstanceId()}\"",
+    //         CalculatedMeasurementsColumnNames.TransactionId => $"\"{Guid.NewGuid()}\"",
+    //         CalculatedMeasurementsColumnNames.TransactionCreationDatetime => "\"2025-04-25T03:00:00.000Z\"",
+    //         CalculatedMeasurementsColumnNames.MeteringPointId => $"\"{MockMeteringPointId}\"",
+    //         CalculatedMeasurementsColumnNames.MeteringPointType => "\"production\"",
+    //         CalculatedMeasurementsColumnNames.ObservationTime => "\"2022-04-25T03:00:00.000Z\"",
+    //         CalculatedMeasurementsColumnNames.Quantity => "\"42.123\"",
+    //         CalculatedMeasurementsColumnNames.QuantityUnit => "\"kWh\"",
+    //         CalculatedMeasurementsColumnNames.QuantityQuality => "\"Calculated\"",
+    //         CalculatedMeasurementsColumnNames.Resolution => "\"PT15M\"",
+    //         _ => throw new ArgumentOutOfRangeException(nameof(columnName), columnName, null),
+    //     }).ToArray();
+    //     var jsonArray = $"""[[{string.Join(",", data)}]]""";
+    //     return jsonArray;
+    // }
 
     private static List<string> GetFieldNames<TColumnNames>()
     {
         var fieldInfos = typeof(TColumnNames).GetFields(BindingFlags.Public | BindingFlags.Static);
         return fieldInfos.Select(x => x.GetValue(null)).Cast<string>().ToList();
+    }
+
+    private static string GetMockedDataAsJsonBody<TColumnNames, TMockData>(
+        IEnumerable<TMockData> mockData,
+        Func<TMockData, string, string> columnNameToStringValueConverter)
+    {
+        var jsonRowValueArray = mockData.Select(
+                d =>
+                {
+                    var columnNames = GetFieldNames<TColumnNames>();
+                    var columnStringValues = columnNames.Select(
+                        columnName => columnNameToStringValueConverter(d, columnName));
+
+                    var columnValuesAsJsonNodes = columnStringValues
+                        .Select(v => JsonValue.Create(v))
+                        .ToArray<JsonNode>();
+
+                    var columnValuesAsJsonArray = new JsonArray(columnValuesAsJsonNodes);
+
+                    return columnValuesAsJsonArray;
+                })
+            .ToArray<JsonNode>();
+
+        var jsonArray = new JsonArray(jsonRowValueArray);
+
+        var jsonArrayString = jsonArray.ToJsonString();
+
+        return jsonArrayString;
     }
 }

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Globalization;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
+using Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,30 +53,50 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
     public async Task Given_MockDatabricksSqlStatementApi_When_QueryingCalculatedMeasurements_Then_ReturnsMockedData()
     {
         // Given mocked Databricks SQL statement API
-        var orchestrationInstanceId = Guid.NewGuid();
+        var mockData = new List<ExampleQuery.ExampleQuery.ExampleQueryData>
+        {
+            new(Guid.NewGuid(), 123.45m),
+            new(Guid.NewGuid(), 1337.42m),
+        };
 
-        _mockServer.MockDatabricksCalculatedMeasurementsQueryResponse(
-            getOrchestrationInstanceId: () => orchestrationInstanceId);
+        _mockServer.MockDatabricksSqlStatementApi<ExampleQueryColumnNames, ExampleQuery.ExampleQuery.ExampleQueryData>(
+            mockData,
+            ColumnNameToStringValueConverter);
 
-        var query = new CalculatedMeasurementsQuery(
+        var query = new ExampleQuery.ExampleQuery(
             logger: Mock.Of<ILogger>(),
-            databricksOptions: Mock.Of<DatabricksQueryOptions>(),
-            orchestrationInstanceId: orchestrationInstanceId);
+            queryOptions: Mock.Of<DatabricksQueryOptions>(),
+            orchestrationInstanceId: Guid.NewGuid());
 
         // When querying calculated measurements
         var queryResults = await query.GetAsync(_databricksQueryExecutor)
             .ToListAsync();
 
         // Then returns mocked data
-        var queryResult = Assert.Single(queryResults);
+        Assert.All(
+            queryResults,
+            result =>
+            {
+                Assert.Multiple(
+                    () => Assert.True(result.IsSuccess),
+                    () => Assert.NotNull(result.Result));
+            });
 
-        Assert.Multiple(
-            () => Assert.True(queryResult.IsSuccess),
-            () => Assert.NotNull(queryResult.Result));
+        var queryResultsData = queryResults
+            .Select(r => r.Result!)
+            .ToList();
 
-        Assert.Multiple(
-            () => Assert.Equal(orchestrationInstanceId, queryResult.Result!.OrchestrationInstanceId),
-            () => Assert.Equal(DatabricksSqlStatementApiWireMockExtensions.MockMeteringPointId, queryResult.Result!.MeteringPointId));
+        Assert.Equal(mockData, queryResultsData);
+    }
+
+    private static string ColumnNameToStringValueConverter(ExampleQuery.ExampleQuery.ExampleQueryData data, string columnName)
+    {
+        return columnName switch
+        {
+            ExampleQueryColumnNames.Id => data.Id.ToString(),
+            ExampleQueryColumnNames.Value => data.Value.ToString(CultureInfo.InvariantCulture),
+            _ => throw new ArgumentOutOfRangeException(nameof(columnName), columnName, null),
+        };
     }
 
     private static DatabricksSqlWarehouseQueryExecutor CreateDatabricksExecutor(

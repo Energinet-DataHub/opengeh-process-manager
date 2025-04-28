@@ -59,10 +59,10 @@ public class QuantityValidationRule
                 continue;
             }
 
-            if (GetNumberIntegers(quantity) > MaximinNumbersOfIntegers)
+            if (GetNumberOfIntegers(quantity) > MaximinNumbersOfIntegers)
                 errors.Add(MaxNumberOfIntegers.WithPropertyName(data.Position!));
 
-            if (GetNumberDecimals(quantity) > MaximumNumbersOfDecimals)
+            if (GetNumberOfDecimals(quantity) > MaximumNumbersOfDecimals)
                 errors.Add(MaxNumberOfDecimals.WithPropertyName(data.Position!));
 
             if (quantity < 0)
@@ -72,12 +72,12 @@ public class QuantityValidationRule
         return Task.FromResult<IList<ValidationError>>(errors);
     }
 
-    private static int GetNumberIntegers(decimal value)
+    private static int GetNumberOfIntegers(decimal value)
     {
         return Math.Truncate(value).ToString(_culture).Length;
     }
 
-    private static int GetNumberDecimals(decimal value)
+    private static int GetNumberOfDecimals(decimal value)
     {
         return value.Scale;
     }

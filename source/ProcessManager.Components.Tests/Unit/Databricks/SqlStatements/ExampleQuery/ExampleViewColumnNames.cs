@@ -17,7 +17,7 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlS
 /// <summary>
 /// The column names in the example databricks view.
 /// </summary>
-public class ExampleViewColumnNames
+internal class ExampleViewColumnNames
 {
     public const string Id = "id";
     public const string Value = "value";

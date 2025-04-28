@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;
 
-public class ExampleQuery(
+internal class ExampleQuery(
     ILogger logger,
     ExampleViewSchemaDescription schemaDescription,
     Guid orchestrationInstanceId)

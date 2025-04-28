@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;
 
-public class ExampleViewSchemaDescription(
+internal class ExampleViewSchemaDescription(
     DatabricksQueryOptions queryOptions) :
         SchemaDescriptionBase(
             queryOptions)

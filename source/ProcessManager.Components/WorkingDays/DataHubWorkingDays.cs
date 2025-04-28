@@ -20,7 +20,6 @@ public class DataHubWorkingDays
 {
     private readonly IClock _clock;
     private readonly DateTimeZone _zone;
-    private ZonedDateTime _currentDate;
     private ZonedDateTime _easterSunday;
 
     public DataHubWorkingDays(IClock clock, DateTimeZone zone)
@@ -33,21 +32,20 @@ public class DataHubWorkingDays
     {
         var direction = count < 0 ? -1 : 1;
         var remainingDays = Math.Abs(count);
-        _currentDate = _clock.GetCurrentInstant().InZone(_zone);
-        _easterSunday = CalculateEaster(_currentDate.Year);
-        var date = _currentDate;
+        var currentDate = _clock.GetCurrentInstant().InZone(_zone);
+        _easterSunday = CalculateEaster(currentDate.Year);
 
         while (remainingDays > 0)
         {
-            date = date.Plus(Duration.FromDays(direction));
-            if (IsDataHubWorkingDay(date))
+            currentDate = currentDate.Plus(Duration.FromDays(direction));
+            if (IsDataHubWorkingDay(currentDate))
             {
-                Console.WriteLine(date);
+                Console.WriteLine(currentDate);
                 remainingDays--;
             }
         }
 
-        return date.ToInstant().InZone(_zone);
+        return currentDate.ToInstant().InZone(_zone);
     }
 
     private bool IsDataHubWorkingDay(ZonedDateTime zonedDateTime)
@@ -58,11 +56,11 @@ public class DataHubWorkingDays
         if (zonedDateTime.DayOfWeek is IsoDayOfWeek.Saturday or IsoDayOfWeek.Sunday)
             return false;
 
-        // The 1st of January.
+        // New years day (Nytårsdag).
         if (zonedDateTime is { Month: 1, Day: 1 })
             return false;
 
-        // Maundy Thursday (Skærtorsdag), Good Friday (Langfredag), Easter Monday (2. Påskedag).
+        // Maundy Thursday (Skærtorsdag), Good Friday (Langfredag), and Easter Monday (2. Påskedag).
         if (_easterSunday.Minus(Duration.FromDays(3)) == zonedDateTime ||
             _easterSunday.Minus(Duration.FromDays(2)) == zonedDateTime ||
             _easterSunday.Plus(Duration.FromDays(1)) == zonedDateTime)
@@ -70,12 +68,12 @@ public class DataHubWorkingDays
             return false;
         }
 
-        // Pentecost Monday (2. Pinsedag). It is always 50 days after Easter Sunday.
+        // Pentecost Monday (2. Pinsedag). Pentecost Monday is always 50 days after Easter Sunday.
         // https://natmus.dk/historisk-viden/temaer/fester-og-traditioner/pinse/
         if (_easterSunday.Plus(Duration.FromDays(50)) == zonedDateTime)
             return false;
 
-        // 24th, 25th, 26th and 31st of December.
+        // Christmas and New Year. 24th, 25th, 26th, and 31st of December.
         if (zonedDateTime is { Month: 12, Day: 24 or 25 or 26 or 31 })
             return false;
 

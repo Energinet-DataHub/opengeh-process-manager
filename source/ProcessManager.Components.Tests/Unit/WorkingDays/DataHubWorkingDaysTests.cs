@@ -23,17 +23,16 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.WorkingDays;
 public class DataHubWorkingDaysTests
 {
     [Theory]
-    [InlineData(2025, 4, 27, 22, 0, 2025, 4, 21, 22, 0, -4)] // 28th of April 2025 -> 23rd of April 2025 (Weekend)
-    [InlineData(2025, 4, 21, 22, 0, 2025, 4, 10, 22, 0, -4)] // 22nd of April 2025 -> 15th of April 2025 (Easter)
-    // [InlineData(2025, 7, 2, 22, 0, 2025, 7, 2, 22, 0)] // 2nd of July 2025 22:00 -> 2nd of July 2025 22:00
-    // [InlineData(2025, 7, 2, 22, 1, 2025, 7, 2, 22, 0)] // 2nd of July 2025 22:01 -> 2nd of July 2025 22:00
-    // [InlineData(2025, 7, 2, 23, 1, 2025, 7, 2, 22, 0)] // 2nd of July 2025 23:01 -> 2nd of July 2025 22:00
-    // [InlineData(2025, 7, 2, 21, 1, 2025, 7, 1, 22, 0)] // 2nd of July 2025 21:01 -> 1st of July 2025 22:00
-    // [InlineData(2025, 1, 1, 1, 1, 2024, 12, 31, 23, 0)] // 1st of January 2025 01:01 -> 31st of December 2024 23:00
-    // [InlineData(2024, 2, 29, 1, 1, 2024, 2, 28, 23, 0)] // 29th of February 2024 01:01 -> 28th of February 2024 23:00 Leap year
-    // [InlineData(2024, 3, 1, 1, 1, 2024, 2, 29, 23, 0)] // 1st of March 2024 01:01 -> 29th of February 2024 23:00 Leap year
-    // [InlineData(2024, 3, 1, 0, 1, 2024, 2, 29, 23, 0)] // 1st of March 2024 00:01 -> 29th of February 2024 23:00 Leap year
-    // [InlineData(2024, 3, 1, 0, 0, 2024, 2, 29, 23, 0)] // 1st of March 2024 00:00 -> 29th of February 2024 23:00 Leap year
+    // Basis tests
+    [InlineData(2025, 4, 27, 22, 0, 2025, 4, 27, 22, 0, 0)] // 0 working days back or forward: 28th of April 2025 -> 28th of April 2025
+    [InlineData(2025, 4, 24, 22, 0, 2025, 4, 27, 22, 0, 1)] // 1 working day forward: 25th of April 2025 -> 28th of April 2025 (Weekend)
+    // Summer time
+    [InlineData(2025, 4, 27, 22, 0, 2025, 4, 21, 22, 0, -4)] // 4 working days back: 28th of April 2025 -> 22nd of April 2025 (Weekend)
+    [InlineData(2025, 4, 21, 22, 0, 2025, 4, 10, 22, 0, -4)] // 4 working days back: 22nd of April 2025 -> 11th of April 2025 (Easter)
+    [InlineData(2025, 6, 10, 22, 0, 2025, 6, 3, 22, 0, -4)] // 4 working days back: 11th of June 2025 -> 4th of June 2025 (Pentecost Monday)
+    // Winter time
+    [InlineData(2024, 12, 26, 23, 0, 2024, 12, 17, 23, 0, -4)] // 4 working days back: 27th of December 2024 -> 18th of December 2024 (Christmas)
+    [InlineData(2024, 3, 4, 23, 0, 2024, 2, 27, 23, 0, -4)] // 4 working days back: 5th of Marts 2024 -> 28th of Marts 2024 (leap year)
     public void GetWorkingDay_WhenCount_ReturnsWorkingDateRelativeToToday(
         int actualYear,
         int actualMonth,
@@ -49,10 +48,10 @@ public class DataHubWorkingDaysTests
     {
         // Arrange
         var zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
-        var date = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, actualMinute);
+        var testDate = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, actualMinute);
         var expected = Instant.FromUtc(expectedYear, expectedMonth, expectedDay, expectedHour, expectedMinute).InZone(zone);
         var clock = new Mock<IClock>();
-        clock.Setup(x => x.GetCurrentInstant()).Returns(date);
+        clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
         var sut = new DataHubWorkingDays(clock.Object, zone);
 
         // Act

@@ -13,35 +13,26 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
-using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;
 
-public class ExampleQuery(
+internal class ExampleQuery(
     ILogger logger,
-    DatabricksQueryOptions queryOptions,
+    ExampleViewSchemaDescription schemaDescription,
     Guid orchestrationInstanceId)
-        : QueryBase<ExampleQueryRowData>(logger, queryOptions, orchestrationInstanceId)
+        : QueryBase<ExampleQueryRowData, ExampleViewSchemaDescription>(
+            logger,
+            schemaDescription,
+            orchestrationInstanceId)
 {
-    public override string DataObjectName => "doesn't matter because result is mocked";
-
-    /// <summary>
-    /// Must be equal (including the order) to <see cref="ExampleQueryColumnNames"/>.
-    /// </summary>
-    public override Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => new()
-    {
-        { ExampleQueryColumnNames.Id,    (DeltaTableCommonTypes.String,      false) },
-        { ExampleQueryColumnNames.Value, (DeltaTableCommonTypes.Decimal18x3, false) },
-    };
-
     protected override Task<QueryResult<ExampleQueryRowData>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> currentGroupOfRows)
     {
         var row = currentGroupOfRows.Single();
 
         var rowData = new ExampleQueryRowData(
-            Id: row.ToGuid(ExampleQueryColumnNames.Id),
-            Value: row.ToDecimal(ExampleQueryColumnNames.Value));
+            Id: row.ToGuid(ExampleViewColumnNames.Id),
+            Value: row.ToDecimal(ExampleViewColumnNames.Value));
 
         var rowDataResult = QueryResult<ExampleQueryRowData>.Success(rowData);
 

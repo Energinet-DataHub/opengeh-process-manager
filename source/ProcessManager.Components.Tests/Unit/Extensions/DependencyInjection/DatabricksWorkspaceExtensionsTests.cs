@@ -49,7 +49,7 @@ public class DatabricksWorkspaceExtensionsTests
         });
 
         // Act
-        Services.AddDatabricksJobs();
+        Services.AddDatabricksJobsApi();
 
         // Assert
         using var assertionScope = new AssertionScope();
@@ -89,7 +89,7 @@ public class DatabricksWorkspaceExtensionsTests
         });
 
         // Act
-        Services.AddDatabricksJobs(configSectionPath: sectionName);
+        Services.AddDatabricksJobsApi(configSectionPath: sectionName);
 
         // Assert
         using var assertionScope = new AssertionScope();
@@ -134,8 +134,8 @@ public class DatabricksWorkspaceExtensionsTests
             [$"{measurementsSectionName}:{nameof(DatabricksWorkspaceOptions.Token)}"] = TokenFake,
         });
 
-        Services.AddDatabricksJobs(configSectionPath: wholesaleSectionName);
-        Services.AddDatabricksJobs(configSectionPath: measurementsSectionName);
+        Services.AddDatabricksJobsApi(configSectionPath: wholesaleSectionName);
+        Services.AddDatabricksJobsApi(configSectionPath: measurementsSectionName);
 
         // Act
         Services.AddTransient<WholesaleClientStub>();

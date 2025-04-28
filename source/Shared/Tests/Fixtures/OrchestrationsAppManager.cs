@@ -15,7 +15,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
-using Energinet.DataHub.Core.FunctionApp.TestCommon;
+using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ResourceProvider;
@@ -240,6 +240,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
                 useMockServer ? MockServer.Url! : IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl
             },
+            {
+                $"{nameof(DatabricksSqlStatementOptions.WorkspaceUrl)}",
+                useMockServer ? MockServer.Url! : IntegrationTestConfiguration.DatabricksSettings.WorkspaceUrl
+            },
         });
     }
 
@@ -387,17 +391,31 @@ public class OrchestrationsAppManager : IAsyncDisposable
             integrationEventTopicResources.SharedTopic.Name);
 
         // => Databricks workspaces
+        // Databricks jobs API for Wholesale
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
             MockServer.Url!); // Default to use MockServer
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Wholesale}__{nameof(DatabricksWorkspaceOptions.Token)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
+
+        // Databricks jobs API for Measurement
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.BaseUrl)}",
             MockServer.Url!); // Default to use MockServer
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{DatabricksWorkspaceNames.Measurements}__{nameof(DatabricksWorkspaceOptions.Token)}",
+            IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
+
+        // Databricks SQL statement API
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{nameof(DatabricksSqlStatementOptions.WorkspaceUrl)}",
+            MockServer.Url!); // Default to use MockServer
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{nameof(DatabricksSqlStatementOptions.WarehouseId)}",
+            IntegrationTestConfiguration.DatabricksSettings.WarehouseId);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{nameof(DatabricksSqlStatementOptions.WorkspaceToken)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
 
         // => BRS 023 027 options

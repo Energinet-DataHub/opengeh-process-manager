@@ -61,7 +61,7 @@ internal class CalculatedMeasurementsQuery(
 
     protected override bool BelongsToSameGroup(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow)
     {
-        return previousRow?.ToGuid(CalculatedMeasurementsColumnNames.TransactionId) == currentRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
+        return previousRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId) == currentRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
     }
 
     protected override string BuildSqlQuery()

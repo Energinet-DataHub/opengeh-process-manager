@@ -448,7 +448,7 @@ public class StartForwardMeteredDataHandlerV1(
 
     private Point MapPoints(ForwardMeteredDataInputV1.MeteredData eo)
     {
-        var quality = string.IsNullOrWhiteSpace(eo.QuantityQuality)
+        var quality = eo.QuantityQuality is null
             ? Quality.AsProvided
             : Quality.FromName(eo.QuantityQuality);
         return new Point(

@@ -16,17 +16,28 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 
+/// <summary>
+/// Contains information about a Databricks delta table schema.
+/// </summary>
 public abstract class SchemaDescriptionBase(
-    DatabricksQueryOptions queryOptions) :
-        IDeltaTableSchemaDescription
+    DatabricksQueryOptions queryOptions)
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Name of database.
+    /// </summary>
     public string DatabaseName => $"{queryOptions.CatalogName}.{queryOptions.DatabaseName}";
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Name of view or table.
+    /// </summary>
     public abstract string DataObjectName { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The schema definition of the view or table expressed as (Column name, Data type, Is nullable).
+    /// </summary>
+    /// <remarks>
+    /// Can be used in tests to create a matching data object (e.g. table).
+    /// </remarks>
     public abstract Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition { get; }
 
     /// <summary>

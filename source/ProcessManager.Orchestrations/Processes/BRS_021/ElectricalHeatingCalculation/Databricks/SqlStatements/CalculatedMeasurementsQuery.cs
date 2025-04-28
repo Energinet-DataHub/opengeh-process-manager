@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements.Mappers;
-using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements.Model;
 using Microsoft.Extensions.Logging;
 
@@ -22,34 +21,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 
 internal class CalculatedMeasurementsQuery(
     ILogger logger,
-    DatabricksQueryOptions databricksOptions,
+    CalculatedMeasurementsSchemaDescription schemaDescription,
     Guid orchestrationInstanceId) :
-        QueryBase<CalculatedMeasurement>(
+        QueryBase<CalculatedMeasurement, CalculatedMeasurementsSchemaDescription>(
             logger,
-            databricksOptions,
+            schemaDescription,
             orchestrationInstanceId)
 {
-    public override string DataObjectName => "calculated_measurements_v1";
-
-    /// <summary>
-    /// The columns in the Databricks schema.
-    /// <remarks>Must be equal (including the order) to <see cref="CalculatedMeasurementsColumnNames"/>.</remarks>
-    /// </summary>
-    public override Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => new()
-    {
-        { CalculatedMeasurementsColumnNames.OrchestrationType,              (DeltaTableCommonTypes.String,      false) },
-        { CalculatedMeasurementsColumnNames.OrchestrationInstanceId,        (DeltaTableCommonTypes.String,      false) },
-        { CalculatedMeasurementsColumnNames.TransactionId,                  (DeltaTableCommonTypes.String,      false) },
-        { CalculatedMeasurementsColumnNames.TransactionCreationDatetime,    (DeltaTableCommonTypes.Timestamp,   false) },
-        { CalculatedMeasurementsColumnNames.MeteringPointId,                (DeltaTableCommonTypes.String,      false) },
-        { CalculatedMeasurementsColumnNames.MeteringPointType,              (DeltaTableCommonTypes.String,      false) },
-        { CalculatedMeasurementsColumnNames.ObservationTime,                (DeltaTableCommonTypes.Timestamp,   false) },
-        { CalculatedMeasurementsColumnNames.Quantity,                       (DeltaTableCommonTypes.Decimal18x3, false) },
-        { CalculatedMeasurementsColumnNames.QuantityUnit,                   (DeltaTableCommonTypes.String,      false) },
-        { CalculatedMeasurementsColumnNames.QuantityQuality,                (DeltaTableCommonTypes.String,      false) },
-        { CalculatedMeasurementsColumnNames.Resolution,                     (DeltaTableCommonTypes.String,      false) },
-    };
-
     protected override Task<QueryResult<CalculatedMeasurement>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> groupOfRows)
     {
         var firstRow = groupOfRows.First();
@@ -83,16 +61,14 @@ internal class CalculatedMeasurementsQuery(
 
     protected override bool BelongsToSameGroup(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow)
     {
-        return previousRow?.ToGuid(CalculatedMeasurementsColumnNames.TransactionId) == currentRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
+        return previousRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId) == currentRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId);
     }
 
     protected override string BuildSqlQuery()
     {
-        var columnNames = SchemaDefinition.Keys.ToArray();
-
         return $"""
-            SELECT {string.Join(", ", columnNames)}
-            FROM {DatabaseName}.{DataObjectName}
+            SELECT {string.Join(", ", SchemaDescription.Columns)}
+            FROM {SchemaDescription.DatabaseName}.{SchemaDescription.DataObjectName}
             WHERE {CalculatedMeasurementsColumnNames.OrchestrationInstanceId} = '{OrchestrationInstanceId}'
             ORDER BY {CalculatedMeasurementsColumnNames.TransactionId}, {CalculatedMeasurementsColumnNames.ObservationTime}
             """;

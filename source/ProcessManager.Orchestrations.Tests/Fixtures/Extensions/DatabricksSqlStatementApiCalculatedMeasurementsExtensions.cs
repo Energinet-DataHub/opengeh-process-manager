@@ -13,8 +13,10 @@
 // limitations under the License.
 
 using System.Globalization;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Moq;
 using NodaTime;
 using NodaTime.Text;
 using WireMock.Server;
@@ -30,14 +32,17 @@ public static class DatabricksSqlStatementApiCalculatedMeasurementsExtensions
         this WireMockServer server,
         List<CalculatedMeasurementsRowData> mockData)
     {
+        var schemaDescription = new CalculatedMeasurementsSchemaDescription(Mock.Of<DatabricksQueryOptions>());
+
         return server
-            .MockDatabricksSqlStatementApi<CalculatedMeasurementsColumnNames, CalculatedMeasurementsRowData>(
+            .MockDatabricksSqlStatementApi<CalculatedMeasurementsRowData>(
+                schemaDescription.Columns,
                 mockData,
                 ColumnNameToStringValueConverter);
     }
 
     /// <summary>
-    /// This method should map the mock data for all columns names in <see cref="CalculatedMeasurementsColumnNames"/>.
+    /// This method should map the mock data for all columns names in <see cref="CalculatedMeasurementsSchemaDescription"/>.
     /// </summary>
     /// <param name="data"></param>
     /// <param name="columnName"></param>

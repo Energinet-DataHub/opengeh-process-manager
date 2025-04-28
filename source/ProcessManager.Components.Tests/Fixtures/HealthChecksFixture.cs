@@ -60,7 +60,7 @@ public sealed class HealthChecksFixture : IDisposable
                 services.AddRouting();
 
                 // Register Databricks Jobs with health check
-                services.AddDatabricksJobs();
+                services.AddDatabricksJobsApi();
             })
             .Configure(app =>
             {

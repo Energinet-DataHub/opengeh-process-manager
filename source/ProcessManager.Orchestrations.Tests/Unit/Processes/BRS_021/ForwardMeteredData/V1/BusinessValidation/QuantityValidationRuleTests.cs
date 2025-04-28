@@ -33,6 +33,7 @@ public class QuantityValidationRuleTests
             CreateMeteredData(position: 3, quantity: "1234567890"),
             CreateMeteredData(position: 4, quantity: "1234567890.123"),
             CreateMeteredData(position: 5, quantity: null),
+            CreateMeteredData(position: 6, quantity: "  2  "), // the spaces must be there.
         };
 
         var result = await _sut.ValidateAsync(

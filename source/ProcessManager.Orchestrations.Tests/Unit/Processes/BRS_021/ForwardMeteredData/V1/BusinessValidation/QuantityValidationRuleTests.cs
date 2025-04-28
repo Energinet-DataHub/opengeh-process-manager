@@ -79,7 +79,7 @@ public class QuantityValidationRuleTests
                 []));
 
         result.Should().ContainSingle()
-            .And.Contain(QuantityValidationRule.MaxMenberOfDecimals.WithPropertyName("1"));
+            .And.Contain(QuantityValidationRule.MaxNumberOfDecimals.WithPropertyName("1"));
     }
 
     [Fact]
@@ -121,10 +121,10 @@ public class QuantityValidationRuleTests
         result.Should().HaveCount(5)
             .And.BeEquivalentTo([
                 QuantityValidationRule.MaxNumberOfIntegers.WithPropertyName("1"),
-                QuantityValidationRule.MaxMenberOfDecimals.WithPropertyName("1"),
+                QuantityValidationRule.MaxNumberOfDecimals.WithPropertyName("1"),
                 QuantityValidationRule.QuantityMustBePositive.WithPropertyName("2"),
                 QuantityValidationRule.QuantityMustBePositive.WithPropertyName("3"),
-                QuantityValidationRule.MaxMenberOfDecimals.WithPropertyName("3")
+                QuantityValidationRule.MaxNumberOfDecimals.WithPropertyName("3")
                 ]);
     }
 

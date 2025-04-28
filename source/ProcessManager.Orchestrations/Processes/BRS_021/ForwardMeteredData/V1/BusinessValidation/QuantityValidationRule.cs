@@ -34,7 +34,7 @@ public class QuantityValidationRule
                  + $"/ A maximum of {MaximinNumbersOfIntegers} digits, error at position: {{PropertyName}}",
         ErrorCode: "E89");
 
-    public static readonly ValidationError MaxMenberOfDecimals = new(
+    public static readonly ValidationError MaxNumberOfDecimals = new(
         Message: $"Kvantum må højst have {MaximumNumbersOfDecimals} decimaler, fejl ved position: {{PropertyName}}"
                  + $"/ A maximum of {MaximumNumbersOfDecimals} decimals, error at position: {{PropertyName}}",
         ErrorCode: "E89");
@@ -50,25 +50,24 @@ public class QuantityValidationRule
         {
             if (data.EnergyQuantity == null)
             {
-                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!));
                 continue;
             }
 
-            decimal quantity;
-            if (!decimal.TryParse(data.EnergyQuantity, _culture, out quantity))
+            if (!decimal.TryParse(data.EnergyQuantity, _culture, out var quantity))
             {
-                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!));
                 continue;
             }
 
             if (GetNumberIntegers(quantity) > MaximinNumbersOfIntegers)
-                errors.Add(MaxNumberOfIntegers.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+                errors.Add(MaxNumberOfIntegers.WithPropertyName(data.Position!));
 
             if (GetNumberDecimals(quantity) > MaximumNumbersOfDecimals)
-                errors.Add(MaxMenberOfDecimals.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+                errors.Add(MaxNumberOfDecimals.WithPropertyName(data.Position!));
 
             if (quantity < 0)
-                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!));
         }
 
         return Task.FromResult<IList<ValidationError>>(errors);

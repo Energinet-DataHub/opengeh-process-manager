@@ -29,10 +29,15 @@ public class QuantityValidationRule
                  + "/ Quantity must be a positive number, error at position: {PropertyName}",
         ErrorCode: "E86");
 
-    public static readonly ValidationError WrongFormatForQuantity = new(
-        Message: $"Kvantum må højst være {MaximinNumbersOfIntegers} tal og med max {MaximumNumbersOfDecimals} decimaler, fejl ved position: {{PropertyName}} "
-                 + $"/ A maximum of {MaximinNumbersOfIntegers} digits and {MaximumNumbersOfDecimals} decimals are allowed for quality, error at position: {{PropertyName}}",
-        ErrorCode: "E86");
+    public static readonly ValidationError MaxNumberOfIntegers = new(
+        Message: $"Kvantum må højst være {MaximinNumbersOfIntegers} tal, fejl ved position: {{PropertyName}}"
+                 + $"/ A maximum of {MaximinNumbersOfIntegers} digits, error at position: {{PropertyName}}",
+        ErrorCode: "E89");
+
+    public static readonly ValidationError MaxMenberOfDecimals = new(
+        Message: $"Kvantum må højst have {MaximumNumbersOfDecimals} decimaler, fejl ved position: {{PropertyName}}"
+                 + $"/ A maximum of {MaximumNumbersOfDecimals} decimals, error at position: {{PropertyName}}",
+        ErrorCode: "E89");
 
     private static readonly CultureInfo _culture = CultureInfo.InvariantCulture;
 
@@ -57,10 +62,10 @@ public class QuantityValidationRule
             }
 
             if (GetNumberIntegers(quantity) > MaximinNumbersOfIntegers)
-                errors.Add(WrongFormatForQuantity.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+                errors.Add(MaxNumberOfIntegers.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
             if (GetNumberDecimals(quantity) > MaximumNumbersOfDecimals)
-                errors.Add(WrongFormatForQuantity.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+                errors.Add(MaxMenberOfDecimals.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
             if (quantity < 0)
                 errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?

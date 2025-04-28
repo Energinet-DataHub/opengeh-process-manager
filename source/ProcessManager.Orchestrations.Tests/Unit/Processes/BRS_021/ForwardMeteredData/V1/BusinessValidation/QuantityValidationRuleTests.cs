@@ -31,6 +31,7 @@ public class QuantityValidationRuleTests
             CreateMeteredData(position: 1, quantity: "0.123"),
             CreateMeteredData(position: 2, quantity: "0.000"),
             CreateMeteredData(position: 3, quantity: "1234567890"),
+            CreateMeteredData(position: 4, quantity: "1234567890.123"),
         };
 
         var result = await _sut.ValidateAsync(
@@ -78,7 +79,7 @@ public class QuantityValidationRuleTests
                 []));
 
         result.Should().ContainSingle()
-            .And.Contain(QuantityValidationRule.WrongFormatForQuantity.WithPropertyName("1"));
+            .And.Contain(QuantityValidationRule.MaxMenberOfDecimals.WithPropertyName("1"));
     }
 
     [Fact]
@@ -97,7 +98,7 @@ public class QuantityValidationRuleTests
                 []));
 
         result.Should().ContainSingle()
-            .And.Contain(QuantityValidationRule.WrongFormatForQuantity.WithPropertyName("1"));
+            .And.Contain(QuantityValidationRule.MaxNumberOfIntegers.WithPropertyName("1"));
     }
 
     [Fact]
@@ -119,11 +120,11 @@ public class QuantityValidationRuleTests
 
         result.Should().HaveCount(5)
             .And.BeEquivalentTo([
-                QuantityValidationRule.WrongFormatForQuantity.WithPropertyName("1"),
-                QuantityValidationRule.WrongFormatForQuantity.WithPropertyName("1"),
+                QuantityValidationRule.MaxNumberOfIntegers.WithPropertyName("1"),
+                QuantityValidationRule.MaxMenberOfDecimals.WithPropertyName("1"),
                 QuantityValidationRule.QuantityMustBePositive.WithPropertyName("2"),
                 QuantityValidationRule.QuantityMustBePositive.WithPropertyName("3"),
-                QuantityValidationRule.WrongFormatForQuantity.WithPropertyName("3")
+                QuantityValidationRule.MaxMenberOfDecimals.WithPropertyName("3")
                 ]);
     }
 

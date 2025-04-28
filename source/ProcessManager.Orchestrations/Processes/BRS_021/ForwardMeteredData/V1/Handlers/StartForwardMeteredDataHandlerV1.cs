@@ -448,9 +448,8 @@ public class StartForwardMeteredDataHandlerV1(
 
     private Point MapPoints(ForwardMeteredDataInputV1.MeteredData eo)
     {
-        // TODO: temporary solution until we have business validation rules for quality
-        var quality = string.IsNullOrWhiteSpace(eo.QuantityQuality) || eo.QuantityQuality == Quality.Incomplete.Name
-            ? Quality.NotAvailable
+        var quality = string.IsNullOrWhiteSpace(eo.QuantityQuality)
+            ? Quality.AsProvided
             : Quality.FromName(eo.QuantityQuality);
         return new Point(
             int.Parse(eo.Position!),

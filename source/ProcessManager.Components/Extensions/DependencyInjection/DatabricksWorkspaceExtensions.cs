@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
+using Energinet.DataHub.Core.Databricks.SqlStatementExecution.Diagnostics.HealthChecks;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Builder;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Microsoft.Azure.Databricks.Client;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -33,10 +36,10 @@ public static class DatabricksWorkspaceExtensions
     /// </summary>
     /// <remarks>
     /// If your application needs to access multiple Databricks workspaces, use the overloaded
-    /// method <see cref="AddDatabricksJobs(IServiceCollection, string)"/> that allows you to specify
+    /// method <see cref="AddDatabricksJobsApi(IServiceCollection, string)"/> that allows you to specify
     /// the configuration section name.
     /// </remarks>
-    public static IServiceCollection AddDatabricksJobs(this IServiceCollection serviceCollection)
+    public static IServiceCollection AddDatabricksJobsApi(this IServiceCollection serviceCollection)
     {
         serviceCollection
             .AddOptions<DatabricksWorkspaceOptions>()
@@ -73,7 +76,7 @@ public static class DatabricksWorkspaceExtensions
     /// </remarks>
     /// <param name="serviceCollection"></param>
     /// <param name="configSectionPath">Name of the config section from which we read options.</param>
-    public static IServiceCollection AddDatabricksJobs(this IServiceCollection serviceCollection, string configSectionPath)
+    public static IServiceCollection AddDatabricksJobsApi(this IServiceCollection serviceCollection, string configSectionPath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configSectionPath);
 
@@ -103,6 +106,22 @@ public static class DatabricksWorkspaceExtensions
             .AddDatabricksJobsApi(
                 serviceKey: configSectionPath,
                 name: $"{configSectionPath}: Databricks Jobs API");
+
+        return serviceCollection;
+    }
+
+    /// <summary>
+    /// Register Databricks SQL statement API services, options and health check for use with a Databricks workspace.
+    /// <remarks>Requires <see cref="DatabricksSqlStatementOptions"/> settings to exist in the app configuration.</remarks>
+    /// </summary>
+    public static IServiceCollection AddDatabricksSqlStatementApi(this IServiceCollection serviceCollection, IConfiguration configuration)
+    {
+        serviceCollection
+            .AddDatabricksSqlStatementExecution(configuration);
+
+        serviceCollection
+            .AddHealthChecks()
+            .AddDatabricksSqlStatementApiHealthCheck(name: "Databricks SQL statement API");
 
         return serviceCollection;
     }

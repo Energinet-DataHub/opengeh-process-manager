@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>Energinet.DataHub.ProcessManager.Components.Tests</AssemblyName>
@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Energinet.DataHub.Core.App.WebApp" Version="15.0.0" />
+    <PackageReference Include="Energinet.DataHub.Core.App.WebApp" Version="15.0.1" />
     <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.0.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>

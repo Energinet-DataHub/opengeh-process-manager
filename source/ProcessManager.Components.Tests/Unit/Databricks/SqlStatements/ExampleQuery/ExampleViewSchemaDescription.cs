@@ -12,13 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;
 
-/// <summary>
-/// Must be equal (including the order) to <see cref="ExampleQuery"/>.<see cref="ExampleQuery.SchemaDefinition"/>.
-/// </summary>
-public class ExampleQueryColumnNames
+internal class ExampleViewSchemaDescription(
+    DatabricksQueryOptions queryOptions) :
+        SchemaDescriptionBase(
+            queryOptions)
 {
-    public const string Id = "id";
-    public const string Value = "value";
+    /// <inheritdoc/>
+    public override string DataObjectName => "example_view_v1";
+
+    /// <inheritdoc/>
+    public override Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => new()
+    {
+        { ExampleViewColumnNames.Id,    (DeltaTableCommonTypes.String,      false) },
+        { ExampleViewColumnNames.Value, (DeltaTableCommonTypes.Decimal18x3, false) },
+    };
 }

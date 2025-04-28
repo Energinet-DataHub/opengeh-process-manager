@@ -12,22 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+
 namespace Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 
 /// <summary>
 /// Contains information about a Databricks delta table schema.
 /// </summary>
-public interface IDeltaTableSchemaDescription
+public abstract class SchemaDescriptionBase(
+    DatabricksQueryOptions queryOptions)
 {
     /// <summary>
     /// Name of database.
     /// </summary>
-    string DatabaseName { get; }
+    public string DatabaseName => $"{queryOptions.CatalogName}.{queryOptions.DatabaseName}";
 
     /// <summary>
     /// Name of view or table.
     /// </summary>
-    string DataObjectName { get; }
+    public abstract string DataObjectName { get; }
 
     /// <summary>
     /// The schema definition of the view or table expressed as (Column name, Data type, Is nullable).
@@ -35,5 +38,10 @@ public interface IDeltaTableSchemaDescription
     /// <remarks>
     /// Can be used in tests to create a matching data object (e.g. table).
     /// </remarks>
-    Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition { get; }
+    public abstract Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition { get; }
+
+    /// <summary>
+    /// Get column names from schema definition.
+    /// </summary>
+    public IReadOnlyCollection<string> Columns => SchemaDefinition.Keys.ToList();
 }

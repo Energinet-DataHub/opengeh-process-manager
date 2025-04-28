@@ -24,7 +24,7 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 /// <summary>
 /// A collection of WireMock extensions for easy mock configuration of
-/// Databricks REST API endpoints.
+/// Databricks jobs API endpoints (docs: https://docs.databricks.com/api/azure/workspace/jobs).
 ///
 /// IMPORTANT developer tips:
 ///  - It's possible to start the WireMock server in Proxy mode, this means
@@ -33,7 +33,7 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 ///  - WireMockInspector: https://github.com/WireMock-Net/WireMockInspector/blob/main/README.md
 ///  - WireMock.Net examples: https://github.com/WireMock-Net/WireMock.Net-examples
 /// </summary>
-public static class DatabricksApiWireMockExtensions
+public static class DatabricksJobsApiWireMockExtensions
 {
     public static WireMockServer MockJobsList(this WireMockServer server, long jobId, string jobName)
     {

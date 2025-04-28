@@ -12,19 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NodaTime;
@@ -236,7 +234,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var input = new ForwardMeteredDataInputV1Builder()
             .WithResolution(Resolution.QuarterHourly.Name)
             .WithStartDateTime("2024-04-24T22:00:00Z")
-            .WithEndDateTime("2024-04-24T22:30:00Z") // 30 minutes should contain 2 positions
+            .WithEndDateTime("2024-04-25T02:00:00Z") // 4 hours should contain 4 * 4 = 16 positions
             .WithMeteredData([
                 new ForwardMeteredDataInputV1.MeteredData(
                     Position: "1",
@@ -257,22 +255,26 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(PositionCountValidationRule.IncorrectNumberOfPositionsError(1, 2));
+            .And.BeEquivalentTo(PositionCountValidationRule.IncorrectNumberOfPositionsError(1, 16));
     }
 
     [Fact]
     public async Task Given_IncorrectQuality_When_Validate_Then_ValidationError()
     {
+        const int periodLengthInHours = 4;
+        var start = InstantPattern.General.Parse("2025-04-24T22:00:00Z").Value;
+
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithResolution(Resolution.QuarterHourly.Name)
-            .WithStartDateTime("2025-04-24T22:00:00Z")
-            .WithEndDateTime("2025-04-24T22:15:00Z")
-            .WithMeteredData([
-                new ForwardMeteredDataInputV1.MeteredData(
-                    Position: "1",
-                    EnergyQuantity: "42",
-                    QuantityQuality: "invalid-quality"),
-            ])
+            .WithResolution(Resolution.Hourly.Name)
+            .WithStartDateTime(start.ToString())
+            .WithEndDateTime(start.PlusHours(periodLengthInHours).ToString())
+            .WithMeteredData(
+                    Enumerable.Range(1, periodLengthInHours).Select(i =>
+                    new ForwardMeteredDataInputV1.MeteredData(
+                        Position: i.ToString(),
+                        EnergyQuantity: "42",
+                        QuantityQuality: "invalid-quality"))
+                        .ToList())
             .Build();
 
         var meteringPointMasterData = new MeteringPointMasterDataBuilder()

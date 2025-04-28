@@ -23,8 +23,8 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.WorkingDays;
 public class DataHubWorkingDaysTests
 {
     [Theory]
-    [InlineData(2025, 4, 27, 22, 0, 2025, 4, 22, 22, 0, -3)] // 25th of April 2025 -> 23th of April 2025
-    // [InlineData(2025, 1, 3, 23, 0, 2025, 1, 3, 23, 0)] // 3rd of January 2025 23:00 -> 3rd of January 2025 23:00
+    [InlineData(2025, 4, 27, 22, 0, 2025, 4, 21, 22, 0, -4)] // 28th of April 2025 -> 23rd of April 2025 (Weekend)
+    [InlineData(2025, 4, 21, 22, 0, 2025, 4, 10, 22, 0, -4)] // 22nd of April 2025 -> 15th of April 2025 (Easter)
     // [InlineData(2025, 7, 2, 22, 0, 2025, 7, 2, 22, 0)] // 2nd of July 2025 22:00 -> 2nd of July 2025 22:00
     // [InlineData(2025, 7, 2, 22, 1, 2025, 7, 2, 22, 0)] // 2nd of July 2025 22:01 -> 2nd of July 2025 22:00
     // [InlineData(2025, 7, 2, 23, 1, 2025, 7, 2, 22, 0)] // 2nd of July 2025 23:01 -> 2nd of July 2025 22:00
@@ -48,9 +48,9 @@ public class DataHubWorkingDaysTests
         int count)
     {
         // Arrange
-        var date = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, actualMinute);
-        var expected = Instant.FromUtc(expectedYear, expectedMonth, expectedDay, expectedHour, expectedMinute);
         var zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
+        var date = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, actualMinute);
+        var expected = Instant.FromUtc(expectedYear, expectedMonth, expectedDay, expectedHour, expectedMinute).InZone(zone);
         var clock = new Mock<IClock>();
         clock.Setup(x => x.GetCurrentInstant()).Returns(date);
         var sut = new DataHubWorkingDays(clock.Object, zone);

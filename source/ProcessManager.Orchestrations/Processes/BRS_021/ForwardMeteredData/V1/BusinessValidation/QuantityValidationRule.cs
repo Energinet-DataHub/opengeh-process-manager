@@ -34,6 +34,8 @@ public class QuantityValidationRule
                  + $"/ A maximum of {MaximinNumbersOfIntegers} digits and {MaximumNumbersOfDecimals} decimals are allowed for quality, error at position: {{PropertyName}}",
         ErrorCode: "E86");
 
+    private static readonly CultureInfo _culture = CultureInfo.InvariantCulture;
+
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
     {
         var errors = new List<ValidationError>();
@@ -45,14 +47,14 @@ public class QuantityValidationRule
                 errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
             decimal quantity;
-            if (!decimal.TryParse(data.EnergyQuantity, out quantity))
+            if (!decimal.TryParse(data.EnergyQuantity, _culture, out quantity))
                 errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
-            if (GetIntegers(quantity).ToString(CultureInfo.InvariantCulture).Length > MaximinNumbersOfIntegers)
+            if (GetIntegers(quantity).ToString(_culture).Length > MaximinNumbersOfIntegers)
                 errors.Add(WrongFormatForQuantity.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
             //if (quantity != Math.Round(quantity, 3))
-            if (GetDecimals(quantity).ToString(CultureInfo.InvariantCulture).Length > MaximumNumbersOfDecimals)
+            if (GetDecimals(quantity).ToString(_culture).Length > MaximumNumbersOfDecimals)
                 errors.Add(WrongFormatForQuantity.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
             if (quantity < 0)

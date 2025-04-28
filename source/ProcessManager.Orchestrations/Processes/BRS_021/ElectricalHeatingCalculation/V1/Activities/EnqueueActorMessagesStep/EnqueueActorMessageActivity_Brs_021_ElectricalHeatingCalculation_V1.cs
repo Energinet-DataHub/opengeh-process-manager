@@ -110,18 +110,18 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
                         .ToList()));
 
         // Enqueue to EDI
-        // TODO: This probably needs to be handled differently, since this requires the orchestration to wait
+        // TODO: This needs to be handled differently, since this requires the orchestration to wait
         // for each enqueued messages event to be returned.
-        await _enqueueActorMessagesClient.EnqueueAsync(
-                orchestration: Orchestration_Brs_021_ElectricalHeatingCalculation_V1.UniqueName,
-                orchestrationInstanceId: orchestrationInstanceId.Value,
-                orchestrationStartedBy: new ActorIdentityDto(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider), // TODO: Get this from the orchestration instance
-                // TODO: We need to create unique deterministic idempotency keys for each message sent to EDI instead,
-                // so rerunning the activity generates the same idempotency keys as previous run.
-                idempotencyKey: Guid.NewGuid(),
-                data: new EnqueueActorMessagesForMeteringPointV1(
-                    ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingReceiversWithMeasureDataV1()))
-            .ConfigureAwait(false);
+        // await _enqueueActorMessagesClient.EnqueueAsync(
+        //         orchestration: Orchestration_Brs_021_ElectricalHeatingCalculation_V1.UniqueName,
+        //         orchestrationInstanceId: orchestrationInstanceId.Value,
+        //         orchestrationStartedBy: new ActorIdentityDto(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider), // TODO: Get this from the orchestration instance
+        //         // TODO: We need to create unique deterministic idempotency keys for each message sent to EDI instead,
+        //         // so rerunning the activity generates the same idempotency keys as previous run.
+        //         idempotencyKey: Guid.NewGuid(),
+        //         data: new EnqueueActorMessagesForMeteringPointV1(
+        //             ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingReceiversWithMeasureDataV1()))
+        //     .ConfigureAwait(false);
     }
 
     public record ActivityInput(

@@ -23,6 +23,10 @@ public static class InstantExtensions
         return instant < compareInstant;
     }
 
+    /// <summary>
+    /// Checks whether the given instant is not a multiple of the given duration.
+    /// E.g. 2024-01-01T00:00Z is a multiple of 1 hour, but 2024-01-01T00:01Z is not.
+    /// </summary>
     public static bool IsNotMultipleOf(this Instant instant, Duration duration)
     {
         return instant.ToUnixTimeTicks() % duration.TotalTicks != 0;

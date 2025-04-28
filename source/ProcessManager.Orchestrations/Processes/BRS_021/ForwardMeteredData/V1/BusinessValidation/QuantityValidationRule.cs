@@ -50,7 +50,6 @@ public class QuantityValidationRule
         {
             if (data.EnergyQuantity == null)
             {
-                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!));
                 continue;
             }
 

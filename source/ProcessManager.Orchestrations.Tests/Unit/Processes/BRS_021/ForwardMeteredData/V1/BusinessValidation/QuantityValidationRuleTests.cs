@@ -32,6 +32,7 @@ public class QuantityValidationRuleTests
             CreateMeteredData(position: 2, quantity: "0.000"),
             CreateMeteredData(position: 3, quantity: "1234567890"),
             CreateMeteredData(position: 4, quantity: "1234567890.123"),
+            CreateMeteredData(position: 5, quantity: null),
         };
 
         var result = await _sut.ValidateAsync(
@@ -128,7 +129,7 @@ public class QuantityValidationRuleTests
                 ]);
     }
 
-    private ForwardMeteredDataInputV1.MeteredData CreateMeteredData(int position, string quantity)
+    private ForwardMeteredDataInputV1.MeteredData CreateMeteredData(int position, string? quantity)
     {
         return new(
             EnergyQuantity: quantity,

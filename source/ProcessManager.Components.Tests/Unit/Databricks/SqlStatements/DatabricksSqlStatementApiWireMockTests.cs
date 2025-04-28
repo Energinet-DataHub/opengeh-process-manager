@@ -14,7 +14,6 @@
 
 using System.Globalization;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
-using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Tests.Unit.Databricks.SqlStatements.ExampleQuery;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
@@ -54,22 +53,24 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
     public async Task Given_MockDatabricksSqlStatementApi_When_QueryingCalculatedMeasurements_Then_ReturnsMockedData()
     {
         // Given mocked Databricks SQL statement API
+        var schemaDescription = new ExampleViewSchemaDescription(Mock.Of<DatabricksQueryOptions>());
         var mockData = new List<ExampleQueryRowData>
         {
             new(Guid.NewGuid(), 123.45m),
             new(Guid.NewGuid(), 1337.42m),
         };
 
-        _mockServer.MockDatabricksSqlStatementApi<ExampleQueryColumnNames, ExampleQueryRowData>(
+        _mockServer.MockDatabricksSqlStatementApi<ExampleQueryRowData>(
+            schemaDescription.Columns,
             mockData,
             ColumnNameToStringValueConverter);
 
         var query = new ExampleQuery.ExampleQuery(
             logger: Mock.Of<ILogger>(),
-            queryOptions: Mock.Of<DatabricksQueryOptions>(),
+            schemaDescription: schemaDescription,
             orchestrationInstanceId: Guid.NewGuid());
 
-        // When querying calculated measurements
+        // When querying
         var queryResults = await query.GetAsync(_databricksQueryExecutor)
             .ToListAsync();
 
@@ -94,8 +95,8 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
     {
         return columnName switch
         {
-            ExampleQueryColumnNames.Id => rowData.Id.ToString(),
-            ExampleQueryColumnNames.Value => rowData.Value.ToString(CultureInfo.InvariantCulture),
+            ExampleViewColumnNames.Id => rowData.Id.ToString(),
+            ExampleViewColumnNames.Value => rowData.Value.ToString(CultureInfo.InvariantCulture),
             _ => throw new ArgumentOutOfRangeException(nameof(columnName), columnName, null),
         };
     }

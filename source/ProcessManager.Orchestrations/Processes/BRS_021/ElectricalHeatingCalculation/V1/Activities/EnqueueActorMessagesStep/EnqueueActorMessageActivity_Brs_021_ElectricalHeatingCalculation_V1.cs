@@ -53,14 +53,15 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var calculatedMeasureDataQuery = new CalculatedMeasurementsQuery(
+        var schemaDescription = new CalculatedMeasurementsSchemaDescription(_databricksQueryOptions);
+        var query = new CalculatedMeasurementsQuery(
             _logger,
-            _databricksQueryOptions,
+            schemaDescription,
             input.OrchestrationInstanceId.Value);
 
         // This queries all data sequentially, but that probably won't be as quick as we need.
         // TODO: How do we parallelize the query? What parameters can we use to split the query?
-        await foreach (var queryResult in calculatedMeasureDataQuery.GetAsync(_databricksSqlWarehouseQueryExecutor).ConfigureAwait(false))
+        await foreach (var queryResult in query.GetAsync(_databricksSqlWarehouseQueryExecutor).ConfigureAwait(false))
         {
             if (!queryResult.IsSuccess || queryResult.Result is null) // TODO: Actually handle errors
                 throw new Exception("Failed to get calculated measure data.");

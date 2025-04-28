@@ -57,9 +57,11 @@ public class CalculatedMeasurementsQueryFixture : IAsyncLifetime
 
     internal CalculatedMeasurementsQuery CreateSut(Guid orchestrationInstanceId)
     {
+        var schemaDescription = new CalculatedMeasurementsSchemaDescription(_queryOptions);
+
         return new CalculatedMeasurementsQuery(
             Mock.Of<ILogger>(),
-            _queryOptions,
+            schemaDescription,
             orchestrationInstanceId);
     }
 
@@ -106,15 +108,11 @@ public class CalculatedMeasurementsQueryFixture : IAsyncLifetime
     /// </summary>
     private async Task SeedDatabaseAsync()
     {
-        // It's necessary to create the query to be able to get the data object name and schema definition.
-        var dummyQuery = new CalculatedMeasurementsQuery(
-            Mock.Of<ILogger>(),
-            _queryOptions,
-            orchestrationInstanceId: Guid.NewGuid());
+        var schemaDescription = new CalculatedMeasurementsSchemaDescription(_queryOptions);
 
-        await _databricksSchemaManager.CreateTableAsync(dummyQuery.DataObjectName, dummyQuery.SchemaDefinition);
+        await _databricksSchemaManager.CreateTableAsync(schemaDescription.DataObjectName, schemaDescription.SchemaDefinition);
         await _databricksSchemaManager.InsertAsync(
-            dummyQuery.DataObjectName,
+            schemaDescription.DataObjectName,
             [
                 // First transaction
                 ["'capacity_settlement'", $"'{OrchestrationInstanceId}'", "'1a0c19a9-8310-5e59-b2e0-d1533927c6b9'", "'2025-04-07T10:04:55.692'", "'190000040000000001'", "'capacity_settlement'", "'2025-01-14T22:00:00.000'", "0.000", "'kWh'", "'calculated'", "'PT1H'"],

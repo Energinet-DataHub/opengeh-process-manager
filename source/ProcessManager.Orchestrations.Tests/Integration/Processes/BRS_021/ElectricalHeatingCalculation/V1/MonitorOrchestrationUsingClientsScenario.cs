@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.TestCommon;
+using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
@@ -28,6 +29,7 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Extensions.DependencyInjection;
+using NodaTime;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ElectricalHeatingCalculation.V1;
@@ -89,10 +91,33 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Calculation_WhenStarted_CanMonitorLifecycle()
     {
-        // Mocking the databricks api. Forcing it to return a terminated successful job status
+        // Mocking the databricks jobs api, forcing it to return a terminated successful job status
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
+
+        const string meteringPointId = "1234567890123456";
+
+        // Mocking the Electricity Market Views master data API
+        Fixture.OrchestrationsAppManager.MockServer.MockElectricityMarketViewsMasterData(mockData: [
+            new MeteringPointMasterData
+            {
+                Identification = new MeteringPointIdentification(meteringPointId),
+                ValidFrom = Instant.FromUtc(2025, 04, 24, 22, 00),
+                ValidTo = Instant.FromUtc(2025, 12, 25, 22, 00),
+                GridAreaCode = new GridAreaCode("804"),
+                GridAccessProvider = "1111111111111",
+                NeighborGridAreaOwners = ["2222222222222"],
+                ConnectionState = ConnectionState.Connected,
+                Type = MeteringPointType.ElectricalHeating,
+                SubType = MeteringPointSubType.Physical,
+                Resolution = new Resolution("PT15M"),
+                Unit = MeasureUnit.kWh,
+                ProductId = ProductId.EnergyActive,
+                ParentIdentification = null,
+                EnergySupplier = "3333333333333",
+            },
+        ]);
 
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
 
@@ -102,6 +127,20 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 new StartElectricalHeatingCalculationCommandV1(
                     Fixture.DefaultUserIdentity),
                 CancellationToken.None);
+
+        // Mocking the databricks sql statements api
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksCalculatedMeasurementsQueryResponse(
+            mockData:
+            [
+                new(
+                    OrchestrationInstanceId: orchestrationInstanceId,
+                    TransactionId: Guid.NewGuid(),
+                    TransactionCreationDatetime: Instant.FromUtc(2025, 04, 25, 13, 37),
+                    MeteringPointId: meteringPointId,
+                    MeteringPointType: "electrical_heating",
+                    ObservationTime: Instant.FromUtc(2025, 04, 25, 13, 30),
+                    Quantity: 1337.42m),
+            ]);
 
         // Step 2: Query until terminated with succeeded
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(

@@ -33,7 +33,7 @@ public class DataHubWorkingDays
         var direction = count < 0 ? -1 : 1;
         var remainingDays = Math.Abs(count);
         var currentDate = _clock.GetCurrentInstant().InZone(_zone);
-        _easterSunday = CalculateEaster(currentDate.Year);
+        _easterSunday = CalculateEasterSunday(currentDate.Year);
 
         while (remainingDays > 0)
         {
@@ -86,7 +86,7 @@ public class DataHubWorkingDays
     /// </summary>
     /// <param name="year">The year to calculate Easter sunday.</param>
     /// <returns>The date of the Easter Sunday for the given year.</returns>
-    private ZonedDateTime CalculateEaster(int year)
+    private ZonedDateTime CalculateEasterSunday(int year)
     {
         if (year is < 1800 or > 2200)
             throw new ArgumentOutOfRangeException(nameof(year), "Year must be between 1800 and 2200.");

@@ -44,17 +44,22 @@ public class QuantityValidationRule
         foreach (var data in measureData)
         {
             if (data.EnergyQuantity == null)
+            {
                 errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+                continue;
+            }
 
             decimal quantity;
             if (!decimal.TryParse(data.EnergyQuantity, _culture, out quantity))
+            {
                 errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!)); // TODO: Position is nullable?
+                continue;
+            }
 
-            if (GetIntegers(quantity).ToString(_culture).Length > MaximinNumbersOfIntegers)
+            if (GetNumberIntegers(quantity) > MaximinNumbersOfIntegers)
                 errors.Add(WrongFormatForQuantity.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
-            //if (quantity != Math.Round(quantity, 3))
-            if (GetDecimals(quantity).ToString(_culture).Length > MaximumNumbersOfDecimals)
+            if (GetNumberDecimals(quantity) > MaximumNumbersOfDecimals)
                 errors.Add(WrongFormatForQuantity.WithPropertyName(data.Position!)); // TODO: Position is nullable?
 
             if (quantity < 0)
@@ -64,13 +69,13 @@ public class QuantityValidationRule
         return Task.FromResult<IList<ValidationError>>(errors);
     }
 
-    private static decimal GetIntegers(decimal value)
+    private static int GetNumberIntegers(decimal value)
     {
-        return Math.Floor(value);
+        return Math.Truncate(value).ToString(_culture).Length;
     }
 
-    private static decimal GetDecimals(decimal value)
+    private static int GetNumberDecimals(decimal value)
     {
-        return value - Math.Floor(value);
+        return value.Scale;
     }
 }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using FluentAssertions;
@@ -21,6 +22,26 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 public class QuantityValidationRuleTests
 {
     private readonly QuantityValidationRule _sut = new();
+
+    [Fact]
+    public async Task Given_GoodValidQuantities_When_ValidateAsync_Then_NoError()
+    {
+        var meteredData = new List<ForwardMeteredDataInputV1.MeteredData>
+        {
+            CreateMeteredData(position: 1, quantity: "0.123"),
+            CreateMeteredData(position: 2, quantity: "0.000"),
+            CreateMeteredData(position: 3, quantity: "1234567890"),
+        };
+
+        var result = await _sut.ValidateAsync(
+            new(
+                new ForwardMeteredDataInputV1Builder()
+                    .WithMeteredData(meteredData)
+                    .Build(),
+                []));
+
+        result.Should().BeEmpty();
+    }
 
     [Fact]
     public async Task Given_NegativeQuantity_When_ValidateAsync_Then_Error()
@@ -79,11 +100,38 @@ public class QuantityValidationRuleTests
             .And.Contain(QuantityValidationRule.WrongFormatForQuantity.WithPropertyName("1"));
     }
 
+    [Fact]
+    public async Task Given_AllQuantityErrors_when_ValidateAsync_Then_Errors()
+    {
+        var meteredData = new List<ForwardMeteredDataInputV1.MeteredData>
+        {
+            CreateMeteredData(position: 1, quantity: "12345678901.0003"), // 11 integers and 4 decimals
+            CreateMeteredData(position: 2, quantity: "asd"), // Not a decimal
+            CreateMeteredData(position: 3, quantity: "-3.0004"), // Negative and 4 decimals
+        };
+
+        var result = await _sut.ValidateAsync(
+            new(
+                new ForwardMeteredDataInputV1Builder()
+                    .WithMeteredData(meteredData)
+                    .Build(),
+                []));
+
+        result.Should().HaveCount(5)
+            .And.BeEquivalentTo([
+                QuantityValidationRule.WrongFormatForQuantity.WithPropertyName("1"),
+                QuantityValidationRule.WrongFormatForQuantity.WithPropertyName("1"),
+                QuantityValidationRule.QuantityMustBePositive.WithPropertyName("2"),
+                QuantityValidationRule.QuantityMustBePositive.WithPropertyName("3"),
+                QuantityValidationRule.WrongFormatForQuantity.WithPropertyName("3")
+                ]);
+    }
+
     private ForwardMeteredDataInputV1.MeteredData CreateMeteredData(int position, string quantity)
     {
         return new(
             EnergyQuantity: quantity,
-            QuantityQuality: "A",
+            QuantityQuality: Quality.AsProvided.Name,
             Position: position.ToString());
     }
 }

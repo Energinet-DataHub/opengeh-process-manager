@@ -66,10 +66,8 @@ internal class CalculatedMeasurementsQuery(
 
     protected override string BuildSqlQuery()
     {
-        var columnNames = SchemaDescription.SchemaDefinition.Keys.ToArray();
-
         return $"""
-            SELECT {string.Join(", ", columnNames)}
+            SELECT {string.Join(", ", SchemaDescription.Columns)}
             FROM {SchemaDescription.DatabaseName}.{SchemaDescription.DataObjectName}
             WHERE {CalculatedMeasurementsColumnNames.OrchestrationInstanceId} = '{OrchestrationInstanceId}'
             ORDER BY {CalculatedMeasurementsColumnNames.TransactionId}, {CalculatedMeasurementsColumnNames.ObservationTime}

@@ -40,17 +40,21 @@ public static class DatabricksSqlStatementApiWireMockExtensions
     /// Setup Databricks SQL statement api mock.
     /// </summary>
     /// <param name="server"></param>
+    /// <param name="columnNames">Column names matching the mocked data.</param>
     /// <param name="mockData">The mock data to return.</param>
     /// <param name="columnNameToStringValueConverter">
     /// A method that takes an instance of <typeparamref name="TMockData"/> and a column name, and must return
     /// the string value for the column, for the given input.
     /// See DatabricksSqlStatementApiWireMockTests.ColumnNameToStringValueConverter for an example.
     /// </param>
-    /// <typeparam name="TColumnNames">A type only containing string fields symbolizing the name of the mocked columns. See ExampleQueryColumnNames for an example.</typeparam>
-    /// <typeparam name="TMockData">The mock data type, which should have the same columns as the fields in <typeparamref name="TColumnNames"/>. See ExampleQuery.ExampleQueryData for an example.</typeparam>
-    public static WireMockServer MockDatabricksSqlStatementApi<TColumnNames, TMockData>(
+    /// <typeparam name="TMockData">
+    /// The mock data type, which should have properties matching the <paramref name="columnNames"/>.
+    /// See ExampleQuery.ExampleQueryData for an example.
+    /// </typeparam>
+    public static WireMockServer MockDatabricksSqlStatementApi<TMockData>(
         this WireMockServer server,
-        IEnumerable<TMockData> mockData,
+        IReadOnlyCollection<string> columnNames,
+        IReadOnlyCollection<TMockData> mockData,
         Func<TMockData, string, string> columnNameToStringValueConverter)
     {
         // => Databricks SQL Statement API
@@ -59,9 +63,9 @@ public static class DatabricksSqlStatementApiWireMockExtensions
         const string dataUrlPath = "GetDatabricksDataPath";
 
         server
-            .MockSqlStatements<TColumnNames>(statementId, chunkIndex)
+            .MockSqlStatements(statementId, chunkIndex, columnNames)
             .MockSqlStatementsResultChunks(statementId, chunkIndex, dataUrlPath)
-            .MockSqlStatementsResultStream(dataUrlPath, () => GetMockedDataAsJsonBody<TColumnNames, TMockData>(mockData, columnNameToStringValueConverter));
+            .MockSqlStatementsResultStream(dataUrlPath, () => GetMockedDataAsJsonBody(columnNames, mockData, columnNameToStringValueConverter));
 
         return server;
     }
@@ -69,7 +73,11 @@ public static class DatabricksSqlStatementApiWireMockExtensions
     /// <summary>
     /// Mocks the sql/statements POST endpoint, which creates the sql statements in Databricks.
     /// </summary>
-    private static WireMockServer MockSqlStatements<TColumnNames>(this WireMockServer server, string statementId, int chunkIndex)
+    private static WireMockServer MockSqlStatements(
+        this WireMockServer server,
+        string statementId,
+        int chunkIndex,
+        IReadOnlyCollection<string> columnNames)
     {
         var request = Request
             .Create()
@@ -80,7 +88,7 @@ public static class DatabricksSqlStatementApiWireMockExtensions
             .Create()
             .WithStatusCode(HttpStatusCode.OK)
             .WithHeader(HeaderNames.ContentType, "application/json")
-            .WithBody(DatabricksSqlStatementsResponseMock<TColumnNames>(statementId, chunkIndex));
+            .WithBody(DatabricksSqlStatementsResponseMock(statementId, chunkIndex, columnNames));
 
         server
             .Given(request)
@@ -90,13 +98,14 @@ public static class DatabricksSqlStatementApiWireMockExtensions
     }
 
     /// <summary>
-    /// Create a '/api/2.0/sql/statements' JSON response. With a single chunk, containing a single row.
+    /// Create a '/api/2.0/sql/statements' JSON response.
+    /// With a single chunk, containing a single row with columns given by <paramref name="columnNames"/>.
     /// The rest is pretty much dummy data, and can be adjusted as one pleases.
-    /// <remarks>
-    /// The columns are the properties in the 'TColumnNames' type, which must match (including the order) the columns in Databricks.
-    /// </remarks>
     /// </summary>
-    private static string DatabricksSqlStatementsResponseMock<TColumnNames>(string statementId, int chunkIndex)
+    private static string DatabricksSqlStatementsResponseMock(
+        string statementId,
+        int chunkIndex,
+        IReadOnlyCollection<string> columnNames)
     {
         var json = """
                {
@@ -140,7 +149,7 @@ public static class DatabricksSqlStatementApiWireMockExtensions
 
         var columns = string.Join(
             ",",
-            GetFieldNames<TColumnNames>()
+            columnNames
                 .Select(name => $" {{\"name\": \"{name}\" }}"));
 
         return json
@@ -226,20 +235,14 @@ public static class DatabricksSqlStatementApiWireMockExtensions
         return server;
     }
 
-    private static List<string> GetFieldNames<TColumnNames>()
-    {
-        var fieldInfos = typeof(TColumnNames).GetFields(BindingFlags.Public | BindingFlags.Static);
-        return fieldInfos.Select(x => x.GetValue(null)).Cast<string>().ToList();
-    }
-
-    private static string GetMockedDataAsJsonBody<TColumnNames, TMockData>(
-        IEnumerable<TMockData> mockData,
+    private static string GetMockedDataAsJsonBody<TMockData>(
+        IReadOnlyCollection<string> columnNames,
+        IReadOnlyCollection<TMockData> mockData,
         Func<TMockData, string, string> columnNameToStringValueConverter)
     {
         var jsonRowValueArray = mockData.Select(
                 d =>
                 {
-                    var columnNames = GetFieldNames<TColumnNames>();
                     var columnStringValues = columnNames.Select(
                         columnName => columnNameToStringValueConverter(d, columnName));
 

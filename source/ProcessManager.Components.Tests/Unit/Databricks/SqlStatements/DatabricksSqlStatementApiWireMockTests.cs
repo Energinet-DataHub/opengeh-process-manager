@@ -53,17 +53,18 @@ public class DatabricksSqlStatementApiWireMockTests : IAsyncLifetime
     public async Task Given_MockDatabricksSqlStatementApi_When_QueryingCalculatedMeasurements_Then_ReturnsMockedData()
     {
         // Given mocked Databricks SQL statement API
+        var schemaDescription = new ExampleViewSchemaDescription(Mock.Of<DatabricksQueryOptions>());
         var mockData = new List<ExampleQueryRowData>
         {
             new(Guid.NewGuid(), 123.45m),
             new(Guid.NewGuid(), 1337.42m),
         };
 
-        _mockServer.MockDatabricksSqlStatementApi<ExampleViewColumnNames, ExampleQueryRowData>(
+        _mockServer.MockDatabricksSqlStatementApi<ExampleQueryRowData>(
+            schemaDescription.Columns,
             mockData,
             ColumnNameToStringValueConverter);
 
-        var schemaDescription = new ExampleViewSchemaDescription(Mock.Of<DatabricksQueryOptions>());
         var query = new ExampleQuery.ExampleQuery(
             logger: Mock.Of<ILogger>(),
             schemaDescription: schemaDescription,

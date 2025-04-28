@@ -28,4 +28,9 @@ public abstract class SchemaDescriptionBase(
 
     /// <inheritdoc/>
     public abstract Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition { get; }
+
+    /// <summary>
+    /// Get column names from schema definition.
+    /// </summary>
+    public IReadOnlyCollection<string> Columns => SchemaDefinition.Keys.ToList();
 }

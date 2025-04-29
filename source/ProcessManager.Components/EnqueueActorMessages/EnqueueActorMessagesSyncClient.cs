@@ -15,6 +15,7 @@
 using System.Text;
 using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
@@ -22,8 +23,7 @@ internal class EnqueueActorMessagesSyncClient(
     IHttpClientFactory httpClientFactory) : IEnqueueActorMessagesSyncClient
 {
     public const string EdiEndpointPrefix = "api/enqueue/";
-    public const string EdiEnqueueActorMessageSyncClientName = "EnqueueActorMessagesSyncClientName";
-    private readonly HttpClient _client = httpClientFactory.CreateClient(EdiEnqueueActorMessageSyncClientName);
+    private readonly HttpClient _client = httpClientFactory.CreateClient(HttpClientNames.EdiEnqueueActorMessageClientName);
 
     /// <inheritdoc/>
     public async Task EnqueueAsync<TMessageData>(TMessageData data)

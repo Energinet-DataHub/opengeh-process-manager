@@ -43,7 +43,7 @@ public static class EnqueueActorMessagesSyncExtensions
         });
 
         services.AddHttpClient(
-            EnqueueActorMessagesSyncClient.EdiEnqueueActorMessageSyncClientName,
+            HttpClientNames.EdiEnqueueActorMessageClientName,
             (sp, httpClient) =>
             {
                 var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessageSyncClientOptions>>().Value;

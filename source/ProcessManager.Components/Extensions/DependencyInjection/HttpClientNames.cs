@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Net.Http.Headers;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Components.Authorization;
-
-internal interface IAuthorizationHeaderProvider
+public class HttpClientNames
 {
     /// <summary>
-    /// Create an authorization header to be used when calling Edi API's.
+    /// Http client for enqueuing actor messages.
     /// </summary>
-    AuthenticationHeaderValue CreateAuthorizationHeader();
+    public const string EdiEnqueueActorMessageClientName = "EdiEnqueueActorMessageClientName";
 }

@@ -12,17 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared;
 
 public record EnqueueMessages(
+    Actor Receiver,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
+    MeasurementUnit MeasureUnit,
     string ProductNumber,
-    DateTimeOffset RegistrationDateTime,
-    DateTimeOffset StartDateTime,
-    DateTimeOffset EndDateTime,
-    IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData,
-    string GridAreaCode);
+    Instant RegistrationDateTime,
+    Instant StartDateTime,
+    Instant EndDateTime,
+    Resolution Resolution,
+    IReadOnlyCollection<MeasureData> MeasureData,
+    string GridAreaCode)
+        : IEnqueueMessageDto;
+
+public record MeasureData(
+    int Position,
+    decimal EnergyQuantity,
+    Quality QuantityQuality);

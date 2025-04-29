@@ -33,7 +33,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 
 public class EnqueueActorMessageActivityTests
 {
-    [Fact(Skip = "TODO: Fix this test")]
+    [Fact]
     public async Task Run_ThrowsException_WhenQueryIsUnsuccessful()
     {
         // Arrange
@@ -44,14 +44,9 @@ public class EnqueueActorMessageActivityTests
         var databricksQueryOptionsMock = new Mock<IOptionsSnapshot<DatabricksQueryOptions>>();
         var databricksSqlWarehouseQueryExecutorMock = new Mock<DatabricksSqlWarehouseQueryExecutor>();
 
-        var queryMock = new Mock<CalculatedMeasurementsQuery>(
-            loggerMock.Object,
-            It.IsAny<CalculatedMeasurementsSchemaDescription>(),
-            It.IsAny<string>());
-
-        queryMock
-            .Setup(q => q.GetAsync(It.IsAny<DatabricksSqlWarehouseQueryExecutor>()))
-            .Returns(GetUnsuccessfulQueryResults());
+        databricksSqlWarehouseQueryExecutorMock
+            .Setup(q => q.ExecuteStatementAsync(It.IsAny<DatabricksStatement>(), It.IsAny<CancellationToken>()))
+            .Returns(Test());
 
         var activity = new EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1(
             loggerMock.Object,
@@ -68,19 +63,8 @@ public class EnqueueActorMessageActivityTests
         await Assert.ThrowsAsync<Exception>(() => activity.Run(input));
     }
 
-    private static async IAsyncEnumerable<QueryResult<CalculatedMeasurement>> GetUnsuccessfulQueryResults()
+    private async IAsyncEnumerable<dynamic> Test()
     {
-        var calculatedMeasurement = new CalculatedMeasurement(
-            "Orchestration",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            Instant.MinValue,
-            "1234",
-            MeteringPointType.ElectricalHeating,
-            MeasurementUnit.Kilowatt,
-            Resolution.Hourly,
-            []);
-
-        yield return await Task.FromResult(QueryResult<CalculatedMeasurement>.Success(calculatedMeasurement));
-   }
+        yield return await Task.FromResult(new { t1 = 1, t2 = 2 });
+    }
 }

@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 2.0.2
+
+- Add `IEnqueueDataSyncDto` interface.
+
 ## Version 2.0.1
 
 - No functional changes.

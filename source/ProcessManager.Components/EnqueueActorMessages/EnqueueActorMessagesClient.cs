@@ -20,7 +20,7 @@ using Energinet.DataHub.ProcessManager.Shared.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
-public class EnqueueActorMessagesClient(
+internal class EnqueueActorMessagesClient(
     EdiTopicServiceBusSenderFactory ediTopicServiceBusSenderFactory)
         : IEnqueueActorMessagesClient
 {

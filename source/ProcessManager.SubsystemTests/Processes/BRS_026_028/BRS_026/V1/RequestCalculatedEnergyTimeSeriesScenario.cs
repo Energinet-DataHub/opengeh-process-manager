@@ -78,12 +78,12 @@ public class RequestCalculatedEnergyTimeSeriesScenario : IClassFixture<ProcessMa
 
     [SubsystemFact]
     [ScenarioStep(3)]
-    public async Task When_OrchestrationInstanceIsStarted()
+    public async Task When_OrchestrationInstanceIsRunning()
     {
         var (success, orchestrationInstance, _) =
             await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedEnergyTimeSeriesInputV1>(
                 _fixture.TestConfiguration.Request.IdempotencyKey,
-                OrchestrationInstanceLifecycleState.Queued);
+                OrchestrationInstanceLifecycleState.Running);
 
         Assert.Multiple(
             () => Assert.True(
@@ -105,7 +105,7 @@ public class RequestCalculatedEnergyTimeSeriesScenario : IClassFixture<ProcessMa
 
         Assert.Multiple(
             () => Assert.Equal(request.IdempotencyKey, orchestrationInstance.IdempotencyKey),
-            () => Assert.Contains(orchestrationInstance.Lifecycle.State, new[] { OrchestrationInstanceLifecycleState.Queued, OrchestrationInstanceLifecycleState.Running, OrchestrationInstanceLifecycleState.Terminated }),
+            () => Assert.Contains(orchestrationInstance.Lifecycle.State, new[] { OrchestrationInstanceLifecycleState.Running, OrchestrationInstanceLifecycleState.Terminated }),
             () => Assert.Null(orchestrationInstance.Lifecycle.TerminationState),
             () => Assert.Equal(2, orchestrationInstance.Steps.Count),
             () => Assert.Equivalent(request.InputParameter, orchestrationInstance.ParameterValue),

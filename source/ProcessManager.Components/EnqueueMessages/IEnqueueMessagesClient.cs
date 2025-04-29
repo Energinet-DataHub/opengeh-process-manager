@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueMessages;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
 
 public interface IEnqueueMessagesClient
 {
     Task<bool> TryEnqueueAsync<TMessageData>(TMessageData data)
-        where TMessageData : IEnqueueDataDto;
+        where TMessageData : IEnqueueMessageDto;
 }

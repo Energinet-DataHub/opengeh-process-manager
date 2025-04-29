@@ -12,21 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel.DataAnnotations;
+using System.Net.Http.Headers;
 
-namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Components.Authorization;
 
-public class EdiEnqueueActorMessageSyncClientOptions
+internal interface IAuthorizationHeaderProvider
 {
-    public const string SectionName = "EdiEnqueueActorMessageSyncClient";
-
     /// <summary>
-    /// TODO: fix this?
-    /// Uri (scope) for which the client must request a token and send as part of the http request.
+    /// Create an authorization header to be used when calling Process Manager API's.
     /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string ApplicationIdUri { get; set; } = string.Empty;
-
-    [Required(AllowEmptyStrings = false)]
-    public string Url { get; set; } = string.Empty;
+    AuthenticationHeaderValue CreateAuthorizationHeader();
 }

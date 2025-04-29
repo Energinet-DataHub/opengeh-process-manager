@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Identity;
+using Energinet.DataHub.ProcessManager.Components.Authorization;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +30,18 @@ public static class EnqueueActorMessagesSyncExtensions
             .AddOptions<EdiEnqueueActorMessageSyncClientOptions>()
             .BindConfiguration(EdiEnqueueActorMessageSyncClientOptions.SectionName)
             .ValidateDataAnnotations();
+
+        services.TryAddSingleton<IAuthorizationHeaderProvider>(sp =>
+        {
+            // We currently register AuthorizationHeaderProvider like this to be in control of the
+            // creation of DefaultAzureCredential.
+            // As we register IAuthorizationHeaderProvider as singleton and it has the instance
+            // of DefaultAzureCredential, we expect it will use caching and handle token refresh.
+            // However the documentation is a bit unclear: https://learn.microsoft.com/da-dk/dotnet/azure/sdk/authentication/best-practices?tabs=aspdotnet#understand-when-token-lifetime-and-caching-logic-is-needed
+            var credential = new DefaultAzureCredential();
+            var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessageSyncClientOptions>>().Value;
+            return new AuthorizationHeaderProvider(credential, options.ApplicationIdUri);
+        });
 
         services.AddHttpClient(
             EnqueueActorMessagesSyncClient.EdiEnqueueActorMessageSyncClientName,
@@ -46,5 +60,8 @@ public static class EnqueueActorMessagesSyncExtensions
     {
         // TODO: Add authentication?
         httpClient.BaseAddress = new Uri(baseAddress);
+
+        var headerProvider = sp.GetRequiredService<IAuthorizationHeaderProvider>();
+        httpClient.DefaultRequestHeaders.Authorization = headerProvider.CreateAuthorizationHeader();
     }
 }

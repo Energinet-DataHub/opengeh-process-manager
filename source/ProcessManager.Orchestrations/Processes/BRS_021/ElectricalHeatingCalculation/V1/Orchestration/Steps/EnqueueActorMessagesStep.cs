@@ -42,23 +42,6 @@ internal class EnqueueActorMessagesStep(
                 OrchestrationInstanceId: orchestrationInstanceContext.OrchestrationInstanceId),
             DefaultRetryOptions);
 
-        // TODO - Alex: Implement and call activities to enqueue messages
-        // 1. step
-        // build statement
-        //      - build SQL query
-        // loop over results using steaming
-        // make/map rsm-12 message
-
-        // 2. Get actor info for the message
-
-        // 3. step enqueue message:
-        // await EnqueueAcceptedActorMessagesAsync(
-        //        orchestrationInstance,
-        //        forwardMeteredDataInput,
-        //        receiversWithMeteredData)
-        //    .ConfigureAwait(false);
-        // Blocking: Kvitteringer from many messages?
-
         return StepInstanceTerminationState.Succeeded;
     }
 }

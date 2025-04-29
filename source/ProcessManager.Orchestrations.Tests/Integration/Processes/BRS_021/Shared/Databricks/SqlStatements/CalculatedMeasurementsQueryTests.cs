@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.Shared.Databricks.SqlStatements;
 
 public class CalculatedMeasurementsQueryTests : IClassFixture<CalculatedMeasurementsQueryFixture>
 {

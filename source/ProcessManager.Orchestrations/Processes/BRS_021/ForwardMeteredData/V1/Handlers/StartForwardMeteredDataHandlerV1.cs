@@ -125,7 +125,7 @@ public class StartForwardMeteredDataHandlerV1(
         {
             // Perform step: Forward to Measurements
             await ForwardToMeasurements(
-                    input,
+                    ForwardMeteredDataValidInputV1.From(input),
                     orchestrationInstance)
                 .ConfigureAwait(false);
         }
@@ -348,7 +348,7 @@ public class StartForwardMeteredDataHandlerV1(
     }
 
     private async Task ForwardToMeasurements(
-        ForwardMeteredDataInputV1 input,
+        ForwardMeteredDataValidInputV1 input,
         OrchestrationInstance orchestrationInstance)
     {
         // Start Step: Forward to Measurements
@@ -431,29 +431,26 @@ public class StartForwardMeteredDataHandlerV1(
 
     private MeteredDataForMeteringPoint MapInputToMeasurements(
         OrchestrationInstanceId orchestrationInstanceId,
-        ForwardMeteredDataInputV1 input) =>
+        ForwardMeteredDataValidInputV1 input) =>
         new(
             OrchestrationId: orchestrationInstanceId.Value.ToString(),
-            MeteringPointId: input.MeteringPointId!,
-            TransactionId: input.TransactionId,
-            CreatedAt: InstantPatternWithOptionalSeconds.Parse(input.RegistrationDateTime).Value,
-            StartDateTime: InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value,
-            EndDateTime: InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value,
-            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
-            Unit: MeasurementUnit.FromName(input.MeasureUnit!),
-            Resolution: Resolution.FromName(input.Resolution!),
+            MeteringPointId: input.MeteringPointId.Value,
+            TransactionId: input.TransactionId.Value,
+            CreatedAt: input.RegistrationDateTime,
+            StartDateTime: input.StartDateTime,
+            EndDateTime: input.EndDateTime,
+            MeteringPointType: input.MeteringPointType,
+            Unit: input.MeasureUnit,
+            Resolution: input.Resolution,
             Points: input.MeteredDataList.Select(
                     MapPoints)
                 .ToList());
 
-    private Point MapPoints(ForwardMeteredDataInputV1.MeteredData eo)
+    private Point MapPoints(ForwardMeteredDataValidInputV1.MeteredData eo)
     {
-        var quality = eo.QuantityQuality is null
-            ? Quality.AsProvided
-            : Quality.FromName(eo.QuantityQuality);
         return new Point(
-            int.Parse(eo.Position!),
-            decimal.Parse(eo.EnergyQuantity!),
-            quality);
+            eo.Position,
+            eo.EnergyQuantity!.Value, //TODO: LRN - check if this is correct
+            eo.QuantityQuality!); //TODO: LRN - check if this is correct
     }
 }

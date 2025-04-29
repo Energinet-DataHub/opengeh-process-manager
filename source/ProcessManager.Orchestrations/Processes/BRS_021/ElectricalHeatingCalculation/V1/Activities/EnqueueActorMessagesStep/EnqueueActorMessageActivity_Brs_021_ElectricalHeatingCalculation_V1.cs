@@ -52,13 +52,19 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
             _logger,
             schemaDescription,
             input.OrchestrationInstanceId.Value);
+        var queryFailed = false;
 
         // This queries all data sequentially, but that probably won't be as quick as we need.
-        // TODO: How do we parallelize the query? What parameters can we use to split the query?
         await foreach (var queryResult in query.GetAsync(_databricksSqlWarehouseQueryExecutor).ConfigureAwait(false))
         {
-            if (!queryResult.IsSuccess || queryResult.Result is null) // TODO: Actually handle errors
-                throw new Exception("Failed to get calculated measure data.");
+            if (!queryResult.IsSuccess || queryResult.Result is null)
+            {
+                _logger.LogError(
+                    "Query result failed. Orchestration instance id = {OrchestrationInstanceId}",
+                    query.OrchestrationInstanceId);
+                queryFailed = true;
+                continue;
+            }
 
             // The query result measure data is already grouped by transaction id, so
             // we need to find receivers for it based on the master data for the metering point.
@@ -67,6 +73,9 @@ public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1
                     calculatedMeasureData: queryResult.Result)
                 .ConfigureAwait(false);
         }
+
+        if (queryFailed)
+            throw new Exception($"One or more queries failed. Orchestration instance id = {query.OrchestrationInstanceId}.");
     }
 
     /// <summary>

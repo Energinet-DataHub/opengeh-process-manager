@@ -31,7 +31,7 @@ public class DataHubWorkingDays
     /// <summary>
     /// Calculates the DataHub working date relative to today.
     /// </summary>
-    /// <param name="count">The number of days back of foreward in time.</param>
+    /// <param name="count">The number of days back or forward in time.</param>
     /// <returns>A DataHub working date relative to today.</returns>
     public ZonedDateTime GetWorkingDayRelativeToToday(int count)
     {
@@ -55,7 +55,7 @@ public class DataHubWorkingDays
 
     private bool IsDataHubWorkingDay(ZonedDateTime zonedDateTime)
     {
-        // The following holidays are not DataHub working days.
+        // The following days are not DataHub working days.
 
         // Saturdays and Sundays.
         if (zonedDateTime.DayOfWeek is IsoDayOfWeek.Saturday or IsoDayOfWeek.Sunday)

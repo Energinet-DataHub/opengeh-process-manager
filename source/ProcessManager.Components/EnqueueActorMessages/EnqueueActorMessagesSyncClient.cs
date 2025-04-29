@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueMessages;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 
-namespace Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
+namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
-public interface IEnqueueMessagesClient
+public class EnqueueActorMessagesSyncClient : IEnqueueActorMessagesSyncClient
 {
-    Task<bool> TryEnqueueAsync<TMessageData>(TMessageData data)
-        where TMessageData : IEnqueueMessageDto;
+    public Task EnqueueAsync<TMessageData>(TMessageData data)
+        where TMessageData : IEnqueueDataSyncDto
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueMessages;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared;
 
-public record EnqueueMessages(
+public record EnqueueDataSyncs(
     Actor Receiver,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
@@ -30,7 +30,10 @@ public record EnqueueMessages(
     Resolution Resolution,
     IReadOnlyCollection<MeasureData> MeasureData,
     string GridAreaCode)
-        : IEnqueueMessageDto;
+        : IEnqueueDataSyncDto
+{
+    public string QueryRouteName { get; } = "Enqueue_Brs021";
+}
 
 public record MeasureData(
     int Position,

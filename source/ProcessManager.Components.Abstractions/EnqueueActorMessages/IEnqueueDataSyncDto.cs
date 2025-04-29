@@ -12,15 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueMessages;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Components.EnqueueMessages;
+namespace Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 
-public class EnqueueMessagesClient : IEnqueueMessagesClient
+public interface IEnqueueDataSyncDto
 {
-    public Task<bool> TryEnqueueAsync<TMessageData>(TMessageData data)
-        where TMessageData : IEnqueueMessageDto
-    {
-        throw new NotImplementedException();
-    }
+    Actor Receiver { get; init; }
+
+    /// <summary>
+    /// Something
+    /// </summary>
+    abstract string QueryRouteName { get; }
 }
+
+public record Actor(
+    ActorNumber ActorNumber,
+    ActorRole ActorRole);

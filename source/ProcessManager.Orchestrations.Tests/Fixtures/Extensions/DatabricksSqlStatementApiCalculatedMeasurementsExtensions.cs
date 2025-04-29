@@ -14,7 +14,7 @@
 
 using System.Globalization;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Moq;
 using NodaTime;

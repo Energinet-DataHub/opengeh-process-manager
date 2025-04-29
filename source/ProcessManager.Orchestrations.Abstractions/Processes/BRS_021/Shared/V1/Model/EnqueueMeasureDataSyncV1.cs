@@ -15,9 +15,9 @@
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1.Model;
 
-public record EnqueueMeasureDataSyncV1(
+public sealed record EnqueueMeasureDataSyncV1(
     Actor Receiver,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
@@ -31,9 +31,9 @@ public record EnqueueMeasureDataSyncV1(
     string GridAreaCode)
         : IEnqueueDataSyncDto
 {
-    public string Route { get; } = "Enqueue_Brs021";
+    public const string RouteName = "v1/enqueue_brs021";
 
-    public int Version { get; init; } = 1;
+    public string Route { get; } = RouteName;
 }
 
 public record MeasureData(

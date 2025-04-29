@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessa
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
-public class EnqueueActorMessagesSyncClient : IEnqueueActorMessagesSyncClient
+internal class EnqueueActorMessagesSyncClient : IEnqueueActorMessagesSyncClient
 {
     /// <inheritdoc/>
     public Task EnqueueAsync<TMessageData>(TMessageData data)

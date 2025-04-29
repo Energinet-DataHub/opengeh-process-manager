@@ -14,7 +14,6 @@
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1;
 
@@ -24,9 +23,9 @@ public record EnqueueMeasureDataSyncV1(
     MeteringPointType MeteringPointType,
     MeasurementUnit MeasureUnit,
     string ProductNumber,
-    Instant RegistrationDateTime,
-    Instant StartDateTime,
-    Instant EndDateTime,
+    DateTimeOffset RegistrationDateTime,
+    DateTimeOffset StartDateTime,
+    DateTimeOffset EndDateTime,
     Resolution Resolution,
     IReadOnlyCollection<MeasureData> MeasureData,
     string GridAreaCode)

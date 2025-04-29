@@ -18,6 +18,13 @@ namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
 public interface IEnqueueActorMessagesSyncClient
 {
+    /// <summary>
+    /// Enqueue a message to an actor.
+    /// </summary>
+    /// <remarks>
+    /// Throws an exception if the enqueue fails.
+    /// </remarks>
+    /// <param name="data">Is the payload from witch the message to the actor is generated.</param>
     Task EnqueueAsync<TEnqueueData>(TEnqueueData data)
         where TEnqueueData : IEnqueueDataSyncDto;
 }

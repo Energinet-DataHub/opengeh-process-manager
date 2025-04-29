@@ -16,14 +16,18 @@ using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
 public class StartTrigger_Brs_021_ForwardMeteredData_V1(
-    StartForwardMeteredDataHandlerV1 handler)
+    StartForwardMeteredDataHandlerV1 handler,
+    TelemetryClient telemetryClient)
 {
     private readonly StartForwardMeteredDataHandlerV1 _handler = handler;
+    private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
     /// Start a BRS-021 ForwardMeteredData.
@@ -36,6 +40,21 @@ public class StartTrigger_Brs_021_ForwardMeteredData_V1(
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        await _handler.HandleAsync(message).ConfigureAwait(false);
+        // Provides structured telemetry data that Application Insights uses to display request details,
+        // including duration, success/failure, and associated dependencies.
+        // Distributed Tracing: Enables distributed tracing, allowing correlation of this request
+        // with other telemetry (e.g., dependencies, exceptions) in the same operation.
+        // Automatic Metrics: Automatically tracks metrics like request count, duration, and failure rate for RequestTelemetry.
+        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(StartTrigger_Brs_021_ForwardMeteredData_V1));
+        try
+        {
+            await _handler.HandleAsync(message).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            operation.Telemetry.Success = false;
+            _telemetryClient.TrackException(ex);
+            throw;
+        }
     }
 }

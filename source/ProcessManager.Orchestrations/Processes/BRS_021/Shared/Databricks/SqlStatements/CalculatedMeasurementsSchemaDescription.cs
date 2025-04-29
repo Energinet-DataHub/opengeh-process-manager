@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.Databricks.SqlStatements;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
 
 internal class CalculatedMeasurementsSchemaDescription(
     DatabricksQueryOptions queryOptions) :

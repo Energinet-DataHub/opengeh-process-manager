@@ -13,7 +13,10 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
@@ -21,8 +24,27 @@ public static class EnqueueActorMessagesSyncExtensions
 {
     public static IServiceCollection AddEnqueueActorMessagesSync(this IServiceCollection services)
     {
-        services.AddSingleton<IEnqueueActorMessagesSyncClient, EnqueueActorMessagesSyncClient>();
+        services
+            .AddOptions<EdiEnqueueActorMessageSyncClientOptions>()
+            .BindConfiguration(EdiEnqueueActorMessageSyncClientOptions.SectionName)
+            .ValidateDataAnnotations();
+
+        services.AddHttpClient(
+            EnqueueActorMessagesSyncClient.EdiEnqueueActorMessageSyncClientName,
+            (sp, httpClient) =>
+            {
+                var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessageSyncClientOptions>>().Value;
+                ConfigureHttpClient(sp, httpClient, options.Url);
+            });
+
+        services.TryAddSingleton<IEnqueueActorMessagesSyncClient, EnqueueActorMessagesSyncClient>();
 
         return services;
+    }
+
+    private static void ConfigureHttpClient(IServiceProvider sp, HttpClient httpClient, string baseAddress)
+    {
+        // TODO: Add authentication?
+        httpClient.BaseAddress = new Uri(baseAddress);
     }
 }

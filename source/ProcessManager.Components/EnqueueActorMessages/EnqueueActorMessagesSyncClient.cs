@@ -12,16 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text;
+using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
-internal class EnqueueActorMessagesSyncClient : IEnqueueActorMessagesSyncClient
+internal class EnqueueActorMessagesSyncClient(
+    IHttpClientFactory httpClientFactory) : IEnqueueActorMessagesSyncClient
 {
+    public const string EdiEndpointPrefix = "api/enqueue/";
+    public const string EdiEnqueueActorMessageSyncClientName = "EnqueueActorMessagesSyncClientName";
+    private readonly HttpClient _client = httpClientFactory.CreateClient(EdiEnqueueActorMessageSyncClientName);
+
     /// <inheritdoc/>
-    public Task EnqueueAsync<TMessageData>(TMessageData data)
+    public async Task EnqueueAsync<TMessageData>(TMessageData data)
         where TMessageData : IEnqueueDataSyncDto
     {
-        throw new NotImplementedException();
+        var enqueueUrl = $"{EdiEndpointPrefix}{data.Route}";
+
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            enqueueUrl);
+
+        var json = JsonSerializer.Serialize(data, data.GetType());
+
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await _client.SendAsync(request).ConfigureAwait(false);
+
+        response.EnsureSuccessStatusCode();
     }
 }

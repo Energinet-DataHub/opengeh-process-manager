@@ -22,6 +22,8 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.WorkingDays;
 
 public class DataHubWorkingDaysTests
 {
+    private readonly DateTimeZone _zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
+
     [Theory]
     // Basis tests
     [InlineData(2025, 4, 27, 22, 0, 2025, 4, 27, 22, 0, 0)] // 0 working days back or forward: 28th of April 2025 -> 28th of April 2025
@@ -50,12 +52,11 @@ public class DataHubWorkingDaysTests
         int count)
     {
         // Arrange
-        var zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
         var testDate = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, actualMinute);
-        var expected = Instant.FromUtc(expectedYear, expectedMonth, expectedDay, expectedHour, expectedMinute).InZone(zone);
+        var expected = Instant.FromUtc(expectedYear, expectedMonth, expectedDay, expectedHour, expectedMinute).InZone(_zone);
         var clock = new Mock<IClock>();
         clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
-        var sut = new DataHubWorkingDays(clock.Object, zone);
+        var sut = new DataHubWorkingDays(clock.Object, _zone);
 
         // Act
         var actual = sut.GetWorkingDayRelativeToToday(count);
@@ -64,17 +65,33 @@ public class DataHubWorkingDaysTests
         actual.Should().Be(expected);
     }
 
-    [Fact]
-    public void GetWorkingDay_WhenYearIsOutOfRange_ThrowsException()
+    [Theory]
+    [InlineData(1799)]
+    [InlineData(2201)]
+    public void GetWorkingDay_WhenYearIsOutOfRange_ThrowsException(int year)
     {
         // Arrange
-        var zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
-        var testDate = Instant.FromUtc(2201, 1, 1, 0, 0);
+        var testDate = Instant.FromUtc(year, 1, 1, 0, 0);
         var clock = new Mock<IClock>();
         clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
-        var sut = new DataHubWorkingDays(clock.Object, zone);
+        var sut = new DataHubWorkingDays(clock.Object, _zone);
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => sut.GetWorkingDayRelativeToToday(1));
+    }
+
+    [Theory]
+    [InlineData(-201)]
+    [InlineData(201)]
+    public void GetWorkingDay_WhenCountIsOutOfRange_ThrowsException(int count)
+    {
+        // Arrange
+        var testDate = Instant.FromUtc(2025, 1, 1, 0, 0);
+        var clock = new Mock<IClock>();
+        clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
+        var sut = new DataHubWorkingDays(clock.Object, _zone);
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => sut.GetWorkingDayRelativeToToday(count));
     }
 }

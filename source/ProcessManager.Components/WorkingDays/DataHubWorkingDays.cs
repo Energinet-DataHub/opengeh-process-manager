@@ -31,10 +31,15 @@ public class DataHubWorkingDays
     /// <summary>
     /// Calculates the DataHub working date relative to today.
     /// </summary>
-    /// <param name="count">The number of days back or forward in time.</param>
+    /// <param name="count">The number of days back or forward in time. This figure must be between -200 and 200.</param>
     /// <returns>A DataHub working date relative to today.</returns>
     public ZonedDateTime GetWorkingDayRelativeToToday(int count)
     {
+        if (count is > 200 or < -200)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), "Count must be between -200 and 200.");
+        }
+
         var direction = count < 0 ? -1 : 1;
         var remainingDays = Math.Abs(count);
         var currentDate = _clock.GetCurrentInstant().InZone(_zone);

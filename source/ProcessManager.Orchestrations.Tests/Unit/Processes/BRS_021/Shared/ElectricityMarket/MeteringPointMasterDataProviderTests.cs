@@ -18,9 +18,11 @@ using Energinet.DataHub.ElectricityMarket.Integration.Models.Common;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.GridAreas;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.ProcessDelegation;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using Moq;
 using NodaTime;
 
@@ -45,7 +47,8 @@ public class MeteringPointMasterDataProviderTests
         _sut = new MeteringPointMasterDataProvider(
             new ElectricityMarketViewsMock(),
             new Mock<ILogger<MeteringPointMasterDataProvider>>().Object,
-            clock.Object);
+            clock.Object,
+            new MicrosoftFeatureFlagManager(new Mock<IFeatureManager>().Object));
     }
 
     [Fact]

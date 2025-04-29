@@ -13,6 +13,9 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.Extensions;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
@@ -21,8 +24,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// Business validation rule for metering point validation
 /// if the metering point does not exist, a business validation error is returned
 /// </summary>
-public class MeteringPointOwnershipValidationRule : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+public class MeteringPointOwnershipValidationRule(IFeatureFlagManager featureFlagManager)
+    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
+    private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
+
     public static IList<ValidationError> MeteringPointHasWrongOwnerError =>
     [
         new(
@@ -32,18 +38,31 @@ public class MeteringPointOwnershipValidationRule : IBusinessValidationRule<Forw
 
     private static IList<ValidationError> NoError => [];
 
-    public Task<IList<ValidationError>> ValidateAsync(
+    public async Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
+        if (await IsPerformanceTest(subject.Input).ConfigureAwait(false))
+            return NoError;
+
         // All the historical metering point master data, have the current grid access provider provided.
         var meteringPointMasterData = subject.MeteringPointMasterData.FirstOrDefault();
 
         if (meteringPointMasterData != null && !meteringPointMasterData.CurrentGridAccessProvider.Value
                 .Equals(subject.Input.GridAccessProviderNumber))
         {
-            return Task.FromResult(MeteringPointHasWrongOwnerError);
+            return MeteringPointHasWrongOwnerError;
         }
 
-        return Task.FromResult(NoError);
+        return NoError;
+    }
+
+    private async Task<bool> IsPerformanceTest(ForwardMeteredDataInputV1 input)
+    {
+        var performanceTestEnabled = await _featureFlagManager
+            .IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataPerformanceTest)
+            .ConfigureAwait(false);
+        var isInputTest = input.MeteringPointId?.IsTestUuid() ?? false;
+
+        return performanceTestEnabled && isInputTest;
     }
 }

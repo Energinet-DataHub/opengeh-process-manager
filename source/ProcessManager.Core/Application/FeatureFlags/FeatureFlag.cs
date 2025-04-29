@@ -38,9 +38,8 @@ public enum FeatureFlag
     SilentMode,
 
     /// <summary>
-    /// Enables the use of the BRS_021_ForwardMeteredData business validation for metering points.
-    /// If this feature flag is enabled, the business validation rule will return a business validation error
-    /// if the metering point does not exist.
+    /// Enables Performance test for the BRS_021_ForwardMeteredData process.
+    /// If this feature flag is enabled, performance test is enable for this process on the given environment.
     /// </summary>
-    EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint,
+    EnableBrs021ForwardMeteredDataPerformanceTest,
 }

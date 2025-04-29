@@ -44,7 +44,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .Returns(Instant.FromUtc(2024, 11, 15, 16, 46, 43));
 
         _featureFlagManagerMock.Setup(f => f
-                .IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint))
+                .IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataPerformanceTest))
             .ReturnsAsync(true);
 
         IServiceCollection services = new ServiceCollection();

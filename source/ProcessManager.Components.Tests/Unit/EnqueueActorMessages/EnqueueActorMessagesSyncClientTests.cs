@@ -98,7 +98,7 @@ public class EnqueueActorMessagesSyncClientTests : IAsyncLifetime
     {
         var request = Request
             .Create()
-            .WithPath($"{EnqueueActorMessagesSyncClient.EdiEndpointPrefix}{enqueueData.Route}")
+            .WithPath($"/{EnqueueActorMessagesSyncClient.EdiEndpointPrefix}{enqueueData.Route}")
             .UsingPost();
 
         var response = Response

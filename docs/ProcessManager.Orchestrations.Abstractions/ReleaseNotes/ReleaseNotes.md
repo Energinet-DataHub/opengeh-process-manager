@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.1.1
+
+- Add `EnqueueMeasureDataSyncV1` for BRS-021
+
 ## Version 2.1.0
 
 - Removed obsolete types `CalculationQuery` and `CalculationQueryResult`.

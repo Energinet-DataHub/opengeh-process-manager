@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1.Activities.EnqueueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
@@ -33,9 +34,14 @@ internal class EnqueueActorMessagesStep(
 
     protected override int StepSequenceNumber => EnqueueActorMessagesStepSequence;
 
-    protected override Task<StepInstanceTerminationState> OnExecuteAsync()
+    protected override async Task<StepInstanceTerminationState> OnExecuteAsync()
     {
-        // TODO - Alex: Implement and call activities to enqueue messages
-        return Task.FromResult(StepInstanceTerminationState.Succeeded);
+        await Context.CallActivityAsync(
+            nameof(EnqueueActorMessageActivity_Brs_021_NetConsumptionCalculation_V1),
+            new EnqueueActorMessageActivity_Brs_021_NetConsumptionCalculation_V1.ActivityInput(
+                OrchestrationInstanceId: orchestrationInstanceContext.OrchestrationInstanceId),
+            DefaultRetryOptions);
+
+        return StepInstanceTerminationState.Succeeded;
     }
 }

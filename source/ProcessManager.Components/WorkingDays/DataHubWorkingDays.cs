@@ -28,6 +28,11 @@ public class DataHubWorkingDays
         _zone = zone;
     }
 
+    /// <summary>
+    /// Calculates the DataHub working date relative to today.
+    /// </summary>
+    /// <param name="count">The number of days back of foreward in time.</param>
+    /// <returns>A DataHub working date relative to today.</returns>
     public ZonedDateTime GetWorkingDayRelativeToToday(int count)
     {
         var direction = count < 0 ? -1 : 1;
@@ -40,12 +45,12 @@ public class DataHubWorkingDays
             currentDate = currentDate.Plus(Duration.FromDays(direction));
             if (IsDataHubWorkingDay(currentDate))
             {
-                Console.WriteLine(currentDate);
                 remainingDays--;
             }
         }
 
-        return currentDate.ToInstant().InZone(_zone);
+        // Return the date at start of day in the given timezone.
+        return currentDate.Date.AtStartOfDayInZone(_zone);
     }
 
     private bool IsDataHubWorkingDay(ZonedDateTime zonedDateTime)
@@ -81,10 +86,10 @@ public class DataHubWorkingDays
     }
 
     /// <summary>
-    /// This method calculates Easter Sunday for a given year using the Anonymous Gregorian algorithm.
+    /// Calculates Easter Sunday for a given year using the Anonymous Gregorian algorithm.
     /// https://www.experimentarium.dk/faenomener/saadan-falder-paasken-hvert-aar/
     /// </summary>
-    /// <param name="year">The year to calculate Easter sunday.</param>
+    /// <param name="year">The year to calculate Easter sunday for.</param>
     /// <returns>The date of the Easter Sunday for the given year.</returns>
     private ZonedDateTime CalculateEasterSunday(int year)
     {

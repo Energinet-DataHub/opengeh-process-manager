@@ -30,9 +30,12 @@ public class DataHubWorkingDaysTests
     [InlineData(2025, 4, 27, 22, 0, 2025, 4, 21, 22, 0, -4)] // 4 working days back: 28th of April 2025 -> 22nd of April 2025 (Weekend)
     [InlineData(2025, 4, 21, 22, 0, 2025, 4, 10, 22, 0, -4)] // 4 working days back: 22nd of April 2025 -> 11th of April 2025 (Easter)
     [InlineData(2025, 6, 10, 22, 0, 2025, 6, 3, 22, 0, -4)] // 4 working days back: 11th of June 2025 -> 4th of June 2025 (Pentecost Monday)
+    // Transition
+    [InlineData(2025, 4, 2, 22, 0, 2025, 3, 27, 23, 0, -4)] // 4 working days back: 2nd of April 2025 -> 28th of Marts 2025 (Transition)
     // Winter time
     [InlineData(2024, 12, 26, 23, 0, 2024, 12, 17, 23, 0, -4)] // 4 working days back: 27th of December 2024 -> 18th of December 2024 (Christmas)
     [InlineData(2024, 3, 4, 23, 0, 2024, 2, 27, 23, 0, -4)] // 4 working days back: 5th of Marts 2024 -> 28th of Marts 2024 (leap year)
+    [InlineData(2025, 1, 2, 23, 0, 2024, 12, 22, 23, 0, -4)] // 4 working days back: 3rd of January 2025 -> 23rd of December 2024 (leap year)
     public void GetWorkingDay_WhenCount_ReturnsWorkingDateRelativeToToday(
         int actualYear,
         int actualMonth,
@@ -59,5 +62,19 @@ public class DataHubWorkingDaysTests
 
         // Assert
         actual.Should().Be(expected);
+    }
+
+    [Fact]
+    public void GetWorkingDay_WhenYearIsOutOfRange_ThrowsException()
+    {
+        // Arrange
+        var zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
+        var testDate = Instant.FromUtc(2201, 1, 1, 0, 0);
+        var clock = new Mock<IClock>();
+        clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
+        var sut = new DataHubWorkingDays(clock.Object, zone);
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => sut.GetWorkingDayRelativeToToday(1));
     }
 }

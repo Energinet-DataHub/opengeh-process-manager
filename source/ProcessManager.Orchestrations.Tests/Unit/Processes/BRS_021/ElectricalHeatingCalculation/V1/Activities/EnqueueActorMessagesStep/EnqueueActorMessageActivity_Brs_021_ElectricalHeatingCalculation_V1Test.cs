@@ -33,7 +33,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 
 public class EnqueueActorMessageActivityTests
 {
-    [Fact (Skip = "TODO: Fix this test")]
+    [Fact(Skip = "TODO: Fix this test")]
     public async Task Run_ThrowsException_WhenQueryIsUnsuccessful()
     {
         // Arrange

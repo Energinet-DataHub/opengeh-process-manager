@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using System.Net;
+using Azure.Core;
+using Azure.Identity;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
@@ -21,10 +23,11 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
-using WireMock.RequestBuilders;
+using Moq;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using Xunit;
+using Request = WireMock.RequestBuilders.Request;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.EnqueueActorMessages;
 
@@ -38,9 +41,20 @@ public class EnqueueActorMessagesSyncClientTests : IAsyncLifetime
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
             [$"{EdiEnqueueActorMessageSyncClientOptions.SectionName}:{nameof(EdiEnqueueActorMessageSyncClientOptions.Url)}"] = MockServer.Url,
+            [$"{EdiEnqueueActorMessageSyncClientOptions.SectionName}:{nameof(EdiEnqueueActorMessageSyncClientOptions.ApplicationIdUri)}"] = "ApplicationIdUri",
         });
 
-        Services.AddEnqueueActorMessagesSync();
+        var mockCredential = new Mock<DefaultAzureCredential>();
+        mockCredential.Setup(
+            c => c.GetToken(
+                It.IsAny<TokenRequestContext>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(
+                new AccessToken(
+                    "token",
+                    DateTimeOffset.UtcNow.AddHours(1)));
+
+        Services.AddEnqueueActorMessagesSync(mockCredential.Object);
         ServiceProvider = Services.BuildServiceProvider();
         Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesSyncClient>();
     }

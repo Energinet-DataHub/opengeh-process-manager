@@ -24,7 +24,7 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class EnqueueActorMessagesSyncExtensions
 {
-    public static IServiceCollection AddEnqueueActorMessagesSync(this IServiceCollection services)
+    public static IServiceCollection AddEnqueueActorMessagesSync(this IServiceCollection services, DefaultAzureCredential credential)
     {
         services
             .AddOptions<EdiEnqueueActorMessageSyncClientOptions>()
@@ -38,7 +38,6 @@ public static class EnqueueActorMessagesSyncExtensions
             // As we register IAuthorizationHeaderProvider as singleton and it has the instance
             // of DefaultAzureCredential, we expect it will use caching and handle token refresh.
             // However the documentation is a bit unclear: https://learn.microsoft.com/da-dk/dotnet/azure/sdk/authentication/best-practices?tabs=aspdotnet#understand-when-token-lifetime-and-caching-logic-is-needed
-            var credential = new DefaultAzureCredential();
             var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessageSyncClientOptions>>().Value;
             return new AuthorizationHeaderProvider(credential, options.ApplicationIdUri);
         });
@@ -58,7 +57,6 @@ public static class EnqueueActorMessagesSyncExtensions
 
     private static void ConfigureHttpClient(IServiceProvider sp, HttpClient httpClient, string baseAddress)
     {
-        // TODO: Add authentication?
         httpClient.BaseAddress = new Uri(baseAddress);
 
         var headerProvider = sp.GetRequiredService<IAuthorizationHeaderProvider>();

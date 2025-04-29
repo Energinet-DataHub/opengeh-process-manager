@@ -21,9 +21,11 @@ public interface IEnqueueDataSyncDto
     Actor Receiver { get; init; }
 
     /// <summary>
-    /// Something
+    /// The route to send the request to
     /// </summary>
-    abstract string QueryRouteName { get; }
+    abstract string Route { get; }
+
+    abstract int Version { get; }
 }
 
 public record Actor(

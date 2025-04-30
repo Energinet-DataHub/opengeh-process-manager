@@ -22,8 +22,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Command for starting a BRS-021 forward metered data.
 /// Must be JSON serializable.
 /// </summary>
-public record ForwardMeteredDataCommandV1
-        : StartOrchestrationInstanceMessageCommand<ForwardMeteredDataInputV1>
+public record ForwardMeasurementsCommandV1
+        : StartOrchestrationInstanceMessageCommand<ForwardMeasurementsInputV1>
 {
     /// <summary>
     /// Construct command.
@@ -33,13 +33,13 @@ public record ForwardMeteredDataCommandV1
     /// <param name="idempotencyKey">
     /// A value used by the Process Manager to ensure idempotency for a message command.
     /// The creator of the command must create a key that is unique per command.</param>
-    public ForwardMeteredDataCommandV1(
+    public ForwardMeasurementsCommandV1(
         ActorIdentityDto operatingIdentity,
-        ForwardMeteredDataInputV1 inputParameter,
+        ForwardMeasurementsInputV1 inputParameter,
         string idempotencyKey)
             : base(
                 operatingIdentity,
-                orchestrationDescriptionUniqueName: Brs_021_ForwardedMeteredData.V1,
+                orchestrationDescriptionUniqueName: Brs_021_ForwardMeasurements.V1,
                 inputParameter,
                 idempotencyKey,
                 inputParameter.ActorMessageId,

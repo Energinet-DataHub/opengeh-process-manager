@@ -36,7 +36,7 @@ public class QuantityQualityValidationRule
 
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
     {
-        foreach (var meteredData in subject.Input.MeteredDataList)
+        foreach (var meteredData in subject.Input.Measurements)
         {
             Quality? quality;
             quality = meteredData.QuantityQuality is null

@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <summary>
 /// A model containing the data required for notifying market actors when new metered data has been accepted.
 /// </summary>
-public record ForwardMeteredDataAcceptedV1(
+public record ForwardMeasurementsAcceptedV1(
     string OriginalActorMessageId,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
@@ -28,6 +28,6 @@ public record ForwardMeteredDataAcceptedV1(
     DateTimeOffset RegistrationDateTime,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
-    IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData,
+    IReadOnlyCollection<ReceiversWithMeasurementsV1> ReceiversWithMeteredData,
     string GridAreaCode)
         : IEnqueueAcceptedDataDto;

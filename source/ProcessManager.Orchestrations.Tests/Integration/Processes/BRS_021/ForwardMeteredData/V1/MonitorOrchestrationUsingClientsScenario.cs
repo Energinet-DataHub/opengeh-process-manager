@@ -184,7 +184,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var input = CreateForwardMeteredDataInputV1();
 
-        var forwardCommand = new ForwardMeteredDataCommandV1(
+        var forwardCommand = new ForwardMeasurementsCommandV1(
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.GridAccessProvider),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
@@ -198,7 +198,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 2a: Query until waiting for Event Hub notify event from Measurements
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await processManagerClient
-            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+            .WaitForStepToBeRunning<ForwardMeasurementsInputV1>(
                 forwardCommand.IdempotencyKey,
                 OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
@@ -240,7 +240,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Query until terminated
         var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
-            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
+            .WaitForOrchestrationInstanceTerminated<ForwardMeasurementsInputV1>(
                 idempotencyKey: forwardCommand.IdempotencyKey);
 
         orchestrationTerminatedWithSucceeded.Should().BeTrue(
@@ -297,7 +297,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var input = CreateForwardMeteredDataInputV1();
 
-        var forwardCommand = new ForwardMeteredDataCommandV1(
+        var forwardCommand = new ForwardMeasurementsCommandV1(
             new ActorIdentityDto(ActorNumber.Create(DelegatedToGridAccessProvider), ActorRole.Delegated),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
@@ -311,7 +311,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 2a: Query until waiting for Event Hub notify event from Measurements
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await processManagerClient
-            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+            .WaitForStepToBeRunning<ForwardMeasurementsInputV1>(
                 forwardCommand.IdempotencyKey,
                 OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
@@ -353,7 +353,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Query until terminated
         var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
-            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
+            .WaitForOrchestrationInstanceTerminated<ForwardMeasurementsInputV1>(
                 idempotencyKey: forwardCommand.IdempotencyKey);
 
         orchestrationTerminatedWithSucceeded.Should().BeTrue(
@@ -408,7 +408,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var invalidInput = CreateForwardMeteredDataInputV1() with { EndDateTime = null };
 
-        var invalidForwardCommand = new ForwardMeteredDataCommandV1(
+        var invalidForwardCommand = new ForwardMeasurementsCommandV1(
             new ActorIdentityDto(ActorNumber.Create(invalidInput.ActorNumber), ActorRole.GridAccessProvider),
             invalidInput,
             idempotencyKey: Guid.NewGuid().ToString());
@@ -422,7 +422,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Then
         // Query until waiting for EnqueueActorMessagesCompleted notify event (a reject message should be enqueued)
         var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
-            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+            .WaitForStepToBeRunning<ForwardMeasurementsInputV1>(
                 invalidForwardCommand.IdempotencyKey,
                 OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
 
@@ -433,10 +433,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When(
                 (message) =>
                 {
-                    if (!message.TryParseAsEnqueueActorMessages(Brs_021_ForwardedMeteredData.Name, out var enqueueActorMessagesV1))
+                    if (!message.TryParseAsEnqueueActorMessages(Brs_021_ForwardMeasurements.Name, out var enqueueActorMessagesV1))
                         return false;
 
-                    var forwardMeteredDataRejectedV1 = enqueueActorMessagesV1.ParseData<ForwardMeteredDataRejectedV1>();
+                    var forwardMeteredDataRejectedV1 = enqueueActorMessagesV1.ParseData<ForwardMeasurementsRejectedV1>();
 
                     forwardMeteredDataRejectedV1.ValidationErrors.Should()
                         .HaveCount(2)
@@ -449,17 +449,17 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .VerifyCountAsync(1);
 
         var enqueueMessageFound = verifyEnqueueRejectedActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
-        enqueueMessageFound.Should().BeTrue($"because a {nameof(ForwardMeteredDataRejectedV1)} service bus message should have been sent");
+        enqueueMessageFound.Should().BeTrue($"because a {nameof(ForwardMeasurementsRejectedV1)} service bus message should have been sent");
 
         // Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new ForwardMeteredDataNotifyEventV1(
+            new ForwardMeasurementsNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
             CancellationToken.None);
 
         // Query until terminated
         var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
-            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
+            .WaitForOrchestrationInstanceTerminated<ForwardMeasurementsInputV1>(
                 idempotencyKey: invalidForwardCommand.IdempotencyKey);
 
         orchestrationTerminatedWithSucceeded.Should().BeTrue(
@@ -558,10 +558,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         wasExecutedExpectedTimes.Should().BeTrue("because we expected the trigger to be executed at least twice because of the configured 'ExponentialBackoffRetry' retry policy");
     }
 
-    private static ForwardMeteredDataInputV1 CreateForwardMeteredDataInputV1(bool isDelegation = false)
+    private static ForwardMeasurementsInputV1 CreateForwardMeteredDataInputV1(bool isDelegation = false)
     {
         var sender = isDelegation ? DelegatedToGridAccessProvider : GridAccessProvider;
-        var input = new ForwardMeteredDataInputV1(
+        var input = new ForwardMeasurementsInputV1(
             ActorMessageId: "MessageId",
             TransactionId: "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
             ActorNumber: sender,
@@ -576,7 +576,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             StartDateTime: "2024-12-01T23:00:00Z",
             EndDateTime: "2024-12-02T23:00:00Z",
             GridAccessProviderNumber: sender,
-            MeteredDataList:
+            Measurements:
             [
                 new("1", "112.000", Quality.AsProvided.Name),
                 new("2", "112.000", Quality.AsProvided.Name),

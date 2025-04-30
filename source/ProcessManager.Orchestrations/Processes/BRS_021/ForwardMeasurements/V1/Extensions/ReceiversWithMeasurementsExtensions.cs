@@ -20,18 +20,18 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public static class ReceiversWithMeasurementsExtensions
 {
-    public static List<ReceiversWithMeteredDataV1> ToForwardMeteredDataReceiversWithMeasurementsV1(
+    public static List<ReceiversWithMeasurementsV1> ToForwardMeteredDataReceiversWithMeasurementsV1(
         this IEnumerable<ReceiversWithMeasurements> receiversWithMeasurements)
     {
         return receiversWithMeasurements
             .Select(
-                rmd => new ReceiversWithMeteredDataV1(
+                rmd => new ReceiversWithMeasurementsV1(
                     Actors: rmd.Receivers.ToForwardMeteredDataMarketActorRecipientV1(),
                     Resolution: rmd.Resolution,
                     MeasureUnit: rmd.MeasureUnit,
                     StartDateTime: rmd.StartDateTime,
                     EndDateTime: rmd.EndDateTime,
-                    MeteredData: rmd.Measurements.ToForwardMeteredDataAcceptedMeasurements()))
+                    Measurements: rmd.Measurements.ToForwardMeteredDataAcceptedMeasurements()))
             .ToList();
     }
 
@@ -45,12 +45,12 @@ public static class ReceiversWithMeasurementsExtensions
             .ToList();
     }
 
-    private static List<ReceiversWithMeteredDataV1.AcceptedMeteredData> ToForwardMeteredDataAcceptedMeasurements(
+    private static List<ReceiversWithMeasurementsV1.AcceptedMeasurement> ToForwardMeteredDataAcceptedMeasurements(
         this IEnumerable<ReceiversWithMeasurements.Measurement> measurements)
     {
         return measurements
             .Select(
-                md => new ReceiversWithMeteredDataV1.AcceptedMeteredData(
+                md => new ReceiversWithMeasurementsV1.AcceptedMeasurement(
                     Position: md.Position,
                     EnergyQuantity: md.EnergyQuantity,
                     QuantityQuality: md.QuantityQuality))

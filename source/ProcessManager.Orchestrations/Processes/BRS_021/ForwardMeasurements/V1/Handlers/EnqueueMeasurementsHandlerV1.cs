@@ -54,7 +54,7 @@ public class EnqueueMeasurementsHandlerV1(
             throw new InvalidOperationException($"Orchestration instance must be running (Id={orchestrationInstance.Id}, State={orchestrationInstance.Lifecycle.State}).");
 
         // only valid data will be enqueued
-        var forwardMeteredDataInput = ForwardMeteredDataValidInput.From(orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>());
+        var forwardMeteredDataInput = ForwardMeteredDataValidInput.From(orchestrationInstance.ParameterValue.AsType<ForwardMeasurementsInputV1>());
 
         await TerminateForwardToMeasurementStep(orchestrationInstance).ConfigureAwait(false);
 
@@ -110,7 +110,7 @@ public class EnqueueMeasurementsHandlerV1(
         await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository, _telemetryClient).ConfigureAwait(false);
     }
 
-    private async Task<IReadOnlyCollection<ReceiversWithMeteredDataV1>> FindReceivers(
+    private async Task<IReadOnlyCollection<ReceiversWithMeasurementsV1>> FindReceivers(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataValidInput forwardMeteredDataValidInput)
     {
@@ -147,7 +147,7 @@ public class EnqueueMeasurementsHandlerV1(
     /// The returned receivers should always be the same given the same inputs.
     /// </remarks>
     /// </summary>
-    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeasurements(
+    private List<ReceiversWithMeasurementsV1> CalculateReceiversWithMeasurements(
         ForwardMeteredDataCustomStateV2 customState,
         ForwardMeteredDataValidInput forwardMeteredDataInput)
     {
@@ -179,7 +179,7 @@ public class EnqueueMeasurementsHandlerV1(
     private async Task EnqueueAcceptedActorMessagesAsync(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataValidInput forwardMeteredDataInput,
-        IReadOnlyCollection<ReceiversWithMeteredDataV1> receivers)
+        IReadOnlyCollection<ReceiversWithMeasurementsV1> receivers)
     {
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
 
@@ -210,7 +210,7 @@ public class EnqueueMeasurementsHandlerV1(
                            ?? throw new InvalidOperationException($"Grid area code is required to enqueue accepted message with id {orchestrationInstance.Id}");
 
         // Enqueue forward metered data actor messages
-        var data = new ForwardMeteredDataAcceptedV1(
+        var data = new ForwardMeasurementsAcceptedV1(
             OriginalActorMessageId: forwardMeteredDataInput.ActorMessageId.Value,
             MeteringPointId: forwardMeteredDataInput.MeteringPointId.Value,
             MeteringPointType: forwardMeteredDataInput.MeteringPointType,

@@ -37,11 +37,11 @@ public class ForwardMeteredDataInputV1Builder
     private string? _endDateTime = "2025-01-31T23:00:00Z"; // Seconds are optional, so we test with and without them.
     private string _gridAccessProviderNumber = ActorNumber;
 
-    private IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> _meteredData =
+    private IReadOnlyCollection<ForwardMeasurementsInputV1.Measurement> _meteredData =
     [
         .. Enumerable.Range(1, 744)
             .Select(
-                i => new ForwardMeteredDataInputV1.MeteredData(
+                i => new ForwardMeasurementsInputV1.Measurement(
                     Position: i.ToString(),
                     "1024",
                     Quality.AsProvided.Name)),
@@ -137,15 +137,15 @@ public class ForwardMeteredDataInputV1Builder
     }
 
     public ForwardMeteredDataInputV1Builder WithMeteredData(
-        IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> meteredData)
+        IReadOnlyCollection<ForwardMeasurementsInputV1.Measurement> meteredData)
     {
         _meteredData = meteredData;
         return this;
     }
 
-    public ForwardMeteredDataInputV1 Build()
+    public ForwardMeasurementsInputV1 Build()
     {
-        return new ForwardMeteredDataInputV1(
+        return new ForwardMeasurementsInputV1(
             ActorMessageId: _actorMessageId,
             TransactionId: _transactionId,
             ActorNumber: _actorNumber,
@@ -160,6 +160,6 @@ public class ForwardMeteredDataInputV1Builder
             StartDateTime: _startDateTime,
             EndDateTime: _endDateTime,
             GridAccessProviderNumber: _gridAccessProviderNumber,
-            MeteredDataList: _meteredData);
+            Measurements: _meteredData);
     }
 }

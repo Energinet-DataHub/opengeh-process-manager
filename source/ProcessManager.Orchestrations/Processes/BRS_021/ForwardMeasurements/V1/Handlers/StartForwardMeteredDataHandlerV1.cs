@@ -51,7 +51,7 @@ public class StartForwardMeteredDataHandlerV1(
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     DelegationProvider delegationProvider,
     TelemetryClient telemetryClient)
-    : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
+    : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeasurementsInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
@@ -70,7 +70,7 @@ public class StartForwardMeteredDataHandlerV1(
     /// </summary>
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,
-        ForwardMeteredDataInputV1 input,
+        ForwardMeasurementsInputV1 input,
         string idempotencyKey,
         string actorMessageId,
         string transactionId,
@@ -98,7 +98,7 @@ public class StartForwardMeteredDataHandlerV1(
                 $"Orchestration instance must be running (Id={orchestrationInstance.Id}, State={orchestrationInstance.Lifecycle.State}).");
         }
 
-        var forwardMeteredDataInput = orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>();
+        var forwardMeteredDataInput = orchestrationInstance.ParameterValue.AsType<ForwardMeasurementsInputV1>();
 
         // Fetch metering point master data and store if needed
         if (orchestrationInstance.CustomState.IsEmpty)
@@ -187,7 +187,7 @@ public class StartForwardMeteredDataHandlerV1(
     /// </summary>
     private async Task<OrchestrationInstance> InitializeOrchestrationInstance(
         ActorIdentity actorIdentity,
-        ForwardMeteredDataInputV1 input,
+        ForwardMeasurementsInputV1 input,
         string idempotencyKey,
         string actorMessageId,
         string transactionId,
@@ -229,7 +229,7 @@ public class StartForwardMeteredDataHandlerV1(
     /// </summary>
     private async Task<IReadOnlyCollection<ValidationError>> PerformBusinessValidation(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataInputV1 input)
+        ForwardMeasurementsInputV1 input)
     {
         var validationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep);
 
@@ -380,7 +380,7 @@ public class StartForwardMeteredDataHandlerV1(
 
     private async Task EnqueueRejectedActorMessage(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataInputV1 forwardMeteredDataInput,
+        ForwardMeasurementsInputV1 forwardMeasurementsInput,
         IReadOnlyCollection<ValidationError> validationErrors)
     {
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
@@ -420,15 +420,15 @@ public class StartForwardMeteredDataHandlerV1(
                     ActorNumber.Create(actorIdentity.Number.Value),
                     ActorRole.FromName(actorIdentity.Role.Name)),
                 idempotencyKey,
-                new ForwardMeteredDataRejectedV1(
-                    forwardMeteredDataInput.ActorMessageId,
-                    forwardMeteredDataInput.TransactionId,
-                    ForwardedForActorRole: ActorRole.FromName(forwardMeteredDataInput.ActorRole),
-                    BusinessReason.FromName(forwardMeteredDataInput.BusinessReason),
+                new ForwardMeasurementsRejectedV1(
+                    forwardMeasurementsInput.ActorMessageId,
+                    forwardMeasurementsInput.TransactionId,
+                    ForwardedForActorRole: ActorRole.FromName(forwardMeasurementsInput.ActorRole),
+                    BusinessReason.FromName(forwardMeasurementsInput.BusinessReason),
                     validationErrors
                         .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))
                         .ToList(),
-                    MeteringPointId: forwardMeteredDataInput.MeteringPointId!))
+                    MeteringPointId: forwardMeasurementsInput.MeteringPointId!))
             .ConfigureAwait(false);
     }
 

@@ -44,7 +44,7 @@ public class QuantityValidationRule
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
     {
         var errors = new List<ValidationError>();
-        var measurements = subject.Input.MeteredDataList;
+        var measurements = subject.Input.Measurements;
 
         foreach (var measurement in measurements)
         {

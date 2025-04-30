@@ -601,7 +601,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             builder
                 .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
-                    .AddSubjectFilter(Brs_021_ForwardedMeteredData.Name)
+                    .AddSubjectFilter(Brs_021_ForwardMeasurements.Name)
                 .AddSubscription(Brs023027SubscriptionName)
                     .AddSubjectFilter(Brs_023_027.Name)
                 .AddSubscription(Brs026SubscriptionName)

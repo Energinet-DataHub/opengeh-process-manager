@@ -63,7 +63,7 @@ public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
     private static NotifyOrchestrationInstanceV1 GetNotifyOrchestrationInstanceV1(string message)
     {
         var notify = NotifyOrchestrationInstanceV1.Parser.ParseJson(message);
-        if (notify is not { EventName: ForwardMeteredDataNotifyEventV1.OrchestrationInstanceEventName })
+        if (notify is not { EventName: ForwardMeasurementsNotifyEventV1.OrchestrationInstanceEventName })
         {
             throw new InvalidOperationException("Failed to deserialize message");
         }

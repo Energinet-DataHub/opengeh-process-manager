@@ -92,10 +92,10 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
         // and we would like to ignore those as actual errors.
         // At the same time,
         // we have to catch those residuals that represent a real error from an incorrect period length.
-        if (Math.Abs(subject.Input.MeteredDataList.Count - expectedPositionCount) > 0.000001d)
+        if (Math.Abs(subject.Input.Measurements.Count - expectedPositionCount) > 0.000001d)
         {
             errors.AddRange(
-                IncorrectNumberOfPositionsError(subject.Input.MeteredDataList.Count, expectedPositionCount));
+                IncorrectNumberOfPositionsError(subject.Input.Measurements.Count, expectedPositionCount));
         }
 
         /*
@@ -118,7 +118,7 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
          * </xsd:restriction>
          * in eBix.
          */
-        var positions = subject.Input.MeteredDataList.Select(md => int.Parse(md.Position!)).Order().ToList();
+        var positions = subject.Input.Measurements.Select(md => int.Parse(md.Position!)).Order().ToList();
 
         var duplicates = positions.GroupBy(p => p).Where(g => g.Count() > 1).ToList();
         if (duplicates.Count > 0)

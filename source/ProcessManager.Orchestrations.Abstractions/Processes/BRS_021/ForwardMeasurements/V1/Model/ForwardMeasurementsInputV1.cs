@@ -13,20 +13,32 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Abstractions.Client;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
-public record ForwardMeteredDataNotifyEventV1(
-    string OrchestrationInstanceId)
-    : NotifyOrchestrationInstanceEvent(
-        OrchestrationInstanceId,
-        EventName: OrchestrationInstanceEventName)
+/// <summary>
+/// An immutable input to start the orchestration instance for "BRS_021_ForwardMeteredData" V1.
+/// </summary>
+public record ForwardMeasurementsInputV1(
+    string ActorMessageId,
+    string TransactionId,
+    string ActorNumber,
+    string ActorRole,
+    string BusinessReason,
+    string? MeteringPointId,
+    string? MeteringPointType,
+    string? ProductNumber,
+    string? MeasureUnit,
+    string RegistrationDateTime,
+    string? Resolution,
+    string StartDateTime,
+    string? EndDateTime,
+    string GridAccessProviderNumber,
+    IReadOnlyCollection<ForwardMeasurementsInputV1.Measurement> Measurements)
+    : IInputParameterDto
 {
-    /// <summary>
-    /// The event name which the orchestration instance expects (is waiting for).
-    /// </summary>
-    public const string OrchestrationInstanceEventName = "EnqueueActorMessagesCompleted";
-
-    public override string SenderClientName => NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender;
+    public record Measurement(
+        string? Position,
+        string? EnergyQuantity,
+        string? QuantityQuality);
 }

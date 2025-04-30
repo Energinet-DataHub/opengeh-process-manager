@@ -30,7 +30,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
     public OrchestrationDescription Build()
     {
-        var orchestrationDescriptionUniqueName = Brs_021_ForwardedMeteredData.V1;
+        var orchestrationDescriptionUniqueName = Brs_021_ForwardMeasurements.V1;
 
         var description = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
@@ -39,7 +39,7 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
             canBeScheduled: false,
             functionName: string.Empty);
 
-        description.ParameterDefinition.SetFromType<ForwardMeteredDataInputV1>();
+        description.ParameterDefinition.SetFromType<ForwardMeasurementsInputV1>();
         description.AppendStepDescription("Forretningsvalidering");
         description.AppendStepDescription("Gemmer måledata", canBeSkipped: true, skipReason: "Skipped if business validation fails");
         description.AppendStepDescription("Finder modtagere", canBeSkipped: true, skipReason: "Skipped if business validation fails");

@@ -17,23 +17,23 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
 /// <summary>
-/// Describes how metered data is grouped (sent to) market actors for specific time periods, resolutions and measure units.
+/// Describes how measurements is grouped (sent to) market actors for specific time periods, resolutions and measure units.
 /// </summary>
-/// <param name="Actors">The actors who should receive the metered data for the given period.</param>
-/// <param name="Resolution">The resolution the metered data has in this period.</param>
-/// <param name="MeasureUnit">The measure units the metered data has in this period.</param>
+/// <param name="Actors">The actors who should receive the measurements for the given period.</param>
+/// <param name="Resolution">The resolution the measurements has in this period.</param>
+/// <param name="MeasureUnit">The measure units the measurements has in this period.</param>
 /// <param name="StartDateTime">The start date and time of the period.</param>
 /// <param name="EndDateTime">The end date and time of the period.</param>
-/// <param name="MeteredData">The metered data in the given period.</param>
-public record ReceiversWithMeteredDataV1(
+/// <param name="Measurements">The measurements in the given period.</param>
+public record ReceiversWithMeasurementsV1(
     IReadOnlyCollection<MarketActorRecipientV1> Actors,
     Resolution Resolution,
     MeasurementUnit MeasureUnit,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
-    IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> MeteredData)
+    IReadOnlyCollection<ReceiversWithMeasurementsV1.AcceptedMeasurement> Measurements)
 {
-    public record AcceptedMeteredData(
+    public record AcceptedMeasurement(
         int Position,
         // TODO: Are these two optional?
         decimal? EnergyQuantity,

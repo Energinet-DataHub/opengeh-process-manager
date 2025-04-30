@@ -38,7 +38,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 6)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -78,7 +78,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 7)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -116,7 +116,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 6)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -154,7 +154,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 1)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -192,7 +192,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 2)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -232,7 +232,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 4)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -270,7 +270,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 2)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -308,7 +308,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 3)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -348,7 +348,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 4)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -388,7 +388,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 3)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -427,7 +427,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 2)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -466,7 +466,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 3)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -505,7 +505,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 2)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -543,7 +543,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 2)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -583,7 +583,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 2)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -621,7 +621,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 3)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -662,7 +662,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 3)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -700,7 +700,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 2)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -740,7 +740,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 3)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -778,7 +778,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 3)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -816,7 +816,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 4)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .ToList())
             .Build();
 
@@ -854,7 +854,7 @@ public class PositionCountValidationRuleTests
             .WithMeteredData(
                 Enumerable.Range(1, 10)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(i.ToString(), "1024", Quality.AsProvided.Name))
+                        i => new ForwardMeasurementsInputV1.Measurement(i.ToString(), "1024", Quality.AsProvided.Name))
                     .OrderBy(_ => Random.Shared.Next())
                     .ToList())
             .Build();
@@ -894,11 +894,11 @@ public class PositionCountValidationRuleTests
             [
                 .. Enumerable.Range(1, 9)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(
+                        i => new ForwardMeasurementsInputV1.Measurement(
                             i.ToString(),
                             "1024",
                             Quality.AsProvided.Name)),
-                new ForwardMeteredDataInputV1.MeteredData("11", "1024", Quality.AsProvided.Name)
+                new ForwardMeasurementsInputV1.Measurement("11", "1024", Quality.AsProvided.Name)
             ])
             .Build();
 
@@ -937,11 +937,11 @@ public class PositionCountValidationRuleTests
             [
                 .. Enumerable.Range(1, 9)
                     .Select(
-                        i => new ForwardMeteredDataInputV1.MeteredData(
+                        i => new ForwardMeasurementsInputV1.Measurement(
                             i.ToString(),
                             "1024",
                             Quality.AsProvided.Name)),
-                new ForwardMeteredDataInputV1.MeteredData("9", "1024", Quality.AsProvided.Name)
+                new ForwardMeasurementsInputV1.Measurement("9", "1024", Quality.AsProvided.Name)
             ])
             .Build();
 

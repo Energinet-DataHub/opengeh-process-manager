@@ -44,9 +44,9 @@ public record ForwardMeteredDataValidInput(
     IReadOnlyCollection<ForwardMeteredDataValidInput.MeteredData> MeteredDataList)
     : IInputParameterDto
 {
-    public static ForwardMeteredDataValidInput From(ForwardMeteredDataInputV1 input)
+    public static ForwardMeteredDataValidInput From(ForwardMeasurementsInputV1 input)
     {
-        var meteredDataList = input.MeteredDataList
+        var meteredDataList = input.Measurements
             .Select(e => new MeteredData(
                 Position: int.Parse(e.Position!),
                 EnergyQuantity: e.EnergyQuantity != null ? decimal.Parse(e.EnergyQuantity, NumberFormatInfo.InvariantInfo) : null,

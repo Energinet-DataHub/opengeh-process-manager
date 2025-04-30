@@ -439,9 +439,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     var forwardMeteredDataRejectedV1 = enqueueActorMessagesV1.ParseData<ForwardMeteredDataRejectedV1>();
 
                     forwardMeteredDataRejectedV1.ValidationErrors.Should()
-                        .HaveCount(1)
-                        .And.ContainSingle(
-                            (e) => e.Message.Equals(PeriodValidationRule.InvalidEndDate.Message));
+                        .HaveCount(2)
+                        .And.Contain((e) => e.Message.Equals(PeriodValidationRule.InvalidEndDate.Message))
+                        .And.Contain((e) => e.Message.Equals(MeteringPointValidationRule.MeteringPointDoesntExistsError[0].Message));
                     forwardMeteredDataRejectedV1.MeteringPointId.Should()
                         .Be(MeteringPointId);
                     return forwardMeteredDataRejectedV1.OriginalTransactionId == invalidForwardCommand.InputParameter.TransactionId;

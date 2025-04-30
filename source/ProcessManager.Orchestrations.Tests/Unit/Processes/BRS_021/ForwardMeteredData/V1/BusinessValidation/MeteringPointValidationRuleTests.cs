@@ -28,7 +28,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 
 public class MeteringPointValidationRuleTests
 {
-    private MeteringPointValidationRule _sut = new(new MicrosoftFeatureFlagManager(new Mock<IFeatureManager>().Object));
+    private readonly MeteringPointValidationRule _sut = new();
 
     [Fact]
     public async Task Given_MeteringPointMasterData_When_Validate_Then_NoValidationError()
@@ -63,11 +63,6 @@ public class MeteringPointValidationRuleTests
     [Fact]
     public async Task Given_NoMeteringPointMasterData_When_Validate_Then_ValidationError()
     {
-        var featureManager = new Mock<IFeatureManager>();
-        featureManager
-            .Setup(x => x.IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint.ToString()))
-            .ReturnsAsync(true);
-        _sut = new(new MicrosoftFeatureFlagManager(featureManager.Object));
         var input = new ForwardMeteredDataInputV1Builder()
             .Build();
 

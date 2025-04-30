@@ -70,7 +70,7 @@ public class MeteringPointReceiversProviderTests
             .Where(r => r != Resolution.Monthly && r != Resolution.Other));
 
     [Fact]
-    public void Given_MeteringPointTypeConsumption_When_GetReceivers_Then_ReceiversAreEnergySupplierAndDanishEnergyAgency()
+    public void Given_MeteringPointTypeConsumption_When_GetReceivers_Then_ReceiversAreEnergySupplier()
     {
         var masterData = CreateMasterData(MeteringPointType.Consumption);
 
@@ -82,17 +82,12 @@ public class MeteringPointReceiversProviderTests
             .ContainSingle()
             .Which.Receivers
             .Should()
-            .HaveCount(2)
+            .HaveCount(1)
             .And.SatisfyRespectively(
                 a =>
                 {
                     a.Number.Should().Be(_defaultEnergySupplier);
                     a.Role.Should().Be(ActorRole.EnergySupplier);
-                },
-                a =>
-                {
-                    a.Number.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
-                    a.Role.Should().Be(ActorRole.DanishEnergyAgency);
                 });
     }
 

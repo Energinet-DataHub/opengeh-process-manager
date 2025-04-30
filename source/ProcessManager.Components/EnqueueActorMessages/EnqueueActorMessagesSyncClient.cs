@@ -22,6 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 internal class EnqueueActorMessagesSyncClient(
     IHttpClientFactory httpClientFactory) : IEnqueueActorMessagesSyncClient
 {
+    // TODO: should we pass this in via app setting instead?
     public const string EdiEndpointPrefix = "api/enqueue/";
     private readonly HttpClient _client = httpClientFactory.CreateClient(HttpClientNames.EdiEnqueueActorMessageClientName);
 

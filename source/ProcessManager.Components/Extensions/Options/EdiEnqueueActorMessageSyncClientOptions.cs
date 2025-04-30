@@ -21,7 +21,6 @@ public class EdiEnqueueActorMessageSyncClientOptions
     public const string SectionName = "EdiEnqueueActorMessageSyncClient";
 
     /// <summary>
-    /// TODO: fix this?
     /// Uri (scope) for which the client must request a token and send as part of the http request.
     /// </summary>
     [Required(AllowEmptyStrings = false)]

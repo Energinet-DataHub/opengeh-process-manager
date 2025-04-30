@@ -31,13 +31,13 @@ public static class EnqueueActorMessagesSyncExtensions
             .BindConfiguration(EdiEnqueueActorMessageSyncClientOptions.SectionName)
             .ValidateDataAnnotations();
 
+        // Copy and paste from the PM-client.
+        // Should be moved to a shared library: #https://app.zenhub.com/workspaces/mosaic-60a6105157304f00119be86e/issues/gh/energinet-datahub/team-mosaic/724
         services.TryAddSingleton<IAuthorizationHeaderProvider>(sp =>
         {
-            // We currently register AuthorizationHeaderProvider like this to be in control of the
-            // creation of DefaultAzureCredential.
-            // As we register IAuthorizationHeaderProvider as singleton and it has the instance
-            // of DefaultAzureCredential, we expect it will use caching and handle token refresh.
-            // However the documentation is a bit unclear: https://learn.microsoft.com/da-dk/dotnet/azure/sdk/authentication/best-practices?tabs=aspdotnet#understand-when-token-lifetime-and-caching-logic-is-needed
+            // PM-client news the token here.
+            // We get it passed in.
+            // TODO: Is that a problem?
             var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessageSyncClientOptions>>().Value;
             return new AuthorizationHeaderProvider(credential, options.ApplicationIdUri);
         });

@@ -32,7 +32,7 @@ public record ForwardMeteredDataValidInputV1(
     BusinessReason BusinessReason,
     MeteringPointId MeteringPointId,
     MeteringPointType MeteringPointType,
-    string? ProductNumber, // TODO: Should be a constant?
+    string? ProductNumber,
     MeasurementUnit MeasureUnit,
     Instant RegistrationDateTime,
     Resolution Resolution,

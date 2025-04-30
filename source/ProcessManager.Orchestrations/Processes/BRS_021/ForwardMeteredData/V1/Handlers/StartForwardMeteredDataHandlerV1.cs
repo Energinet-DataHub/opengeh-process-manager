@@ -450,8 +450,8 @@ public class StartForwardMeteredDataHandlerV1(
     {
         return new Point(
             meteredData.Position,
-            // TODO: LRN - Will be fixed with a updated contract from Measurements
-            meteredData.EnergyQuantity ?? 0.00m,
+            // TODO: LRN - Awaiting a final decision from Volta on how to handle null values.
+            meteredData.EnergyQuantity ?? 0.000m,
             meteredData.QuantityQuality);
     }
 }

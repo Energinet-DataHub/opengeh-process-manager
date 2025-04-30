@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
@@ -26,24 +26,24 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities.EnqueueActorMessagesStep;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.EnqueueActorMessagesStep;
 
-public class EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1(
-    ILogger<EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1> logger,
+public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1(
+    ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> logger,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
     MeteringPointReceiversProvider meteringPointReceiversProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     IOptionsSnapshot<DatabricksQueryOptions> databricksQueryOptions,
     DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor)
 {
-    private readonly ILogger<EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1> _logger = logger;
+    private readonly ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> _logger = logger;
     private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
-    private readonly DatabricksQueryOptions _databricksQueryOptions = databricksQueryOptions.Get(QueryOptionsSectionNames.ElectricalHeatingQuery);
+    private readonly DatabricksQueryOptions _databricksQueryOptions = databricksQueryOptions.Get(QueryOptionsSectionNames.CalculatedMeasurementsQuery);
     private readonly DatabricksSqlWarehouseQueryExecutor _databricksSqlWarehouseQueryExecutor = databricksSqlWarehouseQueryExecutor;
 
-    [Function(nameof(EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1))]
+    [Function(nameof(EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {

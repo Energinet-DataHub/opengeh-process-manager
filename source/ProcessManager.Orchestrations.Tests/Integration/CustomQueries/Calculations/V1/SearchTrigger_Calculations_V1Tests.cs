@@ -132,7 +132,7 @@ public class SearchTrigger_Calculations_V1Tests : IAsyncLifetime
         // Start new orchestration instance (we don't have to wait for it, we just need data in the database)
         await ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
-                new Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.StartCalculationCommandV1(
+                new Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.StartCapacitySettlementCalculationCommandV1(
                     Fixture.DefaultUserIdentity,
                     new Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model.CalculationInputV1(
                         Year: 2020,

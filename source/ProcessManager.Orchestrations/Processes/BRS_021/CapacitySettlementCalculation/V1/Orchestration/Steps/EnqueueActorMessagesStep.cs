@@ -37,8 +37,8 @@ internal class EnqueueActorMessagesStep(
     protected override async Task<StepInstanceTerminationState> OnExecuteAsync()
     {
         await Context.CallActivityAsync(
-            nameof(EnqueueActorMessageActivity_Brs_021_CalculatedMeasurementsCalculation_V1),
-            new EnqueueActorMessageActivity_Brs_021_CalculatedMeasurementsCalculation_V1.ActivityInput(
+            nameof(EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1),
+            new EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1.ActivityInput(
                 OrchestrationInstanceId: orchestrationInstanceContext.OrchestrationInstanceId),
             DefaultRetryOptions);
 

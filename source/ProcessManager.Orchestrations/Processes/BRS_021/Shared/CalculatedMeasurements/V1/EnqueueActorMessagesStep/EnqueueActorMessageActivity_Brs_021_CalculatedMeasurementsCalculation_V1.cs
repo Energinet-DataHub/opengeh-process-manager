@@ -29,21 +29,21 @@ using Microsoft.Extensions.Options;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.EnqueueActorMessagesStep;
 
 public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1(
-    ILogger<EnqueueActorMessageActivity_Brs_021_CalculatedMeasurementsCalculation_V1> logger,
+    ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> logger,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
     MeteringPointReceiversProvider meteringPointReceiversProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     IOptionsSnapshot<DatabricksQueryOptions> databricksQueryOptions,
     DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor)
 {
-    private readonly ILogger<EnqueueActorMessageActivity_Brs_021_CalculatedMeasurementsCalculation_V1> _logger = logger;
+    private readonly ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> _logger = logger;
     private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly DatabricksQueryOptions _databricksQueryOptions = databricksQueryOptions.Get(QueryOptionsSectionNames.CalculatedMeasurementsQuery);
     private readonly DatabricksSqlWarehouseQueryExecutor _databricksSqlWarehouseQueryExecutor = databricksSqlWarehouseQueryExecutor;
 
-    [Function(nameof(EnqueueActorMessageActivity_Brs_021_CalculatedMeasurementsCalculation_V1))]
+    [Function(nameof(EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {

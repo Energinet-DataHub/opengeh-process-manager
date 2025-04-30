@@ -15,19 +15,28 @@
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1.Model;
 
-/// <summary>
-/// A model containing the data required for notifying market actors when new metered data has been accepted.
-/// </summary>
-public record ForwardMeteredDataAcceptedV1(
-    string OriginalActorMessageId,
+public sealed record EnqueueMeasureDataSyncV1(
+    Actor Receiver,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
+    MeasurementUnit MeasureUnit,
     string ProductNumber,
     DateTimeOffset RegistrationDateTime,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
-    IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData,
+    Resolution Resolution,
+    IReadOnlyCollection<MeasureData> MeasureData,
     string GridAreaCode)
-        : IEnqueueAcceptedDataDto;
+        : IEnqueueDataSyncDto
+{
+    public const string RouteName = "v1/enqueue_brs021";
+
+    public string Route { get; } = RouteName;
+}
+
+public record MeasureData(
+    int Position,
+    decimal EnergyQuantity,
+    Quality QuantityQuality);

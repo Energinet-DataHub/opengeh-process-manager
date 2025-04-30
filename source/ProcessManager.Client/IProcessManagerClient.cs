@@ -51,7 +51,7 @@ public interface IProcessManagerClient
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Get orchestration instance by id, and cast orignal input parameter to <see cref="IInputParameterDto"/>.
+    /// Get orchestration instance by id, and cast original input parameter to <see cref="IInputParameterDto"/>.
     /// </summary>
     Task<OrchestrationInstanceTypedDto<TInputParameterDto>> GetOrchestrationInstanceByIdAsync<TInputParameterDto>(
         GetOrchestrationInstanceByIdQuery query,

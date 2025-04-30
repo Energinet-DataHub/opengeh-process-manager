@@ -165,11 +165,11 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
                 Configuration.ProcessManagerNotifyTopicName
             },
             {
-                $"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}",
+                $"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeasurementsStartTopicName)}",
                 Configuration.ProcessManagerBrs021StartTopicName
             },
             {
-                $"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}",
+                $"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeasurementsNotifyTopicName)}",
                 Configuration.ProcessManagerBrs021NotifyTopicName
             },
             // HTTP client options

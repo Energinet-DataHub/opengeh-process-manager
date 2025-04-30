@@ -233,10 +233,10 @@ public class ExampleConsumerAppManager : IAsyncDisposable
 
         // => BRS-021 Forward Metered Data topics
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}",
+            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeasurementsStartTopicName)}",
             brs021fmdStartTopicResources.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}",
+            $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeasurementsNotifyTopicName)}",
             brs021fmdNotifyTopicResources.Name);
 
         // => Edi enqueue topic

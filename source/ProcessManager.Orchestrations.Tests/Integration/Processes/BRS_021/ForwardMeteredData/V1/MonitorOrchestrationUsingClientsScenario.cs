@@ -121,10 +121,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 = _fixture.OrchestrationsAppManager.ProcessManagerStartTopic.Name,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
                 = _fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
-                = _fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
-                = _fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeasurementsStartTopicName)}"]
+                = _fixture.OrchestrationsAppManager.Brs021ForwardMeasurementsStartTopic.Name,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeasurementsNotifyTopicName)}"]
+                = _fixture.OrchestrationsAppManager.Brs021ForwardMeasurementsNotifyTopic.Name,
         });
         services.AddAzureClients(
             builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));

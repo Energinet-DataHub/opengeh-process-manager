@@ -111,9 +111,9 @@ public static class ClientExtensions
                         var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
                         return provider
                             .GetRequiredService<ServiceBusClient>()
-                            .CreateSender(serviceBusOptions.Brs021ForwardMeteredDataStartTopicName);
+                            .CreateSender(serviceBusOptions.Brs021ForwardMeasurementsStartTopicName);
                     })
-                    .WithName(StartSenderClientNames.Brs021ForwardMeteredDataStartSender);
+                    .WithName(StartSenderClientNames.Brs021ForwardMeasurementsStartSender);
 
                 builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
                     (_, _, provider) =>
@@ -121,9 +121,9 @@ public static class ClientExtensions
                         var serviceBusOptions = provider.GetRequiredService<IOptions<ProcessManagerServiceBusClientOptions>>().Value;
                         return provider
                             .GetRequiredService<ServiceBusClient>()
-                            .CreateSender(serviceBusOptions.Brs021ForwardMeteredDataNotifyTopicName);
+                            .CreateSender(serviceBusOptions.Brs021ForwardMeasurementsNotifyTopicName);
                     })
-                    .WithName(NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender);
+                    .WithName(NotifySenderClientNames.Brs021ForwardMeasurementsNotifySender);
             });
 
         services.AddScoped<IProcessManagerMessageClient, ProcessManagerMessageClient>();

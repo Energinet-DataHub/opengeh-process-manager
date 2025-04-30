@@ -36,14 +36,14 @@ public class ProcessManagerServiceBusClientOptions
     public string NotifyTopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the topic which the Process Manager receives BRS-021 Forward Metered Data start commands (service bus messages) on.
+    /// Name of the topic which the Process Manager receives BRS-021 Forward Measurements start commands (service bus messages) on.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string Brs021ForwardMeteredDataStartTopicName { get; set; } = string.Empty;
+    public string Brs021ForwardMeasurementsStartTopicName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Name of the topic which the Process Manager receives BRS-021 Forward Metered Data notify events (service bus messages) on.
+    /// Name of the topic which the Process Manager receives BRS-021 Forward Measurements notify events (service bus messages) on.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string Brs021ForwardMeteredDataNotifyTopicName { get; set; } = string.Empty;
+    public string Brs021ForwardMeasurementsNotifyTopicName { get; set; } = string.Empty;
 }

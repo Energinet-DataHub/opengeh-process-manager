@@ -24,5 +24,5 @@ public static class StartSenderClientNames
     /// <summary>
     /// Service Bus sender for sending BRS-021 Forward Metered Data start commands (service bus messages) to the Process Manager.
     /// </summary>
-    public const string Brs021ForwardMeteredDataStartSender = "Brs021ForwardMeteredDataStartSender";
+    public const string Brs021ForwardMeasurementsStartSender = "Brs021ForwardMeteredDataStartSender";
 }

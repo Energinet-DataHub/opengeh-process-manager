@@ -124,10 +124,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public TopicResource? ProcessManagerStartTopic { get; private set; }
 
     [NotNull]
-    public TopicResource? Brs021ForwardMeteredDataStartTopic { get; private set; }
+    public TopicResource? Brs021ForwardMeasurementsStartTopic { get; private set; }
 
     [NotNull]
-    public TopicResource? Brs021ForwardMeteredDataNotifyTopic { get; private set; }
+    public TopicResource? Brs021ForwardMeasurementsNotifyTopic { get; private set; }
 
     [NotNull]
     public string? MeasurementEventHubName { get; private set; }
@@ -177,8 +177,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
         var brs21fmdTopicResource = await Brs021ForwardMeteredDataTopicResources.CreateNewAsync(ServiceBusResourceProvider);
-        Brs021ForwardMeteredDataStartTopic = brs21fmdTopicResource.StartTopic;
-        Brs021ForwardMeteredDataNotifyTopic = brs21fmdTopicResource.NotifyTopic;
+        Brs021ForwardMeasurementsStartTopic = brs21fmdTopicResource.StartTopic;
+        Brs021ForwardMeasurementsNotifyTopic = brs21fmdTopicResource.NotifyTopic;
 
         // Creates EDI enqueue actor messages topic and subscriptions
         ediEnqueueTopicResources ??= await EdiEnqueueTopicResources.CreateNewAsync(ServiceBusResourceProvider);

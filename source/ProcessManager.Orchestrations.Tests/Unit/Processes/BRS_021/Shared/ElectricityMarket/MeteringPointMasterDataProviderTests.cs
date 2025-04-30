@@ -18,9 +18,11 @@ using Energinet.DataHub.ElectricityMarket.Integration.Models.Common;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.GridAreas;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.ProcessDelegation;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using NodaTime;
 
@@ -42,10 +44,19 @@ public class MeteringPointMasterDataProviderTests
             .Returns(Instant.FromDateTimeOffset(
                 new DateTimeOffset(year: 2021, month: 1, day: 1, hour: 0, minute: 0, second: 0, offset: TimeSpan.Zero)));
 
+        var optionsMock = new Mock<IOptions<ProcessManagerComponentsOptions>>();
+        var expectedOptions = new ProcessManagerComponentsOptions
+        {
+            AllowMockDependenciesForTests = false,
+        };
+
+        optionsMock.Setup(o => o.Value).Returns(expectedOptions);
+
         _sut = new MeteringPointMasterDataProvider(
             new ElectricityMarketViewsMock(),
             new Mock<ILogger<MeteringPointMasterDataProvider>>().Object,
-            clock.Object);
+            clock.Object,
+            optionsMock.Object);
     }
 
     [Fact]

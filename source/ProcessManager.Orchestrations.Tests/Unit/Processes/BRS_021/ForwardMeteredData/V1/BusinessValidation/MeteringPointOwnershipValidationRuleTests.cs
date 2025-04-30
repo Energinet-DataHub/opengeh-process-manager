@@ -14,18 +14,35 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
+using Moq;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.
     BusinessValidation;
 
 public class MeteringPointOwnershipValidationRuleTests
 {
-    private readonly MeteringPointOwnershipValidationRule _sut = new();
+    private readonly MeteringPointOwnershipValidationRule _sut;
+
+    public MeteringPointOwnershipValidationRuleTests()
+    {
+        var optionsMock = new Mock<IOptions<ProcessManagerComponentsOptions>>();
+        var expectedOptions = new ProcessManagerComponentsOptions
+        {
+            AllowMockDependenciesForTests = false,
+        };
+
+        optionsMock.Setup(o => o.Value).Returns(expectedOptions);
+        _sut = new MeteringPointOwnershipValidationRule(optionsMock.Object);
+    }
 
     [Fact]
     public async Task Given_NoMasterData_When_ValidateAsync_Then_NoError()

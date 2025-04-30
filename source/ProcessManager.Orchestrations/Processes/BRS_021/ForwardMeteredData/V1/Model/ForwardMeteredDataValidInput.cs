@@ -49,7 +49,7 @@ public record ForwardMeteredDataValidInput(
         var meteredDataList = input.MeteredDataList
             .Select(e => new MeteredData(
                 Position: int.Parse(e.Position!),
-                EnergyQuantity: decimal.TryParse(e.EnergyQuantity, NumberFormatInfo.InvariantInfo, out var energy) ? energy : null,
+                EnergyQuantity: e.EnergyQuantity != null ? decimal.Parse(e.EnergyQuantity, NumberFormatInfo.InvariantInfo) : null,
                 QuantityQuality: e.QuantityQuality is null ? Quality.AsProvided : Quality.FromName(e.QuantityQuality!)))
             .ToList();
 

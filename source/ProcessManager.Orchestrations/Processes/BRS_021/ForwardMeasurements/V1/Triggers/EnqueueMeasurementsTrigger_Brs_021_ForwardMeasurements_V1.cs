@@ -24,19 +24,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Triggers;
 
-public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
+public class EnqueueMeasurementsTrigger_Brs_021_ForwardMeasurements_V1(
     EnqueueMeasurementsHandlerV1 handler,
-    ILogger<EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1> logger,
+    ILogger<EnqueueMeasurementsTrigger_Brs_021_ForwardMeasurements_V1> logger,
     TelemetryClient telemetryClient)
 {
     private readonly EnqueueMeasurementsHandlerV1 _handler = handler;
-    private readonly ILogger<EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1> _logger = logger;
+    private readonly ILogger<EnqueueMeasurementsTrigger_Brs_021_ForwardMeasurements_V1> _logger = logger;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
     /// Enqueue Messages for BRS-021.
     /// </summary>
-    [Function(nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(EnqueueMeasurementsTrigger_Brs_021_ForwardMeasurements_V1))]
     [ExponentialBackoffRetry(5, "00:00:01", "00:01:00")]
     public async Task Run(
         [EventHubTrigger(
@@ -48,12 +48,12 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
         // Tracks structured telemetry data for Application Insights, including request details such as duration, success/failure, and dependencies.
         // Enables distributed tracing, allowing correlation of this request with related telemetry (e.g., dependencies, exceptions, custom metrics) in the same operation.
         // Automatically tracks metrics like request count, duration, and failure rate for RequestTelemetry.
-        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1));
+        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(EnqueueMeasurementsTrigger_Brs_021_ForwardMeasurements_V1));
         try
         {
-            var brs021ForwardMeteredDataNotifyVersion = GetBrs021ForwardMeteredDataNotifyVersion(message);
+            var notifyVersion = GetBrs021ForwardMeasurementsNotifyVersion(message);
 
-            var orchestrationInstanceId = GetOrchestrationInstanceId(message, brs021ForwardMeteredDataNotifyVersion);
+            var orchestrationInstanceId = GetOrchestrationInstanceId(message, notifyVersion);
 
             _logger.LogInformation("Received notification from Measurements for Orchestration Instance: {OrchestrationInstanceId}", orchestrationInstanceId);
             await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
@@ -68,26 +68,27 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
 
     private static OrchestrationInstanceId GetOrchestrationInstanceId(
         EventData message,
-        Brs021ForwardMeteredDataNotifyVersion brs021ForwardMeteredDataNotifyVersion)
+        Brs021ForwardMeteredDataNotifyVersion notifyVersion)
     {
-        var orchestrationInstanceId = brs021ForwardMeteredDataNotifyVersion.Version switch
+        var orchestrationInstanceId = notifyVersion.Version switch
         {
             "1" or "v1" => HandleV1(message.EventBody),
             _ => throw new ArgumentOutOfRangeException(
                 paramName: nameof(Brs021ForwardMeteredDataNotifyVersion),
-                actualValue: brs021ForwardMeteredDataNotifyVersion.Version,
+                actualValue: notifyVersion.Version,
                 message: $"Unhandled {nameof(Brs021ForwardMeteredDataNotifyVersion)} version."),
         };
         return orchestrationInstanceId;
     }
 
-    private static Brs021ForwardMeteredDataNotifyVersion GetBrs021ForwardMeteredDataNotifyVersion(EventData message)
+    private static Brs021ForwardMeteredDataNotifyVersion GetBrs021ForwardMeasurementsNotifyVersion(EventData message)
     {
-        var brs021ForwardMeteredDataNotifyVersion = Brs021ForwardMeteredDataNotifyVersion.Parser.ParseFrom(message.EventBody);
+        var notifyVersion = Brs021ForwardMeteredDataNotifyVersion.Parser.ParseFrom(message.EventBody);
 
-        if (brs021ForwardMeteredDataNotifyVersion is null)
+        if (notifyVersion is null)
             throw new InvalidOperationException($"Failed to deserialize message to {nameof(Brs021ForwardMeteredDataNotifyVersion)}.");
-        return brs021ForwardMeteredDataNotifyVersion;
+
+        return notifyVersion;
     }
 
     private static OrchestrationInstanceId HandleV1(BinaryData messageEventBody)

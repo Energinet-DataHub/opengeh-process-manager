@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Handlers;
 using Microsoft.ApplicationInsights;
@@ -22,31 +23,34 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Triggers;
 
-public class StartTrigger_Brs_021_ForwardMeteredData_V1(
-    StartForwardMeasurementsHandlerV1 handler,
+public class TerminateTrigger_Brs_021_ForwardMeasurements_V1(
+    TerminateForwardMeasurementsHandlerV1 terminateForwardMeasurementsHandlerV1,
     TelemetryClient telemetryClient)
 {
-    private readonly StartForwardMeasurementsHandlerV1 _handler = handler;
+    private readonly TerminateForwardMeasurementsHandlerV1 _terminateForwardMeasurementsHandlerV1 = terminateForwardMeasurementsHandlerV1;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
-    /// Start a BRS-021 ForwardMeteredData.
+    /// Terminate a BRS-021 ForwardMeasurements.
     /// </summary>
-    [Function(nameof(StartTrigger_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(TerminateTrigger_Brs_021_ForwardMeasurements_V1))]
     public async Task Run(
         [ServiceBusTrigger(
-            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}%",
-            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}%",
+            $"%{Brs021ForwardMeasurementsTopicOptions.SectionName}:{nameof(Brs021ForwardMeasurementsTopicOptions.NotifyTopicName)}%",
+            $"%{Brs021ForwardMeasurementsTopicOptions.SectionName}:{nameof(Brs021ForwardMeasurementsTopicOptions.NotifySubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
-        ServiceBusReceivedMessage message)
+        string message)
     {
         // Tracks structured telemetry data for Application Insights, including request details such as duration, success/failure, and dependencies.
         // Enables distributed tracing, allowing correlation of this request with related telemetry (e.g., dependencies, exceptions, custom metrics) in the same operation.
         // Automatically tracks metrics like request count, duration, and failure rate for RequestTelemetry.
-        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(StartTrigger_Brs_021_ForwardMeteredData_V1));
+        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(TerminateTrigger_Brs_021_ForwardMeasurements_V1));
         try
         {
-            await _handler.HandleAsync(message).ConfigureAwait(false);
+            var notify = GetNotifyOrchestrationInstanceV1(message);
+
+            var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notify.OrchestrationInstanceId));
+            await _terminateForwardMeasurementsHandlerV1.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -54,5 +58,16 @@ public class StartTrigger_Brs_021_ForwardMeteredData_V1(
             _telemetryClient.TrackException(ex);
             throw;
         }
+    }
+
+    private static NotifyOrchestrationInstanceV1 GetNotifyOrchestrationInstanceV1(string message)
+    {
+        var notify = NotifyOrchestrationInstanceV1.Parser.ParseJson(message);
+        if (notify is not { EventName: ForwardMeasurementsNotifyEventV1.OrchestrationInstanceEventName })
+        {
+            throw new InvalidOperationException("Failed to deserialize message");
+        }
+
+        return notify;
     }
 }

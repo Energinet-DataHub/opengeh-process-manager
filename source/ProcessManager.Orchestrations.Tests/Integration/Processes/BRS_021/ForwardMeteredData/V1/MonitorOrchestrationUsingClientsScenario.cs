@@ -540,7 +540,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
 
         // Then
-        var expectedFunctionName = nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1);
+        var expectedFunctionName = nameof(EnqueueMeasurementsTrigger_Brs_021_ForwardMeasurements_V1);
 
         var wasExecutedExpectedTimes = await Awaiter.TryWaitUntilConditionAsync(
             () =>

@@ -19,14 +19,14 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 
 /// <summary>
 /// Contains options required for the orchestration app to connect to the
-/// Brs021ForwardMeteredData service bus topic.
+/// Brs021ForwardMeasurements service bus topic.
 /// </summary>
-public class Brs021ForwardMeteredDataTopicOptions
+public class Brs021ForwardMeasurementsTopicOptions
 {
     /// <summary>
     /// Name of the section in the <see cref="IConfiguration"/> / appsettings.json file
     /// </summary>
-    public const string SectionName = "Brs021ForwardMeteredDataTopic";
+    public const string SectionName = "Brs021ForwardMeasurementsTopic";
 
     /// <summary>
     /// Name of the ProcessManager Service Bus topic

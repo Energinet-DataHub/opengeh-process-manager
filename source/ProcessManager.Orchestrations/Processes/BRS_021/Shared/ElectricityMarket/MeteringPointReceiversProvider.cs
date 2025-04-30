@@ -232,7 +232,7 @@ public class MeteringPointReceiversProvider(
 
             case var _ when meteringPointType == MeteringPointType.NetProduction:
             case var _ when meteringPointType == MeteringPointType.SupplyToGrid:
-            case var _ when meteringPointType == MeteringPointType.ConsumptionFromGrid: // Not supported in DH3
+            case var _ when meteringPointType == MeteringPointType.ConsumptionFromGrid:
             case var _ when meteringPointType == MeteringPointType.WholesaleServicesInformation:
             case var _ when meteringPointType == MeteringPointType.OwnProduction:
             case var _ when meteringPointType == MeteringPointType.NetFromGrid:
@@ -240,8 +240,8 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.TotalConsumption:
             case var _ when meteringPointType == MeteringPointType.Analysis:
             case var _ when meteringPointType == MeteringPointType.NotUsed:
-            case var _ when meteringPointType == MeteringPointType.SurplusProductionGroup6: // Not supported in DH3
-            case var _ when meteringPointType == MeteringPointType.NetLossCorrection: // Not supported in DH3
+            case var _ when meteringPointType == MeteringPointType.SurplusProductionGroup6:
+            case var _ when meteringPointType == MeteringPointType.NetLossCorrection:
             case var _ when meteringPointType == MeteringPointType.ElectricalHeating:
             case var _ when meteringPointType == MeteringPointType.NetConsumption:
             case var _ when meteringPointType == MeteringPointType.OtherConsumption:

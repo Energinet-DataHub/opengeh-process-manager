@@ -74,8 +74,6 @@
 
     <ItemGroup>
       <Folder Include="InternalProcesses\" />
-      <Folder Include="Processes\BRS_021\CapacitySettlementCalculation\V1\Activities\EnqueueActorMessagesStep\" />
-      <Folder Include="Processes\BRS_021\NetConsumptionCalculation\V1\Activities\EnqueueActorMessagesStep\" />
     </ItemGroup>
 
 </Project>

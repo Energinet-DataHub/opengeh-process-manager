@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Components.Time;
+using Energinet.DataHub.ProcessManager.Components.WorkingDays;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
@@ -33,7 +34,7 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
     {
         // Arrange
         var jobRunId = new JobRunId(42);
-        var date = Instant.FromUtc(2024, 12, 31, 23, 0, 0);
+        var date = Instant.FromUtc(2025, 1, 1, 0, 0, 0);
         var orchestrationInstanceId = new OrchestrationInstanceId(Guid.NewGuid());
         var activityInput =
             new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1.ActivityInput(
@@ -41,8 +42,8 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
         var jobParameters = new List<string>
         {
             $"--orchestration-instance-id={activityInput.OrchestrationInstanceId.Value}",
-            $"--period-start-datetime={date.PlusDays(-93)}",
-            $"--period-end-datetime={date.PlusDays(-3)}",
+            $"--period-start-datetime={date.PlusDays(-12)}",
+            $"--period-end-datetime={date.PlusDays(-102)}",
         };
 
         var clientMock = new Mock<IDatabricksJobsClient>();
@@ -53,8 +54,9 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
         clockMock
             .Setup(x => x.GetCurrentInstant())
             .Returns(date);
-        var timeHelper = new TimeHelper(DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
-        var sut = new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(clientMock.Object, clockMock.Object, timeHelper);
+        var sut = new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(
+            clientMock.Object,
+            new DataHubSupportCalender(clockMock.Object, DateTimeZone.Utc));
 
         // Act
         var actual = await sut.Run(activityInput);

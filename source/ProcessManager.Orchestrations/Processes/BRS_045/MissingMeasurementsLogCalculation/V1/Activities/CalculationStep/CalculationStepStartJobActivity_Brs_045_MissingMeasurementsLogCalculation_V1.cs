@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Components.Time;
+using Energinet.DataHub.ProcessManager.Components.WorkingDays;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker;
@@ -27,20 +28,19 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Miss
 internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(
     [FromKeyedServices(DatabricksWorkspaceNames.Measurements)]
     IDatabricksJobsClient client,
-    IClock clock,
-    TimeHelper timeHelper)
+    DataHubSupportCalender dataHubSupportCalender)
 {
     private readonly IDatabricksJobsClient _client = client;
-    private readonly IClock _clock = clock;
-    private readonly TimeHelper _timeHelper = timeHelper;
 
     [Function(nameof(CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1))]
     public async Task<JobRunId> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        var midnightDate = _timeHelper.GetMidnightZonedDateTime(_clock.GetCurrentInstant());
-        var periodStart = midnightDate.PlusDays(-93);
-        var periodEnd = midnightDate.PlusDays(-3);
+        // The missing measurement logs calculation period:
+        // 4 working days back from today, and 90 days back from that date.
+        var relativeWorkingDay = dataHubSupportCalender.GetWorkingDayRelativeToToday(-4);
+        var periodStart = relativeWorkingDay.ToInstant().PlusDays(-90);
+        var periodEnd = relativeWorkingDay;
         var jobParameters = new List<string>
         {
             $"--orchestration-instance-id={input.OrchestrationInstanceId.Value}",

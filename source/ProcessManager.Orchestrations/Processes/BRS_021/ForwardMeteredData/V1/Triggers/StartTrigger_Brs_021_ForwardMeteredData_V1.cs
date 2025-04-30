@@ -40,11 +40,9 @@ public class StartTrigger_Brs_021_ForwardMeteredData_V1(
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        // Provides structured telemetry data that Application Insights uses to display request details,
-        // including duration, success/failure, and associated dependencies.
-        // Distributed Tracing: Enables distributed tracing, allowing correlation of this request
-        // with other telemetry (e.g., dependencies, exceptions) in the same operation.
-        // Automatic Metrics: Automatically tracks metrics like request count, duration, and failure rate for RequestTelemetry.
+        // Tracks structured telemetry data for Application Insights, including request details such as duration, success/failure, and dependencies.
+        // Enables distributed tracing, allowing correlation of this request with related telemetry (e.g., dependencies, exceptions, custom metrics) in the same operation.
+        // Automatically tracks metrics like request count, duration, and failure rate for RequestTelemetry.
         using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(StartTrigger_Brs_021_ForwardMeteredData_V1));
         try
         {

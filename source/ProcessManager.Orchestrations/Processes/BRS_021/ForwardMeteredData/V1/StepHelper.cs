@@ -21,6 +21,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public static class StepHelper
 {
+    private const string StepDurationMetricName = "Step Duration (ms)";
+
     /// <summary>
     /// Start a step if it is pending and commit the change.
     /// <remarks>Does nothing if the step lifecycle isn't pending.</remarks>
@@ -59,13 +61,10 @@ public static class StepHelper
         var startedAt = step.Lifecycle.StartedAt!;
         var duration = clock.GetCurrentInstant() - startedAt;
 
-        telemetryClient.TrackMetric(
-            $"StepExecutionDuration_{step.Description.Replace(" ", "_")}",
-            duration.Value.TotalMilliseconds,
-            new Dictionary<string, string>
-        {
-            { "StepId", step.Id.ToString() },
-        });
+        // Log step duration for step description
+        var stepDurationMetric = telemetryClient.GetMetric(
+            metricId: StepDurationMetricName, dimension1Name: "StepDescription");
+        stepDurationMetric.TrackValue(metricValue: duration.Value.TotalMilliseconds, dimension1Value: step.Description.Replace(" ", "_"));
 
         step.Lifecycle.TransitionToTerminated(clock, terminationState);
         await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);

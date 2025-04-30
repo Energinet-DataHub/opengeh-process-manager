@@ -45,7 +45,10 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
             Connection = ProcessManagerEventHubOptions.SectionName)]
         EventData message)
     {
-        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(StartTrigger_Brs_021_ForwardMeteredData_V1));
+        // Tracks structured telemetry data for Application Insights, including request details such as duration, success/failure, and dependencies.
+        // Enables distributed tracing, allowing correlation of this request with related telemetry (e.g., dependencies, exceptions, custom metrics) in the same operation.
+        // Automatically tracks metrics like request count, duration, and failure rate for RequestTelemetry.
+        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1));
         try
         {
             var brs021ForwardMeteredDataNotifyVersion = GetBrs021ForwardMeteredDataNotifyVersion(message);

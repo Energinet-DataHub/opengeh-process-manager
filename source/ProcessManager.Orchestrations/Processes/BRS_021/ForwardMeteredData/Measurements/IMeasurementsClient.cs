@@ -16,12 +16,12 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 
-public interface IMeasurementsMeteredDataClient
+public interface IMeasurementsClient
 {
     /// <summary>
-    /// Responsible for sending metered data for a measurement point to Measurements.
+    /// Responsible for sending measurements for a metering point to Measurements.
     /// </summary>
-    /// <param name="meteredDataForMeteringPoint"></param>
+    /// <param name="measurementsForMeteringPoint"></param>
     /// <param name="cancellationToken"></param>
-    Task SendAsync(MeteredDataForMeteringPoint meteredDataForMeteringPoint, CancellationToken cancellationToken);
+    Task SendAsync(MeasurementsForMeteringPoint measurementsForMeteringPoint, CancellationToken cancellationToken);
 }

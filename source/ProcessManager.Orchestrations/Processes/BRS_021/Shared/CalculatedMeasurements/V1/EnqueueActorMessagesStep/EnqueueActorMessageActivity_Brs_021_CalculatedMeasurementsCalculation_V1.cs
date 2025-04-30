@@ -64,7 +64,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
             // we need to find receivers for it based on the master data for the metering point.
             await EnqueueMessagesForMeasureData(
                     orchestrationInstanceId: input.OrchestrationInstanceId,
-                    calculatedMeasureData: queryResult.Result)
+                    calculatedMeasurementses: queryResult.Result)
                 .ConfigureAwait(false);
         }
     }
@@ -77,28 +77,28 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     /// </summary>
     private async Task EnqueueMessagesForMeasureData(
         OrchestrationInstanceId orchestrationInstanceId,
-        CalculatedMeasurement calculatedMeasureData)
+        Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurementses)
     {
-        var from = calculatedMeasureData.MeasureData.First().ObservationTime;
-        var to = calculatedMeasureData.MeasureData.Last().ObservationTime;
+        var from = calculatedMeasurementses.Measurements.First().ObservationTime;
+        var to = calculatedMeasurementses.Measurements.Last().ObservationTime;
 
         // We need to get master data & receivers for each metering point id
         var masterDataForMeteringPoint = await _meteringPointMasterDataProvider.GetMasterData(
-                meteringPointId: calculatedMeasureData.MeteringPointId,
+                meteringPointId: calculatedMeasurementses.MeteringPointId,
                 startDateTime: from,
                 endDateTime: to)
             .ConfigureAwait(false);
 
         var receiversForMeteringPoint = _meteringPointReceiversProvider
-            .GetReceiversWithMeteredDataFromMasterDataList(
+            .GetReceiversWithMeasurementsFromMasterDataList(
                 new MeteringPointReceiversProvider.FindReceiversInput(
-                    MeteringPointId: calculatedMeasureData.MeteringPointId,
+                    MeteringPointId: calculatedMeasurementses.MeteringPointId,
                     StartDateTime: from,
                     EndDateTime: to,
-                    Resolution: calculatedMeasureData.Resolution,
+                    Resolution: calculatedMeasurementses.Resolution,
                     MasterData: masterDataForMeteringPoint,
-                    MeasureData: calculatedMeasureData.MeasureData
-                        .Select((md, i) => new ReceiversWithMeasureData.MeasureData(
+                    Measurements: calculatedMeasurementses.Measurements
+                        .Select((md, i) => new ReceiversWithMeasurements.Measurement(
                             Position: i + 1, // Position is 1-based, so the first position must be 1.
                             EnergyQuantity: md.Quantity,
                             QuantityQuality: Quality.Calculated))

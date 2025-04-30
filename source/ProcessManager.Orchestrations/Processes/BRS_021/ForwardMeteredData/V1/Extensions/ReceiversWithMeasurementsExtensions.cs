@@ -13,44 +13,44 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Extensions;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 
-public static class ReceiversWithMeasureDataExtensions
+public static class ReceiversWithMeasurementsExtensions
 {
-    public static List<ReceiversWithMeasureDataV1> ToElectricalHeatingReceiversWithMeasureDataV1(
-        this IEnumerable<ReceiversWithMeasureData> receiversWithMeasureData)
+    public static List<ReceiversWithMeteredDataV1> ToForwardMeteredDataReceiversWithMeasurementsV1(
+        this IEnumerable<ReceiversWithMeasurements> receiversWithMeasurements)
     {
-        return receiversWithMeasureData
+        return receiversWithMeasurements
             .Select(
-                rmd => new ReceiversWithMeasureDataV1(
-                    Receivers: rmd.Receivers.ToElectricalHeatingReceivers(),
+                rmd => new ReceiversWithMeteredDataV1(
+                    Actors: rmd.Receivers.ToForwardMeteredDataMarketActorRecipientV1(),
                     Resolution: rmd.Resolution,
                     MeasureUnit: rmd.MeasureUnit,
                     StartDateTime: rmd.StartDateTime,
                     EndDateTime: rmd.EndDateTime,
-                    MeasureDataList: rmd.MeasureDataList.ToElectricalHeatingMeasureData()))
+                    MeteredData: rmd.Measurements.ToForwardMeteredDataAcceptedMeasurements()))
             .ToList();
     }
 
-    private static List<ReceiversWithMeasureDataV1.Receiver> ToElectricalHeatingReceivers(
+    private static List<MarketActorRecipientV1> ToForwardMeteredDataMarketActorRecipientV1(
         this IEnumerable<Actor> receivers)
     {
         return receivers.Select(
-                r => new ReceiversWithMeasureDataV1.Receiver(
+                r => new MarketActorRecipientV1(
                     ActorNumber: r.Number,
                     ActorRole: r.Role))
             .ToList();
     }
 
-    private static List<ReceiversWithMeasureDataV1.MeasureData> ToElectricalHeatingMeasureData(
-        this IEnumerable<ReceiversWithMeasureData.MeasureData> measureData)
+    private static List<ReceiversWithMeteredDataV1.AcceptedMeteredData> ToForwardMeteredDataAcceptedMeasurements(
+        this IEnumerable<ReceiversWithMeasurements.Measurement> measurements)
     {
-        return measureData
+        return measurements
             .Select(
-                md => new ReceiversWithMeasureDataV1.MeasureData(
+                md => new ReceiversWithMeteredDataV1.AcceptedMeteredData(
                     Position: md.Position,
                     EnergyQuantity: md.EnergyQuantity,
                     QuantityQuality: md.QuantityQuality))

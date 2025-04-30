@@ -28,12 +28,12 @@ public static class Brs021ForwardMeteredDataExtensions
         this IServiceCollection services,
         DefaultAzureCredential azureCredential)
     {
-        services.AddMeasurementsMeteredDataClient(azureCredential);
+        services.AddMeasurementsClient(azureCredential);
         services.AddScoped<MeteringPointMasterDataProvider>();
         services.AddScoped<MeteringPointReceiversProvider>();
         services.AddScoped<DelegationProvider>();
         services.AddScoped<TerminateForwardMeteredDataHandlerV1>();
-        services.AddScoped<EnqueueMeteredDataHandlerV1>();
+        services.AddScoped<EnqueueMeasurementsHandlerV1>();
 
         return services;
     }

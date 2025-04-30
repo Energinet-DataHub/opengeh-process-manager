@@ -289,7 +289,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(MeasureDataQualityValidationRule.InvalidQuality);
+            .And.BeEquivalentTo(QuantityQualityValidationRule.InvalidQuality);
     }
 
     [Fact]

@@ -20,7 +20,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
-public class MeasureDataQualityValidationRuleTests
+public class QuantityQualityValidationRuleTests
 {
     private static readonly Quality[] _validQualities =
     [
@@ -29,7 +29,7 @@ public class MeasureDataQualityValidationRuleTests
         Quality.AsProvided,
     ];
 
-    private readonly MeasureDataQualityValidationRule _sut = new();
+    private readonly QuantityQualityValidationRule _sut = new();
 
     public static TheoryData<Quality?> ValidQualities =>
     [
@@ -111,7 +111,7 @@ public class MeasureDataQualityValidationRuleTests
                 MeteringPointMasterData: [])); // Master data is unused in validation rule
 
         var validationError = Assert.Single(result);
-        Assert.Equal(MeasureDataQualityValidationRule.InvalidQuality.Single(), validationError);
+        Assert.Equal(QuantityQualityValidationRule.InvalidQuality.Single(), validationError);
     }
 
     [Fact]
@@ -141,6 +141,6 @@ public class MeasureDataQualityValidationRuleTests
                 MeteringPointMasterData: [])); // Master data is unused in validation rule
 
         var validationError = Assert.Single(result);
-        Assert.Equal(MeasureDataQualityValidationRule.InvalidQuality.Single(), validationError);
+        Assert.Equal(QuantityQualityValidationRule.InvalidQuality.Single(), validationError);
     }
 }

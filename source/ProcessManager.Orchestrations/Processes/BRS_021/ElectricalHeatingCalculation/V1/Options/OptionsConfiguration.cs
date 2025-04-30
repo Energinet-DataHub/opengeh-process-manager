@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Application;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Options;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
@@ -28,8 +29,8 @@ public class OptionsConfiguration : IOptionsConfiguration
             .ValidateDataAnnotations();
 
         services
-            .AddOptions<DatabricksQueryOptions>(name: QueryOptionsSectionNames.ElectricalHeatingQuery)
-            .BindConfiguration(QueryOptionsSectionNames.ElectricalHeatingQuery)
+            .AddOptions<DatabricksQueryOptions>(name: QueryOptionsSectionNames.CalculatedMeasurementsQuery)
+            .BindConfiguration(QueryOptionsSectionNames.CalculatedMeasurementsQuery)
             .ValidateDataAnnotations();
 
         return services;

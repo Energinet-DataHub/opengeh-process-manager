@@ -32,7 +32,7 @@ public static class Brs021ForwardMeteredDataExtensions
         services.AddScoped<MeteringPointMasterDataProvider>();
         services.AddScoped<MeteringPointReceiversProvider>();
         services.AddScoped<DelegationProvider>();
-        services.AddScoped<TerminateForwardMeteredDataHandlerV1>();
+        services.AddScoped<TerminateForwardMeasurementsHandlerV1>();
         services.AddScoped<EnqueueMeasurementsHandlerV1>();
 
         return services;

@@ -23,10 +23,10 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Triggers;
 
 public class StartTrigger_Brs_021_ForwardMeteredData_V1(
-    StartForwardMeteredDataHandlerV1 handler,
+    StartForwardMeasurementsHandlerV1 handler,
     TelemetryClient telemetryClient)
 {
-    private readonly StartForwardMeteredDataHandlerV1 _handler = handler;
+    private readonly StartForwardMeasurementsHandlerV1 _handler = handler;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>

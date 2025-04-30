@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 
 public static class ReceiversWithMeasurementsExtensions
 {
-    public static List<ReceiversWithMeasurementsV1> ToForwardMeteredDataReceiversWithMeasurementsV1(
+    public static List<ReceiversWithMeasurementsV1> ToForwardMeasurementsReceiversWithMeasurementsV1(
         this IEnumerable<ReceiversWithMeasurements> receiversWithMeasurements)
     {
         return receiversWithMeasurements

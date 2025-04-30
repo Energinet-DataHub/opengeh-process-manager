@@ -28,6 +28,6 @@ public record ForwardMeasurementsAcceptedV1(
     DateTimeOffset RegistrationDateTime,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
-    IReadOnlyCollection<ReceiversWithMeasurementsV1> ReceiversWithMeteredData,
+    IReadOnlyCollection<ReceiversWithMeasurementsV1> ReceiversWithMeasurements,
     string GridAreaCode)
         : IEnqueueAcceptedDataDto;

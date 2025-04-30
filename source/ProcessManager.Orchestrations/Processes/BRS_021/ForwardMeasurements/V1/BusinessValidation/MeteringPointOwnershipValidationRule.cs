@@ -26,7 +26,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// if the metering point does not exist, a business validation error is returned
 /// </summary>
 public class MeteringPointOwnershipValidationRule(IOptions<ProcessManagerComponentsOptions> options)
-    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+    : IBusinessValidationRule<ForwardMeasurementsBusinessValidatedDto>
 {
     private readonly IOptions<ProcessManagerComponentsOptions> _options = options;
 
@@ -40,7 +40,7 @@ public class MeteringPointOwnershipValidationRule(IOptions<ProcessManagerCompone
     private static IList<ValidationError> NoError => [];
 
     public Task<IList<ValidationError>> ValidateAsync(
-        ForwardMeteredDataBusinessValidatedDto subject)
+        ForwardMeasurementsBusinessValidatedDto subject)
     {
         // The performance test uses non-existing metering points, so we must skip this validation
         if (IsPerformanceTest(subject.Input))

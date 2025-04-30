@@ -24,10 +24,10 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Triggers;
 
 public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
-    TerminateForwardMeteredDataHandlerV1 terminateForwardMeteredDataHandlerV1,
+    TerminateForwardMeasurementsHandlerV1 terminateForwardMeasurementsHandlerV1,
     TelemetryClient telemetryClient)
 {
-    private readonly TerminateForwardMeteredDataHandlerV1 _terminateForwardMeteredDataHandlerV1 = terminateForwardMeteredDataHandlerV1;
+    private readonly TerminateForwardMeasurementsHandlerV1 _terminateForwardMeasurementsHandlerV1 = terminateForwardMeasurementsHandlerV1;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
@@ -50,7 +50,7 @@ public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
             var notify = GetNotifyOrchestrationInstanceV1(message);
 
             var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notify.OrchestrationInstanceId));
-            await _terminateForwardMeteredDataHandlerV1.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
+            await _terminateForwardMeasurementsHandlerV1.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

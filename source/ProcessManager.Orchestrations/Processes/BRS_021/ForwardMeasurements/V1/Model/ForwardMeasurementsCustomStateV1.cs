@@ -18,8 +18,8 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
-public record ForwardMeteredDataCustomStateV2(
-    IReadOnlyCollection<ForwardMeteredDataCustomStateV2.MasterData> HistoricalMeteringPointMasterData)
+public record ForwardMeasurementsCustomStateV1(
+    IReadOnlyCollection<ForwardMeasurementsCustomStateV1.MasterData> HistoricalMeteringPointMasterData)
 {
     public enum ConnectionState
     {

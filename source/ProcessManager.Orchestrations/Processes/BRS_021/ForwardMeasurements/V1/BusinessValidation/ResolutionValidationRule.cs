@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 
 public class ResolutionValidationRule
-    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+    : IBusinessValidationRule<ForwardMeasurementsBusinessValidatedDto>
 {
     public static IList<ValidationError> WrongResolutionError => [new(
         Message: "Forkert opløsning/Wrong resolution",
@@ -35,7 +35,7 @@ public class ResolutionValidationRule
     };
 
     public Task<IList<ValidationError>> ValidateAsync(
-        ForwardMeteredDataBusinessValidatedDto subject)
+        ForwardMeasurementsBusinessValidatedDto subject)
     {
         if (subject.MeteringPointMasterData.Count == 0)
         {
@@ -70,7 +70,7 @@ public class ResolutionValidationRule
         return Task.FromResult(NoError);
     }
 
-    private static bool IsVeProductionMeteringPointType(ForwardMeteredDataBusinessValidatedDto subject)
+    private static bool IsVeProductionMeteringPointType(ForwardMeasurementsBusinessValidatedDto subject)
     {
         var isVeProductionMeteringPointFromInput = MeteringPointType
             .FromNameOrDefault(subject.Input.MeteringPointType) == MeteringPointType.VeProduction;

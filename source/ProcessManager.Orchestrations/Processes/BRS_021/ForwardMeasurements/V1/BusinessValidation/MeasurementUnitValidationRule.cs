@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 
 public class MeasurementUnitValidationRule
-    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+    : IBusinessValidationRule<ForwardMeasurementsBusinessValidatedDto>
 {
     public static IList<ValidationError> MeasurementUnitError => [new(
         Message: "Energienhed skal svare til energienhed på målepunktet/Measure unit must be the same as the one registrered on the meteringpoint",
@@ -38,7 +38,7 @@ public class MeasurementUnitValidationRule
     };
 
     public Task<IList<ValidationError>> ValidateAsync(
-        ForwardMeteredDataBusinessValidatedDto subject)
+        ForwardMeasurementsBusinessValidatedDto subject)
     {
         if (subject.MeteringPointMasterData.Count == 0)
         {

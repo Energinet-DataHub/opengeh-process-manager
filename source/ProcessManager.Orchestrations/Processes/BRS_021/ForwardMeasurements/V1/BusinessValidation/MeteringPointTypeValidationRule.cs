@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 
 public class MeteringPointTypeValidationRule
-    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+    : IBusinessValidationRule<ForwardMeasurementsBusinessValidatedDto>
 {
     public static IList<ValidationError> WrongMeteringPointError => [new(
         Message: "Forkert Målepunkts type/Wrong meteringpoint type",
@@ -59,7 +59,7 @@ public class MeteringPointTypeValidationRule
         MeteringPointType.InternalUse,
     };
 
-    public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
+    public Task<IList<ValidationError>> ValidateAsync(ForwardMeasurementsBusinessValidatedDto subject)
     {
         if (subject.MeteringPointMasterData.Count == 0)
         {

@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// if the metering point does not exist, a business validation error is returned
 /// </summary>
 public class MeteringPointValidationRule()
-    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+    : IBusinessValidationRule<ForwardMeasurementsBusinessValidatedDto>
 {
     public static IList<ValidationError> MeteringPointDoesntExistsError => [new(
         Message: "Målepunktet findes ikke / The metering point does not exist",
@@ -31,7 +31,7 @@ public class MeteringPointValidationRule()
     private static IList<ValidationError> NoError => [];
 
     public Task<IList<ValidationError>> ValidateAsync(
-        ForwardMeteredDataBusinessValidatedDto subject)
+        ForwardMeasurementsBusinessValidatedDto subject)
     {
         if (subject.MeteringPointMasterData.Count == 0)
             return Task.FromResult(MeteringPointDoesntExistsError);

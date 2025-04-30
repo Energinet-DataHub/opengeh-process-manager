@@ -24,9 +24,9 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
 /// <summary>
-/// A representation of a valid input for the Forward Metered Data process.
+/// A representation of a valid input for the Forward Measurements process.
 /// </summary>
-public record ForwardMeteredDataValidInput(
+public record ForwardMeasurementsValidInput(
     ActorMessageId ActorMessageId,
     TransactionId TransactionId,
     ActorNumber ActorNumber,
@@ -41,13 +41,13 @@ public record ForwardMeteredDataValidInput(
     Instant StartDateTime,
     Instant EndDateTime,
     ActorNumber GridAccessProvider,
-    IReadOnlyCollection<ForwardMeteredDataValidInput.MeteredData> MeteredDataList)
+    IReadOnlyCollection<ForwardMeasurementsValidInput.Measurement> Measurements)
     : IInputParameterDto
 {
-    public static ForwardMeteredDataValidInput From(ForwardMeasurementsInputV1 input)
+    public static ForwardMeasurementsValidInput From(ForwardMeasurementsInputV1 input)
     {
-        var meteredDataList = input.Measurements
-            .Select(e => new MeteredData(
+        var measurements = input.Measurements
+            .Select(e => new Measurement(
                 Position: int.Parse(e.Position!),
                 EnergyQuantity: e.EnergyQuantity != null ? decimal.Parse(e.EnergyQuantity, NumberFormatInfo.InvariantInfo) : null,
                 QuantityQuality: e.QuantityQuality is null ? Quality.AsProvided : Quality.FromName(e.QuantityQuality!)))
@@ -57,7 +57,7 @@ public record ForwardMeteredDataValidInput(
         var endDateTime = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
         var registrationDateTime = InstantPatternWithOptionalSeconds.Parse(input.RegistrationDateTime).Value;
 
-        return new ForwardMeteredDataValidInput(
+        return new ForwardMeasurementsValidInput(
             ActorMessageId: new ActorMessageId(input.ActorMessageId),
             TransactionId: new TransactionId(input.TransactionId),
             ActorNumber: ActorNumber.Create(input.ActorNumber),
@@ -72,10 +72,10 @@ public record ForwardMeteredDataValidInput(
             StartDateTime: startDateTime,
             EndDateTime: endDateTime,
             GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
-            MeteredDataList: meteredDataList);
+            Measurements: measurements);
     }
 
-    public record MeteredData(
+    public record Measurement(
         int Position,
         decimal? EnergyQuantity,
         Quality QuantityQuality);

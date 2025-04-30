@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 
 public class QuantityQualityValidationRule
-    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+    : IBusinessValidationRule<ForwardMeasurementsBusinessValidatedDto>
 {
     public static IList<ValidationError> InvalidQuality => [new(
         Message: "Invalid kvalitet / Invalid quality",
@@ -34,7 +34,7 @@ public class QuantityQualityValidationRule
         Quality.AsProvided,
     ];
 
-    public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
+    public Task<IList<ValidationError>> ValidateAsync(ForwardMeasurementsBusinessValidatedDto subject)
     {
         foreach (var meteredData in subject.Input.Measurements)
         {

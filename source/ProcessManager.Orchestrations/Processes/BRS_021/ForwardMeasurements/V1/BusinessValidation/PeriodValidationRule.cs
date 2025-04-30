@@ -23,7 +23,7 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 
 public class PeriodValidationRule(PeriodValidator periodValidator)
-        : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+        : IBusinessValidationRule<ForwardMeasurementsBusinessValidatedDto>
 {
     private const int MaxAllowedPeriodAgeInYears = 3;
 
@@ -72,7 +72,7 @@ public class PeriodValidationRule(PeriodValidator periodValidator)
 
     private readonly PeriodValidator _periodValidator = periodValidator;
 
-    public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
+    public Task<IList<ValidationError>> ValidateAsync(ForwardMeasurementsBusinessValidatedDto subject)
     {
         List<ValidationError> errors = [];
 

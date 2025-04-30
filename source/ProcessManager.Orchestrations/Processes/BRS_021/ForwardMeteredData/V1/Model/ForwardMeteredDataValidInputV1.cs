@@ -76,5 +76,5 @@ public record ForwardMeteredDataValidInputV1(
     public record MeteredData(
         int Position,
         decimal? EnergyQuantity,
-        Quality? QuantityQuality);
+        Quality QuantityQuality);
 }

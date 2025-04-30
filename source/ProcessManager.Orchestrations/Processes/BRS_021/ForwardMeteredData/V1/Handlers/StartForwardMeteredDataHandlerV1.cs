@@ -446,11 +446,12 @@ public class StartForwardMeteredDataHandlerV1(
                     MapPoints)
                 .ToList());
 
-    private Point MapPoints(ForwardMeteredDataValidInputV1.MeteredData eo)
+    private Point MapPoints(ForwardMeteredDataValidInputV1.MeteredData meteredData)
     {
         return new Point(
-            eo.Position,
-            eo.EnergyQuantity!.Value, //TODO: LRN - check if this is correct
-            eo.QuantityQuality!); //TODO: LRN - check if this is correct
+            meteredData.Position,
+            // TODO: LRN - Will be fixed with a updated contract from Measurements
+            meteredData.EnergyQuantity ?? 0.00m,
+            meteredData.QuantityQuality);
     }
 }

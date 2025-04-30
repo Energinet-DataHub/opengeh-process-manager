@@ -54,7 +54,6 @@ using NodaTime.Serialization.SystemTextJson;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
-
 using ElectricityMarketModels = Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
 using OrchestrationInstanceTerminationState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationState;
@@ -63,7 +62,7 @@ using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.Valu
 using StepInstanceLifecycleState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceLifecycleState;
 using StepInstanceTerminationState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceTerminationState;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeasurements.V1;
 
 /// <summary>
 /// Test collection that verifies the Process Manager clients can be used to start a

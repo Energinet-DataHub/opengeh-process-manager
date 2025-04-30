@@ -20,7 +20,7 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
 internal class EnqueueActorMessagesHttpClient(
-    IHttpClientFactory httpClientFactory) : IEnqueueActorMessagesSyncClient
+    IHttpClientFactory httpClientFactory) : IEnqueueActorMessagesHttpClient
 {
     public const string EdiEndpointPrefix = "/api/enqueue/";
     private readonly HttpClient _client = httpClientFactory.CreateClient(HttpClientNames.EdiEnqueueActorMessagesClientName);

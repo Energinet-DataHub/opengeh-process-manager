@@ -47,7 +47,7 @@ public static class EnqueueActorMessagesSyncExtensions
                 ConfigureHttpClient(sp, httpClient, options.BaseUrl);
             });
 
-        services.TryAddSingleton<IEnqueueActorMessagesSyncClient, EnqueueActorMessagesHttpClient>();
+        services.TryAddSingleton<IEnqueueActorMessagesHttpClient, EnqueueActorMessagesHttpClient>();
 
         return services;
     }

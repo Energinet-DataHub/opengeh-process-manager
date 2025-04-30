@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessa
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
-public interface IEnqueueActorMessagesSyncClient
+public interface IEnqueueActorMessagesHttpClient
 {
     /// <summary>
     /// Enqueue a message to an actor.

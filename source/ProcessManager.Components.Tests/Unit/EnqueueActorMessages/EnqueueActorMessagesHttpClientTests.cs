@@ -56,14 +56,14 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
 
         Services.AddEnqueueActorMessagesSync(mockCredential.Object);
         ServiceProvider = Services.BuildServiceProvider();
-        Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesSyncClient>();
+        Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesHttpClient>();
 
         Actor = new Actor(
             ActorNumber: ActorNumber.Create("1234567890123"),
             ActorRole: ActorRole.EnergySupplier);
     }
 
-    private IEnqueueActorMessagesSyncClient Sut { get;  }
+    private IEnqueueActorMessagesHttpClient Sut { get;  }
 
     private WireMockServer MockServer { get; set; }
 

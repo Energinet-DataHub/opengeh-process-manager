@@ -28,6 +28,11 @@ public class DataHubSupportCalender
         _zone = zone;
     }
 
+    public Instant CurrentDate()
+    {
+        return _clock.GetCurrentInstant().InZone(_zone).ToInstant();
+    }
+
     /// <summary>
     /// Calculates the DataHub working date relative to today.
     /// </summary>
@@ -151,9 +156,7 @@ public class DataHubSupportCalender
             month = 4;
         }
 
-        return Instant
-            .FromUtc(year, month, day, 0, 0, 0)
-            .InZone(_zone).Date
+        return new LocalDate(year, month, day)
             .AtStartOfDayInZone(_zone);
     }
 }

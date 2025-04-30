@@ -178,7 +178,7 @@ public class ClientExtensionsTests
             .And.Failures.Should()
                 .ContainMatch("* StartTopicName field is required*")
                 .And.ContainMatch("* NotifyTopicName field is required*")
-                .And.ContainMatch("* Brs021ForwardMeasurementsTopicName field is required*")
+                .And.ContainMatch("* Brs021ForwardMeasurementsStartTopicName field is required*")
                 .And.ContainMatch("* Brs021ForwardMeasurementsNotifyTopicName field is required*");
     }
 

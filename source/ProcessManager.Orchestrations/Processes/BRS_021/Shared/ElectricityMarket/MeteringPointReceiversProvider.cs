@@ -319,4 +319,3 @@ public class MeteringPointReceiversProvider(
         public List<ReceiversWithMeasureData.MeasureData> MeasureData { get; }
     }
 }
-

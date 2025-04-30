@@ -24,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.E
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using Microsoft.ApplicationInsights;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
@@ -32,12 +33,14 @@ public class EnqueueMeteredDataHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
-    MeteringPointReceiversProvider meteringPointReceiversProvider)
+    MeteringPointReceiversProvider meteringPointReceiversProvider,
+    TelemetryClient telemetryClient)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
+    private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
@@ -106,7 +109,7 @@ public class EnqueueMeteredDataHandlerV1(
         if (forwardToMeasurementStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Forward to measurements step must be running (Id={forwardToMeasurementStep.Id}, State={forwardToMeasurementStep.Lifecycle.State}).");
 
-        await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository, _telemetryClient).ConfigureAwait(false);
     }
 
     private async Task<IReadOnlyCollection<ReceiversWithMeteredDataV1>> FindReceivers(
@@ -135,7 +138,7 @@ public class EnqueueMeteredDataHandlerV1(
         var receiversWithMeteredData = CalculateReceiversWithMeteredData(customState, forwardMeteredDataInput);
 
         // Terminate Step: Find receiver step
-        await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository, _telemetryClient).ConfigureAwait(false);
 
         return receiversWithMeteredData;
     }

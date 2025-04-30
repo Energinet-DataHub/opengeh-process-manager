@@ -14,12 +14,15 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Microsoft.ApplicationInsights;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 
 public static class StepHelper
 {
+    private const string StepDurationMetricName = "Step Duration (ms)";
+
     /// <summary>
     /// Start a step if it is pending and commit the change.
     /// <remarks>Does nothing if the step lifecycle isn't pending.</remarks>
@@ -42,16 +45,26 @@ public static class StepHelper
     /// <param name="step"></param>
     /// <param name="clock"></param>
     /// <param name="progressRepository"></param>
+    /// <param name="telemetryClient"></param>
     /// <param name="terminationState">The termination state of the step, defaulting to <see cref="StepInstanceTerminationState.Succeeded"/>.</param>
     /// <exception cref="InvalidOperationException">Throws an invalid operation exception if the step isn't running.</exception>
     public static async Task TerminateStepAndCommit(
         StepInstance step,
         IClock clock,
         IOrchestrationInstanceProgressRepository progressRepository,
+        TelemetryClient telemetryClient,
         StepInstanceTerminationState terminationState = StepInstanceTerminationState.Succeeded)
     {
         if (step.Lifecycle.State != StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Can only terminate a running step (Step.Id={step.Id}, Step.State={step.Lifecycle.State}).");
+
+        var startedAt = step.Lifecycle.StartedAt!;
+        var duration = clock.GetCurrentInstant() - startedAt;
+
+        // Log step duration for step description
+        var stepDurationMetric = telemetryClient.GetMetric(
+            metricId: StepDurationMetricName, dimension1Name: "StepDescription");
+        stepDurationMetric.TrackValue(metricValue: duration.Value.TotalMilliseconds, dimension1Value: step.Description.Replace(" ", "_"));
 
         step.Lifecycle.TransitionToTerminated(clock, terminationState);
         await progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);

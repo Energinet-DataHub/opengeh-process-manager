@@ -288,7 +288,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
     [Fact]
     public async Task
-        Given_ValidForwardMeteredDataInputV1FromDelegatedGridOperator_When_StartedAndDelegation_Then_OrchestrationInstanceTerminatesWithSuccess()
+        Given_ValidForwardMeasurementsInputV1FromDelegatedGridOperator_When_StartedAndDelegation_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         // Arrange
         SetupElectricityMarketWireMocking();
@@ -318,7 +318,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
-        var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
+        var verifyForwardMeasurementsToMeasurementsEvent = await _fixture.EventHubListener.When(
                 (message) =>
                 {
                     var persistSubmittedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
@@ -330,7 +330,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 })
             .VerifyCountAsync(1);
 
-        var persistSubmittedTransactionEventFound = verifyForwardMeteredDataToMeasurementsEvent.Wait(TimeSpan.FromSeconds(60));
+        var persistSubmittedTransactionEventFound = verifyForwardMeasurementsToMeasurementsEvent.Wait(TimeSpan.FromSeconds(60));
         persistSubmittedTransactionEventFound.Should().BeTrue($"because a {nameof(PersistSubmittedTransaction)} event should have been sent");
 
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
@@ -400,7 +400,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
+    public async Task Given_InvalidForwardMeasurementsInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
         // Given
         SetupElectricityMarketWireMocking();
@@ -435,15 +435,15 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     if (!message.TryParseAsEnqueueActorMessages(Brs_021_ForwardMeasurements.Name, out var enqueueActorMessagesV1))
                         return false;
 
-                    var forwardMeteredDataRejectedV1 = enqueueActorMessagesV1.ParseData<ForwardMeasurementsRejectedV1>();
+                    var forwardMeasurementsRejectedV1 = enqueueActorMessagesV1.ParseData<ForwardMeasurementsRejectedV1>();
 
-                    forwardMeteredDataRejectedV1.ValidationErrors.Should()
+                    forwardMeasurementsRejectedV1.ValidationErrors.Should()
                         .HaveCount(2)
                         .And.Contain((e) => e.Message.Equals(PeriodValidationRule.InvalidEndDate.Message))
                         .And.Contain((e) => e.Message.Equals(MeteringPointValidationRule.MeteringPointDoesntExistsError[0].Message));
-                    forwardMeteredDataRejectedV1.MeteringPointId.Should()
+                    forwardMeasurementsRejectedV1.MeteringPointId.Should()
                         .Be(MeteringPointId);
-                    return forwardMeteredDataRejectedV1.OriginalTransactionId == invalidForwardCommand.InputParameter.TransactionId;
+                    return forwardMeasurementsRejectedV1.OriginalTransactionId == invalidForwardCommand.InputParameter.TransactionId;
                 })
             .VerifyCountAsync(1);
 

@@ -214,7 +214,8 @@ public class EnqueueMeteredDataHandlerV1(
             OriginalActorMessageId: forwardMeteredDataInput.ActorMessageId.Value,
             MeteringPointId: forwardMeteredDataInput.MeteringPointId.Value,
             MeteringPointType: forwardMeteredDataInput.MeteringPointType,
-            ProductNumber: forwardMeteredDataInput.ProductNumber!,
+            // TODO: LRN: awaiting a decision from Team Einstein.
+            ProductNumber: forwardMeteredDataInput.ProductNumber ?? "8716867000030",
             RegistrationDateTime: forwardMeteredDataInput.RegistrationDateTime.ToDateTimeOffset(),
             StartDateTime: forwardMeteredDataInput.StartDateTime.ToDateTimeOffset(),
             EndDateTime: forwardMeteredDataInput.EndDateTime.ToDateTimeOffset(),

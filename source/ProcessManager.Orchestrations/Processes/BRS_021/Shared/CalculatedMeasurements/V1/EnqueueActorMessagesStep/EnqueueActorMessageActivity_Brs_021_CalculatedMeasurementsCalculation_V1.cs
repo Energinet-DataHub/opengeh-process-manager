@@ -28,7 +28,7 @@ using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.EnqueueActorMessagesStep;
 
-public class EnqueueActorMessageActivity_Brs_021_CalculatedMeasurementsCalculation_V1(
+public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1(
     ILogger<EnqueueActorMessageActivity_Brs_021_CalculatedMeasurementsCalculation_V1> logger,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
     MeteringPointReceiversProvider meteringPointReceiversProvider,

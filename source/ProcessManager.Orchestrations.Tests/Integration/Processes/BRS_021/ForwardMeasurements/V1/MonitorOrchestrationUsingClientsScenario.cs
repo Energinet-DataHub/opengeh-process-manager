@@ -32,11 +32,11 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Triggers;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
@@ -66,7 +66,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 
 /// <summary>
 /// Test collection that verifies the Process Manager clients can be used to start a
-/// forward metered data flow
+/// forward measurements flow
 /// </summary>
 [ParallelWorkflow(WorkflowBucket.Bucket03)]
 [Collection(nameof(OrchestrationsAppCollection))]
@@ -176,12 +176,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
     [Fact]
     public async Task
-        Given_ValidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+        Given_ValidForwardMeasurementsInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         // Arrange
         SetupElectricityMarketWireMocking();
 
-        var input = CreateForwardMeteredDataInputV1();
+        var input = CreateForwardMeasurementsInputV1();
 
         var forwardCommand = new ForwardMeasurementsCommandV1(
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.GridAccessProvider),
@@ -205,7 +205,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
-        var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
+        var verifyForwardMeasurementsToMeasurementsEvent = await _fixture.EventHubListener.When(
                 (message) =>
                 {
                     var persistSubmittedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
@@ -217,7 +217,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 })
             .VerifyCountAsync(1);
 
-        var persistSubmittedTransactionEventFound = verifyForwardMeteredDataToMeasurementsEvent.Wait(TimeSpan.FromSeconds(60));
+        var persistSubmittedTransactionEventFound = verifyForwardMeasurementsToMeasurementsEvent.Wait(TimeSpan.FromSeconds(60));
         persistSubmittedTransactionEventFound.Should().BeTrue($"because a {nameof(PersistSubmittedTransaction)} event should have been sent");
 
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
@@ -294,7 +294,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         SetupElectricityMarketWireMocking();
         SetupElectricityMarketDelegationWireMocking();
 
-        var input = CreateForwardMeteredDataInputV1();
+        var input = CreateForwardMeasurementsInputV1();
 
         var forwardCommand = new ForwardMeasurementsCommandV1(
             new ActorIdentityDto(ActorNumber.Create(DelegatedToGridAccessProvider), ActorRole.Delegated),
@@ -405,7 +405,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Given
         SetupElectricityMarketWireMocking();
 
-        var invalidInput = CreateForwardMeteredDataInputV1() with { EndDateTime = null };
+        var invalidInput = CreateForwardMeasurementsInputV1() with { EndDateTime = null };
 
         var invalidForwardCommand = new ForwardMeasurementsCommandV1(
             new ActorIdentityDto(ActorNumber.Create(invalidInput.ActorNumber), ActorRole.GridAccessProvider),
@@ -557,7 +557,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         wasExecutedExpectedTimes.Should().BeTrue("because we expected the trigger to be executed at least twice because of the configured 'ExponentialBackoffRetry' retry policy");
     }
 
-    private static ForwardMeasurementsInputV1 CreateForwardMeteredDataInputV1(bool isDelegation = false)
+    private static ForwardMeasurementsInputV1 CreateForwardMeasurementsInputV1(bool isDelegation = false)
     {
         var sender = isDelegation ? DelegatedToGridAccessProvider : GridAccessProvider;
         var input = new ForwardMeasurementsInputV1(

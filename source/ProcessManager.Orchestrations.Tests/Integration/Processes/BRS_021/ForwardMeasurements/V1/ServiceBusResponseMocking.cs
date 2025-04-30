@@ -40,9 +40,9 @@ public static class ServiceBusResponseMocking
                     var body = EnqueueActorMessagesV1
                         .Parser.ParseJson(message.Body.ToString())!;
 
-                    var forwardMeteredDataAcceptedV1 = JsonSerializer.Deserialize<ForwardMeasurementsAcceptedV1>(body.Data);
+                    var forwardMeasurementsAcceptedV1 = JsonSerializer.Deserialize<ForwardMeasurementsAcceptedV1>(body.Data);
 
-                    var messageIdMatches = forwardMeteredDataAcceptedV1?.OriginalActorMessageId == messageId;
+                    var messageIdMatches = forwardMeasurementsAcceptedV1?.OriginalActorMessageId == messageId;
                     var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationInstanceId.ToString();
 
                     return messageIdMatches && orchestrationIdMatches;

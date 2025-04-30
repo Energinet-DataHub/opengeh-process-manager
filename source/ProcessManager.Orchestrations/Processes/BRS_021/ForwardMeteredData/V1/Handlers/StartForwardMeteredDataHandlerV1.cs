@@ -28,6 +28,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
@@ -50,7 +51,8 @@ public class StartForwardMeteredDataHandlerV1(
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
-    DelegationProvider delegationProvider)
+    DelegationProvider delegationProvider,
+    TelemetryClient telemetryClient)
     : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
@@ -61,6 +63,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly DelegationProvider _delegationProvider = delegationProvider;
+    private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
     /// This method has multiple commits to the database, to immediately transition lifecycles. This means that
@@ -285,6 +288,7 @@ public class StartForwardMeteredDataHandlerV1(
                         validationStep,
                         _clock,
                         _progressRepository,
+                        _telemetryClient,
                         StepInstanceTerminationState.Failed)
                     .ConfigureAwait(false);
                 return new List<ValidationError>()
@@ -320,6 +324,7 @@ public class StartForwardMeteredDataHandlerV1(
                 validationStep,
                 _clock,
                 _progressRepository,
+                _telemetryClient,
                 validationStepTerminationState)
             .ConfigureAwait(false);
 

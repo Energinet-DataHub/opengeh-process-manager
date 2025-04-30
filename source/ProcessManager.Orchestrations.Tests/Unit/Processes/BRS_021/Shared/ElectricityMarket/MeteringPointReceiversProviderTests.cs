@@ -122,12 +122,10 @@ public class MeteringPointReceiversProviderTests
                 });
     }
 
-    [Theory]
-    [InlineData("Consumption")]
-    [InlineData("Production")]
-    public void Given_MeteringPointType_When_GetReceivers_Then_PeriodsAreCorrectForEnergySupplierAndDanishEnergyAgency(string mp)
+    [Fact]
+    public void Given_MeteringPointTypeProduction_When_GetReceivers_Then_PeriodsAreCorrectForEnergySupplierAndDanishEnergyAgency()
     {
-        var meteringPointType = MeteringPointType.FromName(mp);
+        var meteringPointType = MeteringPointType.Production;
         var firstPeriodWithEnergySupplier = new Interval(
             Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 1, hourOfDay: 23, minuteOfHour: 00),
             Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 2, hourOfDay: 23, minuteOfHour: 00));

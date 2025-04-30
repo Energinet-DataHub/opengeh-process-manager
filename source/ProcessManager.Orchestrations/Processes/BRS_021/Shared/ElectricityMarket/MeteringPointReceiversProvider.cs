@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shar
     "SA1118:Parameter should not span multiple lines",
     Justification = "Readability")]
 public class MeteringPointReceiversProvider(
-    DateTimeZone dateTimeZone)
+    DateTimeZone dateTimeZone) : IMeteringPointReceiversProvider
 {
     private static readonly IReadOnlyDictionary<Resolution, Duration> _resolutionToDurationMap = new Dictionary<Resolution, Duration>
     {

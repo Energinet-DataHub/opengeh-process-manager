@@ -13,23 +13,19 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.Core.Databricks.SqlStatementExecution.Formats;
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Activities.EnqueueActorMessagesStep;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.EnqueueActorMessagesStep;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using NodaTime;
-using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
-using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities.EnqueueActorMessagesStep;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Activities.EnqueueActorMessagesStep;
 
 public class EnqueueActorMessageActivityTests
 {
@@ -37,18 +33,40 @@ public class EnqueueActorMessageActivityTests
     public async Task Run_ThrowsException_WhenQueryIsUnsuccessful()
     {
         // Arrange
-        var loggerMock = new Mock<ILogger<EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1>>();
-        var meteringPointMasterDataProviderMock = new Mock<MeteringPointMasterDataProvider>();
-        var meteringPointReceiversProviderMock = new Mock<MeteringPointReceiversProvider>();
+        var loggerMock = new Mock<ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1>>();
+        var meteringPointMasterDataProviderMock = new Mock<IMeteringPointMasterDataProvider>();
+        var meteringPointReceiversProviderMock = new Mock<IMeteringPointReceiversProvider>();
         var enqueueActorMessagesClientMock = new Mock<IEnqueueActorMessagesClient>();
         var databricksQueryOptionsMock = new Mock<IOptionsSnapshot<DatabricksQueryOptions>>();
         var databricksSqlWarehouseQueryExecutorMock = new Mock<DatabricksSqlWarehouseQueryExecutor>();
+        var mockAsyncEnumerable = new Mock<IAsyncEnumerable<dynamic>>();
+        var mockAsyncEnumerator = new Mock<IAsyncEnumerator<dynamic>>();
+
+        mockAsyncEnumerator
+            .SetupSequence(e => e.MoveNextAsync())
+            .ReturnsAsync(true) // First call returns true
+            .ReturnsAsync(false); // Subsequent call returns false
+
+        mockAsyncEnumerator
+            .Setup(e => e.Current)
+            .Returns(new { t1 = 1, t2 = 2 });
+
+        mockAsyncEnumerator
+            .Setup(e => e.DisposeAsync())
+            .Returns(ValueTask.CompletedTask);
+
+        mockAsyncEnumerable
+            .Setup(e => e.GetAsyncEnumerator(It.IsAny<CancellationToken>()))
+            .Returns(mockAsyncEnumerator.Object);
 
         databricksSqlWarehouseQueryExecutorMock
-            .Setup(q => q.ExecuteStatementAsync(It.IsAny<DatabricksStatement>(), It.IsAny<CancellationToken>()))
+            .Setup(q => q.ExecuteStatementAsync(It.IsAny<DatabricksStatement>(), Format.JsonArray, It.IsAny<CancellationToken>()))
             .Returns(Test());
 
-        var activity = new EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1(
+        var options = new DatabricksQueryOptions { DatabaseName = "dummy_database_name", CatalogName = "dummy_catalog_name" };
+        databricksQueryOptionsMock.Setup(x => x.Get(QueryOptionsSectionNames.CalculatedMeasurementsQuery)).Returns(options);
+
+        var activity = new EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1(
             loggerMock.Object,
             meteringPointMasterDataProviderMock.Object,
             meteringPointReceiversProviderMock.Object,
@@ -56,7 +74,7 @@ public class EnqueueActorMessageActivityTests
             databricksQueryOptionsMock.Object,
             databricksSqlWarehouseQueryExecutorMock.Object);
 
-        var input = new EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+        var input = new EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1.ActivityInput(
             new OrchestrationInstanceId(Guid.NewGuid()));
 
         // Act & Assert

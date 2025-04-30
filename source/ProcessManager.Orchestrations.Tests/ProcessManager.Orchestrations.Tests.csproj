@@ -68,5 +68,7 @@
   <ItemGroup>
     <Folder Include="Integration\InternalProcesses\" />
     <Folder Include="Integration\Processes\BRS_021\Shared\" />
+    <Folder Include="Unit\Processes\BRS_021\ElectricalHeatingCalculation\" />
+    <Folder Include="Unit\Processes\BRS_021\Shared\CalculatedMeasurements\" />
   </ItemGroup>
 </Project>

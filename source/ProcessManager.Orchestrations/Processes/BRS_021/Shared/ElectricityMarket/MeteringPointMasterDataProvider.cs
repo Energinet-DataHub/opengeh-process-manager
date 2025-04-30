@@ -33,27 +33,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shar
 public class MeteringPointMasterDataProvider(
     IElectricityMarketViews electricityMarketViews,
     ILogger<MeteringPointMasterDataProvider> logger,
-    IClock clock)
+    IClock clock) : IMeteringPointMasterDataProvider
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
     private readonly IClock _clock = clock;
 
-    internal Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
-        string meteringPointId,
-        string startDate,
-        string endDate)
-    {
-        var startDateTime = InstantPatternWithOptionalSeconds.Parse(startDate);
-        var endDateTime = InstantPatternWithOptionalSeconds.Parse(endDate);
-
-        if (!startDateTime.Success || !endDateTime.Success)
-            return Task.FromResult<IReadOnlyCollection<MeteringPointMasterData>>([]);
-
-        return GetMasterData(meteringPointId, startDateTime.Value, endDateTime.Value);
-    }
-
-    internal async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
+    public async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
         Instant startDateTime,
         Instant endDateTime)
@@ -168,6 +154,20 @@ public class MeteringPointMasterDataProvider(
         }
 
         return result.AsReadOnly();
+    }
+
+    internal Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
+        string meteringPointId,
+        string startDate,
+        string endDate)
+    {
+        var startDateTime = InstantPatternWithOptionalSeconds.Parse(startDate);
+        var endDateTime = InstantPatternWithOptionalSeconds.Parse(endDate);
+
+        if (!startDateTime.Success || !endDateTime.Success)
+            return Task.FromResult<IReadOnlyCollection<MeteringPointMasterData>>([]);
+
+        return GetMasterData(meteringPointId, startDateTime.Value, endDateTime.Value);
     }
 
     private static MeteringPointMasterData CreateMeteringPointMasterData(

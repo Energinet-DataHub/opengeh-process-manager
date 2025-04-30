@@ -21,6 +21,7 @@
     <Compile Include="..\Shared\Tests\Fixtures\OrchestrationsAppManager.cs" Link="Fixtures\OrchestrationsAppManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\Extensions\HttpWireMockExtensions.cs" Link="Fixtures\Extensions\HttpWireMockExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\DatabricksJobsApiWireMockExtensions.cs" Link="Fixtures\Extensions\DatabricksJobsApiWireMockExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\DatabricksSqlStatementApiWireMockExtensions.cs" Link="Fixtures\Extensions\DatabricksSqlStatementApiWireMockExtensions.cs" />

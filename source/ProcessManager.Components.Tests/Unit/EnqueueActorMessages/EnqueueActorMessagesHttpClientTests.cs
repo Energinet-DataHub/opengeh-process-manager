@@ -110,7 +110,7 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     {
         var request = Request
             .Create()
-            .WithPath($"/{EnqueueActorMessagesHttpClient.EdiEndpointPrefix}{route}")
+            .WithPath($"{EnqueueActorMessagesHttpClient.EdiEndpointPrefix}{route}")
             .UsingPost();
 
         var response = Response

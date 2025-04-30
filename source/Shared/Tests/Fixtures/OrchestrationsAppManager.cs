@@ -386,6 +386,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{EdiTopicOptions.SectionName}__{nameof(EdiTopicOptions.Name)}",
             ediEnqueueTopicResources.EnqueueTopic.Name);
 
+        // => Edi enqueue via http
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{EdiEnqueueActorMessagesHttpClientOptions.SectionName}__{nameof(EdiEnqueueActorMessagesHttpClientOptions.BaseUrl)}",
+            MockServer.Url!);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{EdiEnqueueActorMessagesHttpClientOptions.SectionName}__{nameof(EdiEnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}",
+            AuthenticationOptionsForTests.ApplicationIdUri);
+
         // => Shared integration event topic
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{IntegrationEventTopicOptions.SectionName}__{nameof(IntegrationEventTopicOptions.Name)}",

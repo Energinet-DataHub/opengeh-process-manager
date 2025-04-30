@@ -161,7 +161,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         _fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
         _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
-        _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+        _fixture.EnqueueBrs021ForwardMeasurementsServiceBusListener.ResetMessageHandlersAndReceivedMessages();
         _fixture.EventHubListener.Reset();
 
         return Task.CompletedTask;
@@ -233,7 +233,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
 
         // Wait for enqueue messages sent to EDI and send mock notify response to Process Manager
-        await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
+        await _fixture.EnqueueBrs021ForwardMeasurementsServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
             processManagerMessageClient: processManagerMessageClient,
             orchestrationInstanceId: orchestrationInstance.Id,
             messageId: forwardCommand.ActorMessageId);
@@ -346,7 +346,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
 
         // Wait for enqueue messages sent to EDI and send mock notify response to Process Manager
-        await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
+        await _fixture.EnqueueBrs021ForwardMeasurementsServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
             processManagerMessageClient: processManagerMessageClient,
             orchestrationInstanceId: orchestrationInstance.Id,
             messageId: forwardCommand.ActorMessageId);
@@ -430,7 +430,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
 
         // Verify an enqueue actor messages event is sent on the service bus
-        var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When(
+        var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs021ForwardMeasurementsServiceBusListener.When(
                 (message) =>
                 {
                     if (!message.TryParseAsEnqueueActorMessages(Brs_021_ForwardMeasurements.Name, out var enqueueActorMessagesV1))

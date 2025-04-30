@@ -21,9 +21,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Capa
 
 internal class StartCalculationHandlerV1(
     IStartOrchestrationInstanceCommands manager) :
-        IStartOrchestrationInstanceCommandHandler<StartCalculationCommandV1, CalculationInputV1>
+        IStartOrchestrationInstanceCommandHandler<StartCapacitySettlementCalculationCommandV1, CalculationInputV1>
 {
-    public async Task<Guid> HandleAsync(StartCalculationCommandV1 command)
+    public async Task<Guid> HandleAsync(StartCapacitySettlementCalculationCommandV1 command)
     {
         GuardInputParameter(command.InputParameter);
 

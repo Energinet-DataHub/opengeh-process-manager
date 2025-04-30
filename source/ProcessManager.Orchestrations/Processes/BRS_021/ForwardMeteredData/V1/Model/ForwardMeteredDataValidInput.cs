@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Globalization;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -24,7 +26,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// <summary>
 /// A representation of a valid input for the Forward Metered Data process.
 /// </summary>
-public record ForwardMeteredDataValidInputV1(
+public record ForwardMeteredDataValidInput(
     ActorMessageId ActorMessageId,
     TransactionId TransactionId,
     ActorNumber ActorNumber,
@@ -39,23 +41,23 @@ public record ForwardMeteredDataValidInputV1(
     Instant StartDateTime,
     Instant EndDateTime,
     ActorNumber GridAccessProvider,
-    IReadOnlyCollection<ForwardMeteredDataValidInputV1.MeteredData> MeteredDataList)
+    IReadOnlyCollection<ForwardMeteredDataValidInput.MeteredData> MeteredDataList)
     : IInputParameterDto
 {
-    public static ForwardMeteredDataValidInputV1 From(ForwardMeteredDataInputV1 input)
+    public static ForwardMeteredDataValidInput From(ForwardMeteredDataInputV1 input)
     {
         var meteredDataList = input.MeteredDataList
             .Select(e => new MeteredData(
                 Position: int.Parse(e.Position!),
-                EnergyQuantity: decimal.Parse(e.EnergyQuantity!),
+                EnergyQuantity: decimal.TryParse(e.EnergyQuantity, NumberFormatInfo.InvariantInfo, out var energy) ? energy : null,
                 QuantityQuality: e.QuantityQuality is null ? Quality.AsProvided : Quality.FromName(e.QuantityQuality!)))
             .ToList();
 
-        var startDateTime = Instant.FromDateTimeOffset(DateTimeOffset.Parse(input.StartDateTime));
-        var endDateTime = Instant.FromDateTimeOffset(DateTimeOffset.Parse(input.EndDateTime!));
-        var registrationDateTime = Instant.FromDateTimeOffset(DateTimeOffset.Parse(input.RegistrationDateTime));
+        var startDateTime = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
+        var endDateTime = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
+        var registrationDateTime = InstantPatternWithOptionalSeconds.Parse(input.RegistrationDateTime).Value;
 
-        return new ForwardMeteredDataValidInputV1(
+        return new ForwardMeteredDataValidInput(
             ActorMessageId: new ActorMessageId(input.ActorMessageId),
             TransactionId: new TransactionId(input.TransactionId),
             ActorNumber: ActorNumber.Create(input.ActorNumber),

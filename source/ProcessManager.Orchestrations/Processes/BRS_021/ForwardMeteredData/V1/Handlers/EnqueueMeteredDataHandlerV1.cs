@@ -54,7 +54,7 @@ public class EnqueueMeteredDataHandlerV1(
             throw new InvalidOperationException($"Orchestration instance must be running (Id={orchestrationInstance.Id}, State={orchestrationInstance.Lifecycle.State}).");
 
         // only valid data will be enqueued
-        var forwardMeteredDataInput = ForwardMeteredDataValidInputV1.From(orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>());
+        var forwardMeteredDataInput = ForwardMeteredDataValidInput.From(orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>());
 
         await TerminateForwardToMeasurementStep(orchestrationInstance).ConfigureAwait(false);
 
@@ -112,7 +112,7 @@ public class EnqueueMeteredDataHandlerV1(
 
     private async Task<IReadOnlyCollection<ReceiversWithMeteredDataV1>> FindReceivers(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataValidInputV1 forwardMeteredDataValidInputV1)
+        ForwardMeteredDataValidInput forwardMeteredDataValidInput)
     {
         var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.FindReceiversStep);
 
@@ -124,7 +124,7 @@ public class EnqueueMeteredDataHandlerV1(
             // Since the master data is saved as custom state on the orchestrationInstance, we should just
             // be able to calculate the receivers (again), based on the master data. If the inputs are the same,
             // the returned calculated receivers should also be the same.
-            return CalculateReceiversWithMeteredData(customState, forwardMeteredDataValidInputV1);
+            return CalculateReceiversWithMeteredData(customState, forwardMeteredDataValidInput);
         }
 
         await StepHelper.StartStepAndCommitIfPending(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
@@ -133,7 +133,7 @@ public class EnqueueMeteredDataHandlerV1(
         if (findReceiversStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Find receivers step must be running (Id={findReceiversStep.Id}, State={findReceiversStep.Lifecycle.State}).");
 
-        var receiversWithMeteredData = CalculateReceiversWithMeteredData(customState, forwardMeteredDataValidInputV1);
+        var receiversWithMeteredData = CalculateReceiversWithMeteredData(customState, forwardMeteredDataValidInput);
 
         // Terminate Step: Find receiver step
         await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository, _telemetryClient).ConfigureAwait(false);
@@ -149,7 +149,7 @@ public class EnqueueMeteredDataHandlerV1(
     /// </summary>
     private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredData(
         ForwardMeteredDataCustomStateV2 customState,
-        ForwardMeteredDataValidInputV1 forwardMeteredDataInput)
+        ForwardMeteredDataValidInput forwardMeteredDataInput)
     {
         var meteringPointMasterData = customState.HistoricalMeteringPointMasterData
             .Select(mpmd => mpmd.ToMeteringPointMasterData())
@@ -178,7 +178,7 @@ public class EnqueueMeteredDataHandlerV1(
 
     private async Task EnqueueAcceptedActorMessagesAsync(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataValidInputV1 forwardMeteredDataInput,
+        ForwardMeteredDataValidInput forwardMeteredDataInput,
         IReadOnlyCollection<ReceiversWithMeteredDataV1> receivers)
     {
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);

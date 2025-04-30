@@ -128,7 +128,7 @@ public class StartForwardMeteredDataHandlerV1(
         {
             // Perform step: Forward to Measurements
             await ForwardToMeasurements(
-                    ForwardMeteredDataValidInputV1.From(input),
+                    ForwardMeteredDataValidInput.From(input),
                     orchestrationInstance)
                 .ConfigureAwait(false);
         }
@@ -353,7 +353,7 @@ public class StartForwardMeteredDataHandlerV1(
     }
 
     private async Task ForwardToMeasurements(
-        ForwardMeteredDataValidInputV1 input,
+        ForwardMeteredDataValidInput input,
         OrchestrationInstance orchestrationInstance)
     {
         // Start Step: Forward to Measurements
@@ -436,7 +436,7 @@ public class StartForwardMeteredDataHandlerV1(
 
     private MeteredDataForMeteringPoint MapInputToMeasurements(
         OrchestrationInstanceId orchestrationInstanceId,
-        ForwardMeteredDataValidInputV1 input) =>
+        ForwardMeteredDataValidInput input) =>
         new(
             OrchestrationId: orchestrationInstanceId.Value.ToString(),
             MeteringPointId: input.MeteringPointId.Value,
@@ -451,11 +451,11 @@ public class StartForwardMeteredDataHandlerV1(
                     MapPoints)
                 .ToList());
 
-    private Point MapPoints(ForwardMeteredDataValidInputV1.MeteredData meteredData)
+    private Point MapPoints(ForwardMeteredDataValidInput.MeteredData meteredData)
     {
         return new Point(
             meteredData.Position,
-            // TODO: LRN - Awaiting a final decision from Volta on how to handle null values.
+            // TODO: LRN - Awaiting a final decision from Volt on how to handle null values.
             meteredData.EnergyQuantity ?? 0.000m,
             meteredData.QuantityQuality);
     }

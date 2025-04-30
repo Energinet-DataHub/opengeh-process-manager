@@ -36,11 +36,4 @@ public enum FeatureFlag
     /// the log and dead-letter queue for the PM core will be flooded with false errors.
     /// </summary>
     SilentMode,
-
-    /// <summary>
-    /// Enables the use of the BRS_021_ForwardMeteredData business validation for metering points.
-    /// If this feature flag is enabled, the business validation rule will return a business validation error
-    /// if the metering point does not exist.
-    /// </summary>
-    EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint,
 }

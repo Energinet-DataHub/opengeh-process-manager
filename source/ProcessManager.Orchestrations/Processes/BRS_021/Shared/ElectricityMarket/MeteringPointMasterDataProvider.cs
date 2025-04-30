@@ -79,6 +79,8 @@ public class MeteringPointMasterDataProvider(
                 .GetMeteringPointMasterDataChangesAsync(id, new Interval(_clock.GetCurrentInstant(), _clock.GetCurrentInstant().PlusSeconds(1)))
                 .ConfigureAwait(false)).Single();
 
+            // The performance test uses non-existing metering points, so we must fake a succesful
+            // master data response from Electricity Market
             if (IsPerformanceTest(meteringPointId))
             {
                 masterDataChanges = GetMasterDataForPerformanceTest(

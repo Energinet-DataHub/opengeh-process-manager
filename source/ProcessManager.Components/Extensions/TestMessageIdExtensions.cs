@@ -17,6 +17,7 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions;
 public static class TestMessageIdExtensions
 {
     public const string TestUuidPrefix = "test__";
+    public const string PerformanceTestUuidPrefix = "perf_test";
 
     /// <summary>
     /// Converts the guid to a shorter version, prefixed with the <see cref="TestUuidPrefix"/>.
@@ -31,6 +32,11 @@ public static class TestMessageIdExtensions
     public static bool IsTestUuid(this string messageId)
     {
         return messageId.StartsWith(TestUuidPrefix);
+    }
+
+    public static bool IsPerformanceTestUuid(this string messageId)
+    {
+        return messageId.StartsWith(PerformanceTestUuidPrefix);
     }
 
     /// <summary>

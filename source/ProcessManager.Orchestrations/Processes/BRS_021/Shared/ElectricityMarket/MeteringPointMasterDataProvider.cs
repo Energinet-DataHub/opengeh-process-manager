@@ -16,12 +16,13 @@ using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions;
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NodaTime;
 
 using ElectricityMarketModels = Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
@@ -36,12 +37,12 @@ public class MeteringPointMasterDataProvider(
     IElectricityMarketViews electricityMarketViews,
     ILogger<MeteringPointMasterDataProvider> logger,
     IClock clock,
-    IFeatureFlagManager featureFlagManager)
+    IOptions<ProcessManagerComponentsOptions> options)
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
     private readonly IClock _clock = clock;
-    private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
+    private readonly IOptions<ProcessManagerComponentsOptions> _options = options;
 
     internal Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
@@ -78,7 +79,7 @@ public class MeteringPointMasterDataProvider(
                 .GetMeteringPointMasterDataChangesAsync(id, new Interval(_clock.GetCurrentInstant(), _clock.GetCurrentInstant().PlusSeconds(1)))
                 .ConfigureAwait(false)).Single();
 
-            if (await IsPerformanceTest(meteringPointId).ConfigureAwait(false))
+            if (IsPerformanceTest(meteringPointId))
             {
                 masterDataChanges = GetMasterDataForPerformanceTest(
                     id,
@@ -235,13 +236,10 @@ public class MeteringPointMasterDataProvider(
         };
     }
 
-    private async Task<bool> IsPerformanceTest(string meteringPointId)
+    private bool IsPerformanceTest(string meteringPointId)
     {
-        var performanceTestEnabled = await _featureFlagManager
-            .IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataPerformanceTest)
-            .ConfigureAwait(false);
         var isInputTestData = meteringPointId.IsTestUuid();
 
-        return performanceTestEnabled && isInputTestData;
+        return _options.Value.AllowMockDependenciesForTests && isInputTestData;
     }
 }

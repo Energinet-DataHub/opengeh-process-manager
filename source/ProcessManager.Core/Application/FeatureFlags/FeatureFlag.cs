@@ -36,10 +36,4 @@ public enum FeatureFlag
     /// the log and dead-letter queue for the PM core will be flooded with false errors.
     /// </summary>
     SilentMode,
-
-    /// <summary>
-    /// Enables Performance test for the BRS_021_ForwardMeteredData process.
-    /// If this feature flag is enabled, performance test is enable for this process on the given environment.
-    /// </summary>
-    EnableBrs021ForwardMeteredDataPerformanceTest,
 }

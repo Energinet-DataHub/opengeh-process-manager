@@ -14,9 +14,10 @@
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions;
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
@@ -24,10 +25,10 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// Business validation rule for metering point validation
 /// if the metering point does not exist, a business validation error is returned
 /// </summary>
-public class MeteringPointOwnershipValidationRule(IFeatureFlagManager featureFlagManager)
+public class MeteringPointOwnershipValidationRule(IOptions<ProcessManagerComponentsOptions> options)
     : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
-    private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
+    private readonly IOptions<ProcessManagerComponentsOptions> _options = options;
 
     public static IList<ValidationError> MeteringPointHasWrongOwnerError =>
     [
@@ -38,11 +39,11 @@ public class MeteringPointOwnershipValidationRule(IFeatureFlagManager featureFla
 
     private static IList<ValidationError> NoError => [];
 
-    public async Task<IList<ValidationError>> ValidateAsync(
+    public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
-        if (await IsPerformanceTest(subject.Input).ConfigureAwait(false))
-            return NoError;
+        if (IsPerformanceTest(subject.Input))
+            return Task.FromResult(NoError);
 
         // All the historical metering point master data, have the current grid access provider provided.
         var meteringPointMasterData = subject.MeteringPointMasterData.FirstOrDefault();
@@ -50,19 +51,15 @@ public class MeteringPointOwnershipValidationRule(IFeatureFlagManager featureFla
         if (meteringPointMasterData != null && !meteringPointMasterData.CurrentGridAccessProvider.Value
                 .Equals(subject.Input.GridAccessProviderNumber))
         {
-            return MeteringPointHasWrongOwnerError;
+            return Task.FromResult(MeteringPointHasWrongOwnerError);
         }
 
-        return NoError;
+        return Task.FromResult(NoError);
     }
 
-    private async Task<bool> IsPerformanceTest(ForwardMeteredDataInputV1 input)
+    private bool IsPerformanceTest(ForwardMeteredDataInputV1 input)
     {
-        var performanceTestEnabled = await _featureFlagManager
-            .IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataPerformanceTest)
-            .ConfigureAwait(false);
-        var isInputTest = input.MeteringPointId?.IsTestUuid() ?? false;
-
-        return performanceTestEnabled && isInputTest;
+        var isInputTest = input.MeteringPointId?.IsPerformanceTestUuid() ?? false;
+        return _options.Value.AllowMockDependenciesForTests && isInputTest;
     }
 }

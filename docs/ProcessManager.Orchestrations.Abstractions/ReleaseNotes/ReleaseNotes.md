@@ -1,12 +1,16 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 3.0.0
+
+- Rename _MeasureData_ and _MeteredData_ terms to _Measurements_.
+
 ## Version 2.1.2
 
 - Renamed StartCalculationCommandV1 to StartNetConsumptionCalculationCommandV1.
 
 ## Version 2.1.1
 
-- Add `EnqueueMeasureDataSyncV1` for BRS-021
+- Add `EnqueueMeasureDataSyncV1` for BRS-021.
 
 ## Version 2.1.0
 

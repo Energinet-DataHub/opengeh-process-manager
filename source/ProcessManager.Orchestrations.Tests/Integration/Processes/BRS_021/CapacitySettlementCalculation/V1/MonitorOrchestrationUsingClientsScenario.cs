@@ -76,6 +76,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
         Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
 
+        Fixture.OrchestrationsAppManager.MockServer.Reset();
         Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
 
         return Task.CompletedTask;

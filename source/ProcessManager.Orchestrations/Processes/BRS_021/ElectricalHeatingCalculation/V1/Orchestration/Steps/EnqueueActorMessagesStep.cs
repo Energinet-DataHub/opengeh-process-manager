@@ -13,8 +13,8 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Activities.EnqueueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.EnqueueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.DurableTask;
 
@@ -37,8 +37,8 @@ internal class EnqueueActorMessagesStep(
     protected override async Task<StepInstanceTerminationState> OnExecuteAsync()
     {
         await Context.CallActivityAsync(
-            nameof(EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1),
-            new EnqueueActorMessageActivity_Brs_021_ElectricalHeatingCalculation_V1.ActivityInput(
+            nameof(EnqueueActorMessageActivity_Brs_021_CalculatedMeasurementsCalculation_V1),
+            new EnqueueActorMessageActivity_Brs_021_CalculatedMeasurementsCalculation_V1.ActivityInput(
                 OrchestrationInstanceId: orchestrationInstanceContext.OrchestrationInstanceId),
             DefaultRetryOptions);
 

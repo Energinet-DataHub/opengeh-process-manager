@@ -12,19 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
-
-public interface IEnqueueActorMessagesSyncClient
+public class HttpClientNames
 {
     /// <summary>
-    /// Enqueue a message to an actor.
+    /// Http client for enqueuing actor messages.
     /// </summary>
-    /// <remarks>
-    /// Throws an exception if the enqueue fails.
-    /// </remarks>
-    /// <param name="data">Is the payload from witch the message to the actor is generated.</param>
-    Task EnqueueAsync<TEnqueueData>(TEnqueueData data)
-        where TEnqueueData : IEnqueueDataSyncDto;
+    public const string EdiEnqueueActorMessagesClientName = "EdiEnqueueActorMessagesClient";
 }

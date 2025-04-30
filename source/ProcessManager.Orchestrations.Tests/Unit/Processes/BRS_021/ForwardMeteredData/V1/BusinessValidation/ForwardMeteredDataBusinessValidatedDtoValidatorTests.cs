@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
@@ -24,6 +24,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.E
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 using NodaTime;
 using NodaTime.Text;
@@ -32,8 +33,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 
 public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 {
-    private readonly Mock<IClock> _clockMock = new Mock<IClock>();
-    private readonly Mock<IFeatureFlagManager> _featureFlagManagerMock = new Mock<IFeatureFlagManager>();
+    private readonly Mock<IClock> _clockMock = new();
+    private readonly Mock<IOptions<ProcessManagerComponentsOptions>> _optionsMock = new();
     private readonly DateTimeZone _timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
 
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _sut;
@@ -43,16 +44,19 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         _clockMock.Setup(c => c.GetCurrentInstant())
             .Returns(Instant.FromUtc(2024, 11, 15, 16, 46, 43));
 
-        _featureFlagManagerMock.Setup(f => f
-                .IsEnabledAsync(FeatureFlag.EnableBrs021ForwardMeteredDataBusinessValidationForMeteringPoint))
-            .ReturnsAsync(true);
+        var expectedOptions = new ProcessManagerComponentsOptions
+        {
+            AllowMockDependenciesForTests = false,
+        };
+
+        _optionsMock.Setup(o => o.Value).Returns(expectedOptions);
 
         IServiceCollection services = new ServiceCollection();
 
         services.AddLogging();
         services.AddTransient<DateTimeZone>(s => _timeZone);
         services.AddTransient<IClock>(s => _clockMock.Object);
-        services.AddSingleton<IFeatureFlagManager>(s => _featureFlagManagerMock.Object);
+        services.AddTransient<IOptions<ProcessManagerComponentsOptions>>(s => _optionsMock.Object);
 
         var orchestrationsAssembly = typeof(OrchestrationDescriptionBuilder).Assembly;
         var orchestrationsAbstractionsAssembly =

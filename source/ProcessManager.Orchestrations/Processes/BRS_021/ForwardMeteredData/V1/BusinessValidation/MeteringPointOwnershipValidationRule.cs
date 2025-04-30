@@ -13,7 +13,11 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.Extensions;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
@@ -21,8 +25,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 /// Business validation rule for metering point validation
 /// if the metering point does not exist, a business validation error is returned
 /// </summary>
-public class MeteringPointOwnershipValidationRule : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+public class MeteringPointOwnershipValidationRule(IOptions<ProcessManagerComponentsOptions> options)
+    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
+    private readonly IOptions<ProcessManagerComponentsOptions> _options = options;
+
     public static IList<ValidationError> MeteringPointHasWrongOwnerError =>
     [
         new(
@@ -35,6 +42,10 @@ public class MeteringPointOwnershipValidationRule : IBusinessValidationRule<Forw
     public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
+        // The performance test uses non-existing metering points, so we must skip this validation
+        if (IsPerformanceTest(subject.Input))
+            return Task.FromResult(NoError);
+
         // All the historical metering point master data, have the current grid access provider provided.
         var meteringPointMasterData = subject.MeteringPointMasterData.FirstOrDefault();
 
@@ -45,5 +56,11 @@ public class MeteringPointOwnershipValidationRule : IBusinessValidationRule<Forw
         }
 
         return Task.FromResult(NoError);
+    }
+
+    private bool IsPerformanceTest(ForwardMeteredDataInputV1 input)
+    {
+        var isInputTest = input.MeteringPointId?.IsPerformanceTestUuid() ?? false;
+        return _options.Value.AllowMockDependenciesForTests && isInputTest;
     }
 }

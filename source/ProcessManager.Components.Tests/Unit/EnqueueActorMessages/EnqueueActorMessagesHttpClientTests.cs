@@ -40,8 +40,8 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
 
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{EdiEnqueueActorMessagesSyncClientOptions.SectionName}:{nameof(EdiEnqueueActorMessagesSyncClientOptions.BaseUrl)}"] = MockServer.Url,
-            [$"{EdiEnqueueActorMessagesSyncClientOptions.SectionName}:{nameof(EdiEnqueueActorMessagesSyncClientOptions.ApplicationIdUri)}"] = "ApplicationIdUri",
+            [$"{EdiEnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EdiEnqueueActorMessagesHttpClientOptions.BaseUrl)}"] = MockServer.Url,
+            [$"{EdiEnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EdiEnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] = "ApplicationIdUri",
         });
 
         var mockCredential = new Mock<DefaultAzureCredential>();
@@ -54,7 +54,7 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
                     "token",
                     DateTimeOffset.UtcNow.AddHours(1)));
 
-        Services.AddEnqueueActorMessagesSync(mockCredential.Object);
+        Services.AddEnqueueActorMessagesHttp(mockCredential.Object);
         ServiceProvider = Services.BuildServiceProvider();
         Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesHttpClient>();
 

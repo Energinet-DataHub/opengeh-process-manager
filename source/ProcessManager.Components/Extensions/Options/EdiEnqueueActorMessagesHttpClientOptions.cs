@@ -16,9 +16,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
-public class EdiEnqueueActorMessagesSyncClientOptions
+public class EdiEnqueueActorMessagesHttpClientOptions
 {
-    public const string SectionName = "EdiEnqueueActorMessagesSyncClient";
+    public const string SectionName = "EdiEnqueueActorMessagesHttpClient";
 
     /// <summary>
     /// Uri (scope) for which the client must request a token and send as part of the http request.

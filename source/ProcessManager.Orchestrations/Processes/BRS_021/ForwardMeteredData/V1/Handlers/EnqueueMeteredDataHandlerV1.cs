@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Globalization;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -21,9 +19,9 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using Microsoft.ApplicationInsights;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
@@ -32,12 +30,14 @@ public class EnqueueMeteredDataHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
-    MeteringPointReceiversProvider meteringPointReceiversProvider)
+    MeteringPointReceiversProvider meteringPointReceiversProvider,
+    TelemetryClient telemetryClient)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
+    private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
@@ -53,7 +53,8 @@ public class EnqueueMeteredDataHandlerV1(
         if (orchestrationInstance.Lifecycle.State is not OrchestrationInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Orchestration instance must be running (Id={orchestrationInstance.Id}, State={orchestrationInstance.Lifecycle.State}).");
 
-        var forwardMeteredDataInput = orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>();
+        // only valid data will be enqueued
+        var forwardMeteredDataInput = ForwardMeteredDataValidInput.From(orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>());
 
         await TerminateForwardToMeasurementStep(orchestrationInstance).ConfigureAwait(false);
 
@@ -106,12 +107,12 @@ public class EnqueueMeteredDataHandlerV1(
         if (forwardToMeasurementStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Forward to measurements step must be running (Id={forwardToMeasurementStep.Id}, State={forwardToMeasurementStep.Lifecycle.State}).");
 
-        await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.TerminateStepAndCommit(forwardToMeasurementStep, _clock, _progressRepository, _telemetryClient).ConfigureAwait(false);
     }
 
     private async Task<IReadOnlyCollection<ReceiversWithMeteredDataV1>> FindReceivers(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataInputV1 forwardMeteredDataInput)
+        ForwardMeteredDataValidInput forwardMeteredDataValidInput)
     {
         var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.FindReceiversStep);
 
@@ -123,7 +124,7 @@ public class EnqueueMeteredDataHandlerV1(
             // Since the master data is saved as custom state on the orchestrationInstance, we should just
             // be able to calculate the receivers (again), based on the master data. If the inputs are the same,
             // the returned calculated receivers should also be the same.
-            return CalculateReceiversWithMeteredData(customState, forwardMeteredDataInput);
+            return CalculateReceiversWithMeteredData(customState, forwardMeteredDataValidInput);
         }
 
         await StepHelper.StartStepAndCommitIfPending(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
@@ -132,10 +133,10 @@ public class EnqueueMeteredDataHandlerV1(
         if (findReceiversStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Find receivers step must be running (Id={findReceiversStep.Id}, State={findReceiversStep.Lifecycle.State}).");
 
-        var receiversWithMeteredData = CalculateReceiversWithMeteredData(customState, forwardMeteredDataInput);
+        var receiversWithMeteredData = CalculateReceiversWithMeteredData(customState, forwardMeteredDataValidInput);
 
         // Terminate Step: Find receiver step
-        await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository, _telemetryClient).ConfigureAwait(false);
 
         return receiversWithMeteredData;
     }
@@ -148,45 +149,27 @@ public class EnqueueMeteredDataHandlerV1(
     /// </summary>
     private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredData(
         ForwardMeteredDataCustomStateV2 customState,
-        ForwardMeteredDataInputV1 forwardMeteredDataInput)
+        ForwardMeteredDataValidInput forwardMeteredDataInput)
     {
-        // The input is already validated, so this parsing should never fail
-        var meteringPointId = forwardMeteredDataInput.MeteringPointId ?? throw new NullReferenceException("MeteringPointId was null");
-        var inputPeriodStart = InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value;
-        var inputPeriodEnd = InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime!).Value;
-        var resolution = Resolution.FromName(forwardMeteredDataInput.Resolution!);
-
         var meteringPointMasterData = customState.HistoricalMeteringPointMasterData
             .Select(mpmd => mpmd.ToMeteringPointMasterData())
             .ToList();
 
         var measureDataList = forwardMeteredDataInput.MeteredDataList
             .Select(
-                md =>
-                {
-                    // TODO: Shouldn't position be an "int?" in the input?
-                    var position = int.Parse(md.Position!);
-
-                    var canParseEnergyQuantity = decimal.TryParse(
-                        md.EnergyQuantity,
-                        NumberFormatInfo.InvariantInfo,
-                        out var energyQuantity);
-
-                    // The input is already validated, so converting these should not fail.
-                    return new ReceiversWithMeasureData.MeasureData(
-                        Position: position,
-                        EnergyQuantity: canParseEnergyQuantity ? energyQuantity : null,
-                        QuantityQuality: Quality.FromNameOrDefault(md.QuantityQuality));
-                })
+                md => new ReceiversWithMeasureData.MeasureData(
+                    Position: md.Position,
+                    EnergyQuantity: md.EnergyQuantity,
+                    QuantityQuality: md.QuantityQuality))
             .ToList();
 
         var receiversWithMeteredData = _meteringPointReceiversProvider
             .GetReceiversWithMeteredDataFromMasterDataList(
                 new MeteringPointReceiversProvider.FindReceiversInput(
-                    meteringPointId,
-                    inputPeriodStart,
-                    inputPeriodEnd,
-                    resolution,
+                    forwardMeteredDataInput.MeteringPointId.Value,
+                    forwardMeteredDataInput.StartDateTime,
+                    forwardMeteredDataInput.EndDateTime,
+                    forwardMeteredDataInput.Resolution,
                     meteringPointMasterData,
                     measureDataList));
 
@@ -195,7 +178,7 @@ public class EnqueueMeteredDataHandlerV1(
 
     private async Task EnqueueAcceptedActorMessagesAsync(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataInputV1 forwardMeteredDataInput,
+        ForwardMeteredDataValidInput forwardMeteredDataInput,
         IReadOnlyCollection<ReceiversWithMeteredDataV1> receivers)
     {
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
@@ -226,24 +209,16 @@ public class EnqueueMeteredDataHandlerV1(
         var gridAreaCode = GetForwardMeteredDataCustomState(orchestrationInstance).HistoricalMeteringPointMasterData.FirstOrDefault()?.GridAreaCode
                            ?? throw new InvalidOperationException($"Grid area code is required to enqueue accepted message with id {orchestrationInstance.Id}");
 
-        // These checks should already (when implemented) be handled by the business validation
-        // TODO: Implement business validation for required fields
-        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.MeteringPointType);
-        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.MeteringPointId);
-        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.Resolution);
-        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.ProductNumber);
-        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.MeasureUnit);
-        ArgumentException.ThrowIfNullOrEmpty(forwardMeteredDataInput.EndDateTime);
-
         // Enqueue forward metered data actor messages
         var data = new ForwardMeteredDataAcceptedV1(
-            OriginalActorMessageId: forwardMeteredDataInput.ActorMessageId,
-            MeteringPointId: forwardMeteredDataInput.MeteringPointId,
-            MeteringPointType: MeteringPointType.FromName(forwardMeteredDataInput.MeteringPointType),
-            ProductNumber: forwardMeteredDataInput.ProductNumber,
-            RegistrationDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.RegistrationDateTime).Value.ToDateTimeOffset(),
-            StartDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.StartDateTime).Value.ToDateTimeOffset(),
-            EndDateTime: InstantPatternWithOptionalSeconds.Parse(forwardMeteredDataInput.EndDateTime).Value.ToDateTimeOffset(),
+            OriginalActorMessageId: forwardMeteredDataInput.ActorMessageId.Value,
+            MeteringPointId: forwardMeteredDataInput.MeteringPointId.Value,
+            MeteringPointType: forwardMeteredDataInput.MeteringPointType,
+            // TODO: LRN: awaiting a decision from Team Einstein.
+            ProductNumber: forwardMeteredDataInput.ProductNumber ?? "8716867000030",
+            RegistrationDateTime: forwardMeteredDataInput.RegistrationDateTime.ToDateTimeOffset(),
+            StartDateTime: forwardMeteredDataInput.StartDateTime.ToDateTimeOffset(),
+            EndDateTime: forwardMeteredDataInput.EndDateTime.ToDateTimeOffset(),
             ReceiversWithMeteredData: receivers,
             GridAreaCode: gridAreaCode.Value);
 

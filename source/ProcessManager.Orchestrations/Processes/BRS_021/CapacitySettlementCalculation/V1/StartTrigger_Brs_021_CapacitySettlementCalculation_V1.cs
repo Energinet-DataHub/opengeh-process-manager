@@ -36,7 +36,7 @@ internal class StartTrigger_Brs_021_CapacitySettlementCalculation_V1(
             Route = "orchestrationinstance/command/start/custom/brs_021_capacitysettlementcalculation/1")]
         HttpRequest httpRequest,
         [FromBody]
-        StartCalculationCommandV1 command,
+        StartCapacitySettlementCalculationCommandV1 command,
         FunctionContext executionContext)
     {
         var orchestrationInstanceId = await handler.HandleAsync(command).ConfigureAwait(false);

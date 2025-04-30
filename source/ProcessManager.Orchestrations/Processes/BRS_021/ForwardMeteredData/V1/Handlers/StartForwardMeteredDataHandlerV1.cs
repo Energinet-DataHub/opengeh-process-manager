@@ -28,6 +28,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
@@ -50,7 +51,8 @@ public class StartForwardMeteredDataHandlerV1(
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
-    DelegationProvider delegationProvider)
+    DelegationProvider delegationProvider,
+    TelemetryClient telemetryClient)
     : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
@@ -61,6 +63,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly DelegationProvider _delegationProvider = delegationProvider;
+    private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
     /// This method has multiple commits to the database, to immediately transition lifecycles. This means that
@@ -125,7 +128,7 @@ public class StartForwardMeteredDataHandlerV1(
         {
             // Perform step: Forward to Measurements
             await ForwardToMeasurements(
-                    input,
+                    ForwardMeteredDataValidInput.From(input),
                     orchestrationInstance)
                 .ConfigureAwait(false);
         }
@@ -285,6 +288,7 @@ public class StartForwardMeteredDataHandlerV1(
                         validationStep,
                         _clock,
                         _progressRepository,
+                        _telemetryClient,
                         StepInstanceTerminationState.Failed)
                     .ConfigureAwait(false);
                 return new List<ValidationError>()
@@ -320,6 +324,7 @@ public class StartForwardMeteredDataHandlerV1(
                 validationStep,
                 _clock,
                 _progressRepository,
+                _telemetryClient,
                 validationStepTerminationState)
             .ConfigureAwait(false);
 
@@ -348,7 +353,7 @@ public class StartForwardMeteredDataHandlerV1(
     }
 
     private async Task ForwardToMeasurements(
-        ForwardMeteredDataInputV1 input,
+        ForwardMeteredDataValidInput input,
         OrchestrationInstance orchestrationInstance)
     {
         // Start Step: Forward to Measurements
@@ -431,29 +436,27 @@ public class StartForwardMeteredDataHandlerV1(
 
     private MeteredDataForMeteringPoint MapInputToMeasurements(
         OrchestrationInstanceId orchestrationInstanceId,
-        ForwardMeteredDataInputV1 input) =>
+        ForwardMeteredDataValidInput input) =>
         new(
             OrchestrationId: orchestrationInstanceId.Value.ToString(),
-            MeteringPointId: input.MeteringPointId!,
-            TransactionId: input.TransactionId,
-            CreatedAt: InstantPatternWithOptionalSeconds.Parse(input.RegistrationDateTime).Value,
-            StartDateTime: InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value,
-            EndDateTime: InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value,
-            MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
-            Unit: MeasurementUnit.FromName(input.MeasureUnit!),
-            Resolution: Resolution.FromName(input.Resolution!),
+            MeteringPointId: input.MeteringPointId.Value,
+            TransactionId: input.TransactionId.Value,
+            CreatedAt: input.RegistrationDateTime,
+            StartDateTime: input.StartDateTime,
+            EndDateTime: input.EndDateTime,
+            MeteringPointType: input.MeteringPointType,
+            Unit: input.MeasureUnit,
+            Resolution: input.Resolution,
             Points: input.MeteredDataList.Select(
                     MapPoints)
                 .ToList());
 
-    private Point MapPoints(ForwardMeteredDataInputV1.MeteredData eo)
+    private Point MapPoints(ForwardMeteredDataValidInput.MeteredData meteredData)
     {
-        var quality = eo.QuantityQuality is null
-            ? Quality.AsProvided
-            : Quality.FromName(eo.QuantityQuality);
         return new Point(
-            int.Parse(eo.Position!),
-            decimal.Parse(eo.EnergyQuantity!),
-            quality);
+            meteredData.Position,
+            // TODO: LRN - Awaiting a final decision from Volt on how to handle null values.
+            meteredData.EnergyQuantity ?? 0.000m,
+            meteredData.QuantityQuality);
     }
 }

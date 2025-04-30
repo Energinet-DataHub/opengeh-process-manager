@@ -14,16 +14,19 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Microsoft.ApplicationInsights;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
 public class TerminateForwardMeteredDataHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
-    IClock clock)
+    IClock clock,
+    TelemetryClient telemetryClient)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
+    private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
@@ -58,7 +61,7 @@ public class TerminateForwardMeteredDataHandlerV1(
         if (enqueueStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Enqueue actor messages step must be running (Id={enqueueStep.Id}, State={enqueueStep.Lifecycle.State}).");
 
-        await StepHelper.TerminateStepAndCommit(enqueueStep, _clock, _progressRepository).ConfigureAwait(false);
+        await StepHelper.TerminateStepAndCommit(enqueueStep, _clock, _progressRepository, _telemetryClient).ConfigureAwait(false);
     }
 
     private async Task TerminateOrchestrationInstance(OrchestrationInstance orchestrationInstance)

@@ -57,6 +57,10 @@ public class EnqueueActorMessagesSyncClientTests : IAsyncLifetime
         Services.AddEnqueueActorMessagesSync(mockCredential.Object);
         ServiceProvider = Services.BuildServiceProvider();
         Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesSyncClient>();
+
+        Actor = new Actor(
+            ActorNumber: ActorNumber.Create("1234567890123"),
+            ActorRole: ActorRole.EnergySupplier);
     }
 
     private IEnqueueActorMessagesSyncClient Sut { get;  }
@@ -66,6 +70,8 @@ public class EnqueueActorMessagesSyncClientTests : IAsyncLifetime
     private ServiceCollection Services { get; }
 
     private ServiceProvider ServiceProvider { get; }
+
+    private Actor Actor { get; }
 
     public Task InitializeAsync()
     {
@@ -82,13 +88,9 @@ public class EnqueueActorMessagesSyncClientTests : IAsyncLifetime
     [Fact]
     public async Task Given_SuccessfulResponse_When_EnqueueAsync_Then_NoExceptions()
     {
-        var actor = new Actor(
-            ActorNumber: ActorNumber.Create("1234567890123"),
-            ActorRole: ActorRole.EnergySupplier);
+        var request = new EnqueueData(Actor);
 
-        var request = new EnqueueData(actor);
-
-        MockEnqueueRequest(MockServer, request, HttpStatusCode.OK);
+        MockHttpStatusCodeResponse(MockServer, request.Route, HttpStatusCode.OK);
 
         await Sut.EnqueueAsync(request);
     }
@@ -96,23 +98,19 @@ public class EnqueueActorMessagesSyncClientTests : IAsyncLifetime
     [Fact]
     public async Task Given_FaultedResponse_When_EnqueueAsync_Then_ThrowsException()
     {
-        var actor = new Actor(
-            ActorNumber: ActorNumber.Create("1234567890123"),
-            ActorRole: ActorRole.EnergySupplier);
+        var request = new EnqueueData(Actor);
 
-        var request = new EnqueueData(actor);
-
-        MockEnqueueRequest(MockServer, request, HttpStatusCode.RequestTimeout);
+        MockHttpStatusCodeResponse(MockServer, request.Route, HttpStatusCode.RequestTimeout);
 
         await Assert.ThrowsAsync<HttpRequestException>(() => Sut.EnqueueAsync(request))
         ;
     }
 
-    private static void MockEnqueueRequest(WireMockServer server, IEnqueueDataSyncDto enqueueData, HttpStatusCode statusCode = HttpStatusCode.OK)
+    private static void MockHttpStatusCodeResponse(WireMockServer server, string route, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         var request = Request
             .Create()
-            .WithPath($"/{EnqueueActorMessagesSyncClient.EdiEndpointPrefix}{enqueueData.Route}")
+            .WithPath($"/{EnqueueActorMessagesSyncClient.EdiEndpointPrefix}{route}")
             .UsingPost();
 
         var response = Response

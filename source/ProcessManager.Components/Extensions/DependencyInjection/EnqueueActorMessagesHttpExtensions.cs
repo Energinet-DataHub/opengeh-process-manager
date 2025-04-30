@@ -47,7 +47,7 @@ public static class EnqueueActorMessagesHttpExtensions
                 ConfigureHttpClient(sp, httpClient, options.BaseUrl);
             });
 
-        services.TryAddSingleton<IEnqueueActorMessagesHttpClient, EnqueueActorMessagesHttpClient>();
+        services.AddScoped<IEnqueueActorMessagesHttpClient, EnqueueActorMessagesHttpClient>();
 
         return services;
     }

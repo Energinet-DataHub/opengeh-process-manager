@@ -53,6 +53,9 @@ var host = new HostBuilder()
 
         // Time component
         services.AddTimeComponent();
+
+        // DataHub Support Calender
+        services.AddDataHubSupportCalenderComponent();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

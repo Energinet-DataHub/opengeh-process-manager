@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 using FluentAssertions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 
 public class QuantityValidationRuleTests
 {
@@ -26,20 +26,20 @@ public class QuantityValidationRuleTests
     [Fact]
     public async Task Given_GoodValidQuantities_When_ValidateAsync_Then_NoError()
     {
-        var meteredData = new List<ForwardMeasurementsInputV1.Measurement>
+        var measurements = new List<ForwardMeasurementsInputV1.Measurement>
         {
-            CreateMeteredData(position: 1, quantity: "0.123"),
-            CreateMeteredData(position: 2, quantity: "0.000"),
-            CreateMeteredData(position: 3, quantity: "1234567890"),
-            CreateMeteredData(position: 4, quantity: "1234567890.123"),
-            CreateMeteredData(position: 5, quantity: null),
-            CreateMeteredData(position: 6, quantity: "  2  "), // the spaces must be there.
+            CreateMeasurement(position: 1, quantity: "0.123"),
+            CreateMeasurement(position: 2, quantity: "0.000"),
+            CreateMeasurement(position: 3, quantity: "1234567890"),
+            CreateMeasurement(position: 4, quantity: "1234567890.123"),
+            CreateMeasurement(position: 5, quantity: null),
+            CreateMeasurement(position: 6, quantity: "  2  "), // the spaces must be there.
         };
 
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
-                    .WithMeteredData(meteredData)
+                new ForwardMeasurementsInputV1Builder()
+                    .WithMeasurements(measurements)
                     .Build(),
                 []));
 
@@ -49,15 +49,15 @@ public class QuantityValidationRuleTests
     [Fact]
     public async Task Given_NegativeQuantity_When_ValidateAsync_Then_Error()
     {
-        var meteredData = new List<ForwardMeasurementsInputV1.Measurement>
+        var measurements = new List<ForwardMeasurementsInputV1.Measurement>
         {
-            CreateMeteredData(position: 1, quantity: "-1"),
+            CreateMeasurement(position: 1, quantity: "-1"),
         };
 
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
-                    .WithMeteredData(meteredData)
+                new ForwardMeasurementsInputV1Builder()
+                    .WithMeasurements(measurements)
                     .Build(),
                 []));
 
@@ -68,15 +68,15 @@ public class QuantityValidationRuleTests
     [Fact]
     public async Task Given_QuantityWith4Decimals_When_ValidateAsync_Then_Error()
     {
-        var meteredData = new List<ForwardMeasurementsInputV1.Measurement>
+        var measurements = new List<ForwardMeasurementsInputV1.Measurement>
         {
-            CreateMeteredData(position: 1, quantity: "0.1234"),
+            CreateMeasurement(position: 1, quantity: "0.1234"),
         };
 
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
-                    .WithMeteredData(meteredData)
+                new ForwardMeasurementsInputV1Builder()
+                    .WithMeasurements(measurements)
                     .Build(),
                 []));
 
@@ -87,15 +87,15 @@ public class QuantityValidationRuleTests
     [Fact]
     public async Task Given_QuantityWith11Integers_When_ValidateAsync_Then_Error()
     {
-        var meteredData = new List<ForwardMeasurementsInputV1.Measurement>
+        var measurements = new List<ForwardMeasurementsInputV1.Measurement>
         {
-            CreateMeteredData(position: 1, quantity: "12345678901"),
+            CreateMeasurement(position: 1, quantity: "12345678901"),
         };
 
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
-                    .WithMeteredData(meteredData)
+                new ForwardMeasurementsInputV1Builder()
+                    .WithMeasurements(measurements)
                     .Build(),
                 []));
 
@@ -106,17 +106,17 @@ public class QuantityValidationRuleTests
     [Fact]
     public async Task Given_AllQuantityErrors_when_ValidateAsync_Then_Errors()
     {
-        var meteredData = new List<ForwardMeasurementsInputV1.Measurement>
+        var measurements = new List<ForwardMeasurementsInputV1.Measurement>
         {
-            CreateMeteredData(position: 1, quantity: "12345678901.0003"), // 11 integers and 4 decimals
-            CreateMeteredData(position: 2, quantity: "asd"), // Not a decimal
-            CreateMeteredData(position: 3, quantity: "-3.0004"), // Negative and 4 decimals
+            CreateMeasurement(position: 1, quantity: "12345678901.0003"), // 11 integers and 4 decimals
+            CreateMeasurement(position: 2, quantity: "asd"), // Not a decimal
+            CreateMeasurement(position: 3, quantity: "-3.0004"), // Negative and 4 decimals
         };
 
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
-                    .WithMeteredData(meteredData)
+                new ForwardMeasurementsInputV1Builder()
+                    .WithMeasurements(measurements)
                     .Build(),
                 []));
 
@@ -130,7 +130,7 @@ public class QuantityValidationRuleTests
                 ]);
     }
 
-    private ForwardMeasurementsInputV1.Measurement CreateMeteredData(int position, string? quantity)
+    private ForwardMeasurementsInputV1.Measurement CreateMeasurement(int position, string? quantity)
     {
         return new(
             EnergyQuantity: quantity,

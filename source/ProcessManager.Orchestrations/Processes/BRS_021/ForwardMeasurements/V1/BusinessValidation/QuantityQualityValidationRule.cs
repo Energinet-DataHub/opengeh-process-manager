@@ -36,12 +36,12 @@ public class QuantityQualityValidationRule
 
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeasurementsBusinessValidatedDto subject)
     {
-        foreach (var meteredData in subject.Input.Measurements)
+        foreach (var measurement in subject.Input.Measurements)
         {
             Quality? quality;
-            quality = meteredData.QuantityQuality is null
+            quality = measurement.QuantityQuality is null
                 ? Quality.AsProvided // No provided quality means "AsProvided"
-                : Quality.FromNameOrDefault(meteredData.QuantityQuality);
+                : Quality.FromNameOrDefault(measurement.QuantityQuality);
 
             if (quality == null || !AllowedQualities.Contains(quality))
                 return Task.FromResult(InvalidQuality);

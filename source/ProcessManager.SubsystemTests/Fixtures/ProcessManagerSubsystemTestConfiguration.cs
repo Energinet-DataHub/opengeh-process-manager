@@ -39,10 +39,10 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
         ProcessManagerNotifyTopicName = keyVaultConfiguration.GetValue<string>("sbt-processmanagernotify-name")
             ?? throw new ArgumentNullException(nameof(ProcessManagerNotifyTopicName), $"Missing configuration value for {nameof(ProcessManagerNotifyTopicName)}");
 
-        ProcessManagerBrs021StartTopicName = keyVaultConfiguration.GetValue<string>("sbt-brs021forwardmetereddatastart-name")
+        ProcessManagerBrs021StartTopicName = keyVaultConfiguration.GetValue<string>("sbt-brs021forwardmeasurements-name")
             ?? throw new ArgumentNullException(nameof(ProcessManagerBrs021StartTopicName), $"Missing configuration value for {nameof(ProcessManagerBrs021StartTopicName)}");
 
-        ProcessManagerBrs021NotifyTopicName = keyVaultConfiguration.GetValue<string>("sbt-brs021forwardmetereddatanotify-name")
+        ProcessManagerBrs021NotifyTopicName = keyVaultConfiguration.GetValue<string>("sbt-brs021forwardmeasurementsnotify-name")
             ?? throw new ArgumentNullException(nameof(ProcessManagerBrs021NotifyTopicName), $"Missing configuration value for {nameof(ProcessManagerBrs021NotifyTopicName)}");
 
         ProcessManagerApplicationIdUri = keyVaultConfiguration.GetValue<string>("processmanager-application-id-uri")

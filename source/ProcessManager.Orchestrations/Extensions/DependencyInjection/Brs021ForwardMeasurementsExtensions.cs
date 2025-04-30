@@ -19,12 +19,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 
-public static class Brs021ForwardMeteredDataExtensions
+public static class Brs021ForwardMeasurementsExtensions
 {
     /// <summary>
     /// Add required dependencies to use the Process Manager Service Bus topic.
     /// </summary>
-    public static IServiceCollection AddBrs021ForwardMeteringData(
+    public static IServiceCollection AddBrs021ForwardMeasurements(
         this IServiceCollection services,
         DefaultAzureCredential azureCredential)
     {

@@ -74,11 +74,11 @@ public class MeteringPointReceiversProviderTests
     {
         var masterData = CreateMasterData(MeteringPointType.Consumption);
 
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             CreateFindReceiversInput([masterData]));
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should()
+        receiversWithMeasurements.Should()
             .ContainSingle()
             .Which.Receivers
             .Should()
@@ -101,10 +101,10 @@ public class MeteringPointReceiversProviderTests
     {
         var masterData = CreateMasterData(MeteringPointType.Production);
 
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             CreateFindReceiversInput([masterData]));
 
-        receiversWithMeteredData.Should()
+        receiversWithMeasurements.Should()
             .ContainSingle()
             .Which.Receivers
             .Should()
@@ -145,12 +145,12 @@ public class MeteringPointReceiversProviderTests
         var masterData3 = CreateMasterData(meteringPointType, secondPeriodWithEnergySupplier.Start, secondPeriodWithEnergySupplier.End);
 
         IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterData = [masterData, masterData2, masterData3];
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             CreateFindReceiversInput(meteringPointMasterData));
 
         // Assert that the EnergySupplier only receives data for periods where it is the supplier
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Where(x => x.Receivers.Contains(
+        receiversWithMeasurements.Where(x => x.Receivers.Contains(
             new Actor(_defaultEnergySupplier, ActorRole.EnergySupplier)))
             .Should()
             .HaveCount(2)
@@ -168,7 +168,7 @@ public class MeteringPointReceiversProviderTests
             });
 
         // Assert that the DanishEnergyAgency receives data for the full duration.
-        receiversWithMeteredData.Where(x => x.Receivers.Contains(
+        receiversWithMeasurements.Where(x => x.Receivers.Contains(
             new Actor(
                 ActorNumber.Create(DataHubDetails.DanishEnergyAgencyNumber),
                 ActorRole.DanishEnergyAgency)))
@@ -198,10 +198,10 @@ public class MeteringPointReceiversProviderTests
     {
         var masterData = CreateMasterData(MeteringPointType.Exchange);
 
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             CreateFindReceiversInput([masterData]));
 
-        receiversWithMeteredData.Should()
+        receiversWithMeasurements.Should()
             .ContainSingle()
             .Which.Receivers
             .Should()
@@ -224,10 +224,10 @@ public class MeteringPointReceiversProviderTests
     {
         var masterData = CreateMasterData(MeteringPointType.VeProduction);
 
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             CreateFindReceiversInput([masterData]));
 
-        receiversWithMeteredData.Should()
+        receiversWithMeasurements.Should()
             .ContainSingle()
             .Which.Receivers
             .Should()
@@ -252,7 +252,7 @@ public class MeteringPointReceiversProviderTests
 
     [Theory]
     [MemberData(nameof(GetAllResolutionsExceptMonthlyAndOther))]
-    public void Given_SingleMasterDataPeriods_When_GetReceivers_Then_AllMeteredDataIsSentToTheSameReceivers(Resolution resolution)
+    public void Given_SingleMasterDataPeriods_When_GetReceivers_Then_AllMeasurementsIsSentToTheSameReceivers(Resolution resolution)
     {
         var masterData1Start = Instant.FromUtc(2024, 02, 28, 23, 00);
         var masterData1End = masterData1Start.Plus(Duration.FromDays(42));
@@ -266,11 +266,11 @@ public class MeteringPointReceiversProviderTests
         ];
 
         var findReceiversInput = CreateFindReceiversInput(masterDataList);
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should()
+        receiversWithMeasurements.Should()
             .ContainSingle()
             .And.SatisfyRespectively(
                 r =>
@@ -287,7 +287,7 @@ public class MeteringPointReceiversProviderTests
 
     [Theory]
     [MemberData(nameof(GetAllResolutionsExceptMonthlyAndOther))]
-    public void Given_MultipleMasterDataPeriods_When_GetReceivers_Then_MeteredDataIsSplitCorrectlyToReceivers(Resolution resolution)
+    public void Given_MultipleMasterDataPeriods_When_GetReceivers_Then_MeasurementsIsSplitCorrectlyToReceivers(Resolution resolution)
     {
         var elementsPerDayForResolution = resolution switch
         {
@@ -334,11 +334,11 @@ public class MeteringPointReceiversProviderTests
         List<MeteringPointMasterData> masterDataList = [masterData1, masterData2, masterData3];
 
         var findReceiversInput = CreateFindReceiversInput(masterDataList);
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should()
+        receiversWithMeasurements.Should()
             .HaveCount(3)
             .And.SatisfyRespectively(
                 r =>
@@ -377,7 +377,7 @@ public class MeteringPointReceiversProviderTests
     }
 
     [Fact(Skip = "Different resolutions in the same transaction period is not supported (should be rejected by business validation)")]
-    public void Given_MultipleMasterDataPeriodsWithDifferentResolutions_When_GetReceivers_Then_MeteredDataIsSplitToCorrectMasterDataPeriods()
+    public void Given_MultipleMasterDataPeriodsWithDifferentResolutions_When_GetReceivers_Then_MeasurementsIsSplitToCorrectMasterDataPeriods()
     {
         const int masterData1Days = 80;
         var masterData1Resolution = Resolution.Hourly;
@@ -404,11 +404,11 @@ public class MeteringPointReceiversProviderTests
         List<MeteringPointMasterData> masterDataList = [masterData1, masterData2, masterData3];
 
         var findReceiversInput = CreateFindReceiversInput(masterDataList);
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should()
+        receiversWithMeasurements.Should()
             .HaveCount(3)
             .And.SatisfyRespectively(
                 (r) =>
@@ -445,10 +445,10 @@ public class MeteringPointReceiversProviderTests
         var masterData = CreateMasterData(meteringPointType, parentMeteringPointId: "parent-metering-point-id");
 
         var findReceiversInput = CreateFindReceiversInput([masterData]);
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
-        receiversWithMeteredData.Should()
+        receiversWithMeasurements.Should()
             .ContainSingle()
             .Which.Receivers.Should()
             .ContainSingle()
@@ -474,10 +474,10 @@ public class MeteringPointReceiversProviderTests
             [masterData],
             startDateTime: Instant.FromUtc(2025, 02, 01, 23, 00),
             endDateTime: Instant.FromUtc(2025, 03, 01, 00, 00));
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
-        var package = receiversWithMeteredData.Should().ContainSingle().Subject;
+        var package = receiversWithMeasurements.Should().ContainSingle().Subject;
         package.StartDateTime.Should().Be(findReceiversInput.StartDateTime.ToDateTimeOffset());
         package.EndDateTime.Should().Be(findReceiversInput.EndDateTime.ToDateTimeOffset());
         package.Measurements.Should().HaveCount(649);
@@ -497,10 +497,10 @@ public class MeteringPointReceiversProviderTests
             [masterData],
             startDateTime: Instant.FromUtc(2025, 02, 01, 23, 00),
             endDateTime: Instant.FromUtc(2025, 03, 01, 00, 00));
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
-        var package = receiversWithMeteredData.Should().ContainSingle().Subject;
+        var package = receiversWithMeasurements.Should().ContainSingle().Subject;
         package.StartDateTime.Should().Be(findReceiversInput.StartDateTime.ToDateTimeOffset());
         package.EndDateTime.Should().Be(masterData.ValidTo);
         package.Measurements.Should().HaveCount(649);
@@ -520,10 +520,10 @@ public class MeteringPointReceiversProviderTests
             [masterData],
             startDateTime: Instant.FromUtc(2025, 02, 01, 23, 00),
             endDateTime: Instant.FromUtc(2025, 03, 01, 00, 00));
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
-        var package = receiversWithMeteredData.Should().ContainSingle().Subject;
+        var package = receiversWithMeasurements.Should().ContainSingle().Subject;
         package.StartDateTime.Should().Be(masterData.ValidFrom);
         package.EndDateTime.Should().Be(findReceiversInput.EndDateTime.ToDateTimeOffset());
         package.Measurements.Should().HaveCount(649);
@@ -549,17 +549,17 @@ public class MeteringPointReceiversProviderTests
             [masterData1, masterData2],
             startDateTime: Instant.FromUtc(2025, 02, 01, 00, 00),
             endDateTime: Instant.FromUtc(2025, 04, 01, 00, 00));
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should().HaveCount(2);
-        var first = receiversWithMeteredData.First();
+        receiversWithMeasurements.Should().HaveCount(2);
+        var first = receiversWithMeasurements.First();
         first.StartDateTime.Should().Be(findReceiversInput.StartDateTime.ToDateTimeOffset());
         first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.Measurements.Should().HaveCount(28);
 
-        var second = receiversWithMeteredData.Last();
+        var second = receiversWithMeasurements.Last();
         second.StartDateTime.Should().Be(masterData2.ValidFrom);
         second.EndDateTime.Should().Be(findReceiversInput.EndDateTime.ToDateTimeOffset());
         second.Measurements.Should().HaveCount(31);
@@ -585,17 +585,17 @@ public class MeteringPointReceiversProviderTests
             [masterData1, masterData2],
             startDateTime: Instant.FromUtc(2025, 02, 01, 00, 00),
             endDateTime: Instant.FromUtc(2025, 04, 01, 00, 00));
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should().HaveCount(2);
-        var first = receiversWithMeteredData.First();
+        receiversWithMeasurements.Should().HaveCount(2);
+        var first = receiversWithMeasurements.First();
         first.StartDateTime.Should().Be(findReceiversInput.StartDateTime.ToDateTimeOffset());
         first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.Measurements.Should().HaveCount(28);
 
-        var second = receiversWithMeteredData.Last();
+        var second = receiversWithMeasurements.Last();
         second.StartDateTime.Should().Be(masterData2.ValidFrom);
         second.EndDateTime.Should().Be(masterData2.ValidTo);
         second.Measurements.Should().HaveCount(31);
@@ -621,17 +621,17 @@ public class MeteringPointReceiversProviderTests
             [masterData1, masterData2],
             startDateTime: Instant.FromUtc(2025, 02, 01, 00, 00),
             endDateTime: Instant.FromUtc(2025, 04, 01, 00, 00));
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should().HaveCount(2);
-        var first = receiversWithMeteredData.First();
+        receiversWithMeasurements.Should().HaveCount(2);
+        var first = receiversWithMeasurements.First();
         first.StartDateTime.Should().Be(masterData1.ValidFrom);
         first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.Measurements.Should().HaveCount(28);
 
-        var second = receiversWithMeteredData.Last();
+        var second = receiversWithMeasurements.Last();
         second.StartDateTime.Should().Be(masterData2.ValidFrom);
         second.EndDateTime.Should().Be(findReceiversInput.EndDateTime.ToDateTimeOffset());
         second.Measurements.Should().HaveCount(31);
@@ -663,22 +663,22 @@ public class MeteringPointReceiversProviderTests
             [masterData1, masterData2, masterData3],
             startDateTime: Instant.FromUtc(2025, 02, 01, 00, 00),
             endDateTime: Instant.FromUtc(2025, 05, 01, 00, 00));
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should().HaveCount(3);
-        var first = receiversWithMeteredData.First();
+        receiversWithMeasurements.Should().HaveCount(3);
+        var first = receiversWithMeasurements.First();
         first.StartDateTime.Should().Be(findReceiversInput.StartDateTime.ToDateTimeOffset());
         first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.Measurements.Should().HaveCount(28);
 
-        var second = receiversWithMeteredData[1];
+        var second = receiversWithMeasurements[1];
         second.StartDateTime.Should().Be(masterData2.ValidFrom);
         second.EndDateTime.Should().Be(masterData2.ValidTo);
         second.Measurements.Should().HaveCount(31);
 
-        var third = receiversWithMeteredData.Last();
+        var third = receiversWithMeasurements.Last();
         third.StartDateTime.Should().Be(masterData3.ValidFrom);
         third.EndDateTime.Should().Be(findReceiversInput.EndDateTime.ToDateTimeOffset());
         third.Measurements.Should().HaveCount(30);
@@ -710,22 +710,22 @@ public class MeteringPointReceiversProviderTests
             [masterData1, masterData2, masterData3],
             startDateTime: Instant.FromUtc(2025, 02, 01, 00, 00),
             endDateTime: Instant.FromUtc(2025, 05, 01, 00, 00));
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should().HaveCount(3);
-        var first = receiversWithMeteredData.First();
+        receiversWithMeasurements.Should().HaveCount(3);
+        var first = receiversWithMeasurements.First();
         first.StartDateTime.Should().Be(findReceiversInput.StartDateTime.ToDateTimeOffset());
         first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.Measurements.Should().HaveCount(28);
 
-        var second = receiversWithMeteredData[1];
+        var second = receiversWithMeasurements[1];
         second.StartDateTime.Should().Be(masterData2.ValidFrom);
         second.EndDateTime.Should().Be(masterData2.ValidTo);
         second.Measurements.Should().HaveCount(31);
 
-        var third = receiversWithMeteredData.Last();
+        var third = receiversWithMeasurements.Last();
         third.StartDateTime.Should().Be(masterData3.ValidFrom);
         third.EndDateTime.Should().Be(masterData3.ValidTo);
         third.Measurements.Should().HaveCount(30);
@@ -757,22 +757,22 @@ public class MeteringPointReceiversProviderTests
             [masterData1, masterData2, masterData3],
             startDateTime: Instant.FromUtc(2025, 02, 01, 00, 00),
             endDateTime: Instant.FromUtc(2025, 05, 01, 00, 00));
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should().HaveCount(3);
-        var first = receiversWithMeteredData.First();
+        receiversWithMeasurements.Should().HaveCount(3);
+        var first = receiversWithMeasurements.First();
         first.StartDateTime.Should().Be(masterData1.ValidFrom);
         first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.Measurements.Should().HaveCount(28);
 
-        var second = receiversWithMeteredData[1];
+        var second = receiversWithMeasurements[1];
         second.StartDateTime.Should().Be(masterData2.ValidFrom);
         second.EndDateTime.Should().Be(masterData2.ValidTo);
         second.Measurements.Should().HaveCount(31);
 
-        var third = receiversWithMeteredData.Last();
+        var third = receiversWithMeasurements.Last();
         third.StartDateTime.Should().Be(masterData3.ValidFrom);
         third.EndDateTime.Should().Be(findReceiversInput.EndDateTime.ToDateTimeOffset());
         third.Measurements.Should().HaveCount(30);
@@ -804,22 +804,22 @@ public class MeteringPointReceiversProviderTests
             [masterData1, masterData2, masterData3],
             startDateTime: Instant.FromUtc(2025, 02, 01, 00, 00),
             endDateTime: Instant.FromUtc(2025, 05, 01, 00, 00));
-        var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
+        var receiversWithMeasurements = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             findReceiversInput);
 
         using var assertionScope = new AssertionScope();
-        receiversWithMeteredData.Should().HaveCount(3);
-        var first = receiversWithMeteredData.First();
+        receiversWithMeasurements.Should().HaveCount(3);
+        var first = receiversWithMeasurements.First();
         first.StartDateTime.Should().Be(findReceiversInput.StartDateTime.ToDateTimeOffset());
         first.EndDateTime.Should().Be(masterData1.ValidTo);
         first.Measurements.Should().HaveCount(28);
 
-        var second = receiversWithMeteredData[1];
+        var second = receiversWithMeasurements[1];
         second.StartDateTime.Should().Be(masterData2.ValidFrom);
         second.EndDateTime.Should().Be(masterData2.ValidTo);
         second.Measurements.Should().HaveCount(31);
 
-        var third = receiversWithMeteredData.Last();
+        var third = receiversWithMeasurements.Last();
         third.StartDateTime.Should().Be(masterData3.ValidFrom);
         third.EndDateTime.Should().Be(findReceiversInput.EndDateTime.ToDateTimeOffset());
         third.Measurements.Should().HaveCount(30);
@@ -862,7 +862,7 @@ public class MeteringPointReceiversProviderTests
         Instant? endDateTime = null)
     {
         var currentPosition = 1;
-        var meteredData = masterData
+        var measurements = masterData
             .OrderBy(mpmd => mpmd.ValidFrom)
             .SelectMany(
                 mpmd =>
@@ -882,10 +882,10 @@ public class MeteringPointReceiversProviderTests
                     var boundedValidTo = Instant.Min(endDateTime ?? Instant.MaxValue, mpmd.ValidTo.ToInstant());
 
                     var currentTimestamp = boundedValidFrom;
-                    var meteredDataForMasterData = new List<ReceiversWithMeasurements.Measurement>();
+                    var measurements = new List<ReceiversWithMeasurements.Measurement>();
                     while (currentTimestamp < boundedValidTo)
                     {
-                        meteredDataForMasterData.Add(
+                        measurements.Add(
                             new ReceiversWithMeasurements.Measurement(
                                 Position: currentPosition,
                                 EnergyQuantity: 1.4m,
@@ -896,7 +896,7 @@ public class MeteringPointReceiversProviderTests
                         currentPosition++;
                     }
 
-                    return meteredDataForMasterData;
+                    return measurements;
                 })
             .ToList();
 
@@ -906,7 +906,7 @@ public class MeteringPointReceiversProviderTests
             EndDateTime: endDateTime ?? masterData.Last().ValidTo.ToInstant(),
             Resolution: masterData.First().Resolution,
             MasterData: masterData,
-            Measurements: meteredData);
+            Measurements: measurements);
     }
 
     private MeteringPointMasterData CreateMasterDataWithoutParentOrEnergySupplier(Interval period, MeteringPointType? mp)

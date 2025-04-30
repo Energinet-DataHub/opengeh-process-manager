@@ -14,17 +14,13 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using FluentAssertions;
-using Microsoft.FeatureManagement;
-using Moq;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 
 public class ConnectionStateValidationRuleTests
 {
@@ -36,7 +32,7 @@ public class ConnectionStateValidationRuleTests
     [InlineData(ConnectionState.New)]
     public async Task Given_ValidateMeteringPointMasterData_When_ConnectionStateIsInvalid_Then_ValidationError(ConnectionState connectionState)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(new(
@@ -86,7 +82,7 @@ public class ConnectionStateValidationRuleTests
     [InlineData(ConnectionState.Disconnected)]
     public async Task Given_ValidateMeteringPointMasterData_When_ConnectionStateIsValid_Then_NoValidationError(ConnectionState connectionState)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -116,7 +112,7 @@ public class ConnectionStateValidationRuleTests
     [Fact]
     public async Task Given_ValidateMeteringPointMasterData_When_NoMasterData_Then_NoValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(

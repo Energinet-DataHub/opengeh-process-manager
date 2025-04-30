@@ -21,6 +21,6 @@ option csharp_namespace = "Energinet.DataHub.ProcessManager.Orchestrations.Proce
 
 // This contract is used for the initial deserialize of the message in order to determine the version of the message 
 // and which contract to use for further deserialization
-message Brs021ForwardMeteredDataNotifyVersion {
+message Brs021ForwardMeasurementsNotifyVersion {
   string version = 1;
 }

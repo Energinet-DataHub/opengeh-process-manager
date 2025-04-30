@@ -20,45 +20,27 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.E
 using FluentAssertions;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 
-public class MeteringPointTypeValidationRuleTests
+public class MeteringPointSubTypeValidationRuleTests
 {
-    private readonly MeteringPointTypeValidationRule _sut = new();
+    private readonly MeteringPointSubTypeValidationRule _sut = new();
 
-    public static TheoryData<MeteringPointType> ValidMeteringPointTypes => new()
+    public static TheoryData<MeteringPointSubType> ValidMeteringPointSubTypes => new()
     {
-        MeteringPointType.Production,
-        MeteringPointType.Consumption,
-        MeteringPointType.Exchange,
-        MeteringPointType.VeProduction,
-        MeteringPointType.Analysis,
-        MeteringPointType.SurplusProductionGroup6,
-        MeteringPointType.NetProduction,
-        MeteringPointType.SupplyToGrid,
-        MeteringPointType.ConsumptionFromGrid,
-        MeteringPointType.WholesaleServicesInformation,
-        MeteringPointType.OwnProduction,
-        MeteringPointType.NetFromGrid,
-        MeteringPointType.NetToGrid,
-        MeteringPointType.TotalConsumption,
-        MeteringPointType.OtherConsumption,
-        MeteringPointType.OtherProduction,
-        MeteringPointType.ExchangeReactiveEnergy,
-        MeteringPointType.CollectiveNetProduction,
-        MeteringPointType.CollectiveNetConsumption,
-        MeteringPointType.InternalUse,
-        MeteringPointType.ElectricalHeating,
-        MeteringPointType.NetConsumption,
-        MeteringPointType.CapacitySettlement,
-        MeteringPointType.NotUsed,
-        MeteringPointType.NetLossCorrection,
+        MeteringPointSubType.Physical,
+        MeteringPointSubType.Virtual,
+    };
+
+    public static TheoryData<MeteringPointSubType> InvalidMeteringPointSubTypes => new()
+    {
+        MeteringPointSubType.Calculated,
     };
 
     [Fact]
     public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -70,11 +52,11 @@ public class MeteringPointTypeValidationRuleTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidMeteringPointTypes))]
-    public async Task Given_ValidMeteringPointType_When_Validate_Then_NoValidationError(MeteringPointType meteringPointType)
+    [MemberData(nameof(ValidMeteringPointSubTypes))]
+    public async Task Given_ValidMeteringPointSubTypes_When_Validate_Then_NoValidationError(MeteringPointSubType meteringPointSubType)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteringPointType(meteringPointType.Name)
+        // Metering point subtype is not part of the input, its only part of the master data
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -89,8 +71,8 @@ public class MeteringPointTypeValidationRuleTests
                         ActorNumber.Create("1111111111111"),
                         [],
                         ConnectionState.Connected,
-                        meteringPointType,
-                        MeteringPointSubType.Physical,
+                        MeteringPointType.Production,
+                        meteringPointSubType,
                         Resolution.QuarterHourly,
                         MeasurementUnit.KilowattHour,
                         "product",
@@ -101,60 +83,44 @@ public class MeteringPointTypeValidationRuleTests
         result.Should().BeEmpty();
     }
 
-    [Fact]
-    public async Task Given_ChangeBetweenTwoValidMeteringPointTypes_When_Validate_Then_ValidationError()
+    [Theory]
+    [MemberData(nameof(InvalidMeteringPointSubTypes))]
+    public async Task Given_InvalidMeteringPointSubType_When_Validate_Then_NoValidationError(MeteringPointSubType meteringPointSubType)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        // Metering point subtype is not part of the input, its only part of the master data
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
-        var result = await _sut.ValidateAsync(new(
-            input,
-            [
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    // One MeteringPointType
-                    MeteringPointType.Production,
-                    MeteringPointSubType.Physical,
-                    Resolution.QuarterHourly,
-                    MeasurementUnit.KilowattHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
-                new MeteringPointMasterData(
-                    new MeteringPointId("id"),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
-                    new GridAreaCode("111"),
-                    ActorNumber.Create("1111111111111"),
-                    [],
-                    ConnectionState.Connected,
-                    // A different MeteringPointType
-                    MeteringPointType.Consumption,
-                    MeteringPointSubType.Physical,
-                    Resolution.QuarterHourly,
-                    MeasurementUnit.KilowattHour,
-                    "product",
-                    null,
-                    ActorNumber.Create("1111111111112")),
-            ]));
+        var result = await _sut.ValidateAsync(
+            new(
+                input,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("id"),
+                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                        new GridAreaCode("111"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Production,
+                        meteringPointSubType,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "product",
+                        null,
+                        ActorNumber.Create("1111111111112")),
+                ]));
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointError);
+            .And.BeEquivalentTo(MeteringPointSubTypeValidationRule.WrongMeteringPointSubTypeError);
     }
 
     [Fact]
-    public async Task Given_IncomingMeteringPointTypeDoesNotMatchMasterDataMeteringPointType_When_Validate_Then_ValidationError()
+    public async Task Given_DifferentMeteringPointSubTypeFromMasterData_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
-            // Incoming MeteringPointType
-            .WithMeteringPointType("Production")
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(new(
@@ -168,9 +134,25 @@ public class MeteringPointTypeValidationRuleTests
                     ActorNumber.Create("1111111111111"),
                     [],
                     ConnectionState.Connected,
-                    // MeteringPointType different from incoming
-                    MeteringPointType.Consumption,
+                    MeteringPointType.Production,
+                    // One MeteringPointSubType
                     MeteringPointSubType.Physical,
+                    Resolution.QuarterHourly,
+                    MeasurementUnit.KilowattHour,
+                    "product",
+                    null,
+                    ActorNumber.Create("1111111111112")),
+                new MeteringPointMasterData(
+                    new MeteringPointId("id"),
+                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                    SystemClock.Instance.GetCurrentInstant().ToDateTimeOffset(),
+                    new GridAreaCode("111"),
+                    ActorNumber.Create("1111111111111"),
+                    [],
+                    ConnectionState.Connected,
+                    MeteringPointType.Production,
+                    // A different MeteringPointSubType
+                    MeteringPointSubType.Virtual,
                     Resolution.QuarterHourly,
                     MeasurementUnit.KilowattHour,
                     "product",
@@ -180,6 +162,6 @@ public class MeteringPointTypeValidationRuleTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointError);
+            .And.BeEquivalentTo(MeteringPointSubTypeValidationRule.WrongMeteringPointSubTypeError);
     }
 }

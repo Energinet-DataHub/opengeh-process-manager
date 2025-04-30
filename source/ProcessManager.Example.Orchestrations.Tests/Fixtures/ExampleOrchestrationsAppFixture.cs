@@ -133,15 +133,15 @@ public class ExampleOrchestrationsAppFixture : IAsyncLifetime
 
         // Start Example Orchestrations app
         // => Creates Process Manager default Start topics and subscriptions
-        // => Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
+        // => Creates BRS-021 Forward Measurements Start/Notify topics and subscriptions
         await ExampleOrchestrationsAppManager.StartAsync(ediEnqueueTopicResources);
 
         // Start Example Consumer app
         await ExampleConsumerAppManager.StartAsync(
             ExampleOrchestrationsAppManager.ProcessManagerStartTopic,
             ProcessManagerAppManager.ProcessManagerNotifyTopic,
-            ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic,
-            ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic,
+            ExampleOrchestrationsAppManager.Brs021ForwardMeasurementsStartTopic,
+            ExampleOrchestrationsAppManager.Brs021ForwardMeasurementsNotifyTopic,
             ExampleConsumerAppManager.EdiEnqueueTopicResources.CreateFromTopic(ediTopicResource),
             processManagerApiUrl: ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri,
             orchestrationsApiUrl: ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.AbsoluteUri);

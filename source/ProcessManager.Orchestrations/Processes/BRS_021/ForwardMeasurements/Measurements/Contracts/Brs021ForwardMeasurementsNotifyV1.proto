@@ -19,7 +19,7 @@ package google.protobuf;
 
 option csharp_namespace = "Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.Measurements.Contracts";
 
-message Brs021ForwardMeteredDataNotifyV1 {
+message Brs021ForwardMeasurementsNotifyV1 {
   string version = 1;
   string orchestration_instance_id = 2;
 }

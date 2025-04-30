@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Client;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
 /// <summary>
-/// Command for starting a BRS-021 forward metered data.
+/// Command for starting a BRS-021 forward measurements.
 /// Must be JSON serializable.
 /// </summary>
 public record ForwardMeasurementsCommandV1

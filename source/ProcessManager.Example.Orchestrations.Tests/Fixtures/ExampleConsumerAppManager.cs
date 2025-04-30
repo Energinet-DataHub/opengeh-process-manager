@@ -74,9 +74,9 @@ public class ExampleConsumerAppManager : IAsyncDisposable
     /// Used by consumer app to configure Process Manager Message Client.</param>
     /// <param name="processManagerNotifyTopicResources">Process Manager Notify topic.
     /// Used by consumer app to configure Process Manager Message Client.</param>
-    /// <param name="brs021fmdStartTopicResources">BRS-021 Forward Metered Data Start Topic.
+    /// <param name="brs021fmStartTopicResources">BRS-021 Forward Measurements Start Topic.
     /// Used by consumer app to configure Process Manager Message Client.</param>
-    /// <param name="brs021fmdNotifyTopicResources">BRS-021 Forward Metered Data Notify Topic.
+    /// <param name="brs021fmNotifyTopicResources">BRS-021 Forward Measurements Notify Topic.
     /// Used by consumer app to configure Process Manager Message Client.</param>
     /// <param name="ediEnqueueTopicResources">EDI enqueue actor messages topic resources used by the app.
     /// Will be created if not provided.</param>
@@ -87,8 +87,8 @@ public class ExampleConsumerAppManager : IAsyncDisposable
     public async Task StartAsync(
         TopicResource processManagerStartTopicResources,
         TopicResource processManagerNotifyTopicResources,
-        TopicResource brs021fmdStartTopicResources,
-        TopicResource brs021fmdNotifyTopicResources,
+        TopicResource brs021fmStartTopicResources,
+        TopicResource brs021fmNotifyTopicResources,
         EdiEnqueueTopicResources? ediEnqueueTopicResources,
         string processManagerApiUrl,
         string orchestrationsApiUrl)
@@ -101,8 +101,8 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             "ProcessManager.Example.Consumer",
             processManagerStartTopicResources,
             processManagerNotifyTopicResources,
-            brs021fmdStartTopicResources,
-            brs021fmdNotifyTopicResources,
+            brs021fmStartTopicResources,
+            brs021fmNotifyTopicResources,
             ediEnqueueTopicResources,
             processManagerApiUrl,
             orchestrationsApiUrl);
@@ -231,7 +231,7 @@ public class ExampleConsumerAppManager : IAsyncDisposable
             $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}",
             processManagerNotifyTopicResources.Name);
 
-        // => BRS-021 Forward Metered Data topics
+        // => BRS-021 Forward Measurements topics
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerServiceBusClientOptions.SectionName}__{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeasurementsStartTopicName)}",
             brs021fmdStartTopicResources.Name);

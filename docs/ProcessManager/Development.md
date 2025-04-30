@@ -178,11 +178,11 @@ The projects inside solution folder `4. Orchestations` follows a strict folder s
 |   |   |       |── ...
 |   |   |       |── Orchestration_Brs_021_ElectricalHeatingCalculation_V1.cs
 |   |   |       └── OrchestrationDescriptionBuilder.cs
-|   |   └── ForwardMeteredData
+|   |   └── ForwardMeasurements
 |   |       └── V1
 |   |           |── Activities
 |   |           |── ...
-|   |           |── Orchestration_Brs_021_ForwardMeteredData_V1.cs
+|   |           |── Orchestration_Brs_021_ForwardMeasurements_V1.cs
 |   |           └── OrchestrationDescriptionBuilder.cs
 │   └── BRS_XYZ
 |       |── CustomQueries

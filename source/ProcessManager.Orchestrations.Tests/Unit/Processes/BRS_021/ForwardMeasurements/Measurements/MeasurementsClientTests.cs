@@ -25,7 +25,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
 using Moq;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.Measurements;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeasurements.Measurements;
 
 public class MeasurementsClientTests
 {
@@ -46,10 +46,10 @@ public class MeasurementsClientTests
     internal MeasurementsClient Sut { get; }
 
     [Fact]
-    public async Task SendAsync_WhenCalledWithMeteredData_SendsExpectedDataOnEventHub()
+    public async Task SendAsync_WhenCalledWithMeasurements_SendsExpectedDataOnEventHub()
     {
         // Arrange
-        var meteredData = new MeasurementsForMeteringPoint(
+        var measurements = new MeasurementsForMeteringPoint(
             "test-orchestration-id",
             "test-metering-point-id",
             "test-transaction-id",
@@ -66,13 +66,13 @@ public class MeasurementsClientTests
         var expectedData = new PersistSubmittedTransaction
         {
             Version = "1",
-            OrchestrationInstanceId = meteredData.OrchestrationId,
+            OrchestrationInstanceId = measurements.OrchestrationId,
             OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
-            MeteringPointId = meteredData.MeteringPointId,
-            TransactionId = meteredData.TransactionId,
-            TransactionCreationDatetime = Timestamp.FromDateTimeOffset(meteredData.CreatedAt.ToDateTimeOffset()),
-            StartDatetime = Timestamp.FromDateTimeOffset(meteredData.StartDateTime.ToDateTimeOffset()),
-            EndDatetime = Timestamp.FromDateTimeOffset(meteredData.EndDateTime.ToDateTimeOffset()),
+            MeteringPointId = measurements.MeteringPointId,
+            TransactionId = measurements.TransactionId,
+            TransactionCreationDatetime = Timestamp.FromDateTimeOffset(measurements.CreatedAt.ToDateTimeOffset()),
+            StartDatetime = Timestamp.FromDateTimeOffset(measurements.StartDateTime.ToDateTimeOffset()),
+            EndDatetime = Timestamp.FromDateTimeOffset(measurements.EndDateTime.ToDateTimeOffset()),
             MeteringPointType = DataHub.Measurements.Contracts.MeteringPointType.MptConsumption,
             Unit = DataHub.Measurements.Contracts.Unit.UKwh,
             Resolution = DataHub.Measurements.Contracts.Resolution.RPt15M,
@@ -89,7 +89,7 @@ public class MeasurementsClientTests
         var expectedEventData = new EventData(expectedData.ToByteArray());
 
         // Act
-        await Sut.SendAsync(meteredData, CancellationToken.None);
+        await Sut.SendAsync(measurements, CancellationToken.None);
 
         // Assert
         EventHubProducerClientMock.Verify(

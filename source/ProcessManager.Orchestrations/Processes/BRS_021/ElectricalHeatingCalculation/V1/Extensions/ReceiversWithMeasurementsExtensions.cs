@@ -20,37 +20,37 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Elec
 
 public static class ReceiversWithMeasurementsExtensions
 {
-    public static List<ReceiversWithMeasureDataV1> ToElectricalHeatingReceiversWithMeasurementsV1(
+    public static List<ReceiversWithMeasurementsV1> ToElectricalHeatingReceiversWithMeasurementsV1(
         this IEnumerable<ReceiversWithMeasurements> receiversWithMeasurements)
     {
         return receiversWithMeasurements
             .Select(
-                rmd => new ReceiversWithMeasureDataV1(
+                rmd => new ReceiversWithMeasurementsV1(
                     Receivers: rmd.Receivers.ToElectricalHeatingReceivers(),
                     Resolution: rmd.Resolution,
                     MeasureUnit: rmd.MeasureUnit,
                     StartDateTime: rmd.StartDateTime,
                     EndDateTime: rmd.EndDateTime,
-                    MeasureDataList: rmd.Measurements.ToElectricalHeatingMeasurements()))
+                    Measurements: rmd.Measurements.ToElectricalHeatingMeasurements()))
             .ToList();
     }
 
-    private static List<ReceiversWithMeasureDataV1.Receiver> ToElectricalHeatingReceivers(
+    private static List<ReceiversWithMeasurementsV1.Receiver> ToElectricalHeatingReceivers(
         this IEnumerable<Actor> receivers)
     {
         return receivers.Select(
-                r => new ReceiversWithMeasureDataV1.Receiver(
+                r => new ReceiversWithMeasurementsV1.Receiver(
                     ActorNumber: r.Number,
                     ActorRole: r.Role))
             .ToList();
     }
 
-    private static List<ReceiversWithMeasureDataV1.MeasureData> ToElectricalHeatingMeasurements(
+    private static List<ReceiversWithMeasurementsV1.Measurement> ToElectricalHeatingMeasurements(
         this IEnumerable<ReceiversWithMeasurements.Measurement> measurements)
     {
         return measurements
             .Select(
-                md => new ReceiversWithMeasureDataV1.MeasureData(
+                md => new ReceiversWithMeasurementsV1.Measurement(
                     Position: md.Position,
                     EnergyQuantity: md.EnergyQuantity,
                     QuantityQuality: md.QuantityQuality))

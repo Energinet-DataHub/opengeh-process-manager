@@ -16,16 +16,14 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Microsoft.FeatureManagement;
 using Moq;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeasurements.V1.
     BusinessValidation;
 
 public class MeteringPointOwnershipValidationRuleTests
@@ -49,7 +47,7 @@ public class MeteringPointOwnershipValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new ForwardMeasurementsBusinessValidatedDto(
-                new ForwardMeteredDataInputV1Builder().Build(),
+                new ForwardMeasurementsInputV1Builder().Build(),
                 []));
 
         result.Should().BeEmpty();
@@ -75,7 +73,7 @@ public class MeteringPointOwnershipValidationRuleTests
             EnergySupplier: ActorNumber.Create("1111111111111"));
         var result = await _sut.ValidateAsync(
             new ForwardMeasurementsBusinessValidatedDto(
-                new ForwardMeteredDataInputV1Builder().WithGridAccessProviderNumber("9999999999999").Build(),
+                new ForwardMeasurementsInputV1Builder().WithGridAccessProviderNumber("9999999999999").Build(),
                 MeteringPointMasterData: [
                     new MeteringPointMasterData(
                         MeteringPointId: new MeteringPointId("1"),

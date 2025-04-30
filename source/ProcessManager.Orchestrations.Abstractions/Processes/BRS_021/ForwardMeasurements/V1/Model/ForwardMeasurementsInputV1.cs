@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
 /// <summary>
-/// An immutable input to start the orchestration instance for "BRS_021_ForwardMeteredData" V1.
+/// An immutable input to start the orchestration instance for "BRS_021_ForwardMeasurements" V1.
 /// </summary>
 public record ForwardMeasurementsInputV1(
     string ActorMessageId,

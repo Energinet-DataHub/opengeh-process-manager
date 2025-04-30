@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
 /// <summary>
-/// A model containing the data required for notifying market actors when new metered data has been accepted.
+/// A model containing the data required for notifying market actors when new measurements has been accepted.
 /// </summary>
 public record ForwardMeasurementsAcceptedV1(
     string OriginalActorMessageId,

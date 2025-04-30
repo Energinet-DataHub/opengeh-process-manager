@@ -29,9 +29,9 @@ using Moq;
 using NodaTime;
 using NodaTime.Text;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 
-public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
+public class ForwardMeasurementsBusinessValidatedDtoValidatorTests
 {
     private readonly Mock<IClock> _clockMock = new();
     private readonly Mock<IOptions<ProcessManagerComponentsOptions>> _optionsMock = new();
@@ -39,7 +39,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 
     private readonly BusinessValidator<ForwardMeasurementsBusinessValidatedDto> _sut;
 
-    public ForwardMeteredDataBusinessValidatedDtoValidatorTests()
+    public ForwardMeasurementsBusinessValidatedDtoValidatorTests()
     {
         _clockMock.Setup(c => c.GetCurrentInstant())
             .Returns(Instant.FromUtc(2024, 11, 15, 16, 46, 43));
@@ -70,9 +70,9 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     }
 
     [Fact]
-    public async Task Given_ValidForwardMeteredDataBusinessValidatedDto_When_Validate_Then_NoValidationError()
+    public async Task Given_ValidForwardMeasurementsBusinessValidatedDto_When_Validate_Then_NoValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
         var meteringPointMasterData = new MeteringPointMasterDataBuilder()
@@ -92,7 +92,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     [Fact]
     public async Task Given_InvalidEndDate_When_Validate_Then_InvalidEndDateValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .WithEndDateTime(null)
             .Build();
 
@@ -116,7 +116,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     [Fact]
     public async Task Given_NoMasterData_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -132,7 +132,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     [Fact]
     public async Task Given_WrongMeteringPointOwner_When_Validate_Then_InvalidMeteringPointOwnershipValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .WithGridAccessProviderNumber("1111111111111")
             .Build();
 
@@ -156,7 +156,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     [Fact]
     public async Task Given_InvalidConnectionState_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
         const ConnectionState invalidConnectionState = ConnectionState.ClosedDown;
@@ -179,13 +179,13 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     [Fact]
     public async Task Given_InvalidResolution_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
-            .WithResolution(Resolution.Daily.Name) // Daily resolution is invalid for ForwardMeteredData
+        var input = new ForwardMeasurementsInputV1Builder()
+            .WithResolution(Resolution.Daily.Name) // Daily resolution is invalid for ForwardMeasurements
 
             // Daily resolution requires the correct amount of measurements, else we also get other validation errors.
             .WithStartDateTime("2024-04-24T22:00:00Z")
             .WithEndDateTime("2024-04-25T22:00:00Z")
-            .WithMeteredData([
+            .WithMeasurements([
                 new ForwardMeasurementsInputV1.Measurement(
                     Position: "1",
                     EnergyQuantity: "42",
@@ -212,7 +212,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     public async Task Given_InvalidMeteringPointType_When_Validate_Then_ValidationError()
     {
         const string invalidMeteringPoint = "InvalidMeteringPointType";
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .WithMeteringPointType(invalidMeteringPoint)
             .Build();
 
@@ -235,11 +235,11 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     [Fact]
     public async Task Given_IncorrectPositionCount_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .WithResolution(Resolution.QuarterHourly.Name)
             .WithStartDateTime("2024-04-24T22:00:00Z")
             .WithEndDateTime("2024-04-25T02:00:00Z") // 4 hours should contain 4 * 4 = 16 positions
-            .WithMeteredData([
+            .WithMeasurements([
                 new ForwardMeasurementsInputV1.Measurement(
                     Position: "1",
                     EnergyQuantity: "42",
@@ -268,11 +268,11 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         const int periodLengthInHours = 4;
         var start = InstantPattern.General.Parse("2025-04-24T22:00:00Z").Value;
 
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .WithResolution(Resolution.Hourly.Name)
             .WithStartDateTime(start.ToString())
             .WithEndDateTime(start.PlusHours(periodLengthInHours).ToString())
-            .WithMeteredData(
+            .WithMeasurements(
                     Enumerable.Range(1, periodLengthInHours).Select(i =>
                     new ForwardMeasurementsInputV1.Measurement(
                         Position: i.ToString(),
@@ -300,7 +300,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     public async Task Given_InvalidMeteringPointSubType_When_Validate_Then_ValidationError()
     {
         const MeteringPointSubType invalidMeteringPointSubType = MeteringPointSubType.Calculated;
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .Build();
 
         var meteringPointMasterData = new MeteringPointMasterDataBuilder()
@@ -324,7 +324,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     {
         const string invalidMeasurementUnit = "InvalidMeasurementUnit";
 
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new ForwardMeasurementsInputV1Builder()
             .WithMeasureUnit(invalidMeasurementUnit)
             .Build();
 

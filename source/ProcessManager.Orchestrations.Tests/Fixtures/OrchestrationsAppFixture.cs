@@ -173,7 +173,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
         // Start Process Manager Orchestrations app
         // => Creates Process Manager default Start topics and subscriptions
-        // => Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
+        // => Creates BRS-021 Forward Measurements Start/Notify topics and subscriptions
         await OrchestrationsAppManager.StartAsync(ediEnqueueTopicResources, integrationEventTopicResources);
 
         EventHubListener = new EventHubListenerMock(

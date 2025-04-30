@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeasurements.V1.BusinessValidation;
 
 public class QuantityQualityValidationRuleTests
 {
@@ -47,8 +47,8 @@ public class QuantityQualityValidationRuleTests
     [MemberData(nameof(ValidQualities))]
     public async Task Given_OneMeasurement_AndGiven_ValidQuality_When_Validate_Then_NoValidationErrors(Quality? quality)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteredData(
+        var input = new ForwardMeasurementsInputV1Builder()
+            .WithMeasurements(
             [
                 new ForwardMeasurementsInputV1.Measurement(
                     Position: "1",
@@ -69,8 +69,8 @@ public class QuantityQualityValidationRuleTests
     public async Task Given_MultipleMeasurements_AndGiven_ValidQualities_When_Validate_Then_NoValidationErrors()
     {
         // Input that contains more than one measurement with valid qualities
-        var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteredData(
+        var input = new ForwardMeasurementsInputV1Builder()
+            .WithMeasurements(
             [
                 new ForwardMeasurementsInputV1.Measurement(
                     Position: "1",
@@ -95,8 +95,8 @@ public class QuantityQualityValidationRuleTests
     [MemberData(nameof(InvalidQualities))]
     public async Task Given_OneMeasurement_AndGiven_InvalidQuality_When_Validate_Then_ValidationErrors(Quality? quality)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteredData(
+        var input = new ForwardMeasurementsInputV1Builder()
+            .WithMeasurements(
             [
                 new ForwardMeasurementsInputV1.Measurement(
                     Position: "1",
@@ -117,8 +117,8 @@ public class QuantityQualityValidationRuleTests
     [Fact]
     public async Task Given_MultipleMeasurements_AndGiven_OneInvalidQuality_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeteredData(
+        var input = new ForwardMeasurementsInputV1Builder()
+            .WithMeasurements(
             [
                 new ForwardMeasurementsInputV1.Measurement(
                     Position: "1",

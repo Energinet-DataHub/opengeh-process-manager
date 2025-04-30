@@ -16,9 +16,9 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeasurements.V1;
 
-public class ForwardMeteredDataInputV1Builder
+public class ForwardMeasurementsInputV1Builder
 {
     private const string ActorNumber = "1234567890123";
 
@@ -37,7 +37,7 @@ public class ForwardMeteredDataInputV1Builder
     private string? _endDateTime = "2025-01-31T23:00:00Z"; // Seconds are optional, so we test with and without them.
     private string _gridAccessProviderNumber = ActorNumber;
 
-    private IReadOnlyCollection<ForwardMeasurementsInputV1.Measurement> _meteredData =
+    private IReadOnlyCollection<ForwardMeasurementsInputV1.Measurement> _measurements =
     [
         .. Enumerable.Range(1, 744)
             .Select(
@@ -47,31 +47,31 @@ public class ForwardMeteredDataInputV1Builder
                     Quality.AsProvided.Name)),
     ];
 
-    public ForwardMeteredDataInputV1Builder WithActorMessageId(string actorMessageId)
+    public ForwardMeasurementsInputV1Builder WithActorMessageId(string actorMessageId)
     {
         _actorMessageId = actorMessageId;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithTransactionId(string transactionId)
+    public ForwardMeasurementsInputV1Builder WithTransactionId(string transactionId)
     {
         _transactionId = transactionId;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithActorNumber(string actorNumber)
+    public ForwardMeasurementsInputV1Builder WithActorNumber(string actorNumber)
     {
         _actorNumber = actorNumber;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithActorRole(string actorRole)
+    public ForwardMeasurementsInputV1Builder WithActorRole(string actorRole)
     {
         _actorRole = actorRole;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithBusinessReason(string businessReason)
+    public ForwardMeasurementsInputV1Builder WithBusinessReason(string businessReason)
     {
         if (businessReason != BusinessReason.PeriodicMetering.Name && businessReason != BusinessReason.PeriodicFlexMetering.Name)
         {
@@ -82,64 +82,64 @@ public class ForwardMeteredDataInputV1Builder
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithMeteringPointId(string meteringPointId)
+    public ForwardMeasurementsInputV1Builder WithMeteringPointId(string meteringPointId)
     {
         _meteringPointId = meteringPointId;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithMeteringPointType(string meteringPointType)
+    public ForwardMeasurementsInputV1Builder WithMeteringPointType(string meteringPointType)
     {
         _meteringPointType = meteringPointType;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithProductNumber(string productNumber)
+    public ForwardMeasurementsInputV1Builder WithProductNumber(string productNumber)
     {
         _productNumber = productNumber;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithMeasureUnit(string measureUnit)
+    public ForwardMeasurementsInputV1Builder WithMeasureUnit(string measureUnit)
     {
         _measureUnit = measureUnit;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithRegistrationDateTime(string registrationDateTime)
+    public ForwardMeasurementsInputV1Builder WithRegistrationDateTime(string registrationDateTime)
     {
         _registrationDateTime = registrationDateTime;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithResolution(string resolution)
+    public ForwardMeasurementsInputV1Builder WithResolution(string resolution)
     {
         _resolution = resolution;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithStartDateTime(string startDateTime)
+    public ForwardMeasurementsInputV1Builder WithStartDateTime(string startDateTime)
     {
         _startDateTime = startDateTime;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithEndDateTime(string? endDateTime)
+    public ForwardMeasurementsInputV1Builder WithEndDateTime(string? endDateTime)
     {
         _endDateTime = endDateTime;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithGridAccessProviderNumber(string gridAccessProviderNumber)
+    public ForwardMeasurementsInputV1Builder WithGridAccessProviderNumber(string gridAccessProviderNumber)
     {
         _gridAccessProviderNumber = gridAccessProviderNumber;
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithMeteredData(
-        IReadOnlyCollection<ForwardMeasurementsInputV1.Measurement> meteredData)
+    public ForwardMeasurementsInputV1Builder WithMeasurements(
+        IReadOnlyCollection<ForwardMeasurementsInputV1.Measurement> measurements)
     {
-        _meteredData = meteredData;
+        _measurements = measurements;
         return this;
     }
 
@@ -160,6 +160,6 @@ public class ForwardMeteredDataInputV1Builder
             StartDateTime: _startDateTime,
             EndDateTime: _endDateTime,
             GridAccessProviderNumber: _gridAccessProviderNumber,
-            Measurements: _meteredData);
+            Measurements: _measurements);
     }
 }

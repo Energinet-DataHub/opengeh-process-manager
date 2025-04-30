@@ -46,8 +46,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 
         var expectedOptions = new ProcessManagerComponentsOptions
         {
-            // Set the properties of ProcessManagerComponentsOptions as needed
-            AllowMockDependenciesForTests = true,
+            AllowMockDependenciesForTests = false,
         };
 
         _optionsMock.Setup(o => o.Value).Returns(expectedOptions);

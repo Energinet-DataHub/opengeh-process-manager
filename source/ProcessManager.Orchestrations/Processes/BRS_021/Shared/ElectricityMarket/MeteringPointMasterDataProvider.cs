@@ -223,7 +223,7 @@ public class MeteringPointMasterDataProvider(
                 ValidFrom = startDateTime,
                 ValidTo = endDateTime,
                 GridAreaCode = new ElectricityMarketModels.GridAreaCode("000"),
-                GridAccessProvider = "1111111111100", // should be aligned with incoming message for performance test
+                GridAccessProvider = "1111111111100",
                 ConnectionState = ElectricityMarketModels.ConnectionState.Connected,
                 Type = ElectricityMarketModels.MeteringPointType.Production,
                 SubType = ElectricityMarketModels.MeteringPointSubType.Physical,
@@ -231,7 +231,7 @@ public class MeteringPointMasterDataProvider(
                 Unit = ElectricityMarketModels.MeasureUnit.kWh,
                 ProductId = ElectricityMarketModels.ProductId.Tariff,
                 ParentIdentification = null,
-                EnergySupplier = "1111111111111", // should be aligned with performance test
+                EnergySupplier = "1111111111111",
             },
         };
     }

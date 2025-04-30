@@ -37,8 +37,7 @@ public class MeteringPointOwnershipValidationRuleTests
         var optionsMock = new Mock<IOptions<ProcessManagerComponentsOptions>>();
         var expectedOptions = new ProcessManagerComponentsOptions
         {
-            // Set the properties of ProcessManagerComponentsOptions as needed
-            AllowMockDependenciesForTests = true,
+            AllowMockDependenciesForTests = false,
         };
 
         optionsMock.Setup(o => o.Value).Returns(expectedOptions);

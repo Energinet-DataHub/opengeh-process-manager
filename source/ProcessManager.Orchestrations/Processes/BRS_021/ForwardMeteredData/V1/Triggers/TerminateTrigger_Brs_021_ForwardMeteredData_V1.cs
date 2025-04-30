@@ -17,14 +17,18 @@ using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
 public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
-    TerminateForwardMeteredDataHandlerV1 terminateForwardMeteredDataHandlerV1)
+    TerminateForwardMeteredDataHandlerV1 terminateForwardMeteredDataHandlerV1,
+    TelemetryClient telemetryClient)
 {
     private readonly TerminateForwardMeteredDataHandlerV1 _terminateForwardMeteredDataHandlerV1 = terminateForwardMeteredDataHandlerV1;
+    private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
     /// Terminate a BRS-021 ForwardMeteredData.
@@ -37,13 +41,33 @@ public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
             Connection = ServiceBusNamespaceOptions.SectionName)]
         string message)
     {
+        // Tracks structured telemetry data for Application Insights, including request details such as duration, success/failure, and dependencies.
+        // Enables distributed tracing, allowing correlation of this request with related telemetry (e.g., dependencies, exceptions, custom metrics) in the same operation.
+        // Automatically tracks metrics like request count, duration, and failure rate for RequestTelemetry.
+        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(TerminateTrigger_Brs_021_ForwardMeteredData_V1));
+        try
+        {
+            var notify = GetNotifyOrchestrationInstanceV1(message);
+
+            var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notify.OrchestrationInstanceId));
+            await _terminateForwardMeteredDataHandlerV1.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            operation.Telemetry.Success = false;
+            _telemetryClient.TrackException(ex);
+            throw;
+        }
+    }
+
+    private static NotifyOrchestrationInstanceV1 GetNotifyOrchestrationInstanceV1(string message)
+    {
         var notify = NotifyOrchestrationInstanceV1.Parser.ParseJson(message);
         if (notify is not { EventName: ForwardMeteredDataNotifyEventV1.OrchestrationInstanceEventName })
         {
             throw new InvalidOperationException("Failed to deserialize message");
         }
 
-        var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notify.OrchestrationInstanceId));
-        await _terminateForwardMeteredDataHandlerV1.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
+        return notify;
     }
 }

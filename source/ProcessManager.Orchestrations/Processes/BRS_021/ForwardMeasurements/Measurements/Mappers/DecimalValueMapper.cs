@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.Measurements.Contracts;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Mappers;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.Measurements.Mappers;
 
 public static class DecimalValueMapper
 {

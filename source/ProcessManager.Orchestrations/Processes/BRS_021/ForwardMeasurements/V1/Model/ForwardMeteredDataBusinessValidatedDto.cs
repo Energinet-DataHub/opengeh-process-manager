@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidatio
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
 public record ForwardMeteredDataBusinessValidatedDto(
     ForwardMeteredDataInputV1 Input,

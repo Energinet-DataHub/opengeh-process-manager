@@ -26,26 +26,26 @@ public static class ReceiversWithMeasurementsExtensions
         return receiversWithMeasurements
             .Select(
                 rmd => new ReceiversWithMeasurementsV1(
-                    Actors: rmd.Receivers.ToForwardMeteredDataMarketActorRecipientV1(),
+                    Receivers: rmd.Receivers.ToForwardMeasurementsReceivers(),
                     Resolution: rmd.Resolution,
                     MeasureUnit: rmd.MeasureUnit,
                     StartDateTime: rmd.StartDateTime,
                     EndDateTime: rmd.EndDateTime,
-                    Measurements: rmd.Measurements.ToForwardMeteredDataAcceptedMeasurements()))
+                    Measurements: rmd.Measurements.ToForwardMeasurementsAcceptedMeasurements()))
             .ToList();
     }
 
-    private static List<MarketActorRecipientV1> ToForwardMeteredDataMarketActorRecipientV1(
+    private static List<ReceiversWithMeasurementsV1.Receiver> ToForwardMeasurementsReceivers(
         this IEnumerable<Actor> receivers)
     {
         return receivers.Select(
-                r => new MarketActorRecipientV1(
+                r => new ReceiversWithMeasurementsV1.Receiver(
                     ActorNumber: r.Number,
                     ActorRole: r.Role))
             .ToList();
     }
 
-    private static List<ReceiversWithMeasurementsV1.AcceptedMeasurement> ToForwardMeteredDataAcceptedMeasurements(
+    private static List<ReceiversWithMeasurementsV1.AcceptedMeasurement> ToForwardMeasurementsAcceptedMeasurements(
         this IEnumerable<ReceiversWithMeasurements.Measurement> measurements)
     {
         return measurements

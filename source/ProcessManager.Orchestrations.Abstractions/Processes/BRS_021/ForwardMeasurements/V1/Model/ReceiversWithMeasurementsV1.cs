@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements.V1.Model;
@@ -19,20 +20,22 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <summary>
 /// Describes how measurements is grouped (sent to) market actors for specific time periods, resolutions and measure units.
 /// </summary>
-/// <param name="Actors">The actors who should receive the measurements for the given period.</param>
+/// <param name="Receivers">The actors who should receive the measurements for the given period.</param>
 /// <param name="Resolution">The resolution the measurements has in this period.</param>
 /// <param name="MeasureUnit">The measure units the measurements has in this period.</param>
 /// <param name="StartDateTime">The start date and time of the period.</param>
 /// <param name="EndDateTime">The end date and time of the period.</param>
 /// <param name="Measurements">The measurements in the given period.</param>
 public record ReceiversWithMeasurementsV1(
-    IReadOnlyCollection<MarketActorRecipientV1> Actors,
+    IReadOnlyCollection<ReceiversWithMeasurementsV1.Receiver> Receivers,
     Resolution Resolution,
     MeasurementUnit MeasureUnit,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
     IReadOnlyCollection<ReceiversWithMeasurementsV1.AcceptedMeasurement> Measurements)
 {
+    public sealed record Receiver(ActorNumber ActorNumber, ActorRole ActorRole);
+
     public record AcceptedMeasurement(
         int Position,
         // TODO: Are these two optional?

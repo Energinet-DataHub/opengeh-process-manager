@@ -522,7 +522,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     /// out-of-box functionality and we expect it to work.
     /// </summary>
     [Fact]
-    public async Task Given_InvalidNotifyEvent_When_NotifyOrchestrationInstance_Then_EnqueueMeteredDataTriggerIsExecutedAtLeastTwice()
+    public async Task Given_InvalidNotifyEvent_When_NotifyOrchestrationInstance_Then_EnqueueMeasurementsTriggerIsExecutedAtLeastTwice()
     {
         // Given
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();

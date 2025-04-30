@@ -185,6 +185,12 @@ public class MeteringPointReceiversProvider(
         switch (meteringPointType)
         {
             case var _ when meteringPointType == MeteringPointType.Consumption:
+                if (meteringPointMasterData.EnergySupplier is not null)
+                {
+                    receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                }
+
+                break;
             case var _ when meteringPointType == MeteringPointType.Production:
                 if (meteringPointMasterData.EnergySupplier is not null)
                 {
@@ -192,6 +198,7 @@ public class MeteringPointReceiversProvider(
                 }
 
                 receivers.Add(DanishEnergyAgencyReceiver());
+
                 break;
             case var _ when meteringPointType == MeteringPointType.Exchange:
                 receivers.AddRange(
@@ -225,7 +232,7 @@ public class MeteringPointReceiversProvider(
 
             case var _ when meteringPointType == MeteringPointType.NetProduction:
             case var _ when meteringPointType == MeteringPointType.SupplyToGrid:
-            case var _ when meteringPointType == MeteringPointType.ConsumptionFromGrid:
+            case var _ when meteringPointType == MeteringPointType.ConsumptionFromGrid: // Not supported in DH3
             case var _ when meteringPointType == MeteringPointType.WholesaleServicesInformation:
             case var _ when meteringPointType == MeteringPointType.OwnProduction:
             case var _ when meteringPointType == MeteringPointType.NetFromGrid:
@@ -233,8 +240,8 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.TotalConsumption:
             case var _ when meteringPointType == MeteringPointType.Analysis:
             case var _ when meteringPointType == MeteringPointType.NotUsed:
-            case var _ when meteringPointType == MeteringPointType.SurplusProductionGroup6:
-            case var _ when meteringPointType == MeteringPointType.NetLossCorrection:
+            case var _ when meteringPointType == MeteringPointType.SurplusProductionGroup6: // Not supported in DH3
+            case var _ when meteringPointType == MeteringPointType.NetLossCorrection: // Not supported in DH3
             case var _ when meteringPointType == MeteringPointType.ElectricalHeating:
             case var _ when meteringPointType == MeteringPointType.NetConsumption:
             case var _ when meteringPointType == MeteringPointType.OtherConsumption:
@@ -252,10 +259,6 @@ public class MeteringPointReceiversProvider(
                     {
                         receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
                     }
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Parent metering point is missing for child metering point type (MeteringPointId={meteringPointMasterData.MeteringPointId.Value}, MeteringPointType={meteringPointMasterData.MeteringPointType.Name}).");
                 }
 
                 break;
@@ -316,3 +319,4 @@ public class MeteringPointReceiversProvider(
         public List<ReceiversWithMeasureData.MeasureData> MeasureData { get; }
     }
 }
+

@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeasurements.V1.Model;
 
 /// <summary>
-/// Describes how measurements is grouped (sent to) market actors for specific time periods, resolutions and measure units.
+/// Describes how measurements are grouped (sent to) market actors for specific time periods, resolutions, and measure units.
 /// </summary>
 /// <param name="Receivers">The actors who should receive the measurements for the given period.</param>
 /// <param name="Resolution">The resolution the measurements has in this period.</param>

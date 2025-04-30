@@ -18,11 +18,11 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 
 /// <summary>
-/// Describes how measure data is grouped (sent to) market actors for specific time periods, resolutions and measure units.
+/// Describes how measurements is grouped (sent to) market actors for specific time periods, resolutions and measure units.
 /// </summary>
-/// <param name="Receivers">The actors who should receive the measure data for the given period.</param>
-/// <param name="Resolution">The resolution the measure data has in this period.</param>
-/// <param name="MeasureUnit">The measure units the measure data has in this period.</param>
+/// <param name="Receivers">The actors who should receive the measurements for the given period.</param>
+/// <param name="Resolution">The resolution the measurements has in this period.</param>
+/// <param name="MeasureUnit">The measure units the measurements has in this period.</param>
 /// <param name="StartDateTime">The start date and time of the period.</param>
 /// <param name="EndDateTime">The end date and time of the period.</param>
 /// <param name="Measurements">The measurements in the given period.</param>

@@ -68,7 +68,7 @@ public class QuantityQualityValidationRuleTests
     [Fact]
     public async Task Given_MultipleMeasurements_AndGiven_ValidQualities_When_Validate_Then_NoValidationErrors()
     {
-        // Input that contains more than one measure data with valid qualities
+        // Input that contains more than one measurement with valid qualities
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteredData(
             [

@@ -58,9 +58,9 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         await foreach (var queryResult in query.GetAsync(_databricksSqlWarehouseQueryExecutor).ConfigureAwait(false))
         {
             if (!queryResult.IsSuccess || queryResult.Result is null) // TODO: Actually handle errors
-                throw new Exception("Failed to get calculated measure data.");
+                throw new Exception("Failed to get calculated measurements.");
 
-            // The query result measure data is already grouped by transaction id, so
+            // The query result measurements is already grouped by transaction id, so
             // we need to find receivers for it based on the master data for the metering point.
             await EnqueueMessagesForMeasurements(
                     orchestrationInstanceId: input.OrchestrationInstanceId,
@@ -70,9 +70,9 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     }
 
     /// <summary>
-    /// Enqueue calculated measure data for a metering point.
+    /// Enqueue calculated measurements for a metering point.
     /// <remarks>
-    /// The measure data MUST be ordered by timestamp, and MUST NOT contain any gaps.
+    /// The measurements MUST be ordered by timestamp, and MUST NOT contain any gaps.
     /// </remarks>
     /// </summary>
     private async Task EnqueueMessagesForMeasurements(

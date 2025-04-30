@@ -178,7 +178,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var input = new ForwardMeteredDataInputV1Builder()
             .WithResolution(Resolution.Daily.Name) // Daily resolution is invalid for ForwardMeteredData
 
-            // Daily resolution requires the correct amount of measure data, else we also get other validation errors.
+            // Daily resolution requires the correct amount of measurements, else we also get other validation errors.
             .WithStartDateTime("2024-04-24T22:00:00Z")
             .WithEndDateTime("2024-04-25T22:00:00Z")
             .WithMeteredData([

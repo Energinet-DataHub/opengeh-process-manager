@@ -80,7 +80,7 @@ public sealed class RequestedByActorRoleValidationRuleTests
             .Message
             .Should()
             .Be(
-                "Rollen skal være MDR når der anmodes om beregnede energitidsserier / Role must be MDR when requesting aggregated measure data");
+                "Rollen skal være MDR når der anmodes om beregnede energitidsserier / Role must be MDR when requesting aggregated measurements");
 
         result.Single().ErrorCode.Should().Be("D02");
     }

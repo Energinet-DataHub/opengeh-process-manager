@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Identity;
+using Azure.Core;
 using Energinet.DataHub.ProcessManager.Components.Authorization;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
@@ -24,33 +24,30 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class EnqueueActorMessagesSyncExtensions
 {
-    public static IServiceCollection AddEnqueueActorMessagesSync(this IServiceCollection services, DefaultAzureCredential credential)
+    public static IServiceCollection AddEnqueueActorMessagesSync(this IServiceCollection services, TokenCredential credential)
     {
         services
-            .AddOptions<EdiEnqueueActorMessageSyncClientOptions>()
-            .BindConfiguration(EdiEnqueueActorMessageSyncClientOptions.SectionName)
+            .AddOptions<EdiEnqueueActorMessagesSyncClientOptions>()
+            .BindConfiguration(EdiEnqueueActorMessagesSyncClientOptions.SectionName)
             .ValidateDataAnnotations();
 
         // Copy and paste from the PM-client.
         // Should be moved to a shared library: #https://app.zenhub.com/workspaces/mosaic-60a6105157304f00119be86e/issues/gh/energinet-datahub/team-mosaic/724
         services.TryAddSingleton<IAuthorizationHeaderProvider>(sp =>
         {
-            // PM-client news the token here.
-            // We get it passed in.
-            // TODO: Is that a problem?
-            var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessageSyncClientOptions>>().Value;
+            var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessagesSyncClientOptions>>().Value;
             return new AuthorizationHeaderProvider(credential, options.ApplicationIdUri);
         });
 
         services.AddHttpClient(
-            HttpClientNames.EdiEnqueueActorMessageClientName,
+            HttpClientNames.EdiEnqueueActorMessagesClientName,
             (sp, httpClient) =>
             {
-                var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessageSyncClientOptions>>().Value;
-                ConfigureHttpClient(sp, httpClient, options.Url);
+                var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessagesSyncClientOptions>>().Value;
+                ConfigureHttpClient(sp, httpClient, options.BaseUrl);
             });
 
-        services.TryAddSingleton<IEnqueueActorMessagesSyncClient, EnqueueActorMessagesSyncClient>();
+        services.TryAddSingleton<IEnqueueActorMessagesSyncClient, EnqueueActorMessagesHttpClient>();
 
         return services;
     }

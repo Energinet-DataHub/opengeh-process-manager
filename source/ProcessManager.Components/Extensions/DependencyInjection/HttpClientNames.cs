@@ -19,5 +19,5 @@ public class HttpClientNames
     /// <summary>
     /// Http client for enqueuing actor messages.
     /// </summary>
-    public const string EdiEnqueueActorMessageClientName = "EdiEnqueueActorMessageClientName";
+    public const string EdiEnqueueActorMessagesClientName = "EdiEnqueueActorMessagesClient";
 }

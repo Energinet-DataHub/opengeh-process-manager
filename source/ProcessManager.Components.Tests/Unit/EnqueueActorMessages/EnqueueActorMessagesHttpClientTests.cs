@@ -31,17 +31,17 @@ using Request = WireMock.RequestBuilders.Request;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.EnqueueActorMessages;
 
-public class EnqueueActorMessagesSyncClientTests : IAsyncLifetime
+public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
 {
-    public EnqueueActorMessagesSyncClientTests()
+    public EnqueueActorMessagesHttpClientTests()
     {
         MockServer = WireMockServer.Start(port: 8989);
         Services = new ServiceCollection();
 
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{EdiEnqueueActorMessageSyncClientOptions.SectionName}:{nameof(EdiEnqueueActorMessageSyncClientOptions.Url)}"] = MockServer.Url,
-            [$"{EdiEnqueueActorMessageSyncClientOptions.SectionName}:{nameof(EdiEnqueueActorMessageSyncClientOptions.ApplicationIdUri)}"] = "ApplicationIdUri",
+            [$"{EdiEnqueueActorMessagesSyncClientOptions.SectionName}:{nameof(EdiEnqueueActorMessagesSyncClientOptions.BaseUrl)}"] = MockServer.Url,
+            [$"{EdiEnqueueActorMessagesSyncClientOptions.SectionName}:{nameof(EdiEnqueueActorMessagesSyncClientOptions.ApplicationIdUri)}"] = "ApplicationIdUri",
         });
 
         var mockCredential = new Mock<DefaultAzureCredential>();
@@ -110,7 +110,7 @@ public class EnqueueActorMessagesSyncClientTests : IAsyncLifetime
     {
         var request = Request
             .Create()
-            .WithPath($"/{EnqueueActorMessagesSyncClient.EdiEndpointPrefix}{route}")
+            .WithPath($"/{EnqueueActorMessagesHttpClient.EdiEndpointPrefix}{route}")
             .UsingPost();
 
         var response = Response

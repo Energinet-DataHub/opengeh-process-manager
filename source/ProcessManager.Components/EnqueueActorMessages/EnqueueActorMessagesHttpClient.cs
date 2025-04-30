@@ -19,12 +19,11 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection
 
 namespace Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 
-internal class EnqueueActorMessagesSyncClient(
+internal class EnqueueActorMessagesHttpClient(
     IHttpClientFactory httpClientFactory) : IEnqueueActorMessagesSyncClient
 {
-    // TODO: should we pass this in via app setting instead?
-    public const string EdiEndpointPrefix = "api/enqueue/";
-    private readonly HttpClient _client = httpClientFactory.CreateClient(HttpClientNames.EdiEnqueueActorMessageClientName);
+    public const string EdiEndpointPrefix = "/api/enqueue/";
+    private readonly HttpClient _client = httpClientFactory.CreateClient(HttpClientNames.EdiEnqueueActorMessagesClientName);
 
     /// <inheritdoc/>
     public async Task EnqueueAsync<TMessageData>(TMessageData data)

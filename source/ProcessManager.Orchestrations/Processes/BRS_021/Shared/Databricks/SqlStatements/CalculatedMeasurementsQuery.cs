@@ -34,14 +34,14 @@ internal class CalculatedMeasurementsQuery(
 
         try
         {
-            var measureDataList = new List<Measurement>();
+            var measurements = new List<Measurement>();
 
             foreach (var row in groupOfRows)
             {
-                measureDataList.Add(CreateMeasureData(row));
+                measurements.Add(CreateMeasurement(row));
             }
 
-            var result = CreateCalculatedMeasurement(firstRow, measureDataList);
+            var result = CreateCalculatedMeasurements(firstRow, measurements);
             return Task.FromResult(QueryResult<Model.CalculatedMeasurements>.Success(result));
         }
         catch (Exception ex)
@@ -74,7 +74,7 @@ internal class CalculatedMeasurementsQuery(
             """;
     }
 
-    private static Measurement CreateMeasureData(DatabricksSqlRow databricksSqlRow)
+    private static Measurement CreateMeasurement(DatabricksSqlRow databricksSqlRow)
     {
         return new Measurement(
             ObservationTime: databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.ObservationTime),
@@ -82,7 +82,7 @@ internal class CalculatedMeasurementsQuery(
             QuantityQuality: databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityQuality));
     }
 
-    private static Model.CalculatedMeasurements CreateCalculatedMeasurement(DatabricksSqlRow databricksSqlRow, IReadOnlyCollection<Measurement> measureDataList)
+    private static Model.CalculatedMeasurements CreateCalculatedMeasurements(DatabricksSqlRow databricksSqlRow, IReadOnlyCollection<Measurement> measurements)
     {
         return new Model.CalculatedMeasurements(
             OrchestrationType: databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType),
@@ -93,6 +93,6 @@ internal class CalculatedMeasurementsQuery(
             MeteringPointType: MeteringPointTypeMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointType)),
             QuantityUnit: MeasurementUnitMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit)),
             Resolution: ResolutionMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution)),
-            Measurements: measureDataList);
+            Measurements: measurements);
     }
 }

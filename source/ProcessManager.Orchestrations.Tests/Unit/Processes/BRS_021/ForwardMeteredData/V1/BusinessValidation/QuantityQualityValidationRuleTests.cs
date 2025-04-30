@@ -45,7 +45,7 @@ public class QuantityQualityValidationRuleTests
 
     [Theory]
     [MemberData(nameof(ValidQualities))]
-    public async Task Given_OneMeasureData_AndGiven_ValidQuality_When_Validate_Then_NoValidationErrors(Quality? quality)
+    public async Task Given_OneMeasurement_AndGiven_ValidQuality_When_Validate_Then_NoValidationErrors(Quality? quality)
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteredData(
@@ -66,7 +66,7 @@ public class QuantityQualityValidationRuleTests
     }
 
     [Fact]
-    public async Task Given_MultipleMeasureData_AndGiven_ValidQualities_When_Validate_Then_NoValidationErrors()
+    public async Task Given_MultipleMeasurements_AndGiven_ValidQualities_When_Validate_Then_NoValidationErrors()
     {
         // Input that contains more than one measure data with valid qualities
         var input = new ForwardMeteredDataInputV1Builder()
@@ -93,7 +93,7 @@ public class QuantityQualityValidationRuleTests
 
     [Theory]
     [MemberData(nameof(InvalidQualities))]
-    public async Task Given_OneMeasureData_AndGiven_InvalidQuality_When_Validate_Then_ValidationErrors(Quality? quality)
+    public async Task Given_OneMeasurement_AndGiven_InvalidQuality_When_Validate_Then_ValidationErrors(Quality? quality)
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteredData(
@@ -115,7 +115,7 @@ public class QuantityQualityValidationRuleTests
     }
 
     [Fact]
-    public async Task Given_MultipleMeasureData_AndGiven_OneInvalidQuality_When_Validate_Then_ValidationError()
+    public async Task Given_MultipleMeasurements_AndGiven_OneInvalidQuality_When_Validate_Then_ValidationError()
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteredData(

@@ -44,29 +44,29 @@ public class QuantityValidationRule
     public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
     {
         var errors = new List<ValidationError>();
-        var measureData = subject.Input.MeteredDataList;
+        var measurements = subject.Input.MeteredDataList;
 
-        foreach (var data in measureData)
+        foreach (var measurement in measurements)
         {
-            if (data.EnergyQuantity == null)
+            if (measurement.EnergyQuantity == null)
             {
                 continue;
             }
 
-            if (!decimal.TryParse(data.EnergyQuantity, _culture, out var quantity))
+            if (!decimal.TryParse(measurement.EnergyQuantity, _culture, out var quantity))
             {
-                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!));
+                errors.Add(QuantityMustBePositive.WithPropertyName(measurement.Position!));
                 continue;
             }
 
             if (GetNumberOfIntegers(quantity) > MaximinNumbersOfIntegers)
-                errors.Add(MaxNumberOfIntegers.WithPropertyName(data.Position!));
+                errors.Add(MaxNumberOfIntegers.WithPropertyName(measurement.Position!));
 
             if (GetNumberOfDecimals(quantity) > MaximumNumbersOfDecimals)
-                errors.Add(MaxNumberOfDecimals.WithPropertyName(data.Position!));
+                errors.Add(MaxNumberOfDecimals.WithPropertyName(measurement.Position!));
 
             if (quantity < 0)
-                errors.Add(QuantityMustBePositive.WithPropertyName(data.Position!));
+                errors.Add(QuantityMustBePositive.WithPropertyName(measurement.Position!));
         }
 
         return Task.FromResult<IList<ValidationError>>(errors);

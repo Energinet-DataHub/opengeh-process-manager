@@ -62,9 +62,9 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
             // The query result measure data is already grouped by transaction id, so
             // we need to find receivers for it based on the master data for the metering point.
-            await EnqueueMessagesForMeasureData(
+            await EnqueueMessagesForMeasurements(
                     orchestrationInstanceId: input.OrchestrationInstanceId,
-                    calculatedMeasurementses: queryResult.Result)
+                    calculatedMeasurements: queryResult.Result)
                 .ConfigureAwait(false);
         }
     }
@@ -75,16 +75,16 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     /// The measure data MUST be ordered by timestamp, and MUST NOT contain any gaps.
     /// </remarks>
     /// </summary>
-    private async Task EnqueueMessagesForMeasureData(
+    private async Task EnqueueMessagesForMeasurements(
         OrchestrationInstanceId orchestrationInstanceId,
-        Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurementses)
+        Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurements)
     {
-        var from = calculatedMeasurementses.Measurements.First().ObservationTime;
-        var to = calculatedMeasurementses.Measurements.Last().ObservationTime;
+        var from = calculatedMeasurements.Measurements.First().ObservationTime;
+        var to = calculatedMeasurements.Measurements.Last().ObservationTime;
 
         // We need to get master data & receivers for each metering point id
         var masterDataForMeteringPoint = await _meteringPointMasterDataProvider.GetMasterData(
-                meteringPointId: calculatedMeasurementses.MeteringPointId,
+                meteringPointId: calculatedMeasurements.MeteringPointId,
                 startDateTime: from,
                 endDateTime: to)
             .ConfigureAwait(false);
@@ -92,12 +92,12 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         var receiversForMeteringPoint = _meteringPointReceiversProvider
             .GetReceiversWithMeasurementsFromMasterDataList(
                 new MeteringPointReceiversProvider.FindReceiversInput(
-                    MeteringPointId: calculatedMeasurementses.MeteringPointId,
+                    MeteringPointId: calculatedMeasurements.MeteringPointId,
                     StartDateTime: from,
                     EndDateTime: to,
-                    Resolution: calculatedMeasurementses.Resolution,
+                    Resolution: calculatedMeasurements.Resolution,
                     MasterData: masterDataForMeteringPoint,
-                    Measurements: calculatedMeasurementses.Measurements
+                    Measurements: calculatedMeasurements.Measurements
                         .Select((md, i) => new ReceiversWithMeasurements.Measurement(
                             Position: i + 1, // Position is 1-based, so the first position must be 1.
                             EnergyQuantity: md.Quantity,
@@ -115,7 +115,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         //         // so rerunning the activity generates the same idempotency keys as previous run.
         //         idempotencyKey: Guid.NewGuid(),
         //         data: new EnqueueActorMessagesForMeteringPointV1(
-        //             ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingReceiversWithMeasureDataV1()))
+        //             ReceiversWithMeasurements: receiversForMeteringPoint.ToElectricalHeatingReceiversWithMeasurementsV1()))
         //     .ConfigureAwait(false);
     }
 

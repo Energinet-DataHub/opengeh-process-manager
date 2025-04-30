@@ -35,6 +35,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjec
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Options;
@@ -440,10 +441,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
             "20");
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{QueryOptionsSectionNames.ElectricalHeatingQuery}__{nameof(DatabricksQueryOptions.CatalogName)}",
+            $"{QueryOptionsSectionNames.CalculatedMeasurementsQuery}__{nameof(DatabricksQueryOptions.CatalogName)}",
             "hive_metastore");
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{QueryOptionsSectionNames.ElectricalHeatingQuery}__{nameof(DatabricksQueryOptions.DatabaseName)}",
+            $"{QueryOptionsSectionNames.CalculatedMeasurementsQuery}__{nameof(DatabricksQueryOptions.DatabaseName)}",
             "measurements_calculated");
 
         // Process Manager Event Hub

@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Options;
 
 public static class QueryOptionsSectionNames
 {
-    public const string ElectricalHeatingQuery = "ElectricalHeatingQuery";
+   /// <summary>
+    /// Used to name a query to avoid naming conflicts with other queries.
+    /// </summary>
+    public const string CalculatedMeasurementsQuery = "CalculatedMeasurementsQuery";
 }

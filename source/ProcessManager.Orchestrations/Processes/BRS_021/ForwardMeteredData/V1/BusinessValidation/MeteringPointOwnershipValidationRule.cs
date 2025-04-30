@@ -42,6 +42,7 @@ public class MeteringPointOwnershipValidationRule(IOptions<ProcessManagerCompone
     public Task<IList<ValidationError>> ValidateAsync(
         ForwardMeteredDataBusinessValidatedDto subject)
     {
+        // The performance test uses non-existing metering points, so we must skip this validation
         if (IsPerformanceTest(subject.Input))
             return Task.FromResult(NoError);
 

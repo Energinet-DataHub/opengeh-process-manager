@@ -224,8 +224,11 @@ public class MeteringPointReceiversProvider(
 
                 // There can be periods where no energy supplier is assigned to the parent/child metering point,
                 // thus we can only send to the energy supplier if there actually is one.
-                if (meteringPointMasterData.EnergySupplier is not null)
-                    receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                if (meteringPointMasterData.ParentMeteringPointId is not null)
+                {
+                    if (meteringPointMasterData.EnergySupplier is not null)
+                        receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                }
 
                 receivers.Add(GridAccessProviderReceiver(meteringPointMasterData.CurrentGridAccessProvider));
                 break;

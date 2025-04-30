@@ -109,7 +109,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 GridAccessProvider = "1111111111111",
                 NeighborGridAreaOwners = ["2222222222222"],
                 ConnectionState = ConnectionState.Connected,
-                Type = MeteringPointType.ElectricalHeating,
+                Type = MeteringPointType.NetConsumption,
                 SubType = MeteringPointSubType.Physical,
                 Resolution = new Resolution("PT15M"),
                 Unit = MeasureUnit.kWh,

@@ -20,7 +20,6 @@ public class DataHubCalendar
 {
     private readonly IClock _clock;
     private readonly DateTimeZone _zone;
-    private ZonedDateTime _easterSunday;
 
     public DataHubCalendar(IClock clock, DateTimeZone zone)
     {
@@ -34,75 +33,77 @@ public class DataHubCalendar
     }
 
     /// <summary>
-    /// Calculates the DataHub working date relative to today.
+    /// Calculates the DataHub working date back in time relative to today.
     /// </summary>
-    /// <param name="count">The number of days back or forward in time. This figure must be between -200 and 200.</param>
+    /// <param name="count">The number of days back in time. This figure must be between 0 and 100 inclusive.</param>
     /// <returns>A DataHub working date relative to today.</returns>
-    public ZonedDateTime GetWorkingDayRelativeToToday(int count)
+    public LocalDate GetWorkingDayRelativeToTodayBackInTime(int count)
     {
-        if (count is > 200 or < -200)
+        if (count is < 0 or > 100)
         {
-            throw new ArgumentOutOfRangeException(nameof(count), "Count must be between -200 and 200.");
+            throw new ArgumentOutOfRangeException(nameof(count), $"Count {count} must be between 0 and 100.");
         }
 
-        var direction = count < 0 ? -1 : 1;
-        var remainingDays = Math.Abs(count);
-        var currentDate = _clock.GetCurrentInstant().InZone(_zone);
-        _easterSunday = CalculateEasterSunday(currentDate.Year);
+        var remainingDays = count;
+        var currentDate = _clock.GetCurrentInstant().InZone(_zone).LocalDateTime.Date;
+        var easterSunday = CalculateEasterSunday(currentDate.Year);
 
         while (remainingDays > 0)
         {
-            currentDate = currentDate.Plus(Duration.FromDays(direction));
-            if (IsDataHubWorkingDay(currentDate))
+            currentDate = currentDate.Plus(Period.FromDays(-1));
+            if (IsDataHubWorkingDay(currentDate, easterSunday))
             {
                 remainingDays--;
             }
         }
 
-        // Return the date at start of day in the given timezone.
-        return currentDate.Date.AtStartOfDayInZone(_zone);
+        // Return the start of the day in the given timezone.
+        return currentDate.AtMidnight().Date;
     }
 
-    private bool IsDataHubWorkingDay(ZonedDateTime zonedDateTime)
+    private bool IsDataHubWorkingDay(LocalDate currentDate, LocalDate easterSunday)
     {
         // The following days are not DataHub working days.
 
         // Saturdays and Sundays.
-        if (zonedDateTime.DayOfWeek is IsoDayOfWeek.Saturday or IsoDayOfWeek.Sunday)
+        if (currentDate.DayOfWeek is IsoDayOfWeek.Saturday or IsoDayOfWeek.Sunday)
             return false;
 
         // New years day (Nytårsdag).
-        if (zonedDateTime is { Month: 1, Day: 1 })
+        if (currentDate is { Month: 1, Day: 1 })
             return false;
 
         // Maundy Thursday (Skærtorsdag), Good Friday (Langfredag), and Easter Monday (2. Påskedag).
-        var maundyThursday = _easterSunday.Minus(Duration.FromDays(3));
-        var goodFriday = _easterSunday.Minus(Duration.FromDays(2));
-        var easterMonday = _easterSunday.Plus(Duration.FromDays(1));
-        if (maundyThursday == zonedDateTime ||
-            goodFriday == zonedDateTime ||
-            easterMonday == zonedDateTime)
+        var maundyThursday = easterSunday.Minus(Period.FromDays(3));
+        var goodFriday = easterSunday.Minus(Period.FromDays(2));
+        var easterMonday = easterSunday.Plus(Period.FromDays(1));
+        if (maundyThursday == currentDate ||
+            goodFriday == currentDate ||
+            easterMonday == currentDate)
         {
             return false;
         }
 
         // Ascension Day (Kristi Himmelfartsdag) and the day after.
         // Ascension Day is always 40 days after Easter Sunday.
+        // Note that days are counted in liturgical (church) tradition versus modern date calculation.
+        // Why it's 39 days between, but the 40th day after: Easter Sunday is counted as Day 1 in the Christian liturgical tradition.
+        // So when we say "40 days after Easter", it includes Easter Sunday itself in the count.
         // https://da.wikipedia.org/wiki/Kristi_himmelfartsdag
-        var ascensionDay = _easterSunday.Plus(Duration.FromDays(39));
-        var dayAfterAscensionDay = ascensionDay.Plus(Duration.FromDays(1));
-        if (ascensionDay == zonedDateTime || dayAfterAscensionDay == zonedDateTime)
+        var ascensionDay = easterSunday.Plus(Period.FromDays(39));
+        var dayAfterAscensionDay = ascensionDay.Plus(Period.FromDays(1));
+        if (ascensionDay == currentDate || dayAfterAscensionDay == currentDate)
             return false;
 
         // Pentecost Monday (2. Pinsedag).
-        // Pentecost Monday is always 51 days after Easter Sunday.
+        // Pentecost Monday is always 50 days after Easter Sunday.
         // https://natmus.dk/historisk-viden/temaer/fester-og-traditioner/pinse/
-        var pentecostMonday = _easterSunday.Plus(Duration.FromDays(50));
-        if (pentecostMonday == zonedDateTime)
+        var pentecostMonday = easterSunday.Plus(Period.FromDays(50));
+        if (pentecostMonday == currentDate)
             return false;
 
         // Christmas and New Years eve. 24th, 25th, 26th, and 31st of December.
-        if (zonedDateTime is { Month: 12, Day: 24 or 25 or 26 or 31 })
+        if (currentDate is { Month: 12, Day: 24 or 25 or 26 or 31 })
             return false;
 
         return true;
@@ -114,7 +115,7 @@ public class DataHubCalendar
     /// </summary>
     /// <param name="year">The year to calculate Easter sunday for.</param>
     /// <returns>The date of the Easter Sunday for the given year.</returns>
-    private ZonedDateTime CalculateEasterSunday(int year)
+    private LocalDate CalculateEasterSunday(int year)
     {
         if (year is < 1800 or > 2200)
             throw new ArgumentOutOfRangeException(nameof(year), "Year must be between 1800 and 2200.");
@@ -169,7 +170,6 @@ public class DataHubCalendar
             month = 4;
         }
 
-        return new LocalDate(year, month, day)
-            .AtStartOfDayInZone(_zone);
+        return new LocalDate(year, month, day).AtMidnight().Date;
     }
 }

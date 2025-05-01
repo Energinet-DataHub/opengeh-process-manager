@@ -106,20 +106,20 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         var enqueueData = new EnqueueCalculatedMeasurementsHttpV1(
             Data: receiversWithMeasurements.Select(
                     r => new EnqueueCalculatedMeasurementsHttpV1.ReceiversWithMeasurements(
-                        r.Receivers
+                        Receivers: r.Receivers
                             .Select(
                                 actor => new EnqueueCalculatedMeasurementsHttpV1.Actor(
                                     ActorNumber.Create(actor.Number.Value),
                                     ActorRole.FromName(actor.Role.Name)))
                             .ToList(),
-                        calculatedMeasureData.MeteringPointId,
-                        calculatedMeasureData.MeteringPointType,
-                        MeasurementUnit.KilowattHour,
-                        calculatedMeasureData.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
-                        from.ToDateTimeOffset(),
-                        to.ToDateTimeOffset(),
-                        calculatedMeasureData.Resolution,
-                        r.MeasureDataList
+                        MeteringPointId: calculatedMeasureData.MeteringPointId,
+                        MeteringPointType: calculatedMeasureData.MeteringPointType,
+                        MeasureUnit: MeasurementUnit.KilowattHour,
+                        RegistrationDateTime: calculatedMeasureData.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
+                        StartDateTime: from.ToDateTimeOffset(),
+                        EndDateTime: to.ToDateTimeOffset(),
+                        Resolution: calculatedMeasureData.Resolution,
+                        Measurements: r.MeasureDataList
                             .Select(
                                 (md, i) => new EnqueueCalculatedMeasurementsHttpV1.Measurement(
                                     Position: i + 1,
@@ -127,7 +127,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                                     EnergyQuantity: md.EnergyQuantity ?? throw new InvalidOperationException("Energy quantity should not be null in calculated measurement calculations."),
                                     QuantityQuality: md.QuantityQuality ?? throw new InvalidOperationException("Quality should not be null in calculated measurement calculations.")))
                             .ToList(),
-                        r.GridArea))
+                        GridAreaCode: r.GridArea))
                 .ToList());
 
         await _enqueueActorMessagesHttpClient.EnqueueAsync(enqueueData).ConfigureAwait(false);

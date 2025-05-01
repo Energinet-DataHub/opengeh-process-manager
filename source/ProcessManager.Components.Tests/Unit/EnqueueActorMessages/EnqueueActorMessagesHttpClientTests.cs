@@ -22,12 +22,9 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Net.Http.Headers;
 using Moq;
-using WireMock.ResponseBuilders;
 using WireMock.Server;
 using Xunit;
-using Request = WireMock.RequestBuilders.Request;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.EnqueueActorMessages;
 
@@ -40,8 +37,8 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
 
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{EdiEnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EdiEnqueueActorMessagesHttpClientOptions.BaseUrl)}"] = MockServer.Url,
-            [$"{EdiEnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EdiEnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] = "ApplicationIdUri",
+            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] = MockServer.Url,
+            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] = "ApplicationIdUri",
         });
 
         var mockCredential = new Mock<DefaultAzureCredential>();
@@ -90,7 +87,9 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     {
         var request = new EnqueueData(Actor);
 
-        MockHttpStatusCodeResponse(MockServer, request.Route, HttpStatusCode.OK);
+        MockServer.MockEnqueueActorMessagesHttpClientResponse(
+            request.Route,
+            HttpStatusCode.OK);
 
         await Sut.EnqueueAsync(request);
     }
@@ -100,27 +99,12 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     {
         var request = new EnqueueData(Actor);
 
-        MockHttpStatusCodeResponse(MockServer, request.Route, HttpStatusCode.RequestTimeout);
+        MockServer.MockEnqueueActorMessagesHttpClientResponse(
+            request.Route,
+            HttpStatusCode.RequestTimeout);
 
         await Assert.ThrowsAsync<HttpRequestException>(() => Sut.EnqueueAsync(request))
         ;
-    }
-
-    private static void MockHttpStatusCodeResponse(WireMockServer server, string route, HttpStatusCode statusCode = HttpStatusCode.OK)
-    {
-        var request = Request
-            .Create()
-            .WithPath($"{EnqueueActorMessagesHttpClient.EdiEndpointPrefix}{route}")
-            .UsingPost();
-
-        var response = Response
-            .Create()
-            .WithStatusCode(statusCode)
-            .WithHeader(HeaderNames.ContentType, "application/json");
-
-        server
-            .Given(request)
-            .RespondWith(response);
     }
 
     private record EnqueueData(

@@ -11,6 +11,7 @@
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\DatabricksJobsApiWireMockExtensions.cs" Link="Fixtures\Extensions\DatabricksJobsApiWireMockExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\DatabricksSqlStatementApiWireMockExtensions.cs" Link="Fixtures\Extensions\DatabricksSqlStatementApiWireMockExtensions.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\Extensions\EnqueueActorMessagesHttpClientExtensions.cs" Link="Fixtures\Extensions\EnqueueActorMessagesHttpClientExtensions.cs" />
     <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs" Link="FluentAssertionsVersionGuard.cs" />
     <Compile Include="..\Shared\Tests\LongFilePathsGuard.cs" Link="LongFilePathsGuard.cs" />
   </ItemGroup>

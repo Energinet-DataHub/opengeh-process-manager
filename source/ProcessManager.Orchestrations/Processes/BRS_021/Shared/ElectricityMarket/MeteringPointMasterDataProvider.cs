@@ -240,7 +240,7 @@ public class MeteringPointMasterDataProvider(
 
     private bool IsPerformanceTest(string meteringPointId)
     {
-        var isInputTestData = meteringPointId.IsTestUuid();
+        var isInputTestData = meteringPointId.IsPerformanceTestUuid();
 
         return _options.Value.AllowMockDependenciesForTests && isInputTestData;
     }

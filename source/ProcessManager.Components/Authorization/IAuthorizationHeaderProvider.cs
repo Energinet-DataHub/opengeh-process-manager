@@ -12,17 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
-using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http.Headers;
 
-namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+namespace Energinet.DataHub.ProcessManager.Components.Authorization;
 
-public static class EnqueueActorMessagesSyncExtensions
+internal interface IAuthorizationHeaderProvider
 {
-    public static IServiceCollection AddEnqueueActorMessagesSync(this IServiceCollection services)
-    {
-        services.AddSingleton<IEnqueueActorMessagesSyncClient, EnqueueActorMessagesSyncClient>();
-
-        return services;
-    }
+    /// <summary>
+    /// Create an authorization header to be used when calling Edi API's.
+    /// </summary>
+    AuthenticationHeaderValue CreateAuthorizationHeader();
 }

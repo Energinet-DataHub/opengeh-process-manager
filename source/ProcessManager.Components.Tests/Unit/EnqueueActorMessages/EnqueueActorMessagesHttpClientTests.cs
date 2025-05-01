@@ -82,7 +82,7 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     {
         var request = new EnqueueData();
 
-        MockServer.MockEnqueueActorMessagesHttpClientResponse(
+        MockServer.MockEnqueueActorMessagesHttpResponse(
             request.Route,
             HttpStatusCode.OK);
 
@@ -94,7 +94,7 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     {
         var request = new EnqueueData();
 
-        MockServer.MockEnqueueActorMessagesHttpClientResponse(
+        MockServer.MockEnqueueActorMessagesHttpResponse(
             request.Route,
             HttpStatusCode.RequestTimeout);
 

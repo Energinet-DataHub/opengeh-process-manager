@@ -93,6 +93,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
         var resolutionAsDuration = calculatedMeasureData.Resolution switch
         {
+            var r when r == Resolution.QuarterHourly => Duration.FromMinutes(15),
             var r when r == Resolution.Hourly => Duration.FromHours(1),
             // Can resolution ever be anything else than 1 hour in calculated measurements?
             _ => throw new ArgumentOutOfRangeException(nameof(calculatedMeasureData.Resolution), calculatedMeasureData.Resolution, "Invalid resolution"),
@@ -129,24 +130,6 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                 .ToList());
 
         await _enqueueActorMessagesHttpClient.EnqueueAsync(enqueueData).ConfigureAwait(false);
-
-        // // Enqueue to EDI
-        // await _enqueueActorMessagesHttpClient.EnqueueAsync(new EnqueueCalculatedMeasurementsHttpV1(
-        //
-        //     ))
-
-        // TODO: This needs to be handled differently, since this requires the orchestration to wait
-        // for each enqueued messages event to be returned.
-        // await _enqueueActorMessagesClient.EnqueueAsync(
-        //         orchestration: Orchestration_Brs_021_ElectricalHeatingCalculation_V1.UniqueName,
-        //         orchestrationInstanceId: orchestrationInstanceId.Value,
-        //         orchestrationStartedBy: new ActorIdentityDto(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider), // TODO: Get this from the orchestration instance
-        //         // TODO: We need to create unique deterministic idempotency keys for each message sent to EDI instead,
-        //         // so rerunning the activity generates the same idempotency keys as previous run.
-        //         idempotencyKey: Guid.NewGuid(),
-        //         data: new EnqueueActorMessagesForMeteringPointV1(
-        //             ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingReceiversWithMeasureDataV1()))
-        //     .ConfigureAwait(false);
     }
 
     private async Task<List<ReceiversWithMeasureData>> FindReceiversForMeasureDataAsync(CalculatedMeasurement calculatedMeasureData, Instant from, Instant to)

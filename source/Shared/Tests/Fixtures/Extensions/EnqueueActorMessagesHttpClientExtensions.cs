@@ -14,6 +14,8 @@
 
 using System.Net;
 using Microsoft.Net.Http.Headers;
+using WireMock.Matchers;
+using WireMock.Matchers.Request;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -23,13 +25,15 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 /// <summary>
 /// Extensions for setting up the WireMock server to mock the http status code response.
 /// </summary>
-public static class EnqueueActorMessagesHttpClientExtensions
+public static class EnqueueActorMessagesHttpWireMockExtensions
 {
-    public static WireMockServer MockEnqueueActorMessagesHttpClientResponse(this WireMockServer server, string routeName, HttpStatusCode statusCode = HttpStatusCode.OK)
+    public const string RoutePrefix = "/api/enqueue";
+
+    public static WireMockServer MockEnqueueActorMessagesHttpResponse(this WireMockServer server, string routeName, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         var request = Request
             .Create()
-            .WithPath($"/api/enqueue/{routeName}")
+            .WithPath($"{RoutePrefix}/{routeName}")
             .UsingPost();
 
         var response = Response
@@ -42,5 +46,24 @@ public static class EnqueueActorMessagesHttpClientExtensions
             .RespondWith(response);
 
         return server;
+    }
+
+    /// <summary>
+    /// Check if the endpoint was called the given amount of times.
+    /// </summary>
+    /// <param name="server"></param>
+    /// <param name="routeName">The route name to check against</param>
+    /// <param name="times">How many times the endpoint should have been called. Defaults to 1.</param>
+    /// <returns>Returns whether the endpoint was called the given amount of times.</returns>
+    public static bool EnqueueActorMessagesHttpMockWasCalled(this WireMockServer server, string routeName, int times = 1)
+    {
+        var logEntries = server
+            .FindLogEntries(
+                new RequestMessagePathMatcher(
+                    MatchBehaviour.AcceptOnMatch,
+                    MatchOperator.And,
+                    $"{RoutePrefix}/{routeName}"));
+
+        return logEntries.Count == times;
     }
 }

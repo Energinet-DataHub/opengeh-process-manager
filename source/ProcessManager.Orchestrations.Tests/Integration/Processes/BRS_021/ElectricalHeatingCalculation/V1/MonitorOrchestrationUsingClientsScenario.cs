@@ -92,7 +92,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Given_StartElectricalHeatingCalculationCommand_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+    public async Task Given_StartElectricalHeatingCalculationCommand_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess_AndGiven_ActorMessageIsEnqueued()
     {
         // Mocking the databricks jobs api, forcing it to return a terminated successful job status
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
@@ -100,7 +100,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             CalculationJobName);
 
         // Mocking EDI enqueue actor messages response
-        Fixture.OrchestrationsAppManager.MockServer.MockEnqueueActorMessagesHttpClientResponse(
+        Fixture.OrchestrationsAppManager.MockServer.MockEnqueueActorMessagesHttpResponse(
             EnqueueCalculatedMeasurementsHttpV1.RouteName);
 
         const string meteringPointId = "1234567890123456";
@@ -156,6 +156,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         isTerminated.Should().BeTrue("because the orchestration instance should be terminated within given wait time");
 
+        // Then the orchestration instance (and its steps) should be terminated with success.
         using (_ = new AssertionScope())
         {
             // Orchestration instance and all steps should be Succeeded
@@ -174,7 +175,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     });
         }
 
-        // TODO: Assert that messages has been enqueued to EDI
+        // And then enqueue actor messages is called for 1 message.
+        Fixture.OrchestrationsAppManager.MockServer.EnqueueActorMessagesHttpMockWasCalled(
+                routeName: EnqueueCalculatedMeasurementsHttpV1.RouteName,
+                times: 1)
+            .Should()
+            .BeTrue("because the orchestration instance should have enqueued messages to EDI");
 
         // Step 3: General search using name and termination state
         // TODO: I'm not sure why this search is relevant in this test?

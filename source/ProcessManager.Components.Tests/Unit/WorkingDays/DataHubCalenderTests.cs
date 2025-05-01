@@ -30,9 +30,10 @@ public class DataHubCalenderTests
 
     // Forward in time
     [InlineData(2025, 4, 24, 22, 0, 2025, 4, 27, 22, 0, 1)] // 1 working day forward: 25th of April 2025 -> 28th of April 2025 (Weekend)
+    [InlineData(2024, 3, 26, 23, 0, 2024, 4, 3, 22, 0, 3)] // 3 working days forward: 27th of Marts 2024 -> 4th of April 2024 (Easter)
 
     // Weekend
-    [InlineData(2025, 4, 27, 22, 0, 2025, 4, 22, 22, 0, -3)] // 3 working days back: 28th of April 2025 -> 21st of April 2025
+    [InlineData(2025, 4, 27, 22, 0, 2025, 4, 22, 22, 0, -3)] // 3 working days back: 28th of April 2025 -> 23rd of April 2025
 
     // Leap year
     [InlineData(2024, 3, 4, 23, 0, 2024, 2, 28, 23, 0, -3)] // 3 working days back: 5th of Marts 2024 -> 29th of February 2024
@@ -52,7 +53,7 @@ public class DataHubCalenderTests
     [InlineData(2025, 6, 11, 22, 0, 2025, 6, 5, 22, 0, -3)] // 3 working days back: 12th of June 2025 -> 6th of June 2025
 
     // Transition
-    [InlineData(2025, 4, 1, 22, 0, 2025, 3, 27, 23, 0, -3)] // 3 working days back: 1st of April 2025 -> 28th of Marts 2025 (Transition)
+    [InlineData(2025, 4, 1, 22, 0, 2025, 3, 27, 23, 0, -3)] // 3 working days back: 1st of April 2025 -> 28th of Marts 2025
 
     // Christmas 24th, 25th, and 26th of December
     [InlineData(2024, 12, 23, 23, 0, 2024, 12, 18, 23, 0, -3)] // 3 working days back: 24th of December 2024 -> 19th of December 2024

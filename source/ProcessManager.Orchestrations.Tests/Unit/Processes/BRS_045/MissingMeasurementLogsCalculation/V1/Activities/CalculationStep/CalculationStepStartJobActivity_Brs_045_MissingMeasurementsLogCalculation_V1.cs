@@ -70,7 +70,7 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
             .Returns(date);
         var sut = new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(
             clientMock.Object,
-            new DataHubSupportCalender(clockMock.Object, zone));
+            new DataHubCalender(clockMock.Object, zone));
 
         // Act
         var actual = await sut.Run(activityInput);

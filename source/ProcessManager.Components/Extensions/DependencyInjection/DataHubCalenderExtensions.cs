@@ -18,15 +18,15 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
-public static class DataHubSupportCalenderExtensions
+public static class DataHubCalenderExtensions
 {
     /// <summary>
     /// Register time component.
     /// </summary>
-    public static IServiceCollection AddDataHubSupportCalenderComponent(
+    public static IServiceCollection AddDataHubCalenderComponent(
         this IServiceCollection services)
     {
-        services.TryAddTransient<DataHubSupportCalender>();
+        services.TryAddTransient<DataHubCalender>();
         return services;
     }
 }

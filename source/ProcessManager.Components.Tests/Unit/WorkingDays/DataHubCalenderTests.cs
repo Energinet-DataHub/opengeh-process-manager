@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.WorkingDays;
 
-public class DataHubSupportCalenderTests
+public class DataHubCalenderTests
 {
     private readonly DateTimeZone _zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
 
@@ -57,7 +57,7 @@ public class DataHubSupportCalenderTests
         var expected = Instant.FromUtc(expectedYear, expectedMonth, expectedDay, expectedHour, expectedMinute).InZone(_zone);
         var clock = new Mock<IClock>();
         clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
-        var sut = new DataHubSupportCalender(clock.Object, _zone);
+        var sut = new DataHubCalender(clock.Object, _zone);
 
         // Act
         var actual = sut.GetWorkingDayRelativeToToday(count);
@@ -75,7 +75,7 @@ public class DataHubSupportCalenderTests
         var testDate = Instant.FromUtc(year, 1, 1, 0, 0);
         var clock = new Mock<IClock>();
         clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
-        var sut = new DataHubSupportCalender(clock.Object, _zone);
+        var sut = new DataHubCalender(clock.Object, _zone);
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => sut.GetWorkingDayRelativeToToday(1));
@@ -90,7 +90,7 @@ public class DataHubSupportCalenderTests
         var testDate = Instant.FromUtc(2025, 1, 1, 0, 0);
         var clock = new Mock<IClock>();
         clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
-        var sut = new DataHubSupportCalender(clock.Object, _zone);
+        var sut = new DataHubCalender(clock.Object, _zone);
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => sut.GetWorkingDayRelativeToToday(count));

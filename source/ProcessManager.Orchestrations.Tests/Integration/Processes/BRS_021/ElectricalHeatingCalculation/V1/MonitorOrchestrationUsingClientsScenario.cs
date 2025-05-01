@@ -137,17 +137,18 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Mocking the databricks sql statements api
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksCalculatedMeasurementsQueryResponse(
-            mockData:
-            [
-                new(
-                    OrchestrationInstanceId: orchestrationInstanceId,
-                    TransactionId: Guid.NewGuid(),
-                    TransactionCreationDatetime: Instant.FromUtc(2025, 04, 25, 13, 37),
-                    MeteringPointId: meteringPointId,
-                    MeteringPointType: "electrical_heating",
-                    ObservationTime: Instant.FromUtc(2025, 04, 25, 13, 30),
-                    Quantity: 1337.42m),
-            ]);
+            mockData: Enumerable.Range(0, 210)
+                .Select(
+                    i =>
+                        new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
+                            OrchestrationInstanceId: orchestrationInstanceId,
+                            TransactionId: Guid.NewGuid(),
+                            TransactionCreationDatetime: Instant.FromUtc(2025, 04, 25, 13, 37),
+                            MeteringPointId: meteringPointId,
+                            MeteringPointType: "electrical_heating",
+                            ObservationTime: Instant.FromUtc(2025, 04, 25, 13, 30),
+                            Quantity: 1337.42m))
+                .ToList());
 
         // Step 2: Query until terminated
         var (isTerminated, terminatedOrchestrationInstance) = await processManagerClient
@@ -176,10 +177,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         }
 
         // And then enqueue actor messages is called for 1 message.
-        Fixture.OrchestrationsAppManager.MockServer.EnqueueActorMessagesHttpMockWasCalled(
-                routeName: EnqueueCalculatedMeasurementsHttpV1.RouteName,
-                times: 1)
+        Fixture.OrchestrationsAppManager.MockServer.CountEnqueueActorMessagesHttpMockCalls(
+                routeName: EnqueueCalculatedMeasurementsHttpV1.RouteName)
             .Should()
-            .BeTrue("because the orchestration instance should have enqueued messages to EDI");
+            .Be(211, "because the orchestration instance should have enqueued messages to EDI");
     }
 }

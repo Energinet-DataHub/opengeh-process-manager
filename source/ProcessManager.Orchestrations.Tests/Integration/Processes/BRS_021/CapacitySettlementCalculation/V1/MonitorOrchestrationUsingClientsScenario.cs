@@ -175,10 +175,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         }
 
         // And then enqueue actor messages is called for 1 message.
-        Fixture.OrchestrationsAppManager.MockServer.EnqueueActorMessagesHttpMockWasCalled(
-                routeName: EnqueueCalculatedMeasurementsHttpV1.RouteName,
-                times: 1)
+        Fixture.OrchestrationsAppManager.MockServer.CountEnqueueActorMessagesHttpMockCalls(
+                routeName: EnqueueCalculatedMeasurementsHttpV1.RouteName)
             .Should()
-            .BeTrue("because the orchestration instance should have enqueued messages to EDI");
+            .Be(211, "because the orchestration instance should have enqueued messages to EDI");
     }
 }

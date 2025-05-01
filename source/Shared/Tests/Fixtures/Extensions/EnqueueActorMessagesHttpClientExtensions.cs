@@ -49,13 +49,12 @@ public static class EnqueueActorMessagesHttpWireMockExtensions
     }
 
     /// <summary>
-    /// Check if the endpoint was called the given amount of times.
+    /// Check the amount of times the mocked endpoint was called.
     /// </summary>
     /// <param name="server"></param>
     /// <param name="routeName">The route name to check against</param>
-    /// <param name="times">How many times the endpoint should have been called. Defaults to 1.</param>
-    /// <returns>Returns whether the endpoint was called the given amount of times.</returns>
-    public static bool EnqueueActorMessagesHttpMockWasCalled(this WireMockServer server, string routeName, int times = 1)
+    /// <returns>Returns the amount of time the endpoint was called.</returns>
+    public static int CountEnqueueActorMessagesHttpMockCalls(this WireMockServer server, string routeName)
     {
         var logEntries = server
             .FindLogEntries(
@@ -64,6 +63,6 @@ public static class EnqueueActorMessagesHttpWireMockExtensions
                     MatchOperator.And,
                     $"{RoutePrefix}/{routeName}"));
 
-        return logEntries.Count == times;
+        return logEntries.Count;
     }
 }

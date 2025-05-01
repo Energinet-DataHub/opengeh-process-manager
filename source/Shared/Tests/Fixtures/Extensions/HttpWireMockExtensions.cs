@@ -25,11 +25,11 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 /// </summary>
 public static class HttpWireMockExtensions
 {
-    public static WireMockServer MockHttpStatusCodeResponse(this WireMockServer server, string route, HttpStatusCode statusCode = HttpStatusCode.OK)
+    public static WireMockServer MockHttpStatusCodeResponse(this WireMockServer server, string path, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         var request = Request
             .Create()
-            .WithPath(route)
+            .WithPath(path)
             .UsingPost();
 
         var response = Response

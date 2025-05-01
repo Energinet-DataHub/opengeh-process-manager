@@ -101,7 +101,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Mocking EDI enqueue actor messages response
         Fixture.OrchestrationsAppManager.MockServer.MockHttpStatusCodeResponse(
-            $"/api/enqueue/{EnqueueMeasureDataSyncV1.RouteName}");
+            $"/api/enqueue/{EnqueueMeasurementsHttpV1.RouteName}");
 
         const string meteringPointId = "1234567890123456";
 

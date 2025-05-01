@@ -76,22 +76,32 @@ public class DataHubCalender
             return false;
 
         // Maundy Thursday (Skærtorsdag), Good Friday (Langfredag), and Easter Monday (2. Påskedag).
-        if (_easterSunday.Minus(Duration.FromDays(3)) == zonedDateTime ||
-            _easterSunday.Minus(Duration.FromDays(2)) == zonedDateTime ||
-            _easterSunday.Plus(Duration.FromDays(1)) == zonedDateTime)
+        var maundyThursday = _easterSunday.Minus(Duration.FromDays(3));
+        var goodFriday = _easterSunday.Minus(Duration.FromDays(2));
+        var easterMonday = _easterSunday.Plus(Duration.FromDays(1));
+        if (maundyThursday == zonedDateTime ||
+            goodFriday == zonedDateTime ||
+            easterMonday == zonedDateTime)
         {
             return false;
         }
 
-        // Ascension Day (Kristi Himmelfartsdag). Ascension Day is always 40 days after Easter Sunday.
-        // TODO AJW
-
-        // Pentecost Monday (2. Pinsedag). Pentecost Monday is always 50 days after Easter Sunday.
-        // https://natmus.dk/historisk-viden/temaer/fester-og-traditioner/pinse/
-        if (_easterSunday.Plus(Duration.FromDays(50)) == zonedDateTime)
+        // Ascension Day (Kristi Himmelfartsdag) and the day after.
+        // Ascension Day is always 40 days after Easter Sunday.
+        // https://da.wikipedia.org/wiki/Kristi_himmelfartsdag
+        var ascensionDay = _easterSunday.Plus(Duration.FromDays(39));
+        var dayAfterAscensionDay = ascensionDay.Plus(Duration.FromDays(1));
+        if (ascensionDay == zonedDateTime || dayAfterAscensionDay == zonedDateTime)
             return false;
 
-        // Christmas and New Year. 24th, 25th, 26th, and 31st of December.
+        // Pentecost Monday (2. Pinsedag).
+        // Pentecost Monday is always 51 days after Easter Sunday.
+        // https://natmus.dk/historisk-viden/temaer/fester-og-traditioner/pinse/
+        var pentecostMonday = _easterSunday.Plus(Duration.FromDays(50));
+        if (pentecostMonday == zonedDateTime)
+            return false;
+
+        // Christmas and New Years eve. 24th, 25th, 26th, and 31st of December.
         if (zonedDateTime is { Month: 12, Day: 24 or 25 or 26 or 31 })
             return false;
 

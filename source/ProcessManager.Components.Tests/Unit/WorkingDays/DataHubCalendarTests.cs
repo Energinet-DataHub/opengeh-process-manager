@@ -77,7 +77,10 @@ public class DataHubCalendarTests
     {
         // Arrange
         var testDate = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, 0);
-        var expected = Instant.FromUtc(expectedYear, expectedMonth, expectedDay, expectedHour, expectedMinute).InZone(_zone).Date;
+        var expected = Instant.FromUtc(expectedYear, expectedMonth, expectedDay, expectedHour, expectedMinute)
+            .InZone(_zone)
+            .ToInstant();
+
         var clock = new Mock<IClock>();
         clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
         var sut = new DataHubCalendar(clock.Object, _zone);

@@ -37,7 +37,7 @@ public class DataHubCalendar
     /// </summary>
     /// <param name="count">The number of days back in time. This figure must be between 0 and 100 inclusive.</param>
     /// <returns>A DataHub working date relative to today.</returns>
-    public LocalDate GetWorkingDayRelativeToTodayBackInTime(int count)
+    public Instant GetWorkingDayRelativeToTodayBackInTime(int count)
     {
         if (count is < 0 or > 100)
         {
@@ -58,7 +58,7 @@ public class DataHubCalendar
         }
 
         // Return the start of the day in the given timezone.
-        return currentDate.AtMidnight().Date;
+        return currentDate.AtMidnight().InZoneStrictly(_zone).ToInstant();
     }
 
     private bool IsDataHubWorkingDay(LocalDate currentDate, LocalDate easterSunday)

@@ -32,13 +32,20 @@ public class DataHubCalenderTests
     [InlineData(2025, 4, 27, 22, 0, 2025, 4, 22, 22, 0, -3)] // 3 working days back: 28th of April 2025 -> 21st of April 2025 (Weekend)
     [InlineData(2025, 4, 21, 22, 0, 2025, 4, 13, 22, 0, -3)] // 3 working days back: 22nd of April 2025 -> 14th of April 2025 (Easter)
     [InlineData(2025, 4, 20, 22, 0, 2025, 4, 13, 22, 0, -3)] // 3 working days back: 21st of April 2025 -> 14th of April 2025 (Easter)
+    [InlineData(2025, 4, 16, 22, 0, 2025, 4, 13, 22, 0, -3)] // 3 working days back: 17th of April 2025 -> 14th of April 2025 (Easter)
     [InlineData(2025, 6, 10, 22, 0, 2025, 6, 4, 22, 0, -3)] // 3 working days back: 11th of June 2025 -> 5th of June 2025 (Pentecost Monday)
     // Transition
     [InlineData(2025, 4, 1, 22, 0, 2025, 3, 27, 23, 0, -3)] // 3 working days back: 1st of April 2025 -> 28th of Marts 2025 (Transition)
     // Winter time
     [InlineData(2024, 12, 26, 23, 0, 2024, 12, 18, 23, 0, -3)] // 3 working days back: 27th of December 2024 -> 19th of December 2024 (Christmas)
-    [InlineData(2024, 3, 4, 23, 0, 2024, 2, 28, 23, 0, -3)] // 3 working days back: 5th of Marts 2024 -> 29th of Marts 2024 (leap year)
-    [InlineData(2025, 1, 2, 23, 0, 2024, 12, 26, 23, 0, -3)] // 3 working days back: 3rd of January 2025 -> 27th of December 2024 (leap year)
+    // 24th and 27th of December
+    // 31st and 1st of January
+    [InlineData(2025, 1, 2, 23, 0, 2024, 12, 26, 23, 0, -3)] // 3 working days back: 3rd of January 2025 -> 27th of December 2024
+
+    // TODO
+    [InlineData(2024, 3, 4, 23, 0, 2024, 2, 28, 23, 0, -3)] // 3 working days back: 5th of Marts 2024 -> 29th of February 2024 (leap year)
+    // TODO same for 2024
+
     public void GetWorkingDay_WhenCount_ReturnsWorkingDateRelativeToToday(
         int actualYear,
         int actualMonth,

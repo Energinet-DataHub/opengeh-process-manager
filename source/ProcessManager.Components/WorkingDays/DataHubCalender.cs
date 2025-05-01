@@ -83,6 +83,9 @@ public class DataHubCalender
             return false;
         }
 
+        // Ascension Day (Kristi Himmelfartsdag). Ascension Day is always 40 days after Easter Sunday.
+        // TODO AJW
+
         // Pentecost Monday (2. Pinsedag). Pentecost Monday is always 50 days after Easter Sunday.
         // https://natmus.dk/historisk-viden/temaer/fester-og-traditioner/pinse/
         if (_easterSunday.Plus(Duration.FromDays(50)) == zonedDateTime)

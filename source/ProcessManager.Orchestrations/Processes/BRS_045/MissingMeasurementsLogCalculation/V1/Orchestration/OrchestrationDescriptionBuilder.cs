@@ -32,8 +32,8 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
             functionName: nameof(Orchestration_Brs_045_MissingMeasurementsLogCalculation_V1));
 
         description.RecurringCronExpression = string.Empty;
-        // Runs at 04:00 every day
-        description.RecurringCronExpression = "0 4 * * *";
+        // Runs at 02:00 on weekdays
+        description.RecurringCronExpression = "0 2 * * 1-5";
 
         description.AppendStepDescription(CalculationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);

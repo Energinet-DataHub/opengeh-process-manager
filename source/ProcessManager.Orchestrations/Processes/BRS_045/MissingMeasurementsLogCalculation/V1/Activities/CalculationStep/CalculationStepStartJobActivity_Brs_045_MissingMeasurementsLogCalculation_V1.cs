@@ -38,7 +38,7 @@ internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal
     {
         // The missing measurement logs calculation period:
         // 3 working days back from today, and 93 days back from today.
-        var relativeWorkingDay = dataHubCalendar.GetWorkingDayRelativeToTodayBackInTime(-3);
+        var relativeWorkingDay = dataHubCalendar.GetWorkingDayRelativeToTodayBackInTime(3);
         var periodStart = dataHubCalendar.CurrentDate().PlusDays(-93);
         var periodEnd = relativeWorkingDay;
         var jobParameters = new List<string>

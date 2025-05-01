@@ -52,7 +52,7 @@ public class DataHubCalendarTests
     [InlineData(2025, 6, 10, 22, 0, 2025, 6, 4, 22, 0, -3)] // 3 working days back: 11th of June 2025 -> 5th of June 2025
     [InlineData(2025, 6, 11, 22, 0, 2025, 6, 5, 22, 0, -3)] // 3 working days back: 12th of June 2025 -> 6th of June 2025
 
-    // Transition
+    // Daylight saving time
     [InlineData(2025, 4, 1, 22, 0, 2025, 3, 27, 23, 0, -3)] // 3 working days back: 1st of April 2025 -> 28th of Marts 2025
 
     // Christmas 24th, 25th, and 26th of December

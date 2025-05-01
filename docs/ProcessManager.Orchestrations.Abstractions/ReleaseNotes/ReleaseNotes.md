@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.1.3
+
+- Rename `EnqueueMeasureDataSyncV1` to `EnqueueMeasurementsHttpV1`
+
 ## Version 2.1.2
 
 - Renamed StartCalculationCommandV1 to StartNetConsumptionCalculationCommandV1.

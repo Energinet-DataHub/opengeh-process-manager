@@ -221,11 +221,11 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.ElectricalHeating:
             case var _ when meteringPointType == MeteringPointType.NetConsumption:
             case var _ when meteringPointType == MeteringPointType.CapacitySettlement:
-
-                // There can be periods where no energy supplier is assigned to the parent/child metering point,
-                // thus we can only send to the energy supplier if there actually is one.
+                // If no parent is assigned, we never send to the energy supplier, even tough one is assigned.
                 if (meteringPointMasterData.ParentMeteringPointId is not null)
                 {
+                    // There can be periods where no energy supplier is assigned to the parent/child metering point,
+                    // thus we can only send to the energy supplier if there actually is one.
                     if (meteringPointMasterData.EnergySupplier is not null)
                         receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
                 }
@@ -254,6 +254,7 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.CollectiveNetProduction:
             case var _ when meteringPointType == MeteringPointType.CollectiveNetConsumption:
             case var _ when meteringPointType == MeteringPointType.InternalUse:
+                // If no parent is assigned, we never send to the energy supplier, even tough one is assigned.
                 if (meteringPointMasterData.ParentMeteringPointId is not null)
                 {
                     // It is legal for the energy supplier to be null for these metering point types

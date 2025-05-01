@@ -2,7 +2,7 @@
 
 ## Version 2.1.3
 
-- Rename `EnqueueMeasureDataSyncV1` to `EnqueueMeasurementsHttpV1`
+- Rename `EnqueueMeasureDataSyncV1` to `EnqueueCalculatedMeasurementsHttpV1`
 
 ## Version 2.1.2
 

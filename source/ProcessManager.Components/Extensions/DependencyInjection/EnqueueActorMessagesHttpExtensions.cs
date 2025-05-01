@@ -27,15 +27,15 @@ public static class EnqueueActorMessagesHttpExtensions
     public static IServiceCollection AddEnqueueActorMessagesHttp(this IServiceCollection services, TokenCredential credential)
     {
         services
-            .AddOptions<EdiEnqueueActorMessagesHttpClientOptions>()
-            .BindConfiguration(EdiEnqueueActorMessagesHttpClientOptions.SectionName)
+            .AddOptions<EnqueueActorMessagesHttpClientOptions>()
+            .BindConfiguration(EnqueueActorMessagesHttpClientOptions.SectionName)
             .ValidateDataAnnotations();
 
         // Copy and paste from the PM-client.
         // Should be moved to a shared library: #https://app.zenhub.com/workspaces/mosaic-60a6105157304f00119be86e/issues/gh/energinet-datahub/team-mosaic/724
         services.TryAddSingleton<IAuthorizationHeaderProvider>(sp =>
         {
-            var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessagesHttpClientOptions>>().Value;
+            var options = sp.GetRequiredService<IOptions<EnqueueActorMessagesHttpClientOptions>>().Value;
             return new AuthorizationHeaderProvider(credential, options.ApplicationIdUri);
         });
 
@@ -43,7 +43,7 @@ public static class EnqueueActorMessagesHttpExtensions
             HttpClientNames.EdiEnqueueActorMessagesClientName,
             (sp, httpClient) =>
             {
-                var options = sp.GetRequiredService<IOptions<EdiEnqueueActorMessagesHttpClientOptions>>().Value;
+                var options = sp.GetRequiredService<IOptions<EnqueueActorMessagesHttpClientOptions>>().Value;
                 ConfigureHttpClient(sp, httpClient, options.BaseUrl);
             });
 

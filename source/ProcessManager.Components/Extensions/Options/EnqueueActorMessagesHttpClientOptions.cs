@@ -16,7 +16,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
-public class EdiEnqueueActorMessagesHttpClientOptions
+public class EnqueueActorMessagesHttpClientOptions
 {
     public const string SectionName = "EnqueueActorMessagesHttpClient";
 

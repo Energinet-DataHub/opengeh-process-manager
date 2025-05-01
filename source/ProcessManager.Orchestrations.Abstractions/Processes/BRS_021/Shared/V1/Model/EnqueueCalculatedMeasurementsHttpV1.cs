@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1.Model;
 
-public sealed record EnqueueMeasurementsHttpV1(
+public sealed record EnqueueCalculatedMeasurementsHttpV1(
     Actor Receiver,
     string MeteringPointId,
     MeteringPointType MeteringPointType,

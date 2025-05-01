@@ -37,8 +37,8 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
 
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{EdiEnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EdiEnqueueActorMessagesHttpClientOptions.BaseUrl)}"] = MockServer.Url,
-            [$"{EdiEnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EdiEnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] = "ApplicationIdUri",
+            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] = MockServer.Url,
+            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] = "ApplicationIdUri",
         });
 
         var mockCredential = new Mock<DefaultAzureCredential>();

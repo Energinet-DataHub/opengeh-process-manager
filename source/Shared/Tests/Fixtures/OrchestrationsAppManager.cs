@@ -388,10 +388,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // => Edi enqueue via http
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{EdiEnqueueActorMessagesHttpClientOptions.SectionName}__{nameof(EdiEnqueueActorMessagesHttpClientOptions.BaseUrl)}",
+            $"{EnqueueActorMessagesHttpClientOptions.SectionName}__{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}",
             MockServer.Url!);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{EdiEnqueueActorMessagesHttpClientOptions.SectionName}__{nameof(EdiEnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}",
+            $"{EnqueueActorMessagesHttpClientOptions.SectionName}__{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}",
             AuthenticationOptionsForTests.ApplicationIdUri);
 
         // => Shared integration event topic

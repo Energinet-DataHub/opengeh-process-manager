@@ -23,7 +23,7 @@
     "MeasurementsEventHub__NamespaceName": "<Event Hub namespace name>",
     "MeasurementsEventHub__EventHubName": "<Event Hub name>",
     // Enqueue actor message
-    "EdiEnqueueActorMessagesHttpClient__BaseUrl": "<Base URL of the function app in EDI>",
-    "EdiEnqueueActorMessagesHttpClient__ApplicationIdUri": "<Application ID URI of EDI>"
+    "EnqueueActorMessagesHttpClient__BaseUrl": "<Base URL of the function app in EDI>",
+    "EnqueueActorMessagesHttpClient__ApplicationIdUri": "<Application ID URI of EDI>"
   }
 }

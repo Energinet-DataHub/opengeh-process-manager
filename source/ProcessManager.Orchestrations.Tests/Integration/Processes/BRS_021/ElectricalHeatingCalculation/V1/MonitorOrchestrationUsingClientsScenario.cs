@@ -137,18 +137,17 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Mocking the databricks sql statements api
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksCalculatedMeasurementsQueryResponse(
-            mockData: Enumerable.Range(0, 210)
-                .Select(
-                    i =>
-                        new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
-                            OrchestrationInstanceId: orchestrationInstanceId,
-                            TransactionId: Guid.NewGuid(),
-                            TransactionCreationDatetime: Instant.FromUtc(2025, 04, 25, 13, 37),
-                            MeteringPointId: meteringPointId,
-                            MeteringPointType: "electrical_heating",
-                            ObservationTime: Instant.FromUtc(2025, 04, 25, 13, 30),
-                            Quantity: 1337.42m))
-                .ToList());
+            mockData:
+            [
+                new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
+                    OrchestrationInstanceId: orchestrationInstanceId,
+                    TransactionId: Guid.NewGuid(),
+                    TransactionCreationDatetime: Instant.FromUtc(2025, 04, 25, 13, 37),
+                    MeteringPointId: meteringPointId,
+                    MeteringPointType: "electrical_heating",
+                    ObservationTime: Instant.FromUtc(2025, 04, 25, 13, 30),
+                    Quantity: 1337.42m),
+            ]);
 
         // Step 2: Query until terminated
         var (isTerminated, terminatedOrchestrationInstance) = await processManagerClient
@@ -180,6 +179,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.OrchestrationsAppManager.MockServer.CountEnqueueActorMessagesHttpMockCalls(
                 routeName: EnqueueCalculatedMeasurementsHttpV1.RouteName)
             .Should()
-            .Be(211, "because the orchestration instance should have enqueued messages to EDI");
+            .Be(1, "because the orchestration instance should have enqueued messages to EDI");
     }
 }

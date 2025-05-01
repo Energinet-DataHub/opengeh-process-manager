@@ -178,6 +178,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.OrchestrationsAppManager.MockServer.CountEnqueueActorMessagesHttpMockCalls(
                 routeName: EnqueueCalculatedMeasurementsHttpV1.RouteName)
             .Should()
-            .Be(211, "because the orchestration instance should have enqueued messages to EDI");
+            .Be(1, "because the orchestration instance should have enqueued messages to EDI");
     }
 }

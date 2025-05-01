@@ -49,7 +49,7 @@ public static class EnqueueActorMessagesHttpWireMockExtensions
     }
 
     /// <summary>
-    /// Check the amount of times the mocked endpoint was called.
+    /// Check the amount of times the mocked enqueue actor messages HTTP endpoint was called.
     /// </summary>
     /// <param name="server"></param>
     /// <param name="routeName">The route name to check against</param>

@@ -104,6 +104,12 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         var receiversWithMeasurements = await FindReceiversForMeasureDataAsync(calculatedMeasureData, from, to).ConfigureAwait(false);
 
         var enqueueData = new EnqueueCalculatedMeasurementsHttpV1(
+            OrchestrationInstanceId: orchestrationInstanceId.Value,
+            TransactionId: calculatedMeasureData.TransactionId,
+            MeteringPointId: calculatedMeasureData.MeteringPointId,
+            MeteringPointType: calculatedMeasureData.MeteringPointType,
+            Resolution: calculatedMeasureData.Resolution,
+            MeasureUnit: MeasurementUnit.KilowattHour,
             Data: receiversWithMeasurements.Select(
                     r => new EnqueueCalculatedMeasurementsHttpV1.ReceiversWithMeasurements(
                         Receivers: r.Receivers
@@ -112,13 +118,9 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                                     ActorNumber.Create(actor.Number.Value),
                                     ActorRole.FromName(actor.Role.Name)))
                             .ToList(),
-                        MeteringPointId: calculatedMeasureData.MeteringPointId,
-                        MeteringPointType: calculatedMeasureData.MeteringPointType,
-                        MeasureUnit: MeasurementUnit.KilowattHour,
                         RegistrationDateTime: calculatedMeasureData.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
                         StartDateTime: from.ToDateTimeOffset(),
                         EndDateTime: to.ToDateTimeOffset(),
-                        Resolution: calculatedMeasureData.Resolution,
                         Measurements: r.MeasureDataList
                             .Select(
                                 (md, i) => new EnqueueCalculatedMeasurementsHttpV1.Measurement(

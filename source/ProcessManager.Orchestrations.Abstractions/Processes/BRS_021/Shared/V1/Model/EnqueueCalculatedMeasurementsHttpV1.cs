@@ -19,6 +19,12 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1.Model;
 
 public sealed record EnqueueCalculatedMeasurementsHttpV1(
+    Guid OrchestrationInstanceId,
+    Guid TransactionId,
+    string MeteringPointId,
+    MeteringPointType MeteringPointType,
+    Resolution Resolution,
+    MeasurementUnit MeasureUnit,
     IReadOnlyCollection<EnqueueCalculatedMeasurementsHttpV1.ReceiversWithMeasurements> Data)
         : IEnqueueDataSyncDto
 {
@@ -28,13 +34,9 @@ public sealed record EnqueueCalculatedMeasurementsHttpV1(
 
     public record ReceiversWithMeasurements(
         IReadOnlyCollection<Actor> Receivers,
-        string MeteringPointId,
-        MeteringPointType MeteringPointType,
-        MeasurementUnit MeasureUnit,
         DateTimeOffset RegistrationDateTime,
         DateTimeOffset StartDateTime,
         DateTimeOffset EndDateTime,
-        Resolution Resolution,
         IReadOnlyCollection<Measurement> Measurements,
         string GridAreaCode);
 

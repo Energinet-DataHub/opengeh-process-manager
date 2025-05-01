@@ -80,7 +80,7 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     [Fact]
     public async Task Given_SuccessfulResponse_When_EnqueueAsync_Then_NoExceptions()
     {
-        var request = new EnqueueData();
+        var request = new TestEnqueueData();
 
         MockServer.MockEnqueueActorMessagesHttpResponse(
             request.Route,
@@ -92,7 +92,7 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     [Fact]
     public async Task Given_FaultedResponse_When_EnqueueAsync_Then_ThrowsException()
     {
-        var request = new EnqueueData();
+        var request = new TestEnqueueData();
 
         MockServer.MockEnqueueActorMessagesHttpResponse(
             request.Route,
@@ -101,7 +101,7 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
         await Assert.ThrowsAsync<HttpRequestException>(() => Sut.EnqueueAsync(request));
     }
 
-    private record EnqueueData
+    private record TestEnqueueData
         : IEnqueueDataSyncDto
     {
         public const string RouteName = "v1/enqueue_actor_messages";

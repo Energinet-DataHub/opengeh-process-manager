@@ -1,12 +1,16 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.1.4
+
+- Update `EnqueueCalculatedMeasurementsHttpV1` to contain a list of `ReceiversWithMeasurements`.
+
 ## Version 2.1.3
 
 - Rename `EnqueueMeasureDataSyncV1` to `EnqueueCalculatedMeasurementsHttpV1`
 
 ## Version 2.1.2
 
-- Renamed StartCalculationCommandV1 to StartNetConsumptionCalculationCommandV1.
+- Renamed `StartCalculationCommandV1` to `StartNetConsumptionCalculationCommandV1`.
 
 ## Version 2.1.1
 

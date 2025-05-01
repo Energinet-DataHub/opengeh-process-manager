@@ -185,6 +185,12 @@ public class MeteringPointReceiversProvider(
         switch (meteringPointType)
         {
             case var _ when meteringPointType == MeteringPointType.Consumption:
+                if (meteringPointMasterData.EnergySupplier is not null)
+                {
+                    receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                }
+
+                break;
             case var _ when meteringPointType == MeteringPointType.Production:
                 if (meteringPointMasterData.EnergySupplier is not null)
                 {
@@ -192,6 +198,7 @@ public class MeteringPointReceiversProvider(
                 }
 
                 receivers.Add(DanishEnergyAgencyReceiver());
+
                 break;
             case var _ when meteringPointType == MeteringPointType.Exchange:
                 receivers.AddRange(
@@ -214,11 +221,14 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.ElectricalHeating:
             case var _ when meteringPointType == MeteringPointType.NetConsumption:
             case var _ when meteringPointType == MeteringPointType.CapacitySettlement:
-
-                // There can be periods where no energy supplier is assigned to the parent/child metering point,
-                // thus we can only send to the energy supplier if there actually is one.
-                if (meteringPointMasterData.EnergySupplier is not null)
-                    receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                // If no parent is assigned, we never send to the energy supplier, even tough one is assigned.
+                if (meteringPointMasterData.ParentMeteringPointId is not null)
+                {
+                    // There can be periods where no energy supplier is assigned to the parent/child metering point,
+                    // thus we can only send to the energy supplier if there actually is one.
+                    if (meteringPointMasterData.EnergySupplier is not null)
+                        receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
+                }
 
                 receivers.Add(GridAccessProviderReceiver(meteringPointMasterData.CurrentGridAccessProvider));
                 break;
@@ -244,6 +254,7 @@ public class MeteringPointReceiversProvider(
             case var _ when meteringPointType == MeteringPointType.CollectiveNetProduction:
             case var _ when meteringPointType == MeteringPointType.CollectiveNetConsumption:
             case var _ when meteringPointType == MeteringPointType.InternalUse:
+                // If no parent is assigned, we never send to the energy supplier, even tough one is assigned.
                 if (meteringPointMasterData.ParentMeteringPointId is not null)
                 {
                     // It is legal for the energy supplier to be null for these metering point types
@@ -252,10 +263,6 @@ public class MeteringPointReceiversProvider(
                     {
                         receivers.Add(EnergySupplierReceiver(meteringPointMasterData.EnergySupplier));
                     }
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Parent metering point is missing for child metering point type (MeteringPointId={meteringPointMasterData.MeteringPointId.Value}, MeteringPointType={meteringPointMasterData.MeteringPointType.Name}).");
                 }
 
                 break;

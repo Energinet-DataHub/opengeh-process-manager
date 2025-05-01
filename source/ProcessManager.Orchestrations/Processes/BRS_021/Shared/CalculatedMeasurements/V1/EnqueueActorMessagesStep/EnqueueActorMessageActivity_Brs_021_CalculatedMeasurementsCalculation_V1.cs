@@ -72,6 +72,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
             enqueueTasks.Add(enqueueTask);
 
+            // Max 100 running EnqueueActorMessage tasks at the same time, to avoid DDOSing the enqueue actor messages HTTP service.
             if (enqueueTasks.Count(t => !t.IsCompleted) > 100)
                 await Task.WhenAll(enqueueTasks).ConfigureAwait(false);
         }

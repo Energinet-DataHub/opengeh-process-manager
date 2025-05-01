@@ -29,11 +29,11 @@ internal class EnqueueActorMessagesHttpClient(
     public async Task EnqueueAsync<TMessageData>(TMessageData data)
         where TMessageData : IEnqueueDataSyncDto
     {
-        var enqueueUrl = $"{EdiEndpointPrefix}{data.Route}";
+        var enqueuePath = $"{EdiEndpointPrefix}{data.Route}";
 
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            enqueueUrl);
+            enqueuePath);
 
         var json = JsonSerializer.Serialize(data, data.GetType());
 

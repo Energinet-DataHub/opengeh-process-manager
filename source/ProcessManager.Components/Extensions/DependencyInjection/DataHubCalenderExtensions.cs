@@ -21,12 +21,12 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 public static class DataHubCalenderExtensions
 {
     /// <summary>
-    /// Register time component.
+    /// Register the DataHub calendar component.
     /// </summary>
-    public static IServiceCollection AddDataHubCalenderComponent(
+    public static IServiceCollection AddDataHubCalendarComponent(
         this IServiceCollection services)
     {
-        services.TryAddTransient<DataHubCalender>();
+        services.TryAddTransient<DataHubCalendar>();
         return services;
     }
 }

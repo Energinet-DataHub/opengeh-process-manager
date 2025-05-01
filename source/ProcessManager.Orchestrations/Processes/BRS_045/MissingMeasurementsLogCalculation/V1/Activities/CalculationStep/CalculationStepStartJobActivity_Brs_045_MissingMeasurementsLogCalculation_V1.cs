@@ -28,7 +28,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Miss
 internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1(
     [FromKeyedServices(DatabricksWorkspaceNames.Measurements)]
     IDatabricksJobsClient client,
-    DataHubCalender dataHubCalender)
+    DataHubCalendar dataHubCalendar)
 {
     private readonly IDatabricksJobsClient _client = client;
 
@@ -38,8 +38,8 @@ internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal
     {
         // The missing measurement logs calculation period:
         // 3 working days back from today, and 93 days back from today.
-        var relativeWorkingDay = dataHubCalender.GetWorkingDayRelativeToToday(-3);
-        var periodStart = dataHubCalender.CurrentDate().PlusDays(-93);
+        var relativeWorkingDay = dataHubCalendar.GetWorkingDayRelativeToToday(-3);
+        var periodStart = dataHubCalendar.CurrentDate().PlusDays(-93);
         var periodEnd = relativeWorkingDay.ToInstant();
         var jobParameters = new List<string>
         {

@@ -16,13 +16,13 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Components.WorkingDays;
 
-public class DataHubCalender
+public class DataHubCalendar
 {
     private readonly IClock _clock;
     private readonly DateTimeZone _zone;
     private ZonedDateTime _easterSunday;
 
-    public DataHubCalender(IClock clock, DateTimeZone zone)
+    public DataHubCalendar(IClock clock, DateTimeZone zone)
     {
         _clock = clock;
         _zone = zone;

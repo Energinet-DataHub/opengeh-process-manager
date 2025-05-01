@@ -76,7 +76,7 @@ var host = new HostBuilder()
         services.AddTimeComponent();
 
         // DataHub Calender
-        services.AddDataHubCalenderComponent();
+        services.AddDataHubCalendarComponent();
 
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);

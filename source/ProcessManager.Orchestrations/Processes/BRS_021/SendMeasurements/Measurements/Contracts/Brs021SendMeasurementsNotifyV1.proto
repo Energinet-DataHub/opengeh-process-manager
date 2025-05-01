@@ -17,10 +17,9 @@ syntax = "proto3";
 
 package google.protobuf;
 
-option csharp_namespace = "Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeasurements.Measurements.Contracts";
+option csharp_namespace = "Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.Measurements.Contracts";
 
-// This contract is used for the initial deserialize of the message in order to determine the version of the message 
-// and which contract to use for further deserialization
-message Brs021ForwardMeasurementsNotifyVersion {
+message Brs021SendMeasurementsNotifyV1 {
   string version = 1;
+  string orchestration_instance_id = 2;
 }

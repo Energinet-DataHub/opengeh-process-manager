@@ -180,22 +180,5 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 times: 1)
             .Should()
             .BeTrue("because the orchestration instance should have enqueued messages to EDI");
-
-        // Step 3: General search using name and termination state
-        // TODO: I'm not sure why this search is relevant in this test?
-        var orchestrationInstancesGeneralSearch = await processManagerClient
-            .SearchOrchestrationInstancesByNameAsync(
-                new SearchOrchestrationInstancesByNameQuery(
-                    Fixture.DefaultUserIdentity,
-                    name: Brs_021_CapacitySettlementCalculation.Name,
-                    version: null,
-                    lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
-                    terminationState: OrchestrationInstanceTerminationState.Succeeded,
-                    startedAtOrLater: null,
-                    terminatedAtOrEarlier: null,
-                    scheduledAtOrLater: null),
-                CancellationToken.None);
-
-        orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
     }
 }

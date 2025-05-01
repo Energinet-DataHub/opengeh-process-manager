@@ -173,6 +173,7 @@ public class MeteringPointReceiversProvider(
             MeasureUnit: masterDataWithMeteredData.MasterData.MeasurementUnit,
             StartDateTime: masterDataWithMeteredData.ValidFrom.ToDateTimeOffset(),
             EndDateTime: masterDataWithMeteredData.ValidTo.ToDateTimeOffset(),
+            GridArea: masterDataWithMeteredData.MasterData.CurrentGridAreaCode.Value,
             MeasureDataList: masterDataWithMeteredData.MeasureData);
     }
 

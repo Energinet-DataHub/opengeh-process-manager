@@ -25,6 +25,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shar
 /// <param name="MeasureUnit">The measure units the measure data has in this period.</param>
 /// <param name="StartDateTime">The start date and time of the period.</param>
 /// <param name="EndDateTime">The end date and time of the period.</param>
+/// <param name="GridArea">The grid area code.</param>
 /// <param name="MeasureDataList">The measure data in the given period.</param>
 public record ReceiversWithMeasureData(
     IReadOnlyCollection<Actor> Receivers,
@@ -32,6 +33,7 @@ public record ReceiversWithMeasureData(
     MeasurementUnit MeasureUnit,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
+    string GridArea,
     IReadOnlyCollection<ReceiversWithMeasureData.MeasureData> MeasureDataList)
 {
     public record MeasureData(

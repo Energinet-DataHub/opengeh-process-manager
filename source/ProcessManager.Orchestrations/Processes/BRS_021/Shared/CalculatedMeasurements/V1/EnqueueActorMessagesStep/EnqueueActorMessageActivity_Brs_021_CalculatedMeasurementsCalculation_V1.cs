@@ -13,10 +13,12 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements.Model;
@@ -25,6 +27,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.E
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.EnqueueActorMessagesStep;
 
@@ -32,14 +35,14 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> logger,
     MeteringPointMasterDataProvider meteringPointMasterDataProvider,
     MeteringPointReceiversProvider meteringPointReceiversProvider,
-    IEnqueueActorMessagesClient enqueueActorMessagesClient,
+    IEnqueueActorMessagesHttpClient enqueueActorMessagesHttpClient,
     IOptionsSnapshot<DatabricksQueryOptions> databricksQueryOptions,
     DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor)
 {
     private readonly ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> _logger = logger;
     private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
-    private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+    private readonly IEnqueueActorMessagesHttpClient _enqueueActorMessagesHttpClient = enqueueActorMessagesHttpClient;
     private readonly DatabricksQueryOptions _databricksQueryOptions = databricksQueryOptions.Get(QueryOptionsSectionNames.CalculatedMeasurementsQuery);
     private readonly DatabricksSqlWarehouseQueryExecutor _databricksSqlWarehouseQueryExecutor = databricksSqlWarehouseQueryExecutor;
 
@@ -55,6 +58,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
         // This queries all data sequentially, but that probably won't be as quick as we need.
         // TODO: How do we parallelize the query? What parameters can we use to split the query?
+        var enqueueTasks = new List<Task>();
         await foreach (var queryResult in query.GetAsync(_databricksSqlWarehouseQueryExecutor).ConfigureAwait(false))
         {
             if (!queryResult.IsSuccess || queryResult.Result is null) // TODO: Actually handle errors
@@ -62,11 +66,17 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
             // The query result measure data is already grouped by transaction id, so
             // we need to find receivers for it based on the master data for the metering point.
-            await EnqueueMessagesForMeasureData(
+            var enqueueTask = EnqueueMessagesForMeasureDataAsync(
                     orchestrationInstanceId: input.OrchestrationInstanceId,
-                    calculatedMeasureData: queryResult.Result)
-                .ConfigureAwait(false);
+                    calculatedMeasureData: queryResult.Result);
+
+            enqueueTasks.Add(enqueueTask);
+
+            if (enqueueTasks.Count(t => !t.IsCompleted) > 100)
+                await Task.WhenAll(enqueueTasks).ConfigureAwait(false);
         }
+
+        await Task.WhenAll(enqueueTasks).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -75,13 +85,72 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     /// The measure data MUST be ordered by timestamp, and MUST NOT contain any gaps.
     /// </remarks>
     /// </summary>
-    private async Task EnqueueMessagesForMeasureData(
+    private async Task EnqueueMessagesForMeasureDataAsync(
         OrchestrationInstanceId orchestrationInstanceId,
         CalculatedMeasurement calculatedMeasureData)
     {
         var from = calculatedMeasureData.MeasureData.First().ObservationTime;
-        var to = calculatedMeasureData.MeasureData.Last().ObservationTime;
 
+        var resolutionAsDuration = calculatedMeasureData.Resolution switch
+        {
+            var r when r == Resolution.Hourly => Duration.FromHours(1),
+            // Can resolution ever be anything else than 1 hour in calculated measurements?
+            _ => throw new ArgumentOutOfRangeException(nameof(calculatedMeasureData.Resolution), calculatedMeasureData.Resolution, "Invalid resolution"),
+        };
+        var to = calculatedMeasureData.MeasureData.Last().ObservationTime.Plus(resolutionAsDuration);
+
+        var receiversWithMeasurements = await FindReceiversForMeasureDataAsync(calculatedMeasureData, from, to).ConfigureAwait(false);
+
+        var enqueueData = new EnqueueCalculatedMeasurementsHttpV1(
+            Data: receiversWithMeasurements.Select(
+                    r => new EnqueueCalculatedMeasurementsHttpV1.ReceiversWithMeasurements(
+                        r.Receivers
+                            .Select(
+                                actor => new EnqueueCalculatedMeasurementsHttpV1.Actor(
+                                    ActorNumber.Create(actor.Number.Value),
+                                    ActorRole.FromName(actor.Role.Name)))
+                            .ToList(),
+                        calculatedMeasureData.MeteringPointId,
+                        calculatedMeasureData.MeteringPointType,
+                        MeasurementUnit.KilowattHour,
+                        calculatedMeasureData.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
+                        from.ToDateTimeOffset(),
+                        to.ToDateTimeOffset(),
+                        calculatedMeasureData.Resolution,
+                        r.MeasureDataList
+                            .Select(
+                                (md, i) => new EnqueueCalculatedMeasurementsHttpV1.Measurement(
+                                    Position: i + 1,
+                                    // TODO: Are these null assumptions correct?
+                                    EnergyQuantity: md.EnergyQuantity ?? throw new InvalidOperationException("Energy quantity should not be null in calculated measurement calculations."),
+                                    QuantityQuality: md.QuantityQuality ?? throw new InvalidOperationException("Quality should not be null in calculated measurement calculations.")))
+                            .ToList(),
+                        r.GridArea))
+                .ToList());
+
+        await _enqueueActorMessagesHttpClient.EnqueueAsync(enqueueData).ConfigureAwait(false);
+
+        // // Enqueue to EDI
+        // await _enqueueActorMessagesHttpClient.EnqueueAsync(new EnqueueCalculatedMeasurementsHttpV1(
+        //
+        //     ))
+
+        // TODO: This needs to be handled differently, since this requires the orchestration to wait
+        // for each enqueued messages event to be returned.
+        // await _enqueueActorMessagesClient.EnqueueAsync(
+        //         orchestration: Orchestration_Brs_021_ElectricalHeatingCalculation_V1.UniqueName,
+        //         orchestrationInstanceId: orchestrationInstanceId.Value,
+        //         orchestrationStartedBy: new ActorIdentityDto(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider), // TODO: Get this from the orchestration instance
+        //         // TODO: We need to create unique deterministic idempotency keys for each message sent to EDI instead,
+        //         // so rerunning the activity generates the same idempotency keys as previous run.
+        //         idempotencyKey: Guid.NewGuid(),
+        //         data: new EnqueueActorMessagesForMeteringPointV1(
+        //             ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingReceiversWithMeasureDataV1()))
+        //     .ConfigureAwait(false);
+    }
+
+    private async Task<List<ReceiversWithMeasureData>> FindReceiversForMeasureDataAsync(CalculatedMeasurement calculatedMeasureData, Instant from, Instant to)
+    {
         // We need to get master data & receivers for each metering point id
         var masterDataForMeteringPoint = await _meteringPointMasterDataProvider.GetMasterData(
                 meteringPointId: calculatedMeasureData.MeteringPointId,
@@ -104,19 +173,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                             QuantityQuality: Quality.Calculated))
                         .ToList()));
 
-        // Enqueue to EDI
-        // TODO: This needs to be handled differently, since this requires the orchestration to wait
-        // for each enqueued messages event to be returned.
-        // await _enqueueActorMessagesClient.EnqueueAsync(
-        //         orchestration: Orchestration_Brs_021_ElectricalHeatingCalculation_V1.UniqueName,
-        //         orchestrationInstanceId: orchestrationInstanceId.Value,
-        //         orchestrationStartedBy: new ActorIdentityDto(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider), // TODO: Get this from the orchestration instance
-        //         // TODO: We need to create unique deterministic idempotency keys for each message sent to EDI instead,
-        //         // so rerunning the activity generates the same idempotency keys as previous run.
-        //         idempotencyKey: Guid.NewGuid(),
-        //         data: new EnqueueActorMessagesForMeteringPointV1(
-        //             ReceiversWithMeasureData: receiversForMeteringPoint.ToElectricalHeatingReceiversWithMeasureDataV1()))
-        //     .ConfigureAwait(false);
+        return receiversForMeteringPoint;
     }
 
     public record ActivityInput(

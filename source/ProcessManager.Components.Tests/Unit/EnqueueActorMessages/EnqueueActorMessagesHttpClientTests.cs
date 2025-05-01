@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessa
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -54,10 +55,6 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
         Services.AddEnqueueActorMessagesHttp(mockCredential.Object);
         ServiceProvider = Services.BuildServiceProvider();
         Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesHttpClient>();
-
-        Actor = new Actor(
-            ActorNumber: ActorNumber.Create("1234567890123"),
-            ActorRole: ActorRole.EnergySupplier);
     }
 
     private IEnqueueActorMessagesHttpClient Sut { get;  }
@@ -67,8 +64,6 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     private ServiceCollection Services { get; }
 
     private ServiceProvider ServiceProvider { get; }
-
-    private Actor Actor { get; }
 
     public Task InitializeAsync()
     {
@@ -85,7 +80,7 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     [Fact]
     public async Task Given_SuccessfulResponse_When_EnqueueAsync_Then_NoExceptions()
     {
-        var request = new EnqueueData(Actor);
+        var request = new EnqueueData();
 
         MockServer.MockEnqueueActorMessagesHttpClientResponse(
             request.Route,
@@ -97,18 +92,16 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     [Fact]
     public async Task Given_FaultedResponse_When_EnqueueAsync_Then_ThrowsException()
     {
-        var request = new EnqueueData(Actor);
+        var request = new EnqueueData();
 
         MockServer.MockEnqueueActorMessagesHttpClientResponse(
             request.Route,
             HttpStatusCode.RequestTimeout);
 
-        await Assert.ThrowsAsync<HttpRequestException>(() => Sut.EnqueueAsync(request))
-        ;
+        await Assert.ThrowsAsync<HttpRequestException>(() => Sut.EnqueueAsync(request));
     }
 
-    private record EnqueueData(
-        Actor Receiver)
+    private record EnqueueData
         : IEnqueueDataSyncDto
     {
         public const string RouteName = "v1/enqueue_actor_messages";

@@ -87,8 +87,8 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     {
         var request = new EnqueueData(Actor);
 
-        MockServer.MockHttpStatusCodeResponse(
-            $"{EnqueueActorMessagesHttpClient.EdiEndpointPrefix}{request.Route}",
+        MockServer.MockEnqueueActorMessagesHttpClientResponse(
+            request.Route,
             HttpStatusCode.OK);
 
         await Sut.EnqueueAsync(request);
@@ -99,8 +99,8 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
     {
         var request = new EnqueueData(Actor);
 
-        MockServer.MockHttpStatusCodeResponse(
-            $"{EnqueueActorMessagesHttpClient.EdiEndpointPrefix}{request.Route}",
+        MockServer.MockEnqueueActorMessagesHttpClientResponse(
+            request.Route,
             HttpStatusCode.RequestTimeout);
 
         await Assert.ThrowsAsync<HttpRequestException>(() => Sut.EnqueueAsync(request))

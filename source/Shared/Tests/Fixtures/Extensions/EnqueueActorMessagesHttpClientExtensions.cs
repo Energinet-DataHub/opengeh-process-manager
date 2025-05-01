@@ -23,13 +23,13 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 /// <summary>
 /// Extensions for setting up the WireMock server to mock the http status code response.
 /// </summary>
-public static class HttpWireMockExtensions
+public static class EnqueueActorMessagesHttpClientExtensions
 {
-    public static WireMockServer MockHttpStatusCodeResponse(this WireMockServer server, string path, HttpStatusCode statusCode = HttpStatusCode.OK)
+    public static WireMockServer MockEnqueueActorMessagesHttpClientResponse(this WireMockServer server, string routeName, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         var request = Request
             .Create()
-            .WithPath(path)
+            .WithPath($"/api/enqueue/{routeName}")
             .UsingPost();
 
         var response = Response

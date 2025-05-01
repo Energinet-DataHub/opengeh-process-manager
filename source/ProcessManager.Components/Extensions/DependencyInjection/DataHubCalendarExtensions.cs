@@ -18,7 +18,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
-public static class DataHubCalenderExtensions
+public static class DataHubCalendarExtensions
 {
     /// <summary>
     /// Register the DataHub calendar component.

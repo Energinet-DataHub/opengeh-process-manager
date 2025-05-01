@@ -75,7 +75,7 @@ var host = new HostBuilder()
         // Time component
         services.AddTimeComponent();
 
-        // DataHub Calender
+        // DataHub Calendar
         services.AddDataHubCalendarComponent();
 
         // ProcessManager

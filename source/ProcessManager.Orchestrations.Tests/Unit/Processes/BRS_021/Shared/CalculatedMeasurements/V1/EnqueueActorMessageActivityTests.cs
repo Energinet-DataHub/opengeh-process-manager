@@ -38,7 +38,67 @@ public class EnqueueActorMessageActivityTests
     private readonly DateTimeZone _timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
 
     [Fact]
-    public async Task Given_Receives101TransactionFromDatabricksQuery_When_ActivityIsRan_Then_AllTransactionsAreEnqueued()
+    public async Task Given_ReceivesTransactionsFromDatabricksQuery_When_ActivityIsRun_Then_AllTransactionsAreEnqueued()
+    {
+        // Given
+        // => Use more than 100 since the parallel limit is set to 100 in the activity
+        const int transactionsCount = 250;
+
+        var enqueueActorMessageMock = new Mock<IEnqueueActorMessagesHttpClient>();
+
+        var databricksSqlMock = new Mock<DatabricksSqlWarehouseQueryExecutor>();
+        databricksSqlMock
+            .Setup(sql => sql.ExecuteStatementAsync(
+                It.IsAny<DatabricksStatement>(),
+                It.IsAny<Format>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(GenerateDatabricksSqlAsyncEnumerable(transactionsCount));
+
+        var sut = CreateSut(
+            enqueueActorMessageMock,
+            databricksSqlMock);
+
+        // When activity is run
+        var enqueuedTransactionCount = await sut.Run(
+            new EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1.ActivityInput(
+                new OrchestrationInstanceId(Guid.NewGuid())));
+
+        // Then all transactions are enqueued
+        Assert.Equal(transactionsCount, enqueuedTransactionCount);
+
+        enqueueActorMessageMock.Verify(
+            expression: m => m.EnqueueAsync(It.IsAny<EnqueueCalculatedMeasurementsHttpV1>()),
+            times: Times.Exactly(transactionsCount));
+    }
+
+    private EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1 CreateSut(
+        Mock<IEnqueueActorMessagesHttpClient> enqueueActorMessageMock,
+        Mock<DatabricksSqlWarehouseQueryExecutor> databricksSqlMock)
+    {
+        var masterDataProviderMock = MockMasterDataProvider();
+        var queryOptionsMock = MockQueryOptions();
+
+        var sut = new EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1(
+            new Mock<ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1>>().Object,
+            masterDataProviderMock.Object,
+            new MeteringPointReceiversProvider(_timeZone),
+            enqueueActorMessageMock.Object,
+            queryOptionsMock.Object,
+            databricksSqlMock.Object);
+
+        return sut;
+    }
+
+    private Mock<IOptionsSnapshot<DatabricksQueryOptions>> MockQueryOptions()
+    {
+        var queryOptionsMock = new Mock<IOptionsSnapshot<DatabricksQueryOptions>>();
+        queryOptionsMock
+            .Setup(o => o.Get(It.IsAny<string>()))
+            .Returns(new DatabricksQueryOptions { CatalogName = "TestCatalog", DatabaseName = "TestDatabase" });
+        return queryOptionsMock;
+    }
+
+    private Mock<IMeteringPointMasterDataProvider> MockMasterDataProvider()
     {
         var masterDataProviderMock = new Mock<IMeteringPointMasterDataProvider>();
         masterDataProviderMock.Setup(
@@ -65,41 +125,7 @@ public class EnqueueActorMessageActivityTests
                         ParentMeteringPointId: new MeteringPointId("2224567890123456"),
                         EnergySupplier: ActorNumber.Create("2222222222222")),
                 ]));
-
-        var enqueueActorMessageMock = new Mock<IEnqueueActorMessagesHttpClient>();
-
-        var queryOptionsMock = new Mock<IOptionsSnapshot<DatabricksQueryOptions>>();
-        queryOptionsMock
-            .Setup(o => o.Get(It.IsAny<string>()))
-            .Returns(new DatabricksQueryOptions { CatalogName = "TestCatalog", DatabaseName = "TestDatabase" });
-
-        const int transactionsCount = 101;
-
-        var databricksSqlMock = new Mock<DatabricksSqlWarehouseQueryExecutor>();
-        databricksSqlMock
-            .Setup(sql => sql.ExecuteStatementAsync(
-                It.IsAny<DatabricksStatement>(),
-                It.IsAny<Format>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(GenerateDatabricksSqlAsyncEnumerable(transactionsCount));
-
-        var sut = new EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1(
-            new Mock<ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1>>().Object,
-            masterDataProviderMock.Object,
-            new MeteringPointReceiversProvider(_timeZone),
-            enqueueActorMessageMock.Object,
-            queryOptionsMock.Object,
-            databricksSqlMock.Object);
-
-        var enqueuedTransactionCount = await sut.Run(
-            new EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1.ActivityInput(
-                new OrchestrationInstanceId(Guid.NewGuid())));
-
-        Assert.Equal(transactionsCount, enqueuedTransactionCount); // Each row is a separate transaction
-
-        enqueueActorMessageMock.Verify(
-            expression: m => m.EnqueueAsync(It.IsAny<EnqueueCalculatedMeasurementsHttpV1>()),
-            times: Times.Exactly(transactionsCount));
+        return masterDataProviderMock;
     }
 
     private IAsyncEnumerable<IDictionary<string, object>> GenerateDatabricksSqlAsyncEnumerable(int transactionsCount)

@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 2.0.3
+
+- Remove `Receiver` from `IEnqueueDataSyncDto`.
+
 ## Version 2.0.2
 
 - Add `IEnqueueDataSyncDto` interface.

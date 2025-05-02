@@ -12,20 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-
 namespace Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 
 public interface IEnqueueDataSyncDto
 {
-    Actor Receiver { get; init; }
-
     /// <summary>
     /// The route to send the request on
     /// </summary>
     abstract string Route { get; }
 }
-
-public record Actor(
-    ActorNumber ActorNumber,
-    ActorRole ActorRole);

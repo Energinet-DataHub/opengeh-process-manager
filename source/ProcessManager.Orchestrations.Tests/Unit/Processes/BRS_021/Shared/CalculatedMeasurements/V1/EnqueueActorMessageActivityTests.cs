@@ -1,0 +1,150 @@
+﻿// Copyright 2020 Energinet DataHub A/S
+//
+// Licensed under the Apache License, Version 2.0 (the "License2");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using System.Globalization;
+using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
+using Energinet.DataHub.Core.Databricks.SqlStatementExecution.Formats;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.EnqueueActorMessagesStep;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using NodaTime;
+
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.Shared.CalculatedMeasurements.V1;
+
+public class EnqueueActorMessageActivityTests
+{
+    private readonly DateTimeZone _timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
+
+    [Fact]
+    public async Task Given_Receives101TransactionFromDatabricksQuery_When_ActivityIsRan_Then_AllTransactionsAreEnqueued()
+    {
+        var masterDataProviderMock = new Mock<IMeteringPointMasterDataProvider>();
+        masterDataProviderMock.Setup(
+                mdp => mdp.GetMasterData(
+                    It.IsAny<string>(),
+                    It.IsAny<Instant>(),
+                    It.IsAny<Instant>()))
+            .Returns(
+                Task.FromResult<IReadOnlyCollection<MeteringPointMasterData>>(
+                [
+                    new(
+                        MeteringPointId: new MeteringPointId("1114567890123456"),
+                        ValidFrom: DateTimeOffset.MinValue,
+                        ValidTo: DateTimeOffset.MaxValue,
+                        CurrentGridAreaCode: new GridAreaCode("404"),
+                        CurrentGridAccessProvider: ActorNumber.Create("1111111111111"),
+                        CurrentNeighborGridAreaOwners: [],
+                        ConnectionState: ConnectionState.Connected,
+                        MeteringPointType: MeteringPointType.ElectricalHeating,
+                        MeteringPointSubType: MeteringPointSubType.Calculated,
+                        Resolution: Resolution.QuarterHourly,
+                        MeasurementUnit: MeasurementUnit.KilowattHour,
+                        ProductId: "???",
+                        ParentMeteringPointId: new MeteringPointId("2224567890123456"),
+                        EnergySupplier: ActorNumber.Create("2222222222222")),
+                ]));
+
+        var enqueueActorMessageMock = new Mock<IEnqueueActorMessagesHttpClient>();
+
+        var queryOptionsMock = new Mock<IOptionsSnapshot<DatabricksQueryOptions>>();
+        queryOptionsMock
+            .Setup(o => o.Get(It.IsAny<string>()))
+            .Returns(new DatabricksQueryOptions { CatalogName = "TestCatalog", DatabaseName = "TestDatabase" });
+
+        const int transactionsCount = 101;
+
+        var databricksSqlMock = new Mock<DatabricksSqlWarehouseQueryExecutor>();
+        databricksSqlMock
+            .Setup(sql => sql.ExecuteStatementAsync(
+                It.IsAny<DatabricksStatement>(),
+                It.IsAny<Format>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(GenerateDatabricksSqlAsyncEnumerable(transactionsCount));
+
+        var sut = new EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1(
+            new Mock<ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1>>().Object,
+            masterDataProviderMock.Object,
+            new MeteringPointReceiversProvider(_timeZone),
+            enqueueActorMessageMock.Object,
+            queryOptionsMock.Object,
+            databricksSqlMock.Object);
+
+        var enqueuedTransactionCount = await sut.Run(
+            new EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1.ActivityInput(
+                new OrchestrationInstanceId(Guid.NewGuid())));
+
+        Assert.Equal(transactionsCount, enqueuedTransactionCount); // Each row is a separate transaction
+
+        enqueueActorMessageMock.Verify(
+            expression: m => m.EnqueueAsync(It.IsAny<EnqueueCalculatedMeasurementsHttpV1>()),
+            times: Times.Exactly(transactionsCount));
+    }
+
+    private IAsyncEnumerable<IDictionary<string, object>> GenerateDatabricksSqlAsyncEnumerable(int transactionsCount)
+    {
+        var start = Instant.FromUtc(2025, 05, 02, 12, 00);
+
+        var rows = Enumerable.Range(0, transactionsCount)
+            .Select(
+                i =>
+                    new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
+                        OrchestrationInstanceId: Guid.NewGuid(),
+                        TransactionId: Guid.NewGuid(),
+                        TransactionCreationDatetime: Instant.FromUtc(2025, 05, 02, 13, 00),
+                        MeteringPointId: "1234567890123456",
+                        MeteringPointType: "electrical_heating",
+                        Resolution: "PT15M",
+                        // Skipping 30 minutes, when the resolution is 15 minutes, creates a gap between each observation,
+                        // and thus each observation has a new transaction id.
+                        ObservationTime: start.Plus(Duration.FromMinutes(30 * i)),
+                        Quantity: 1337.42m))
+            .ToList();
+
+        var schemaDescription = new CalculatedMeasurementsSchemaDescription(Mock.Of<DatabricksQueryOptions>());
+
+        var rowsAsDictionaries = rows
+            .Select(r =>
+                schemaDescription.SchemaDefinition.Keys.ToDictionary<string, string, object>(
+                    keySelector: columnName => columnName,
+                    elementSelector: columnName => columnName switch
+                    {
+                        CalculatedMeasurementsColumnNames.OrchestrationType => "???",
+                        CalculatedMeasurementsColumnNames.OrchestrationInstanceId => r.OrchestrationInstanceId.ToString(),
+                        CalculatedMeasurementsColumnNames.TransactionId => r.TransactionId.ToString(),
+                        CalculatedMeasurementsColumnNames.TransactionCreationDatetime => r.TransactionCreationDatetime.ToString(),
+                        CalculatedMeasurementsColumnNames.MeteringPointId => r.MeteringPointId,
+                        CalculatedMeasurementsColumnNames.MeteringPointType => r.MeteringPointType,
+                        CalculatedMeasurementsColumnNames.ObservationTime => r.ObservationTime.ToString(),
+                        CalculatedMeasurementsColumnNames.Quantity => r.Quantity.ToString(NumberFormatInfo.InvariantInfo),
+                        CalculatedMeasurementsColumnNames.QuantityUnit => "kWh",
+                        CalculatedMeasurementsColumnNames.QuantityQuality => "calculated",
+                        CalculatedMeasurementsColumnNames.Resolution => "PT15M",
+                        _ => throw new ArgumentOutOfRangeException(nameof(columnName), $"Unknown column name: {columnName}"),
+                    }))
+            .ToAsyncEnumerable();
+
+        return rowsAsDictionaries;
+    }
+}

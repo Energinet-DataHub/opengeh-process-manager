@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Concurrent;
 using System.Threading.Tasks.Dataflow;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -34,14 +35,14 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shar
 
 public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1(
     ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> logger,
-    MeteringPointMasterDataProvider meteringPointMasterDataProvider,
+    IMeteringPointMasterDataProvider meteringPointMasterDataProvider,
     MeteringPointReceiversProvider meteringPointReceiversProvider,
     IEnqueueActorMessagesHttpClient enqueueActorMessagesHttpClient,
     IOptionsSnapshot<DatabricksQueryOptions> databricksQueryOptions,
     DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor)
 {
     private readonly ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> _logger = logger;
-    private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
+    private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
     private readonly IEnqueueActorMessagesHttpClient _enqueueActorMessagesHttpClient = enqueueActorMessagesHttpClient;
     private readonly DatabricksQueryOptions _databricksQueryOptions = databricksQueryOptions.Get(QueryOptionsSectionNames.CalculatedMeasurementsQuery);
@@ -57,42 +58,17 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
             schemaDescription,
             input.OrchestrationInstanceId.Value);
 
-        // This queries all data sequentially, but that probably won't be as quick as we need.
-        // TODO: How do we parallelize the query? What parameters can we use to split the query?
-        var failedTransactions = new List<string>();
+        var enqueueTasks = new List<Task>();
+        var failedTransactions = new ConcurrentBag<string>();
         var enqueuedTransactionsCount = 0;
 
-        // Perform calls async, but only allow 100 to be running at the same time. Uses System.Threading.Tasks.Dataflow
-        // (see: https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/dataflow-task-parallel-library)
-        var enqueueActorMessagesWorker = new ActionBlock<(
-                OrchestrationInstanceId OrchestrationInstanceId,
-                CalculatedMeasurement CalculatedMeasurement)>(
-            action: async enqueueActorMessagesInput =>
-            {
-                try
-                {
-                    await EnqueueMessagesForMeasureDataAsync(
-                            enqueueActorMessagesInput.OrchestrationInstanceId,
-                            enqueueActorMessagesInput.CalculatedMeasurement)
-                        .ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(
-                        e,
-                        "Failed to enqueue measure data for transaction (TransactionId={TransactionId}, OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId}).",
-                        enqueueActorMessagesInput.CalculatedMeasurement.TransactionId,
-                        enqueueActorMessagesInput.OrchestrationInstanceId.Value,
-                        enqueueActorMessagesInput.CalculatedMeasurement.MeteringPointId);
-                    failedTransactions.Add(enqueueActorMessagesInput.CalculatedMeasurement.TransactionId.ToString());
-                }
-            },
-            dataflowBlockOptions: new ExecutionDataflowBlockOptions
-            {
-                MaxDegreeOfParallelism = 100,
-                BoundedCapacity = 100,
-            });
+        // Perform calls async, but only allow 100 to be running at the same time. Uses SemaphoreSlim to limit concurrency.
+        const int maxConcurrency = 100;
+        var semaphore = new SemaphoreSlim(initialCount: maxConcurrency, maxCount: maxConcurrency);
+        var semaphoreTimeout = TimeSpan.FromMinutes(60);
 
+        // This queries all data sequentially, but that might not be as quick as we need.
+        // TODO: How do we parallelize the query? What parameters can we use to split the query?
         await foreach (var queryResult in query.GetAsync(_databricksSqlWarehouseQueryExecutor).ConfigureAwait(false))
         {
             if (!queryResult.IsSuccess || queryResult.Result is null)
@@ -101,14 +77,48 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                 continue;
             }
 
-            await enqueueActorMessagesWorker
-                .SendAsync((input.OrchestrationInstanceId, queryResult.Result))
-                .ConfigureAwait(false);
+            var calculatedMeasurements = queryResult.Result;
 
-            enqueuedTransactionsCount++;
+            // Only start a new tasks if we can get the semaphore (if there are less than 100 tasks running)
+            var didGetSemaphore = await semaphore.WaitAsync(timeout: TimeSpan.FromHours(1)).ConfigureAwait(false);
+            if (!didGetSemaphore)
+            {
+                _logger.LogError($"Failed to get semaphore within timeout (Timeout={semaphoreTimeout:g}).");
+                failedTransactions.Add(calculatedMeasurements.TransactionId.ToString());
+                continue;
+            }
+
+            // Start a new task to enqueue the measure data, but do not wait for it, since we want to handle
+            // multiple tasks in parallel. The semaphore will ensure that we have maximum 100 tasks running at the same time.
+            enqueueTasks.Add(
+                Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await EnqueueMessagesForMeasureDataAsync(
+                                    input.OrchestrationInstanceId,
+                                    calculatedMeasurements)
+                                .ConfigureAwait(false);
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogError(
+                                e,
+                                "Failed to enqueue measure data for transaction (TransactionId={TransactionId}, OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId}).",
+                                calculatedMeasurements.TransactionId,
+                                input.OrchestrationInstanceId.Value,
+                                calculatedMeasurements.MeteringPointId);
+                            failedTransactions.Add(calculatedMeasurements.TransactionId.ToString());
+                        }
+                        finally
+                        {
+                            Interlocked.Increment(ref enqueuedTransactionsCount); // Increment count thread-safe
+                            semaphore.Release();
+                        }
+                    }));
         }
 
-        await enqueueActorMessagesWorker.Completion.ConfigureAwait(false);
+        await Task.WhenAll(enqueueTasks).ConfigureAwait(false);
 
         if (failedTransactions.Count > 0)
             throw new Exception($"Failed to enqueue measure data for {failedTransactions.Count} transactions ({string.Join(", ", failedTransactions)}).");

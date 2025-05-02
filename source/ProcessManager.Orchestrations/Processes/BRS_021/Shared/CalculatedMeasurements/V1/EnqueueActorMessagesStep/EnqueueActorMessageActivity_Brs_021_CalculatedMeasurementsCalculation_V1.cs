@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Threading.Tasks.Dataflow;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
@@ -47,7 +48,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     private readonly DatabricksSqlWarehouseQueryExecutor _databricksSqlWarehouseQueryExecutor = databricksSqlWarehouseQueryExecutor;
 
     [Function(nameof(EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1))]
-    public async Task Run(
+    public async Task<int> Run(
         [ActivityTrigger] ActivityInput input)
     {
         var schemaDescription = new CalculatedMeasurementsSchemaDescription(_databricksQueryOptions);
@@ -58,26 +59,60 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
         // This queries all data sequentially, but that probably won't be as quick as we need.
         // TODO: How do we parallelize the query? What parameters can we use to split the query?
-        var enqueueTasks = new List<Task>();
+        var failedTransactions = new List<string>();
+        var enqueuedTransactionsCount = 0;
+
+        // Perform calls async, but only allow 100 to be running at the same time. Uses System.Threading.Tasks.Dataflow
+        // (see: https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/dataflow-task-parallel-library)
+        var enqueueActorMessagesWorker = new ActionBlock<(
+                OrchestrationInstanceId OrchestrationInstanceId,
+                CalculatedMeasurement CalculatedMeasurement)>(
+            action: async enqueueActorMessagesInput =>
+            {
+                try
+                {
+                    await EnqueueMessagesForMeasureDataAsync(
+                            enqueueActorMessagesInput.OrchestrationInstanceId,
+                            enqueueActorMessagesInput.CalculatedMeasurement)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(
+                        e,
+                        "Failed to enqueue measure data for transaction (TransactionId={TransactionId}, OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId}).",
+                        enqueueActorMessagesInput.CalculatedMeasurement.TransactionId,
+                        enqueueActorMessagesInput.OrchestrationInstanceId.Value,
+                        enqueueActorMessagesInput.CalculatedMeasurement.MeteringPointId);
+                    failedTransactions.Add(enqueueActorMessagesInput.CalculatedMeasurement.TransactionId.ToString());
+                }
+            },
+            dataflowBlockOptions: new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = 100,
+            });
+
         await foreach (var queryResult in query.GetAsync(_databricksSqlWarehouseQueryExecutor).ConfigureAwait(false))
         {
-            if (!queryResult.IsSuccess || queryResult.Result is null) // TODO: Actually handle errors
-                throw new Exception("Failed to get calculated measure data.");
+            if (!queryResult.IsSuccess || queryResult.Result is null)
+            {
+                failedTransactions.Add(queryResult.Result?.TransactionId.ToString() ?? "Unknown");
+                continue;
+            }
 
-            // The query result measure data is already grouped by transaction id, so
-            // we need to find receivers for it based on the master data for the metering point.
-            var enqueueTask = EnqueueMessagesForMeasureDataAsync(
-                    orchestrationInstanceId: input.OrchestrationInstanceId,
-                    calculatedMeasureData: queryResult.Result);
+            await enqueueActorMessagesWorker
+                .SendAsync((input.OrchestrationInstanceId, queryResult.Result))
+                .ConfigureAwait(false);
 
-            enqueueTasks.Add(enqueueTask);
-
-            // Max 100 running EnqueueActorMessage tasks at the same time, to avoid DDOSing the enqueue actor messages HTTP service.
-            if (enqueueTasks.Count(t => !t.IsCompleted) > 100)
-                await Task.WhenAll(enqueueTasks).ConfigureAwait(false);
+            enqueuedTransactionsCount++;
         }
 
-        await Task.WhenAll(enqueueTasks).ConfigureAwait(false);
+        await enqueueActorMessagesWorker.Completion.ConfigureAwait(false);
+
+        if (failedTransactions.Count > 0)
+            throw new Exception($"Failed to enqueue measure data for {failedTransactions.Count} transactions ({string.Join(", ", failedTransactions)}).");
+
+        return enqueuedTransactionsCount;
     }
 
     /// <summary>
@@ -90,20 +125,37 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         OrchestrationInstanceId orchestrationInstanceId,
         CalculatedMeasurement calculatedMeasureData)
     {
-        var period = GetMeasurementsPeriod(calculatedMeasureData);
+        try
+        {
+            var period = GetMeasurementsPeriod(calculatedMeasureData);
 
-        var receiversWithMeasurements = await FindReceiversForMeasureDataAsync(
-                calculatedMeasureData,
-                period.Start,
-                period.End)
-            .ConfigureAwait(false);
+            var receiversWithMeasurements = await FindReceiversForMeasureDataAsync(
+                    calculatedMeasureData,
+                    period.Start,
+                    period.End)
+                .ConfigureAwait(false);
 
-        await EnqueueActorMessagesAsync(
+            await EnqueueActorMessagesAsync(
+                    orchestrationInstanceId,
+                    calculatedMeasureData,
+                    receiversWithMeasurements,
+                    period)
+                .ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            // We need to log the error here, because we want the transaction id to be part of the logged error message.
+            _logger.LogError(
+                e,
+                "Failed to enqueue measure data for transaction (TransactionId={TransactionId}, OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId}).",
+                calculatedMeasureData.TransactionId,
                 orchestrationInstanceId,
-                calculatedMeasureData,
-                receiversWithMeasurements,
-                period)
-            .ConfigureAwait(false);
+                calculatedMeasureData.MeteringPointId);
+
+            throw new Exception(
+                message: "Failed to enqueue measure data for transaction (TransactionId={TransactionId}, OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId})",
+                innerException: e);
+        }
     }
 
     private Interval GetMeasurementsPeriod(CalculatedMeasurement calculatedMeasureData)

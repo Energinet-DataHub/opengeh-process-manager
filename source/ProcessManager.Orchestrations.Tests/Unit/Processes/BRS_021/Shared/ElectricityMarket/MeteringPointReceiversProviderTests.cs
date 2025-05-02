@@ -70,7 +70,7 @@ public class MeteringPointReceiversProviderTests
             .Where(r => r != Resolution.Monthly && r != Resolution.Other));
 
     [Fact]
-    public void Given_MeteringPointTypeConsumption_When_GetReceivers_Then_ReceiversAreEnergySupplierAndDanishEnergyAgency()
+    public void Given_MeteringPointTypeConsumption_When_GetReceivers_Then_ReceiversAreEnergySupplier()
     {
         var masterData = CreateMasterData(MeteringPointType.Consumption);
 
@@ -82,17 +82,12 @@ public class MeteringPointReceiversProviderTests
             .ContainSingle()
             .Which.Receivers
             .Should()
-            .HaveCount(2)
+            .HaveCount(1)
             .And.SatisfyRespectively(
                 a =>
                 {
                     a.Number.Should().Be(_defaultEnergySupplier);
                     a.Role.Should().Be(ActorRole.EnergySupplier);
-                },
-                a =>
-                {
-                    a.Number.Value.Should().Be(DataHubDetails.DanishEnergyAgencyNumber);
-                    a.Role.Should().Be(ActorRole.DanishEnergyAgency);
                 });
     }
 
@@ -122,12 +117,10 @@ public class MeteringPointReceiversProviderTests
                 });
     }
 
-    [Theory]
-    [InlineData("Consumption")]
-    [InlineData("Production")]
-    public void Given_MeteringPointType_When_GetReceivers_Then_PeriodsAreCorrectForEnergySupplierAndDanishEnergyAgency(string mp)
+    [Fact]
+    public void Given_MeteringPointTypeProduction_When_GetReceivers_Then_PeriodsAreCorrectForEnergySupplierAndDanishEnergyAgency()
     {
-        var meteringPointType = MeteringPointType.FromName(mp);
+        var meteringPointType = MeteringPointType.Production;
         var firstPeriodWithEnergySupplier = new Interval(
             Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 1, hourOfDay: 23, minuteOfHour: 00),
             Instant.FromUtc(year: 2025, monthOfYear: 1, dayOfMonth: 2, hourOfDay: 23, minuteOfHour: 00));

@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
@@ -75,6 +76,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
         Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
 
+        Fixture.OrchestrationsAppManager.MockServer.Reset();
         Fixture.OrchestrationsAppManager.EnsureAppHostUsesMockedDatabricksApi(true);
 
         return Task.CompletedTask;
@@ -95,6 +97,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             RunLifeCycleState.TERMINATED,
             CalculationJobName);
+
+        // Mocking EDI enqueue actor messages response
+        Fixture.OrchestrationsAppManager.MockServer.MockEnqueueActorMessagesHttpClientResponse(
+            EnqueueCalculatedMeasurementsHttpV1.RouteName);
 
         const string meteringPointId = "1234567890123456";
 

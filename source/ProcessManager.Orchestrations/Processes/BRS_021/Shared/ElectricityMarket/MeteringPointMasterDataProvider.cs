@@ -96,10 +96,27 @@ public class MeteringPointMasterDataProvider(
         }
         catch (Exception e)
         {
-            _logger.LogError(
-                e,
-                $"Failed to get metering point master data for '{meteringPointId}' in {startDateTime}–{endDateTime}.");
-            return [];
+            // The performance test uses non-existing metering points, so we must fake a succesful
+            // master data response from Electricity Market
+            if (IsPerformanceTest(meteringPointId))
+            {
+                masterDataChanges = GetMasterDataForPerformanceTest(
+                    id,
+                    startDateTime,
+                    endDateTime);
+
+                currentMasterDataChanges = GetMasterDataForPerformanceTest(
+                    id,
+                    _clock.GetCurrentInstant(),
+                    _clock.GetCurrentInstant().PlusSeconds(1)).Single();
+            }
+            else
+            {
+                _logger.LogError(
+                    e,
+                    $"Failed to get metering point master data for '{meteringPointId}' in {startDateTime}–{endDateTime}.");
+                return [];
+            }
         }
 
         var meteringPointMasterDataList = masterDataChanges.OrderBy(mpmd => mpmd.ValidFrom).ToList();
@@ -240,7 +257,7 @@ public class MeteringPointMasterDataProvider(
 
     private bool IsPerformanceTest(string meteringPointId)
     {
-        var isInputTestData = meteringPointId.IsTestUuid();
+        var isInputTestData = meteringPointId.IsPerformanceTestUuid();
 
         return _options.Value.AllowMockDependenciesForTests && isInputTestData;
     }

@@ -21,6 +21,9 @@
     "MeasurementsWorkspace__Token": "<Workspace Token>",
     // Meassurements Event Hub
     "MeasurementsEventHub__NamespaceName": "<Event Hub namespace name>",
-    "MeasurementsEventHub__EventHubName": "<Event Hub name>"
+    "MeasurementsEventHub__EventHubName": "<Event Hub name>",
+    // Enqueue actor message
+    "EnqueueActorMessagesHttpClient__BaseUrl": "<Base URL of the function app in EDI>",
+    "EnqueueActorMessagesHttpClient__ApplicationIdUri": "<Application ID URI of EDI>"
   }
 }

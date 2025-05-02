@@ -90,6 +90,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
             dataflowBlockOptions: new ExecutionDataflowBlockOptions
             {
                 MaxDegreeOfParallelism = 100,
+                BoundedCapacity = 100,
             });
 
         await foreach (var queryResult in query.GetAsync(_databricksSqlWarehouseQueryExecutor).ConfigureAwait(false))

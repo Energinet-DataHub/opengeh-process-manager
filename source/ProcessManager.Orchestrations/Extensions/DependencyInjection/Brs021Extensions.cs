@@ -23,7 +23,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyI
 public static class Brs021Extensions
 {
     /// <summary>
-    /// Add required dependencies for BRS-021 Forward Metered Data.
+    /// Add required dependencies for BRS-021 Send Measurements.
     /// </summary>
     public static IServiceCollection AddBrs021(
         this IServiceCollection services,
@@ -37,10 +37,6 @@ public static class Brs021Extensions
         services.AddScoped<DelegationProvider>();
         services.AddScoped<TerminateForwardMeteredDataHandlerV1>();
         services.AddScoped<EnqueueMeteredDataHandlerV1>();
-
-        // Used by calculated measurements processes in BRS-021 (ElectricalHeatingCalculation, CapacitySettlementCalculation
-        // and NetConsumptionCalculation)
-        services.AddEnqueueActorMessagesHttp(azureCredential);
 
         return services;
     }

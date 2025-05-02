@@ -99,7 +99,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             CalculationJobName);
 
         // Mocking EDI enqueue actor messages response
-        Fixture.OrchestrationsAppManager.MockServer.MockEnqueueActorMessagesHttpClientResponse(
+        Fixture.OrchestrationsAppManager.MockServer.MockEnqueueActorMessagesHttpResponse(
             EnqueueCalculatedMeasurementsHttpV1.RouteName);
 
         const string meteringPointId = "1234567890123456";
@@ -155,6 +155,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         isTerminated.Should().BeTrue("because the orchestration instance should be terminated within given wait time");
 
+        // Then the orchestration instance (and its steps) should be terminated with success.
         using (_ = new AssertionScope())
         {
             // Orchestration instance and all steps should be Succeeded
@@ -173,23 +174,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     });
         }
 
-        // TODO: Assert that messages has been enqueued to EDI
-
-        // Step 3: General search using name and termination state
-        // TODO: I'm not sure why this search is relevant in this test?
-        var orchestrationInstancesGeneralSearch = await processManagerClient
-            .SearchOrchestrationInstancesByNameAsync(
-                new SearchOrchestrationInstancesByNameQuery(
-                    Fixture.DefaultUserIdentity,
-                    name: Brs_021_CapacitySettlementCalculation.Name,
-                    version: null,
-                    lifecycleStates: [OrchestrationInstanceLifecycleState.Terminated],
-                    terminationState: OrchestrationInstanceTerminationState.Succeeded,
-                    startedAtOrLater: null,
-                    terminatedAtOrEarlier: null,
-                    scheduledAtOrLater: null),
-                CancellationToken.None);
-
-        orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
+        // And then enqueue actor messages is called for 1 message.
+        Fixture.OrchestrationsAppManager.MockServer.CountEnqueueActorMessagesHttpMockCalls(
+                routeName: EnqueueCalculatedMeasurementsHttpV1.RouteName)
+            .Should()
+            .Be(1, "because the orchestration instance should have enqueued messages to EDI");
     }
 }

@@ -90,49 +90,36 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         OrchestrationInstanceId orchestrationInstanceId,
         CalculatedMeasurement calculatedMeasureData)
     {
+        var period = GetMeasurementsPeriod(calculatedMeasureData);
+
+        var receiversWithMeasurements = await FindReceiversForMeasureDataAsync(
+                calculatedMeasureData,
+                period.Start,
+                period.End)
+            .ConfigureAwait(false);
+
+        await EnqueueActorMessagesAsync(
+                orchestrationInstanceId,
+                calculatedMeasureData,
+                receiversWithMeasurements,
+                period)
+            .ConfigureAwait(false);
+    }
+
+    private Interval GetMeasurementsPeriod(CalculatedMeasurement calculatedMeasureData)
+    {
         var from = calculatedMeasureData.MeasureData.First().ObservationTime;
 
         var resolutionAsDuration = calculatedMeasureData.Resolution switch
         {
             var r when r == Resolution.QuarterHourly => Duration.FromMinutes(15),
             var r when r == Resolution.Hourly => Duration.FromHours(1),
-            // Can resolution ever be anything else than 1 hour in calculated measurements?
+            // TODO: What are the possible resolutions for the calculated measurements?
             _ => throw new ArgumentOutOfRangeException(nameof(calculatedMeasureData.Resolution), calculatedMeasureData.Resolution, "Invalid resolution"),
         };
         var to = calculatedMeasureData.MeasureData.Last().ObservationTime.Plus(resolutionAsDuration);
 
-        var receiversWithMeasurements = await FindReceiversForMeasureDataAsync(calculatedMeasureData, from, to).ConfigureAwait(false);
-
-        var enqueueData = new EnqueueCalculatedMeasurementsHttpV1(
-            OrchestrationInstanceId: orchestrationInstanceId.Value,
-            TransactionId: calculatedMeasureData.TransactionId,
-            MeteringPointId: calculatedMeasureData.MeteringPointId,
-            MeteringPointType: calculatedMeasureData.MeteringPointType,
-            Resolution: calculatedMeasureData.Resolution,
-            MeasureUnit: MeasurementUnit.KilowattHour,
-            Data: receiversWithMeasurements.Select(
-                    r => new EnqueueCalculatedMeasurementsHttpV1.ReceiversWithMeasurements(
-                        Receivers: r.Receivers
-                            .Select(
-                                actor => new EnqueueCalculatedMeasurementsHttpV1.Actor(
-                                    ActorNumber.Create(actor.Number.Value),
-                                    ActorRole.FromName(actor.Role.Name)))
-                            .ToList(),
-                        RegistrationDateTime: calculatedMeasureData.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
-                        StartDateTime: from.ToDateTimeOffset(),
-                        EndDateTime: to.ToDateTimeOffset(),
-                        Measurements: r.MeasureDataList
-                            .Select(
-                                (md, i) => new EnqueueCalculatedMeasurementsHttpV1.Measurement(
-                                    Position: i + 1,
-                                    // TODO: Are these null assumptions correct?
-                                    EnergyQuantity: md.EnergyQuantity ?? throw new InvalidOperationException("Energy quantity should not be null in calculated measurement calculations."),
-                                    QuantityQuality: md.QuantityQuality ?? throw new InvalidOperationException("Quality should not be null in calculated measurement calculations.")))
-                            .ToList(),
-                        GridAreaCode: r.GridArea))
-                .ToList());
-
-        await _enqueueActorMessagesHttpClient.EnqueueAsync(enqueueData).ConfigureAwait(false);
+        return new Interval(from, to);
     }
 
     private async Task<List<ReceiversWithMeasureData>> FindReceiversForMeasureDataAsync(CalculatedMeasurement calculatedMeasureData, Instant from, Instant to)
@@ -160,6 +147,44 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                         .ToList()));
 
         return receiversForMeteringPoint;
+    }
+
+    private async Task EnqueueActorMessagesAsync(
+        OrchestrationInstanceId orchestrationInstanceId,
+        CalculatedMeasurement calculatedMeasureData,
+        List<ReceiversWithMeasureData> receiversWithMeasurements,
+        Interval measurementsPeriod)
+    {
+        var enqueueData = new EnqueueCalculatedMeasurementsHttpV1(
+            OrchestrationInstanceId: orchestrationInstanceId.Value,
+            TransactionId: calculatedMeasureData.TransactionId,
+            MeteringPointId: calculatedMeasureData.MeteringPointId,
+            MeteringPointType: calculatedMeasureData.MeteringPointType,
+            Resolution: calculatedMeasureData.Resolution,
+            MeasureUnit: MeasurementUnit.KilowattHour,
+            Data: receiversWithMeasurements.Select(
+                    r => new EnqueueCalculatedMeasurementsHttpV1.ReceiversWithMeasurements(
+                        Receivers: r.Receivers
+                            .Select(
+                                actor => new EnqueueCalculatedMeasurementsHttpV1.Actor(
+                                    ActorNumber.Create(actor.Number.Value),
+                                    ActorRole.FromName(actor.Role.Name)))
+                            .ToList(),
+                        RegistrationDateTime: calculatedMeasureData.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
+                        StartDateTime: measurementsPeriod.Start.ToDateTimeOffset(),
+                        EndDateTime: measurementsPeriod.End.ToDateTimeOffset(),
+                        Measurements: r.MeasureDataList
+                            .Select(
+                                (md, i) => new EnqueueCalculatedMeasurementsHttpV1.Measurement(
+                                    Position: md.Position,
+                                    // TODO: Are these null assumptions correct?
+                                    EnergyQuantity: md.EnergyQuantity ?? throw new InvalidOperationException("Energy quantity should not be null in calculated measurement calculations."),
+                                    QuantityQuality: md.QuantityQuality ?? throw new InvalidOperationException("Quality should not be null in calculated measurement calculations.")))
+                            .ToList(),
+                        GridAreaCode: r.GridArea))
+                .ToList());
+
+        await _enqueueActorMessagesHttpClient.EnqueueAsync(enqueueData).ConfigureAwait(false);
     }
 
     public record ActivityInput(

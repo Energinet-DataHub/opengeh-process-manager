@@ -28,7 +28,6 @@ internal class MissingMeasurementsLogSchemaDescription(
     /// <inheritdoc/>
     public override Dictionary<string, (string DataType, bool IsNullable)> SchemaDefinition => new()
     {
-        { MissingMeasurementsLogColumnNames.OrchestrationType,              (DeltaTableCommonTypes.String,      false) },
         { MissingMeasurementsLogColumnNames.OrchestrationInstanceId,        (DeltaTableCommonTypes.String,      false) },
         { MissingMeasurementsLogColumnNames.MeteringPointId,                (DeltaTableCommonTypes.String,      false) },
         { MissingMeasurementsLogColumnNames.Date,                           (DeltaTableCommonTypes.Timestamp,   false) },

@@ -75,6 +75,9 @@ var host = new HostBuilder()
         // Time component
         services.AddTimeComponent();
 
+        // DataHub Calendar
+        services.AddDataHubCalendarComponent();
+
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers

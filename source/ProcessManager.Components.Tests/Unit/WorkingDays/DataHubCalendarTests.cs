@@ -14,6 +14,8 @@
 
 using Energinet.DataHub.ProcessManager.Components.WorkingDays;
 using FluentAssertions;
+using FluentAssertions.Execution;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Moq;
 using NodaTime;
 using Xunit;
@@ -120,5 +122,50 @@ public class DataHubCalendarTests
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => sut.GetWorkingDayRelativeToTodayBackInTime(count));
+    }
+
+    [Theory]
+    // Basis tests
+    [InlineData(2025, 2, 1, 15, 12, 54, 2025, 1, 31, 23)]
+    // Daylight saving time
+    [InlineData(2025, 3, 30, 2, 0, 0, 2025, 3, 29, 23)]
+    [InlineData(2025, 3, 30, 4, 0, 0, 2025, 3, 29, 23)]
+    [InlineData(2025, 3, 30, 21, 59, 59, 2025, 3, 29, 23)]
+    [InlineData(2025, 3, 30, 22, 0, 0, 2025, 3, 30, 22)]
+    // Leap year
+    [InlineData(2024, 3, 1, 22, 59, 59, 2024, 2, 29, 23)]
+    [InlineData(2024, 3, 1, 23, 0, 0, 2024, 3, 1, 23)]
+    // New year
+    [InlineData(2025, 1, 1, 0, 0, 0, 2024, 12, 31, 23)]
+    [InlineData(2025, 1, 2, 22, 59, 49, 2025, 1, 1, 23)]
+    public void GetCurrentDay_ReturnsCurrentDayInUtc(
+        int actualYear,
+        int actualMonth,
+        int actualDay,
+        int actualHour,
+        int actualMinute,
+        int actualSecond,
+        int expectedYear,
+        int expectedMonth,
+        int expectedDay,
+        int expectedHour)
+    {
+        // Arrange
+        var testDate = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, actualMinute, actualSecond);
+        var clock = new Mock<IClock>();
+        clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
+        var sut = new DataHubCalendar(clock.Object, _zone);
+
+        // Act
+        var actual = sut.CurrentDay();
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        actual.Year().Should().Be(expectedYear);
+        actual.Month().Should().Be(expectedMonth);
+        actual.Day().Should().Be(expectedDay);
+        actual.Hour().Should().Be(expectedHour);
+        actual.Minute().Should().Be(0);
+        actual.Second().Should().Be(0);
     }
 }

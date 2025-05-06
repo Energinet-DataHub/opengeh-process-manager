@@ -30,7 +30,7 @@ public static class Brs021Extensions
         DefaultAzureCredential azureCredential)
     {
         services.AddMeasurementsMeteredDataClient(azureCredential);
-        services.AddScoped<MeteringPointMasterDataProvider>();
+        services.AddScoped<IMeteringPointMasterDataProvider, MeteringPointMasterDataProvider>();
         services.AddScoped<MeteringPointReceiversProvider>();
 
         // Used by BRS-021 ForwardMeteredData process

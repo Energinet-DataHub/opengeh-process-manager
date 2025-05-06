@@ -77,7 +77,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         var failedTransactions = new ConcurrentBag<string>();
         var enqueuedTransactionsCount = 0;
 
-        // Perform calls async, but only allow 100 to be running at the same time. Uses SemaphoreSlim to limit concurrency.
+        // Perform calls async, but only allow an amount to be running at the same time. Uses SemaphoreSlim to limit concurrency.
         var semaphore = new SemaphoreSlim(initialCount: MaxConcurrency, maxCount: MaxConcurrency);
 
         // This queries all data sequentially, but that might not be as quick as we need.
@@ -92,7 +92,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
             var calculatedMeasurements = queryResult.Result;
 
-            // Only start a new tasks if we can get the semaphore (if there are less than 100 tasks running)
+            // Only start a new tasks if we can get the semaphore (if there are less than the allowed amount of tasks running)
             var didGetSemaphore = await semaphore.WaitAsync(_semaphoreTimeout).ConfigureAwait(false);
             if (!didGetSemaphore)
             {
@@ -104,7 +104,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
             }
 
             // Start a new task to enqueue the measurements, but do not wait for it, since we want to handle
-            // multiple tasks in parallel. The semaphore will ensure that we have maximum 100 tasks running at the same time.
+            // multiple tasks in parallel. The semaphore will ensure that we have maximum number of tasks running at the same time.
             enqueueTasks.Add(
                 Task.Run(async () =>
                     {

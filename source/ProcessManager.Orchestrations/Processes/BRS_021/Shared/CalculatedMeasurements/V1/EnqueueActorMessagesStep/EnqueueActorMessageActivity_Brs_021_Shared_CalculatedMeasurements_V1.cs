@@ -32,6 +32,9 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.EnqueueActorMessagesStep;
 
+/// <summary>
+/// Query calculated measurements from Databricks, and enqueue actor messages for the data.
+/// </summary>
 public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1(
     ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> logger,
     IMeteringPointMasterDataProvider meteringPointMasterDataProvider,
@@ -41,6 +44,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor)
 {
     internal const int MaxConcurrency = 100;
+    private static readonly TimeSpan _semaphoreTimeout = TimeSpan.FromMinutes(5);
 
     private readonly ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> _logger = logger;
     private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
@@ -49,6 +53,16 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     private readonly DatabricksQueryOptions _databricksQueryOptions = databricksQueryOptions.Get(QueryOptionsSectionNames.CalculatedMeasurementsQuery);
     private readonly DatabricksSqlWarehouseQueryExecutor _databricksSqlWarehouseQueryExecutor = databricksSqlWarehouseQueryExecutor;
 
+    /// <summary>
+    /// Query calculated measurements from Databricks, and enqueue actor messages for the data. The master data
+    /// for the metering point is required to find the receivers for the data, so those are also retrieved.
+    /// <remarks>
+    /// The method will continue to enqueue messages for all transactions, even if some of them fail. If one (or more)
+    /// transactions failed, then an exception will be thrown at the end of the method.
+    /// </remarks>
+    /// </summary>
+    /// <returns>The amount of transactions which actor messages were enqueued for.</returns>
+    /// <exception cref="Exception">Throws an exception if actor messages failed to be enqueued for one of the transactions.</exception>
     [Function(nameof(EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1))]
     public async Task<int> Run(
         [ActivityTrigger] ActivityInput input)
@@ -65,7 +79,6 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
         // Perform calls async, but only allow 100 to be running at the same time. Uses SemaphoreSlim to limit concurrency.
         var semaphore = new SemaphoreSlim(initialCount: MaxConcurrency, maxCount: MaxConcurrency);
-        var semaphoreTimeout = TimeSpan.FromMinutes(60);
 
         // This queries all data sequentially, but that might not be as quick as we need.
         // TODO: How do we parallelize the query? What parameters can we use to split the query?
@@ -80,10 +93,12 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
             var calculatedMeasurements = queryResult.Result;
 
             // Only start a new tasks if we can get the semaphore (if there are less than 100 tasks running)
-            var didGetSemaphore = await semaphore.WaitAsync(semaphoreTimeout).ConfigureAwait(false);
+            var didGetSemaphore = await semaphore.WaitAsync(_semaphoreTimeout).ConfigureAwait(false);
             if (!didGetSemaphore)
             {
-                _logger.LogError($"Failed to get semaphore within timeout (Timeout={semaphoreTimeout:g}).");
+                _logger.LogError(
+                    "Failed to get semaphore within timeout (Timeout={SemaphoreTimeout:g}).",
+                    _semaphoreTimeout);
                 failedTransactions.Add(calculatedMeasurements.TransactionId.ToString());
                 continue;
             }
@@ -112,7 +127,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                         }
                         finally
                         {
-                            Interlocked.Increment(ref enqueuedTransactionsCount); // Increment count thread-safe
+                            Interlocked.Increment(ref enqueuedTransactionsCount);
                             semaphore.Release();
                         }
                     }));

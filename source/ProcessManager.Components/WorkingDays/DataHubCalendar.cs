@@ -27,9 +27,17 @@ public class DataHubCalendar
         _zone = zone;
     }
 
-    public Instant CurrentDate()
+    /// <summary>
+    /// Get the current UTC date (midnight).
+    /// </summary>
+    public Instant CurrentDay()
     {
-        return _clock.GetCurrentInstant().InZone(_zone).ToInstant();
+        return _clock.GetCurrentInstant()
+            .InZone(_zone)
+            .Date
+            .AtMidnight()
+            .InZoneStrictly(_zone)
+            .ToInstant();
     }
 
     /// <summary>

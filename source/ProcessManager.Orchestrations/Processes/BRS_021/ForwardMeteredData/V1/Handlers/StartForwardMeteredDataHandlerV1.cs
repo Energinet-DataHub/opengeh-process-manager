@@ -26,15 +26,12 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using NodaTime;
-using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
 using OrchestrationInstanceLifecycleState =
     Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
-using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 using StepInstanceLifecycleState =
     Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.StepInstanceLifecycleState;
 using StepInstanceTerminationState =
@@ -49,7 +46,7 @@ public class StartForwardMeteredDataHandlerV1(
     IClock clock,
     IMeasurementsMeteredDataClient measurementsMeteredDataClient,
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
-    MeteringPointMasterDataProvider meteringPointMasterDataProvider,
+    IMeteringPointMasterDataProvider meteringPointMasterDataProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     DelegationProvider delegationProvider,
     TelemetryClient telemetryClient)
@@ -60,7 +57,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IClock _clock = clock;
     private readonly IMeasurementsMeteredDataClient _measurementsMeteredDataClient = measurementsMeteredDataClient;
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
-    private readonly MeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
+    private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly DelegationProvider _delegationProvider = delegationProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;

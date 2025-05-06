@@ -73,7 +73,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         {
             if (!queryResult.IsSuccess || queryResult.Result is null)
             {
-                failedTransactions.Add(queryResult.Result?.TransactionId.ToString() ?? "Unknown");
+                failedTransactions.Add(queryResult.Result?.TransactionId.ToString() ?? "Unknown transaction");
                 continue;
             }
 

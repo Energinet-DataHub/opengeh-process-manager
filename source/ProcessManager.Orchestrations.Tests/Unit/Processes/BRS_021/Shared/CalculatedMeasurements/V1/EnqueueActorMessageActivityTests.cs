@@ -131,18 +131,20 @@ public class EnqueueActorMessageActivityTests
 
         // Then the activity throws an exception containing the failed transaction id (and not the succeeded)
         var thrownException = await Assert.ThrowsAsync<Exception>(act);
+
+        // Assert that the exception message contains one of the transaction id's, but not both.
+        // We need it like this because the transaction are processed in parallel, so we don't know which one will fail.
         Assert.Multiple(
             () => Assert.True(
-                thrownException.Message.Contains(transactionId1.ToString())
-                || thrownException.Message.Contains(transactionId2.ToString()),
-                "The exception message should contain one of the two transaction id's, because one of them should fail."),
-            // Test
+                condition: thrownException.Message.Contains(transactionId1.ToString())
+                           || thrownException.Message.Contains(transactionId2.ToString()),
+                userMessage: "The exception message should contain one of the two transaction id's, because one of them should fail."),
             () => Assert.False(
-                thrownException.Message.Contains(transactionId1.ToString())
-                && thrownException.Message.Contains(transactionId2.ToString()),
-                "The exception message should not contain both transaction id's, because one of them should succeed."));
+                condition: thrownException.Message.Contains(transactionId1.ToString())
+                           && thrownException.Message.Contains(transactionId2.ToString()),
+                userMessage: "The exception message should not contain both transaction id's, because one of them should succeed."));
 
-        // And then enqueue is called for each transaction
+        // And then enqueue is called for each transaction, to make sure the 2nd transaction is still enqueued
         enqueueActorMessageMock.Verify(
             expression: m => m.EnqueueAsync(It.IsAny<EnqueueCalculatedMeasurementsHttpV1>()),
             times: Times.Exactly(mockTransactions.Count));

@@ -17,7 +17,7 @@
 - Renamed `StartCalculationCommandV1` to `StartNetConsumptionCalculationCommandV1`.
 
 ## Version 2.1.1
-~~~~
+
 - Add `EnqueueMeasureDataSyncV1` for BRS-021
 
 ## Version 2.1.0

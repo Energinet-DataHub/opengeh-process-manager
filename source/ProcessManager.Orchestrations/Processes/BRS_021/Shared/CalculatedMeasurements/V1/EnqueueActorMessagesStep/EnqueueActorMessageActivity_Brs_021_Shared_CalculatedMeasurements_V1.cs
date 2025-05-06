@@ -103,14 +103,14 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                 continue;
             }
 
-            // Start a new task to enqueue the measure data, but do not wait for it, since we want to handle
+            // Start a new task to enqueue the measurements, but do not wait for it, since we want to handle
             // multiple tasks in parallel. The semaphore will ensure that we have maximum 100 tasks running at the same time.
             enqueueTasks.Add(
                 Task.Run(async () =>
                     {
                         try
                         {
-                            await EnqueueMessagesForMeasureDataAsync(
+                            await EnqueueMessagesForMeasurementsAsync(
                                     input.OrchestrationInstanceId,
                                     calculatedMeasurements)
                                 .ConfigureAwait(false);
@@ -119,7 +119,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                         {
                             _logger.LogError(
                                 e,
-                                "Failed to enqueue measure data for transaction (TransactionId={TransactionId}, OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId}).",
+                                "Failed to enqueue measurements for transaction (TransactionId={TransactionId}, OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId}).",
                                 calculatedMeasurements.TransactionId,
                                 input.OrchestrationInstanceId.Value,
                                 calculatedMeasurements.MeteringPointId);
@@ -136,57 +136,57 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         await Task.WhenAll(enqueueTasks).ConfigureAwait(false);
 
         if (!failedTransactions.IsEmpty)
-            throw new Exception($"Failed to enqueue measure data for {failedTransactions.Count} transactions ({string.Join(", ", failedTransactions)}).");
+            throw new Exception($"Failed to enqueue measurements for {failedTransactions.Count} transactions ({string.Join(", ", failedTransactions)}).");
 
         return enqueuedTransactionsCount;
     }
 
     /// <summary>
-    /// Enqueue calculated measure data for a metering point.
+    /// Enqueue calculated measurements for a metering point.
     /// <remarks>
-    /// The measure data MUST be ordered by timestamp, and MUST NOT contain any gaps.
+    /// The measurements MUST be ordered by timestamp, and MUST NOT contain any gaps.
     /// </remarks>
     /// </summary>
-    private async Task EnqueueMessagesForMeasureDataAsync(
+    private async Task EnqueueMessagesForMeasurementsAsync(
         OrchestrationInstanceId orchestrationInstanceId,
-        CalculatedMeasurement calculatedMeasureData)
+        CalculatedMeasurement calculatedMeasurement)
     {
-        var period = GetMeasurementsPeriod(calculatedMeasureData);
+        var period = GetMeasurementsPeriod(calculatedMeasurement);
 
-        var receiversWithMeasurements = await FindReceiversForMeasureDataAsync(
-                calculatedMeasureData,
+        var receiversWithMeasurements = await FindReceiversForMeasurementsAsync(
+                calculatedMeasurement,
                 period.Start,
                 period.End)
             .ConfigureAwait(false);
 
         await EnqueueActorMessagesAsync(
                 orchestrationInstanceId,
-                calculatedMeasureData,
+                calculatedMeasurement,
                 receiversWithMeasurements,
                 period)
             .ConfigureAwait(false);
     }
 
-    private Interval GetMeasurementsPeriod(CalculatedMeasurement calculatedMeasureData)
+    private Interval GetMeasurementsPeriod(CalculatedMeasurement calculatedMeasurement)
     {
-        var from = calculatedMeasureData.MeasureData.First().ObservationTime;
+        var from = calculatedMeasurement.MeasureData.First().ObservationTime;
 
-        var resolutionAsDuration = calculatedMeasureData.Resolution switch
+        var resolutionAsDuration = calculatedMeasurement.Resolution switch
         {
             var r when r == Resolution.QuarterHourly => Duration.FromMinutes(15),
             var r when r == Resolution.Hourly => Duration.FromHours(1),
-            _ => throw new ArgumentOutOfRangeException(nameof(calculatedMeasureData.Resolution), calculatedMeasureData.Resolution, "Invalid resolution"),
+            _ => throw new ArgumentOutOfRangeException(nameof(calculatedMeasurement.Resolution), calculatedMeasurement.Resolution, "Invalid resolution"),
         };
-        var to = calculatedMeasureData.MeasureData.Last().ObservationTime.Plus(resolutionAsDuration);
+        var to = calculatedMeasurement.MeasureData.Last().ObservationTime.Plus(resolutionAsDuration);
 
         return new Interval(from, to);
     }
 
-    private async Task<List<ReceiversWithMeasureData>> FindReceiversForMeasureDataAsync(CalculatedMeasurement calculatedMeasureData, Instant from, Instant to)
+    private async Task<List<ReceiversWithMeasureData>> FindReceiversForMeasurementsAsync(CalculatedMeasurement calculatedMeasurement, Instant from, Instant to)
     {
         // We need to get master data & receivers for each metering point id
         var masterDataForMeteringPoint = await _meteringPointMasterDataProvider.GetMasterData(
-                meteringPointId: calculatedMeasureData.MeteringPointId,
+                meteringPointId: calculatedMeasurement.MeteringPointId,
                 startDateTime: from,
                 endDateTime: to)
             .ConfigureAwait(false);
@@ -194,12 +194,12 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         var receiversForMeteringPoint = _meteringPointReceiversProvider
             .GetReceiversWithMeteredDataFromMasterDataList(
                 new MeteringPointReceiversProvider.FindReceiversInput(
-                    MeteringPointId: calculatedMeasureData.MeteringPointId,
+                    MeteringPointId: calculatedMeasurement.MeteringPointId,
                     StartDateTime: from,
                     EndDateTime: to,
-                    Resolution: calculatedMeasureData.Resolution,
+                    Resolution: calculatedMeasurement.Resolution,
                     MasterData: masterDataForMeteringPoint,
-                    MeasureData: calculatedMeasureData.MeasureData
+                    MeasureData: calculatedMeasurement.MeasureData
                         .Select((md, i) => new ReceiversWithMeasureData.MeasureData(
                             Position: i + 1, // Position is 1-based, so the first position must be 1.
                             EnergyQuantity: md.Quantity,
@@ -211,16 +211,16 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
     private async Task EnqueueActorMessagesAsync(
         OrchestrationInstanceId orchestrationInstanceId,
-        CalculatedMeasurement calculatedMeasureData,
+        CalculatedMeasurement calculatedMeasurement,
         List<ReceiversWithMeasureData> receiversWithMeasurements,
         Interval measurementsPeriod)
     {
         var enqueueData = new EnqueueCalculatedMeasurementsHttpV1(
             OrchestrationInstanceId: orchestrationInstanceId.Value,
-            TransactionId: calculatedMeasureData.TransactionId,
-            MeteringPointId: calculatedMeasureData.MeteringPointId,
-            MeteringPointType: calculatedMeasureData.MeteringPointType,
-            Resolution: calculatedMeasureData.Resolution,
+            TransactionId: calculatedMeasurement.TransactionId,
+            MeteringPointId: calculatedMeasurement.MeteringPointId,
+            MeteringPointType: calculatedMeasurement.MeteringPointType,
+            Resolution: calculatedMeasurement.Resolution,
             MeasureUnit: MeasurementUnit.KilowattHour,
             Data: receiversWithMeasurements.Select(
                     r => new EnqueueCalculatedMeasurementsHttpV1.ReceiversWithMeasurements(
@@ -230,7 +230,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                                     ActorNumber.Create(actor.Number.Value),
                                     ActorRole.FromName(actor.Role.Name)))
                             .ToList(),
-                        RegistrationDateTime: calculatedMeasureData.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
+                        RegistrationDateTime: calculatedMeasurement.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
                         StartDateTime: measurementsPeriod.Start.ToDateTimeOffset(),
                         EndDateTime: measurementsPeriod.End.ToDateTimeOffset(),
                         Measurements: r.MeasureDataList

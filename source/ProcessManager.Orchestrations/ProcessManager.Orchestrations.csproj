@@ -74,6 +74,7 @@
 
     <ItemGroup>
       <Folder Include="InternalProcesses\" />
+      <Folder Include="Processes\BRS_045\Shared\Databricks\" />
     </ItemGroup>
 
 </Project>

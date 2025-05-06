@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using NodaTime;
 
@@ -19,11 +20,21 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shar
 
 public interface IMeteringPointMasterDataProvider
 {
+    /// <summary>
+    /// Get a list of metering point master data for the given metering point id in the given period.
+    /// <remarks>
+    /// Returns an empty list if the given <paramref name="startDate"/> or <paramref name="endDate"/> cannot be parsed
+    /// (using <see cref="InstantPatternWithOptionalSeconds"/>).
+    /// </remarks>
+    /// </summary>
     Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
         string startDate,
         string endDate);
 
+    /// <summary>
+    /// Get a list of metering point master data for the given metering point id in the given period.
+    /// </summary>
     Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
         Instant startDateTime,

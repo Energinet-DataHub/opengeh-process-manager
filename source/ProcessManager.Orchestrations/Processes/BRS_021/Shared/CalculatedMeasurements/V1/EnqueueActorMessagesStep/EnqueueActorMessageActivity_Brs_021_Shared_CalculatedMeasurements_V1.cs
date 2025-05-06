@@ -151,37 +151,20 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         OrchestrationInstanceId orchestrationInstanceId,
         CalculatedMeasurement calculatedMeasureData)
     {
-        try
-        {
-            var period = GetMeasurementsPeriod(calculatedMeasureData);
+        var period = GetMeasurementsPeriod(calculatedMeasureData);
 
-            var receiversWithMeasurements = await FindReceiversForMeasureDataAsync(
-                    calculatedMeasureData,
-                    period.Start,
-                    period.End)
-                .ConfigureAwait(false);
+        var receiversWithMeasurements = await FindReceiversForMeasureDataAsync(
+                calculatedMeasureData,
+                period.Start,
+                period.End)
+            .ConfigureAwait(false);
 
-            await EnqueueActorMessagesAsync(
-                    orchestrationInstanceId,
-                    calculatedMeasureData,
-                    receiversWithMeasurements,
-                    period)
-                .ConfigureAwait(false);
-        }
-        catch (Exception e)
-        {
-            // We need to log the error here, because we want the transaction id to be part of the logged error message.
-            _logger.LogError(
-                e,
-                "Failed to enqueue measure data for transaction (TransactionId={TransactionId}, OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId}).",
-                calculatedMeasureData.TransactionId,
+        await EnqueueActorMessagesAsync(
                 orchestrationInstanceId,
-                calculatedMeasureData.MeteringPointId);
-
-            throw new Exception(
-                message: "Failed to enqueue measure data for transaction (TransactionId={TransactionId}, OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId})",
-                innerException: e);
-        }
+                calculatedMeasureData,
+                receiversWithMeasurements,
+                period)
+            .ConfigureAwait(false);
     }
 
     private Interval GetMeasurementsPeriod(CalculatedMeasurement calculatedMeasureData)

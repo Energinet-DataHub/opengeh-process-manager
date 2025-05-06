@@ -177,7 +177,6 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         {
             var r when r == Resolution.QuarterHourly => Duration.FromMinutes(15),
             var r when r == Resolution.Hourly => Duration.FromHours(1),
-            // TODO: What are the possible resolutions for the calculated measurements?
             _ => throw new ArgumentOutOfRangeException(nameof(calculatedMeasureData.Resolution), calculatedMeasureData.Resolution, "Invalid resolution"),
         };
         var to = calculatedMeasureData.MeasureData.Last().ObservationTime.Plus(resolutionAsDuration);

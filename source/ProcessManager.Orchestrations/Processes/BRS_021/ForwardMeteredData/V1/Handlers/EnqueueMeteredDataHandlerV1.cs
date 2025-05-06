@@ -69,30 +69,6 @@ public class EnqueueMeteredDataHandlerV1(
             .ConfigureAwait(false);
     }
 
-    private static ForwardMeteredDataCustomStateV2 GetForwardMeteredDataCustomState(
-        OrchestrationInstance orchestrationInstance)
-    {
-        ForwardMeteredDataCustomStateV2 customState;
-        // TODO: remove this try-catch when all orchestration instances are migrated to the new custom state
-        try
-        {
-            customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
-        }
-        catch (InvalidOperationException)
-        {
-            var meteringPointMasterData = orchestrationInstance
-                .CustomState
-                .AsType<ForwardMeteredDataCustomStateV1>()
-                .HistoricalMeteringPointMasterData
-                .Select(mpmd => mpmd.ToV2())
-                .ToList();
-
-            customState = new ForwardMeteredDataCustomStateV2(meteringPointMasterData);
-        }
-
-        return customState;
-    }
-
     private async Task TerminateForwardToMeasurementStep(OrchestrationInstance orchestrationInstance)
     {
         var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
@@ -116,7 +92,7 @@ public class EnqueueMeteredDataHandlerV1(
     {
         var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.FindReceiversStep);
 
-        var customState = GetForwardMeteredDataCustomState(orchestrationInstance);
+        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (findReceiversStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
@@ -206,7 +182,9 @@ public class EnqueueMeteredDataHandlerV1(
             idempotencyKey = enqueueStep.CustomState.AsType<EnqueueActorMessagesStepCustomStateV1>().IdempotencyKey;
         }
 
-        var gridAreaCode = GetForwardMeteredDataCustomState(orchestrationInstance).HistoricalMeteringPointMasterData.FirstOrDefault()?.GridAreaCode
+        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
+
+        var gridAreaCode = customState.HistoricalMeteringPointMasterData.FirstOrDefault()?.GridAreaCode
                            ?? throw new InvalidOperationException($"Grid area code is required to enqueue accepted message with id {orchestrationInstance.Id}");
 
         // Enqueue forward metered data actor messages

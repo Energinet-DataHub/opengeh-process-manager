@@ -261,22 +261,7 @@ public class StartForwardMeteredDataHandlerV1(
         }
 
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
-        ForwardMeteredDataCustomStateV2 forwardMeteredDataCustomState;
-        // TODO: remove this try-catch when all orchestration instances are migrated to the new custom state
-        try
-        {
-            forwardMeteredDataCustomState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
-        }
-        catch (InvalidOperationException)
-        {
-            var meteringPointMasterData = orchestrationInstance.CustomState
-                .AsType<ForwardMeteredDataCustomStateV1>()
-                .HistoricalMeteringPointMasterData
-                .Select(mpmd => mpmd.ToV2())
-                .ToList();
-
-            forwardMeteredDataCustomState = new ForwardMeteredDataCustomStateV2(meteringPointMasterData);
-        }
+        var forwardMeteredDataCustomState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
 
         var delegationResult = await IsIncomingMeteredDataDelegated(orchestrationInstance, forwardMeteredDataCustomState)
             .ConfigureAwait(false);

@@ -79,14 +79,14 @@ public class EnqueueActorMessageActivityTests
         var enqueueActorMessageMock = new Mock<IEnqueueActorMessagesHttpClient>();
         enqueueActorMessageMock.SetupSequence(
                 s => s.EnqueueAsync(It.IsAny<EnqueueCalculatedMeasurementsHttpV1>()))
-            .Throws(new Exception("Unhandled exception"))
-            .Returns(Task.CompletedTask);
+            .Throws(new Exception("Unhandled exception")) // 1st call fails
+            .Returns(Task.CompletedTask); // 2nd call succeeds
 
-        var failedTransactionId = Guid.NewGuid();
+        var transactionId1 = Guid.NewGuid();
         var row1 = CreateCalculatedMeasurementsRowDictionary(
             new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
                 OrchestrationInstanceId: Guid.NewGuid(),
-                TransactionId: failedTransactionId,
+                TransactionId: transactionId1,
                 TransactionCreationDatetime: Instant.FromUtc(2025, 05, 02, 13, 00),
                 MeteringPointId: "1234567890123456",
                 MeteringPointType: "electrical_heating",
@@ -94,11 +94,11 @@ public class EnqueueActorMessageActivityTests
                 ObservationTime: Instant.FromUtc(2025, 05, 02, 13, 00),
                 Quantity: 1337.42m));
 
-        var succeededTransactionId = Guid.NewGuid();
+        var transactionId2 = Guid.NewGuid();
         var row2 = CreateCalculatedMeasurementsRowDictionary(
             new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
                 OrchestrationInstanceId: Guid.NewGuid(),
-                TransactionId: succeededTransactionId,
+                TransactionId: transactionId2,
                 TransactionCreationDatetime: Instant.FromUtc(2025, 05, 02, 13, 00),
                 MeteringPointId: "1234567890123456",
                 MeteringPointType: "electrical_heating",
@@ -132,8 +132,15 @@ public class EnqueueActorMessageActivityTests
         // Then the activity throws an exception containing the failed transaction id (and not the succeeded)
         var thrownException = await Assert.ThrowsAsync<Exception>(act);
         Assert.Multiple(
-            () => Assert.Contains(failedTransactionId.ToString(), thrownException.Message),
-            () => Assert.DoesNotContain(succeededTransactionId.ToString(), thrownException.Message));
+            () => Assert.True(
+                thrownException.Message.Contains(transactionId1.ToString())
+                || thrownException.Message.Contains(transactionId2.ToString()),
+                "The exception message should contain one of the two transaction id's, because one of them should fail."),
+            // Test
+            () => Assert.False(
+                thrownException.Message.Contains(transactionId1.ToString())
+                && thrownException.Message.Contains(transactionId2.ToString()),
+                "The exception message should not contain both transaction id's, because one of them should succeed."));
 
         // And then enqueue is called for each transaction
         enqueueActorMessageMock.Verify(

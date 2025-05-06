@@ -80,7 +80,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
             var calculatedMeasurements = queryResult.Result;
 
             // Only start a new tasks if we can get the semaphore (if there are less than 100 tasks running)
-            var didGetSemaphore = await semaphore.WaitAsync(timeout: TimeSpan.FromHours(1)).ConfigureAwait(false);
+            var didGetSemaphore = await semaphore.WaitAsync(semaphoreTimeout).ConfigureAwait(false);
             if (!didGetSemaphore)
             {
                 _logger.LogError($"Failed to get semaphore within timeout (Timeout={semaphoreTimeout:g}).");

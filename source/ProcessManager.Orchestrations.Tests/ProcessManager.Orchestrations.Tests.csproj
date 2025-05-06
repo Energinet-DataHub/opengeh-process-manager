@@ -69,5 +69,6 @@
   <ItemGroup>
     <Folder Include="Integration\InternalProcesses\" />
     <Folder Include="Integration\Processes\BRS_021\Shared\" />
+    <Folder Include="Unit\Processes\BRS_045\MissingMeasurementLogsCalculation\V1\" />
   </ItemGroup>
 </Project>

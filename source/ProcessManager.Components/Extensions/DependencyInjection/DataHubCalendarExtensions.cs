@@ -12,12 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
+using Energinet.DataHub.ProcessManager.Components.WorkingDays;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
-public interface IEnqueueDataSyncDto
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+
+public static class DataHubCalendarExtensions
 {
     /// <summary>
-    /// The route to send the request on
+    /// Register the DataHub calendar component.
     /// </summary>
-    abstract string Route { get; }
+    public static IServiceCollection AddDataHubCalendarComponent(
+        this IServiceCollection services)
+    {
+        services.TryAddTransient<DataHubCalendar>();
+        return services;
+    }
 }

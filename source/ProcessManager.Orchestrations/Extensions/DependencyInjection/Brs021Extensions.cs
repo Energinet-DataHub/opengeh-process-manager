@@ -19,18 +19,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 
-public static class Brs021ForwardMeteredDataExtensions
+public static class Brs021Extensions
 {
     /// <summary>
-    /// Add required dependencies to use the Process Manager Service Bus topic.
+    /// Add required dependencies for BRS-021 Send Measurements.
     /// </summary>
-    public static IServiceCollection AddBrs021ForwardMeteringData(
+    public static IServiceCollection AddBrs021(
         this IServiceCollection services,
         DefaultAzureCredential azureCredential)
     {
         services.AddMeasurementsClient(azureCredential);
-        services.AddScoped<MeteringPointMasterDataProvider>();
+        services.AddScoped<IMeteringPointMasterDataProvider, MeteringPointMasterDataProvider>();
         services.AddScoped<MeteringPointReceiversProvider>();
+
+        // Used by BRS-021 ForwardMeteredData process
         services.AddScoped<DelegationProvider>();
         services.AddScoped<TerminateForwardMeteredDataHandlerV1>();
         services.AddScoped<EnqueueMeasurementsHandlerV1>();

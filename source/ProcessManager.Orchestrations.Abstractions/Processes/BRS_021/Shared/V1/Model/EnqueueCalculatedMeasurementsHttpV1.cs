@@ -12,31 +12,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1.Model;
 
+/// <summary>
+/// Represents a single transaction of calculated measurements, split into periods of receivers with measurements
+/// based on the metering point master data.
+/// </summary>
+/// <param name="OrchestrationInstanceId"></param>
+/// <param name="TransactionId">The transaction id is unique for this data set.</param>
+/// <param name="MeteringPointId">Multiple datasets can have the same metering point id, if there is gaps in the calculated measurements.</param>
+/// <param name="MeteringPointType"></param>
+/// <param name="Resolution"></param>
+/// <param name="MeasureUnit"></param>
+/// <param name="Data"></param>
 public sealed record EnqueueCalculatedMeasurementsHttpV1(
-    Actor Receiver,
+    Guid OrchestrationInstanceId,
+    Guid TransactionId,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
-    MeasurementUnit MeasureUnit,
-    string ProductNumber,
-    DateTimeOffset RegistrationDateTime,
-    DateTimeOffset StartDateTime,
-    DateTimeOffset EndDateTime,
     Resolution Resolution,
-    IReadOnlyCollection<MeasureData> MeasureData,
-    string GridAreaCode)
+    MeasurementUnit MeasureUnit,
+    IReadOnlyCollection<EnqueueCalculatedMeasurementsHttpV1.ReceiversWithMeasurements> Data)
         : IEnqueueDataSyncDto
 {
     public const string RouteName = "v1/enqueue_brs021";
 
     public string Route { get; } = RouteName;
-}
 
-public record MeasureData(
-    int Position,
-    decimal EnergyQuantity,
-    Quality QuantityQuality);
+    public record ReceiversWithMeasurements(
+        IReadOnlyCollection<Actor> Receivers,
+        DateTimeOffset RegistrationDateTime,
+        DateTimeOffset StartDateTime,
+        DateTimeOffset EndDateTime,
+        IReadOnlyCollection<Measurement> Measurements,
+        string GridAreaCode);
+
+    public record Measurement(
+        int Position,
+        decimal EnergyQuantity,
+        Quality QuantityQuality);
+
+    public record Actor(
+        ActorNumber ActorNumber,
+        ActorRole ActorRole);
+}

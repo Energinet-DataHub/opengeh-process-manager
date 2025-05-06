@@ -41,6 +41,8 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     IOptionsSnapshot<DatabricksQueryOptions> databricksQueryOptions,
     DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor)
 {
+    internal const int MaxConcurrency = 100; // Consider moving to an options class
+
     private readonly ILogger<EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1> _logger = logger;
     private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
@@ -63,8 +65,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
         var enqueuedTransactionsCount = 0;
 
         // Perform calls async, but only allow 100 to be running at the same time. Uses SemaphoreSlim to limit concurrency.
-        const int maxConcurrency = 100;
-        var semaphore = new SemaphoreSlim(initialCount: maxConcurrency, maxCount: maxConcurrency);
+        var semaphore = new SemaphoreSlim(initialCount: MaxConcurrency, maxCount: MaxConcurrency);
         var semaphoreTimeout = TimeSpan.FromMinutes(60);
 
         // This queries all data sequentially, but that might not be as quick as we need.
@@ -120,7 +121,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
         await Task.WhenAll(enqueueTasks).ConfigureAwait(false);
 
-        if (failedTransactions.Count > 0)
+        if (!failedTransactions.IsEmpty)
             throw new Exception($"Failed to enqueue measure data for {failedTransactions.Count} transactions ({string.Join(", ", failedTransactions)}).");
 
         return enqueuedTransactionsCount;

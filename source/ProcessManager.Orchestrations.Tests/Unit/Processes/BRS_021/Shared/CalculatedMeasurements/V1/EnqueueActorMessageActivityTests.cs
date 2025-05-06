@@ -41,8 +41,9 @@ public class EnqueueActorMessageActivityTests
     public async Task Given_ReceivesTransactionsFromDatabricksQuery_When_ActivityIsRun_Then_AllTransactionsAreEnqueued()
     {
         // Given
-        // => Use more than 100 since the parallel limit is set to 100 in the activity
-        const int transactionsCount = 250;
+        // => Use more than the max concurrency, to make sure the activity still succeeds even if the number of transactions
+        // is higher than the max concurrency.
+        const int transactionsCount = (int)(EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1.MaxConcurrency * 2.5);
 
         var enqueueActorMessageMock = new Mock<IEnqueueActorMessagesHttpClient>();
 
@@ -69,6 +70,75 @@ public class EnqueueActorMessageActivityTests
         enqueueActorMessageMock.Verify(
             expression: m => m.EnqueueAsync(It.IsAny<EnqueueCalculatedMeasurementsHttpV1>()),
             times: Times.Exactly(transactionsCount));
+    }
+
+    [Fact]
+    public async Task Given_FirstCallToEnqueueFails_When_ActivityIsRun_Then_ExceptionIsThrown_AndThen_FirstTransactionFailsButOthersAreStillEnqueued()
+    {
+        // Given
+        var enqueueActorMessageMock = new Mock<IEnqueueActorMessagesHttpClient>();
+        enqueueActorMessageMock.SetupSequence(
+                s => s.EnqueueAsync(It.IsAny<EnqueueCalculatedMeasurementsHttpV1>()))
+            .Throws(new Exception("Unhandled exception"))
+            .Returns(Task.CompletedTask);
+
+        var failedTransactionId = Guid.NewGuid();
+        var row1 = CreateCalculatedMeasurementsRowDictionary(
+            new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
+                OrchestrationInstanceId: Guid.NewGuid(),
+                TransactionId: failedTransactionId,
+                TransactionCreationDatetime: Instant.FromUtc(2025, 05, 02, 13, 00),
+                MeteringPointId: "1234567890123456",
+                MeteringPointType: "electrical_heating",
+                Resolution: "PT15M",
+                ObservationTime: Instant.FromUtc(2025, 05, 02, 13, 00),
+                Quantity: 1337.42m));
+
+        var succeededTransactionId = Guid.NewGuid();
+        var row2 = CreateCalculatedMeasurementsRowDictionary(
+            new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
+                OrchestrationInstanceId: Guid.NewGuid(),
+                TransactionId: succeededTransactionId,
+                TransactionCreationDatetime: Instant.FromUtc(2025, 05, 02, 13, 00),
+                MeteringPointId: "1234567890123456",
+                MeteringPointType: "electrical_heating",
+                Resolution: "PT15M",
+                ObservationTime: Instant.FromUtc(2025, 05, 02, 13, 00),
+                Quantity: 1337.42m));
+
+        var mockTransactions = new List<Dictionary<string, object>>
+        {
+            row1,
+            row2,
+        };
+
+        var databricksSqlMock = new Mock<DatabricksSqlWarehouseQueryExecutor>();
+        databricksSqlMock
+            .Setup(sql => sql.ExecuteStatementAsync(
+                It.IsAny<DatabricksStatement>(),
+                It.IsAny<Format>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(mockTransactions.ToAsyncEnumerable);
+
+        var sut = CreateSut(
+            enqueueActorMessageMock,
+            databricksSqlMock);
+
+        // When activity is run
+        var act = () => sut.Run(
+            new EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1.ActivityInput(
+                new OrchestrationInstanceId(Guid.NewGuid())));
+
+        // Then the activity throws an exception containing the failed transaction id (and not the succeeded)
+        var thrownException = await Assert.ThrowsAsync<Exception>(act);
+        Assert.Multiple(
+            () => Assert.Contains(failedTransactionId.ToString(), thrownException.Message),
+            () => Assert.DoesNotContain(succeededTransactionId.ToString(), thrownException.Message));
+
+        // And then enqueue is called for each transaction
+        enqueueActorMessageMock.Verify(
+            expression: m => m.EnqueueAsync(It.IsAny<EnqueueCalculatedMeasurementsHttpV1>()),
+            times: Times.Exactly(mockTransactions.Count));
     }
 
     private EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V1 CreateSut(
@@ -148,29 +218,34 @@ public class EnqueueActorMessageActivityTests
                         Quantity: 1337.42m))
             .ToList();
 
-        var schemaDescription = new CalculatedMeasurementsSchemaDescription(Mock.Of<DatabricksQueryOptions>());
-
         var rowsAsDictionaries = rows
-            .Select(r =>
-                schemaDescription.SchemaDefinition.Keys.ToDictionary<string, string, object>(
-                    keySelector: columnName => columnName,
-                    elementSelector: columnName => columnName switch
-                    {
-                        CalculatedMeasurementsColumnNames.OrchestrationType => "???",
-                        CalculatedMeasurementsColumnNames.OrchestrationInstanceId => r.OrchestrationInstanceId.ToString(),
-                        CalculatedMeasurementsColumnNames.TransactionId => r.TransactionId.ToString(),
-                        CalculatedMeasurementsColumnNames.TransactionCreationDatetime => r.TransactionCreationDatetime.ToString(),
-                        CalculatedMeasurementsColumnNames.MeteringPointId => r.MeteringPointId,
-                        CalculatedMeasurementsColumnNames.MeteringPointType => r.MeteringPointType,
-                        CalculatedMeasurementsColumnNames.ObservationTime => r.ObservationTime.ToString(),
-                        CalculatedMeasurementsColumnNames.Quantity => r.Quantity.ToString(NumberFormatInfo.InvariantInfo),
-                        CalculatedMeasurementsColumnNames.QuantityUnit => "kWh",
-                        CalculatedMeasurementsColumnNames.QuantityQuality => "calculated",
-                        CalculatedMeasurementsColumnNames.Resolution => "PT15M",
-                        _ => throw new ArgumentOutOfRangeException(nameof(columnName), $"Unknown column name: {columnName}"),
-                    }))
+            .Select(CreateCalculatedMeasurementsRowDictionary)
             .ToAsyncEnumerable();
 
         return rowsAsDictionaries;
+    }
+
+    private Dictionary<string, object> CreateCalculatedMeasurementsRowDictionary(
+        DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData data)
+    {
+        var schemaDescription = new CalculatedMeasurementsSchemaDescription(Mock.Of<DatabricksQueryOptions>());
+
+        return schemaDescription.SchemaDefinition.Keys.ToDictionary<string, string, object>(
+            keySelector: columnName => columnName,
+            elementSelector: columnName => columnName switch
+            {
+                CalculatedMeasurementsColumnNames.OrchestrationType => "unused",
+                CalculatedMeasurementsColumnNames.OrchestrationInstanceId => data.OrchestrationInstanceId.ToString(),
+                CalculatedMeasurementsColumnNames.TransactionId => data.TransactionId.ToString(),
+                CalculatedMeasurementsColumnNames.TransactionCreationDatetime => data.TransactionCreationDatetime.ToString(),
+                CalculatedMeasurementsColumnNames.MeteringPointId => data.MeteringPointId,
+                CalculatedMeasurementsColumnNames.MeteringPointType => data.MeteringPointType,
+                CalculatedMeasurementsColumnNames.ObservationTime => data.ObservationTime.ToString(),
+                CalculatedMeasurementsColumnNames.Quantity => data.Quantity.ToString(NumberFormatInfo.InvariantInfo),
+                CalculatedMeasurementsColumnNames.QuantityUnit => data.QuantityUnit,
+                CalculatedMeasurementsColumnNames.QuantityQuality => data.QuantityQuality,
+                CalculatedMeasurementsColumnNames.Resolution => data.Resolution,
+                _ => throw new ArgumentOutOfRangeException(nameof(columnName), $"Unknown column name: {columnName}"),
+            });
     }
 }

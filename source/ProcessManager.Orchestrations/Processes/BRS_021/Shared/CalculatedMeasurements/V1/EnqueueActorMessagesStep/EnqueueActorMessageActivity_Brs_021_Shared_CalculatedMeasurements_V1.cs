@@ -212,7 +212,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     private async Task EnqueueActorMessagesAsync(
         OrchestrationInstanceId orchestrationInstanceId,
         CalculatedMeasurement calculatedMeasurement,
-        List<ReceiversWithMeasureData> receiversWithMeasurements,
+        IReadOnlyCollection<ReceiversWithMeasureData> receiversWithMeasurements,
         Interval measurementsPeriod)
     {
         var enqueueData = new EnqueueCalculatedMeasurementsHttpV1(

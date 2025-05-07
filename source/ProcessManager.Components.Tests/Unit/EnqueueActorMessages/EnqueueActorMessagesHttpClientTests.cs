@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using WireMock.Server;
@@ -34,11 +35,15 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
         MockServer = WireMockServer.Start(port: 8989);
         Services = new ServiceCollection();
 
-        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
+        var configuration = new Dictionary<string, string?>()
         {
-            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] = MockServer.Url,
-            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] = "ApplicationIdUri",
-        });
+            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] =
+                MockServer.Url,
+            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] =
+                "ApplicationIdUri",
+        };
+
+        Services.AddInMemoryConfiguration(configuration);
 
         var mockCredential = new Mock<DefaultAzureCredential>();
         mockCredential.Setup(
@@ -50,7 +55,9 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
                     "token",
                     DateTimeOffset.UtcNow.AddHours(1)));
 
-        Services.AddEnqueueActorMessagesHttp(mockCredential.Object);
+        Services.AddEnqueueActorMessagesHttp(
+            mockCredential.Object,
+            new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
         ServiceProvider = Services.BuildServiceProvider();
         Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesHttpClient>();
     }

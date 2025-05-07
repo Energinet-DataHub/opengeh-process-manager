@@ -26,7 +26,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
-public class EnqueueMeteredDataHandlerV1(
+public class EnqueueMeasurementsHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
@@ -69,30 +69,6 @@ public class EnqueueMeteredDataHandlerV1(
             .ConfigureAwait(false);
     }
 
-    private static ForwardMeteredDataCustomStateV2 GetForwardMeteredDataCustomState(
-        OrchestrationInstance orchestrationInstance)
-    {
-        ForwardMeteredDataCustomStateV2 customState;
-        // TODO: remove this try-catch when all orchestration instances are migrated to the new custom state
-        try
-        {
-            customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
-        }
-        catch (InvalidOperationException)
-        {
-            var meteringPointMasterData = orchestrationInstance
-                .CustomState
-                .AsType<ForwardMeteredDataCustomStateV1>()
-                .HistoricalMeteringPointMasterData
-                .Select(mpmd => mpmd.ToV2())
-                .ToList();
-
-            customState = new ForwardMeteredDataCustomStateV2(meteringPointMasterData);
-        }
-
-        return customState;
-    }
-
     private async Task TerminateForwardToMeasurementStep(OrchestrationInstance orchestrationInstance)
     {
         var forwardToMeasurementStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
@@ -116,7 +92,7 @@ public class EnqueueMeteredDataHandlerV1(
     {
         var findReceiversStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.FindReceiversStep);
 
-        var customState = GetForwardMeteredDataCustomState(orchestrationInstance);
+        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
 
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (findReceiversStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
@@ -124,7 +100,7 @@ public class EnqueueMeteredDataHandlerV1(
             // Since the master data is saved as custom state on the orchestrationInstance, we should just
             // be able to calculate the receivers (again), based on the master data. If the inputs are the same,
             // the returned calculated receivers should also be the same.
-            return CalculateReceiversWithMeteredData(customState, forwardMeteredDataValidInput);
+            return CalculateReceiversWithMeasurements(customState, forwardMeteredDataValidInput);
         }
 
         await StepHelper.StartStepAndCommitIfPending(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
@@ -133,7 +109,7 @@ public class EnqueueMeteredDataHandlerV1(
         if (findReceiversStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Find receivers step must be running (Id={findReceiversStep.Id}, State={findReceiversStep.Lifecycle.State}).");
 
-        var receiversWithMeteredData = CalculateReceiversWithMeteredData(customState, forwardMeteredDataValidInput);
+        var receiversWithMeteredData = CalculateReceiversWithMeasurements(customState, forwardMeteredDataValidInput);
 
         // Terminate Step: Find receiver step
         await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository, _telemetryClient).ConfigureAwait(false);
@@ -142,12 +118,12 @@ public class EnqueueMeteredDataHandlerV1(
     }
 
     /// <summary>
-    /// Calculate receivers with metered data based on the metering point master data and the forward metered data input.
+    /// Calculate receivers with measurements based on the metering point master data and the forward metered data input.
     /// <remarks>
     /// The returned receivers should always be the same given the same inputs.
     /// </remarks>
     /// </summary>
-    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeteredData(
+    private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeasurements(
         ForwardMeteredDataCustomStateV2 customState,
         ForwardMeteredDataValidInput forwardMeteredDataInput)
     {
@@ -155,25 +131,25 @@ public class EnqueueMeteredDataHandlerV1(
             .Select(mpmd => mpmd.ToMeteringPointMasterData())
             .ToList();
 
-        var measureDataList = forwardMeteredDataInput.MeteredDataList
+        var measurements = forwardMeteredDataInput.MeteredDataList
             .Select(
-                md => new ReceiversWithMeasureData.MeasureData(
+                md => new ReceiversWithMeasurements.Measurement(
                     Position: md.Position,
                     EnergyQuantity: md.EnergyQuantity,
                     QuantityQuality: md.QuantityQuality))
             .ToList();
 
-        var receiversWithMeteredData = _meteringPointReceiversProvider
-            .GetReceiversWithMeteredDataFromMasterDataList(
+        var receiversWithMeasurements = _meteringPointReceiversProvider
+            .GetReceiversWithMeasurementsFromMasterDataList(
                 new MeteringPointReceiversProvider.FindReceiversInput(
                     forwardMeteredDataInput.MeteringPointId.Value,
                     forwardMeteredDataInput.StartDateTime,
                     forwardMeteredDataInput.EndDateTime,
                     forwardMeteredDataInput.Resolution,
                     meteringPointMasterData,
-                    measureDataList));
+                    measurements));
 
-        return receiversWithMeteredData.ToForwardMeteredDataReceiversWithMeteredDataV1();
+        return receiversWithMeasurements.ToForwardMeteredDataReceiversWithMeasurementsV1();
     }
 
     private async Task EnqueueAcceptedActorMessagesAsync(
@@ -206,7 +182,9 @@ public class EnqueueMeteredDataHandlerV1(
             idempotencyKey = enqueueStep.CustomState.AsType<EnqueueActorMessagesStepCustomStateV1>().IdempotencyKey;
         }
 
-        var gridAreaCode = GetForwardMeteredDataCustomState(orchestrationInstance).HistoricalMeteringPointMasterData.FirstOrDefault()?.GridAreaCode
+        var customState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
+
+        var gridAreaCode = customState.HistoricalMeteringPointMasterData.FirstOrDefault()?.GridAreaCode
                            ?? throw new InvalidOperationException($"Grid area code is required to enqueue accepted message with id {orchestrationInstance.Id}");
 
         // Enqueue forward metered data actor messages

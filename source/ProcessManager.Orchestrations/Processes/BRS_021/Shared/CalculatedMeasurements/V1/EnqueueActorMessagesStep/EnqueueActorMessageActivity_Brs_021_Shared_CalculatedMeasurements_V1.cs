@@ -22,7 +22,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.Shared.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 using Microsoft.Azure.Functions.Worker;
@@ -149,40 +148,43 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
     /// </summary>
     private async Task EnqueueMessagesForMeasurementsAsync(
         OrchestrationInstanceId orchestrationInstanceId,
-        CalculatedMeasurement calculatedMeasurement)
+        Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurements)
     {
-        var period = GetMeasurementsPeriod(calculatedMeasurement);
+        var period = GetMeasurementsPeriod(calculatedMeasurements);
 
         var receiversWithMeasurements = await FindReceiversForMeasurementsAsync(
-                calculatedMeasurement,
+                calculatedMeasurements,
                 period.Start,
                 period.End)
             .ConfigureAwait(false);
 
         await EnqueueActorMessagesAsync(
                 orchestrationInstanceId,
-                calculatedMeasurement,
+                calculatedMeasurements,
                 receiversWithMeasurements,
                 period)
             .ConfigureAwait(false);
     }
 
-    private Interval GetMeasurementsPeriod(CalculatedMeasurement calculatedMeasurement)
+    private Interval GetMeasurementsPeriod(Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurements)
     {
-        var from = calculatedMeasurement.MeasureData.First().ObservationTime;
+        var from = calculatedMeasurements.Measurements.First().ObservationTime;
 
-        var resolutionAsDuration = calculatedMeasurement.Resolution switch
+        var resolutionAsDuration = calculatedMeasurements.Resolution switch
         {
             var r when r == Resolution.QuarterHourly => Duration.FromMinutes(15),
             var r when r == Resolution.Hourly => Duration.FromHours(1),
-            _ => throw new ArgumentOutOfRangeException(nameof(calculatedMeasurement.Resolution), calculatedMeasurement.Resolution, "Invalid resolution"),
+            _ => throw new ArgumentOutOfRangeException(nameof(calculatedMeasurements.Resolution), calculatedMeasurements.Resolution, "Invalid resolution"),
         };
-        var to = calculatedMeasurement.MeasureData.Last().ObservationTime.Plus(resolutionAsDuration);
+        var to = calculatedMeasurements.Measurements.Last().ObservationTime.Plus(resolutionAsDuration);
 
         return new Interval(from, to);
     }
 
-    private async Task<List<ReceiversWithMeasureData>> FindReceiversForMeasurementsAsync(CalculatedMeasurement calculatedMeasurement, Instant from, Instant to)
+    private async Task<List<ReceiversWithMeasurements>> FindReceiversForMeasurementsAsync(
+        Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurement,
+        Instant from,
+        Instant to)
     {
         // We need to get master data & receivers for each metering point id
         var masterDataForMeteringPoint = await _meteringPointMasterDataProvider.GetMasterData(
@@ -192,15 +194,15 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
             .ConfigureAwait(false);
 
         var receiversForMeteringPoint = _meteringPointReceiversProvider
-            .GetReceiversWithMeteredDataFromMasterDataList(
+            .GetReceiversWithMeasurementsFromMasterDataList(
                 new MeteringPointReceiversProvider.FindReceiversInput(
                     MeteringPointId: calculatedMeasurement.MeteringPointId,
                     StartDateTime: from,
                     EndDateTime: to,
                     Resolution: calculatedMeasurement.Resolution,
                     MasterData: masterDataForMeteringPoint,
-                    MeasureData: calculatedMeasurement.MeasureData
-                        .Select((md, i) => new ReceiversWithMeasureData.MeasureData(
+                    Measurements: calculatedMeasurement.Measurements
+                        .Select((md, i) => new ReceiversWithMeasurements.Measurement(
                             Position: i + 1, // Position is 1-based, so the first position must be 1.
                             EnergyQuantity: md.Quantity,
                             QuantityQuality: Quality.Calculated))
@@ -211,8 +213,8 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
 
     private async Task EnqueueActorMessagesAsync(
         OrchestrationInstanceId orchestrationInstanceId,
-        CalculatedMeasurement calculatedMeasurement,
-        IReadOnlyCollection<ReceiversWithMeasureData> receiversWithMeasurements,
+        Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurement,
+        IReadOnlyCollection<ReceiversWithMeasurements> receiversWithMeasurements,
         Interval measurementsPeriod)
     {
         var enqueueData = new EnqueueCalculatedMeasurementsHttpV1(
@@ -233,7 +235,7 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                         RegistrationDateTime: calculatedMeasurement.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
                         StartDateTime: measurementsPeriod.Start.ToDateTimeOffset(),
                         EndDateTime: measurementsPeriod.End.ToDateTimeOffset(),
-                        Measurements: r.MeasureDataList
+                        Measurements: r.Measurements
                             .Select(
                                 (md, i) => new EnqueueCalculatedMeasurementsHttpV1.Measurement(
                                     Position: md.Position,

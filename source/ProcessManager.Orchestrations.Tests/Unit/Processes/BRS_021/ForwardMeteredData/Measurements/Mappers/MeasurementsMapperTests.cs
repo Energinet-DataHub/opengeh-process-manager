@@ -19,7 +19,7 @@ using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueOb
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.Measurements.Mappers;
 
-public class MeteredDataToMeasurementMapperTests
+public class MeasurementsMapperTests
 {
     [Fact]
     public void Quality_Mapping_ShouldBeCorrect()
@@ -32,7 +32,7 @@ public class MeteredDataToMeasurementMapperTests
             { PMTypes.Quality.Calculated, MeasurementsTypes.Quality.QCalculated },
         };
 
-        MeteredDataToMeasurementMapper.Quality.Should().BeEquivalentTo(expectedMappings);
+        MeasurementsMapper.Quality.Should().BeEquivalentTo(expectedMappings);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class MeteredDataToMeasurementMapperTests
             { PMTypes.Resolution.Monthly, MeasurementsTypes.Resolution.RP1M },
         };
 
-        MeteredDataToMeasurementMapper.Resolution.Should().BeEquivalentTo(expectedMappings);
+        MeasurementsMapper.Resolution.Should().BeEquivalentTo(expectedMappings);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class MeteredDataToMeasurementMapperTests
             { PMTypes.MeasurementUnit.MetricTon, MeasurementsTypes.Unit.UTonne },
         };
 
-        MeteredDataToMeasurementMapper.MeasurementUnit.Should().BeEquivalentTo(expectedMappings);
+        MeasurementsMapper.MeasurementUnit.Should().BeEquivalentTo(expectedMappings);
     }
 
     [Fact]
@@ -160,6 +160,6 @@ public class MeteredDataToMeasurementMapperTests
                 },
             };
 
-        MeteredDataToMeasurementMapper.MeteringPointType.Should().BeEquivalentTo(expectedMappings);
+        MeasurementsMapper.MeteringPointType.Should().BeEquivalentTo(expectedMappings);
     }
 }

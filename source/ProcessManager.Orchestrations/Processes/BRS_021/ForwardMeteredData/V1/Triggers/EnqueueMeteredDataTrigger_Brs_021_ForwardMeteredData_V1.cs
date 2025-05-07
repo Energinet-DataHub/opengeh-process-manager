@@ -25,11 +25,11 @@ using Microsoft.Extensions.Logging;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
 public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
-    EnqueueMeteredDataHandlerV1 handler,
+    EnqueueMeasurementsHandlerV1 handler,
     ILogger<EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1> logger,
     TelemetryClient telemetryClient)
 {
-    private readonly EnqueueMeteredDataHandlerV1 _handler = handler;
+    private readonly EnqueueMeasurementsHandlerV1 _handler = handler;
     private readonly ILogger<EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1> _logger = logger;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 

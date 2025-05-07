@@ -76,5 +76,4 @@
     <ItemGroup>
       <Folder Include="InternalProcesses\" />
     </ItemGroup>
-
 </Project>

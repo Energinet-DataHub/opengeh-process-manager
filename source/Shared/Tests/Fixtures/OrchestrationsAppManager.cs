@@ -473,12 +473,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{ProcessManagerEventHubOptions.SectionName}__{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
 
-        // Measurements Metered Data Event Hub
+        // Measurements Event Hub
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}",
+            $"{MeasurementsClientOptions.SectionName}__{nameof(MeasurementsClientOptions.EventHubName)}",
             MeasurementEventHubName);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{MeasurementsMeteredDataClientOptions.SectionName}__{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}",
+            $"{MeasurementsClientOptions.SectionName}__{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}",
             IntegrationTestConfiguration.EventHubFullyQualifiedNamespace);
 
         // Electric Market client

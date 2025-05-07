@@ -35,7 +35,6 @@ public record ReceiversWithMeteredDataV1(
 {
     public record AcceptedMeteredData(
         int Position,
-        // TODO: Are these two optional?
         decimal? EnergyQuantity,
         Quality? QuantityQuality);
 }

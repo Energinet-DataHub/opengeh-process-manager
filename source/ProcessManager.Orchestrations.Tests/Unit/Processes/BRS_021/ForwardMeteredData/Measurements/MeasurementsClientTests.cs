@@ -27,9 +27,9 @@ using Moq;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.Measurements;
 
-public class MeasurementsMeteredDataClientTests
+public class MeasurementsClientTests
 {
-    public MeasurementsMeteredDataClientTests()
+    public MeasurementsClientTests()
     {
         var eventHubClientFactory = new Mock<IAzureClientFactory<EventHubProducerClient>>();
         EventHubProducerClientMock = new Mock<EventHubProducerClient>();
@@ -38,18 +38,18 @@ public class MeasurementsMeteredDataClientTests
             .Setup(factory => factory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub))
             .Returns(EventHubProducerClientMock.Object);
 
-        Sut = new MeasurementsMeteredDataClient(eventHubClientFactory.Object);
+        Sut = new MeasurementsClient(eventHubClientFactory.Object);
     }
 
     internal Mock<EventHubProducerClient> EventHubProducerClientMock { get; }
 
-    internal MeasurementsMeteredDataClient Sut { get; }
+    internal MeasurementsClient Sut { get; }
 
     [Fact]
     public async Task SendAsync_WhenCalledWithMeteredData_SendsExpectedDataOnEventHub()
     {
         // Arrange
-        var meteredData = new MeteredDataForMeteringPoint(
+        var meteredData = new MeasurementsForMeteringPoint(
             "test-orchestration-id",
             "test-metering-point-id",
             "test-transaction-id",

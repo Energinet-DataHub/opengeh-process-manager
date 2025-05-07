@@ -54,7 +54,7 @@ var host = new HostBuilder()
 
         // Enqueue Messages in EDI
         services.AddEnqueueActorMessages(azureCredential);
-        services.AddEnqueueActorMessagesHttp(azureCredential);
+        services.AddEnqueueActorMessagesHttp(azureCredential, context.Configuration);
 
         // Integration event publisher
         services.AddIntegrationEventPublisher(azureCredential);

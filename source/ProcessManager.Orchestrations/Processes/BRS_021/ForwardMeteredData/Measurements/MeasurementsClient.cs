@@ -26,40 +26,39 @@ using Point = Energinet.DataHub.Measurements.Contracts.Point;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 
-public class MeasurementsMeteredDataClient(
+public class MeasurementsClient(
     IAzureClientFactory<EventHubProducerClient> eventHubClientFactory)
-        : IMeasurementsMeteredDataClient
+        : IMeasurementsClient
 {
     private readonly EventHubProducerClient _measurementEventHubProducerClient =
         eventHubClientFactory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub);
 
     public async Task SendAsync(
-        MeteredDataForMeteringPoint meteredDataForMeteringPoint,
+        MeasurementsForMeteringPoint measurementsForMeteringPoint,
         CancellationToken cancellationToken)
     {
         var data = new PersistSubmittedTransaction
         {
-            // TODO: Missing version field?
             Version = "1",
-            OrchestrationInstanceId = meteredDataForMeteringPoint.OrchestrationId,
+            OrchestrationInstanceId = measurementsForMeteringPoint.OrchestrationId,
             OrchestrationType = OrchestrationType.OtSubmittedMeasureData,
-            MeteringPointId = meteredDataForMeteringPoint.MeteringPointId,
-            TransactionId = meteredDataForMeteringPoint.TransactionId,
-            TransactionCreationDatetime = MapDateTime(meteredDataForMeteringPoint.CreatedAt),
-            StartDatetime = MapDateTime(meteredDataForMeteringPoint.StartDateTime),
-            EndDatetime = MapDateTime(meteredDataForMeteringPoint.EndDateTime),
-            MeteringPointType = MeteredDataToMeasurementMapper.MeteringPointType.Map(meteredDataForMeteringPoint.MeteringPointType),
-            Unit = MeteredDataToMeasurementMapper.MeasurementUnit.Map(meteredDataForMeteringPoint.Unit),
-            Resolution = MeteredDataToMeasurementMapper.Resolution.Map(meteredDataForMeteringPoint.Resolution),
+            MeteringPointId = measurementsForMeteringPoint.MeteringPointId,
+            TransactionId = measurementsForMeteringPoint.TransactionId,
+            TransactionCreationDatetime = MapDateTime(measurementsForMeteringPoint.CreatedAt),
+            StartDatetime = MapDateTime(measurementsForMeteringPoint.StartDateTime),
+            EndDatetime = MapDateTime(measurementsForMeteringPoint.EndDateTime),
+            MeteringPointType = MeasurementsMapper.MeteringPointType.Map(measurementsForMeteringPoint.MeteringPointType),
+            Unit = MeasurementsMapper.MeasurementUnit.Map(measurementsForMeteringPoint.Unit),
+            Resolution = MeasurementsMapper.Resolution.Map(measurementsForMeteringPoint.Resolution),
         };
 
         data.Points.AddRange(
-            meteredDataForMeteringPoint.Points.Select(
+            measurementsForMeteringPoint.Measurements.Select(
                 p => new Point
                 {
                     Position = p.Position,
                     Quantity = DecimalValueMapper.Map(p.Quantity),
-                    Quality = MeteredDataToMeasurementMapper.Quality.Map(p.Quality),
+                    Quality = MeasurementsMapper.Quality.Map(p.Quality),
                 }));
 
         // Serialize the data to a byte array

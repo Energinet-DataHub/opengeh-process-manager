@@ -30,6 +30,7 @@ public static class ProcessManagerFixtureExtensions
     /// <param name="orchestrationInstanceState">If provided, then the orchestration instance have the given state.</param>
     /// <param name="stepSequence">If provided, then the orchestration instance must have a step instance with the given sequence number.</param>
     /// <param name="stepState">If provided, then the step should be in the given state (defaults to <see cref="StepInstanceLifecycleState.Terminated"/>).</param>
+    /// <param name="timeoutInMinutes">How long to wait for the orchestration instance to be in the given state (defaults to 1).</param>
     public static async Task<(
         bool Success,
         OrchestrationInstanceTypedDto<TInputParameterDto>? OrchestrationInstance,
@@ -38,7 +39,8 @@ public static class ProcessManagerFixtureExtensions
             string idempotencyKey,
             OrchestrationInstanceLifecycleState? orchestrationInstanceState = null,
             int? stepSequence = null,
-            StepInstanceLifecycleState? stepState = null)
+            StepInstanceLifecycleState? stepState = null,
+            int timeoutInMinutes = 1)
                 where TInputParameterDto : class, IInputParameterDto
     {
         if (stepState != null && stepSequence == null)
@@ -77,7 +79,7 @@ public static class ProcessManagerFixtureExtensions
                     ? stepInstance.Lifecycle.State == (stepState ?? StepInstanceLifecycleState.Terminated)
                     : throw new ArgumentException($"Step instance for step sequence {stepSequence} not found", nameof(stepSequence));
             },
-            timeLimit: TimeSpan.FromMinutes(1),
+            timeLimit: TimeSpan.FromMinutes(timeoutInMinutes),
             delay: TimeSpan.FromSeconds(1));
 
         return (success, orchestrationInstance, stepInstance);
@@ -92,6 +94,7 @@ public static class ProcessManagerFixtureExtensions
     /// <param name="orchestrationInstanceState">If provided, then the orchestration instance have the given state.</param>
     /// <param name="stepSequence">If provided, then the orchestration instance must have a step instance with the given sequence number.</param>
     /// <param name="stepState">If provided, then the step should be in the given state (defaults to <see cref="StepInstanceLifecycleState.Terminated"/>).</param>
+    /// <param name="timeoutInMinutes">How long to wait for the orchestration instance to be in the given state (defaults to 1).</param>
     public static async Task<(
         bool Success,
         OrchestrationInstanceTypedDto? OrchestrationInstance,
@@ -100,7 +103,8 @@ public static class ProcessManagerFixtureExtensions
             Guid orchestrationInstanceId,
             OrchestrationInstanceLifecycleState? orchestrationInstanceState = null,
             int? stepSequence = null,
-            StepInstanceLifecycleState? stepState = null)
+            StepInstanceLifecycleState? stepState = null,
+            int timeoutInMinutes = 1)
     {
         if (stepState != null && stepSequence == null)
             throw new ArgumentNullException(nameof(stepSequence), $"{nameof(stepSequence)} must be provided if {nameof(stepState)} is not null.");
@@ -138,7 +142,7 @@ public static class ProcessManagerFixtureExtensions
                     ? stepInstance.Lifecycle.State == (stepState ?? StepInstanceLifecycleState.Terminated)
                     : throw new ArgumentException($"Step instance for step sequence {stepSequence} not found", nameof(stepSequence));
             },
-            timeLimit: TimeSpan.FromMinutes(1),
+            timeLimit: TimeSpan.FromMinutes(timeoutInMinutes),
             delay: TimeSpan.FromSeconds(1));
 
         return (success, orchestrationInstance, stepInstance);

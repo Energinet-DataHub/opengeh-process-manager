@@ -13,9 +13,7 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
-using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
@@ -86,67 +84,6 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
     {
         Logger.TestOutputHelper = testOutputHelper;
     }
-
-    // /// <summary>
-    // /// Wait for an orchestration instance to be returned by the ProcessManager http client. If step inputs are provided,
-    // /// then the orchestration instance must have a step instance with the given step sequence and state.
-    // /// <remarks>The lookup is based on the idempotency key of the test configuration request.</remarks>
-    // /// </summary>
-    // /// <param name="idempotencyKey">Find an orchestration instance with the given idempotency key.</param>
-    // /// <param name="orchestrationInstanceState">If provided, then the orchestration instance have the given state.</param>
-    // /// <param name="stepSequence">If provided, then the orchestration instance must have a step instance with the given sequence number.</param>
-    // /// <param name="stepState">If provided, then the step should be in the given state (defaults to <see cref="StepInstanceLifecycleState.Terminated"/>).</param>
-    // public async Task<(
-    //     bool Success,
-    //     OrchestrationInstanceTypedDto<TInputParameterDto>? OrchestrationInstance,
-    //     StepInstanceDto? StepInstance)> WaitForOrchestrationInstanceAsync<TInputParameterDto>(
-    //         string idempotencyKey,
-    //         OrchestrationInstanceLifecycleState? orchestrationInstanceState = null,
-    //         int? stepSequence = null,
-    //         StepInstanceLifecycleState? stepState = null)
-    //             where TInputParameterDto : class, IInputParameterDto
-    // {
-    //     if (stepState != null && stepSequence == null)
-    //         throw new ArgumentNullException(nameof(stepSequence), $"{nameof(stepSequence)} must be provided if {nameof(stepState)} is not null.");
-    //
-    //     OrchestrationInstanceTypedDto<TInputParameterDto>? orchestrationInstance = null;
-    //     StepInstanceDto? stepInstance = null;
-    //
-    //     var success = await Awaiter.TryWaitUntilConditionAsync(
-    //         async () =>
-    //         {
-    //             orchestrationInstance = await ProcessManagerHttpClient
-    //                 .GetOrchestrationInstanceByIdempotencyKeyAsync<TInputParameterDto>(
-    //                     new GetOrchestrationInstanceByIdempotencyKeyQuery(
-    //                         operatingIdentity: UserIdentity,
-    //                         idempotencyKey: idempotencyKey),
-    //                     CancellationToken.None);
-    //
-    //             if (orchestrationInstance == null)
-    //                 return false;
-    //
-    //             if (stepSequence != null)
-    //             {
-    //                 stepInstance = orchestrationInstance.Steps
-    //                     .SingleOrDefault(s => s.Sequence == stepSequence.Value);
-    //             }
-    //
-    //             if (orchestrationInstanceState != null && orchestrationInstance.Lifecycle.State != orchestrationInstanceState)
-    //                 return false;
-    //
-    //             // If step sequence is not provided, only check for orchestration instance existence
-    //             if (stepSequence == null)
-    //                 return true;
-    //
-    //             return stepInstance != null
-    //                 ? stepInstance.Lifecycle.State == (stepState ?? StepInstanceLifecycleState.Terminated)
-    //                 : throw new ArgumentException($"Step instance for step sequence {stepSequence} not found", nameof(stepSequence));
-    //         },
-    //         timeLimit: TimeSpan.FromMinutes(1),
-    //         delay: TimeSpan.FromSeconds(1));
-    //
-    //     return (success, orchestrationInstance, stepInstance);
-    // }
 
     private IServiceCollection BuildServices()
     {

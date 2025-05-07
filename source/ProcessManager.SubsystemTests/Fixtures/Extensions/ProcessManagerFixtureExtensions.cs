@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
 
-public static class ProcessManagerHttpClientExtensions
+public static class ProcessManagerFixtureExtensions
 {
     /// <summary>
     /// Wait for an orchestration instance to be returned by the ProcessManager http client. If step inputs are provided,

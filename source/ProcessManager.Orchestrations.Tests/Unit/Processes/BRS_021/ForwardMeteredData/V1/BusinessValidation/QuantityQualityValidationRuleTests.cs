@@ -20,7 +20,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
-public class MeasureDataQualityValidationRuleTests
+public class QuantityQualityValidationRuleTests
 {
     private static readonly Quality[] _validQualities =
     [
@@ -29,7 +29,7 @@ public class MeasureDataQualityValidationRuleTests
         Quality.AsProvided,
     ];
 
-    private readonly MeasureDataQualityValidationRule _sut = new();
+    private readonly QuantityQualityValidationRule _sut = new();
 
     public static TheoryData<Quality?> ValidQualities =>
     [
@@ -45,7 +45,7 @@ public class MeasureDataQualityValidationRuleTests
 
     [Theory]
     [MemberData(nameof(ValidQualities))]
-    public async Task Given_OneMeasureData_AndGiven_ValidQuality_When_Validate_Then_NoValidationErrors(Quality? quality)
+    public async Task Given_OneMeasurement_AndGiven_ValidQuality_When_Validate_Then_NoValidationErrors(Quality? quality)
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteredData(
@@ -66,9 +66,9 @@ public class MeasureDataQualityValidationRuleTests
     }
 
     [Fact]
-    public async Task Given_MultipleMeasureData_AndGiven_ValidQualities_When_Validate_Then_NoValidationErrors()
+    public async Task Given_MultipleMeasurements_AndGiven_ValidQualities_When_Validate_Then_NoValidationErrors()
     {
-        // Input that contains more than one measure data with valid qualities
+        // Input that contains more than one measurement with valid qualities
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteredData(
             [
@@ -93,7 +93,7 @@ public class MeasureDataQualityValidationRuleTests
 
     [Theory]
     [MemberData(nameof(InvalidQualities))]
-    public async Task Given_OneMeasureData_AndGiven_InvalidQuality_When_Validate_Then_ValidationErrors(Quality? quality)
+    public async Task Given_OneMeasurement_AndGiven_InvalidQuality_When_Validate_Then_ValidationErrors(Quality? quality)
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteredData(
@@ -111,11 +111,11 @@ public class MeasureDataQualityValidationRuleTests
                 MeteringPointMasterData: [])); // Master data is unused in validation rule
 
         var validationError = Assert.Single(result);
-        Assert.Equal(MeasureDataQualityValidationRule.InvalidQuality.Single(), validationError);
+        Assert.Equal(QuantityQualityValidationRule.InvalidQuality.Single(), validationError);
     }
 
     [Fact]
-    public async Task Given_MultipleMeasureData_AndGiven_OneInvalidQuality_When_Validate_Then_ValidationError()
+    public async Task Given_MultipleMeasurements_AndGiven_OneInvalidQuality_When_Validate_Then_ValidationError()
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteredData(
@@ -141,6 +141,6 @@ public class MeasureDataQualityValidationRuleTests
                 MeteringPointMasterData: [])); // Master data is unused in validation rule
 
         var validationError = Assert.Single(result);
-        Assert.Equal(MeasureDataQualityValidationRule.InvalidQuality.Single(), validationError);
+        Assert.Equal(QuantityQualityValidationRule.InvalidQuality.Single(), validationError);
     }
 }

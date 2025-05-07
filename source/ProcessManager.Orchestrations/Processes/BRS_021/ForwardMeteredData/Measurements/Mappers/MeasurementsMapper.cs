@@ -18,7 +18,7 @@ using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueOb
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Mappers;
 
-public static class MeteredDataToMeasurementMapper
+public static class MeasurementsMapper
 {
     internal static ValueObjectsMap<PMTypes.Quality, MeasurementTypes.Quality> Quality { get; } = new()
     {

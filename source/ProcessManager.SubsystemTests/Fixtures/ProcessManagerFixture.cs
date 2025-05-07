@@ -152,7 +152,6 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
     {
         var serviceCollection = new ServiceCollection();
 
-        // TODO: Get settings from app settings
         serviceCollection.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             // Message client options

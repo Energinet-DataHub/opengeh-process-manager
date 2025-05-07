@@ -58,7 +58,6 @@ internal class EnqueueRejectMessageActivity_Brs_026_V1(
         RequestCalculatedEnergyTimeSeriesInputV1 requestInput)
     {
         var rejectedMessage = new RequestCalculatedEnergyTimeSeriesRejectedV1(
-            OriginalMessageId: requestInput.ActorMessageId,
             OriginalActorMessageId: requestInput.ActorMessageId,
             OriginalTransactionId: requestInput.TransactionId,
             RequestedForActorNumber: ActorNumber.Create(requestInput.RequestedForActorNumber),

@@ -24,7 +24,6 @@ using Microsoft.DurableTask;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration;
 
-// TODO: Implement according to guidelines: https://energinet.atlassian.net/wiki/spaces/D3/pages/824803345/Durable+Functions+Development+Guidelines
 internal class Orchestration_Brs_028_V1
 {
     public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = Brs_028.V1;

@@ -19,11 +19,6 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
 
-// TODO: We have decided to route on the "name" part of the "orchestration description unique name",
-// meaning not including the "version" part; this will minimize how often we need to adjust infrastructure
-// with regards to "subscriptions". Hence this trigger should not be located within the "V1".
-// Also we need a generic way to first parse the "version" of a command and then direct the message to
-// the correct "version handler."
 public class StartTrigger_Brs_028_V1(
     RequestCalculatedWholesaleServicesHandlerV1 handler)
 {

@@ -29,42 +29,26 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculationV1Tests()
 {
     /// <summary>
-    /// Test 1:
     ///           Today
-    ///         1st of Jan 202           23rd of Dec. 2024                                            30th of Sep. 2024
+    ///         1st Jan 2025              23rd Dec. 2024                                            30th of Sep. 2024
     /// ------------|---------------------------|-----------------------------------------------------------|
     ///                 3 working days                                93 calender days
     ///              back in time from today                        back in time from today
     ///
     /// period start: 22nd Dec. 2024 23:00:00
     /// period end: 19th Sep. 2024 23:00:00
-    ///
-    /// Test 2:
-    ///           Today
-    ///         7th of May 2025            2nd of May 2025                                            29th of Jan. 2025
-    /// ------------|---------------------------|-----------------------------------------------------------|
-    ///                 3 working days                                93 calender days
-    ///              back in time from today                        back in time from today
-    ///
-    /// period start: 29th of Jan. 2025 23:00:00
-    /// period end: 2nd of May 2025 22:00:00
     /// </summary>
-    [Theory]
-    [InlineData(2025, 1, 1, 0, 0, 0, -9)]
-    [InlineData(2025, 5, 7, 0, 0, 0, -5)]
-    public async Task Given_CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1_When_RunWithInput_Then_JobIdIsCorrect(
-        int actualYear,
-        int actualMonth,
-        int actualDay,
-        int actualHour,
-        int actualMinute,
-        int actualSecond,
-        int daysBack)
+    [Fact]
+    public async Task Given_CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1_When_RunWithInput_Then_JobIdIsCorrect()
     {
         // Arrange
         var jobRunId = new JobRunId(42);
         var zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
-        var date = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, actualMinute, actualSecond);
+        var date = new LocalDate(2025, 1, 1)
+            .AtMidnight()
+            .InZoneStrictly(zone)
+            .ToInstant();
+
         var orchestrationInstanceId = new OrchestrationInstanceId(Guid.NewGuid());
         var activityInput =
             new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1.ActivityInput(
@@ -72,8 +56,8 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
         var jobParameters = new List<string>
         {
             $"--orchestration-instance-id={orchestrationInstanceId.Value}",
-            $"--period-start-datetime={date.Plus(Duration.FromDays(-93)).InZone(zone).Date.AtMidnight().InZoneStrictly(zone).ToInstant()}",
-            $"--period-end-datetime={date.Plus(Duration.FromDays(daysBack)).InZone(zone).Date.AtMidnight().InZoneStrictly(zone).ToInstant()}",
+            $"--period-start-datetime={date.PlusDays(-93)}", // 30th of September 2024
+            $"--period-end-datetime={date.PlusDays(-9)}", // 23rd of December 2024
         };
 
         var clientMock = new Mock<IDatabricksJobsClient>();

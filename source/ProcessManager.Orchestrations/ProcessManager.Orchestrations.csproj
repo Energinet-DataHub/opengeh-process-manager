@@ -73,4 +73,7 @@
     </Protobuf>
   </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="InternalProcesses\" />
+    </ItemGroup>
 </Project>

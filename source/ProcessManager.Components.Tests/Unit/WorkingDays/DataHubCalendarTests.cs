@@ -64,7 +64,6 @@ public class DataHubCalendarTests
 
     // Not midnight
     [InlineData(2025, 4, 27, 13, 2025, 4, 22, 22, 0, 3)] // 3 working days back: 28th of April 2025 -> 23rd of April 2025
-
     public void GetWorkingDay_WhenCount_ReturnsWorkingDateRelativeToToday(
         int actualYear,
         int actualMonth,
@@ -157,7 +156,45 @@ public class DataHubCalendarTests
         var sut = new DataHubCalendar(clock.Object, _zone);
 
         // Act
-        var actual = sut.CurrentDay();
+        var actual = sut.CurrentDate();
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        actual.Year().Should().Be(expectedYear);
+        actual.Month().Should().Be(expectedMonth);
+        actual.Day().Should().Be(expectedDay);
+        actual.Hour().Should().Be(expectedHour);
+        actual.Minute().Should().Be(0);
+        actual.Second().Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(2025, 5, 6, 0, 0, 0, 2025, 5, 5, 22, 0)]
+    [InlineData(2025, 5, 7, 0, 0, 0, 2025, 5, 5, 22, -1)]
+    [InlineData(2025, 5, 7, 2, 0, 0, 2025, 2, 2, 23, -93)]
+    [InlineData(2025, 5, 7, 1, 59, 0, 2025, 2, 2, 23, -93)]
+    [InlineData(2025, 5, 7, 0, 0, 0, 2025, 2, 2, 23, -93)]
+    public void GetDateRelativeToCurrentDate_WhenDays_ReturnRespectiveDate(
+        int actualYear,
+        int actualMonth,
+        int actualDay,
+        int actualHour,
+        int actualMinute,
+        int actualSecond,
+        int expectedYear,
+        int expectedMonth,
+        int expectedDay,
+        int expectedHour,
+        int daysBack)
+    {
+        // Arrange
+        var testDate = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, actualMinute, actualSecond);
+        var clock = new Mock<IClock>();
+        clock.Setup(x => x.GetCurrentInstant()).Returns(testDate);
+        var sut = new DataHubCalendar(clock.Object, _zone);
+
+        // Act
+        var actual = sut.GetDateRelativeToCurrentDate(daysBack);
 
         // Assert
         using var assertionScope = new AssertionScope();

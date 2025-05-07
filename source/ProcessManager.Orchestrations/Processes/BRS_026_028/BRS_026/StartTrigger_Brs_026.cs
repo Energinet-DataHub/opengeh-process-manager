@@ -14,20 +14,18 @@
 
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026;
 
-public class StartTrigger_Brs_026_V1(
-    RequestCalculatedEnergyTimeSeriesHandlerV1 handler)
+public class StartTrigger_Brs_026(IMagicHandlerFactory handlerFactory)
 {
-    private readonly RequestCalculatedEnergyTimeSeriesHandlerV1 _handler = handler;
-
     /// <summary>
     /// Start a BRS-026 request.
     /// </summary>
-    [Function(nameof(StartTrigger_Brs_026_V1))]
+    [Function(nameof(StartTrigger_Brs_026))]
     public async Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.TopicName)}%",
@@ -35,7 +33,7 @@ public class StartTrigger_Brs_026_V1(
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        await _handler.HandleAsync(message)
-            .ConfigureAwait(false);
+        var handler = handlerFactory.Create(message);
+        await handler.HandleAsync(message).ConfigureAwait(false);
     }
 }

@@ -12,22 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026;
 
-public class RequestCalculatedEnergyTimeSeriesHandlerV1(
-    ILogger<RequestCalculatedEnergyTimeSeriesHandlerV1> logger,
+public class RequestCalculatedEnergyTimeSeriesHandler(
+    ILogger<RequestCalculatedEnergyTimeSeriesHandler> logger,
     IStartOrchestrationInstanceMessageCommands commands)
         : StartOrchestrationInstanceFromMessageHandlerBase<RequestCalculatedEnergyTimeSeriesInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
+
+    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestration) =>
+        startOrchestration.OrchestrationName == Brs_026.V1.Name &&
+        startOrchestration.OrchestrationVersion == Brs_026.V1.Version;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,

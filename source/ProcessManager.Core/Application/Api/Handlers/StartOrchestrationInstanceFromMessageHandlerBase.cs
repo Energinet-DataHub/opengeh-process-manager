@@ -22,50 +22,14 @@ using Microsoft.Extensions.Logging;
 namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
 public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputParameterDto>(
-    ILogger logger)
+    ILogger logger) : IMagicHandler
     where TInputParameterDto : class, IInputParameterDto
 {
     private readonly ILogger _logger = logger;
 
+    public abstract bool CanHandle(StartOrchestrationInstanceV1 startOrchestration);
+
     public async Task HandleAsync(ServiceBusReceivedMessage message)
-    {
-        using var serviceBusMessageLoggerScope = _logger.BeginScope(new
-        {
-            ServiceBusMessage = new
-            {
-                message.MessageId,
-                message.CorrelationId,
-                message.Subject,
-                message.ApplicationProperties,
-            },
-        });
-
-        _logger.LogInformation("Handling received start orchestration service bus message.");
-
-        var majorVersion = message.GetMajorVersion();
-        if (majorVersion == StartOrchestrationInstanceV1.MajorVersion)
-        {
-            await HandleV1(message)
-                .ConfigureAwait(false);
-        }
-        else
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(majorVersion),
-                majorVersion,
-                $"Unhandled major version in the received start orchestration service bus message (Subject={message.Subject}, MessageId={message.MessageId}).");
-        }
-    }
-
-    protected abstract Task StartOrchestrationInstanceAsync(
-        ActorIdentity actorIdentity,
-        TInputParameterDto input,
-        string idempotencyKey,
-        string actorMessageId,
-        string transactionId,
-        string? meteringPointId);
-
-    private async Task HandleV1(ServiceBusReceivedMessage message)
     {
         var startOrchestration = message.ParseBody<StartOrchestrationInstanceV1>();
 
@@ -89,15 +53,23 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
         var inputParameterDto = startOrchestration.ParseInput<TInputParameterDto>();
 
         await StartOrchestrationInstanceAsync(
-            actorIdentity: new ActorIdentity(
-                Actor.From(
-                    startOrchestration.StartedByActor.ActorNumber,
-                    startOrchestration.StartedByActor.ActorRole)),
-            input: inputParameterDto,
-            idempotencyKey: message.GetIdempotencyKey(),
-            actorMessageId: startOrchestration.ActorMessageId,
-            transactionId: startOrchestration.TransactionId,
-            meteringPointId: startOrchestration.HasMeteringPointId ? startOrchestration.MeteringPointId : null)
+                actorIdentity: new ActorIdentity(
+                    Actor.From(
+                        startOrchestration.StartedByActor.ActorNumber,
+                        startOrchestration.StartedByActor.ActorRole)),
+                input: inputParameterDto,
+                idempotencyKey: message.GetIdempotencyKey(),
+                actorMessageId: startOrchestration.ActorMessageId,
+                transactionId: startOrchestration.TransactionId,
+                meteringPointId: startOrchestration.HasMeteringPointId ? startOrchestration.MeteringPointId : null)
             .ConfigureAwait(false);
     }
+
+    protected abstract Task StartOrchestrationInstanceAsync(
+        ActorIdentity actorIdentity,
+        TInputParameterDto input,
+        string idempotencyKey,
+        string actorMessageId,
+        string transactionId,
+        string? meteringPointId);
 }

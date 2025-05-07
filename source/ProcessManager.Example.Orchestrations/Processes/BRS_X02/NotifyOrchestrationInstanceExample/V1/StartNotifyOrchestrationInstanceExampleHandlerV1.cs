@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -28,6 +29,9 @@ internal class StartNotifyOrchestrationInstanceExampleHandlerV1(
     : StartOrchestrationInstanceFromMessageHandlerBase<NotifyOrchestrationInstanceExampleInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
+
+    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestration) =>
+        startOrchestration is { OrchestrationName: "Brs_X02_NotifyOrchestrationInstanceExample", OrchestrationVersion: 1 }; // TODO: LRN
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,

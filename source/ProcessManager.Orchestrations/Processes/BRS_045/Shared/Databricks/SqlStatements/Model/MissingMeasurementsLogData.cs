@@ -16,6 +16,6 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements.Model;
 
-public sealed record MissingMeasurementsLogData(
+internal sealed record MissingMeasurementsLogData(
     string MeteringPointId,
     Instant Date);

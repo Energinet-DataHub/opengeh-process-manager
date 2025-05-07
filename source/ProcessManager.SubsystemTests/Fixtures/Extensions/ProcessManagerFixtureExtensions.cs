@@ -152,8 +152,9 @@ public static class ProcessManagerFixtureExtensions
     /// <summary>
     /// Start Databricks SQL warehouse.
     /// It can be used to "warm up" the warehouse for tests to reduce timeouts.
+    /// Client documentation: https://github.com/Azure/azure-databricks-client
     /// </summary>
-    public static async Task StartWarehouseAsync<TConfiguration>(this ProcessManagerFixture<TConfiguration> fixture)
+    public static async Task StartDatabricksSqlWarehouseAsync<TConfiguration>(this ProcessManagerFixture<TConfiguration> fixture)
     {
         using var client = DatabricksClient.CreateClient(
             baseUrl: fixture.Configuration.ProcessManagerDatabricksWorkspaceUrl,

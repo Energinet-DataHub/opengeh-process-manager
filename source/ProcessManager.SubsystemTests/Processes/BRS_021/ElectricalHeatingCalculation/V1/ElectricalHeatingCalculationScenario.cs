@@ -55,7 +55,7 @@ public class ElectricalHeatingCalculationScenario
     public async Task Given_ValidStartElectricalHeatingCalculationCommand()
     {
         // Warm up SQL warehouse, so it is ready for the sql queries at the end of the orchestration
-        await _fixture.StartWarehouseAsync();
+        await _fixture.StartDatabricksSqlWarehouseAsync();
 
         _fixture.TestConfiguration = new ElectricalHeatingCalculationScenarioState(
             startCommand: new StartElectricalHeatingCalculationCommandV1(_fixture.UserIdentity));

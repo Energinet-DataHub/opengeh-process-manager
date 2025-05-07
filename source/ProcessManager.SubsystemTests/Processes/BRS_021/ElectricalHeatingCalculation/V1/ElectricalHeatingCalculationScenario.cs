@@ -95,7 +95,7 @@ public class ElectricalHeatingCalculationScenario
         Assert.True(_fixture.TestConfiguration.OrchestrationInstanceId != Guid.Empty, "If orchestration instance id wasn't set earlier, end tests early.");
 
         // Wait up to 30 minutes for the orchestration instance to be terminated. If the databricks warehouse
-        // isn't started, it takes a while before the databricks query actually starts running.
+        // isn't currently running, it takes 5-20 minutes before the databricks query actually starts running.
         var (success, orchestrationInstance, _) = await _fixture.WaitForOrchestrationInstanceByIdAsync(
                 orchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstanceId,
                 orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated,

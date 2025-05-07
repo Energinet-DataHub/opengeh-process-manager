@@ -52,8 +52,11 @@ public class ElectricalHeatingCalculationScenario
 
     [SubsystemFact]
     [ScenarioStep(1)]
-    public void Given_ValidStartElectricalHeatingCalculationCommand()
+    public async Task Given_ValidStartElectricalHeatingCalculationCommand()
     {
+        // Warm up SQL warehouse, so it is ready for the sql queries at the end of the orchestration
+        await _fixture.StartWarehouseAsync();
+
         _fixture.TestConfiguration = new ElectricalHeatingCalculationScenarioState(
             startCommand: new StartElectricalHeatingCalculationCommandV1(_fixture.UserIdentity));
     }

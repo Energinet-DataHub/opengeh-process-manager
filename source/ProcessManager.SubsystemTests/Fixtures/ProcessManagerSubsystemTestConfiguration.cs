@@ -28,7 +28,10 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
         var sharedKeyVaultName = Root.GetValue<string>("SHARED_KEYVAULT_NAME")
                                 ?? throw new NullReferenceException($"Missing configuration value for SHARED_KEYVAULT_NAME");
 
-        var keyVaultConfiguration = GetKeyVaultConfiguration(sharedKeyVaultName);
+        var internalKeyVaultName = Root.GetValue<string>("INTERNAL_KEYVAULT_NAME")
+                                ?? throw new NullReferenceException($"Missing configuration value for INTERNAL_KEYVAULT_NAME");
+
+        var keyVaultConfiguration = GetKeyVaultConfiguration(sharedKeyVaultName, internalKeyVaultName);
 
         ServiceBusNamespace = keyVaultConfiguration.GetValue<string>("sb-domain-relay-namespace-endpoint")
                                        ?? throw new ArgumentNullException(nameof(ServiceBusNamespace), $"Missing configuration value for {nameof(ServiceBusNamespace)}");
@@ -57,6 +60,15 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
 
         ProcessManagerOrchestrationsApiBaseAddress = keyVaultConfiguration.GetValue<string>("func-orchestrations-pmorch-base-url")
             ?? throw new ArgumentNullException(nameof(ProcessManagerOrchestrationsApiBaseAddress), $"Missing configuration value for {nameof(ProcessManagerOrchestrationsApiBaseAddress)}");
+
+        ProcessManagerDatabricksWorkspaceUrl = keyVaultConfiguration.GetValue<string>("dbw-workspace-https-url")
+            ?? throw new ArgumentNullException(nameof(ProcessManagerDatabricksWorkspaceUrl), $"Missing configuration value for {nameof(ProcessManagerDatabricksWorkspaceUrl)}");
+
+        ProcessManagerDatabricksToken = keyVaultConfiguration.GetValue<string>("dbw-workspace-token")
+            ?? throw new ArgumentNullException(nameof(ProcessManagerDatabricksToken), $"Missing configuration value for {nameof(ProcessManagerDatabricksToken)}");
+
+        ProcessManagerDatabricksSqlWarehouseId = keyVaultConfiguration.GetValue<string>("process-manager-warehouse-id")
+            ?? throw new ArgumentNullException(nameof(ProcessManagerDatabricksSqlWarehouseId), $"Missing configuration value for {nameof(ProcessManagerDatabricksSqlWarehouseId)}");
     }
 
     public string EnergySupplierActorNumber { get; }
@@ -77,15 +89,23 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
 
     public string ProcessManagerOrchestrationsApiBaseAddress { get; }
 
+    public string ProcessManagerDatabricksWorkspaceUrl { get; }
+
+    public string ProcessManagerDatabricksToken { get; }
+
+    public string ProcessManagerDatabricksSqlWarehouseId { get; }
+
     /// <summary>
     /// Build configuration for loading settings from key vault secrets.
     /// </summary>
-    private IConfigurationRoot GetKeyVaultConfiguration(string keyVaultName)
+    private IConfigurationRoot GetKeyVaultConfiguration(string keyVaultName, string internalKeyVaultName)
     {
-        var keyVaultUrl = $"https://{keyVaultName}.vault.azure.net/";
+        var sharedKeyVaultUrl = $"https://{keyVaultName}.vault.azure.net/";
+        var internalKeyVaultUrl = $"https://{internalKeyVaultName}.vault.azure.net/";
 
         return new ConfigurationBuilder()
-            .AddAuthenticatedAzureKeyVault(keyVaultUrl)
+            .AddAuthenticatedAzureKeyVault(sharedKeyVaultUrl)
+            .AddAuthenticatedAzureKeyVault(internalKeyVaultUrl)
             .Build();
     }
 }

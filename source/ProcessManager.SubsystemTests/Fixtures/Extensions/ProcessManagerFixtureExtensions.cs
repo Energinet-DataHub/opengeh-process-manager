@@ -15,6 +15,7 @@
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Microsoft.Azure.Databricks.Client;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
 
@@ -146,5 +147,18 @@ public static class ProcessManagerFixtureExtensions
             delay: TimeSpan.FromSeconds(1));
 
         return (success, orchestrationInstance, stepInstance);
+    }
+
+    /// <summary>
+    /// Start Databricks SQL warehouse.
+    /// It can be used to "warm up" the warehouse for tests to reduce timeouts.
+    /// </summary>
+    public static async Task StartWarehouseAsync<TConfiguration>(this ProcessManagerFixture<TConfiguration> fixture)
+    {
+        using var client = DatabricksClient.CreateClient(
+            baseUrl: fixture.Configuration.ProcessManagerDatabricksWorkspaceUrl,
+            token: fixture.Configuration.ProcessManagerDatabricksToken);
+
+        await client.SQL.Warehouse.Start(id: fixture.Configuration.ProcessManagerDatabricksSqlWarehouseId);
     }
 }

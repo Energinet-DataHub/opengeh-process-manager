@@ -227,7 +227,6 @@ internal class OrchestrationInstanceManager(
 
         if (!orchestrationDescription.IsDurableFunction)
         {
-            // TODO: Add handling of non-durable functions
             return;
         }
 

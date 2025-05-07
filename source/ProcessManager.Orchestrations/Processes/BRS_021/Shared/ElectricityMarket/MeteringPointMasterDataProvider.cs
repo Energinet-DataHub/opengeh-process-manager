@@ -156,7 +156,6 @@ internal class MeteringPointMasterDataProvider(
             // If no parent data was fetched, fall back to own energy supplier (even if null)
             if (parentMasterData.Count == 0)
             {
-                // TODO: Should this throw an exception instead?
                 result.Add(
                     CreateMeteringPointMasterData(
                         meteringPointMasterData,

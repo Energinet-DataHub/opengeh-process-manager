@@ -26,11 +26,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication(builder =>
-    {
-        // Http => Authorization
-        builder.UseFunctionsAuthorization();
-    })
     .ConfigureServices((context, services) =>
     {
         var azureCredential = new DefaultAzureCredential();
@@ -50,6 +45,11 @@ var host = new HostBuilder()
         // Handlers
         services.AddScoped<RecurringPlannerHandler>();
         services.AddScoped<SchedulerHandler>();
+    })
+    .ConfigureFunctionsWebApplication(builder =>
+    {
+        // Http => Authorization
+        builder.UseFunctionsAuthorization();
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

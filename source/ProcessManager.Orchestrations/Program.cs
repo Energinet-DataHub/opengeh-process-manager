@@ -30,19 +30,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication(builder =>
-    {
-        // Http => Authorization
-        builder.UseFunctionsAuthorization();
-
-        // Host Durable Function Monitor as a part of this app.
-        // The Durable Function Monitor can be accessed at: {host url}/api/durable-functions-monitor
-        builder.UseDurableFunctionsMonitor(
-            (settings, _) =>
-            {
-                settings.Mode = DfmMode.ReadOnly;
-            });
-    })
     .ConfigureServices((context, services) =>
     {
         services.AddTransient<IConfiguration>(_ => context.Configuration);
@@ -85,6 +72,19 @@ var host = new HostBuilder()
 
         // BRS-021 (ForwardMeteredData, ElectricalHeatingCalculation, CapacitySettlementCalculation & NetConsumptionCalculation)
         services.AddBrs021(azureCredential);
+    })
+    .ConfigureFunctionsWebApplication(builder =>
+    {
+        // Http => Authorization
+        builder.UseFunctionsAuthorization();
+
+        // Host Durable Function Monitor as a part of this app.
+        // The Durable Function Monitor can be accessed at: {host url}/api/durable-functions-monitor
+        builder.UseDurableFunctionsMonitor(
+            (settings, _) =>
+            {
+                settings.Mode = DfmMode.ReadOnly;
+            });
     })
     .ConfigureLogging((hostingContext, logging) =>
     {

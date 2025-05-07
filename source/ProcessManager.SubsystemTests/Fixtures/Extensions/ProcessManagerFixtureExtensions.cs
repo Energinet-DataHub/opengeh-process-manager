@@ -27,7 +27,7 @@ public static class ProcessManagerFixtureExtensions
     /// </summary>
     /// <param name="fixture"></param>
     /// <param name="idempotencyKey">Find an orchestration instance with the given idempotency key.</param>
-    /// <param name="orchestrationInstanceState">If provided, then the orchestration instance have the given state.</param>
+    /// <param name="orchestrationInstanceState">If provided, then the orchestration instance must have the given state.</param>
     /// <param name="stepSequence">If provided, then the orchestration instance must have a step instance with the given sequence number.</param>
     /// <param name="stepState">If provided, then the step should be in the given state (defaults to <see cref="StepInstanceLifecycleState.Terminated"/>).</param>
     /// <param name="timeoutInMinutes">How long to wait for the orchestration instance to be in the given state (defaults to 1).</param>

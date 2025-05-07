@@ -17,9 +17,9 @@ using System.ComponentModel.DataAnnotations;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 
 /// <summary>
-/// Options for the configuration of Measurements metered data event hub producer clients.
+/// Options for the configuration of Measurements event hub producer clients.
 /// </summary>
-public class MeasurementsMeteredDataClientOptions
+public class MeasurementsClientOptions
 {
     public const string SectionName = "MeasurementsEventHub";
 

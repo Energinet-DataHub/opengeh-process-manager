@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.1.5
+
+- Delete unused `EnqueueActorMessagesForMeteringPointV1` and `ReceiversWithMeasureDataV1` for `ElectricalHeatingCalculation`.
+
 ## Version 2.1.4
 
 - Update `EnqueueCalculatedMeasurementsHttpV1` to contain a list of `ReceiversWithMeasurements`.

@@ -44,7 +44,7 @@ public class StartForwardMeteredDataHandlerV1(
     IStartOrchestrationInstanceMessageCommands commands,
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
-    IMeasurementsMeteredDataClient measurementsMeteredDataClient,
+    IMeasurementsClient measurementsClient,
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
     IMeteringPointMasterDataProvider meteringPointMasterDataProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
@@ -55,7 +55,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
-    private readonly IMeasurementsMeteredDataClient _measurementsMeteredDataClient = measurementsMeteredDataClient;
+    private readonly IMeasurementsClient _measurementsClient = measurementsClient;
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
     private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
@@ -371,7 +371,7 @@ public class StartForwardMeteredDataHandlerV1(
                 $"Forward to Measurements step must be running (Id={forwardToMeasurementsStep.Id}, State={forwardToMeasurementsStep.Lifecycle.State}).");
         }
 
-        await _measurementsMeteredDataClient.SendAsync(
+        await _measurementsClient.SendAsync(
                 MapInputToMeasurements(orchestrationInstance.Id, input),
                 CancellationToken.None)
             .ConfigureAwait(false);
@@ -431,7 +431,7 @@ public class StartForwardMeteredDataHandlerV1(
             .ConfigureAwait(false);
     }
 
-    private MeteredDataForMeteringPoint MapInputToMeasurements(
+    private MeasurementsForMeteringPoint MapInputToMeasurements(
         OrchestrationInstanceId orchestrationInstanceId,
         ForwardMeteredDataValidInput input) =>
         new(
@@ -444,13 +444,13 @@ public class StartForwardMeteredDataHandlerV1(
             MeteringPointType: input.MeteringPointType,
             Unit: input.MeasureUnit,
             Resolution: input.Resolution,
-            Points: input.MeteredDataList.Select(
+            Measurements: input.MeteredDataList.Select(
                     MapPoints)
                 .ToList());
 
-    private Point MapPoints(ForwardMeteredDataValidInput.MeteredData meteredData)
+    private Measurement MapPoints(ForwardMeteredDataValidInput.MeteredData meteredData)
     {
-        return new Point(
+        return new Measurement(
             meteredData.Position,
             // TODO: LRN - Awaiting a final decision from Volt on how to handle null values.
             meteredData.EnergyQuantity ?? 0.000m,

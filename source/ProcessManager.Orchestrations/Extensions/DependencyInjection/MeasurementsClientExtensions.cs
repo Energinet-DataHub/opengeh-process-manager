@@ -27,18 +27,18 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyI
 /// <summary>
 /// Extension methods for <see cref="IServiceCollection"/>.
 /// </summary>
-public static class MeasurementsMeteredDataClientExtensions
+public static class MeasurementsClientExtensions
 {
     /// <summary>
-    /// Register Measurements metered data client.
+    /// Register Measurements client.
     /// </summary>
-    public static IServiceCollection AddMeasurementsMeteredDataClient(
+    public static IServiceCollection AddMeasurementsClient(
         this IServiceCollection services,
         TokenCredential azureCredential)
     {
         services
-            .AddOptions<MeasurementsMeteredDataClientOptions>()
-            .BindConfiguration(MeasurementsMeteredDataClientOptions.SectionName)
+            .AddOptions<MeasurementsClientOptions>()
+            .BindConfiguration(MeasurementsClientOptions.SectionName)
             .ValidateDataAnnotations();
 
         services.AddAzureClients(
@@ -47,13 +47,13 @@ public static class MeasurementsMeteredDataClientExtensions
                 builder.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
                         (_, _, provider) =>
                         {
-                            var options = provider.GetRequiredService<IOptions<MeasurementsMeteredDataClientOptions>>().Value;
+                            var options = provider.GetRequiredService<IOptions<MeasurementsClientOptions>>().Value;
                             return new EventHubProducerClient($"{options.FullyQualifiedNamespace}", options.EventHubName, azureCredential);
                         })
                     .WithName(EventHubProducerClientNames.MeasurementsEventHub);
             });
 
-        services.AddTransient<IMeasurementsMeteredDataClient, MeasurementsMeteredDataClient>();
+        services.AddTransient<IMeasurementsClient, MeasurementsClient>();
 
         services.AddHealthChecks()
             .AddAzureEventHub(

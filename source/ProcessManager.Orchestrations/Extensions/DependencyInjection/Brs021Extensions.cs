@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Azure.Identity;
-using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,14 +28,14 @@ public static class Brs021Extensions
         this IServiceCollection services,
         DefaultAzureCredential azureCredential)
     {
-        services.AddMeasurementsMeteredDataClient(azureCredential);
+        services.AddMeasurementsClient(azureCredential);
         services.AddScoped<IMeteringPointMasterDataProvider, MeteringPointMasterDataProvider>();
         services.AddScoped<MeteringPointReceiversProvider>();
 
         // Used by BRS-021 ForwardMeteredData process
         services.AddScoped<DelegationProvider>();
         services.AddScoped<TerminateForwardMeteredDataHandlerV1>();
-        services.AddScoped<EnqueueMeteredDataHandlerV1>();
+        services.AddScoped<EnqueueMeasurementsHandlerV1>();
 
         return services;
     }

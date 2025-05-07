@@ -23,26 +23,26 @@ internal class CalculatedMeasurementsQuery(
     ILogger logger,
     CalculatedMeasurementsSchemaDescription schemaDescription,
     Guid orchestrationInstanceId) :
-        QueryBase<CalculatedMeasurement, CalculatedMeasurementsSchemaDescription>(
+        QueryBase<Model.CalculatedMeasurements, CalculatedMeasurementsSchemaDescription>(
             logger,
             schemaDescription,
             orchestrationInstanceId)
 {
-    protected override Task<QueryResult<CalculatedMeasurement>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> groupOfRows)
+    protected override Task<QueryResult<Model.CalculatedMeasurements>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> groupOfRows)
     {
         var firstRow = groupOfRows.First();
 
         try
         {
-            var measureDataList = new List<MeasureData>();
+            var measurements = new List<Measurement>();
 
             foreach (var row in groupOfRows)
             {
-                measureDataList.Add(CreateMeasureData(row));
+                measurements.Add(CreateMeasurement(row));
             }
 
-            var result = CreateCalculatedMeasurement(firstRow, measureDataList);
-            return Task.FromResult(QueryResult<CalculatedMeasurement>.Success(result));
+            var result = CreateCalculatedMeasurements(firstRow, measurements);
+            return Task.FromResult(QueryResult<Model.CalculatedMeasurements>.Success(result));
         }
         catch (Exception ex)
         {
@@ -56,7 +56,7 @@ internal class CalculatedMeasurementsQuery(
                 transactionId);
         }
 
-        return Task.FromResult(QueryResult<CalculatedMeasurement>.Error());
+        return Task.FromResult(QueryResult<Model.CalculatedMeasurements>.Error());
     }
 
     protected override bool BelongsToSameGroup(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow)
@@ -74,17 +74,17 @@ internal class CalculatedMeasurementsQuery(
             """;
     }
 
-    private static MeasureData CreateMeasureData(DatabricksSqlRow databricksSqlRow)
+    private static Measurement CreateMeasurement(DatabricksSqlRow databricksSqlRow)
     {
-        return new MeasureData(
+        return new Measurement(
             ObservationTime: databricksSqlRow.ToInstant(CalculatedMeasurementsColumnNames.ObservationTime),
             Quantity: databricksSqlRow.ToDecimal(CalculatedMeasurementsColumnNames.Quantity),
             QuantityQuality: databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityQuality));
     }
 
-    private static CalculatedMeasurement CreateCalculatedMeasurement(DatabricksSqlRow databricksSqlRow, IReadOnlyCollection<MeasureData> measureDataList)
+    private static Model.CalculatedMeasurements CreateCalculatedMeasurements(DatabricksSqlRow databricksSqlRow, IReadOnlyCollection<Measurement> measurements)
     {
-        return new CalculatedMeasurement(
+        return new Model.CalculatedMeasurements(
             OrchestrationType: databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.OrchestrationType),
             OrchestrationInstanceId: databricksSqlRow.ToGuid(CalculatedMeasurementsColumnNames.OrchestrationInstanceId),
             TransactionId: databricksSqlRow.ToGuid(CalculatedMeasurementsColumnNames.TransactionId),
@@ -93,6 +93,6 @@ internal class CalculatedMeasurementsQuery(
             MeteringPointType: MeteringPointTypeMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.MeteringPointType)),
             QuantityUnit: MeasurementUnitMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.QuantityUnit)),
             Resolution: ResolutionMapper.FromDeltaTableValue(databricksSqlRow.ToNonEmptyString(CalculatedMeasurementsColumnNames.Resolution)),
-            MeasureData: measureDataList);
+            Measurements: measurements);
     }
 }

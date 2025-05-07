@@ -32,7 +32,8 @@ public class RequestCalculatedWholesaleServicesHandlerV1(
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 
     public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestration) =>
-        startOrchestration.OrchestrationVersion == Brs_028.V1.Version && startOrchestration.OrchestrationName == Brs_028.V1.Name;
+        startOrchestration.OrchestrationVersion == Brs_028.V1.Version &&
+        startOrchestration.OrchestrationName == Brs_028.V1.Name;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,

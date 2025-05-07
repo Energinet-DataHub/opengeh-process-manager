@@ -18,12 +18,12 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.E
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 
-public static class ReceiversWithMeasureDataExtensions
+public static class ReceiversWithMeasurementsExtensions
 {
-    public static List<ReceiversWithMeteredDataV1> ToForwardMeteredDataReceiversWithMeteredDataV1(
-        this IEnumerable<ReceiversWithMeasureData> receiversWithMeasureData)
+    public static List<ReceiversWithMeteredDataV1> ToForwardMeteredDataReceiversWithMeasurementsV1(
+        this IEnumerable<ReceiversWithMeasurements> receiversWithMeasurements)
     {
-        return receiversWithMeasureData
+        return receiversWithMeasurements
             .Select(
                 rmd => new ReceiversWithMeteredDataV1(
                     Actors: rmd.Receivers.ToForwardMeteredDataMarketActorRecipientV1(),
@@ -31,7 +31,7 @@ public static class ReceiversWithMeasureDataExtensions
                     MeasureUnit: rmd.MeasureUnit,
                     StartDateTime: rmd.StartDateTime,
                     EndDateTime: rmd.EndDateTime,
-                    MeteredData: rmd.MeasureDataList.ToForwardMeteredDataAcceptedMeteredData()))
+                    MeteredData: rmd.Measurements.ToForwardMeteredDataAcceptedMeasurements()))
             .ToList();
     }
 
@@ -45,10 +45,10 @@ public static class ReceiversWithMeasureDataExtensions
             .ToList();
     }
 
-    private static List<ReceiversWithMeteredDataV1.AcceptedMeteredData> ToForwardMeteredDataAcceptedMeteredData(
-        this IEnumerable<ReceiversWithMeasureData.MeasureData> measuredata)
+    private static List<ReceiversWithMeteredDataV1.AcceptedMeteredData> ToForwardMeteredDataAcceptedMeasurements(
+        this IEnumerable<ReceiversWithMeasurements.Measurement> measurements)
     {
-        return measuredata
+        return measurements
             .Select(
                 md => new ReceiversWithMeteredDataV1.AcceptedMeteredData(
                     Position: md.Position,

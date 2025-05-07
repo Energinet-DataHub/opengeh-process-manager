@@ -12,11 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 
-public sealed record MeasureData(
-    Instant ObservationTime,
-    decimal Quantity,
-    string QuantityQuality);
+public record MeasurementsForMeteringPoint(
+    string OrchestrationId,
+    string MeteringPointId,
+    string TransactionId,
+    Instant CreatedAt,
+    Instant StartDateTime,
+    Instant EndDateTime,
+    MeteringPointType MeteringPointType,
+    MeasurementUnit Unit,
+    Resolution Resolution,
+    IReadOnlyCollection<Measurement> Measurements);
+
+public record Measurement(int Position, decimal Quantity, Quality Quality);

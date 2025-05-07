@@ -60,10 +60,10 @@ public class CalculatedMeasurementsQueryTests : IClassFixture<CalculatedMeasurem
             () => Assert.Single(actual, x =>
                     x.Result != null
                     && x.Result.TransactionId == Guid.Parse("1a0c19a9-8310-5e59-b2e0-d1533927c6b9")
-                    && x.Result.MeasureData.Count == 2),
+                    && x.Result.Measurements.Count == 2),
             () => Assert.Single(actual, x =>
                     x.Result != null
                     && x.Result.TransactionId == Guid.Parse("1a790ec1-e1d8-51ed-84fd-15d37ad5021a")
-                    && x.Result.MeasureData.Count == 2));
+                    && x.Result.Measurements.Count == 2));
     }
 }

@@ -18,25 +18,25 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
 
 /// <summary>
-/// Describes how measure data is grouped (sent to) market actors for specific time periods, resolutions and measure units.
+/// Describes how measurements is grouped (sent to) market actors for specific time periods, resolutions and measure units.
 /// </summary>
-/// <param name="Receivers">The actors who should receive the measure data for the given period.</param>
-/// <param name="Resolution">The resolution the measure data has in this period.</param>
-/// <param name="MeasureUnit">The measure units the measure data has in this period.</param>
+/// <param name="Receivers">The actors who should receive the measurements for the given period.</param>
+/// <param name="Resolution">The resolution the measurements has in this period.</param>
+/// <param name="MeasureUnit">The measure units the measurements has in this period.</param>
 /// <param name="StartDateTime">The start date and time of the period.</param>
 /// <param name="EndDateTime">The end date and time of the period.</param>
 /// <param name="GridArea">The grid area code.</param>
-/// <param name="MeasureDataList">The measure data in the given period.</param>
-public record ReceiversWithMeasureData(
+/// <param name="Measurements">The measurements in the given period.</param>
+public record ReceiversWithMeasurements(
     IReadOnlyCollection<Actor> Receivers,
     Resolution Resolution,
     MeasurementUnit MeasureUnit,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
     string GridArea,
-    IReadOnlyCollection<ReceiversWithMeasureData.MeasureData> MeasureDataList)
+    IReadOnlyCollection<ReceiversWithMeasurements.Measurement> Measurements)
 {
-    public record MeasureData(
+    public record Measurement(
         int Position,
         decimal? EnergyQuantity,
         Quality? QuantityQuality);

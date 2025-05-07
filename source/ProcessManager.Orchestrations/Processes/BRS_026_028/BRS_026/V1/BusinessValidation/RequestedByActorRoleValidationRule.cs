@@ -23,7 +23,7 @@ public sealed class RequestedByActorRoleValidationRule : IBusinessValidationRule
     private static IList<ValidationError> NoError => [];
 
     private static IList<ValidationError> UseMeteredDataResponsibleInsteadOfGridAreaOperatorError => [new(
-        "Rollen skal være MDR når der anmodes om beregnede energitidsserier / Role must be MDR when requesting aggregated measure data",
+        "Rollen skal være MDR når der anmodes om beregnede energitidsserier / Role must be MDR when requesting aggregated measurements",
         "D02")];
 
     public Task<IList<ValidationError>> ValidateAsync(RequestCalculatedEnergyTimeSeriesInputV1 subject)

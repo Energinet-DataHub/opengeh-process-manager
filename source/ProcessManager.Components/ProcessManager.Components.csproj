@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>Energinet.DataHub.ProcessManager.Components</AssemblyName>
@@ -13,7 +13,7 @@
     <PackageReference Include="AspNetCore.HealthChecks.Azure.Messaging.EventHubs" Version="9.0.0" />
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.1" />
-    <PackageReference Include="Energinet.DataHub.Core.App.Common" Version="15.0.0" />
+    <PackageReference Include="Energinet.DataHub.Core.App.Common" Version="15.2.0" />
     <PackageReference Include="Energinet.DataHub.Core.Databricks.SqlStatementExecution" Version="13.0.0" />
     <PackageReference Include="Energinet.DataHub.ElectricityMarket.Integration" Version="4.5.0" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.11.0" />

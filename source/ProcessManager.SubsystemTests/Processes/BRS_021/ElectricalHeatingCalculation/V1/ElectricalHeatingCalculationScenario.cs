@@ -70,10 +70,10 @@ public class ElectricalHeatingCalculationScenario
     }
 
     [SubsystemFact]
-    [ScenarioStep(2)]
+    [ScenarioStep(3)]
     public async Task When_OrchestrationInstanceIsRunning()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.True(_fixture.TestConfiguration.OrchestrationInstanceId != Guid.Empty, "If orchestration instance id wasn't set earlier, end tests early.");
 
         var (success, orchestrationInstance, _) = await _fixture.WaitForOrchestrationInstanceByIdAsync(
             orchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstanceId,
@@ -89,10 +89,10 @@ public class ElectricalHeatingCalculationScenario
     }
 
     [SubsystemFact]
-    [ScenarioStep(3)]
+    [ScenarioStep(4)]
     public async Task Then_OrchestrationInstanceIsTerminatedWithSuccess()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.True(_fixture.TestConfiguration.OrchestrationInstanceId != Guid.Empty, "If orchestration instance id wasn't set earlier, end tests early.");
 
         var (success, orchestrationInstance, _) = await _fixture.WaitForOrchestrationInstanceByIdAsync(
                 orchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstanceId,

@@ -39,7 +39,6 @@ public class MeasurementsClient(
     {
         var data = new PersistSubmittedTransaction
         {
-            // TODO: Missing version field?
             Version = "1",
             OrchestrationInstanceId = measurementsForMeteringPoint.OrchestrationId,
             OrchestrationType = OrchestrationType.OtSubmittedMeasureData,

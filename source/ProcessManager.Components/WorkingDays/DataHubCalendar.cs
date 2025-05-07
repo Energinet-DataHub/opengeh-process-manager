@@ -28,11 +28,20 @@ public class DataHubCalendar
     }
 
     /// <summary>
-    /// Get the current UTC date (midnight).
+    /// Get the current date at midnight.
     /// </summary>
-    public Instant CurrentDay()
+    public Instant CurrentDate()
+    {
+        return GetDateRelativeToCurrentDate(0);
+    }
+
+    /// <summary>
+    /// Get the date at midnight relative to the current date.
+    /// </summary>
+    public Instant GetDateRelativeToCurrentDate(int days)
     {
         return _clock.GetCurrentInstant()
+            .Plus(Duration.FromDays(days))
             .InZone(_zone)
             .Date
             .AtMidnight()
@@ -178,6 +187,6 @@ public class DataHubCalendar
             month = 4;
         }
 
-        return new LocalDate(year, month, day).AtMidnight().Date;
+        return new LocalDate(year, month, day);
     }
 }

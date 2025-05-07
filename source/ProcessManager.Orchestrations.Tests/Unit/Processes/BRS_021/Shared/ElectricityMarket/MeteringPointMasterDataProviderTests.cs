@@ -35,7 +35,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
     Justification = "Allow comments to increase readability")]
 public class MeteringPointMasterDataProviderTests
 {
-    private readonly MeteringPointMasterDataProvider _sut;
+    private readonly IMeteringPointMasterDataProvider _sut;
 
     public MeteringPointMasterDataProviderTests()
     {

@@ -33,18 +33,19 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shar
     "StyleCop.CSharp.ReadabilityRules",
     "SA1118:Parameter should not span multiple lines",
     Justification = "Readability")]
-public class MeteringPointMasterDataProvider(
+internal class MeteringPointMasterDataProvider(
     IElectricityMarketViews electricityMarketViews,
     ILogger<MeteringPointMasterDataProvider> logger,
     IClock clock,
     IOptions<ProcessManagerComponentsOptions> options)
+        : IMeteringPointMasterDataProvider
 {
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
     private readonly IClock _clock = clock;
     private readonly IOptions<ProcessManagerComponentsOptions> _options = options;
 
-    internal Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
+    public Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
         string startDate,
         string endDate)
@@ -58,7 +59,7 @@ public class MeteringPointMasterDataProvider(
         return GetMasterData(meteringPointId, startDateTime.Value, endDateTime.Value);
     }
 
-    internal async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
+    public async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
         Instant startDateTime,
         Instant endDateTime)

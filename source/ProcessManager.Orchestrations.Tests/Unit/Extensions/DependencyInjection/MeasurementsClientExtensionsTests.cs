@@ -26,7 +26,7 @@ using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Extensions.DependencyInjection;
 
-public class MeasurementsMeteredDataClientExtensionsTests
+public class MeasurementsClientExtensionsTests
 {
     private const string EventHubName = "event-hub-name";
     private const string FullyQualifiedNamespace = "namespace.eventhub.windows.net";
@@ -36,56 +36,56 @@ public class MeasurementsMeteredDataClientExtensionsTests
     private ServiceCollection Services { get; } = new();
 
     [Fact]
-    public void MeasurementsMeteredDataClientOptionsAreConfigured_WhenAddMeasurementsMeteredDataClient_ClientCanBeCreated()
+    public void MeasurementsClientOptionsAreConfigured_WhenAddMeasurementsClient_ClientCanBeCreated()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"] = EventHubName,
+            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
+            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
         });
 
         // Act
-        Services.AddMeasurementsMeteredDataClient(_azureCredential);
+        Services.AddMeasurementsClient(_azureCredential);
 
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
 
-        var actualClient = serviceProvider.GetRequiredService<IMeasurementsMeteredDataClient>();
-        actualClient.Should().BeOfType<MeasurementsMeteredDataClient>();
+        var actualClient = serviceProvider.GetRequiredService<IMeasurementsClient>();
+        actualClient.Should().BeOfType<MeasurementsClient>();
     }
 
     [Fact]
-    public void MeasurementsMeteredDataClientOptionsAreNotConfigured_WhenAddMeasurementsMeteredDataClient_ExceptionIsThrownWhenRequestingClient()
+    public void MeasurementsClientOptionsAreNotConfigured_WhenAddMeasurementsClient_ExceptionIsThrownWhenRequestingClient()
     {
         // Arrange
         Services.AddInMemoryConfiguration([]);
 
         // Act
-        Services.AddMeasurementsMeteredDataClient(_azureCredential);
+        Services.AddMeasurementsClient(_azureCredential);
 
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
 
-        var clientAct = () => serviceProvider.GetRequiredService<IMeasurementsMeteredDataClient>();
+        var clientAct = () => serviceProvider.GetRequiredService<IMeasurementsClient>();
         clientAct.Should()
             .Throw<OptionsValidationException>()
-                .WithMessage("DataAnnotation validation failed for 'MeasurementsMeteredDataClientOptions'*")
+                .WithMessage("DataAnnotation validation failed for 'MeasurementsClientOptions'*")
             .And.Failures.Should()
                 .ContainMatch("*FullyQualifiedNamespace field is required*")
                 .And.ContainMatch("*The EventHubName field is required*");
     }
 
     [Fact]
-    public void AzureEventHubHealthCheckAreConfigured_WhenAddMeasurementsMeteredDataClient_MeasurementsEventHubHealthCheckIsRegistered()
+    public void AzureEventHubHealthCheckAreConfigured_WhenAddMeasurementsClient_MeasurementsEventHubHealthCheckIsRegistered()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
-            [$"{MeasurementsMeteredDataClientOptions.SectionName}:{nameof(MeasurementsMeteredDataClientOptions.EventHubName)}"] = EventHubName,
+            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
+            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
         });
-        Services.AddMeasurementsMeteredDataClient(_azureCredential);
+        Services.AddMeasurementsClient(_azureCredential);
         var serviceProvider = Services.BuildServiceProvider();
 
         // Act
@@ -100,7 +100,7 @@ public class MeasurementsMeteredDataClientExtensionsTests
             .ContainSingle()
             .Subject;
         healthCheckRegistration.Name.Should()
-            .BeSameAs(MeasurementsMeteredDataClientOptions.SectionName);
+            .BeSameAs(MeasurementsClientOptions.SectionName);
         healthCheckRegistration.Factory(serviceProvider)
             .Should()
             .BeOfType<AzureEventHubHealthCheck>();

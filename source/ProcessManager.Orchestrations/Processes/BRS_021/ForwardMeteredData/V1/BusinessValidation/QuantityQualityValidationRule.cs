@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
 
-public class MeasureDataQualityValidationRule
+public class QuantityQualityValidationRule
     : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
 {
     public static IList<ValidationError> InvalidQuality => [new(

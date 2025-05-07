@@ -22,8 +22,10 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Telemetry;
 using Energinet.DataHub.ProcessManager.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Scheduler;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.FeatureManagement;
 
 var host = new HostBuilder()
     .ConfigureServices((context, services) =>
@@ -35,6 +37,10 @@ var host = new HostBuilder()
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
         services.AddServiceBusClientForApplication(context.Configuration);
+        // => Feature management
+        services
+            .AddAzureAppConfiguration()
+            .AddFeatureManagement();
 
         // Api
         services.AddNotifyOrchestrationInstance(azureCredential);
@@ -48,12 +54,22 @@ var host = new HostBuilder()
     })
     .ConfigureFunctionsWebApplication(builder =>
     {
+        // Feature management
+        //  * Enables middleware that handles refresh from Azure App Configuration (except for DF Orchestration triggers)
+        builder.UseAzureAppConfigurationForIsolatedWorker();
+
         // Http => Authorization
         builder.UseFunctionsAuthorization();
     })
+    .ConfigureAppConfiguration((context, configBuilder) =>
+    {
+        // Feature management
+        //  * Configure load/refresh from Azure App Configuration
+        configBuilder.AddAzureAppConfigurationForIsolatedWorker();
+    })
     .ConfigureLogging((hostingContext, logging) =>
     {
-        logging.AddLoggingConfigurationForIsolatedWorker(hostingContext);
+        logging.AddLoggingConfigurationForIsolatedWorker(hostingContext.Configuration);
     })
     .Build();
 

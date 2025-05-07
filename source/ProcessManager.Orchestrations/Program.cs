@@ -28,6 +28,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.FeatureManagement;
 
 var host = new HostBuilder()
     .ConfigureServices((context, services) =>
@@ -41,6 +42,10 @@ var host = new HostBuilder()
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
         services.AddServiceBusClientForApplication(context.Configuration);
+        // => Feature management
+        services
+            .AddAzureAppConfiguration()
+            .AddFeatureManagement();
 
         // Databricks
         services.AddDatabricksJobsApi(DatabricksWorkspaceNames.Wholesale);
@@ -75,6 +80,10 @@ var host = new HostBuilder()
     })
     .ConfigureFunctionsWebApplication(builder =>
     {
+        // Feature management
+        //  * Enables middleware that handles refresh from Azure App Configuration (except for DF Orchestration triggers)
+        builder.UseAzureAppConfigurationForIsolatedWorker();
+
         // Http => Authorization
         builder.UseFunctionsAuthorization();
 
@@ -86,9 +95,15 @@ var host = new HostBuilder()
                 settings.Mode = DfmMode.ReadOnly;
             });
     })
+    .ConfigureAppConfiguration((context, configBuilder) =>
+    {
+        // Feature management
+        //  * Configure load/refresh from Azure App Configuration
+        configBuilder.AddAzureAppConfigurationForIsolatedWorker();
+    })
     .ConfigureLogging((hostingContext, logging) =>
     {
-        logging.AddLoggingConfigurationForIsolatedWorker(hostingContext);
+        logging.AddLoggingConfigurationForIsolatedWorker(hostingContext.Configuration);
     })
     .Build();
 

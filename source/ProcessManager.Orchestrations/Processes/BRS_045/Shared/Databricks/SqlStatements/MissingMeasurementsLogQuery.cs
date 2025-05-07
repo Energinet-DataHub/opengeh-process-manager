@@ -45,7 +45,8 @@ internal class MissingMeasurementsLogQuery(
         }
         catch (Exception ex)
         {
-            var orchestrationType = firstRow.ToNonEmptyString(MissingMeasurementsLogColumnNames.OrchestrationType);
+            // TODO AJH
+            var orchestrationType = "missing_measurements_log"; // firstRow.ToNonEmptyString(MissingMeasurementsLogColumnNames.OrchestrationType);
             Logger.LogWarning(
                 ex,
                 "Creating missing measurements log ({OrchestrationType}) failed for orchestration instance id='{OrchestrationInstanceId}'.",
@@ -58,7 +59,7 @@ internal class MissingMeasurementsLogQuery(
 
     protected override bool BelongsToSameGroup(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow)
     {
-        return previousRow.ToGuid(MissingMeasurementsLogColumnNames.MeteringPointId) == currentRow.ToGuid(MissingMeasurementsLogColumnNames.MeteringPointId);
+        return previousRow.ToNonEmptyString(MissingMeasurementsLogColumnNames.MeteringPointId) == currentRow.ToNonEmptyString(MissingMeasurementsLogColumnNames.MeteringPointId);
     }
 
     protected override string BuildSqlQuery()
@@ -80,8 +81,9 @@ internal class MissingMeasurementsLogQuery(
 
     private static MissingMeasurementsLog CreateMissingMeasurementsLog(DatabricksSqlRow databricksSqlRow, IReadOnlyCollection<MissingMeasurementsLogData> missingMeasurementsLogsData)
     {
+        // TODO AJH
         return new MissingMeasurementsLog(
-            OrchestrationType: databricksSqlRow.ToNonEmptyString(MissingMeasurementsLogColumnNames.OrchestrationType),
+            OrchestrationType: "missing_measurements_log",
             OrchestrationInstanceId: databricksSqlRow.ToGuid(MissingMeasurementsLogColumnNames.OrchestrationInstanceId),
             MissingMeasurementsLogsData: missingMeasurementsLogsData);
     }

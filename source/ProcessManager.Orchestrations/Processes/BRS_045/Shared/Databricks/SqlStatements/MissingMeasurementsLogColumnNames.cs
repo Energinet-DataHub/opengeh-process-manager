@@ -19,7 +19,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shar
 /// </summary>
 internal class MissingMeasurementsLogColumnNames
 {
-    public const string OrchestrationType = "orchestration_type";
     public const string OrchestrationInstanceId = "orchestration_instance_id";
     public const string MeteringPointId = "metering_point_id";
     public const string Date = "date";

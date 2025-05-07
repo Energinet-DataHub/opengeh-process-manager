@@ -90,7 +90,7 @@ public class ElectricalHeatingCalculationScenario
 
     [SubsystemFact]
     [ScenarioStep(3)]
-    public async Task AndThen_OrchestrationInstanceIsTerminatedWithSuccess()
+    public async Task Then_OrchestrationInstanceIsTerminatedWithSuccess()
     {
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 

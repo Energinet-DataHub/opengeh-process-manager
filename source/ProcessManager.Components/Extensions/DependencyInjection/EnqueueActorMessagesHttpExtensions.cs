@@ -13,9 +13,11 @@
 // limitations under the License.
 
 using Azure.Core;
+using Energinet.DataHub.Core.App.Common.Extensions.Builder;
 using Energinet.DataHub.ProcessManager.Components.Authorization;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -24,7 +26,10 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class EnqueueActorMessagesHttpExtensions
 {
-    public static IServiceCollection AddEnqueueActorMessagesHttp(this IServiceCollection services, TokenCredential credential)
+    public static IServiceCollection AddEnqueueActorMessagesHttp(
+        this IServiceCollection services,
+        TokenCredential credential,
+        IConfiguration configuration)
     {
         services
             .AddOptions<EnqueueActorMessagesHttpClientOptions>()
@@ -48,6 +53,16 @@ public static class EnqueueActorMessagesHttpExtensions
             });
 
         services.AddScoped<IEnqueueActorMessagesHttpClient, EnqueueActorMessagesHttpClient>();
+
+        var baseUrl = configuration
+            .GetSection(EnqueueActorMessagesHttpClientOptions.SectionName)
+            .Get<EnqueueActorMessagesHttpClientOptions>()!.BaseUrl;
+
+        services
+            .AddHealthChecks()
+            .AddServiceHealthCheck(
+                serviceName: "EDI",
+                serviceUri: new Uri(baseUrl + "/api/monitor/live"));
 
         return services;
     }

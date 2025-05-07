@@ -58,7 +58,7 @@ internal class MissingMeasurementsLogQuery(
 
     protected override bool BelongsToSameGroup(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow)
     {
-        return previousRow.ToGuid(MissingMeasurementsLogColumnNames.GridAreaCode) == currentRow.ToGuid(MissingMeasurementsLogColumnNames.GridAreaCode);
+        return previousRow.ToGuid(MissingMeasurementsLogColumnNames.MeteringPointId) == currentRow.ToGuid(MissingMeasurementsLogColumnNames.MeteringPointId);
     }
 
     protected override string BuildSqlQuery()
@@ -67,7 +67,7 @@ internal class MissingMeasurementsLogQuery(
             SELECT {string.Join(", ", SchemaDescription.Columns)}
             FROM {SchemaDescription.DatabaseName}.{SchemaDescription.DataObjectName}
             WHERE {MissingMeasurementsLogColumnNames.OrchestrationInstanceId} = '{OrchestrationInstanceId}'
-            ORDER BY {MissingMeasurementsLogColumnNames.GridAreaCode}, {MissingMeasurementsLogColumnNames.Date}
+            ORDER BY {MissingMeasurementsLogColumnNames.MeteringPointId}, {MissingMeasurementsLogColumnNames.Date}
             """;
     }
 

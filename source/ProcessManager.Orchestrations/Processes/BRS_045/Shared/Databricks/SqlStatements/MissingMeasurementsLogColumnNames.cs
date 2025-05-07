@@ -23,5 +23,4 @@ internal class MissingMeasurementsLogColumnNames
     public const string OrchestrationInstanceId = "orchestration_instance_id";
     public const string MeteringPointId = "metering_point_id";
     public const string Date = "date";
-    public const string GridAreaCode = "grid_area_code";
 }

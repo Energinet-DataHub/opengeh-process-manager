@@ -96,7 +96,8 @@ public class ElectricalHeatingCalculationScenario
 
         var (success, orchestrationInstance, _) = await _fixture.WaitForOrchestrationInstanceByIdAsync(
                 orchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstanceId,
-                orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated);
+                orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated,
+                timeoutInMinutes: 15); // Wait up to 15 minutes for the orchestration instance to be terminated.
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
 

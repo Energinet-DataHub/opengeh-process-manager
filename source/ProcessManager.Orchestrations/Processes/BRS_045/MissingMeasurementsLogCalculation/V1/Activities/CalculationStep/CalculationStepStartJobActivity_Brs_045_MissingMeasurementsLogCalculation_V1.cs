@@ -36,10 +36,10 @@ internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCal
     public async Task<JobRunId> Run(
         [ActivityTrigger] ActivityInput input)
     {
-        // The missing measurement logs calculation period:
+        // The missing measurement logs the calculation period:
         // 3 working days back from today, and 93 days back from today.
         var relativeWorkingDay = dataHubCalendar.GetWorkingDayRelativeToTodayBackInTime(3);
-        var periodStart = dataHubCalendar.CurrentDay().PlusDays(-93);
+        var periodStart = dataHubCalendar.GetDateRelativeToCurrentDate(-93);
         var periodEnd = relativeWorkingDay;
         var jobParameters = new List<string>
         {

@@ -2,7 +2,7 @@
 
 ## Version 2.2.0
 
-- Add initial `EnqueueMissingMeasurementsLogHttpV1` type.
+- Add initial `EnqueueMissingMeasurementsLogHttpV1` model.
 
 ## Version 2.1.6
 

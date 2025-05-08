@@ -16,6 +16,9 @@ using Microsoft.FeatureManagement;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.FeatureManagement;
 
+/// <summary>
+/// Manage feature flags in Process Manager.
+/// </summary>
 internal static class FeatureFlags
 {
     public static Task<bool> UseSilentMode(this IFeatureManager featureManager)
@@ -24,7 +27,7 @@ internal static class FeatureFlags
     }
 
     /// <summary>
-    /// List of all Feature Flags that exists in the Process Manager.
+    /// Names of all Feature Flags that exists in the Process Manager.
     ///
     /// The feature flags can be configured:
     ///  * Locally through app settings

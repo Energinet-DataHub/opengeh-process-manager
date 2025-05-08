@@ -31,19 +31,22 @@ public static class ServiceProviderFactory
     /// test classes depending on e.g. <see cref="IOrchestrationInstanceExecutor"/>.
     /// </summary>
     /// <param name="databaseConnectionString"></param>
-    /// <param name="configureServices"></param>
+    /// <param name="configureMockedServices">Use this action to register services we want to mock, as they must be registered first.</param>
+    /// <param name="configureServices">Use this action to register additional services, that is not part of those we always register.</param>
     public static ServiceProvider BuildServiceProviderForProcessManagerCore(
         string databaseConnectionString,
-        Action<IServiceCollection> configureServices)
+        Action<IServiceCollection> configureMockedServices,
+        Action<IServiceCollection>? configureServices = default)
     {
         var services = new ServiceCollection();
 
+        // Services we want to mock MUST be registered before we call Process Manager DI extensions because we always use "TryAdd" within those
+        configureMockedServices(services);
+
+        // Common
         services.AddLogging();
         services.AddNodaTimeForApplication();
         services.AddFeatureManagement();
-
-        // Services we want to mock MUST be registered before we call Process Manager DI extensions because we always use "TryAdd" within those
-        configureServices(services);
 
         // App settings
         var configuration = new ConfigurationBuilder()
@@ -61,11 +64,15 @@ public static class ServiceProviderFactory
                         = "Not used, but cannot be empty",
             }).Build();
 
+        // Process Manager
         services.AddScoped<IConfiguration>(_ => configuration);
         services.AddProcessManagerCore(configuration);
-
-        // Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
+        // => Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
         services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();
+
+        // Register any additional service for the specific test
+        if (configureServices != default)
+            configureServices(services);
 
         return services.BuildServiceProvider();
     }

@@ -16,7 +16,15 @@ using Azure.Messaging.ServiceBus;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
-public interface IMagicHandlerFactory
+/// <summary>
+/// Defines a handler for starting an orchestration instance based on a received Service Bus message.
+/// </summary>
+public interface IStartOrchestrationInstanceFromMessageHandler
 {
-    IMagicHandler Create(ServiceBusReceivedMessage message);
+    /// <summary>
+    /// Processes the specified Service Bus message to start an orchestration instance.
+    /// </summary>
+    /// <param name="message">The received <see cref="ServiceBusReceivedMessage"/> containing orchestration start information.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    Task HandleAsync(ServiceBusReceivedMessage message);
 }

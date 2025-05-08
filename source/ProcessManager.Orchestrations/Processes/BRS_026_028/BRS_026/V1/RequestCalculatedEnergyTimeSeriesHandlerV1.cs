@@ -22,12 +22,12 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1;
 
-public class RequestCalculatedEnergyTimeSeriesHandler(
-    ILogger<RequestCalculatedEnergyTimeSeriesHandler> logger,
+public class RequestCalculatedEnergyTimeSeriesHandlerV1(
+    ILogger<RequestCalculatedEnergyTimeSeriesHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-        : StartOrchestrationInstanceFromMessageHandlerBase<RequestCalculatedEnergyTimeSeriesInputV1>(logger)
+        : StartOrchestrationInstanceFromVersionBase<RequestCalculatedEnergyTimeSeriesInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 

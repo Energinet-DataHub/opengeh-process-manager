@@ -12,27 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
-public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputParameterDto>(
-    ILogger logger) : IMagicHandler
+public abstract class StartOrchestrationInstanceFromVersionBase<TInputParameterDto>(
+    ILogger logger) : IStartOrchestrationInstanceV1Handler
     where TInputParameterDto : class, IInputParameterDto
 {
     private readonly ILogger _logger = logger;
 
     public abstract bool CanHandle(StartOrchestrationInstanceV1 startOrchestration);
 
-    public async Task HandleAsync(ServiceBusReceivedMessage message)
+    public async Task HandleAsync(StartOrchestrationInstanceV1 startOrchestration, IdempotencyKey idempotencyKey)
     {
-        var startOrchestration = message.ParseBody<StartOrchestrationInstanceV1>();
-
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
         {
             StartOrchestration = new
@@ -58,7 +54,7 @@ public abstract class StartOrchestrationInstanceFromMessageHandlerBase<TInputPar
                         startOrchestration.StartedByActor.ActorNumber,
                         startOrchestration.StartedByActor.ActorRole)),
                 input: inputParameterDto,
-                idempotencyKey: message.GetIdempotencyKey(),
+                idempotencyKey: idempotencyKey.Value,
                 actorMessageId: startOrchestration.ActorMessageId,
                 transactionId: startOrchestration.TransactionId,
                 meteringPointId: startOrchestration.HasMeteringPointId ? startOrchestration.MeteringPointId : null)

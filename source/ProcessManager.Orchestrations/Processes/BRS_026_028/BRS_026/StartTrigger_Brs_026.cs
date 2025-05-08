@@ -20,11 +20,18 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026;
 
-public class StartTrigger_Brs_026(IMagicHandlerFactory handlerFactory)
+/// <summary>
+/// Start a BRS-026 request.
+/// </summary>
+public class StartTrigger_Brs_026
 {
-    /// <summary>
-    /// Start a BRS-026 request.
-    /// </summary>
+    private readonly IStartOrchestrationInstanceFromMessageHandler _handler;
+
+    public StartTrigger_Brs_026(IStartOrchestrationInstanceFromMessageHandler handler)
+    {
+        _handler = handler;
+    }
+
     [Function(nameof(StartTrigger_Brs_026))]
     public async Task Run(
         [ServiceBusTrigger(
@@ -33,7 +40,6 @@ public class StartTrigger_Brs_026(IMagicHandlerFactory handlerFactory)
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        var handler = handlerFactory.Create(message);
-        await handler.HandleAsync(message).ConfigureAwait(false);
+        await _handler.HandleAsync(message).ConfigureAwait(false);
     }
 }

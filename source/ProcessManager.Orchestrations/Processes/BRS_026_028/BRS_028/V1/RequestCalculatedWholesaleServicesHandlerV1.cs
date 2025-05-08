@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.
 public class RequestCalculatedWholesaleServicesHandlerV1(
     ILogger<RequestCalculatedWholesaleServicesHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-        : StartOrchestrationInstanceFromMessageHandlerBase<RequestCalculatedWholesaleServicesInputV1>(logger)
+        : StartOrchestrationInstanceFromVersionBase<RequestCalculatedWholesaleServicesInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 

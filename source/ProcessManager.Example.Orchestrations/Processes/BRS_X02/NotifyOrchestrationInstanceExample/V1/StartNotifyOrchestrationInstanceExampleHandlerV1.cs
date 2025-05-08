@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
@@ -26,12 +27,13 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 internal class StartNotifyOrchestrationInstanceExampleHandlerV1(
     ILogger<StartNotifyOrchestrationInstanceExampleHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-    : StartOrchestrationInstanceFromMessageHandlerBase<NotifyOrchestrationInstanceExampleInputV1>(logger)
+    : StartOrchestrationInstanceFromVersionBase<NotifyOrchestrationInstanceExampleInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 
     public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestration) =>
-        startOrchestration is { OrchestrationName: "Brs_X02_NotifyOrchestrationInstanceExample", OrchestrationVersion: 1 }; // TODO: LRN
+        startOrchestration.OrchestrationVersion == Brs_X02_NotifyOrchestrationInstanceExample.V1.Version &&
+        startOrchestration.OrchestrationName == Brs_X02_NotifyOrchestrationInstanceExample.V1.Name;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,

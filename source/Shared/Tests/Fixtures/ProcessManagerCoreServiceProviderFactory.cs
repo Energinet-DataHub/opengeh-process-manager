@@ -22,9 +22,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 
-namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
-public static class ServiceProviderFactory
+public static class ProcessManagerCoreServiceProviderFactory
 {
     /// <summary>
     /// Register common services and Process Manager services necessary to
@@ -33,7 +33,7 @@ public static class ServiceProviderFactory
     /// <param name="databaseConnectionString"></param>
     /// <param name="configureMockedServices">Use this action to register services we want to mock, as they must be registered first.</param>
     /// <param name="configureServices">Use this action to register additional services, that is not part of those we always register.</param>
-    public static ServiceProvider BuildServiceProviderForProcessManagerCore(
+    public static ServiceProvider BuildServiceProvider(
         string databaseConnectionString,
         Action<IServiceCollection> configureMockedServices,
         Action<IServiceCollection>? configureServices = default)

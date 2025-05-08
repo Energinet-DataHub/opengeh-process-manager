@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -45,7 +46,7 @@ public class IStartOrchestrationInstanceCommandsTests :
         _actorIdentity = EnergySupplier.ActorIdentity;
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
-        _serviceProvider = ServiceProviderFactory.BuildServiceProviderForProcessManagerCore(
+        _serviceProvider = ProcessManagerCoreServiceProviderFactory.BuildServiceProvider(
             _fixture.DatabaseManager.ConnectionString,
             services =>
             {

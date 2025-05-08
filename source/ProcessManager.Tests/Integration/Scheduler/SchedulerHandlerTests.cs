@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Scheduler;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
@@ -51,12 +52,12 @@ public class SchedulerHandlerTests : IClassFixture<SchedulerHandlerFixture>, IAs
             new Actor(ActorNumber.Create("1234567890123"), ActorRole.EnergySupplier));
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
-        _serviceProvider = ServiceProviderFactory.BuildServiceProviderForProcessManagerCore(
+        _serviceProvider = ProcessManagerCoreServiceProviderFactory.BuildServiceProvider(
             _fixture.DatabaseManager.ConnectionString,
             configureMockedServices: services =>
             {
                 services.AddScoped<IClock>(_ => fixture.ClockMock.Object);
-                services.AddScoped<IOrchestrationInstanceExecutor>(_ => executorMock.Object);
+                services.AddScoped<IOrchestrationInstanceExecutor>(_ => _executorMock.Object);
             },
             configureServices: services =>
             {

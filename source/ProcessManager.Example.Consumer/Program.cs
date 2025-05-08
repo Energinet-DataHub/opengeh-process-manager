@@ -20,7 +20,6 @@ using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication()
     .ConfigureServices((context, services) =>
     {
         // Common
@@ -35,9 +34,10 @@ var host = new HostBuilder()
         services.AddServiceBusClientForApplication(context.Configuration);
         services.AddProcessManagerMessageClient();
     })
+    .ConfigureFunctionsWebApplication()
     .ConfigureLogging((hostingContext, logging) =>
     {
-        logging.AddLoggingConfigurationForIsolatedWorker(hostingContext);
+        logging.AddLoggingConfigurationForIsolatedWorker(hostingContext.Configuration);
     })
     .Build();
 

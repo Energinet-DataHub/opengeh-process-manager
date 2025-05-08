@@ -18,9 +18,9 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
 /// <summary>
-/// Defines a handler for starting an orchestration instance of version 1.
+/// Defines a handler for starting an orchestration instance.
 /// </summary>
-public interface IStartOrchestrationInstanceV1Handler
+public interface IStartOrchestrationInstanceHandler
 {
     /// <summary>
     /// Determines whether this handler can process the specified orchestration start request.

@@ -238,7 +238,7 @@ public static class ProcessManagerExtensions
     /// </summary>
     internal static IServiceCollection AddCustomHandlersForServiceBusTriggers(this IServiceCollection services, Assembly assemblyToScan)
     {
-        var handlerBaseType = typeof(StartOrchestrationInstanceFromVersionBase<>);
+        var handlerBaseType = typeof(StartOrchestrationInstanceHandlerBase<>);
 
         var implementingTypes = assemblyToScan
             .DefinedTypes
@@ -253,20 +253,19 @@ public static class ProcessManagerExtensions
             services.AddTransient(implementingType);
         }
 
-        // var typeInfos = assemblyToScan
-        //         .DefinedTypes
-        //         .Where(typeInfo =>
-        //             typeInfo.IsClass &&
-        //             !typeInfo.IsAbstract &&
-        //             typeInfo.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IStartOrchestrationInstanceV1Handler)))
-        //         .ToList();
-        //
-        // foreach (var implementingType in typeInfos)
-        // {
-        //     // We register handlers directly by their implementation, not by an interface.
-        //     // We DO NOT register the same type twice; e.g. if the same class implements two interfaces, we only register it once.
-        //     services.TryAddTransient(implementingType);
-        // }
+        var interfaceType = typeof(IStartOrchestrationInstanceHandler);
+
+        var implementations = assemblyToScan
+            .GetTypes()
+            .Where(t =>
+                t.IsClass &&
+                !t.IsAbstract &&
+                interfaceType.IsAssignableFrom(t));
+
+        foreach (var implementation in implementations)
+        {
+            services.TryAddTransient(interfaceType, implementation);
+        }
 
         return services;
     }

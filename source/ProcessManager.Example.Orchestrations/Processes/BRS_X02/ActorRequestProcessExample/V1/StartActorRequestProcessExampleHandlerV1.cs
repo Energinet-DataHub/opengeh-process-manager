@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 internal class StartActorRequestProcessExampleHandlerV1(
     ILogger<StartActorRequestProcessExampleHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-    : StartOrchestrationInstanceFromVersionBase<ActorRequestProcessExampleInputV1>(logger)
+    : StartOrchestrationInstanceHandlerBase<ActorRequestProcessExampleInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 

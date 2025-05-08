@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 internal class StartUpdateMeteringPointConnectionStateV1(
     ILogger<StartUpdateMeteringPointConnectionStateV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-    : StartOrchestrationInstanceFromVersionBase<UpdateMeteringPointConnectionStateInputV1>(logger)
+    : StartOrchestrationInstanceHandlerBase<UpdateMeteringPointConnectionStateInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 

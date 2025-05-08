@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.
 public class RequestCalculatedEnergyTimeSeriesHandlerV1(
     ILogger<RequestCalculatedEnergyTimeSeriesHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-        : StartOrchestrationInstanceFromVersionBase<RequestCalculatedEnergyTimeSeriesInputV1>(logger)
+        : StartOrchestrationInstanceHandlerBase<RequestCalculatedEnergyTimeSeriesInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 

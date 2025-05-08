@@ -16,7 +16,7 @@ using System.Text.Json;
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
-public partial class StartOrchestrationInstanceV1
+public partial class StartOrchestrationInstanceV1 //TODO: LRN document clearly that this is the framework container for startring orchestration instances
 {
     public const string MajorVersion = nameof(StartOrchestrationInstanceV1);
 

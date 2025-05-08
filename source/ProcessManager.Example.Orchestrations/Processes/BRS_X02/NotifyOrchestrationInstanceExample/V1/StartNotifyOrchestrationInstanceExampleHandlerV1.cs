@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 internal class StartNotifyOrchestrationInstanceExampleHandlerV1(
     ILogger<StartNotifyOrchestrationInstanceExampleHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-    : StartOrchestrationInstanceFromVersionBase<NotifyOrchestrationInstanceExampleInputV1>(logger)
+    : StartOrchestrationInstanceHandlerBase<NotifyOrchestrationInstanceExampleInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 

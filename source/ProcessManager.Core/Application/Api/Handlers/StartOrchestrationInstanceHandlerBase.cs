@@ -19,8 +19,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
-public abstract class StartOrchestrationInstanceFromVersionBase<TInputParameterDto>(
-    ILogger logger) : IStartOrchestrationInstanceV1Handler
+public abstract class StartOrchestrationInstanceHandlerBase<TInputParameterDto>(
+    ILogger logger) : IStartOrchestrationInstanceHandler
     where TInputParameterDto : class, IInputParameterDto
 {
     private readonly ILogger _logger = logger;

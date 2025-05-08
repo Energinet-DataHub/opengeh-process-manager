@@ -52,7 +52,7 @@ public class StartForwardMeteredDataHandlerV1(
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     DelegationProvider delegationProvider,
     TelemetryClient telemetryClient)
-    : StartOrchestrationInstanceFromVersionBase<ForwardMeteredDataInputV1>(logger)
+    : StartOrchestrationInstanceHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;

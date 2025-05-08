@@ -21,11 +21,11 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
 internal class StartOrchestrationInstanceFromMessageHandler : IStartOrchestrationInstanceFromMessageHandler
 {
-    private readonly IReadOnlyCollection<IStartOrchestrationInstanceV1Handler> _magicHandlers;
+    private readonly IReadOnlyCollection<IStartOrchestrationInstanceHandler> _startOrchestrationInstanceHandlers;
 
-    public StartOrchestrationInstanceFromMessageHandler(IReadOnlyCollection<IStartOrchestrationInstanceV1Handler> magicHandlers)
+    public StartOrchestrationInstanceFromMessageHandler(IReadOnlyCollection<IStartOrchestrationInstanceHandler> startOrchestrationInstanceHandlers)
     {
-        _magicHandlers = magicHandlers;
+        _startOrchestrationInstanceHandlers = startOrchestrationInstanceHandlers;
     }
 
     public async Task HandleAsync(ServiceBusReceivedMessage message)
@@ -46,7 +46,7 @@ internal class StartOrchestrationInstanceFromMessageHandler : IStartOrchestratio
     private async Task HandleV1Async(ServiceBusReceivedMessage message)
     {
         var startOrchestration = message.ParseBody<StartOrchestrationInstanceV1>();
-        var handler = _magicHandlers.First(x => x.CanHandle(startOrchestration));
+        var handler = _startOrchestrationInstanceHandlers.First(x => x.CanHandle(startOrchestration));
         await handler.HandleAsync(startOrchestration, new IdempotencyKey(message.GetIdempotencyKey())).ConfigureAwait(false);
     }
 }

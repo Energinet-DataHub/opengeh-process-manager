@@ -19,7 +19,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 
 public record EnqueueMissingMeasurementsLogHttpV1(
     Guid OrchestrationInstanceId,
-    EnqueueMissingMeasurementsLogHttpV1.Actor Receiver,
+    ActorNumber GridAccessProvider,
     string MeteringPointId,
     IReadOnlyCollection<DateTimeOffset> MissingDates,
     string GridArea)
@@ -28,8 +28,4 @@ public record EnqueueMissingMeasurementsLogHttpV1(
     public const string RouteName = "v1/enqueue_brs045";
 
     public string Route { get; } = RouteName;
-
-    public record Actor(
-        ActorNumber ActorNumber,
-        ActorRole ActorRole);
 }

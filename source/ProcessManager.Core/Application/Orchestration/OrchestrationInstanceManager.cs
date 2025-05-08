@@ -212,7 +212,7 @@ internal class OrchestrationInstanceManager(
 
         if (orchestrationInstanceToNotify is null)
         {
-            if (await _featureManager.IsEnabledAsync(FeatureFlagNames.SilentMode).ConfigureAwait(false))
+            if (await _featureManager.UseSilentMode().ConfigureAwait(false))
             {
                 _logger.LogWarning(
                     $"Notifying orchestration instance with id '{id.Value}' and event name '{eventName}' failed.");

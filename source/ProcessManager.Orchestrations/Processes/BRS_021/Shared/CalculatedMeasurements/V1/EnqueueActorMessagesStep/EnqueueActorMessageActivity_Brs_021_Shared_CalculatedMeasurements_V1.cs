@@ -232,14 +232,13 @@ public class EnqueueActorMessageActivity_Brs_021_Shared_CalculatedMeasurements_V
                                     ActorNumber.Create(actor.Number.Value),
                                     ActorRole.FromName(actor.Role.Name)))
                             .ToList(),
-                        RegistrationDateTime: calculatedMeasurement.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
+                        RegistrationDateTime: calculatedMeasurement.TransactionCreationDatetime.ToDateTimeOffset(),
                         StartDateTime: measurementsPeriod.Start.ToDateTimeOffset(),
                         EndDateTime: measurementsPeriod.End.ToDateTimeOffset(),
                         Measurements: r.Measurements
                             .Select(
                                 (md, i) => new EnqueueCalculatedMeasurementsHttpV1.Measurement(
                                     Position: md.Position,
-                                    // TODO: Are these null assumptions correct?
                                     EnergyQuantity: md.EnergyQuantity ?? throw new InvalidOperationException("Energy quantity should not be null in calculated measurement calculations."),
                                     QuantityQuality: md.QuantityQuality ?? throw new InvalidOperationException("Quality should not be null in calculated measurement calculations.")))
                             .ToList(),

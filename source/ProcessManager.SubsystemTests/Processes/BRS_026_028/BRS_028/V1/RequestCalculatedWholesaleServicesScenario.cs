@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
+using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
 using NodaTime;
 using NodaTime.Text;
 using Xunit.Abstractions;
@@ -28,7 +29,9 @@ namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_026_028.
 [TestCaseOrderer(
     ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
-public class RequestCalculatedWholesaleServicesScenario : IClassFixture<ProcessManagerFixture<RequestCalculatedWholesaleServicesScenarioState>>
+public class RequestCalculatedWholesaleServicesScenario :
+    IClassFixture<ProcessManagerFixture<RequestCalculatedWholesaleServicesScenarioState>>,
+    IAsyncLifetime
 {
     private readonly ProcessManagerFixture<RequestCalculatedWholesaleServicesScenarioState> _fixture;
 
@@ -38,6 +41,17 @@ public class RequestCalculatedWholesaleServicesScenario : IClassFixture<ProcessM
     {
         _fixture = fixture;
         _fixture.SetTestOutputHelper(testOutputHelper);
+    }
+
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task DisposeAsync()
+    {
+        _fixture.SetTestOutputHelper(null);
+        return Task.CompletedTask;
     }
 
     [SubsystemFact]
@@ -81,9 +95,10 @@ public class RequestCalculatedWholesaleServicesScenario : IClassFixture<ProcessM
     public async Task When_OrchestrationInstanceIsRunning()
     {
         var (success, orchestrationInstance, _) =
-            await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
-                _fixture.TestConfiguration.Request.IdempotencyKey,
-                OrchestrationInstanceLifecycleState.Running);
+            await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
+                RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
+                    _fixture.TestConfiguration.Request.IdempotencyKey,
+                    OrchestrationInstanceLifecycleState.Running);
 
         Assert.Multiple(
             () => Assert.True(
@@ -121,10 +136,11 @@ public class RequestCalculatedWholesaleServicesScenario : IClassFixture<ProcessM
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, businessValidationStep) =
-            await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
-                idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
-                stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.BusinessValidationStep.StepSequence,
-                stepState: StepInstanceLifecycleState.Terminated);
+            await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
+                RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
+                    idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
+                    stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.BusinessValidationStep.StepSequence,
+                    stepState: StepInstanceLifecycleState.Terminated);
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
 
@@ -144,10 +160,11 @@ public class RequestCalculatedWholesaleServicesScenario : IClassFixture<ProcessM
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
-            await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
-                idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
-                stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
-                stepState: StepInstanceLifecycleState.Running);
+            await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
+                RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
+                    idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
+                    stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
+                    stepState: StepInstanceLifecycleState.Running);
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
 
@@ -171,10 +188,11 @@ public class RequestCalculatedWholesaleServicesScenario : IClassFixture<ProcessM
 
         // Wait for the enqueue actor messages step to be terminated
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
-            await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
-                idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
-                stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
-                stepState: StepInstanceLifecycleState.Terminated);
+            await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
+                RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
+                    idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
+                    stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
+                    stepState: StepInstanceLifecycleState.Terminated);
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
 
@@ -191,9 +209,10 @@ public class RequestCalculatedWholesaleServicesScenario : IClassFixture<ProcessM
         Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, _) =
-            await _fixture.WaitForOrchestrationInstanceAsync<RequestCalculatedWholesaleServicesInputV1>(
-                idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
-                orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated);
+            await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
+                RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
+                    idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
+                    orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated);
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
 

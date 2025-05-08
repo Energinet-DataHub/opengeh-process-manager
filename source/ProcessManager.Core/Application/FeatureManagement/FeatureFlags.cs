@@ -17,7 +17,7 @@ using Microsoft.FeatureManagement;
 namespace Energinet.DataHub.ProcessManager.Core.Application.FeatureManagement;
 
 /// <summary>
-/// Manage feature flags in Process Manager.
+/// Manage feature flags in Process Manager Core.
 /// </summary>
 internal static class FeatureFlags
 {
@@ -27,7 +27,7 @@ internal static class FeatureFlags
     }
 
     /// <summary>
-    /// Names of all Feature Flags that exists in the Process Manager.
+    /// Names of Feature Flags that exists in the Process Manager Core.
     ///
     /// The feature flags can be configured:
     ///  * Locally through app settings

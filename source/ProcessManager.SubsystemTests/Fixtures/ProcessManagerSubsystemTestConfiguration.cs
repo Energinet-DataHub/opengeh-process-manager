@@ -98,9 +98,9 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
     /// <summary>
     /// Build configuration for loading settings from key vault secrets.
     /// </summary>
-    private IConfigurationRoot GetKeyVaultConfiguration(string keyVaultName, string internalKeyVaultName)
+    private IConfigurationRoot GetKeyVaultConfiguration(string sharedKeyVaultName, string internalKeyVaultName)
     {
-        var sharedKeyVaultUrl = $"https://{keyVaultName}.vault.azure.net/";
+        var sharedKeyVaultUrl = $"https://{sharedKeyVaultName}.vault.azure.net/";
         var internalKeyVaultUrl = $"https://{internalKeyVaultName}.vault.azure.net/";
 
         return new ConfigurationBuilder()

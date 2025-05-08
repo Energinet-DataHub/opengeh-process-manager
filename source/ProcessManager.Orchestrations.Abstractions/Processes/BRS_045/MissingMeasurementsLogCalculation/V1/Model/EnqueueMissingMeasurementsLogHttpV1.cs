@@ -17,6 +17,10 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessa
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 
+/// <summary>
+/// Used to enqueue actor messages for BRS-045 (Missing Measurements Log Calculation). The model is shared
+/// with EDI, which uses the <see cref="EnqueueMissingMeasurementsLogHttpV1.RouteName"/> as the HTTP URI.
+/// </summary>
 public record EnqueueMissingMeasurementsLogHttpV1(
     Guid OrchestrationInstanceId,
     ActorNumber GridAccessProvider,

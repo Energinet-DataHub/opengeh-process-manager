@@ -12,17 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using static Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.DomainTestDataFactory;
@@ -50,15 +45,21 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
         _actorIdentity = EnergySupplier.ActorIdentity;
 
         _executorMock = new Mock<IOrchestrationInstanceExecutor>();
-
-        var services = ConfigureServices(_fixture, _executorMock);
-        _serviceProvider = services.BuildServiceProvider();
+        _serviceProvider = ServiceProviderFactory.BuildServiceProviderForProcessManagerCore(
+            _fixture.DatabaseManager.ConnectionString,
+            services =>
+            {
+                services.AddScoped<IOrchestrationInstanceExecutor>(_ => _executorMock.Object);
+            });
 
         _orchestrationRegister = _serviceProvider.GetRequiredService<IOrchestrationRegister>();
         _sut = _serviceProvider.GetRequiredService<IStartOrchestrationInstanceMessageCommands>();
     }
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
 
     public async Task DisposeAsync()
     {
@@ -147,43 +148,5 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
         orchestrationInstanceId.Value.Should().NotBeEmpty();
         _executorMock.Invocations.Should().BeEmpty();
         _executorMock.VerifyNoOtherCalls();
-    }
-
-    private static ServiceCollection ConfigureServices(
-        ProcessManagerCoreFixture fixture,
-        IMock<IOrchestrationInstanceExecutor> executorMock)
-    {
-        var services = new ServiceCollection();
-
-        services.AddLogging();
-
-        services.AddNodaTimeForApplication();
-
-        // Services we want to mock MUST be registered before we call Process Manager DI extensions because we always use "TryAdd" within those
-        services.AddScoped<IOrchestrationInstanceExecutor>(_ => executorMock.Object);
-
-        // App settings
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                [$"{ProcessManagerOptions.SectionName}:{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}"]
-                        = fixture.DatabaseManager.ConnectionString,
-                [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString)}"]
-                        = "Not used, but cannot be empty",
-                [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName)}"]
-                        = "Not used, but cannot be empty",
-                [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.ApplicationIdUri)}"]
-                        = "Not used, but cannot be empty",
-                [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.Issuer)}"]
-                        = "Not used, but cannot be empty",
-            }).Build();
-        services.AddScoped<IConfiguration>(_ => configuration);
-
-        services.AddProcessManagerCore(configuration);
-
-        // Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
-        services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();
-
-        return services;
     }
 }

@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureManagement;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureManagement;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.FeatureManagement;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 
-public static class FeatureFlagExtensions
+public static class FeatureManagementExtensions
 {
     public static IServiceCollection AddFeatureFlags(this IServiceCollection services)
     {
-        services.AddFeatureManagement();
         services.AddSingleton<IFeatureFlagManager, MicrosoftFeatureFlagManager>();
 
         return services;

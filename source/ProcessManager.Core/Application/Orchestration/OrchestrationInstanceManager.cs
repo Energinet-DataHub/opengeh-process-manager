@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
@@ -227,6 +227,7 @@ internal class OrchestrationInstanceManager(
 
         if (!orchestrationDescription.IsDurableFunction)
         {
+            // TODO: Add handling of non-durable functions
             return;
         }
 

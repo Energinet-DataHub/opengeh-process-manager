@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureManagement;
 using Microsoft.FeatureManagement;
 
-namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureManagement;
 
 /// <summary>
 /// A <see cref="IFeatureFlagManager"/> implementation using the Microsoft.FeatureManagement package

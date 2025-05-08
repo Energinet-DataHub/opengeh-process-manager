@@ -19,6 +19,9 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
+
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Options;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -49,21 +52,21 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     private readonly DatabricksSqlWarehouseQueryExecutor _databricksSqlWarehouseQueryExecutor = databricksSqlWarehouseQueryExecutor;
 
     /// <summary>
-    /// Query calculated measurements from Databricks, and enqueue actor messages for the data. The master data
+    /// Query missing measurements log from Databricks, and enqueue actor messages for the data. The master data
     /// for the metering point is required to find the receivers for the data, so those are also retrieved.
     /// <remarks>
-    /// The method will continue to enqueue messages for all transactions, even if some of them fail. If one (or more)
-    /// transactions failed, then an exception will be thrown at the end of the method.
+    /// The method will continue to enqueue messages for all metering points, even if some of them fail. If one (or more)
+    /// fail, then an exception will be thrown at the end of the method.
     /// </remarks>
     /// </summary>
-    /// <returns>The amount of transactions which actor messages were enqueued for.</returns>
-    /// <exception cref="Exception">Throws an exception if actor messages failed to be enqueued for one of the transactions.</exception>
+    /// <returns>The number of metering points which actor messages were enqueued for.</returns>
+    /// <exception cref="Exception">Throws an exception if actor messages failed to be enqueued for one of the metering points.</exception>
     [Function(nameof(EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V1))]
     public async Task<int> Run(
         [ActivityTrigger] ActivityInput input)
     {
         var schemaDescription = new MissingMeasurementsLogSchemaDescription(_databricksQueryOptions);
-        var query = new CalculatedMeasurementsQuery(
+        var query = new MissingMeasurementsLogQuery(
             _logger,
             schemaDescription,
             input.OrchestrationInstanceId.Value);
@@ -81,7 +84,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
         {
             if (!queryResult.IsSuccess || queryResult.Result is null)
             {
-                failedMeteringPoints.Add(queryResult.Result?.TransactionId.ToString() ?? "Unknown transaction");
+                failedMeteringPoints.Add(queryResult.Result?.MeteringPointId ?? "Unknown metering point id");
                 continue;
             }
 
@@ -117,7 +120,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
                                 "Failed to enqueue measurements for metering point (OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId}).",
                                 input.OrchestrationInstanceId.Value,
                                 missingMeasurementsLog.MeteringPointId);
-                            failedMeteringPoints.Add(missingMeasurementsLog.TransactionId.ToString());
+                            failedMeteringPoints.Add(missingMeasurementsLog.MeteringPointId);
                         }
                         finally
                         {
@@ -136,54 +139,46 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     }
 
     /// <summary>
-    /// Enqueue calculated measurements for a metering point.
+    /// Enqueue missing measurements log for a metering point.
     /// <remarks>
-    /// The measurements MUST be ordered by timestamp, and MUST NOT contain any gaps.
+    /// The missing measurements logs MUST be ordered by metering point id and date.
     /// </remarks>
     /// </summary>
     private async Task EnqueueMessagesForMeasurementsAsync(
         OrchestrationInstanceId orchestrationInstanceId,
-        BRS_021.Shared.Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurements)
+        Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog)
     {
-        var period = GetMeasurementsPeriod(calculatedMeasurements);
+        var period = GetMeasurementsPeriod(missingMeasurementsLog);
 
         var receiversWithMeasurements = await FindReceiversForMeasurementsAsync(
-                calculatedMeasurements,
+                missingMeasurementsLog,
                 period.Start,
                 period.End)
             .ConfigureAwait(false);
 
         await EnqueueActorMessagesAsync(
                 orchestrationInstanceId,
-                calculatedMeasurements,
+                missingMeasurementsLog,
                 receiversWithMeasurements,
                 period)
             .ConfigureAwait(false);
     }
 
-    private Interval GetMeasurementsPeriod(BRS_045.Shared.Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurements)
+    private Interval GetMeasurementsPeriod(BRS_045.Shared.Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog)
     {
-        var from = calculatedMeasurements.Measurements.First().ObservationTime;
-
-        var resolutionAsDuration = calculatedMeasurements.Resolution switch
-        {
-            var r when r == Resolution.QuarterHourly => Duration.FromMinutes(15),
-            var r when r == Resolution.Hourly => Duration.FromHours(1),
-            _ => throw new ArgumentOutOfRangeException(nameof(calculatedMeasurements.Resolution), calculatedMeasurements.Resolution, "Invalid resolution"),
-        };
-        var to = calculatedMeasurements.Measurements.Last().ObservationTime.Plus(resolutionAsDuration);
-
+        var from = missingMeasurementsLog.Dates.First();
+        var to = missingMeasurementsLog.Dates.Last();
         return new Interval(from, to);
     }
 
     private async Task<List<ReceiversWithMeasurements>> FindReceiversForMeasurementsAsync(
-        BRS_021.Shared.Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurement,
+        Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog,
         Instant from,
         Instant to)
     {
         // We need to get master data & receivers for each metering point id
         var masterDataForMeteringPoint = await _meteringPointMasterDataProvider.GetMasterData(
-                meteringPointId: calculatedMeasurement.MeteringPointId,
+                meteringPointId: missingMeasurementsLog.MeteringPointId,
                 startDateTime: from,
                 endDateTime: to)
             .ConfigureAwait(false);
@@ -191,12 +186,11 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
         var receiversForMeteringPoint = _meteringPointReceiversProvider
             .GetReceiversWithMeasurementsFromMasterDataList(
                 new MeteringPointReceiversProvider.FindReceiversInput(
-                    MeteringPointId: calculatedMeasurement.MeteringPointId,
+                    MeteringPointId: missingMeasurementsLog.MeteringPointId,
                     StartDateTime: from,
                     EndDateTime: to,
-                    Resolution: calculatedMeasurement.Resolution,
                     MasterData: masterDataForMeteringPoint,
-                    Measurements: calculatedMeasurement.Measurements
+                    Measurements: missingMeasurementsLog.Measurements
                         .Select((md, i) => new ReceiversWithMeasurements.Measurement(
                             Position: i + 1, // Position is 1-based, so the first position must be 1.
                             EnergyQuantity: md.Quantity,
@@ -208,17 +202,13 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
 
     private async Task EnqueueActorMessagesAsync(
         OrchestrationInstanceId orchestrationInstanceId,
-        BRS_021.Shared.Databricks.SqlStatements.Model.CalculatedMeasurements calculatedMeasurement,
+        Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog,
         IReadOnlyCollection<ReceiversWithMeasurements> receiversWithMeasurements,
         Interval measurementsPeriod)
     {
         var enqueueData = new EnqueueCalculatedMeasurementsHttpV1(
             OrchestrationInstanceId: orchestrationInstanceId.Value,
-            TransactionId: calculatedMeasurement.TransactionId,
-            MeteringPointId: calculatedMeasurement.MeteringPointId,
-            MeteringPointType: calculatedMeasurement.MeteringPointType,
-            Resolution: calculatedMeasurement.Resolution,
-            MeasureUnit: MeasurementUnit.KilowattHour,
+            MeteringPointId: missingMeasurementsLog.MeteringPointId,
             Data: receiversWithMeasurements.Select(
                     r => new EnqueueCalculatedMeasurementsHttpV1.ReceiversWithMeasurements(
                         Receivers: r.Receivers
@@ -227,7 +217,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
                                     ActorNumber.Create(actor.Number.Value),
                                     ActorRole.FromName(actor.Role.Name)))
                             .ToList(),
-                        RegistrationDateTime: calculatedMeasurement.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
+                        RegistrationDateTime: missingMeasurementsLog.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
                         StartDateTime: measurementsPeriod.Start.ToDateTimeOffset(),
                         EndDateTime: measurementsPeriod.End.ToDateTimeOffset(),
                         Measurements: r.Measurements

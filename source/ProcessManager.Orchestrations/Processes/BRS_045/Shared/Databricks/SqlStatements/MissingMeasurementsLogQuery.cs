@@ -13,8 +13,8 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.SqlStatements;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements.Model;
 using Microsoft.Extensions.Logging;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements;
 
@@ -22,39 +22,33 @@ internal class MissingMeasurementsLogQuery(
     ILogger logger,
     MissingMeasurementsLogSchemaDescription schemaDescription,
     Guid orchestrationInstanceId) :
-        QueryBase<MissingMeasurementsLog, MissingMeasurementsLogSchemaDescription>(
+        QueryBase<Model.MissingMeasurementsLog, MissingMeasurementsLogSchemaDescription>(
             logger,
             schemaDescription,
             orchestrationInstanceId)
 {
-    private readonly string _orchestrationType = "missing_measurements_log";
+    private const string OrchestrationType = "missing_measurements_log";
 
-    protected override Task<QueryResult<MissingMeasurementsLog>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> groupOfRows)
+    protected override Task<QueryResult<Model.MissingMeasurementsLog>> CreateResultFromGroupAsync(IList<DatabricksSqlRow> groupOfRows)
     {
         var firstRow = groupOfRows.First();
 
         try
         {
-            var missingMeasurementsLogDataList = new List<MissingMeasurementsLogData>();
-
-            foreach (var row in groupOfRows)
-            {
-                missingMeasurementsLogDataList.Add(CreateMissingMeasurementsLogData(row));
-            }
-
-            var result = CreateMissingMeasurementsLog(firstRow, missingMeasurementsLogDataList);
-            return Task.FromResult(QueryResult<MissingMeasurementsLog>.Success(result));
+            var dates = groupOfRows.Select(row => row.ToInstant(MissingMeasurementsLogColumnNames.Date)).ToList();
+            var result = CreateMissingMeasurementsLog(firstRow, dates);
+            return Task.FromResult(QueryResult<Model.MissingMeasurementsLog>.Success(result));
         }
         catch (Exception ex)
         {
             Logger.LogWarning(
                 ex,
                 "Creating missing measurements log ({OrchestrationType}) failed for orchestration instance id='{OrchestrationInstanceId}'.",
-                _orchestrationType,
+                OrchestrationType,
                 OrchestrationInstanceId);
         }
 
-        return Task.FromResult(QueryResult<MissingMeasurementsLog>.Error());
+        return Task.FromResult(QueryResult<Model.MissingMeasurementsLog>.Error());
     }
 
     protected override bool BelongsToSameGroup(DatabricksSqlRow currentRow, DatabricksSqlRow previousRow)
@@ -72,18 +66,12 @@ internal class MissingMeasurementsLogQuery(
             """;
     }
 
-    private static MissingMeasurementsLogData CreateMissingMeasurementsLogData(DatabricksSqlRow databricksSqlRow)
+    private Model.MissingMeasurementsLog CreateMissingMeasurementsLog(DatabricksSqlRow databricksSqlRow, IReadOnlyCollection<Instant> dates)
     {
-        return new MissingMeasurementsLogData(
-            MeteringPointId: databricksSqlRow.ToNonEmptyString(MissingMeasurementsLogColumnNames.MeteringPointId),
-            Date: databricksSqlRow.ToInstant(MissingMeasurementsLogColumnNames.Date));
-    }
-
-    private MissingMeasurementsLog CreateMissingMeasurementsLog(DatabricksSqlRow databricksSqlRow, IReadOnlyCollection<MissingMeasurementsLogData> missingMeasurementsLogsData)
-    {
-        return new MissingMeasurementsLog(
-            OrchestrationType: _orchestrationType,
+        return new Model.MissingMeasurementsLog(
+            OrchestrationType: OrchestrationType,
             OrchestrationInstanceId: databricksSqlRow.ToGuid(MissingMeasurementsLogColumnNames.OrchestrationInstanceId),
-            MissingMeasurementsLogsData: missingMeasurementsLogsData);
+            MeteringPointId: databricksSqlRow.ToNonEmptyString(MissingMeasurementsLogColumnNames.MeteringPointId),
+            Dates: dates);
     }
 }

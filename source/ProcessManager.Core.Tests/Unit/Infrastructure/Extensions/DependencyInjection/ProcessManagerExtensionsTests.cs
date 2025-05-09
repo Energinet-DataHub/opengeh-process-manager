@@ -121,4 +121,28 @@ public class ProcessManagerExtensionsTests
 
         option!.Value.OptionValue.Should().Be(expectedOptionValue, "because the option value should depend on our configuration");
     }
+
+    [Fact]
+    public void AddCustomHandlersForServiceBusTriggers_WhenScanningExampleOrchestrations_ExpectedHandlersAreRegistered()
+    {
+        // Arrange
+        Services.AddSingleton(Mock.Of<IStartOrchestrationInstanceMessageCommands>());
+        Services.AddLogging();
+
+        // Act
+        Services.AddCustomHandlersForServiceBusTriggers(assemblyToScan: ExampleOrchestrationsAssembly);
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var startUpdateMeteringPointConnectionStateV1 = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.StartUpdateMeteringPointConnectionStateV1>();
+        startUpdateMeteringPointConnectionStateV1.Should().NotBeNull();
+
+        var startActorRequestProcessExampleHandlerV1 = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.StartActorRequestProcessExampleHandlerV1>();
+        startActorRequestProcessExampleHandlerV1.Should().NotBeNull();
+
+        var notifyOrchestrationInstanceExampleHandlerV1 = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.StartNotifyOrchestrationInstanceExampleHandlerV1>();
+        notifyOrchestrationInstanceExampleHandlerV1.Should().NotBeNull();
+    }
 }

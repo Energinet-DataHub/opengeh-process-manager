@@ -12,25 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
 using Microsoft.FeatureManagement;
 
-namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.FeatureFlags;
+namespace Energinet.DataHub.ProcessManager.Core.Application.FeatureManagement;
 
 /// <summary>
-/// A <see cref="IFeatureFlagManager"/> implementation using the Microsoft.FeatureManagement package
+/// Extensions for reading feature flags in Process Manager Core.
 /// </summary>
-public class MicrosoftFeatureFlagManager : IFeatureFlagManager
+internal static class FeatureManagerExtensions
 {
-    private readonly IFeatureManager _featureManager;
-
-    public MicrosoftFeatureFlagManager(IFeatureManager featureManager)
+    public static Task<bool> UseSilentMode(this IFeatureManager featureManager)
     {
-        _featureManager = featureManager;
-    }
-
-    public Task<bool> IsEnabledAsync(FeatureFlag featureFlag)
-    {
-        return _featureManager.IsEnabledAsync(featureFlag.ToString());
+        return featureManager.IsEnabledAsync(FeatureFlagNames.SilentMode);
     }
 }

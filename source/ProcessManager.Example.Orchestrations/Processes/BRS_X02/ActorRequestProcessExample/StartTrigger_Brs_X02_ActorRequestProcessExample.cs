@@ -20,10 +20,9 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample;
 
-internal class StartTrigger_Brs_X02_ActorRequestProcessExample(
-    IStartOrchestrationInstanceFromMessageHandler startOrchestrationInstanceFromMessageHandler)
+internal class StartTrigger_Brs_X02_ActorRequestProcessExample(IStartOrchestrationInstanceFromMessageHandler handler)
 {
-    private readonly IStartOrchestrationInstanceFromMessageHandler _startOrchestrationInstanceFromMessageHandler = startOrchestrationInstanceFromMessageHandler;
+    private readonly IStartOrchestrationInstanceFromMessageHandler _handler = handler;
 
     /// <summary>
     /// Start a BRS-028 request.
@@ -36,7 +35,7 @@ internal class StartTrigger_Brs_X02_ActorRequestProcessExample(
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        await _startOrchestrationInstanceFromMessageHandler.HandleAsync(message)
+        await _handler.HandleAsync(message)
             .ConfigureAwait(false);
     }
 }

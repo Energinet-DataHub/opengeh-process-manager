@@ -23,10 +23,10 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData;
 
 public class StartTrigger_Brs_021_ForwardMeteredData(
-    IStartOrchestrationInstanceFromMessageHandler startOrchestrationInstanceFromMessageHandler,
+    IStartOrchestrationInstanceFromMessageHandler handler,
     TelemetryClient telemetryClient)
 {
-    private readonly IStartOrchestrationInstanceFromMessageHandler _startOrchestrationInstanceFromMessageHandler = startOrchestrationInstanceFromMessageHandler;
+    private readonly IStartOrchestrationInstanceFromMessageHandler _handler = handler;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
@@ -46,7 +46,7 @@ public class StartTrigger_Brs_021_ForwardMeteredData(
         using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(StartTrigger_Brs_021_ForwardMeteredData));
         try
         {
-            await _startOrchestrationInstanceFromMessageHandler.HandleAsync(message).ConfigureAwait(false);
+            await _handler.HandleAsync(message).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

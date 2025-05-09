@@ -20,7 +20,7 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028;
 
-public class StartTrigger_Brs_028(IStartOrchestrationInstanceFromMessageHandler handler)
+internal class StartTrigger_Brs_028(IStartOrchestrationInstanceFromMessageHandler handler)
 {
     private readonly IStartOrchestrationInstanceFromMessageHandler _handler = handler;
 

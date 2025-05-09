@@ -23,15 +23,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.
 /// <summary>
 /// Start a BRS-026 request.
 /// </summary>
-public class StartTrigger_Brs_026
+internal class StartTrigger_Brs_026(IStartOrchestrationInstanceFromMessageHandler handler)
 {
-    private readonly IStartOrchestrationInstanceFromMessageHandler _handler;
-
-    public StartTrigger_Brs_026(IStartOrchestrationInstanceFromMessageHandler handler)
-    {
-        _handler = handler;
-    }
-
     [Function(nameof(StartTrigger_Brs_026))]
     public async Task Run(
         [ServiceBusTrigger(
@@ -40,6 +33,6 @@ public class StartTrigger_Brs_026
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        await _handler.HandleAsync(message).ConfigureAwait(false);
+        await handler.HandleAsync(message).ConfigureAwait(false);
     }
 }

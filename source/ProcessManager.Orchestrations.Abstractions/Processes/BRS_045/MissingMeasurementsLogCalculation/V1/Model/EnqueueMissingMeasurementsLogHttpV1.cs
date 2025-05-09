@@ -24,8 +24,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public record EnqueueMissingMeasurementsLogHttpV1(
     Guid OrchestrationInstanceId,
     ActorNumber GridAccessProvider,
-    string MeteringPointId,
-    IReadOnlyCollection<DateTimeOffset> MissingDates,
+    List<string> MeteringPointIds,
+    DateTimeOffset MissingDate,
     string GridArea)
     : IEnqueueDataSyncDto
 {

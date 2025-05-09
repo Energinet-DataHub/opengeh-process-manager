@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 
-public enum MeteringPointSubType // Målepunktsart, consider promoting this to a datahub ValueObject
-{
-    Physical,
-    Virtual,
-    Calculated,
-}
+public sealed record MeteringPointId(string Value);

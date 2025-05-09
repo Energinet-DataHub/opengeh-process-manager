@@ -16,11 +16,12 @@ using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.Common;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.ProcessDelegation;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Moq;
+using Xunit;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.Shared.ElectricityMarket;
+namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.MeteringPointMasterData;
 
 public class DelegationProviderTests
 {

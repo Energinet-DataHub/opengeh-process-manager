@@ -16,7 +16,7 @@ using System.Globalization;
 using NodaTime;
 using NodaTime.Text;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
+namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Extensions;
 
 public class InstantPatternWithOptionalSeconds
 {

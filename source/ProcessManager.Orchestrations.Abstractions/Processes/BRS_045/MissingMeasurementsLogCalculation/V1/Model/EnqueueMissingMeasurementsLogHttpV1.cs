@@ -24,9 +24,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public record EnqueueMissingMeasurementsLogHttpV1(
     Guid OrchestrationInstanceId,
     ActorNumber GridAccessProvider,
-    List<string> MeteringPointIds,
-    DateTimeOffset MissingDate,
-    string GridArea)
+    string GridArea,
+    DateTimeOffset Date,
+    List<string> MeteringPointIds)
     : IEnqueueDataSyncDto
 {
     public const string RouteName = "v1/enqueue_brs045";

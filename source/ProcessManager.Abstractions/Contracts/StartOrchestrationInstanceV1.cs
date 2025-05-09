@@ -58,7 +58,7 @@ public partial class StartOrchestrationInstanceV1
     /// Thrown if the input type does not match the expected type or deserialization fails.
     /// </exception>
     public TInputData ParseInput<TInputData>()
-        where TInputData : class?, IInputParameterDto?
+        where TInputData : class?
     {
         if (InputType != typeof(TInputData).Name)
         {

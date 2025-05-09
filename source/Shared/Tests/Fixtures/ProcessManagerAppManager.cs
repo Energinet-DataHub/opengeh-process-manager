@@ -15,6 +15,8 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
+using Energinet.DataHub.Core.App.Common.Extensions.Options;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.AppConfiguration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
@@ -221,6 +223,14 @@ public class ProcessManagerAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             "Logging__LogLevel__Azure.Core",
             "Error");
+
+        // Feature Management => Azure App Configuration settings
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AzureAppConfigurationOptions.SectionName}:{nameof(AzureAppConfigurationOptions.Endpoint)}",
+            IntegrationTestConfiguration.AppConfigurationEndpoint);
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            AppConfigurationManager.DisableProviderSettingName,
+            "true");
 
         // ProcessManager
         // => Task Hub

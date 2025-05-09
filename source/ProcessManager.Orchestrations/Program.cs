@@ -28,21 +28,9 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.FeatureManagement;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication(builder =>
-    {
-        // Http => Authorization
-        builder.UseFunctionsAuthorization();
-
-        // Host Durable Function Monitor as a part of this app.
-        // The Durable Function Monitor can be accessed at: {host url}/api/durable-functions-monitor
-        builder.UseDurableFunctionsMonitor(
-            (settings, _) =>
-            {
-                settings.Mode = DfmMode.ReadOnly;
-            });
-    })
     .ConfigureServices((context, services) =>
     {
         services.AddTransient<IConfiguration>(_ => context.Configuration);
@@ -54,6 +42,10 @@ var host = new HostBuilder()
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
         services.AddServiceBusClientForApplication(context.Configuration);
+        // => Feature management
+        services
+            .AddAzureAppConfiguration()
+            .AddFeatureManagement();
 
         // Databricks
         services.AddDatabricksJobsApi(DatabricksWorkspaceNames.Wholesale);
@@ -86,9 +78,32 @@ var host = new HostBuilder()
         // BRS-021 (ForwardMeteredData, ElectricalHeatingCalculation, CapacitySettlementCalculation & NetConsumptionCalculation)
         services.AddBrs021(azureCredential);
     })
+    .ConfigureFunctionsWebApplication(builder =>
+    {
+        // Feature management
+        //  * Enables middleware that handles refresh from Azure App Configuration (except for DF Orchestration triggers)
+        builder.UseAzureAppConfigurationForIsolatedWorker();
+
+        // Http => Authorization
+        builder.UseFunctionsAuthorization();
+
+        // Host Durable Function Monitor as a part of this app.
+        // The Durable Function Monitor can be accessed at: {host url}/api/durable-functions-monitor
+        builder.UseDurableFunctionsMonitor(
+            (settings, _) =>
+            {
+                settings.Mode = DfmMode.ReadOnly;
+            });
+    })
+    .ConfigureAppConfiguration((context, configBuilder) =>
+    {
+        // Feature management
+        //  * Configure load/refresh from Azure App Configuration
+        configBuilder.AddAzureAppConfigurationForIsolatedWorker();
+    })
     .ConfigureLogging((hostingContext, logging) =>
     {
-        logging.AddLoggingConfigurationForIsolatedWorker(hostingContext);
+        logging.AddLoggingConfigurationForIsolatedWorker(hostingContext.Configuration);
     })
     .Build();
 

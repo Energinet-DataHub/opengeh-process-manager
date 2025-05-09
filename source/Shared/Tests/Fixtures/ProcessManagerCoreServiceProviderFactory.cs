@@ -36,7 +36,7 @@ public static class ProcessManagerCoreServiceProviderFactory
     public static ServiceProvider BuildServiceProvider(
         string databaseConnectionString,
         Action<IServiceCollection> configureMockedServices,
-        Action<IServiceCollection>? configureServices = default)
+        Action<IServiceCollection>? configureServices = null)
     {
         var services = new ServiceCollection();
 
@@ -71,7 +71,7 @@ public static class ProcessManagerCoreServiceProviderFactory
         services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();
 
         // Register any additional service for the specific test
-        if (configureServices != default)
+        if (configureServices != null)
             configureServices(services);
 
         return services.BuildServiceProvider();

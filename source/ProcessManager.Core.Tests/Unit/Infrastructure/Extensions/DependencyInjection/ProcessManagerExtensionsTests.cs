@@ -136,7 +136,7 @@ public class ProcessManagerExtensionsTests
         // Assert
         using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
-        
+
         // Assert: The root handler that resolves and delegates to specific orchestration handlers should be registered.
         var orchestrationInstanceFromMessageHandler =
             serviceProvider.GetRequiredService<IStartOrchestrationInstanceFromMessageHandler>();

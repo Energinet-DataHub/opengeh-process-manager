@@ -22,11 +22,14 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 public interface IStartOrchestrationInstanceFromMessageHandler
 {
     /// <summary>
+    ///  Gets the collection of handlers for starting orchestration instances.
+    /// </summary>
+    IEnumerable<IStartOrchestrationInstanceHandler> StartOrchestrationInstanceHandlers { get; }
+
+    /// <summary>
     /// Processes the specified Service Bus message to start an orchestration instance.
     /// </summary>
     /// <param name="message">The received <see cref="ServiceBusReceivedMessage"/> containing orchestration start information.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     Task HandleAsync(ServiceBusReceivedMessage message);
-
-    IEnumerable<IStartOrchestrationInstanceHandler> Get();
 }

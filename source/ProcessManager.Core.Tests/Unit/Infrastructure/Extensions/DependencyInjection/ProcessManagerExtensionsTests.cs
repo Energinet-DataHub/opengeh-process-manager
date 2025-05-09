@@ -136,17 +136,39 @@ public class ProcessManagerExtensionsTests
         // Assert
         using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
-        var orchestrationInstanceFromMessageHandler = serviceProvider.GetRequiredService<IStartOrchestrationInstanceFromMessageHandler>();
-        var stuff = orchestrationInstanceFromMessageHandler.Get().ToList();
+        
+        // Assert: The root handler that resolves and delegates to specific orchestration handlers should be registered.
+        var orchestrationInstanceFromMessageHandler =
+            serviceProvider.GetRequiredService<IStartOrchestrationInstanceFromMessageHandler>();
         orchestrationInstanceFromMessageHandler.Should().NotBeNull();
 
-        var startUpdateMeteringPointConnectionStateV1 = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.StartUpdateMeteringPointConnectionStateV1>();
+        // Assert: Individual concrete orchestration handlers should be registered and resolvable.
+        var startUpdateMeteringPointConnectionStateV1 = serviceProvider
+            .GetRequiredService<Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.
+                StartUpdateMeteringPointConnectionStateV1>();
         startUpdateMeteringPointConnectionStateV1.Should().NotBeNull();
 
-        var startActorRequestProcessExampleHandlerV1 = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.StartActorRequestProcessExampleHandlerV1>();
+        var startActorRequestProcessExampleHandlerV1 = serviceProvider
+            .GetRequiredService<Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.
+                StartActorRequestProcessExampleHandlerV1>();
         startActorRequestProcessExampleHandlerV1.Should().NotBeNull();
 
-        var notifyOrchestrationInstanceExampleHandlerV1 = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.StartNotifyOrchestrationInstanceExampleHandlerV1>();
+        var notifyOrchestrationInstanceExampleHandlerV1 = serviceProvider
+            .GetRequiredService<Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.
+                StartNotifyOrchestrationInstanceExampleHandlerV1>();
         notifyOrchestrationInstanceExampleHandlerV1.Should().NotBeNull();
+
+        // Assert: The internal collection of registered IStartOrchestrationInstanceHandler implementations
+        // in the main handler should contain the expected types.
+        orchestrationInstanceFromMessageHandler.StartOrchestrationInstanceHandlers
+            .Select(startOrchestrationInstanceHandler => startOrchestrationInstanceHandler.GetType()).ToList()
+            .Should()
+            .Contain(
+            [
+                typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.
+                    StartNotifyOrchestrationInstanceExampleHandlerV1), typeof(Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.
+                    StartActorRequestProcessExampleHandlerV1), typeof(Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.
+                    StartUpdateMeteringPointConnectionStateV1)
+            ]);
     }
 }

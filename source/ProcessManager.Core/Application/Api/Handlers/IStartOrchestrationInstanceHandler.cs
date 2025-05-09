@@ -23,17 +23,17 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 public interface IStartOrchestrationInstanceHandler
 {
     /// <summary>
-    /// Determines whether this handler can process the specified orchestration start request.
+    /// Determines whether this handler can process the specified orchestration instance start request.
     /// </summary>
-    /// <param name="startOrchestration">The orchestration start request.</param>
+    /// <param name="startOrchestrationInstance">The orchestration start request.</param>
     /// <returns><see langword="true"/> if this handler can handle the specified request; otherwise, <see langword="false"/>.</returns>
-    bool CanHandle(StartOrchestrationInstanceV1 startOrchestration);
+    bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance);
 
     /// <summary>
     /// Processes the orchestration start request asynchronously.
     /// </summary>
-    /// <param name="startOrchestration">The orchestration start request.</param>
+    /// <param name="startOrchestrationInstance">The orchestration start request.</param>
     /// <param name="idempotencyKey">The idempotency key used to ensure operation idempotence.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    Task HandleAsync(StartOrchestrationInstanceV1 startOrchestration, IdempotencyKey idempotencyKey);
+    Task HandleAsync(StartOrchestrationInstanceV1 startOrchestrationInstance, IdempotencyKey idempotencyKey);
 }

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Text.Json;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
@@ -41,7 +42,7 @@ public partial class StartOrchestrationInstanceV1
     /// <typeparam name="TInputData">The type of the input data.</typeparam>
     /// <param name="data">The input data to be serialized and stored.</param>
     public void SetInput<TInputData>(TInputData data)
-        where TInputData : class
+        where TInputData : class, IInputParameterDto
     {
         Input = JsonSerializer.Serialize(data);
         InputFormat = StartOrchestrationInstanceInputFormatV1.Json;
@@ -57,7 +58,7 @@ public partial class StartOrchestrationInstanceV1
     /// Thrown if the input type does not match the expected type or deserialization fails.
     /// </exception>
     public TInputData ParseInput<TInputData>()
-        where TInputData : class?
+        where TInputData : class?, IInputParameterDto?
     {
         if (InputType != typeof(TInputData).Name)
         {

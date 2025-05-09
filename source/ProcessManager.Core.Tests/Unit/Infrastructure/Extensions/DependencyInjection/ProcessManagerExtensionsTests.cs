@@ -142,22 +142,6 @@ public class ProcessManagerExtensionsTests
             serviceProvider.GetRequiredService<IStartOrchestrationInstanceFromMessageHandler>();
         orchestrationInstanceFromMessageHandler.Should().NotBeNull();
 
-        // Assert: Individual concrete orchestration handlers should be registered and resolvable.
-        var startUpdateMeteringPointConnectionStateV1 = serviceProvider
-            .GetRequiredService<Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.
-                StartUpdateMeteringPointConnectionStateV1>();
-        startUpdateMeteringPointConnectionStateV1.Should().NotBeNull();
-
-        var startActorRequestProcessExampleHandlerV1 = serviceProvider
-            .GetRequiredService<Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.
-                StartActorRequestProcessExampleHandlerV1>();
-        startActorRequestProcessExampleHandlerV1.Should().NotBeNull();
-
-        var notifyOrchestrationInstanceExampleHandlerV1 = serviceProvider
-            .GetRequiredService<Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.
-                StartNotifyOrchestrationInstanceExampleHandlerV1>();
-        notifyOrchestrationInstanceExampleHandlerV1.Should().NotBeNull();
-
         // Assert: The internal collection of registered IStartOrchestrationInstanceHandler implementations
         // in the main handler should contain the expected types.
         orchestrationInstanceFromMessageHandler.StartOrchestrationInstanceHandlers
@@ -165,10 +149,9 @@ public class ProcessManagerExtensionsTests
             .Should()
             .Contain(
             [
-                typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.
-                    StartNotifyOrchestrationInstanceExampleHandlerV1), typeof(Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.
-                    StartActorRequestProcessExampleHandlerV1), typeof(Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.
-                    StartUpdateMeteringPointConnectionStateV1)
+                typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.StartNotifyOrchestrationInstanceExampleHandlerV1), 
+                typeof(Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.StartActorRequestProcessExampleHandlerV1), 
+                typeof(Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.StartUpdateMeteringPointConnectionStateV1),
             ]);
     }
 }

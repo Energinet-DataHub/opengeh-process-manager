@@ -25,39 +25,39 @@ public abstract class StartOrchestrationInstanceHandlerBase<TInputParameterDto>(
 {
     private readonly ILogger _logger = logger;
 
-    public abstract bool CanHandle(StartOrchestrationInstanceV1 startOrchestration);
+    public abstract bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance);
 
-    public async Task HandleAsync(StartOrchestrationInstanceV1 startOrchestration, IdempotencyKey idempotencyKey)
+    public async Task HandleAsync(StartOrchestrationInstanceV1 startOrchestrationInstance, IdempotencyKey idempotencyKey)
     {
         using var startOrchestrationLoggerScope = _logger.BeginScope(new
         {
             StartOrchestration = new
             {
-                startOrchestration.OrchestrationName,
-                startOrchestration.OrchestrationVersion,
+                startOrchestrationInstance.OrchestrationName,
+                startOrchestrationInstance.OrchestrationVersion,
                 OperatingIdentity = new
                 {
-                    Actor = startOrchestration.StartedByActor,
+                    Actor = startOrchestrationInstance.StartedByActor,
                 },
-                startOrchestration.InputFormat,
-                startOrchestration.ActorMessageId,
-                startOrchestration.TransactionId,
-                startOrchestration.MeteringPointId,
+                startOrchestrationInstance.InputFormat,
+                startOrchestrationInstance.ActorMessageId,
+                startOrchestrationInstance.TransactionId,
+                startOrchestrationInstance.MeteringPointId,
             },
         });
 
-        var inputParameterDto = startOrchestration.ParseInput<TInputParameterDto>();
+        var inputParameterDto = startOrchestrationInstance.ParseInput<TInputParameterDto>();
 
         await StartOrchestrationInstanceAsync(
                 actorIdentity: new ActorIdentity(
                     Actor.From(
-                        startOrchestration.StartedByActor.ActorNumber,
-                        startOrchestration.StartedByActor.ActorRole)),
+                        startOrchestrationInstance.StartedByActor.ActorNumber,
+                        startOrchestrationInstance.StartedByActor.ActorRole)),
                 input: inputParameterDto,
                 idempotencyKey: idempotencyKey.Value,
-                actorMessageId: startOrchestration.ActorMessageId,
-                transactionId: startOrchestration.TransactionId,
-                meteringPointId: startOrchestration.HasMeteringPointId ? startOrchestration.MeteringPointId : null)
+                actorMessageId: startOrchestrationInstance.ActorMessageId,
+                transactionId: startOrchestrationInstance.TransactionId,
+                meteringPointId: startOrchestrationInstance.HasMeteringPointId ? startOrchestrationInstance.MeteringPointId : null)
             .ConfigureAwait(false);
     }
 

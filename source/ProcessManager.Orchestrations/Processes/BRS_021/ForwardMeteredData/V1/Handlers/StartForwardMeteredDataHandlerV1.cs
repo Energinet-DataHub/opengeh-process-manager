@@ -64,9 +64,9 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly DelegationProvider _delegationProvider = delegationProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
-    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestration) =>
-        startOrchestration.OrchestrationVersion == Brs_021_ForwardedMeteredData.V1.Version &&
-        startOrchestration.OrchestrationName == Brs_021_ForwardedMeteredData.V1.Name;
+    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
+        startOrchestrationInstance.OrchestrationVersion == Brs_021_ForwardedMeteredData.V1.Version &&
+        startOrchestrationInstance.OrchestrationName == Brs_021_ForwardedMeteredData.V1.Name;
 
     /// <summary>
     /// This method has multiple commits to the database, to immediately transition lifecycles. This means that

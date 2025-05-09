@@ -31,9 +31,9 @@ public class RequestCalculatedEnergyTimeSeriesHandlerV1(
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 
-    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestration) =>
-        startOrchestration.OrchestrationName == Brs_026.V1.Name &&
-        startOrchestration.OrchestrationVersion == Brs_026.V1.Version;
+    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
+        startOrchestrationInstance.OrchestrationName == Brs_026.V1.Name &&
+        startOrchestrationInstance.OrchestrationVersion == Brs_026.V1.Version;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,

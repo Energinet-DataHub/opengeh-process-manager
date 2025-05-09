@@ -31,9 +31,9 @@ internal class StartNotifyOrchestrationInstanceExampleHandlerV1(
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 
-    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestration) =>
-        startOrchestration.OrchestrationVersion == Brs_X02_NotifyOrchestrationInstanceExample.V1.Version &&
-        startOrchestration.OrchestrationName == Brs_X02_NotifyOrchestrationInstanceExample.V1.Name;
+    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
+        startOrchestrationInstance.OrchestrationVersion == Brs_X02_NotifyOrchestrationInstanceExample.V1.Version &&
+        startOrchestrationInstance.OrchestrationName == Brs_X02_NotifyOrchestrationInstanceExample.V1.Name;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,

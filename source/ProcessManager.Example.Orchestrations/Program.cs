@@ -22,14 +22,11 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Dependency
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.FeatureManagement;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication(builder =>
-    {
-        // Http => Authorization
-        builder.UseFunctionsAuthorization();
-    })
     .ConfigureServices((context, services) =>
     {
         var azureCredential = new DefaultAzureCredential();
@@ -38,6 +35,10 @@ var host = new HostBuilder()
         services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Example");
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
+        // => Feature management
+        services
+            .AddAzureAppConfiguration()
+            .AddFeatureManagement();
 
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(context.Configuration, typeof(Program).Assembly);
@@ -57,9 +58,24 @@ var host = new HostBuilder()
         // DataHub Calendar
         services.AddDataHubCalendarComponent();
     })
+    .ConfigureFunctionsWebApplication(builder =>
+    {
+        // Feature management
+        //  * Enables middleware that handles refresh from Azure App Configuration (except for DF Orchestration triggers)
+        builder.UseAzureAppConfigurationForIsolatedWorker();
+
+        // Http => Authorization
+        builder.UseFunctionsAuthorization();
+    })
+    .ConfigureAppConfiguration((context, configBuilder) =>
+    {
+        // Feature management
+        //  * Configure load/refresh from Azure App Configuration
+        configBuilder.AddAzureAppConfigurationForIsolatedWorker();
+    })
     .ConfigureLogging((hostingContext, logging) =>
     {
-        logging.AddLoggingConfigurationForIsolatedWorker(hostingContext);
+        logging.AddLoggingConfigurationForIsolatedWorker(hostingContext.Configuration);
     })
     .Build();
 

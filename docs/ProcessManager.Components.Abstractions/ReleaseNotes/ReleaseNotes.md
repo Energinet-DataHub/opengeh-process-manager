@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 2.0.4
+
+- Moved Electrical Market logic to components/MeteringPointMasterData.
+
 ## Version 2.0.3
 
 - Remove `Receiver` from `IEnqueueDataSyncDto`.

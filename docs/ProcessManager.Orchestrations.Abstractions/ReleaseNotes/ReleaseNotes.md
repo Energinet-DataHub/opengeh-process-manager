@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.1.7
+
+- Moved Electrical Market logic to components/MeteringPointMasterData.
+
 ## Version 2.1.6
 
 - Update `RequestCalculatedEnergyTimeSeriesRejectedV1` removed obsolete `OriginalMessageId`.

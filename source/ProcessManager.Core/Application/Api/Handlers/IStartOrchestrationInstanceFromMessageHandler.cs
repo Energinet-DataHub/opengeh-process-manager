@@ -27,4 +27,6 @@ public interface IStartOrchestrationInstanceFromMessageHandler
     /// <param name="message">The received <see cref="ServiceBusReceivedMessage"/> containing orchestration start information.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     Task HandleAsync(ServiceBusReceivedMessage message);
+
+    IEnumerable<IStartOrchestrationInstanceHandler> Get();
 }

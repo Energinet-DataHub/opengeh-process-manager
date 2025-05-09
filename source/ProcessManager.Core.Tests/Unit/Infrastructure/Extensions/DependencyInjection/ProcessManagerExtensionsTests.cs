@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Reflection;
+using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -135,6 +136,9 @@ public class ProcessManagerExtensionsTests
         // Assert
         using var assertionScope = new AssertionScope();
         var serviceProvider = Services.BuildServiceProvider();
+        var orchestrationInstanceFromMessageHandler = serviceProvider.GetRequiredService<IStartOrchestrationInstanceFromMessageHandler>();
+        var stuff = orchestrationInstanceFromMessageHandler.Get().ToList();
+        orchestrationInstanceFromMessageHandler.Should().NotBeNull();
 
         var startUpdateMeteringPointConnectionStateV1 = serviceProvider.GetRequiredService<Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.StartUpdateMeteringPointConnectionStateV1>();
         startUpdateMeteringPointConnectionStateV1.Should().NotBeNull();

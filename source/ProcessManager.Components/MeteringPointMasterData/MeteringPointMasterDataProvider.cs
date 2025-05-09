@@ -17,23 +17,21 @@ using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Extensions;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Extensions;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NodaTime;
-
 using ElectricityMarketModels = Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 
 [SuppressMessage(
     "StyleCop.CSharp.ReadabilityRules",
     "SA1118:Parameter should not span multiple lines",
     Justification = "Readability")]
-internal class MeteringPointMasterDataProvider(
+public class MeteringPointMasterDataProvider(
     IElectricityMarketViews electricityMarketViews,
     ILogger<MeteringPointMasterDataProvider> logger,
     IClock clock,
@@ -45,7 +43,7 @@ internal class MeteringPointMasterDataProvider(
     private readonly IClock _clock = clock;
     private readonly IOptions<ProcessManagerComponentsOptions> _options = options;
 
-    public Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
+    public Task<IReadOnlyCollection<Model.MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
         string startDate,
         string endDate)
@@ -54,12 +52,12 @@ internal class MeteringPointMasterDataProvider(
         var endDateTime = InstantPatternWithOptionalSeconds.Parse(endDate);
 
         if (!startDateTime.Success || !endDateTime.Success)
-            return Task.FromResult<IReadOnlyCollection<MeteringPointMasterData>>([]);
+            return Task.FromResult<IReadOnlyCollection<Model.MeteringPointMasterData>>([]);
 
         return GetMasterData(meteringPointId, startDateTime.Value, endDateTime.Value);
     }
 
-    public async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMasterData(
+    public async Task<IReadOnlyCollection<Model.MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
         Instant startDateTime,
         Instant endDateTime)
@@ -122,7 +120,7 @@ internal class MeteringPointMasterDataProvider(
 
         var meteringPointMasterDataList = masterDataChanges.OrderBy(mpmd => mpmd.ValidFrom).ToList();
 
-        var result = new List<MeteringPointMasterData>();
+        var result = new List<Model.MeteringPointMasterData>();
 
         foreach (var meteringPointMasterData in meteringPointMasterDataList)
         {
@@ -207,7 +205,7 @@ internal class MeteringPointMasterDataProvider(
         return result.AsReadOnly();
     }
 
-    private static MeteringPointMasterData CreateMeteringPointMasterData(
+    private static Model.MeteringPointMasterData CreateMeteringPointMasterData(
         ElectricityMarketModels.MeteringPointMasterData meteringPointMasterData,
         ElectricityMarketModels.MeteringPointMasterData currentMeteringPointMasterData,
         DateTimeOffset validFrom,

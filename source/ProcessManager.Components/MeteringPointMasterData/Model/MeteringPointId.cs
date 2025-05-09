@@ -1,4 +1,4 @@
-﻿// Copyright 2020 Energinet DataHub A/S
+// Copyright 2020 Energinet DataHub A/S
 //
 // Licensed under the Apache License, Version 2.0 (the "License2");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 
-public enum MeteringPointSubType // Målepunktsart, consider promoting this to a datahub ValueObject
-{
-    Physical,
-    Virtual,
-    Calculated,
-}
+public sealed record MeteringPointId(string Value);

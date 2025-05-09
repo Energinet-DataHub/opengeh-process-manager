@@ -15,12 +15,11 @@
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using NodaTime;
 using NodaTime.Extensions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 
 [SuppressMessage(
     "StyleCop.CSharp.ReadabilityRules",
@@ -72,7 +71,7 @@ public class MeteringPointReceiversProvider(
         Instant inputPeriodStart,
         Instant inputPeriodEnd,
         Resolution resolution,
-        Dictionary<Instant, MeteringPointMasterData> masterData,
+        Dictionary<Instant, Model.MeteringPointMasterData> masterData,
         SortedDictionary<int, ReceiversWithMeasurements.Measurement> sortedMeasurements)
     {
         if (masterData.Count == 1)
@@ -178,7 +177,7 @@ public class MeteringPointReceiversProvider(
     }
 
     private List<Actor> GetReceiversFromMasterData(
-        MeteringPointMasterData meteringPointMasterData)
+        Model.MeteringPointMasterData meteringPointMasterData)
     {
         var receivers = new List<Actor>();
         var meteringPointType = meteringPointMasterData.MeteringPointType;
@@ -298,13 +297,13 @@ public class MeteringPointReceiversProvider(
         Instant StartDateTime,
         Instant EndDateTime,
         Resolution Resolution,
-        IReadOnlyCollection<MeteringPointMasterData> MasterData,
+        IReadOnlyCollection<Model.MeteringPointMasterData> MasterData,
         IReadOnlyCollection<ReceiversWithMeasurements.Measurement> Measurements);
 
     private sealed record MasterDataWithMeasurements
     {
         public MasterDataWithMeasurements(
-            MeteringPointMasterData masterData,
+            Model.MeteringPointMasterData masterData,
             Instant inputPeriodStart,
             Instant inputPeriodEnd,
             List<ReceiversWithMeasurements.Measurement> measurements)
@@ -315,7 +314,7 @@ public class MeteringPointReceiversProvider(
             Measurements = measurements;
         }
 
-        public MeteringPointMasterData MasterData { get; }
+        public Model.MeteringPointMasterData MasterData { get; }
 
         public Instant ValidFrom { get; }
 

@@ -34,7 +34,7 @@ internal static class FeatureFlags
     ///  * In Azure App Configuration
     ///
     /// If configured locally the name of a feature flag configuration
-    /// must be prefixed with "FeatureManagement__",
+    /// must be prefixed with <see cref="Names.SectionName"/>,
     /// ie. "FeatureManagement__SilentMode".
     /// </summary>
     /// <remarks>
@@ -43,6 +43,11 @@ internal static class FeatureFlags
     /// </remarks>
     public static class Names
     {
+        /// <summary>
+        /// Configuration section name when configuring feature flags as App Settings.
+        /// </summary>
+        public const string SectionName = "FeatureManagement";
+
         /// <summary>
         /// <p>THIS FEATURE MUST NOT BE USED ON PRE-PROD AND PROD!</p>
         /// Enables "silent mode" for PM core.

@@ -26,7 +26,7 @@ public record EnqueueMissingMeasurementsLogHttpV1(
     ActorNumber GridAccessProvider,
     string GridArea,
     DateTimeOffset Date,
-    List<string> MeteringPointIds)
+    IReadOnlyCollection<string> MeteringPointIds)
     : IEnqueueDataSyncDto
 {
     public const string RouteName = "v1/enqueue_brs045";

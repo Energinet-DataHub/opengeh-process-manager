@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 5.0.2
+
+- No functional changes.
+
 ## Version 5.0.1
 
 - No functional changes.

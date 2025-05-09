@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.2.1
+
+- No functional changes.
+
 ## Version 2.2.0
 
 - Add initial `EnqueueMissingMeasurementsLogHttpV1` for BRS-045.

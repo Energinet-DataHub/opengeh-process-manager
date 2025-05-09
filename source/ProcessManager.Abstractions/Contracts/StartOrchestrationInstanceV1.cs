@@ -16,10 +16,30 @@ using System.Text.Json;
 
 namespace Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 
-public partial class StartOrchestrationInstanceV1 //TODO: LRN document clearly that this is the framework container for startring orchestration instances
+/// <summary>
+/// Framework container used for starting orchestration instances via service bus messages.
+/// </summary>
+/// <remarks>
+/// This class defines the contract and payload format for initiating a versioned orchestration.
+/// It provides methods for serializing input data into a format suitable for transport and
+/// for safely deserializing the input on the receiving end.
+///
+/// All messages with <see cref="MajorVersion"/> matching this type should be parsed as
+/// <c>StartOrchestrationInstanceV1</c>. This class is central to framework-level orchestration dispatching.
+/// </remarks>
+public partial class StartOrchestrationInstanceV1
 {
+    /// <summary>
+    /// Constant indicating the major version of this message contract.
+    /// </summary>
     public const string MajorVersion = nameof(StartOrchestrationInstanceV1);
 
+    /// <summary>
+    /// Sets the input data payload for the orchestration.
+    /// The input is serialized to JSON, and metadata about its type and format are stored.
+    /// </summary>
+    /// <typeparam name="TInputData">The type of the input data.</typeparam>
+    /// <param name="data">The input data to be serialized and stored.</param>
     public void SetInput<TInputData>(TInputData data)
         where TInputData : class
     {
@@ -28,6 +48,14 @@ public partial class StartOrchestrationInstanceV1 //TODO: LRN document clearly t
         InputType = typeof(TInputData).Name;
     }
 
+    /// <summary>
+    /// Parses and deserializes the input data into the specified target type.
+    /// </summary>
+    /// <typeparam name="TInputData">The expected input type.</typeparam>
+    /// <returns>The deserialized input data.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the input type does not match the expected type or deserialization fails.
+    /// </exception>
     public TInputData ParseInput<TInputData>()
         where TInputData : class?
     {

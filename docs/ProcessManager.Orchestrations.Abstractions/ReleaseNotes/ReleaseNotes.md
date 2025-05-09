@@ -1,9 +1,5 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 2.2.1
-
-- Moved Electrical Market logic to components/MeteringPointMasterData.
-
 ## Version 2.2.0
 
 - Add initial `EnqueueMissingMeasurementsLogHttpV1` for BRS-045.

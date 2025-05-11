@@ -55,8 +55,7 @@ public static class ProcessManagerExtensions
         services
             .AddProcessManagerOptions()
             .AddProcessManagerDatabase()
-            .AddProcessManagerAuthentication(configuration)
-            .AddFeatureFlags();
+            .AddProcessManagerAuthentication(configuration);
 
         // DurableClient connected to Task Hub
         services.AddTaskHubStorage();
@@ -119,8 +118,7 @@ public static class ProcessManagerExtensions
             .AddProcessManagerOptions()
             .AddProcessManagerDatabase()
             .AddProcessManagerReaderContext()
-            .AddProcessManagerAuthentication(configuration)
-            .AddFeatureFlags();
+            .AddProcessManagerAuthentication(configuration);
 
         // Task Hub connected to Durable Functions
         services.AddTaskHubStorage();

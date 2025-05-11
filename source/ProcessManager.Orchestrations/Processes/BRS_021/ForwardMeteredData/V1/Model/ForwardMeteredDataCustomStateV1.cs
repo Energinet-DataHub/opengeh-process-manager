@@ -14,7 +14,9 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using MeteringPointId = Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model.MeteringPointId;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
@@ -53,26 +55,26 @@ public record ForwardMeteredDataCustomStateV1(
         MeteringPointId? ParentMeteringPointId,
         ActorNumber? EnergySupplier)
     {
-        public static MasterData? FromMeteringPointMasterData(Shared.ElectricityMarket.Model.MeteringPointMasterData? masterData)
+        public static MasterData? FromMeteringPointMasterData(MeteringPointMasterData? masterData)
         {
             if (masterData == null)
                 return null;
 
             var connectionState = masterData.ConnectionState switch
             {
-                Shared.ElectricityMarket.Model.ConnectionState.NotUsed => ConnectionState.NotUsed,
-                Shared.ElectricityMarket.Model.ConnectionState.ClosedDown => ConnectionState.ClosedDown,
-                Shared.ElectricityMarket.Model.ConnectionState.New => ConnectionState.New,
-                Shared.ElectricityMarket.Model.ConnectionState.Connected => ConnectionState.Connected,
-                Shared.ElectricityMarket.Model.ConnectionState.Disconnected => ConnectionState.Disconnected,
+                Components.MeteringPointMasterData.Model.ConnectionState.NotUsed => ConnectionState.NotUsed,
+                Components.MeteringPointMasterData.Model.ConnectionState.ClosedDown => ConnectionState.ClosedDown,
+                Components.MeteringPointMasterData.Model.ConnectionState.New => ConnectionState.New,
+                Components.MeteringPointMasterData.Model.ConnectionState.Connected => ConnectionState.Connected,
+                Components.MeteringPointMasterData.Model.ConnectionState.Disconnected => ConnectionState.Disconnected,
                 _ => throw new ArgumentOutOfRangeException(nameof(masterData.ConnectionState), masterData.ConnectionState, "Invalid connection state"),
             };
 
             var meteringPointSubType = masterData.MeteringPointSubType switch
             {
-                Shared.ElectricityMarket.Model.MeteringPointSubType.Physical => MeteringPointSubType.Physical,
-                Shared.ElectricityMarket.Model.MeteringPointSubType.Virtual => MeteringPointSubType.Virtual,
-                Shared.ElectricityMarket.Model.MeteringPointSubType.Calculated => MeteringPointSubType.Calculated,
+                Components.MeteringPointMasterData.Model.MeteringPointSubType.Physical => MeteringPointSubType.Physical,
+                Components.MeteringPointMasterData.Model.MeteringPointSubType.Virtual => MeteringPointSubType.Virtual,
+                Components.MeteringPointMasterData.Model.MeteringPointSubType.Calculated => MeteringPointSubType.Calculated,
                 _ => throw new ArgumentOutOfRangeException(nameof(masterData.MeteringPointSubType), masterData.MeteringPointSubType, "Invalid metering point sub type"),
             };
 
@@ -93,31 +95,31 @@ public record ForwardMeteredDataCustomStateV1(
                 EnergySupplier: masterData.EnergySupplier);
         }
 
-        public Shared.ElectricityMarket.Model.MeteringPointMasterData ToMeteringPointMasterData()
+        public MeteringPointMasterData ToMeteringPointMasterData()
         {
             var connectionState = ConnectionState switch
             {
-                ConnectionState.NotUsed => Shared.ElectricityMarket.Model.ConnectionState.NotUsed,
-                ConnectionState.ClosedDown => Shared.ElectricityMarket.Model.ConnectionState.ClosedDown,
-                ConnectionState.New => Shared.ElectricityMarket.Model.ConnectionState.New,
-                ConnectionState.Connected => Shared.ElectricityMarket.Model.ConnectionState.Connected,
-                ConnectionState.Disconnected => Shared.ElectricityMarket.Model.ConnectionState.Disconnected,
+                ConnectionState.NotUsed => Components.MeteringPointMasterData.Model.ConnectionState.NotUsed,
+                ConnectionState.ClosedDown => Components.MeteringPointMasterData.Model.ConnectionState.ClosedDown,
+                ConnectionState.New => Components.MeteringPointMasterData.Model.ConnectionState.New,
+                ConnectionState.Connected => Components.MeteringPointMasterData.Model.ConnectionState.Connected,
+                ConnectionState.Disconnected => Components.MeteringPointMasterData.Model.ConnectionState.Disconnected,
                 _ => throw new ArgumentOutOfRangeException(nameof(ConnectionState), ConnectionState, "Invalid connection state"),
             };
 
             var meteringPointSubType = MeteringPointSubType switch
             {
-                MeteringPointSubType.Physical => Shared.ElectricityMarket.Model.MeteringPointSubType.Physical,
-                MeteringPointSubType.Virtual => Shared.ElectricityMarket.Model.MeteringPointSubType.Virtual,
-                MeteringPointSubType.Calculated => Shared.ElectricityMarket.Model.MeteringPointSubType.Calculated,
+                MeteringPointSubType.Physical => Components.MeteringPointMasterData.Model.MeteringPointSubType.Physical,
+                MeteringPointSubType.Virtual => Components.MeteringPointMasterData.Model.MeteringPointSubType.Virtual,
+                MeteringPointSubType.Calculated => Components.MeteringPointMasterData.Model.MeteringPointSubType.Calculated,
                 _ => throw new ArgumentOutOfRangeException(nameof(MeteringPointSubType), MeteringPointSubType, "Invalid metering point sub type"),
             };
 
-            return new Shared.ElectricityMarket.Model.MeteringPointMasterData(
+            return new MeteringPointMasterData(
                 MeteringPointId: MeteringPointId,
                 ValidFrom: ValidFrom,
                 ValidTo: ValidTo,
-                CurrentGridAreaCode: new Shared.ElectricityMarket.Model.GridAreaCode(GridAreaCode.Value),
+                CurrentGridAreaCode: new Components.MeteringPointMasterData.Model.GridAreaCode(GridAreaCode.Value),
                 CurrentGridAccessProvider: GridAccessProvider,
                 CurrentNeighborGridAreaOwners: NeighborGridAreaOwners,
                 ConnectionState: connectionState,

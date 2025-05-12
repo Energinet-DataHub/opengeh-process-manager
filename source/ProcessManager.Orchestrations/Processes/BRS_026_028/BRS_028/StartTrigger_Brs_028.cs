@@ -14,28 +14,27 @@
 
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028;
 
-internal class StartTrigger_Brs_101_UpdateMeteringPointConnectionState_V1(
-    StartUpdateMeteringPointConnectionStateV1 handler)
+public class StartTrigger_Brs_028(IStartOrchestrationInstanceFromMessageHandler handler)
 {
-    private readonly StartUpdateMeteringPointConnectionStateV1 _handler = handler;
+    private readonly IStartOrchestrationInstanceFromMessageHandler _handler = handler;
 
     /// <summary>
-    /// Start a BRS-101 Update Metering Point connection state request.
+    /// Start a BRS-028 request.
     /// </summary>
-    [Function(nameof(StartTrigger_Brs_101_UpdateMeteringPointConnectionState_V1))]
+    [Function(nameof(StartTrigger_Brs_028))]
     public async Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.TopicName)}%",
-            $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.Brs101UpdateMeteringPointConnectionStateSubscriptionName)}%",
+            $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.Brs028SubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
-        await _handler.HandleAsync(message)
-            .ConfigureAwait(false);
+        await _handler.HandleAsync(message).ConfigureAwait(false);
     }
 }

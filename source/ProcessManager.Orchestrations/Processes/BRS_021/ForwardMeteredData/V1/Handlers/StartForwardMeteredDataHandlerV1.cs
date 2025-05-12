@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
@@ -22,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
@@ -50,7 +52,7 @@ public class StartForwardMeteredDataHandlerV1(
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     DelegationProvider delegationProvider,
     TelemetryClient telemetryClient)
-    : StartOrchestrationInstanceFromMessageHandlerBase<ForwardMeteredDataInputV1>(logger)
+    : StartOrchestrationInstanceHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
@@ -61,6 +63,10 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly DelegationProvider _delegationProvider = delegationProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
+
+    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
+        startOrchestrationInstance.OrchestrationVersion == Brs_021_ForwardedMeteredData.V1.Version &&
+        startOrchestrationInstance.OrchestrationName == Brs_021_ForwardedMeteredData.V1.Name;
 
     /// <summary>
     /// This method has multiple commits to the database, to immediately transition lifecycles. This means that

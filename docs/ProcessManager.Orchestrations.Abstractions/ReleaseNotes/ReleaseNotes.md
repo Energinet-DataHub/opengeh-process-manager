@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.2.2
+
+- No functional changes.
+
 ## Version 2.2.1
 
 - Update `EnqueueMissingMeasurementsLogHttpV1` to contain a list of dates with metering point ids.

@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
@@ -25,9 +28,13 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 internal class StartActorRequestProcessExampleHandlerV1(
     ILogger<StartActorRequestProcessExampleHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-    : StartOrchestrationInstanceFromMessageHandlerBase<ActorRequestProcessExampleInputV1>(logger)
+    : StartOrchestrationInstanceHandlerBase<ActorRequestProcessExampleInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
+
+    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
+        startOrchestrationInstance.OrchestrationVersion == Brs_X02_ActorRequestProcessExample.V1.Version &&
+        startOrchestrationInstance.OrchestrationName == Brs_X02_ActorRequestProcessExample.V1.Name;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,

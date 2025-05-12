@@ -14,24 +14,24 @@
 
 using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Extensions.Options;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1;
+namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample;
 
-public class StartTrigger_Brs_028_V1(
-    RequestCalculatedWholesaleServicesHandlerV1 handler)
+internal class StartTrigger_Brs_X02_NotifyOrchestrationInstanceExample(IStartOrchestrationInstanceFromMessageHandler handler)
 {
-    private readonly RequestCalculatedWholesaleServicesHandlerV1 _handler = handler;
+    private readonly IStartOrchestrationInstanceFromMessageHandler _handler = handler;
 
     /// <summary>
     /// Start a BRS-028 request.
     /// </summary>
-    [Function(nameof(StartTrigger_Brs_028_V1))]
+    [Function(nameof(StartTrigger_Brs_X02_NotifyOrchestrationInstanceExample))]
     public async Task Run(
         [ServiceBusTrigger(
             $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.TopicName)}%",
-            $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.Brs028SubscriptionName)}%",
+            $"%{ProcessManagerStartTopicOptions.SectionName}:{nameof(ProcessManagerStartTopicOptions.BrsX02NotifyOrchestrationInstanceExampleSubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {

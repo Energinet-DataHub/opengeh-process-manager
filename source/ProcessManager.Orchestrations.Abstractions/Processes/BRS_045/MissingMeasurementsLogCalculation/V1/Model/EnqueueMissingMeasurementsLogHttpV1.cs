@@ -25,11 +25,14 @@ public record EnqueueMissingMeasurementsLogHttpV1(
     Guid OrchestrationInstanceId,
     ActorNumber GridAccessProvider,
     string GridArea,
-    DateTimeOffset Date,
-    IReadOnlyCollection<string> MeteringPointIds)
+    IReadOnlyCollection<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds> Data)
     : IEnqueueDataSyncDto
 {
     public const string RouteName = "v1/enqueue_brs045";
 
     public string Route { get; } = RouteName;
+
+    public record DateWithMeteringPointIds(
+        DateTimeOffset Date,
+        IReadOnlyCollection<string> MeteringPointsIds);
 }

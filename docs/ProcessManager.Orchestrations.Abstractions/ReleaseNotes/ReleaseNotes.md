@@ -2,7 +2,7 @@
 
 ## Version 2.2.1
 
-- Update `EnqueueMissingMeasurementsLogHttpV1` to contain 1 date and a list of metering point ids.
+- Update `EnqueueMissingMeasurementsLogHttpV1` to contain a list of dates with metering point ids.
 
 ## Version 2.2.0
 

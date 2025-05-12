@@ -59,8 +59,8 @@ public class MissingMeasurementsLogQueryTests : IClassFixture<MissingMeasurement
                 "Unexpected id in query result"),
             () => Assert.Single(actual, x =>
                     x.Result != null
-                    && x.Result.MissingMeasurementsLogsData.Count(m => m.MeteringPointId == "190000040000000001") == 2
-                    && x.Result.MissingMeasurementsLogsData.Count == 2),
+                    && x.Result.Dates.Count(m => m.MeteringPointId == "190000040000000001") == 2
+                    && x.Result.Dates.Count == 2),
             () => Assert.Single(actual, x =>
                     x.Result != null
                     && x.Result.MissingMeasurementsLogsData.Count(m => m.MeteringPointId == "190000040000000002") == 2

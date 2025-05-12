@@ -18,10 +18,11 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
-
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Options;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -159,13 +160,13 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
         await EnqueueActorMessagesAsync(
                 orchestrationInstanceId,
                 missingMeasurementsLog,
-                receiversWithMeasurements,
-                period)
+                receiversWithMeasurements)
             .ConfigureAwait(false);
     }
 
     private Interval GetMeasurementsPeriod(BRS_045.Shared.Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog)
     {
+        // TODO AJW
         var from = missingMeasurementsLog.Dates.First();
         var to = missingMeasurementsLog.Dates.Last();
         return new Interval(from, to);
@@ -203,33 +204,16 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     private async Task EnqueueActorMessagesAsync(
         OrchestrationInstanceId orchestrationInstanceId,
         Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog,
-        IReadOnlyCollection<ReceiversWithMeasurements> receiversWithMeasurements,
-        Interval measurementsPeriod)
+        IReadOnlyCollection<ReceiversWithMeasurements> receiversWithMeasurements)
     {
-        var enqueueData = new EnqueueCalculatedMeasurementsHttpV1(
+
+
+        var enqueueData = new EnqueueMissingMeasurementsLogHttpV1(
             OrchestrationInstanceId: orchestrationInstanceId.Value,
+            GridAccessProvider: ,
             MeteringPointId: missingMeasurementsLog.MeteringPointId,
-            Data: receiversWithMeasurements.Select(
-                    r => new EnqueueCalculatedMeasurementsHttpV1.ReceiversWithMeasurements(
-                        Receivers: r.Receivers
-                            .Select(
-                                actor => new EnqueueCalculatedMeasurementsHttpV1.Actor(
-                                    ActorNumber.Create(actor.Number.Value),
-                                    ActorRole.FromName(actor.Role.Name)))
-                            .ToList(),
-                        RegistrationDateTime: missingMeasurementsLog.TransactionCreationDatetime.ToDateTimeOffset(), // TODO: Correct?
-                        StartDateTime: measurementsPeriod.Start.ToDateTimeOffset(),
-                        EndDateTime: measurementsPeriod.End.ToDateTimeOffset(),
-                        Measurements: r.Measurements
-                            .Select(
-                                (md, i) => new EnqueueCalculatedMeasurementsHttpV1.Measurement(
-                                    Position: md.Position,
-                                    // TODO: Are these null assumptions correct?
-                                    EnergyQuantity: md.EnergyQuantity ?? throw new InvalidOperationException("Energy quantity should not be null in calculated measurement calculations."),
-                                    QuantityQuality: md.QuantityQuality ?? throw new InvalidOperationException("Quality should not be null in calculated measurement calculations.")))
-                            .ToList(),
-                        GridAreaCode: r.GridArea))
-                .ToList());
+            MissingDates: missingMeasurementsLog.Dates.Select(x => x.ToDateTimeOffset()).ToList(),
+            GridArea: receiversWithMeasurements);
 
         await _enqueueActorMessagesHttpClient.EnqueueAsync(enqueueData).ConfigureAwait(false);
     }

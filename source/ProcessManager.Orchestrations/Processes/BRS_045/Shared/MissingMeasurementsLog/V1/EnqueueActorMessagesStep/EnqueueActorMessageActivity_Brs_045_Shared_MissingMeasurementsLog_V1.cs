@@ -14,17 +14,15 @@
 
 using System.Collections.Concurrent;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Options;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NodaTime;
@@ -40,7 +38,8 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     MeteringPointReceiversProvider meteringPointReceiversProvider,
     IEnqueueActorMessagesHttpClient enqueueActorMessagesHttpClient,
     IOptionsSnapshot<DatabricksQueryOptions> databricksQueryOptions,
-    DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor)
+    DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor,
+    IClock clock)
 {
     internal const int MaxConcurrency = 100;
     private static readonly TimeSpan _semaphoreTimeout = TimeSpan.FromMinutes(5);
@@ -51,6 +50,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     private readonly IEnqueueActorMessagesHttpClient _enqueueActorMessagesHttpClient = enqueueActorMessagesHttpClient;
     private readonly DatabricksQueryOptions _databricksQueryOptions = databricksQueryOptions.Get(QueryOptionsSectionNames.MissingMeasurementsLogQuery);
     private readonly DatabricksSqlWarehouseQueryExecutor _databricksSqlWarehouseQueryExecutor = databricksSqlWarehouseQueryExecutor;
+    private readonly IClock _clock = clock;
 
     /// <summary>
     /// Query missing measurements log from Databricks, and enqueue actor messages for the data. The master data
@@ -149,71 +149,47 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
         OrchestrationInstanceId orchestrationInstanceId,
         Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog)
     {
-        var period = GetMeasurementsPeriod(missingMeasurementsLog);
+        var list = new List<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds>();
+        var now = _clock.GetCurrentInstant();
+        var period = new Interval(now, now.PlusDays(1));
 
-        var receiversWithMeasurements = await FindReceiversForMeasurementsAsync(
-                missingMeasurementsLog,
-                period.Start,
-                period.End)
+        var meteringPointMasterData = await _meteringPointMasterDataProvider.GetMasterData(
+                meteringPointId: missingMeasurementsLog.MeteringPointId,
+                startDateTime: period.Start,
+                endDateTime: period.End)
             .ConfigureAwait(false);
+
+        var currentGridAccessProvider = meteringPointMasterData.First().CurrentGridAccessProvider;
+        var gridAreaCode = meteringPointMasterData.First().CurrentGridAreaCode.Value;
+
+        foreach (var date in missingMeasurementsLog.Dates)
+        {
+            var dateWithMeteringPointId = new EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds(
+                GridAccessProvider: currentGridAccessProvider,
+                GridArea: gridAreaCode,
+                Date: date.ToDateTimeOffset(),
+                MeteringPointId: missingMeasurementsLog.MeteringPointId);
+
+            list.Add(dateWithMeteringPointId);
+        }
+
+        // TODO AJW what happens if the date list is empty? Should we throw an exception?
+        // TODO AJW What happens id there are no receivers for the metering point?
+        // TODO the find receivers method support one day interval? UTC time zone?
 
         await EnqueueActorMessagesAsync(
                 orchestrationInstanceId,
-                missingMeasurementsLog,
-                receiversWithMeasurements)
+                list)
             .ConfigureAwait(false);
-    }
-
-    private Interval GetMeasurementsPeriod(BRS_045.Shared.Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog)
-    {
-        // TODO AJW
-        var from = missingMeasurementsLog.Dates.First();
-        var to = missingMeasurementsLog.Dates.Last();
-        return new Interval(from, to);
-    }
-
-    private async Task<List<ReceiversWithMeasurements>> FindReceiversForMeasurementsAsync(
-        Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog,
-        Instant from,
-        Instant to)
-    {
-        // We need to get master data & receivers for each metering point id
-        var masterDataForMeteringPoint = await _meteringPointMasterDataProvider.GetMasterData(
-                meteringPointId: missingMeasurementsLog.MeteringPointId,
-                startDateTime: from,
-                endDateTime: to)
-            .ConfigureAwait(false);
-
-        var receiversForMeteringPoint = _meteringPointReceiversProvider
-            .GetReceiversWithMeasurementsFromMasterDataList(
-                new MeteringPointReceiversProvider.FindReceiversInput(
-                    MeteringPointId: missingMeasurementsLog.MeteringPointId,
-                    StartDateTime: from,
-                    EndDateTime: to,
-                    MasterData: masterDataForMeteringPoint,
-                    Measurements: missingMeasurementsLog.Measurements
-                        .Select((md, i) => new ReceiversWithMeasurements.Measurement(
-                            Position: i + 1, // Position is 1-based, so the first position must be 1.
-                            EnergyQuantity: md.Quantity,
-                            QuantityQuality: Quality.Calculated))
-                        .ToList()));
-
-        return receiversForMeteringPoint;
     }
 
     private async Task EnqueueActorMessagesAsync(
         OrchestrationInstanceId orchestrationInstanceId,
-        Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog,
-        IReadOnlyCollection<ReceiversWithMeasurements> receiversWithMeasurements)
+        IReadOnlyCollection<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds> dateWithMeteringPointIds)
     {
-
-
         var enqueueData = new EnqueueMissingMeasurementsLogHttpV1(
             OrchestrationInstanceId: orchestrationInstanceId.Value,
-            GridAccessProvider: ,
-            MeteringPointId: missingMeasurementsLog.MeteringPointId,
-            MissingDates: missingMeasurementsLog.Dates.Select(x => x.ToDateTimeOffset()).ToList(),
-            GridArea: receiversWithMeasurements);
+            Data: dateWithMeteringPointIds);
 
         await _enqueueActorMessagesHttpClient.EnqueueAsync(enqueueData).ConfigureAwait(false);
     }

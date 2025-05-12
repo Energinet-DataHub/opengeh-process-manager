@@ -35,13 +35,14 @@ internal class StartOrchestrationInstanceFromMessageHandler : IStartOrchestratio
         if (majorVersion == StartOrchestrationInstanceV1.MajorVersion)
         {
             await HandleV1Async(message).ConfigureAwait(false);
-            return;
         }
-
-        throw new ArgumentOutOfRangeException(
+        else
+        {
+            throw new ArgumentOutOfRangeException(
                 nameof(majorVersion),
                 majorVersion,
                 $"Unhandled major version in the received start orchestration service bus message (Subject={message.Subject}, MessageId={message.MessageId}).");
+        }
     }
 
     private async Task HandleV1Async(ServiceBusReceivedMessage message)

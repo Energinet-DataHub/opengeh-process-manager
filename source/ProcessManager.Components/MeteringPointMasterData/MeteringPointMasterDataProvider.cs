@@ -95,7 +95,7 @@ public class MeteringPointMasterDataProvider(
         }
         catch (Exception e)
         {
-            // The performance test uses non-existing metering points, so we must fake a succesful
+            // The performance test uses non-existing metering points, so we must fake a successful
             // master data response from Electricity Market
             if (IsPerformanceTest(meteringPointId))
             {

@@ -35,6 +35,7 @@ internal class StartOrchestrationInstanceFromMessageHandler : IStartOrchestratio
         if (majorVersion == StartOrchestrationInstanceV1.MajorVersion)
         {
             await HandleV1Async(message).ConfigureAwait(false);
+            return;
         }
 
         throw new ArgumentOutOfRangeException(

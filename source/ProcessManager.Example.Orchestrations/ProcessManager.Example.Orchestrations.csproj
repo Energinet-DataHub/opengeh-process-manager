@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <AssemblyName>Energinet.DataHub.ProcessManager.Example.Orchestrations</AssemblyName>
         <RootNamespace>Energinet.DataHub.ProcessManager.Example.Orchestrations</RootNamespace>
@@ -13,8 +13,8 @@
   <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
         <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="7.0.0" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.1" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.1" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.2" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.2" />
         <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="15.2.0" />
     </ItemGroup>
     <ItemGroup>

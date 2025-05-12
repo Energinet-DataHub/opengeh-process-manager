@@ -36,11 +36,13 @@ internal class StartOrchestrationInstanceFromMessageHandler : IStartOrchestratio
         {
             await HandleV1Async(message).ConfigureAwait(false);
         }
-
-        throw new ArgumentOutOfRangeException(
+        else
+        {
+            throw new ArgumentOutOfRangeException(
                 nameof(majorVersion),
                 majorVersion,
                 $"Unhandled major version in the received start orchestration service bus message (Subject={message.Subject}, MessageId={message.MessageId}).");
+        }
     }
 
     private async Task HandleV1Async(ServiceBusReceivedMessage message)

@@ -21,12 +21,12 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 
 internal class StartOrchestrationInstanceFromMessageHandler : IStartOrchestrationInstanceFromMessageHandler
 {
-    public StartOrchestrationInstanceFromMessageHandler(IReadOnlyCollection<IStartOrchestrationInstanceHandler> startOrchestrationInstanceHandlers)
+    public StartOrchestrationInstanceFromMessageHandler(IEnumerable<IStartOrchestrationInstanceHandler> startOrchestrationInstanceHandlers)
     {
         StartOrchestrationInstanceHandlers = startOrchestrationInstanceHandlers;
     }
 
-    public IReadOnlyCollection<IStartOrchestrationInstanceHandler> StartOrchestrationInstanceHandlers { get; }
+    public IEnumerable<IStartOrchestrationInstanceHandler> StartOrchestrationInstanceHandlers { get; }
 
     public async Task HandleAsync(ServiceBusReceivedMessage message)
     {

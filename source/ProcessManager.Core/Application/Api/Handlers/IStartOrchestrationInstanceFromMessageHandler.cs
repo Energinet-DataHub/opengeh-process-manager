@@ -24,7 +24,7 @@ public interface IStartOrchestrationInstanceFromMessageHandler
     /// <summary>
     ///  Gets the collection of handlers for starting orchestration instances.
     /// </summary>
-    IReadOnlyCollection<IStartOrchestrationInstanceHandler> StartOrchestrationInstanceHandlers { get; }
+    IEnumerable<IStartOrchestrationInstanceHandler> StartOrchestrationInstanceHandlers { get; }
 
     /// <summary>
     /// Processes the specified Service Bus message to start an orchestration instance.

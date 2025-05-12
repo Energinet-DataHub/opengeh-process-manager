@@ -26,7 +26,6 @@ public interface IStartOrchestrationInstanceHandler
     /// Determines whether this handler can process the specified orchestration instance start request.
     /// </summary>
     /// <param name="startOrchestrationInstance">The orchestration start request.</param>
-    /// <returns><see langword="true"/> if this handler can handle the specified request; otherwise, <see langword="false"/>.</returns>
     bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance);
 
     /// <summary>

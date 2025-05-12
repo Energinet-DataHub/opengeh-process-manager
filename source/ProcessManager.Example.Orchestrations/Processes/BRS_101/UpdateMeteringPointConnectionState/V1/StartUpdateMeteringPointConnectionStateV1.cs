@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
@@ -25,9 +27,13 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_
 internal class StartUpdateMeteringPointConnectionStateV1(
     ILogger<StartUpdateMeteringPointConnectionStateV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-    : StartOrchestrationInstanceFromMessageHandlerBase<UpdateMeteringPointConnectionStateInputV1>(logger)
+    : StartOrchestrationInstanceHandlerBase<UpdateMeteringPointConnectionStateInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
+
+    public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
+        startOrchestrationInstance.OrchestrationVersion == Brs_101_UpdateMeteringPointConnectionState.V1.Version &&
+        startOrchestrationInstance.OrchestrationName == Brs_101_UpdateMeteringPointConnectionState.V1.Name;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,

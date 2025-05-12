@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Reflection;
+using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -120,5 +121,37 @@ public class ProcessManagerExtensionsTests
         option.Should().NotBeNull();
 
         option!.Value.OptionValue.Should().Be(expectedOptionValue, "because the option value should depend on our configuration");
+    }
+
+    [Fact]
+    public void AddCustomHandlersForServiceBusTriggers_WhenScanningExampleOrchestrations_ExpectedHandlersAreRegistered()
+    {
+        // Arrange
+        Services.AddSingleton(Mock.Of<IStartOrchestrationInstanceMessageCommands>());
+        Services.AddLogging();
+
+        // Act
+        Services.AddCustomHandlersForServiceBusTriggers(assemblyToScan: ExampleOrchestrationsAssembly);
+
+        // Assert
+        using var assertionScope = new AssertionScope();
+        var serviceProvider = Services.BuildServiceProvider();
+
+        // Assert: The root handler that resolves and delegates to specific orchestration handlers should be registered.
+        var orchestrationInstanceFromMessageHandler =
+            serviceProvider.GetRequiredService<IStartOrchestrationInstanceFromMessageHandler>();
+        orchestrationInstanceFromMessageHandler.Should().NotBeNull();
+
+        // Assert: The internal collection of registered IStartOrchestrationInstanceHandler implementations
+        // in the main handler should contain the expected types.
+        orchestrationInstanceFromMessageHandler.StartOrchestrationInstanceHandlers
+            .Select(startOrchestrationInstanceHandler => startOrchestrationInstanceHandler.GetType()).ToList()
+            .Should()
+            .Contain(
+            [
+                typeof(Example.Orchestrations.Processes.BRS_X02.NotifyOrchestrationInstanceExample.V1.StartNotifyOrchestrationInstanceExampleHandlerV1),
+                typeof(Example.Orchestrations.Processes.BRS_X02.ActorRequestProcessExample.V1.StartActorRequestProcessExampleHandlerV1),
+                typeof(Example.Orchestrations.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.StartUpdateMeteringPointConnectionStateV1),
+            ]);
     }
 }

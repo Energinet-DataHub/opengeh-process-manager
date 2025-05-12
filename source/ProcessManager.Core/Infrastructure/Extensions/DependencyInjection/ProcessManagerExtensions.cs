@@ -236,20 +236,21 @@ public static class ProcessManagerExtensions
     /// </summary>
     internal static IServiceCollection AddCustomHandlersForServiceBusTriggers(this IServiceCollection services, Assembly assemblyToScan)
     {
-        var handlerBaseType = typeof(StartOrchestrationInstanceFromMessageHandlerBase<>);
+        var interfaceType = typeof(IStartOrchestrationInstanceHandler);
 
-        var implementingTypes = assemblyToScan
-            .DefinedTypes
-            .Where(typeInfo =>
-                typeInfo.IsClass &&
-                !typeInfo.IsAbstract &&
-                IsDirectSubclassOfHandlerBaseType(typeInfo, handlerBaseType))
-            .ToList();
+        var implementations = assemblyToScan
+            .GetTypes()
+            .Where(t =>
+                t.IsClass &&
+                !t.IsAbstract &&
+                interfaceType.IsAssignableFrom(t));
 
-        foreach (var implementingType in implementingTypes)
+        foreach (var implementation in implementations)
         {
-            services.AddTransient(implementingType);
+            services.AddTransient(interfaceType, implementation);
         }
+
+        services.TryAddTransient<IStartOrchestrationInstanceFromMessageHandler, StartOrchestrationInstanceFromMessageHandler>();
 
         return services;
     }

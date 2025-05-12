@@ -13,9 +13,8 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 
 /// <summary>
 /// Describes how measurements is grouped (sent to) market actors for specific time periods, resolutions and measure units.

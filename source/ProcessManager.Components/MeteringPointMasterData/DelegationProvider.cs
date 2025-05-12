@@ -16,9 +16,9 @@ using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.Common;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.ProcessDelegation;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 
 public class DelegationProvider(IElectricityMarketViews electricityMarketViews)
 {

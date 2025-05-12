@@ -15,16 +15,16 @@
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using NodaTime;
 using NodaTime.Extensions;
+using Xunit;
+using MeteringPointId = Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model.MeteringPointId;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.Shared.
-    ElectricityMarket;
+namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.MeteringPointMasterData;
 
 [SuppressMessage(
     "StyleCop.CSharp.ReadabilityRules",
@@ -137,7 +137,7 @@ public class MeteringPointReceiversProviderTests
 
         var masterData3 = CreateMasterData(meteringPointType, secondPeriodWithEnergySupplier.Start, secondPeriodWithEnergySupplier.End);
 
-        IReadOnlyCollection<MeteringPointMasterData> meteringPointMasterData = [masterData, masterData2, masterData3];
+        IReadOnlyCollection<Components.MeteringPointMasterData.Model.MeteringPointMasterData> meteringPointMasterData = [masterData, masterData2, masterData3];
         var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
             CreateFindReceiversInput(meteringPointMasterData));
 
@@ -250,7 +250,7 @@ public class MeteringPointReceiversProviderTests
         var masterData1Start = Instant.FromUtc(2024, 02, 28, 23, 00);
         var masterData1End = masterData1Start.Plus(Duration.FromDays(42));
 
-        List<MeteringPointMasterData> masterDataList =
+        List<Components.MeteringPointMasterData.Model.MeteringPointMasterData> masterDataList =
         [
             CreateMasterData(
                 from: masterData1Start,
@@ -324,7 +324,7 @@ public class MeteringPointReceiversProviderTests
             resolution: resolution,
             energySupplier: masterData3Receiver);
 
-        List<MeteringPointMasterData> masterDataList = [masterData1, masterData2, masterData3];
+        List<Components.MeteringPointMasterData.Model.MeteringPointMasterData> masterDataList = [masterData1, masterData2, masterData3];
 
         var findReceiversInput = CreateFindReceiversInput(masterDataList);
         var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
@@ -394,7 +394,7 @@ public class MeteringPointReceiversProviderTests
         var masterData2 = CreateMasterData(from: masterData2Start, to: masterData2End, resolution: masterData2Resolution);
         var masterData3 = CreateMasterData(from: masterData3Start, to: masterData3End, resolution: masterData3Resolution);
 
-        List<MeteringPointMasterData> masterDataList = [masterData1, masterData2, masterData3];
+        List<Components.MeteringPointMasterData.Model.MeteringPointMasterData> masterDataList = [masterData1, masterData2, masterData3];
 
         var findReceiversInput = CreateFindReceiversInput(masterDataList);
         var receiversWithMeteredData = _sut.GetReceiversWithMeasurementsFromMasterDataList(
@@ -818,7 +818,7 @@ public class MeteringPointReceiversProviderTests
         third.Measurements.Should().HaveCount(30);
     }
 
-    private MeteringPointMasterData CreateMasterData(
+    private Components.MeteringPointMasterData.Model.MeteringPointMasterData CreateMasterData(
         MeteringPointType? meteringPointType = null,
         Instant? from = null,
         Instant? to = null,
@@ -827,7 +827,7 @@ public class MeteringPointReceiversProviderTests
         ActorNumber? energySupplier = null,
         string? parentMeteringPointId = null)
     {
-        return new MeteringPointMasterData(
+        return new Components.MeteringPointMasterData.Model.MeteringPointMasterData(
             MeteringPointId: new MeteringPointId("1"),
             ValidFrom: (from ?? _defaultFrom).ToDateTimeOffset(),
             ValidTo: (to ?? _defaultTo).ToDateTimeOffset(),
@@ -849,7 +849,7 @@ public class MeteringPointReceiversProviderTests
     }
 
     private MeteringPointReceiversProvider.FindReceiversInput CreateFindReceiversInput(
-        IReadOnlyCollection<MeteringPointMasterData> masterData,
+        IReadOnlyCollection<Components.MeteringPointMasterData.Model.MeteringPointMasterData> masterData,
         Resolution? resolution = null,
         Instant? startDateTime = null,
         Instant? endDateTime = null)
@@ -902,9 +902,9 @@ public class MeteringPointReceiversProviderTests
             Measurements: meteredData);
     }
 
-    private MeteringPointMasterData CreateMasterDataWithoutParentOrEnergySupplier(Interval period, MeteringPointType? mp)
+    private Components.MeteringPointMasterData.Model.MeteringPointMasterData CreateMasterDataWithoutParentOrEnergySupplier(Interval period, MeteringPointType? mp)
     {
-        return new MeteringPointMasterData(
+        return new Components.MeteringPointMasterData.Model.MeteringPointMasterData(
             MeteringPointId: new MeteringPointId("1"),
             ValidFrom: period.Start.ToDateTimeOffset(),
             ValidTo: period.End.ToDateTimeOffset(),

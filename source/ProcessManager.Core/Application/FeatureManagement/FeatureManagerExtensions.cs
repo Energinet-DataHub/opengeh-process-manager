@@ -12,11 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+using Microsoft.FeatureManagement;
 
-public enum MeteringPointSubType // Målepunktsart, consider promoting this to a datahub ValueObject
+namespace Energinet.DataHub.ProcessManager.Core.Application.FeatureManagement;
+
+/// <summary>
+/// Extensions for reading feature flags in Process Manager Core.
+/// </summary>
+internal static class FeatureManagerExtensions
 {
-    Physical,
-    Virtual,
-    Calculated,
+    public static Task<bool> UseSilentMode(this IFeatureManager featureManager)
+    {
+        return featureManager.IsEnabledAsync(FeatureFlagNames.SilentMode);
+    }
 }

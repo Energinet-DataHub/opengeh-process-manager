@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 
-public enum ConnectionState
+/// <summary>
+/// Extensions for reading feature flags in Process Manager Orchestrations.
+/// </summary>
+internal static class FeatureManagerExtensions
 {
-    NotUsed,
-    ClosedDown,
-    New,
-    Connected,
-    Disconnected,
+    // Add extension methods for each feature flag name...
 }

@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Core.Application.FeatureFlags;
+using Energinet.DataHub.ProcessManager.Core.Application.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
@@ -32,7 +33,7 @@ internal class OrchestrationInstanceManager(
     IOrchestrationInstanceExecutor executor,
     IOrchestrationRegisterQueries orchestrationRegister,
     IOrchestrationInstanceRepository repository,
-    IFeatureFlagManager featureFlagManager,
+    IFeatureManager featureManager,
     IOptions<ProcessManagerOptions> options,
     ILogger<OrchestrationInstanceManager> logger) :
         IStartOrchestrationInstanceCommands,
@@ -45,7 +46,7 @@ internal class OrchestrationInstanceManager(
     private readonly IOrchestrationInstanceExecutor _executor = executor;
     private readonly IOrchestrationRegisterQueries _orchestrationRegister = orchestrationRegister;
     private readonly IOrchestrationInstanceRepository _repository = repository;
-    private readonly IFeatureFlagManager _featureFlagManager = featureFlagManager;
+    private readonly IFeatureManager _featureManager = featureManager;
     private readonly ProcessManagerOptions _options = options.Value;
     private readonly ILogger<OrchestrationInstanceManager> _logger = logger;
 
@@ -211,7 +212,7 @@ internal class OrchestrationInstanceManager(
 
         if (orchestrationInstanceToNotify is null)
         {
-            if (await _featureFlagManager.IsEnabledAsync(FeatureFlag.SilentMode).ConfigureAwait(false))
+            if (await _featureManager.UseSilentMode().ConfigureAwait(false))
             {
                 _logger.LogWarning(
                     $"Notifying orchestration instance with id '{id.Value}' and event name '{eventName}' failed.");
@@ -227,6 +228,7 @@ internal class OrchestrationInstanceManager(
 
         if (!orchestrationDescription.IsDurableFunction)
         {
+            // TODO: Add handling of non-durable functions
             return;
         }
 

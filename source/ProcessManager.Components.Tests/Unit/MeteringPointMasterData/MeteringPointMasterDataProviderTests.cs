@@ -19,15 +19,15 @@ using Energinet.DataHub.ElectricityMarket.Integration.Models.GridAreas;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.ProcessDelegation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NodaTime;
+using Xunit;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.Shared.
-    ElectricityMarket;
+namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.MeteringPointMasterData;
 
 [SuppressMessage(
     "StyleCop.CSharp.ReadabilityRules",
@@ -371,14 +371,14 @@ public class MeteringPointMasterDataProviderTests
         /// The id describes the scenario the data is supposed to mimic.
         /// The <paramref name="interval"/> is not used in this mock and is ignored.
         /// </summary>
-        public async Task<IEnumerable<MeteringPointMasterData>> GetMeteringPointMasterDataChangesAsync(
+        public async Task<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>> GetMeteringPointMasterDataChangesAsync(
             MeteringPointIdentification meteringPointIdentification,
             Interval interval)
         {
             var masterDataTask = meteringPointIdentification.Value switch
             {
-                "no-master-data-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>([]),
-                "no-energy-suppliers-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
+                "no-master-data-please" => Task.FromResult<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>>([]),
+                "no-energy-suppliers-please" => Task.FromResult<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>>(
                 [
                     new()
                     {
@@ -397,7 +397,7 @@ public class MeteringPointMasterDataProviderTests
                         EnergySupplier = null,
                     },
                 ]),
-                "one-energy-supplier-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
+                "one-energy-supplier-please" => Task.FromResult<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>>(
                 [
                     new()
                     {
@@ -416,7 +416,7 @@ public class MeteringPointMasterDataProviderTests
                         EnergySupplier = "1111111111111",
                     },
                 ]),
-                "two-energy-suppliers-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
+                "two-energy-suppliers-please" => Task.FromResult<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>>(
                 [
                     new()
                     {
@@ -451,7 +451,7 @@ public class MeteringPointMasterDataProviderTests
                         EnergySupplier = "2222222222222",
                     },
                 ]),
-                "faulty-two-master-data-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
+                "faulty-two-master-data-please" => Task.FromResult<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>>(
                 [
                     new()
                     {
@@ -503,7 +503,7 @@ public class MeteringPointMasterDataProviderTests
                     },
                 ]),
                 "two-master-data-with-two-energy-suppliers-please" => Task
-                    .FromResult<IEnumerable<MeteringPointMasterData>>(
+                    .FromResult<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>>(
                     [
                         new()
                         {
@@ -622,7 +622,7 @@ public class MeteringPointMasterDataProviderTests
                             EnergySupplier = "3333333333333",
                         },
                     ]),
-                "two-parents-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
+                "two-parents-please" => Task.FromResult<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>>(
                 [
                     new()
                     {
@@ -689,7 +689,7 @@ public class MeteringPointMasterDataProviderTests
                         EnergySupplier = "3333333333333",
                     },
                 ]),
-                "period-without-and-period-with-parent-please" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
+                "period-without-and-period-with-parent-please" => Task.FromResult<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>>(
                 [
                     new()
                     {
@@ -760,7 +760,7 @@ public class MeteringPointMasterDataProviderTests
                         EnergySupplier = "3333333333333",
                     },
                 ]),
-                "parent-metering-point-id-one" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
+                "parent-metering-point-id-one" => Task.FromResult<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>>(
                 [
                     new()
                     {
@@ -827,7 +827,7 @@ public class MeteringPointMasterDataProviderTests
                         EnergySupplier = "4545454545454",
                     },
                 ]),
-                "parent-metering-point-id-two" => Task.FromResult<IEnumerable<MeteringPointMasterData>>(
+                "parent-metering-point-id-two" => Task.FromResult<IEnumerable<ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData>>(
                 [
                     new()
                     {

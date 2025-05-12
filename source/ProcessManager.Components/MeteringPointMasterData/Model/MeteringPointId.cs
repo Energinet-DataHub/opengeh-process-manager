@@ -12,16 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket.Model;
+namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 
-public sealed class ValueObjectsMap<TKey, TValue> : Dictionary<TKey, TValue>
-    where TKey : notnull
-    where TValue : notnull
-{
-    public TValue Map(TKey source)
-    {
-        return !TryGetValue(source, out var result)
-            ? throw new ArgumentOutOfRangeException(nameof(source), source, null)
-            : result;
-    }
-}
+public sealed record MeteringPointId(string Value);

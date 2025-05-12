@@ -12,6 +12,7 @@
     <Compile Include="..\Shared\Tests\Fixtures\DomainTestDataFactory.cs" Link="Fixtures\DomainTestDataFactory.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ExampleOrchestrationsAppManager.cs" Link="Fixtures\ExampleOrchestrationsAppManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerCoreServiceProviderFactory.cs" Link="Fixtures\ProcessManagerCoreServiceProviderFactory.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerDatabaseManager.cs" Link="Fixtures\ProcessManagerDatabaseManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\Tests\FluentAssertionsVersionGuard.cs">
@@ -24,8 +25,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.0.1" />
-    <PackageReference Include="Energinet.DataHub.Core.DurableFunctionApp.TestCommon" Version="8.0.1" />
+    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.1.1" />
+    <PackageReference Include="Energinet.DataHub.Core.DurableFunctionApp.TestCommon" Version="8.1.1" />
     <PackageReference Include="FluentAssertions" Version="7.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="SimplerSoftware.EntityFrameworkCore.SqlServer.NodaTime" Version="9.1.0" />

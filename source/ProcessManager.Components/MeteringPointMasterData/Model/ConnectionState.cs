@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
-
-public record ForwardMeteredDataBusinessValidatedDto(
-    ForwardMeteredDataInputV1 Input,
-    IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData) : IBusinessValidatedDto;
+public enum ConnectionState
+{
+    NotUsed,
+    ClosedDown,
+    New,
+    Connected,
+    Disconnected,
+}

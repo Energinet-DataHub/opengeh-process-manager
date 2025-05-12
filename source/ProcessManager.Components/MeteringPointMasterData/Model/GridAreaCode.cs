@@ -12,13 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.ElectricityMarket;
+namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 
-public static class DataHubDetails
-{
-    public static string DataHubNumber => "5790001330552";
-
-    public static string SystemOperatorNumber => "5790000432752";
-
-    public static string DanishEnergyAgencyNumber => "5798000020016";
-}
+public record GridAreaCode(string Value);

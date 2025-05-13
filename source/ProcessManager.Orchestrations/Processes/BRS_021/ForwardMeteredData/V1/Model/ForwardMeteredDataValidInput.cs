@@ -47,7 +47,7 @@ public record ForwardMeteredDataValidInput(
 {
     public static ForwardMeteredDataValidInput From(ForwardMeteredDataInputV1 input)
     {
-        const string productNumberIfNoneSupplied = "8716867000030";
+        const string energyActive = "8716867000030";
 
         var meteredDataList = input.MeteredDataList
             .Select(e => new Measurement(
@@ -68,7 +68,7 @@ public record ForwardMeteredDataValidInput(
             BusinessReason: BusinessReason.FromName(input.BusinessReason),
             MeteringPointId: new MeteringPointId(input.MeteringPointId!),
             MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
-            ProductNumber: input.ProductNumber ?? productNumberIfNoneSupplied,
+            ProductNumber: input.ProductNumber ?? energyActive,
             MeasureUnit: MeasurementUnit.FromName(input.MeasureUnit!),
             RegistrationDateTime: registrationDateTime,
             Resolution: Resolution.FromName(input.Resolution!),

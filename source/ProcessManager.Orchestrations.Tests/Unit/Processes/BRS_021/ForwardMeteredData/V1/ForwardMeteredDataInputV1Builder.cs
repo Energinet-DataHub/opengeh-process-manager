@@ -29,7 +29,7 @@ public class ForwardMeteredDataInputV1Builder
     private string _businessReason = BusinessReason.PeriodicMetering.Name; // Due to validation in EDI this can either be PeriodicMetering or PeriodicFlexMetering
     private string _meteringPointId = "MeteringPointId";
     private string _meteringPointType = MeteringPointType.Production.Name;
-    private string _productNumber = "ProductNumber";
+    private string? _productNumber = "ProductNumber";
     private string _measureUnit = MeasurementUnit.KilowattHour.Name;
     private string _registrationDateTime = "2024-12-31T23:00Z";
     private string _resolution = Resolution.Hourly.Name;
@@ -94,7 +94,7 @@ public class ForwardMeteredDataInputV1Builder
         return this;
     }
 
-    public ForwardMeteredDataInputV1Builder WithProductNumber(string productNumber)
+    public ForwardMeteredDataInputV1Builder WithProductNumber(string? productNumber)
     {
         _productNumber = productNumber;
         return this;

@@ -435,16 +435,16 @@ public class StartForwardMeteredDataHandlerV1(
             MeteringPointType: input.MeteringPointType,
             Unit: input.MeasureUnit,
             Resolution: input.Resolution,
-            Measurements: input.MeteredDataList.Select(
+            Measurements: input.Measurements.Select(
                     MapPoints)
                 .ToList());
 
-    private Measurement MapPoints(ForwardMeteredDataValidInput.MeteredData meteredData)
+    private Measurement MapPoints(ForwardMeteredDataValidInput.Measurement measurement)
     {
         return new Measurement(
-            meteredData.Position,
+            measurement.Position,
             // TODO: LRN - Awaiting a final decision from Volt on how to handle null values.
-            meteredData.EnergyQuantity ?? 0.000m,
-            meteredData.QuantityQuality);
+            measurement.EnergyQuantity ?? 0.000m,
+            measurement.QuantityQuality);
     }
 }

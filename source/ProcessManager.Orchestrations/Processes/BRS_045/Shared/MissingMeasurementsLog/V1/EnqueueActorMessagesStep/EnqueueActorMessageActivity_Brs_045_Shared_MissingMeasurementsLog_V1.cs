@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
+using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements;
@@ -40,6 +41,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     IEnqueueActorMessagesHttpClient enqueueActorMessagesHttpClient,
     IOptionsSnapshot<DatabricksQueryOptions> databricksQueryOptions,
     DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor,
+    TimeHelper timeHelper,
     IClock clock)
 {
     internal const int MaxConcurrency = 100;
@@ -51,6 +53,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     private readonly IEnqueueActorMessagesHttpClient _enqueueActorMessagesHttpClient = enqueueActorMessagesHttpClient;
     private readonly DatabricksQueryOptions _databricksQueryOptions = databricksQueryOptions.Get(QueryOptionsSectionNames.MissingMeasurementsLogQuery);
     private readonly DatabricksSqlWarehouseQueryExecutor _databricksSqlWarehouseQueryExecutor = databricksSqlWarehouseQueryExecutor;
+    private readonly TimeHelper _timeHelper = timeHelper;
     private readonly IClock _clock = clock;
 
     /// <summary>
@@ -141,9 +144,6 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
 
     /// <summary>
     /// Enqueue missing measurements log for a metering point.
-    /// <remarks>
-    /// The missing measurements logs MUST be ordered by metering point id and date.
-    /// </remarks>
     /// </summary>
     private async Task EnqueueMessagesForMeasurementsAsync(
         OrchestrationInstanceId orchestrationInstanceId,
@@ -164,10 +164,8 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
             meteringPointsWithDates.Add(dateWithMeteringPointId);
         }
 
-        // TODO AJW what happens if the date list is empty? Should we throw an exception?
-        // TODO AJW What happens id there are no receivers for the metering point?
         // TODO AJW Does find receivers method support one day interval? UTC time zone?
-        // TODO AJW The ordering by date should not be necessary?
+        // TODO AJW midnight UTC time zone? Talk to raccoons
 
         await EnqueueActorMessagesAsync(
                 orchestrationInstanceId,
@@ -177,7 +175,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
 
     private Interval GetPeriod()
     {
-        var now = _clock.GetCurrentInstant();
+        var now = _timeHelper.GetMidnightZonedDateTime(_clock.GetCurrentInstant());
         return new Interval(now, now.PlusDays(1));
     }
 

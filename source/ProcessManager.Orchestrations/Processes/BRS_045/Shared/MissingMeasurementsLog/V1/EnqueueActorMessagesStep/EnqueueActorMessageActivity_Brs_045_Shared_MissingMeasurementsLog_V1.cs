@@ -150,29 +150,28 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
         Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog)
     {
         var period = GetPeriod();
-        var meteringPointMasterData = await GetMeteringPointMasterData(missingMeasurementsLog, period).ConfigureAwait(false);
-        var currentGridAccessProvider = meteringPointMasterData.First().CurrentGridAccessProvider;
-        var currentGridAreaCode = meteringPointMasterData.First().CurrentGridAreaCode.Value;
-        var list = new List<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds>();
+        var meteringPointMasterData = await GetMeteringPointMasterData(missingMeasurementsLog.MeteringPointId, period).ConfigureAwait(false);
+        var meteringPointsWithDates = new List<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds>();
 
         foreach (var date in missingMeasurementsLog.Dates)
         {
             var dateWithMeteringPointId = new EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds(
-                GridAccessProvider: currentGridAccessProvider,
-                GridArea: currentGridAreaCode,
+                GridAccessProvider: meteringPointMasterData.First().CurrentGridAccessProvider,
+                GridArea: meteringPointMasterData.First().CurrentGridAreaCode.Value,
                 Date: date.ToDateTimeOffset(),
                 MeteringPointId: missingMeasurementsLog.MeteringPointId);
 
-            list.Add(dateWithMeteringPointId);
+            meteringPointsWithDates.Add(dateWithMeteringPointId);
         }
 
         // TODO AJW what happens if the date list is empty? Should we throw an exception?
         // TODO AJW What happens id there are no receivers for the metering point?
         // TODO AJW Does find receivers method support one day interval? UTC time zone?
+        // TODO AJW The ordering by date should not be necessary?
 
         await EnqueueActorMessagesAsync(
                 orchestrationInstanceId,
-                list)
+                meteringPointsWithDates)
             .ConfigureAwait(false);
     }
 
@@ -182,10 +181,10 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
         return new Interval(now, now.PlusDays(1));
     }
 
-    private async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMeteringPointMasterData(Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog, Interval period)
+    private async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMeteringPointMasterData(string meteringPointId, Interval period)
     {
         return await _meteringPointMasterDataProvider.GetMasterData(
-                meteringPointId: missingMeasurementsLog.MeteringPointId,
+                meteringPointId: meteringPointId,
                 startDateTime: period.Start,
                 endDateTime: period.End)
             .ConfigureAwait(false);

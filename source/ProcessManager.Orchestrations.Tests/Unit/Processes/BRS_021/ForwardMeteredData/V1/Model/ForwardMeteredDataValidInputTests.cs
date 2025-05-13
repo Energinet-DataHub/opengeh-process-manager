@@ -43,6 +43,7 @@ public class ForwardMeteredDataValidInputTests
     public void Given_NoQualityAndQuantity_When_From_Then_ThenExpectedQuantityQualityIsSet()
     {
         // Arrange
+        var expectedQuantityQuality = Quality.AsProvided;
         var builder = new ForwardMeteredDataInputV1Builder();
 
         var meteredDataWithNoQualityAndQuantity = new ForwardMeteredDataInputV1.MeteredData("0", null, null);
@@ -52,6 +53,9 @@ public class ForwardMeteredDataValidInputTests
         var sut = ForwardMeteredDataValidInput.From(input);
 
         // Assert
-        sut.Measurements.Should().Contain(m => m.Position == 0 && m.EnergyQuantity == null && m.QuantityQuality == Quality.AsProvided);
+        sut.Measurements.Should().Contain(m =>
+            m.Position == 0 &&
+            m.EnergyQuantity == null &&
+            m.QuantityQuality == expectedQuantityQuality);
     }
 }

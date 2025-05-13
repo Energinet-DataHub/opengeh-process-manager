@@ -29,12 +29,12 @@ using NodaTime;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Activities.CalculationStep;
 
 [ParallelWorkflow(WorkflowBucket.Bucket05)]
-public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculationOnDemandV1Tests
+public class CalculationStepStartJobActivityBrs045MissingMsLogCalOnDemandV1Tests
 {
     private readonly DateTimeZone _zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
 
     [Fact]
-    public async Task Given_CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1_When_RunWithInput_ThenJobIdIsCorrect()
+    public async Task Given_CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogOnDemandCal_V1_WhenRun_ThenJobIdIsCorrect()
     {
         // Arrange
         var jobRunId = new JobRunId(42);

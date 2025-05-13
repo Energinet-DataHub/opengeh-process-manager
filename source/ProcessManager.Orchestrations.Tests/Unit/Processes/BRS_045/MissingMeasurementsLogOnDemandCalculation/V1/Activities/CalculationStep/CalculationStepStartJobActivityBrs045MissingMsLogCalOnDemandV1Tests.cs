@@ -34,7 +34,7 @@ public class CalculationStepStartJobActivityBrs045MissingMsLogCalOnDemandV1Tests
     private readonly DateTimeZone _zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
 
     [Fact]
-    public async Task Given_CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogOnDemandCal_V1_WhenRun_ThenJobIdIsCorrect()
+    public async Task Given_CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogOnDemandCal_V1_When_Run_Then_JobIdIsCorrect()
     {
         // Arrange
         var jobRunId = new JobRunId(42);

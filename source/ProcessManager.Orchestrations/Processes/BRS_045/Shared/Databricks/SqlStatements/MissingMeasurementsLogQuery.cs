@@ -69,7 +69,6 @@ internal class MissingMeasurementsLogQuery(
     private Model.MissingMeasurementsLog CreateMissingMeasurementsLog(DatabricksSqlRow databricksSqlRow, IReadOnlyCollection<Instant> dates)
     {
         return new Model.MissingMeasurementsLog(
-            OrchestrationType: OrchestrationType,
             OrchestrationInstanceId: databricksSqlRow.ToGuid(MissingMeasurementsLogColumnNames.OrchestrationInstanceId),
             MeteringPointId: databricksSqlRow.ToNonEmptyString(MissingMeasurementsLogColumnNames.MeteringPointId),
             Dates: dates);

@@ -75,7 +75,6 @@
 
     <ItemGroup>
       <Folder Include="InternalProcesses\" />
-      <Folder Include="Processes\BRS_045\Shared\MissingMeasurementsLog\V1\Model\" />
     </ItemGroup>
 
 </Project>

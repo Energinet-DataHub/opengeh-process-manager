@@ -17,6 +17,7 @@ using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements;
@@ -63,8 +64,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     /// <returns>The number of metering points which actor messages were enqueued for.</returns>
     /// <exception cref="Exception">Throws an exception if actor messages failed to be enqueued for one of the metering points.</exception>
     [Function(nameof(EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V1))]
-    public async Task<int> Run(
-        [ActivityTrigger] ActivityInput input)
+    public async Task<int> Run([ActivityTrigger] ActivityInput input)
     {
         var schemaDescription = new MissingMeasurementsLogSchemaDescription(_databricksQueryOptions);
         var query = new MissingMeasurementsLogQuery(
@@ -149,24 +149,17 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
         OrchestrationInstanceId orchestrationInstanceId,
         Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog)
     {
-        var list = new List<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds>();
-        var now = _clock.GetCurrentInstant();
-        var period = new Interval(now, now.PlusDays(1));
-
-        var meteringPointMasterData = await _meteringPointMasterDataProvider.GetMasterData(
-                meteringPointId: missingMeasurementsLog.MeteringPointId,
-                startDateTime: period.Start,
-                endDateTime: period.End)
-            .ConfigureAwait(false);
-
+        var period = GetPeriod();
+        var meteringPointMasterData = await GetMeteringPointMasterData(missingMeasurementsLog, period).ConfigureAwait(false);
         var currentGridAccessProvider = meteringPointMasterData.First().CurrentGridAccessProvider;
-        var gridAreaCode = meteringPointMasterData.First().CurrentGridAreaCode.Value;
+        var currentGridAreaCode = meteringPointMasterData.First().CurrentGridAreaCode.Value;
+        var list = new List<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds>();
 
         foreach (var date in missingMeasurementsLog.Dates)
         {
             var dateWithMeteringPointId = new EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds(
                 GridAccessProvider: currentGridAccessProvider,
-                GridArea: gridAreaCode,
+                GridArea: currentGridAreaCode,
                 Date: date.ToDateTimeOffset(),
                 MeteringPointId: missingMeasurementsLog.MeteringPointId);
 
@@ -175,11 +168,26 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
 
         // TODO AJW what happens if the date list is empty? Should we throw an exception?
         // TODO AJW What happens id there are no receivers for the metering point?
-        // TODO the find receivers method support one day interval? UTC time zone?
+        // TODO AJW Does find receivers method support one day interval? UTC time zone?
 
         await EnqueueActorMessagesAsync(
                 orchestrationInstanceId,
                 list)
+            .ConfigureAwait(false);
+    }
+
+    private Interval GetPeriod()
+    {
+        var now = _clock.GetCurrentInstant();
+        return new Interval(now, now.PlusDays(1));
+    }
+
+    private async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMeteringPointMasterData(Databricks.SqlStatements.Model.MissingMeasurementsLog missingMeasurementsLog, Interval period)
+    {
+        return await _meteringPointMasterDataProvider.GetMasterData(
+                meteringPointId: missingMeasurementsLog.MeteringPointId,
+                startDateTime: period.Start,
+                endDateTime: period.End)
             .ConfigureAwait(false);
     }
 

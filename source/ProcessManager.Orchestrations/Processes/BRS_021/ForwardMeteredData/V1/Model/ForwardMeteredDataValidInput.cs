@@ -35,20 +35,22 @@ public record ForwardMeteredDataValidInput(
     BusinessReason BusinessReason,
     MeteringPointId MeteringPointId,
     MeteringPointType MeteringPointType,
-    string? ProductNumber,
+    string ProductNumber,
     MeasurementUnit MeasureUnit,
     Instant RegistrationDateTime,
     Resolution Resolution,
     Instant StartDateTime,
     Instant EndDateTime,
     ActorNumber GridAccessProvider,
-    IReadOnlyCollection<ForwardMeteredDataValidInput.MeteredData> MeteredDataList)
+    IReadOnlyCollection<ForwardMeteredDataValidInput.Measurement> Measurements)
     : IInputParameterDto
 {
     public static ForwardMeteredDataValidInput From(ForwardMeteredDataInputV1 input)
     {
+        const string energyActive = "8716867000030";
+
         var meteredDataList = input.MeteredDataList
-            .Select(e => new MeteredData(
+            .Select(e => new Measurement(
                 Position: int.Parse(e.Position!),
                 EnergyQuantity: e.EnergyQuantity != null ? decimal.Parse(e.EnergyQuantity, NumberFormatInfo.InvariantInfo) : null,
                 QuantityQuality: e.QuantityQuality is null ? Quality.AsProvided : Quality.FromName(e.QuantityQuality!)))
@@ -66,17 +68,17 @@ public record ForwardMeteredDataValidInput(
             BusinessReason: BusinessReason.FromName(input.BusinessReason),
             MeteringPointId: new MeteringPointId(input.MeteringPointId!),
             MeteringPointType: MeteringPointType.FromName(input.MeteringPointType!),
-            ProductNumber: input.ProductNumber,
+            ProductNumber: input.ProductNumber ?? energyActive,
             MeasureUnit: MeasurementUnit.FromName(input.MeasureUnit!),
             RegistrationDateTime: registrationDateTime,
             Resolution: Resolution.FromName(input.Resolution!),
             StartDateTime: startDateTime,
             EndDateTime: endDateTime,
             GridAccessProvider: ActorNumber.Create(input.GridAccessProviderNumber),
-            MeteredDataList: meteredDataList);
+            Measurements: meteredDataList);
     }
 
-    public record MeteredData(
+    public record Measurement(
         int Position,
         decimal? EnergyQuantity,
         Quality QuantityQuality);

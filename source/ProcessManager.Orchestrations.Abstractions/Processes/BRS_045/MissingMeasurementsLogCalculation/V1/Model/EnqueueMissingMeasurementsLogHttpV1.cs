@@ -28,7 +28,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <param name="Data">The list of dates and metering point id's that are missing data on the given dates.</param>
 public record EnqueueMissingMeasurementsLogHttpV1(
     Guid OrchestrationInstanceId,
-    IReadOnlyCollection<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds> Data)
+    IReadOnlyCollection<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointId> Data)
     : IEnqueueDataSyncDto
 {
     public const string RouteName = "v1/enqueue_brs045";
@@ -38,11 +38,13 @@ public record EnqueueMissingMeasurementsLogHttpV1(
     /// <summary>
     /// A representation of the message that will be sent to the given <paramref name="GridAccessProvider"/>.
     /// </summary>
+    /// <param name="IdempotencyKey">Unique key</param>
     /// <param name="GridAccessProvider">The current grid access provider for the metering point, who should receive the message.</param>
     /// <param name="GridArea">The grid area for the metering point and grid access provider, used determine whether the actor has delegations.</param>
     /// <param name="Date">The date where measurements are missing for the given <paramref name="MeteringPointId"/>.</param>
     /// <param name="MeteringPointId">The metering point that is missing measurements on the given <paramref name="Date"/>.</param>
-    public record DateWithMeteringPointIds(
+    public record DateWithMeteringPointId(
+        Guid IdempotencyKey,
         ActorNumber GridAccessProvider,
         string GridArea,
         DateTimeOffset Date,

@@ -23,11 +23,11 @@ public class TimeHelper(DateTimeZone dateTimeZone)
     /// <summary>
     /// Transforms the given instant to midnight of the same day in the injected timezone.
     /// </summary>
-    /// <param name="instantInUtc">The instant (in UTC) to transformed.</param>
+    /// <param name="instant">The instant to transformed.</param>
     /// <returns>The new transformed instant.</returns>
-    public Instant GetMidnightZonedDateTime(Instant instantInUtc)
+    public Instant GetMidnightZonedDateTime(Instant instant)
     {
-        var zonedDateTimeAtMidnight = instantInUtc
+        var zonedDateTimeAtMidnight = instant
             .InZone(_dateTimeZone)
             .Date
             .AtMidnight();

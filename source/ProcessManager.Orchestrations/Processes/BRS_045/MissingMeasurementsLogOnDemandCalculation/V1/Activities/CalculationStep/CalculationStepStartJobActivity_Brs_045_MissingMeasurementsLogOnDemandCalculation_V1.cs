@@ -20,6 +20,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
+using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Activities.CalculationStep;
 
@@ -43,8 +44,9 @@ internal class CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogOnD
         var jobParameters = new List<string>
         {
             $"--orchestration-instance-id={input.OrchestrationInstanceId.Value}",
-            $"--period-start-datetime={orchestrationInstanceInput.PeriodStartDate}",
-            $"--period-end-datetime={orchestrationInstanceInput.PeriodEndDate}",
+            $"--period-start-datetime={orchestrationInstanceInput.PeriodStartDate.ToInstant()}",
+            $"--period-end-datetime={orchestrationInstanceInput.PeriodEndDate.ToInstant()}",
+            $"--grid-area-codes={string.Join(",", orchestrationInstanceInput.GridAreaCodes)}",
         };
 
         return await _client.StartJobAsync("MissingMeasurementsLogOnDemand", jobParameters).ConfigureAwait(false);

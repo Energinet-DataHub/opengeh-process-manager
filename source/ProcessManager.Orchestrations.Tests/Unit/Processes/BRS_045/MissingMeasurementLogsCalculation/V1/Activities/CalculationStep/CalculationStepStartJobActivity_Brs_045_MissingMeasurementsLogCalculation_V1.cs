@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
+using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Components.WorkingDays;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep;
@@ -65,6 +66,9 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
         var jobRunId = new JobRunId(42);
         var zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
         var date = Instant.FromUtc(actualYear, actualMonth, actualDay, actualHour, actualMinute, actualSecond);
+        var timeHelper = new TimeHelper(zone);
+        var periodStartDate = timeHelper.GetMidnightZonedDateTime(date.Plus(Duration.FromDays(-93)));
+        var periodEndDate = timeHelper.GetMidnightZonedDateTime(date.Plus(Duration.FromDays(daysBack)));
         var orchestrationInstanceId = new OrchestrationInstanceId(Guid.NewGuid());
         var activityInput =
             new CalculationStepStartJobActivity_Brs_045_MissingMeasurementsLogCalculation_V1.ActivityInput(
@@ -72,8 +76,8 @@ public class CalculationStepStartJobActivityBrs045MissingMeasurementsLogCalculat
         var jobParameters = new List<string>
         {
             $"--orchestration-instance-id={orchestrationInstanceId.Value}",
-            $"--period-start-datetime={date.Plus(Duration.FromDays(-93)).InZone(zone).Date.AtMidnight().InZoneStrictly(zone).ToInstant()}",
-            $"--period-end-datetime={date.Plus(Duration.FromDays(daysBack)).InZone(zone).Date.AtMidnight().InZoneStrictly(zone).ToInstant()}",
+            $"--period-start-datetime={periodStartDate}",
+            $"--period-end-datetime={periodEndDate}",
         };
 
         var clientMock = new Mock<IDatabricksJobsClient>();

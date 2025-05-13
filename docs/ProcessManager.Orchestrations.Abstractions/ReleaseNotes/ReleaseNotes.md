@@ -1,5 +1,10 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.2.4
+
+- Update `EnqueueMissingMeasurementsLogHttpV1` to contain a idempotency key.
+- Rename `DateWithMeteringPointIds` to `DateWithMeteringPointId` in `EnqueueMissingMeasurementsLogHttpV1`.
+
 ## Version 2.2.3
 
 - Update `EnqueueMissingMeasurementsLogHttpV1` to contain 1 metering point id for each date.

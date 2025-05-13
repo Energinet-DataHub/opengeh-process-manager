@@ -18,16 +18,15 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
-using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Options;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NodaTime;
+using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.EnqueueActorMessagesStep;
 
@@ -40,9 +39,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     MeteringPointReceiversProvider meteringPointReceiversProvider,
     IEnqueueActorMessagesHttpClient enqueueActorMessagesHttpClient,
     IOptionsSnapshot<DatabricksQueryOptions> databricksQueryOptions,
-    DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor,
-    TimeHelper timeHelper,
-    IClock clock)
+    DatabricksSqlWarehouseQueryExecutor databricksSqlWarehouseQueryExecutor)
 {
     internal const int MaxConcurrency = 100;
     private static readonly TimeSpan _semaphoreTimeout = TimeSpan.FromMinutes(5);
@@ -53,8 +50,6 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     private readonly IEnqueueActorMessagesHttpClient _enqueueActorMessagesHttpClient = enqueueActorMessagesHttpClient;
     private readonly DatabricksQueryOptions _databricksQueryOptions = databricksQueryOptions.Get(QueryOptionsSectionNames.MissingMeasurementsLogQuery);
     private readonly DatabricksSqlWarehouseQueryExecutor _databricksSqlWarehouseQueryExecutor = databricksSqlWarehouseQueryExecutor;
-    private readonly TimeHelper _timeHelper = timeHelper;
-    private readonly IClock _clock = clock;
 
     /// <summary>
     /// Query missing measurements log from Databricks, and enqueue actor messages for the data. The master data
@@ -164,19 +159,19 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
             meteringPointsWithDates.Add(dateWithMeteringPointId);
         }
 
-        // TODO AJW Does find receivers method support one day interval? UTC time zone?
-        // TODO AJW midnight UTC time zone? Talk to raccoons
-
         await EnqueueActorMessagesAsync(
                 orchestrationInstanceId,
                 meteringPointsWithDates)
             .ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Electricity Market cannot tell which periods are the most optimal to use for the query.
+    /// Therefore, the whole timespan is used.
+    /// </summary>
     private Interval GetPeriod()
     {
-        var now = _timeHelper.GetMidnightZonedDateTime(_clock.GetCurrentInstant());
-        return new Interval(now, now.PlusDays(1));
+        return new Interval(DateTime.MinValue.ToInstant(), DateTime.MaxValue.ToInstant());
     }
 
     private async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMeteringPointMasterData(string meteringPointId, Interval period)

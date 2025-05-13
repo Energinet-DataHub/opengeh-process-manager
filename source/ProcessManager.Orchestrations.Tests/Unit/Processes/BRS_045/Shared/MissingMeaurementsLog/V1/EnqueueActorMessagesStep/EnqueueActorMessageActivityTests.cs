@@ -21,9 +21,9 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
-using Energinet.DataHub.ProcessManager.Components.Time;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.EnqueueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
@@ -158,31 +158,15 @@ public class EnqueueActorMessageActivityTests
     {
         var masterDataProviderMock = MockMasterDataProvider();
         var queryOptionsMock = MockQueryOptions();
-        var clock = MockClock();
-        var timeHelper = MockTimeHelper();
-
-
         var sut = new EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V1(
             new Mock<ILogger<EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V1>>().Object,
             masterDataProviderMock.Object,
             new MeteringPointReceiversProvider(_timeZone),
             enqueueActorMessageMock.Object,
             queryOptionsMock.Object,
-            databricksSqlMock.Object,
-            timeHelper.Object,
-            clock.Object);
+            databricksSqlMock.Object);
 
         return sut;
-    }
-
-    private object MockTimeHelper()
-    {
-        return new Mock<TimeHelper>();
-    }
-
-    private object MockClock()
-    {
-        return new Mock<IClock>();
     }
 
     private Mock<IOptionsSnapshot<DatabricksQueryOptions>> MockQueryOptions()

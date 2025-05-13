@@ -131,7 +131,7 @@ public class EnqueueMeasurementsHandlerV1(
             .Select(mpmd => mpmd.ToMeteringPointMasterData())
             .ToList();
 
-        var measurements = forwardMeteredDataInput.MeteredDataList
+        var measurements = forwardMeteredDataInput.Measurements
             .Select(
                 md => new ReceiversWithMeasurements.Measurement(
                     Position: md.Position,
@@ -193,7 +193,7 @@ public class EnqueueMeasurementsHandlerV1(
             MeteringPointId: forwardMeteredDataInput.MeteringPointId.Value,
             MeteringPointType: forwardMeteredDataInput.MeteringPointType,
             // TODO: LRN: awaiting a decision from Team Einstein.
-            ProductNumber: forwardMeteredDataInput.ProductNumber ?? "8716867000030",
+            ProductNumber: forwardMeteredDataInput.ProductNumber,
             RegistrationDateTime: forwardMeteredDataInput.RegistrationDateTime.ToDateTimeOffset(),
             StartDateTime: forwardMeteredDataInput.StartDateTime.ToDateTimeOffset(),
             EndDateTime: forwardMeteredDataInput.EndDateTime.ToDateTimeOffset(),

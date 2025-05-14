@@ -20,16 +20,17 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 
 public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
-    EnqueueMeasurementsHandlerV1 handler,
+    IServiceScopeFactory serviceScopeFactory,
     ILogger<EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1> logger,
     TelemetryClient telemetryClient)
 {
-    private readonly EnqueueMeasurementsHandlerV1 _handler = handler;
+    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
     private readonly ILogger<EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1> _logger = logger;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
@@ -41,9 +42,9 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
     public async Task Run(
         [EventHubTrigger(
             $"%{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.EventHubName)}%",
-            IsBatched = false,
+            IsBatched = true,
             Connection = ProcessManagerEventHubOptions.SectionName)]
-        EventData message)
+        EventData[] messages)
     {
         // Tracks structured telemetry data for Application Insights, including request details such as duration, success/failure, and dependencies.
         // Enables distributed tracing, allowing correlation of this request with related telemetry (e.g., dependencies, exceptions, custom metrics) in the same operation.
@@ -51,12 +52,20 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
         using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1));
         try
         {
-            var brs021ForwardMeteredDataNotifyVersion = GetBrs021ForwardMeteredDataNotifyVersion(message);
+            var tasks = messages.Select(async message =>
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var handler = scope.ServiceProvider.GetRequiredService<EnqueueMeasurementsHandlerV1>();
+                var brs021ForwardMeteredDataNotifyVersion = GetBrs021ForwardMeteredDataNotifyVersion(message);
 
-            var orchestrationInstanceId = GetOrchestrationInstanceId(message, brs021ForwardMeteredDataNotifyVersion);
+                var orchestrationInstanceId = GetOrchestrationInstanceId(message, brs021ForwardMeteredDataNotifyVersion);
 
-            _logger.LogInformation("Received notification from Measurements for Orchestration Instance: {OrchestrationInstanceId}", orchestrationInstanceId);
-            await _handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
+                _logger.LogInformation("Received notification from Measurements for Orchestration Instance: {OrchestrationInstanceId}", orchestrationInstanceId);
+                await handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
+            });
+
+            // Wait for all tasks to complete
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

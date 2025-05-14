@@ -6,6 +6,10 @@
       "storageProvider": {
         "connectionStringName": "ProcessManagerStorageConnectionString"
       }
+    },
+    "eventHub": {
+      "prefetchCount": 500,  
+      "maxBatchSize": 300
     }
   },
   "logging": {

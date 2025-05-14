@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Globalization;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution.Formats;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -38,44 +37,43 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 public class EnqueueActorMessageActivityTests
 {
     private readonly DateTimeZone _timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
+    private readonly HashSet<string> _generatedIds = new();
 
     [Fact]
-    public async Task Given_ReceivesTransactionsFromDatabricksQuery_When_ActivityIsRun_Then_AllTransactionsAreEnqueued()
+    public async Task Given_ReceivesTransactionsFromDatabricksQuery_When_ActivityIsRun_Then_AllMissingMeasurementsLogsAreEnqueued()
     {
         // Given
         // => Use more than the max concurrency, to make sure the activity still succeeds even if the number of transactions
         // is higher than the max concurrency.
-        const int transactionsCount = (int)(EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V1.MaxConcurrency * 2.5);
-
+        const int transactionCount = (int)(EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V1.MaxConcurrency * 2.5);
         var enqueueActorMessageMock = new Mock<IEnqueueActorMessagesHttpClient>();
-
         var databricksSqlMock = new Mock<DatabricksSqlWarehouseQueryExecutor>();
         databricksSqlMock
             .Setup(sql => sql.ExecuteStatementAsync(
                 It.IsAny<DatabricksStatement>(),
                 It.IsAny<Format>(),
                 It.IsAny<CancellationToken>()))
-            .Returns(GenerateDatabricksSqlAsyncEnumerable(transactionsCount));
+            .Returns(GenerateDatabricksSqlAsyncEnumerable(transactionCount));
 
         var sut = CreateSut(
             enqueueActorMessageMock,
             databricksSqlMock);
 
         // When activity is run
-        var enqueuedTransactionCount = await sut.Run(
+        var enqueuedTransactionsCount = await sut.Run(
             new EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V1.ActivityInput(
                 new OrchestrationInstanceId(Guid.NewGuid())));
 
         // Then all transactions are enqueued
-        Assert.Equal(transactionsCount, enqueuedTransactionCount);
+        Assert.Equal(transactionCount, enqueuedTransactionsCount);
 
         enqueueActorMessageMock.Verify(
             expression: m => m.EnqueueAsync(It.IsAny<EnqueueMissingMeasurementsLogHttpV1>()),
-            times: Times.Exactly(transactionsCount));
+            times: Times.Exactly(transactionCount));
     }
 
     [Fact]
-    public async Task Given_FirstCallToEnqueueFails_When_ActivityIsRun_Then_ExceptionIsThrown_AndThen_FirstTransactionFailsButOthersAreStillEnqueued()
+    public async Task Given_FirstCallToEnqueueFails_When_ActivityIsRun_Then_ExceptionIsThrown_AndThen_FirstMissingMeasurementsLogFailsButOthersAreStillEnqueued()
     {
         // Given
         var enqueueActorMessageMock = new Mock<IEnqueueActorMessagesHttpClient>();
@@ -84,19 +82,19 @@ public class EnqueueActorMessageActivityTests
             .Throws(new Exception("Unhandled exception")) // 1st call fails
             .Returns(Task.CompletedTask); // 2nd call succeeds
 
-        var transactionId1 = Guid.NewGuid();
+        const string meteringPointId = "1000000000000001";
         var row1 = CreateRowDictionary(
             new DatabricksSqlStatementApiMissingMeasurementsLogExtensions.MissingMeasurementsLogRowData(
                 OrchestrationInstanceId: Guid.NewGuid(),
-                MeteringPointId: "1234567890123456",
-                Date: Instant.FromUtc(2025, 05, 02, 13, 00)));
+                MeteringPointId: meteringPointId,
+                Date: Instant.FromUtc(2025, 5, 2, 13, 0)));
 
-        var transactionId2 = Guid.NewGuid();
+        const string meteringPointId2 = "1000000000000002";
         var row2 = CreateRowDictionary(
             new DatabricksSqlStatementApiMissingMeasurementsLogExtensions.MissingMeasurementsLogRowData(
                 OrchestrationInstanceId: Guid.NewGuid(),
-                MeteringPointId: "1234567890123456",
-                Date: Instant.FromUtc(2025, 05, 02, 13, 00)));
+                MeteringPointId: meteringPointId2,
+                Date: Instant.FromUtc(2025, 5, 2, 13, 15)));
 
         var mockTransactions = new List<Dictionary<string, object>>
         {
@@ -121,22 +119,22 @@ public class EnqueueActorMessageActivityTests
             new EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V1.ActivityInput(
                 new OrchestrationInstanceId(Guid.NewGuid())));
 
-        // Then the activity throws an exception containing the failed transaction id (and not the succeeded)
+        // Then the activity throws an exception containing the failed missing measurements log (and not the succeeded)
         var thrownException = await Assert.ThrowsAsync<Exception>(act);
 
-        // Assert that the exception message contains one of the transaction id's, but not both.
-        // We need it like this because the transaction are processed in parallel, so we don't know which one will fail.
+        // Assert that the exception message contains one of the missing measurements logs, but not both.
+        // We need it like this because the missing measurements logs are processed in parallel, so we don't know which one will fail.
         Assert.Multiple(
             () => Assert.True(
-                condition: thrownException.Message.Contains(transactionId1.ToString())
-                           || thrownException.Message.Contains(transactionId2.ToString()),
-                userMessage: "The exception message should contain one of the two transaction id's, because one of them should fail."),
+                condition: thrownException.Message.Contains(meteringPointId)
+                           || thrownException.Message.Contains(meteringPointId2),
+                userMessage: "The exception message should contain one of the two missing measurements logs's, because one of them should fail."),
             () => Assert.False(
-                condition: thrownException.Message.Contains(transactionId1.ToString())
-                           && thrownException.Message.Contains(transactionId2.ToString()),
-                userMessage: "The exception message should not contain both transaction id's, because one of them should succeed."));
+                condition: thrownException.Message.Contains(meteringPointId)
+                           && thrownException.Message.Contains(meteringPointId2),
+                userMessage: "The exception message should not contain both missing measurements logs's, because one of them should succeed."));
 
-        // And then enqueue is called for each transaction, to make sure the 2nd transaction is still enqueued
+        // And then enqueue is called for each missing measurements logs
         enqueueActorMessageMock.Verify(
             expression: m => m.EnqueueAsync(It.IsAny<EnqueueMissingMeasurementsLogHttpV1>()),
             times: Times.Exactly(mockTransactions.Count));
@@ -201,13 +199,12 @@ public class EnqueueActorMessageActivityTests
     private IAsyncEnumerable<IDictionary<string, object>> GenerateDatabricksSqlAsyncEnumerable(int transactionsCount)
     {
         var start = Instant.FromUtc(2025, 05, 02, 12, 00);
-
         var rows = Enumerable.Range(0, transactionsCount)
             .Select(
                 i =>
                     new DatabricksSqlStatementApiMissingMeasurementsLogExtensions.MissingMeasurementsLogRowData(
                         OrchestrationInstanceId: Guid.NewGuid(),
-                        MeteringPointId: "1234567890123456",
+                        MeteringPointId: GenerateUniqueMeteringPointId(),
                         Date: start.Plus(Duration.FromMinutes(30 * i))))
             .ToList();
 
@@ -216,6 +213,20 @@ public class EnqueueActorMessageActivityTests
             .ToAsyncEnumerable();
 
         return rowsAsDictionaries;
+    }
+
+    private string GenerateUniqueMeteringPointId()
+    {
+        var random = new Random();
+        string id;
+
+        do
+        {
+            id = $"1000{random.Next(100000000, 1000000000):D9}";
+        }
+        while (!_generatedIds.Add(id)); // Ensure uniqueness by adding to the set
+
+        return id;
     }
 
     private Dictionary<string, object> CreateRowDictionary(

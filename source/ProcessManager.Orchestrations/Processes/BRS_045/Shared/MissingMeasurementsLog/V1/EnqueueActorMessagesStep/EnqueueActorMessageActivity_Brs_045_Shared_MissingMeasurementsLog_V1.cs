@@ -116,7 +116,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
                         {
                             _logger.LogError(
                                 e,
-                                "Failed to enqueue measurements for metering point (OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId}).",
+                                "Failed to enqueue missing measurements log for metering point (OrchestrationInstanceId={OrchestrationInstanceId}, MeteringPointId={MeteringPointId}).",
                                 input.OrchestrationInstanceId.Value,
                                 missingMeasurementsLog.MeteringPointId);
                             failedMeteringPoints.Add(missingMeasurementsLog.MeteringPointId);
@@ -132,7 +132,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
         await Task.WhenAll(enqueueTasks).ConfigureAwait(false);
 
         if (!failedMeteringPoints.IsEmpty)
-            throw new Exception($"Failed to enqueue measurements for {failedMeteringPoints.Count} metering point ({string.Join(", ", failedMeteringPoints)}).");
+            throw new Exception($"Failed to enqueue missing measurements logs for {failedMeteringPoints.Count} metering point ({string.Join(", ", failedMeteringPoints)}).");
 
         return enqueuedTransactionsCount;
     }
@@ -172,7 +172,11 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     /// </summary>
     private Interval GetPeriod()
     {
-        return new Interval(DateTime.MinValue.ToInstant(), DateTime.MaxValue.ToInstant());
+        // DateTime.MinValue and DateTime.MaxValue have a DateTimeKind of Unspecified by default.
+        // The Instant.FromDateTimeUtc method in NodaTime requires a DateTime with a DateTimeKind of Utc.
+        return new Interval(
+            Instant.FromDateTimeUtc(DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc)),
+            Instant.FromDateTimeUtc(DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc)));
     }
 
     private async Task<IReadOnlyCollection<MeteringPointMasterData>> GetMeteringPointMasterData(string meteringPointId, Interval period)

@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.2.5
+
+- Changed List to IReadOnlyCollection type in `MissingMeasurementsLogOnDemandCalculation/V1/Model/CalculationInputV1.cs` to be more generic.
+
 ## Version 2.2.4
 
 - Update `EnqueueMissingMeasurementsLogHttpV1` to contain a idempotency key.

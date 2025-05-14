@@ -23,7 +23,7 @@ using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
+
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.EnqueueActorMessagesStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
@@ -33,7 +33,7 @@ using Moq;
 using NodaTime;
 using MeteringPointId = Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model.MeteringPointId;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_045.Shared.MissingMeaurementsLog.V1.EnqueueActorMessagesStep;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.EnqueueActorMessagesStep;
 
 public class EnqueueActorMessageActivityTests
 {
@@ -86,27 +86,17 @@ public class EnqueueActorMessageActivityTests
 
         var transactionId1 = Guid.NewGuid();
         var row1 = CreateRowDictionary(
-            new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
+            new DatabricksSqlStatementApiMissingMeasurementsLogExtensions.MissingMeasurementsLogRowData(
                 OrchestrationInstanceId: Guid.NewGuid(),
-                TransactionId: transactionId1,
-                TransactionCreationDatetime: Instant.FromUtc(2025, 05, 02, 13, 00),
                 MeteringPointId: "1234567890123456",
-                MeteringPointType: "electrical_heating",
-                Resolution: "PT15M",
-                ObservationTime: Instant.FromUtc(2025, 05, 02, 13, 00),
-                Quantity: 1337.42m));
+                Date: Instant.FromUtc(2025, 05, 02, 13, 00)));
 
         var transactionId2 = Guid.NewGuid();
         var row2 = CreateRowDictionary(
-            new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
+            new DatabricksSqlStatementApiMissingMeasurementsLogExtensions.MissingMeasurementsLogRowData(
                 OrchestrationInstanceId: Guid.NewGuid(),
-                TransactionId: transactionId2,
-                TransactionCreationDatetime: Instant.FromUtc(2025, 05, 02, 13, 00),
                 MeteringPointId: "1234567890123456",
-                MeteringPointType: "electrical_heating",
-                Resolution: "PT15M",
-                ObservationTime: Instant.FromUtc(2025, 05, 02, 13, 00),
-                Quantity: 1337.42m));
+                Date: Instant.FromUtc(2025, 05, 02, 13, 00)));
 
         var mockTransactions = new List<Dictionary<string, object>>
         {
@@ -215,17 +205,10 @@ public class EnqueueActorMessageActivityTests
         var rows = Enumerable.Range(0, transactionsCount)
             .Select(
                 i =>
-                    new DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData(
+                    new DatabricksSqlStatementApiMissingMeasurementsLogExtensions.MissingMeasurementsLogRowData(
                         OrchestrationInstanceId: Guid.NewGuid(),
-                        TransactionId: Guid.NewGuid(),
-                        TransactionCreationDatetime: Instant.FromUtc(2025, 05, 02, 13, 00),
                         MeteringPointId: "1234567890123456",
-                        MeteringPointType: "electrical_heating",
-                        Resolution: "PT15M",
-                        // Skipping 30 minutes, when the resolution is 15 minutes, creates a gap between each observation,
-                        // and thus each observation has a new transaction id.
-                        ObservationTime: start.Plus(Duration.FromMinutes(30 * i)),
-                        Quantity: 1337.42m))
+                        Date: start.Plus(Duration.FromMinutes(30 * i))))
             .ToList();
 
         var rowsAsDictionaries = rows
@@ -236,7 +219,7 @@ public class EnqueueActorMessageActivityTests
     }
 
     private Dictionary<string, object> CreateRowDictionary(
-        DatabricksSqlStatementApiCalculatedMeasurementsExtensions.CalculatedMeasurementsRowData data)
+        DatabricksSqlStatementApiMissingMeasurementsLogExtensions.MissingMeasurementsLogRowData data)
     {
         var schemaDescription = new MissingMeasurementsLogSchemaDescription(Mock.Of<DatabricksQueryOptions>());
 
@@ -244,17 +227,9 @@ public class EnqueueActorMessageActivityTests
             keySelector: columnName => columnName,
             elementSelector: columnName => columnName switch
             {
-                CalculatedMeasurementsColumnNames.OrchestrationType => "unused",
-                CalculatedMeasurementsColumnNames.OrchestrationInstanceId => data.OrchestrationInstanceId.ToString(),
-                CalculatedMeasurementsColumnNames.TransactionId => data.TransactionId.ToString(),
-                CalculatedMeasurementsColumnNames.TransactionCreationDatetime => data.TransactionCreationDatetime.ToString(),
-                CalculatedMeasurementsColumnNames.MeteringPointId => data.MeteringPointId,
-                CalculatedMeasurementsColumnNames.MeteringPointType => data.MeteringPointType,
-                CalculatedMeasurementsColumnNames.ObservationTime => data.ObservationTime.ToString(),
-                CalculatedMeasurementsColumnNames.Quantity => data.Quantity.ToString(NumberFormatInfo.InvariantInfo),
-                CalculatedMeasurementsColumnNames.QuantityUnit => data.QuantityUnit,
-                CalculatedMeasurementsColumnNames.QuantityQuality => data.QuantityQuality,
-                CalculatedMeasurementsColumnNames.Resolution => data.Resolution,
+                MissingMeasurementsLogColumnNames.OrchestrationInstanceId => data.OrchestrationInstanceId.ToString(),
+                MissingMeasurementsLogColumnNames.MeteringPointId => data.MeteringPointId,
+                MissingMeasurementsLogColumnNames.Date => data.Date.ToString(),
                 _ => throw new ArgumentOutOfRangeException(nameof(columnName), $"Unknown column name: {columnName}"),
             });
     }

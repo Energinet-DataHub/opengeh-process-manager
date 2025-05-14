@@ -22,5 +22,5 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public record CalculationInputV1(
     DateTimeOffset PeriodStartDate,
     DateTimeOffset PeriodEndDate,
-    List<string> GridAreaCodes)
+    IReadOnlyCollection<string> GridAreaCodes)
         : IInputParameterDto;

@@ -19,7 +19,6 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Activities.CalculationStep;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Moq;
 using NodaTime;
 

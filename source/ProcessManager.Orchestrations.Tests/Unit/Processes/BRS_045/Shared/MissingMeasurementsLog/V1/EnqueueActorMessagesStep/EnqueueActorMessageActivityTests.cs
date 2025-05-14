@@ -40,7 +40,7 @@ public class EnqueueActorMessageActivityTests
     private readonly HashSet<string> _generatedIds = new();
 
     [Fact]
-    public async Task Given_ReceivesTransactionsFromDatabricksQuery_When_ActivityIsRun_Then_AllMissingMeasurementsLogsAreEnqueued()
+    public async Task Given_ReceivesTransactionsFromDatabricksQuery_When_ActivityIsRun_Then_AllTransactionAreEnqueued()
     {
         // Given
         // => Use more than the max concurrency, to make sure the activity still succeeds even if the number of transactions
@@ -73,7 +73,7 @@ public class EnqueueActorMessageActivityTests
     }
 
     [Fact]
-    public async Task Given_FirstCallToEnqueueFails_When_ActivityIsRun_Then_ExceptionIsThrown_AndThen_FirstMissingMeasurementsLogFailsButOthersAreStillEnqueued()
+    public async Task Given_FirstCallToEnqueueFails_When_ActivityIsRun_Then_ExceptionIsThrown_AndThen_FirstTransactionFailsButOthersAreStillEnqueued()
     {
         // Given
         var enqueueActorMessageMock = new Mock<IEnqueueActorMessagesHttpClient>();

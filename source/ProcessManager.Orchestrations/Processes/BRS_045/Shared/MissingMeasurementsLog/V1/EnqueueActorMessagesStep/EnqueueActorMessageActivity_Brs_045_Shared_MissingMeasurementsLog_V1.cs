@@ -146,11 +146,12 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     {
         var period = GetPeriod();
         var meteringPointMasterData = await GetMeteringPointMasterData(missingMeasurementsLog.MeteringPointId, period).ConfigureAwait(false);
-        var meteringPointsWithDates = new List<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds>();
+        var meteringPointsWithDates = new List<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointId>();
 
         foreach (var date in missingMeasurementsLog.Dates)
         {
-            var dateWithMeteringPointId = new EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds(
+            var dateWithMeteringPointId = new EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointId(
+                IdempotencyKey: ,
                 GridAccessProvider: meteringPointMasterData.First().CurrentGridAccessProvider,
                 GridArea: meteringPointMasterData.First().CurrentGridAreaCode.Value,
                 Date: date.ToDateTimeOffset(),
@@ -185,7 +186,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
 
     private async Task EnqueueActorMessagesAsync(
         OrchestrationInstanceId orchestrationInstanceId,
-        IReadOnlyCollection<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointIds> dateWithMeteringPointIds)
+        IReadOnlyCollection<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointId> dateWithMeteringPointIds)
     {
         var enqueueData = new EnqueueMissingMeasurementsLogHttpV1(
             OrchestrationInstanceId: orchestrationInstanceId.Value,

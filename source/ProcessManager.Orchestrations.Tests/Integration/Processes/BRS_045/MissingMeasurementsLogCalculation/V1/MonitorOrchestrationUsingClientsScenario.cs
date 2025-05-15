@@ -36,7 +36,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 /// Test case where we verify the Process Manager clients can be used to start a
 /// calculation orchestration (with no input parameter) and monitor its status during its lifetime.
 /// </summary>
-[ParallelWorkflow(WorkflowBucket.Bucket05)]
+[ParallelWorkflow(WorkflowBucket.Bucket04)]
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {

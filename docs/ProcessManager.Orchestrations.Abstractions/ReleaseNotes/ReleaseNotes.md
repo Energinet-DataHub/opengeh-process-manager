@@ -2,7 +2,7 @@
 
 ## Version 2.2.6
 
-- Added `EnqueueMissingMeasurementsLogOnDemandHttpV1` and renamed `StartCalculationCommandV1` to `StartMissingMeasurementsLogOnDemandCalculationCommandV1`.
+- Renamed `StartCalculationCommandV1` to `StartMissingMeasurementsLogOnDemandCalculationCommandV1`.
 
 ## Version 2.2.5
 

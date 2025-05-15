@@ -36,7 +36,7 @@ internal class StartTrigger_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1
             Route = "orchestrationinstance/command/start/custom/brs_045_missingmeasurementslogondemandcalculation/1")]
         HttpRequest httpRequest,
         [FromBody]
-        StartCalculationCommandV1 command,
+        StartMissingMeasurementsLogOnDemandCalculationCommandV1 command,
         FunctionContext executionContext)
     {
         var orchestrationInstanceId = await handler.HandleAsync(command).ConfigureAwait(false);

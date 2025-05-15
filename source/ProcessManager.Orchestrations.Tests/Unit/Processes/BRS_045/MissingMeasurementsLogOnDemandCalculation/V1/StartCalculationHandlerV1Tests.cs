@@ -62,7 +62,7 @@ public class StartCalculationHandlerV1Tests
             startDate.ToDateTimeOffset(),
             endDate.ToDateTimeOffset(),
             ["302"]);
-        var command = new StartCalculationCommandV1(userIdentity, calculationInputV1);
+        var command = new StartMissingMeasurementsLogOnDemandCalculationCommandV1(userIdentity, calculationInputV1);
         var sut = new StartCalculationHandlerV1(DateTimeZone.ForOffset(offset), ManagerMock.Object);
 
         // Act
@@ -101,7 +101,7 @@ public class StartCalculationHandlerV1Tests
             new DateTimeOffset(startYear, startMonth, startDay, startHour, startMinute, 0, TimeSpan.FromHours(offset)),
             new DateTimeOffset(endYear, endMonth, endDay, endHour, endMinute, 0, TimeSpan.FromHours(offset)),
             gridAreaCodes);
-        var command = new StartCalculationCommandV1(userIdentity, calculationInputV1);
+        var command = new StartMissingMeasurementsLogOnDemandCalculationCommandV1(userIdentity, calculationInputV1);
         var sut = new StartCalculationHandlerV1(DateTimeZone.ForOffset(offsetDk), ManagerMock.Object);
 
         // Act

@@ -26,11 +26,10 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class EnqueueActorMessagesHttpExtensions
 {
-    public static IServiceCollection AddEnqueueActorMessagesHttp(
-        this IServiceCollection services,
-        TokenCredential credential,
-        IConfiguration configuration)
+    public static IServiceCollection AddEnqueueActorMessagesHttp(this IServiceCollection services, IConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+
         services
             .AddOptions<EnqueueActorMessagesHttpClientOptions>()
             .BindConfiguration(EnqueueActorMessagesHttpClientOptions.SectionName)

@@ -30,6 +30,8 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.EnqueueActorMes
 
 public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
 {
+    private const string ApplicationIdUriForTests = "https://management.azure.com";
+
     public EnqueueActorMessagesHttpClientTests()
     {
         MockServer = WireMockServer.Start(port: 8989);
@@ -40,23 +42,12 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
             [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] =
                 MockServer.Url,
             [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] =
-                "ApplicationIdUri",
+                ApplicationIdUriForTests,
         };
 
         Services.AddInMemoryConfiguration(configuration);
 
-        var mockCredential = new Mock<DefaultAzureCredential>();
-        mockCredential.Setup(
-            c => c.GetToken(
-                It.IsAny<TokenRequestContext>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(
-                new AccessToken(
-                    "token",
-                    DateTimeOffset.UtcNow.AddHours(1)));
-
         Services.AddEnqueueActorMessagesHttp(
-            mockCredential.Object,
             new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
         ServiceProvider = Services.BuildServiceProvider();
         Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesHttpClient>();

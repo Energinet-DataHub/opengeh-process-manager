@@ -170,7 +170,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     });
         }
 
-        // And then enqueue actor messages are called for 1 message.
+        // And then enqueue actor messages is called for 1 message.
         Fixture.OrchestrationsAppManager.MockServer.CountEnqueueActorMessagesHttpMockCalls(
                 routeName: EnqueueMissingMeasurementsLogOnDemandHttpV1.RouteName)
             .Should()

@@ -24,11 +24,11 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Miss
 internal class StartCalculationHandlerV1(
     DateTimeZone dateTimeZone,
     IStartOrchestrationInstanceCommands manager) :
-        IStartOrchestrationInstanceCommandHandler<StartCalculationCommandV1, CalculationInputV1>
+        IStartOrchestrationInstanceCommandHandler<StartMissingMeasurementsLogOnDemandCalculationCommandV1, CalculationInputV1>
 {
     private readonly DateTimeZone _dateTimeZone = dateTimeZone;
 
-    public async Task<Guid> HandleAsync(StartCalculationCommandV1 command)
+    public async Task<Guid> HandleAsync(StartMissingMeasurementsLogOnDemandCalculationCommandV1 command)
     {
         GuardInputParameter(command.InputParameter);
 

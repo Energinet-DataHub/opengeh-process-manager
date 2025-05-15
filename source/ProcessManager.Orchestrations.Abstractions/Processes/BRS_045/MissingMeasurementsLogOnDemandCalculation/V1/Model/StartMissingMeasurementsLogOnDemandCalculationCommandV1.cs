@@ -21,7 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// Command for starting a BRS-045 missing measurements log on demand calculation.
 /// Must be JSON serializable.
 /// </summary>
-public sealed record StartCalculationCommandV1
+public sealed record StartMissingMeasurementsLogOnDemandCalculationCommandV1
     : StartOrchestrationInstanceCommand<UserIdentityDto, CalculationInputV1>
 {
     /// <summary>
@@ -29,7 +29,7 @@ public sealed record StartCalculationCommandV1
     /// </summary>
     /// <param name="operatingIdentity">Identity of the user executing the command.</param>
     /// <param name="inputParameter">Contains the Durable Functions orchestration input parameter value.</param>
-    public StartCalculationCommandV1(
+    public StartMissingMeasurementsLogOnDemandCalculationCommandV1(
         UserIdentityDto operatingIdentity,
         CalculationInputV1 inputParameter)
             : base(

@@ -205,7 +205,7 @@ public class EnqueueActorMessageActivityTests
                     new DatabricksSqlStatementApiMissingMeasurementsLogExtensions.MissingMeasurementsLogRowData(
                         OrchestrationInstanceId: Guid.NewGuid(),
                         MeteringPointId: GenerateUniqueMeteringPointId(),
-                        Date: start.Plus(Duration.FromMinutes(30 * i))))
+                        Date: start.Plus(Duration.FromMinutes(15 * i))))
             .ToList();
 
         var rowsAsDictionaries = rows

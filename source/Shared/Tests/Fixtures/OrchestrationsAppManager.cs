@@ -354,10 +354,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
             DatabaseManager.ConnectionString);
         // => Authentication
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.ApplicationIdUri)}",
+            $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.ApplicationIdUri)}",
             AuthenticationOptionsForTests.ApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
+            $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.Issuer)}",
             AuthenticationOptionsForTests.Issuer);
 
         // => Service Bus

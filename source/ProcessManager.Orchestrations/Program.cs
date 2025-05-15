@@ -41,6 +41,7 @@ var host = new HostBuilder()
         services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
+        services.AddSubsystemAuthenticationForIsolatedWorker(context.Configuration);
         services.AddServiceBusClientForApplication(context.Configuration);
         // => Feature management
         services
@@ -73,7 +74,7 @@ var host = new HostBuilder()
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers
-        services.AddProcessManagerForOrchestrations(context.Configuration, typeof(Program).Assembly);
+        services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
 
         // BRS-021 (ForwardMeteredData, ElectricalHeatingCalculation, CapacitySettlementCalculation & NetConsumptionCalculation)
         services.AddBrs021(azureCredential);

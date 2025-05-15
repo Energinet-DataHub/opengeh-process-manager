@@ -36,6 +36,7 @@ var host = new HostBuilder()
         services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
+        services.AddSubsystemAuthenticationForIsolatedWorker(context.Configuration);
         services.AddServiceBusClientForApplication(context.Configuration);
         // => Feature management
         services
@@ -46,7 +47,7 @@ var host = new HostBuilder()
         services.AddNotifyOrchestrationInstance(azureCredential);
 
         // ProcessManager
-        services.AddProcessManagerCore(context.Configuration);
+        services.AddProcessManagerCore();
 
         // Handlers
         services.AddScoped<RecurringPlannerHandler>();

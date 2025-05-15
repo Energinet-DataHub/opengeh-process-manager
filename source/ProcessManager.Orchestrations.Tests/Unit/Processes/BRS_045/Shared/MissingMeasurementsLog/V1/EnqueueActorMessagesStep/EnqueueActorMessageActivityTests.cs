@@ -126,9 +126,7 @@ public class EnqueueActorMessageActivityTests
         // We need it like this because the missing measurements logs are processed in parallel, so we don't know which one will fail.
         Assert.Multiple(
             () => Assert.True(
-                condition: (thrownException.Message.Contains(meteringPointId)
-                           || thrownException.Message.Contains(meteringPointId2)) 
-                           && thrownException.Message.Count(1) ,
+                condition: thrownException.Message.Contains(meteringPointId) || thrownException.Message.Contains(meteringPointId2),
                 userMessage: "The exception message should contain one of the two missing measurements logs's, because one of them should fail."),
             () => Assert.False(
                 condition: thrownException.Message.Contains(meteringPointId)

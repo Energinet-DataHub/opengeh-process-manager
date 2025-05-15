@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.2.6
+
+- No functional changes.
+- 
 ## Version 2.2.5
 
 - Changed List to IReadOnlyCollection type in `MissingMeasurementsLogOnDemandCalculation/V1/Model/CalculationInputV1.cs` to be more generic.

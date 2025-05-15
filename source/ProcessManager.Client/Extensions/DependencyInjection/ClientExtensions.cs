@@ -33,8 +33,8 @@ public static class ClientExtensions
 {
     /// <summary>
     /// Register Process Manager HTTP clients for use in applications.
-    /// If <see cref="IHttpContextAccessor"/> is registered we try to retrieve the "Authorization"
-    /// header value and forward it to the Process Manager API for authentication/authorization.
+    /// Configures http clients with an "Authorization" header value and
+    /// forward it to the Process Manager API for authentication/authorization.
     /// </summary>
     public static IServiceCollection AddProcessManagerHttpClients(this IServiceCollection services)
     {

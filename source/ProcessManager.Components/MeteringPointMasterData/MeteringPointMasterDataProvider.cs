@@ -69,6 +69,13 @@ public class MeteringPointMasterDataProvider(
 
         try
         {
+            if (IsPerformanceTest(meteringPointId))
+            {
+                // Ensure we request a valid metering point id for the performance test
+                // to test the performance of the master data provider
+                id = new ElectricityMarketModels.MeteringPointIdentification("571313115200462957");
+            }
+
             masterDataChanges = await _electricityMarketViews
                 .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime, endDateTime))
                 .ConfigureAwait(false);
@@ -83,12 +90,12 @@ public class MeteringPointMasterDataProvider(
             if (IsPerformanceTest(meteringPointId))
             {
                 masterDataChanges = GetMasterDataForPerformanceTest(
-                    id,
+                    meteringPointId,
                     startDateTime,
                     endDateTime);
 
                 currentMasterDataChanges = GetMasterDataForPerformanceTest(
-                    id,
+                    meteringPointId,
                     _clock.GetCurrentInstant(),
                     _clock.GetCurrentInstant().PlusSeconds(1)).Single();
             }
@@ -100,12 +107,12 @@ public class MeteringPointMasterDataProvider(
             if (IsPerformanceTest(meteringPointId))
             {
                 masterDataChanges = GetMasterDataForPerformanceTest(
-                    id,
+                    meteringPointId,
                     startDateTime,
                     endDateTime);
 
                 currentMasterDataChanges = GetMasterDataForPerformanceTest(
-                    id,
+                    meteringPointId,
                     _clock.GetCurrentInstant(),
                     _clock.GetCurrentInstant().PlusSeconds(1)).Single();
             }
@@ -228,7 +235,7 @@ public class MeteringPointMasterDataProvider(
         EnergySupplier: energySupplier);
 
     private static IEnumerable<ElectricityMarketModels.MeteringPointMasterData> GetMasterDataForPerformanceTest(
-        ElectricityMarketModels.MeteringPointIdentification id,
+        string meteringPointId,
         Instant startDateTime,
         Instant endDateTime)
     {
@@ -236,7 +243,7 @@ public class MeteringPointMasterDataProvider(
         {
             new()
             {
-                Identification = id,
+                Identification = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId),
                 ValidFrom = startDateTime,
                 ValidTo = endDateTime,
                 GridAreaCode = new ElectricityMarketModels.GridAreaCode("000"),

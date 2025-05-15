@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.Shared;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
@@ -96,7 +97,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Mocking EDI enqueue actor messages response
         Fixture.OrchestrationsAppManager.MockServer.MockEnqueueActorMessagesHttpResponse(
-            EnqueueMissingMeasurementsLogOnDemandHttpV1.RouteName);
+            EnqueueMissingMeasurementsLogHttpV1.RouteName);
 
         const string meteringPointId = "1000000000000001";
 
@@ -172,7 +173,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // And then enqueue actor messages is called for 1 message.
         Fixture.OrchestrationsAppManager.MockServer.CountEnqueueActorMessagesHttpMockCalls(
-                routeName: EnqueueMissingMeasurementsLogOnDemandHttpV1.RouteName)
+                routeName: EnqueueMissingMeasurementsLogHttpV1.RouteName)
             .Should()
             .Be(1, "because the orchestration instance should have enqueued messages to EDI");
     }

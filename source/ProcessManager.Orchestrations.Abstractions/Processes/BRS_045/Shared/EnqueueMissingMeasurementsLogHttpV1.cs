@@ -38,13 +38,11 @@ public record EnqueueMissingMeasurementsLogHttpV1(
     /// <summary>
     /// A representation of the message that will be sent to the given <paramref name="GridAccessProvider"/>.
     /// </summary>
-    /// <param name="IdempotencyKey">Unique key</param>
     /// <param name="GridAccessProvider">The current grid access provider for the metering point, who should receive the message.</param>
     /// <param name="GridArea">The grid area for the metering point and grid access provider, used determine whether the actor has delegations.</param>
     /// <param name="Date">The date where measurements are missing for the given <paramref name="MeteringPointId"/>.</param>
     /// <param name="MeteringPointId">The metering point that is missing measurements on the given <paramref name="Date"/>.</param>
     public record DateWithMeteringPointId(
-        Guid IdempotencyKey,
         ActorNumber GridAccessProvider,
         string GridArea,
         DateTimeOffset Date,

@@ -117,7 +117,7 @@ public static class DatabricksWorkspaceExtensions
     public static IServiceCollection AddDatabricksSqlStatementApi(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
         serviceCollection
-            .AddDatabricksSqlStatementExecution(configuration);
+            .AddDatabricksSqlStatementExecution(configuration, TokenProvider.ServicePrincipalTokenProvider);
 
         serviceCollection
             .AddHealthChecks()

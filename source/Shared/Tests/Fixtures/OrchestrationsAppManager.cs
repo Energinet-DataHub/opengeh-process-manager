@@ -355,10 +355,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // => Authentication
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.ApplicationIdUri)}",
-            AuthenticationOptionsForTests.ApplicationIdUri);
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.Issuer)}",
-            AuthenticationOptionsForTests.Issuer);
+            SubsystemAuthenticationOptionsForTests.Issuer);
 
         // => Service Bus
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -402,7 +402,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             MockServer.Url!);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{EnqueueActorMessagesHttpClientOptions.SectionName}__{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}",
-            AuthenticationOptionsForTests.ApplicationIdUri);
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
 
         // => Shared integration event topic
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -487,7 +487,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             MockServer.Url!);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.ApplicationIdUri)}",
-            AuthenticationOptionsForTests.ApplicationIdUri);
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
 
         // => BRS-026 options
         appHostSettings.ProcessEnvironmentVariables.Add(

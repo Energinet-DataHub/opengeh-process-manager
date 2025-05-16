@@ -15,6 +15,7 @@
 using System.Net;
 using Azure.Core;
 using Azure.Identity;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
@@ -30,8 +31,6 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.EnqueueActorMes
 
 public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
 {
-    private const string ApplicationIdUriForTests = "https://management.azure.com";
-
     public EnqueueActorMessagesHttpClientTests()
     {
         MockServer = WireMockServer.Start(port: 8989);
@@ -42,7 +41,7 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
             [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] =
                 MockServer.Url,
             [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] =
-                ApplicationIdUriForTests,
+                SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
         };
 
         Services.AddInMemoryConfiguration(configuration);

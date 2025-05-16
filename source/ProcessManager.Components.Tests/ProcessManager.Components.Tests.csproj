@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Energinet.DataHub.Core.App.WebApp" Version="15.4.0-alpha-459" />
-    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.2.0" />
+    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.2.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

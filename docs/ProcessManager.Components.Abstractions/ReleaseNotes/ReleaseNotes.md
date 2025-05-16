@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 2.0.5
+
+- No functional changes.
+
 ## Version 2.0.4
 
 - No functional changes.

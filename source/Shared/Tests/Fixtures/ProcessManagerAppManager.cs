@@ -246,11 +246,11 @@ public class ProcessManagerAppManager : IAsyncDisposable
             DatabaseManager.ConnectionString);
         // => Authentication
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.ApplicationIdUri)}",
-            AuthenticationOptionsForTests.ApplicationIdUri);
+            $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.ApplicationIdUri)}",
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
-            AuthenticationOptionsForTests.Issuer);
+            $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.Issuer)}",
+            SubsystemAuthenticationOptionsForTests.Issuer);
 
         // => Service Bus
         appHostSettings.ProcessEnvironmentVariables.Add(

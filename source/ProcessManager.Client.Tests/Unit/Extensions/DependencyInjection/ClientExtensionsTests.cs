@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Abstractions.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
@@ -27,8 +28,6 @@ namespace Energinet.DataHub.ProcessManager.Client.Tests.Unit.Extensions.Dependen
 
 public class ClientExtensionsTests
 {
-    private const string ApplicationIdUriForTests = "https://management.azure.com";
-
     private const string GeneralApiBaseAddressFake = "https://www.fake-general.com";
     private const string OrchestrationsApiBaseAddressFake = "https://www.fake-orchestrations.com";
 
@@ -51,7 +50,7 @@ public class ClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = ApplicationIdUriForTests,
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
         });
@@ -94,7 +93,7 @@ public class ClientExtensionsTests
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
         {
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = ApplicationIdUriForTests,
+            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
             [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
         });

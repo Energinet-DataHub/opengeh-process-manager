@@ -58,15 +58,11 @@ public static class ProcessManagerCoreServiceProviderFactory
                         = "Not used, but cannot be empty",
                 [$"{nameof(ProcessManagerTaskHubOptions.ProcessManagerTaskHubName)}"]
                         = "Not used, but cannot be empty",
-                [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.ApplicationIdUri)}"]
-                        = "Not used, but cannot be empty",
-                [$"{AuthenticationOptions.SectionName}:{nameof(AuthenticationOptions.Issuer)}"]
-                        = "Not used, but cannot be empty",
             }).Build();
 
         // Process Manager
         services.AddScoped<IConfiguration>(_ => configuration);
-        services.AddProcessManagerCore(configuration);
+        services.AddProcessManagerCore();
         // => Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
         services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();
 

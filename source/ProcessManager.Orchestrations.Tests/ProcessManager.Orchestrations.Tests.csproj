@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Shared\Tests\Fixtures\AuthenticationOptionsForTests.cs" Link="Fixtures\AuthenticationOptionsForTests.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\DomainTestDataFactory.cs" Link="Fixtures\DomainTestDataFactory.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ElectricityMarketViewsExtensions.cs">
       <Link>Fixtures\Extensions\ElectricityMarketViewsExtensions.cs</Link>
@@ -35,7 +34,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Energinet.DataHub.Core.DurableFunctionApp.TestCommon" Version="8.1.1" />
+    <PackageReference Include="Energinet.DataHub.Core.DurableFunctionApp.TestCommon" Version="8.2.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="WireMock.Net" Version="1.7.4" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -43,7 +42,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.1.1" />
+    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.2.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -47,15 +47,12 @@ public static class ProcessManagerExtensions
     /// to manage and monitor orchestrations.
     /// Should be used from the Process Manager API / Scheduler application.
     /// </summary>
-    public static IServiceCollection AddProcessManagerCore(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddProcessManagerCore(this IServiceCollection services)
     {
-        ArgumentNullException.ThrowIfNull(configuration);
-
         // Process Manager Core
         services
             .AddProcessManagerOptions()
-            .AddProcessManagerDatabase()
-            .AddProcessManagerAuthentication(configuration);
+            .AddProcessManagerDatabase();
 
         // DurableClient connected to Task Hub
         services.AddTaskHubStorage();
@@ -107,18 +104,14 @@ public static class ProcessManagerExtensions
     /// Should be used from host's that contains Durable Functions orchestrations.
     /// </summary>
     /// <param name="services"></param>
-    /// <param name="configuration"></param>
     /// <param name="assemblyToScan">Specify the host assembly to scan for types implementing <see cref="IOrchestrationDescriptionBuilder"/>.</param>
-    public static IServiceCollection AddProcessManagerForOrchestrations(this IServiceCollection services, IConfiguration configuration, Assembly assemblyToScan)
+    public static IServiceCollection AddProcessManagerForOrchestrations(this IServiceCollection services, Assembly assemblyToScan)
     {
-        ArgumentNullException.ThrowIfNull(configuration);
-
         // Process Manager Core
         services
             .AddProcessManagerOptions()
             .AddProcessManagerDatabase()
-            .AddProcessManagerReaderContext()
-            .AddProcessManagerAuthentication(configuration);
+            .AddProcessManagerReaderContext();
 
         // Task Hub connected to Durable Functions
         services.AddTaskHubStorage();

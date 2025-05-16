@@ -15,6 +15,7 @@
 using System.Net;
 using Azure.Core;
 using Azure.Identity;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
@@ -40,23 +41,12 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
             [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] =
                 MockServer.Url,
             [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] =
-                "ApplicationIdUri",
+                SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
         };
 
         Services.AddInMemoryConfiguration(configuration);
 
-        var mockCredential = new Mock<DefaultAzureCredential>();
-        mockCredential.Setup(
-            c => c.GetToken(
-                It.IsAny<TokenRequestContext>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(
-                new AccessToken(
-                    "token",
-                    DateTimeOffset.UtcNow.AddHours(1)));
-
         Services.AddEnqueueActorMessagesHttp(
-            mockCredential.Object,
             new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
         ServiceProvider = Services.BuildServiceProvider();
         Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesHttpClient>();

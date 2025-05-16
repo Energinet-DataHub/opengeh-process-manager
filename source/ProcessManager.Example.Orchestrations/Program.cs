@@ -35,13 +35,14 @@ var host = new HostBuilder()
         services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Example");
         services.AddHealthChecksForIsolatedWorker();
         services.AddNodaTimeForApplication();
+        services.AddSubsystemAuthenticationForIsolatedWorker(context.Configuration);
         // => Feature management
         services
             .AddAzureAppConfiguration()
             .AddFeatureManagement();
 
         // => Auto register Orchestration Descriptions builders and custom handlers
-        services.AddProcessManagerForOrchestrations(context.Configuration, typeof(Program).Assembly);
+        services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
 
         // => Add EnqueueActorMessages client
         services.AddServiceBusClientForApplication(context.Configuration);

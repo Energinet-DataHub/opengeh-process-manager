@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Identity;
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.ProcessManager.Abstractions.Client;
-using Energinet.DataHub.ProcessManager.Client.Authorization;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
@@ -33,8 +31,8 @@ public static class ClientExtensions
 {
     /// <summary>
     /// Register Process Manager HTTP clients for use in applications.
-    /// If <see cref="IHttpContextAccessor"/> is registered we try to retrieve the "Authorization"
-    /// header value and forward it to the Process Manager API for authentication/authorization.
+    /// Configures http clients with an "Authorization" header value and
+    /// forward it to the Process Manager API for authentication/authorization.
     /// </summary>
     public static IServiceCollection AddProcessManagerHttpClients(this IServiceCollection services)
     {
@@ -43,27 +41,17 @@ public static class ClientExtensions
             .BindConfiguration(ProcessManagerHttpClientsOptions.SectionName)
             .ValidateDataAnnotations();
 
-        services.TryAddSingleton<IAuthorizationHeaderProvider>(sp =>
-        {
-            // We currently register AuthorizationHeaderProvider like this to be in control of the
-            // creation of DefaultAzureCredential.
-            // As we register IAuthorizationHeaderProvider as singleton and it has the instance
-            // of DefaultAzureCredential, we expect it will use caching and handle token refresh.
-            // However the documentation is a bit unclear: https://learn.microsoft.com/da-dk/dotnet/azure/sdk/authentication/best-practices?tabs=aspdotnet#understand-when-token-lifetime-and-caching-logic-is-needed
-            var credential = new DefaultAzureCredential();
-            var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
-            return new AuthorizationHeaderProvider(credential, options.ApplicationIdUri);
-        });
+        services.AddAuthorizationHeaderProvider();
 
         services.AddHttpClient(HttpClientNames.GeneralApi, (sp, httpClient) =>
         {
             var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
-            ConfigureHttpClient(sp, httpClient, options.GeneralApiBaseAddress);
+            ConfigureHttpClient(sp, httpClient, options.GeneralApiBaseAddress, options.ApplicationIdUri);
         });
         services.AddHttpClient(HttpClientNames.OrchestrationsApi, (sp, httpClient) =>
         {
             var options = sp.GetRequiredService<IOptions<ProcessManagerHttpClientsOptions>>().Value;
-            ConfigureHttpClient(sp, httpClient, options.OrchestrationsApiBaseAddress);
+            ConfigureHttpClient(sp, httpClient, options.OrchestrationsApiBaseAddress, options.ApplicationIdUri);
         });
 
         services.AddScoped<IProcessManagerClient, ProcessManagerClient>();
@@ -131,11 +119,11 @@ public static class ClientExtensions
         return services;
     }
 
-    private static void ConfigureHttpClient(IServiceProvider sp, HttpClient httpClient, string baseAddress)
+    private static void ConfigureHttpClient(IServiceProvider sp, HttpClient httpClient, string baseAddress, string applicationIdUri)
     {
         httpClient.BaseAddress = new Uri(baseAddress);
 
         var headerProvider = sp.GetRequiredService<IAuthorizationHeaderProvider>();
-        httpClient.DefaultRequestHeaders.Authorization = headerProvider.CreateAuthorizationHeader();
+        httpClient.DefaultRequestHeaders.Authorization = headerProvider.CreateAuthorizationHeader(applicationIdUri);
     }
 }

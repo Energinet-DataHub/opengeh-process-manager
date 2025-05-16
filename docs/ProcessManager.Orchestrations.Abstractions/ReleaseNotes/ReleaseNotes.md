@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.2.7
+
+- No functional changes.
+
 ## Version 2.2.6
 
 - Renamed `StartCalculationCommandV1` to `StartMissingMeasurementsLogOnDemandCalculationCommandV1`.

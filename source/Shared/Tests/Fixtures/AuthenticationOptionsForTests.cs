@@ -14,6 +14,7 @@
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
+// TODO: If we move this to TestCommon then rename to SubsystemAuthenticationOptionsForTests
 public static class AuthenticationOptionsForTests
 {
     /// <summary>

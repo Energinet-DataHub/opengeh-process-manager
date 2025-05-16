@@ -20,12 +20,19 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 /// <summary>
 /// Used to enqueue actor messages for BRS-045 (Missing Measurements Log Calculation). The model is shared
 /// with EDI, which uses the <see cref="EnqueueMissingMeasurementsLogHttpV1.RouteName"/> as the HTTP URI.
-/// <remarks>
-/// A message will be sent for each item in the <paramref name="Data"/> list.
-/// </remarks>
 /// </summary>
 /// <param name="OrchestrationInstanceId"></param>
 /// <param name="Data">The list of dates and metering point id's that are missing data on the given dates.</param>
+/// /// <remarks>
+/// A message will be sent for each item in the <paramref name="Data"/> list. EDI will check idempotency
+/// based on the following properties (if they are equal, no message will be enqueued):
+/// <list type="bullet">
+/// <item><description><see cref="OrchestrationInstanceId"/></description></item>
+/// <item><description><see cref="DateWithMeteringPointId.GridAccessProvider"/></description></item>
+/// <item><description><see cref="DateWithMeteringPointId.Date"/></description></item>
+/// <item><description><see cref="DateWithMeteringPointId.MeteringPointId"/></description></item>
+/// </list>
+/// </remarks>
 public record EnqueueMissingMeasurementsLogHttpV1(
     Guid OrchestrationInstanceId,
     IReadOnlyCollection<EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointId> Data)

@@ -13,14 +13,16 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.MissingMeasurementsLog.V1;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.MissingMeasurementsLogOnDemand.V1;
 
 public class MissingMeasurementsLogOnDemandCalculationScenarioState(
-    StartCalculationCommandV1 startCommand)
+    StartMissingMeasurementsLogOnDemandCalculationCommandV1 startCommand) : IScenarioState
 {
-    public StartCalculationCommandV1 StartCommand { get; } = startCommand;
+    public StartOrchestrationInstanceCommand<UserIdentityDto> StartCommand { get; set; } = startCommand;
 
     public OrchestrationInstanceTypedDto? OrchestrationInstance { get; set; }
 

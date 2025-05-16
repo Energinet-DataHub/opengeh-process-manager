@@ -14,16 +14,14 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.MissingMeasurementsLog.V1;
 
-public class MissingMeasurementsLogCalculationScenarioState(
-    StartMissingMeasurementsLogCalculationCommandV1 startCommand) : IScenarioState
+public interface IScenarioState
 {
-    public StartOrchestrationInstanceCommand<UserIdentityDto> StartCommand { get; set; } = startCommand;
+    StartOrchestrationInstanceCommand<UserIdentityDto> StartCommand { get; set; }
 
-    public OrchestrationInstanceTypedDto? OrchestrationInstance { get; set; }
+    OrchestrationInstanceTypedDto? OrchestrationInstance { get; set; }
 
-    public Guid OrchestrationInstanceId { get; set; }
+    Guid OrchestrationInstanceId { get; set; }
 }

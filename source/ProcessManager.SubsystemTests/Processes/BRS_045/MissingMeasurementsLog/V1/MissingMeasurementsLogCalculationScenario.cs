@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.TestCommon.Xunit.Attributes;
 using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
-using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.MissingMeasurementsLog.V1;
@@ -26,7 +23,7 @@ namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.Miss
     ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
 public class MissingMeasurementsLogCalculationScenario
-    : CalculationScenario, IClassFixture<ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState>>,
+    : CalculationScenario<MissingMeasurementsLogCalculationScenarioState>, IClassFixture<ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState>>,
         IAsyncLifetime
 {
     public MissingMeasurementsLogCalculationScenario(
@@ -36,89 +33,5 @@ public class MissingMeasurementsLogCalculationScenario
     {
         Fixture.TestConfiguration = new MissingMeasurementsLogCalculationScenarioState(
             startCommand: new StartMissingMeasurementsLogCalculationCommandV1(Fixture.UserIdentity));
-    }
-}
-
-public abstract class CalculationScenario()
-{
-    private ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> _fixture;
-
-    protected CalculationScenario(ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> fixture, ITestOutputHelper testOutputHelper)
-        : this()
-    {
-        Fixture = fixture;
-        Fixture.SetTestOutputHelper(testOutputHelper);
-    }
-
-    protected ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> Fixture = _fixture;
-
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task DisposeAsync()
-    {
-        Fixture.SetTestOutputHelper(null);
-        return Task.CompletedTask;
-    }
-
-    [SubsystemFact]
-    [ScenarioStep(1)]
-    public async Task Given_ValidStartElectricalHeatingCalculationCommand()
-    {
-        // Warm up SQL warehouse, so it is ready for the sql queries at the end of the orchestration
-        await Fixture.StartDatabricksSqlWarehouseAsync();
-    }
-
-    [SubsystemFact]
-    [ScenarioStep(2)]
-    public async Task AndGiven_StartNewOrchestrationInstanceIsSent()
-    {
-        var orchestrationInstanceId = await Fixture.ProcessManagerHttpClient.StartNewOrchestrationInstanceAsync(
-            Fixture.TestConfiguration.StartCommand,
-            CancellationToken.None);
-
-        Fixture.TestConfiguration.OrchestrationInstanceId = orchestrationInstanceId;
-    }
-
-    [SubsystemFact]
-    [ScenarioStep(3)]
-    public async Task When_OrchestrationInstanceIsRunning()
-    {
-        Assert.True(Fixture.TestConfiguration.OrchestrationInstanceId != Guid.Empty, "If orchestration instance id wasn't set earlier, end tests early.");
-
-        var (success, orchestrationInstance, _) = await Fixture.WaitForOrchestrationInstanceByIdAsync(
-            orchestrationInstanceId: Fixture.TestConfiguration.OrchestrationInstanceId,
-            orchestrationInstanceState: OrchestrationInstanceLifecycleState.Running);
-
-        Assert.Multiple(
-            () => Assert.True(
-                success,
-                $"An orchestration instance for id \"{Fixture.TestConfiguration.OrchestrationInstanceId}\" should be running."),
-            () => Assert.NotNull(orchestrationInstance));
-
-        Fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
-    }
-
-    [SubsystemFact]
-    [ScenarioStep(4)]
-    public async Task Then_OrchestrationInstanceIsTerminatedWithSuccess()
-    {
-        Assert.True(Fixture.TestConfiguration.OrchestrationInstanceId != Guid.Empty, "If orchestration instance id wasn't set earlier, end tests early.");
-
-        // Wait up to 30 minutes for the orchestration instance to be terminated. If the databricks warehouse
-        // isn't currently running, it takes 5-20 minutes before the databricks query actually starts running.
-        var (success, orchestrationInstance, _) = await Fixture.WaitForOrchestrationInstanceByIdAsync(
-            orchestrationInstanceId: Fixture.TestConfiguration.OrchestrationInstanceId,
-            orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated,
-            timeoutInMinutes: 30);
-
-        Fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
-
-        Assert.Multiple(
-            () => Assert.True(success, "The orchestration instance should be terminated"),
-            () => Assert.Equal(OrchestrationInstanceLifecycleState.Terminated, orchestrationInstance?.Lifecycle.State),
-            () => Assert.Equal(OrchestrationInstanceTerminationState.Succeeded, orchestrationInstance?.Lifecycle.TerminationState));
     }
 }

@@ -27,15 +27,30 @@ namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.Miss
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
 public class MissingMeasurementsLogCalculationScenario
     : CalculationScenario, IClassFixture<ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState>>,
-    IAsyncLifetime
+        IAsyncLifetime
 {
     public MissingMeasurementsLogCalculationScenario(
         ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> fixture,
         ITestOutputHelper testOutputHelper)
-        : base(fixture)
+        : base(fixture, testOutputHelper)
     {
+        Fixture.TestConfiguration = new MissingMeasurementsLogCalculationScenarioState(
+            startCommand: new StartMissingMeasurementsLogCalculationCommandV1(Fixture.UserIdentity));
+    }
+}
+
+public abstract class CalculationScenario()
+{
+    private ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> _fixture;
+
+    protected CalculationScenario(ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> fixture, ITestOutputHelper testOutputHelper)
+        : this()
+    {
+        Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
     }
+
+    protected ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> Fixture = _fixture;
 
     public Task InitializeAsync()
     {
@@ -54,9 +69,17 @@ public class MissingMeasurementsLogCalculationScenario
     {
         // Warm up SQL warehouse, so it is ready for the sql queries at the end of the orchestration
         await Fixture.StartDatabricksSqlWarehouseAsync();
+    }
 
-        Fixture.TestConfiguration = new MissingMeasurementsLogCalculationScenarioState(
-            startCommand: new StartMissingMeasurementsLogCalculationCommandV1(Fixture.UserIdentity));
+    [SubsystemFact]
+    [ScenarioStep(2)]
+    public async Task AndGiven_StartNewOrchestrationInstanceIsSent()
+    {
+        var orchestrationInstanceId = await Fixture.ProcessManagerHttpClient.StartNewOrchestrationInstanceAsync(
+            Fixture.TestConfiguration.StartCommand,
+            CancellationToken.None);
+
+        Fixture.TestConfiguration.OrchestrationInstanceId = orchestrationInstanceId;
     }
 
     [SubsystemFact]
@@ -87,9 +110,9 @@ public class MissingMeasurementsLogCalculationScenario
         // Wait up to 30 minutes for the orchestration instance to be terminated. If the databricks warehouse
         // isn't currently running, it takes 5-20 minutes before the databricks query actually starts running.
         var (success, orchestrationInstance, _) = await Fixture.WaitForOrchestrationInstanceByIdAsync(
-                orchestrationInstanceId: Fixture.TestConfiguration.OrchestrationInstanceId,
-                orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated,
-                timeoutInMinutes: 30);
+            orchestrationInstanceId: Fixture.TestConfiguration.OrchestrationInstanceId,
+            orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated,
+            timeoutInMinutes: 30);
 
         Fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
 
@@ -97,28 +120,5 @@ public class MissingMeasurementsLogCalculationScenario
             () => Assert.True(success, "The orchestration instance should be terminated"),
             () => Assert.Equal(OrchestrationInstanceLifecycleState.Terminated, orchestrationInstance?.Lifecycle.State),
             () => Assert.Equal(OrchestrationInstanceTerminationState.Succeeded, orchestrationInstance?.Lifecycle.TerminationState));
-    }
-}
-
-public abstract class CalculationScenario
-{
-    private readonly ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> _fixture;
-
-    protected CalculationScenario(ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> fixture)
-    {
-        _fixture = fixture;
-    }
-
-    protected ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> Fixture => _fixture;
-
-    [SubsystemFact]
-    [ScenarioStep(2)]
-    public async Task AndGiven_StartNewOrchestrationInstanceIsSent()
-    {
-        var orchestrationInstanceId = await _fixture.ProcessManagerHttpClient.StartNewOrchestrationInstanceAsync(
-            _fixture.TestConfiguration.StartCommand,
-            CancellationToken.None);
-
-        _fixture.TestConfiguration.OrchestrationInstanceId = orchestrationInstanceId;
     }
 }

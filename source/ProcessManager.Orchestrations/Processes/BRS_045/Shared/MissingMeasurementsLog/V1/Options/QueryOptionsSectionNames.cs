@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using NodaTime;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Options;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements.Model;
-
-internal sealed record MissingMeasurementsLogData(
-    string MeteringPointId,
-    Instant Date);
+public static class QueryOptionsSectionNames
+{
+   /// <summary>
+    /// Used to name a query to avoid naming conflicts with other queries.
+    /// </summary>
+    public const string MissingMeasurementsLogQuery = "MissingMeasurementsLogQuery";
+}

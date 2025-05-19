@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
@@ -21,15 +22,19 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 using Point = Energinet.DataHub.Measurements.Contracts.Point;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 
 public class MeasurementsClient(
-    IAzureClientFactory<EventHubProducerClient> eventHubClientFactory)
+    IAzureClientFactory<EventHubProducerClient> eventHubClientFactory,
+    ILogger<MeasurementsClient> logger)
         : IMeasurementsClient
 {
+    private readonly ILogger<MeasurementsClient> _logger = logger;
+
     private readonly EventHubProducerClient _measurementEventHubProducerClient =
         eventHubClientFactory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub);
 
@@ -61,9 +66,11 @@ public class MeasurementsClient(
                     Quality = MeasurementsMapper.Quality.Map(p.Quality),
                 }));
 
+        var stopwatch = Stopwatch.StartNew();
         // Serialize the data to a byte array
         var eventData = new EventData(data.ToByteArray());
         await _measurementEventHubProducerClient.SendAsync([eventData], cancellationToken).ConfigureAwait(false);
+        _logger.LogInformation($"SendAsync to Event Hub took {stopwatch.ElapsedMilliseconds} ms");
     }
 
     private static Timestamp MapDateTime(Instant instant) => Timestamp.FromDateTimeOffset(instant.ToDateTimeOffset());

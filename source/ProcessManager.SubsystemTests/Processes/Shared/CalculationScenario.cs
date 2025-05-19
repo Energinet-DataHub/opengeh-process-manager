@@ -21,8 +21,7 @@ using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared;
 
-public abstract class CalculationScenario<TScenarioState>
-    where TScenarioState : IScenarioState
+public abstract class CalculationScenario
 {
     protected CalculationScenario(ProcessManagerFixture fixture, ITestOutputHelper testOutputHelper)
     {

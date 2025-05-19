@@ -25,7 +25,7 @@ namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.Miss
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
 [CollectionDefinition("Process Manger collection")]
 public class MissingMeasurementsLogCalculationScenario
-    : CalculationScenario<MissingMeasurementsLogCalculationScenarioState>,
+    : CalculationScenario,
         ICollectionFixture<ProcessManagerFixture>,
         IAsyncLifetime
 {

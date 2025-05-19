@@ -96,7 +96,7 @@ public class RequestCalculatedWholesaleServicesScenario :
     {
         var (success, orchestrationInstance, _) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
-                RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
+                RequestCalculatedWholesaleServicesInputV1>(
                     _fixture.TestConfiguration.Request.IdempotencyKey,
                     OrchestrationInstanceLifecycleState.Running);
 

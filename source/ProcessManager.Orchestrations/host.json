@@ -12,7 +12,7 @@
       "maxBatchSize": 300
     },
     "serviceBus": {
-      "maxConcurrentCalls": 80
+      "maxConcurrentCalls": 64
     }
   },
   "logging": {

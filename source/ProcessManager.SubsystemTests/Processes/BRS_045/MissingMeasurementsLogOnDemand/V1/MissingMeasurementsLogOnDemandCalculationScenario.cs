@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Core.TestCommon.Xunit.Attributes;
 using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
-using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.MissingMeasurementsLog.V1;
+using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared;
 using NodaTime;
 using Xunit.Abstractions;
 
@@ -24,19 +25,32 @@ namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.Miss
 [TestCaseOrderer(
     ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
+[CollectionDefinition("Process Manger collection")]
 public class MissingMeasurementsLogOnDemandCalculationScenario
-    : CalculationScenario<MissingMeasurementsLogOnDemandCalculationScenarioState>, IClassFixture<ProcessManagerFixture<MissingMeasurementsLogOnDemandCalculationScenarioState>>,
+    : CalculationScenario<MissingMeasurementsLogOnDemandCalculationScenarioState>,
+        ICollectionFixture<ProcessManagerFixture>,
         IAsyncLifetime
 {
     public MissingMeasurementsLogOnDemandCalculationScenario(
-        ProcessManagerFixture<MissingMeasurementsLogOnDemandCalculationScenarioState> fixture,
+        ProcessManagerFixture fixture,
         ITestOutputHelper testOutputHelper,
         IClock clock)
         : base(fixture, testOutputHelper)
     {
         var periodStart = clock.GetCurrentInstant().ToDateTimeOffset();
         var periodEnd = periodStart.AddDays(1);
+        var gridAreaCodes = new[] { "301" };
+
         Fixture.TestConfiguration = new MissingMeasurementsLogOnDemandCalculationScenarioState(
-            startCommand: new StartMissingMeasurementsLogOnDemandCalculationCommandV1(Fixture.UserIdentity, new CalculationInputV1(periodStart, periodEnd, ["301"])));
+            startCommand: new StartMissingMeasurementsLogOnDemandCalculationCommandV1(
+                Fixture.UserIdentity,
+                new CalculationInputV1(periodStart, periodEnd, gridAreaCodes)));
+    }
+
+    [SubsystemFact]
+    [ScenarioStep(5)]
+    public void AndGiven_Start()
+    {
+        Assert.True(true);
     }
 }

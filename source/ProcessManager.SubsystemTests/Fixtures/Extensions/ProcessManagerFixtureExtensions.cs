@@ -35,8 +35,8 @@ public static class ProcessManagerFixtureExtensions
     public static async Task<(
         bool Success,
         OrchestrationInstanceTypedDto<TInputParameterDto>? OrchestrationInstance,
-        StepInstanceDto? StepInstance)> WaitForOrchestrationInstanceByIdempotencyKeyAsync<TInputParameterDto, TConfiguration>(
-            this ProcessManagerFixture<TConfiguration> fixture,
+        StepInstanceDto? StepInstance)> WaitForOrchestrationInstanceByIdempotencyKeyAsync<TInputParameterDto>(
+            this ProcessManagerFixture fixture,
             string idempotencyKey,
             OrchestrationInstanceLifecycleState? orchestrationInstanceState = null,
             int? stepSequence = null,
@@ -99,8 +99,8 @@ public static class ProcessManagerFixtureExtensions
     public static async Task<(
         bool Success,
         OrchestrationInstanceTypedDto? OrchestrationInstance,
-        StepInstanceDto? StepInstance)> WaitForOrchestrationInstanceByIdAsync<TConfiguration>(
-            this ProcessManagerFixture<TConfiguration> fixture,
+        StepInstanceDto? StepInstance)> WaitForOrchestrationInstanceByIdAsync(
+            this ProcessManagerFixture fixture,
             Guid orchestrationInstanceId,
             OrchestrationInstanceLifecycleState? orchestrationInstanceState = null,
             int? stepSequence = null,
@@ -154,7 +154,7 @@ public static class ProcessManagerFixtureExtensions
     /// It can be used to "warm up" the warehouse for tests to reduce timeouts.
     /// Client documentation: https://github.com/Azure/azure-databricks-client
     /// </summary>
-    public static async Task StartDatabricksSqlWarehouseAsync<TConfiguration>(this ProcessManagerFixture<TConfiguration> fixture)
+    public static async Task StartDatabricksSqlWarehouseAsync(this ProcessManagerFixture fixture)
     {
         using var client = DatabricksClient.CreateClient(
             baseUrl: fixture.Configuration.ProcessManagerDatabricksWorkspaceUrl,

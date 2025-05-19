@@ -26,13 +26,13 @@ namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_021.Elec
     ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
 public class ElectricalHeatingCalculationScenario
-    : IClassFixture<ProcessManagerFixture<ElectricalHeatingCalculationScenarioState>>,
+    : IClassFixture<ProcessManagerFixture>,
     IAsyncLifetime
 {
-    private readonly ProcessManagerFixture<ElectricalHeatingCalculationScenarioState> _fixture;
+    private readonly ProcessManagerFixture _fixture;
 
     public ElectricalHeatingCalculationScenario(
-        ProcessManagerFixture<ElectricalHeatingCalculationScenarioState> fixture,
+        ProcessManagerFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;

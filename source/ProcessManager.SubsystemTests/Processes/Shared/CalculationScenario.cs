@@ -13,23 +13,24 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.TestCommon.Xunit.Attributes;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.MissingMeasurementsLog.V1;
+namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared;
 
-public abstract class CalculationScenario<T>
-    where T : IScenarioState
+public abstract class CalculationScenario<TScenarioState>
+    where TScenarioState : IScenarioState
 {
-    protected CalculationScenario(ProcessManagerFixture<T> fixture, ITestOutputHelper testOutputHelper)
+    protected CalculationScenario(ProcessManagerFixture fixture, ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
     }
 
-    protected ProcessManagerFixture<T> Fixture { get; }
+    protected ProcessManagerFixture Fixture { get; }
 
     public Task InitializeAsync()
     {
@@ -58,7 +59,9 @@ public abstract class CalculationScenario<T>
             Fixture.TestConfiguration.StartCommand,
             CancellationToken.None);
 
-        Fixture.TestConfiguration.OrchestrationInstanceId = orchestrationInstanceId;
+        var localTestConfiguration = Fixture.TestConfiguration;
+        localTestConfiguration.OrchestrationInstanceId = orchestrationInstanceId;
+        Fixture.TestConfiguration = localTestConfiguration;
     }
 
     [SubsystemFact]
@@ -77,7 +80,7 @@ public abstract class CalculationScenario<T>
                 $"An orchestration instance for id \"{Fixture.TestConfiguration.OrchestrationInstanceId}\" should be running."),
             () => Assert.NotNull(orchestrationInstance));
 
-        Fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        UpdateOrchestrationInstanceOnFixture(orchestrationInstance!);
     }
 
     [SubsystemFact]
@@ -93,11 +96,18 @@ public abstract class CalculationScenario<T>
             orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated,
             timeoutInMinutes: 30);
 
-        Fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        UpdateOrchestrationInstanceOnFixture(orchestrationInstance!);
 
         Assert.Multiple(
             () => Assert.True(success, "The orchestration instance should be terminated"),
             () => Assert.Equal(OrchestrationInstanceLifecycleState.Terminated, orchestrationInstance?.Lifecycle.State),
             () => Assert.Equal(OrchestrationInstanceTerminationState.Succeeded, orchestrationInstance?.Lifecycle.TerminationState));
+    }
+
+    private void UpdateOrchestrationInstanceOnFixture(OrchestrationInstanceTypedDto orchestrationInstance)
+    {
+        var localTestConfiguration = Fixture.TestConfiguration;
+        localTestConfiguration.OrchestrationInstance = orchestrationInstance;
+        Fixture.TestConfiguration = localTestConfiguration;
     }
 }

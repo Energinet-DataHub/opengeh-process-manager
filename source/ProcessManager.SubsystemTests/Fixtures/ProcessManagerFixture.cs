@@ -20,13 +20,15 @@ using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 
-public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
+[CollectionDefinition("Process Manger collection")]
+public class ProcessManagerFixture : IAsyncLifetime
 {
     private readonly Guid _subsystemTestUserId = Guid.Parse("00000000-0000-0000-0000-000000000999");
 
@@ -40,8 +42,6 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
 
         var serviceCollection = BuildServices();
         _services = serviceCollection.BuildServiceProvider();
-
-        TestConfiguration = default;
     }
 
     public ProcessManagerSubsystemTestConfiguration Configuration { get; }
@@ -49,7 +49,7 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
     public TestDiagnosticsLogger Logger { get; }
 
     [NotNull]
-    public TConfiguration? TestConfiguration { get; set; }
+    public IScenarioState? TestConfiguration { get; set; }
 
     public IProcessManagerMessageClient ProcessManagerMessageClient => _services.GetRequiredService<IProcessManagerMessageClient>();
 

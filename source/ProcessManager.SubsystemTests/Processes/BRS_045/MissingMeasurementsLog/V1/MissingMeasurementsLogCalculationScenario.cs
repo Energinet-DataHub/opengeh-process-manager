@@ -15,6 +15,7 @@
 using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
+using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.MissingMeasurementsLog.V1;
@@ -22,12 +23,14 @@ namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.Miss
 [TestCaseOrderer(
     ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
+[CollectionDefinition("Process Manger collection")]
 public class MissingMeasurementsLogCalculationScenario
-    : CalculationScenario<MissingMeasurementsLogCalculationScenarioState>, IClassFixture<ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState>>,
+    : CalculationScenario<MissingMeasurementsLogCalculationScenarioState>,
+        ICollectionFixture<ProcessManagerFixture>,
         IAsyncLifetime
 {
     public MissingMeasurementsLogCalculationScenario(
-        ProcessManagerFixture<MissingMeasurementsLogCalculationScenarioState> fixture,
+        ProcessManagerFixture fixture,
         ITestOutputHelper testOutputHelper)
         : base(fixture, testOutputHelper)
     {

@@ -8,8 +8,13 @@
       }
     },
     "eventHub": {
-      "prefetchCount": 500,  
+      "prefetchCount": 500,
       "maxBatchSize": 300
+    },
+    "serviceBus": {
+      "messageHandlerOptions": {
+        "maxConcurrentCalls": 80
+      }
     }
   },
   "logging": {

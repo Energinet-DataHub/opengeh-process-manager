@@ -1,6 +1,6 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 2.2.7
+## Version 2.2.8
 
 - No functional changes.
 

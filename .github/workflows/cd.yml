@@ -42,7 +42,7 @@ jobs:
 
   promote_prerelease_orchestrations:
     needs: changes
-    if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true' }}
+    if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true' || fromJson(needs.changes.outputs.job_context).subsystemtests == 'true' }}
     uses: Energinet-DataHub/.github/.github/workflows/promote-prerelease.yml@v14
     with:
       release_name_prefix: process_manager_orchestrations

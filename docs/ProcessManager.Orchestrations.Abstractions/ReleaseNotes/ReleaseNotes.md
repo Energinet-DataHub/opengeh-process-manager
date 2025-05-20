@@ -4,6 +4,10 @@
 
 - No functional changes.
 
+## Version 2.2.7
+
+- Remove unused property `EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointId.IdempotencyKey`.
+
 ## Version 2.2.6
 
 - Renamed `StartCalculationCommandV1` to `StartMissingMeasurementsLogOnDemandCalculationCommandV1`.

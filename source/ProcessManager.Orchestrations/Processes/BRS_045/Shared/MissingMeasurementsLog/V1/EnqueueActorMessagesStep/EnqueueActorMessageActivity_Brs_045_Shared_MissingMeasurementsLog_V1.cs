@@ -152,7 +152,6 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
         foreach (var date in missingMeasurementsLog.Dates)
         {
             var dateWithMeteringPointId = new EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointId(
-                IdempotencyKey: Guid.NewGuid(), // TODO Mosaic will change this to string later.
                 GridAccessProvider: meteringPointMasterData.First().CurrentGridAccessProvider,
                 GridArea: meteringPointMasterData.First().CurrentGridAreaCode.Value,
                 Date: date.ToDateTimeOffset(),

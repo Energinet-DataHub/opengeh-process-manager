@@ -34,11 +34,8 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
         // Added inputs (parameters) from the HTTP request to the description so that the framework knows that inputs are used.
         description.ParameterDefinition.SetFromType<CalculationInputV1>();
-
         description.AppendStepDescription(CalculationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
-
-        description.IsUnderDevelopment = true;
 
         return description;
     }

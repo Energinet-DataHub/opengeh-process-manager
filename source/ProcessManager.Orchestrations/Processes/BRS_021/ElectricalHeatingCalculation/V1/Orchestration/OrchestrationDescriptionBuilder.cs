@@ -34,11 +34,8 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
         description.RecurringCronExpression = string.Empty;
         // Runs at 04:00 every day
         description.RecurringCronExpression = "0 4 * * *";
-
         description.AppendStepDescription(CalculationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
-
-        description.IsUnderDevelopment = true;
 
         return description;
     }

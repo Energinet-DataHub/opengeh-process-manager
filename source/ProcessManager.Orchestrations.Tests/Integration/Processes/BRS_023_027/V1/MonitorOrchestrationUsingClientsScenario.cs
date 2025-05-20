@@ -25,7 +25,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Azure.Databricks.Client.Models;
@@ -88,7 +87,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
     private ServiceProvider ServiceProvider { get; }
 
-    private IProcessManagerClient ProcessManagerClient { get;  }
+    private IProcessManagerClient ProcessManagerClient { get; }
 
     private IProcessManagerMessageClient ProcessManagerMessageClient { get; }
 

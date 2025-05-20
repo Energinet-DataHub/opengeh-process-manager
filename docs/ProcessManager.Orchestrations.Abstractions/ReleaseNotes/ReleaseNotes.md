@@ -1,5 +1,10 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.3.0
+
+- Add `MissingMeasurementsLogCalculationResultV1`
+- Update `CalculationTypeQueryParameterV1` with `MissingMeasurementsLog`
+
 ## Version 2.2.7
 
 - Remove unused property `EnqueueMissingMeasurementsLogHttpV1.DateWithMeteringPointId.IdempotencyKey`.

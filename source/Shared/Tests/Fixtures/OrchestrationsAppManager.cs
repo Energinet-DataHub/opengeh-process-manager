@@ -358,11 +358,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
             DatabaseManager.ConnectionString);
         // => Authentication
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.ApplicationIdUri)}",
-            AuthenticationOptionsForTests.ApplicationIdUri);
+            $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.ApplicationIdUri)}",
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
-            AuthenticationOptionsForTests.Issuer);
+            $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.Issuer)}",
+            SubsystemAuthenticationOptionsForTests.Issuer);
 
         // => Service Bus
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -406,7 +406,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             MockServer.Url!);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{EnqueueActorMessagesHttpClientOptions.SectionName}__{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}",
-            AuthenticationOptionsForTests.ApplicationIdUri);
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
 
         // => Shared integration event topic
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -545,7 +545,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
             MockServer.Url!);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.ApplicationIdUri)}",
-            AuthenticationOptionsForTests.ApplicationIdUri);
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
 
         // => BRS-026 options
         appHostSettings.ProcessEnvironmentVariables.Add(

@@ -287,11 +287,11 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             DatabaseManager.ConnectionString);
         // => Authentication
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.ApplicationIdUri)}",
-            AuthenticationOptionsForTests.ApplicationIdUri);
+            $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.ApplicationIdUri)}",
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{AuthenticationOptions.SectionName}__{nameof(AuthenticationOptions.Issuer)}",
-            AuthenticationOptionsForTests.Issuer);
+            $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.Issuer)}",
+            SubsystemAuthenticationOptionsForTests.Issuer);
 
         // => Service Bus
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -353,7 +353,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
             MockServer.Url!);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.ApplicationIdUri)}",
-            AuthenticationOptionsForTests.ApplicationIdUri);
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
 
         return appHostSettings;
     }

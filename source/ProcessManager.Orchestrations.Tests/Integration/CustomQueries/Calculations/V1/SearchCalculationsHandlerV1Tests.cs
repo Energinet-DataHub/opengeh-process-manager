@@ -90,6 +90,8 @@ public class SearchCalculationsHandlerV1Tests :
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
+        var missingMeasurementsLog =
+            await SeedDatabaseWithLifecycleDatasetAsync(_missingMeasurementsLogDescriptionBuilder);
 
         // When
         var query = new CalculationsQueryV1(_userIdentity)
@@ -101,10 +103,14 @@ public class SearchCalculationsHandlerV1Tests :
 
         // Assert
         actual.Should()
-            .HaveCount(2)
+            .HaveCount(3)
             .And.Satisfy(
-                result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsRunning.Id.Value,
-                result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value);
+                result => result is ElectricalHeatingCalculationResultV1
+                          && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsRunning.Id.Value,
+                result => result is NetConsumptionCalculationResultV1
+                          && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value,
+                result => result is MissingMeasurementsLogCalculationResultV1
+                          && ((MissingMeasurementsLogCalculationResultV1)result).Id == missingMeasurementsLog.IsRunning.Id.Value);
     }
 
     [Fact]

@@ -52,7 +52,7 @@ jobs:
       project_file: source/ProcessManager/ProcessManager.csproj
 
   ci_orchestrations:
-    if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true' }}
+    if: ${{ fromJson(needs.changes.outputs.job_context).orchestrations == 'true' || fromJson(needs.changes.outputs.job_context).subsystemtests == 'true' }}
     needs: changes
     uses: ./.github/workflows/ci-dotnet.yml
     name: Build Orchestrations

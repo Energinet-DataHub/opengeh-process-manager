@@ -61,6 +61,10 @@ public class SearchCalculationsHandlerV1Tests :
         Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1
         .Orchestration.OrchestrationDescriptionBuilder();
 
+    private readonly IOrchestrationDescriptionBuilder _missingMeasurementsLogDescriptionBuilder = new
+        Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1
+        .Orchestration.OrchestrationDescriptionBuilder();
+
     public SearchCalculationsHandlerV1Tests(ProcessManagerDatabaseFixture fixture)
     {
         _fixture = fixture;
@@ -759,6 +763,7 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
         var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
         var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+        var missingMeasurementsLogInstances = await SeedDatabaseWithLifecycleDatasetAsync(_missingMeasurementsLogDescriptionBuilder);
 
         // When
         var query = new CalculationsQueryV1(_userIdentity)
@@ -803,6 +808,7 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
         var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
         var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+        var missingMeasurementsLogInstances = await SeedDatabaseWithLifecycleDatasetAsync(_missingMeasurementsLogDescriptionBuilder);
 
         // When
         var query = new CalculationsQueryV1(_userIdentity)

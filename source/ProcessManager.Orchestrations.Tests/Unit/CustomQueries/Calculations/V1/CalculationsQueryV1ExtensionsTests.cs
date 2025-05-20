@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.NetConsumptionCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 using FluentAssertions;
 
@@ -101,7 +102,9 @@ public class CalculationsQueryV1ExtensionsTests
             CalculationTypes = [
                 CalculationTypeQueryParameterV1.ElectricalHeating,
                 CalculationTypeQueryParameterV1.CapacitySettlement,
-                CalculationTypeQueryParameterV1.NetConsumption],
+                CalculationTypeQueryParameterV1.NetConsumption,
+                CalculationTypeQueryParameterV1.MissingMeasurementsLog,
+            ],
         };
 
         // When
@@ -112,7 +115,9 @@ public class CalculationsQueryV1ExtensionsTests
             .Contain([
                 Brs_021_ElectricalHeatingCalculation.Name,
                 Brs_021_CapacitySettlementCalculation.Name,
-                Brs_021_NetConsumptionCalculation.Name])
+                Brs_021_NetConsumptionCalculation.Name,
+                Brs_045_MissingMeasurementsLogCalculation.Name,
+            ])
             .And.NotContain([
                 Brs_023_027.Name]);
     }
@@ -173,7 +178,9 @@ public class CalculationsQueryV1ExtensionsTests
                 Brs_023_027.Name])
             .And.NotContain([
                 Brs_021_ElectricalHeatingCalculation.Name,
-                Brs_021_NetConsumptionCalculation.Name]);
+                Brs_021_NetConsumptionCalculation.Name,
+                Brs_045_MissingMeasurementsLogCalculation.Name,
+            ]);
     }
 
     [Fact]
@@ -196,7 +203,9 @@ public class CalculationsQueryV1ExtensionsTests
                 Brs_023_027.Name])
             .And.NotContain([
                 Brs_021_ElectricalHeatingCalculation.Name,
-                Brs_021_NetConsumptionCalculation.Name]);
+                Brs_021_NetConsumptionCalculation.Name,
+                Brs_045_MissingMeasurementsLogCalculation.Name,
+            ]);
     }
 
     private static CalculationTypeQueryParameterV1 GetRandomWholesaleCalculationType()
@@ -205,16 +214,5 @@ public class CalculationsQueryV1ExtensionsTests
     }
 
     private static IReadOnlyCollection<CalculationTypeQueryParameterV1> GetAllCalculationTypes()
-    {
-        return [
-            CalculationTypeQueryParameterV1.BalanceFixing,
-            CalculationTypeQueryParameterV1.Aggregation,
-            CalculationTypeQueryParameterV1.WholesaleFixing,
-            CalculationTypeQueryParameterV1.FirstCorrectionSettlement,
-            CalculationTypeQueryParameterV1.SecondCorrectionSettlement,
-            CalculationTypeQueryParameterV1.ThirdCorrectionSettlement,
-            CalculationTypeQueryParameterV1.ElectricalHeating,
-            CalculationTypeQueryParameterV1.CapacitySettlement,
-            CalculationTypeQueryParameterV1.NetConsumption];
-    }
+        => Enum.GetValues<CalculationTypeQueryParameterV1>();
 }

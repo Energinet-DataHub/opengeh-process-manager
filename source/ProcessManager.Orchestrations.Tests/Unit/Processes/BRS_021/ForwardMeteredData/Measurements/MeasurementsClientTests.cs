@@ -23,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.Measurements;
@@ -33,12 +34,13 @@ public class MeasurementsClientTests
     {
         var eventHubClientFactory = new Mock<IAzureClientFactory<EventHubProducerClient>>();
         EventHubProducerClientMock = new Mock<EventHubProducerClient>();
+        var loggerMock = new Mock<ILogger<MeasurementsClient>>();
 
         eventHubClientFactory
             .Setup(factory => factory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub))
             .Returns(EventHubProducerClientMock.Object);
 
-        Sut = new MeasurementsClient(eventHubClientFactory.Object);
+        Sut = new MeasurementsClient(eventHubClientFactory.Object, loggerMock.Object);
     }
 
     internal Mock<EventHubProducerClient> EventHubProducerClientMock { get; }

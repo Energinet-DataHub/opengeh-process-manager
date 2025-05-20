@@ -41,7 +41,7 @@ public class MissingMeasurementsLogOnDemandCalculationScenario
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;
-        _timeHelper = new TimeHelper(DateTimeZone.Utc);
+        _timeHelper = new TimeHelper(DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
         _fixture.SetTestOutputHelper(testOutputHelper);
     }
 

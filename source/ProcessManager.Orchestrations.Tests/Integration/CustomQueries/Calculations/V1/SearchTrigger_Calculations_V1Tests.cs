@@ -151,6 +151,19 @@ public class SearchTrigger_Calculations_V1Tests : IAsyncLifetime
                     Fixture.DefaultUserIdentity),
                 CancellationToken.None);
 
+        // => Brs 045 Missing Measurements Log
+        // Mocking the databricks api. Forcing it to return a terminated successful job status
+        Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
+            RunLifeCycleState.TERMINATED,
+            "MissingMeasurementsLog");
+        // Start new orchestration instance (we don't have to wait for it, we just need data in the database)
+        await ProcessManagerClient
+            .StartNewOrchestrationInstanceAsync(
+                new Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model.
+                    StartMissingMeasurementsLogCalculationCommandV1(
+                        Fixture.DefaultUserIdentity),
+                CancellationToken.None);
+
         // => Custom query
         var customQuery = new CalculationsQueryV1(Fixture.DefaultUserIdentity)
         {
@@ -176,6 +189,8 @@ public class SearchTrigger_Calculations_V1Tests : IAsyncLifetime
             .And.Contain(x =>
                 x.GetType() == typeof(CapacitySettlementCalculationResultV1))
             .And.Contain(x =>
-                x.GetType() == typeof(NetConsumptionCalculationResultV1));
+                x.GetType() == typeof(NetConsumptionCalculationResultV1))
+            .And.Contain(x =>
+                x.GetType() == typeof(MissingMeasurementsLogCalculationResultV1));
     }
 }

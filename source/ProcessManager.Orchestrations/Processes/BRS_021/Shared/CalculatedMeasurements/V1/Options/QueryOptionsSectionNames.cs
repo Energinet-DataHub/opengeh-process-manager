@@ -16,7 +16,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shar
 
 public static class QueryOptionsSectionNames
 {
-   /// <summary>
+    /// <summary>
     /// Used to name a query to avoid naming conflicts with other queries.
     /// </summary>
     public const string CalculatedMeasurementsQuery = "CalculatedMeasurementsQuery";

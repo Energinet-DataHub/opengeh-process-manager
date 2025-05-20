@@ -35,14 +35,18 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Options;
 using WireMock.Server;
 using Xunit.Abstractions;
+using QueryOptionsSectionNames = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Options.QueryOptionsSectionNames;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
@@ -458,11 +462,65 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
             "20");
+
+        //  => BRS 021 Capacity Settlement options
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1.CalculationJobStatusPollingIntervalInSeconds)}",
+            "3");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1.CalculationJobStatusExpiryTimeInSeconds)}",
+            "20");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_CapacitySettlementCalculation_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
+            "20");
+
+        //  => BRS 021 Net Consumption options
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1.CalculationJobStatusPollingIntervalInSeconds)}",
+            "3");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1.CalculationJobStatusExpiryTimeInSeconds)}",
+            "20");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
+            "20");
+
+        //  => BRS 045 Missing Measurements Log options
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1.CalculationJobStatusPollingIntervalInSeconds)}",
+            "3");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1.CalculationJobStatusExpiryTimeInSeconds)}",
+            "20");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
+            "20");
+
+        //  => BRS 045 Missing Measurements Log On Demand options
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.CalculationJobStatusPollingIntervalInSeconds)}",
+            "3");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.CalculationJobStatusExpiryTimeInSeconds)}",
+            "20");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
+            "20");
+
+        // => Calculated Measurements query options
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{QueryOptionsSectionNames.CalculatedMeasurementsQuery}__{nameof(DatabricksQueryOptions.CatalogName)}",
             "hive_metastore");
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{QueryOptionsSectionNames.CalculatedMeasurementsQuery}__{nameof(DatabricksQueryOptions.DatabaseName)}",
+            "measurements_calculated");
+
+        // => Missing Measurements Log query options
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Options.QueryOptionsSectionNames.MissingMeasurementsLogQuery}__{nameof(DatabricksQueryOptions.CatalogName)}",
+            "hive_metastore");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Options.QueryOptionsSectionNames.MissingMeasurementsLogQuery}__{nameof(DatabricksQueryOptions.DatabaseName)}",
             "measurements_calculated");
 
         // Process Manager Event Hub

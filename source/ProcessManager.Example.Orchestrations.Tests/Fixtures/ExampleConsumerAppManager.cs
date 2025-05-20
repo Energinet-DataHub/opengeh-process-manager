@@ -210,7 +210,7 @@ public class ExampleConsumerAppManager : IAsyncDisposable
         // => Process Manager HTTP client
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}",
-            AuthenticationOptionsForTests.ApplicationIdUri);
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerHttpClientsOptions.SectionName}__{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}",
             processManagerApiUrl);

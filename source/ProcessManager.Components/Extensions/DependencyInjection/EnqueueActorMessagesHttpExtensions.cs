@@ -14,42 +14,35 @@
 
 using Azure.Core;
 using Energinet.DataHub.Core.App.Common.Extensions.Builder;
-using Energinet.DataHub.ProcessManager.Components.Authorization;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 
 public static class EnqueueActorMessagesHttpExtensions
 {
-    public static IServiceCollection AddEnqueueActorMessagesHttp(
-        this IServiceCollection services,
-        TokenCredential credential,
-        IConfiguration configuration)
+    public static IServiceCollection AddEnqueueActorMessagesHttp(this IServiceCollection services, IConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+
         services
             .AddOptions<EnqueueActorMessagesHttpClientOptions>()
             .BindConfiguration(EnqueueActorMessagesHttpClientOptions.SectionName)
             .ValidateDataAnnotations();
 
-        // Copy and paste from the PM-client.
-        // Should be moved to a shared library: #https://app.zenhub.com/workspaces/mosaic-60a6105157304f00119be86e/issues/gh/energinet-datahub/team-mosaic/724
-        services.TryAddSingleton<IAuthorizationHeaderProvider>(sp =>
-        {
-            var options = sp.GetRequiredService<IOptions<EnqueueActorMessagesHttpClientOptions>>().Value;
-            return new AuthorizationHeaderProvider(credential, options.ApplicationIdUri);
-        });
+        services.AddAuthorizationHeaderProvider();
 
         services.AddHttpClient(
             HttpClientNames.EdiEnqueueActorMessagesClientName,
             (sp, httpClient) =>
             {
                 var options = sp.GetRequiredService<IOptions<EnqueueActorMessagesHttpClientOptions>>().Value;
-                ConfigureHttpClient(sp, httpClient, options.BaseUrl);
+                ConfigureHttpClient(sp, httpClient, options.BaseUrl, options.ApplicationIdUri);
             });
 
         services.AddScoped<IEnqueueActorMessagesHttpClient, EnqueueActorMessagesHttpClient>();
@@ -67,11 +60,11 @@ public static class EnqueueActorMessagesHttpExtensions
         return services;
     }
 
-    private static void ConfigureHttpClient(IServiceProvider sp, HttpClient httpClient, string baseAddress)
+    private static void ConfigureHttpClient(IServiceProvider sp, HttpClient httpClient, string baseAddress, string applicationIdUri)
     {
         httpClient.BaseAddress = new Uri(baseAddress);
 
         var headerProvider = sp.GetRequiredService<IAuthorizationHeaderProvider>();
-        httpClient.DefaultRequestHeaders.Authorization = headerProvider.CreateAuthorizationHeader();
+        httpClient.DefaultRequestHeaders.Authorization = headerProvider.CreateAuthorizationHeader(applicationIdUri);
     }
 }

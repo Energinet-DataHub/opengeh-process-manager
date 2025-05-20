@@ -92,7 +92,7 @@ public class ProcessManagerAppFixture : IAsyncLifetime
         ProcessManagerAppManager.SetTestOutputHelper(testOutputHelper);
     }
 
-    public AuthenticationHeaderValue CreateAuthorizationHeader(string applicationIdUri = AuthenticationOptionsForTests.ApplicationIdUri)
+    public AuthenticationHeaderValue CreateAuthorizationHeader(string applicationIdUri = SubsystemAuthenticationOptionsForTests.ApplicationIdUri)
     {
         var tokenResponse = IntegrationTestConfiguration.Credential.GetToken(
             new TokenRequestContext([applicationIdUri]), CancellationToken.None);

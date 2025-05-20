@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.NetConsumptionCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
 
@@ -66,6 +67,8 @@ internal static class CalculationsQueryV1Extensions
                 return Brs_021_CapacitySettlementCalculation.Name;
             case CalculationTypeQueryParameterV1.NetConsumption:
                 return Brs_021_NetConsumptionCalculation.Name;
+            case CalculationTypeQueryParameterV1.MissingMeasurementsLog:
+                return Brs_045_MissingMeasurementsLogCalculation.Name;
             default:
                 return Brs_023_027.Name;
         }

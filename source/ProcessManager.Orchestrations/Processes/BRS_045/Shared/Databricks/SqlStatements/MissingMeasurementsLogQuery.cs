@@ -21,9 +21,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shar
 
 internal class MissingMeasurementsLogQuery(
     ILogger logger,
-    CalculatedMeasurementsSchemaDescription schemaDescription,
+    MissingMeasurementsLogSchemaDescription schemaDescription,
     Guid orchestrationInstanceId) :
-        QueryBase<Model.MissingMeasurementsLog, CalculatedMeasurementsSchemaDescription>(
+        QueryBase<Model.MissingMeasurementsLog, MissingMeasurementsLogSchemaDescription>(
             logger,
             schemaDescription,
             orchestrationInstanceId)

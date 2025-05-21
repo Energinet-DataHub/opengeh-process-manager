@@ -20,4 +20,6 @@ public static class QueryOptionsSectionNames
     /// Used to name a query to avoid naming conflicts with other queries.
     /// </summary>
     public const string MissingMeasurementsLogQuery = "MissingMeasurementsLogQuery";
+
+    public const string Todo = "CalculatedMeasurementsQuery"; // TODO: Remove this when the query is implemented
 }

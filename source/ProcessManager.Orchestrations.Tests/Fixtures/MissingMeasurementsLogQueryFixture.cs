@@ -58,7 +58,7 @@ public class MissingMeasurementsLogQueryFixture : IAsyncLifetime
 
     internal MissingMeasurementsLogQuery CreateSut(Guid orchestrationInstanceId)
     {
-        var schemaDescription = new CalculatedMeasurementsSchemaDescription(_queryOptions);
+        var schemaDescription = new MissingMeasurementsLogSchemaDescription(_queryOptions);
 
         return new MissingMeasurementsLogQuery(
             Mock.Of<ILogger>(),

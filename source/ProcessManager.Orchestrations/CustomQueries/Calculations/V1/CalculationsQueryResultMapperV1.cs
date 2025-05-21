@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.NetConsumptionCalculation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.CustomQueries.Calculations.V1;
@@ -29,7 +30,9 @@ internal static class CalculationsQueryResultMapperV1
         Brs_023_027.Name,
         Brs_021_ElectricalHeatingCalculation.Name,
         Brs_021_CapacitySettlementCalculation.Name,
-        Brs_021_NetConsumptionCalculation.Name];
+        Brs_021_NetConsumptionCalculation.Name,
+        Brs_045_MissingMeasurementsLogCalculation.Name,
+    ];
 
     /// <summary>
     /// Map from an orchestration instance to a concrete result DTO.
@@ -80,6 +83,14 @@ internal static class CalculationsQueryResultMapperV1
                     netConsumption.Lifecycle,
                     netConsumption.Steps,
                     netConsumption.CustomState);
+
+            case Brs_045_MissingMeasurementsLogCalculation.Name:
+                var missingMeasurementsLog = orchestrationInstance.MapToDto();
+                return new MissingMeasurementsLogCalculationResultV1(
+                    missingMeasurementsLog.Id,
+                    missingMeasurementsLog.Lifecycle,
+                    missingMeasurementsLog.Steps,
+                    missingMeasurementsLog.CustomState);
 
             default:
                 throw new InvalidOperationException($"Unsupported unique name '{uniqueName.Name}'.");

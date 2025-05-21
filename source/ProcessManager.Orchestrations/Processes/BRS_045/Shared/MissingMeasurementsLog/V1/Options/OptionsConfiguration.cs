@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Application;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Options;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Options;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Options;
 
 public class OptionsConfiguration : IOptionsConfiguration
 {
@@ -24,6 +27,16 @@ public class OptionsConfiguration : IOptionsConfiguration
         services
             .AddOptions<OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1>()
             .BindConfiguration(OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1.SectionName)
+            .ValidateDataAnnotations();
+
+        services
+            .AddOptions<OrchestrationOptions_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1>()
+            .BindConfiguration(OrchestrationOptions_Brs_045_MissingMeasurementsLogOnDemandCalculation_V1.SectionName)
+            .ValidateDataAnnotations();
+
+        services
+            .AddOptions<DatabricksQueryOptions>(name: QueryOptionsSectionNames.MissingMeasurementsLogQuery)
+            .BindConfiguration(QueryOptionsSectionNames.MissingMeasurementsLogQuery)
             .ValidateDataAnnotations();
 
         return services;

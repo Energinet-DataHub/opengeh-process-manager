@@ -28,11 +28,6 @@ public class OptionsConfiguration : IOptionsConfiguration
             .BindConfiguration(OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.SectionName)
             .ValidateDataAnnotations();
 
-        services
-            .AddOptions<DatabricksQueryOptions>(name: QueryOptionsSectionNames.CalculatedMeasurementsQuery)
-            .BindConfiguration(QueryOptionsSectionNames.CalculatedMeasurementsQuery)
-            .ValidateDataAnnotations();
-
         return services;
     }
 }

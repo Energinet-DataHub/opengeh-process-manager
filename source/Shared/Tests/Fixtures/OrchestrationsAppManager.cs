@@ -696,7 +696,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// </summary>
         private static ProcessManagerStartTopicResources CreateFromTopic(TopicResource topic)
         {
-            var brs021ForwardMeteredDataSubscription = topic.Subscriptions
+            var brs021SendMeasurementsSubscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs021SendMeasurementsSubscriptionName));
 
             var brs023027Subscription = topic.Subscriptions
@@ -710,7 +710,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
             return new ProcessManagerStartTopicResources(
                 StartTopic: topic,
-                Brs021SendMeasurementsSubscription: brs021ForwardMeteredDataSubscription,
+                Brs021SendMeasurementsSubscription: brs021SendMeasurementsSubscription,
                 Brs023027Subscription: brs023027Subscription,
                 Brs026Subscription: brs026Subscription,
                 Brs028Subscription: brs028Subscription);

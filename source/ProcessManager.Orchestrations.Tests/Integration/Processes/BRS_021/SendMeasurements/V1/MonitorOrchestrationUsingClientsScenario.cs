@@ -33,7 +33,6 @@ using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Model;
@@ -43,7 +42,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attri
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -53,7 +51,6 @@ using NodaTime.Serialization.SystemTextJson;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
-
 using ElectricityMarketModels = Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using MeteringPointId = Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model.MeteringPointId;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
@@ -63,7 +60,7 @@ using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.Valu
 using StepInstanceLifecycleState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceLifecycleState;
 using StepInstanceTerminationState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceTerminationState;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.SendMeasurements.V1;
 
 /// <summary>
 /// Test collection that verifies the Process Manager clients can be used to start a

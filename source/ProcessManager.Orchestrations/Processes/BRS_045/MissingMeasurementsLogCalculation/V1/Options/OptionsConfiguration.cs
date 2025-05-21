@@ -15,15 +15,15 @@
 using Energinet.DataHub.ProcessManager.Core.Application;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Options;
 
 public class OptionsConfiguration : IOptionsConfiguration
 {
     public IServiceCollection Configure(IServiceCollection services)
     {
         services
-            .AddOptions<OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1>()
-            .BindConfiguration(OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.SectionName)
+            .AddOptions<OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1>()
+            .BindConfiguration(OrchestrationOptions_Brs_045_MissingMeasurementsLogCalculation_V1.SectionName)
             .ValidateDataAnnotations();
 
         return services;

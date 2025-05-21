@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Microsoft.ApplicationInsights;
 using NodaTime;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Handlers;
 
 public class TerminateForwardMeteredDataHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,

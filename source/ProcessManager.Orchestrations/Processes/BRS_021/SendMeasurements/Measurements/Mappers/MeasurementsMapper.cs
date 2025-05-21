@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using MeasurementTypes = Energinet.DataHub.Measurements.Contracts;
 using PMTypes = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Mappers;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.Measurements.Mappers;
 
 public static class MeasurementsMapper
 {

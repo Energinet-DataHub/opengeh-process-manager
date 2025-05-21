@@ -21,5 +21,6 @@ public static class QueryOptionsSectionNames
     /// </summary>
     public const string MissingMeasurementsLogQuery = "MissingMeasurementsLogQuery";
 
-    public const string Todo = "CalculatedMeasurementsQuery"; // TODO: Remove this when the query is implemented
+    // TODO AJW: Remove when the problem is fixed
+    public const string TempMissingMeasurementsLogQuery = "CalculatedMeasurementsQuery";
 }

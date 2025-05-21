@@ -18,7 +18,6 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
-using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared.V1;
 using Xunit.Abstractions;
 

@@ -17,7 +17,6 @@ using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.Measurements.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.Measurements.Model;

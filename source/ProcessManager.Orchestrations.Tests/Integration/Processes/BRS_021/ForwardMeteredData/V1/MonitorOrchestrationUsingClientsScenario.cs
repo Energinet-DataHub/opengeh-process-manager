@@ -33,7 +33,7 @@ using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Model;
@@ -222,7 +222,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         persistSubmittedTransactionEventFound.Should().BeTrue($"because a {nameof(PersistSubmittedTransaction)} event should have been sent");
 
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
-        var notifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
+        var notifyFromMeasurements = new Brs021SendMeasurementsNotifyV1()
         {
             Version = "v1", // Measurements sends "v1" instead of "1" as version
             OrchestrationInstanceId = orchestrationInstance!.Id.ToString(),
@@ -335,7 +335,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         persistSubmittedTransactionEventFound.Should().BeTrue($"because a {nameof(PersistSubmittedTransaction)} event should have been sent");
 
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
-        var notifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
+        var notifyFromMeasurements = new Brs021SendMeasurementsNotifyV1()
         {
             Version = "v1", // Measurements sends "v1" instead of "1" as version
             OrchestrationInstanceId = orchestrationInstance!.Id.ToString(),
@@ -529,7 +529,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
         var processManagerEventHubProducerClient = eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
 
-        var invalidNotifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
+        var invalidNotifyFromMeasurements = new Brs021SendMeasurementsNotifyV1()
         {
             Version = "invalid-value",
             OrchestrationInstanceId = "not-used",

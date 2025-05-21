@@ -78,7 +78,7 @@ public class SendMeasurementsScenario
                     ActorNumber: _fixture.GridAccessProviderActorIdentity.ActorNumber.Value,
                     ActorRole: _fixture.GridAccessProviderActorIdentity.ActorRole.Name,
                     BusinessReason: BusinessReason.PeriodicMetering.Name,
-                    MeteringPointId: "123456789012345678",
+                    MeteringPointId: "123456789012345678".ToTestMeteringPointId(),
                     MeteringPointType: MeteringPointType.Consumption.Name,
                     ProductNumber: null,
                     MeasureUnit: MeasurementUnit.KilowattHour.Name,

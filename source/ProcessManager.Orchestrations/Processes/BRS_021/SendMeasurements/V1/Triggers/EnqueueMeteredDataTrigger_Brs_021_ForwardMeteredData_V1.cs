@@ -15,7 +15,7 @@
 using Azure.Messaging.EventHubs;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Handlers;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -56,9 +56,9 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var handler = scope.ServiceProvider.GetRequiredService<EnqueueMeasurementsHandlerV1>();
-                var brs021ForwardMeteredDataNotifyVersion = GetBrs021ForwardMeteredDataNotifyVersion(message);
+                var brs021SendMeasurementsNotifyVersion = GetBrs021SendMeasurementsNotifyVersion(message);
 
-                var orchestrationInstanceId = GetOrchestrationInstanceId(message, brs021ForwardMeteredDataNotifyVersion);
+                var orchestrationInstanceId = GetOrchestrationInstanceId(message, brs021SendMeasurementsNotifyVersion);
 
                 _logger.LogInformation("Received notification from Measurements for Orchestration Instance: {OrchestrationInstanceId}", orchestrationInstanceId);
                 await handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
@@ -77,34 +77,34 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
 
     private static OrchestrationInstanceId GetOrchestrationInstanceId(
         EventData message,
-        Brs021ForwardMeteredDataNotifyVersion brs021ForwardMeteredDataNotifyVersion)
+        Brs021SendMeasurementsNotifyVersion brs021SendMeasurementsNotifyVersion)
     {
-        var orchestrationInstanceId = brs021ForwardMeteredDataNotifyVersion.Version switch
+        var orchestrationInstanceId = brs021SendMeasurementsNotifyVersion.Version switch
         {
             "1" or "v1" => HandleV1(message.EventBody),
             _ => throw new ArgumentOutOfRangeException(
-                paramName: nameof(Brs021ForwardMeteredDataNotifyVersion),
-                actualValue: brs021ForwardMeteredDataNotifyVersion.Version,
-                message: $"Unhandled {nameof(Brs021ForwardMeteredDataNotifyVersion)} version."),
+                paramName: nameof(Brs021SendMeasurementsNotifyVersion),
+                actualValue: brs021SendMeasurementsNotifyVersion.Version,
+                message: $"Unhandled {nameof(Brs021SendMeasurementsNotifyVersion)} version."),
         };
         return orchestrationInstanceId;
     }
 
-    private static Brs021ForwardMeteredDataNotifyVersion GetBrs021ForwardMeteredDataNotifyVersion(EventData message)
+    private static Brs021SendMeasurementsNotifyVersion GetBrs021SendMeasurementsNotifyVersion(EventData message)
     {
-        var brs021ForwardMeteredDataNotifyVersion = Brs021ForwardMeteredDataNotifyVersion.Parser.ParseFrom(message.EventBody);
+        var brs021SendMeasurementsNotifyVersion = Brs021SendMeasurementsNotifyVersion.Parser.ParseFrom(message.EventBody);
 
-        if (brs021ForwardMeteredDataNotifyVersion is null)
-            throw new InvalidOperationException($"Failed to deserialize message to {nameof(Brs021ForwardMeteredDataNotifyVersion)}.");
-        return brs021ForwardMeteredDataNotifyVersion;
+        if (brs021SendMeasurementsNotifyVersion is null)
+            throw new InvalidOperationException($"Failed to deserialize message to {nameof(brs021SendMeasurementsNotifyVersion)}.");
+        return brs021SendMeasurementsNotifyVersion;
     }
 
     private static OrchestrationInstanceId HandleV1(BinaryData messageEventBody)
     {
-        var notifyV1 = Brs021ForwardMeteredDataNotifyV1.Parser.ParseFrom(messageEventBody);
+        var notifyV1 = Brs021SendMeasurementsNotifyV1.Parser.ParseFrom(messageEventBody);
 
         if (notifyV1 is null)
-            throw new InvalidOperationException($"Failed to deserialize message to {nameof(Brs021ForwardMeteredDataNotifyV1)}.");
+            throw new InvalidOperationException($"Failed to deserialize message to {nameof(Brs021SendMeasurementsNotifyV1)}.");
 
         return new OrchestrationInstanceId(Guid.Parse(notifyV1.OrchestrationInstanceId));
     }

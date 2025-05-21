@@ -15,7 +15,7 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Model;
 using FluentAssertions;
@@ -31,7 +31,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_QuarterHourlyResolutionWithWrongPeriod_When_Validate_Then_ResidualError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:57Z")
             .WithEndDateTime("2023-01-01T02:53:56Z")
             .WithResolution(Resolution.QuarterHourly.Name)
@@ -71,7 +71,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_QuarterHourlyResolutionWithWrongCount_When_Validate_Then_PositionCountError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")
             .WithEndDateTime("2023-01-01T02:53:56Z")
             .WithResolution(Resolution.QuarterHourly.Name)
@@ -109,7 +109,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_QuarterHourlyResolutionWithCorrectPeriodAndCount_When_Validate_Then_NoValidationError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")
             .WithEndDateTime("2023-01-01T02:53:56Z")
             .WithResolution(Resolution.QuarterHourly.Name)
@@ -147,7 +147,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_MontlyResolutionWithCorrectPeriodBothAtTheEndOfTheMonthAndCount_When_Validate_Then_NoValidationError2()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2025-02-28T23:00:00Z")
             .WithEndDateTime("2025-03-31T22:00:00Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -185,7 +185,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_HourlyResolutionAndWrongPeriod_When_Validate_Then_ResidualError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T17:42:18Z")
             .WithEndDateTime("2023-01-01T19:41:54Z")
             .WithResolution(Resolution.Hourly.Name)
@@ -225,7 +225,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_HourlyResolutionWithWrongCount_When_Validate_Then_CountError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T17:42:18Z")
             .WithEndDateTime("2023-01-01T19:42:18Z")
             .WithResolution(Resolution.Hourly.Name)
@@ -263,7 +263,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_HourlyResolutionWithCorrectPeriodAndCount_When_Validate_Then_NoValidationError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T17:42:18Z")
             .WithEndDateTime("2023-01-01T19:42:18Z")
             .WithResolution(Resolution.Hourly.Name)
@@ -301,7 +301,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_DailyResolutionWithWrongPeriod_When_Validate_Then_ResidualError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T11:02:19Z")
             .WithEndDateTime("2023-01-04T11:02:20Z")
             .WithResolution(Resolution.Daily.Name)
@@ -341,7 +341,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_DailyResolutionWithWrongCount_When_Validate_Then_CountError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T11:02:19Z")
             .WithEndDateTime("2023-01-04T11:02:19Z")
             .WithResolution(Resolution.Daily.Name)
@@ -381,7 +381,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_DailyResolutionWithCorrectPeriodAndCount_When_Validate_Then_NoValidationError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T11:02:19Z")
             .WithEndDateTime("2023-01-04T11:02:19Z")
             .WithResolution(Resolution.Daily.Name)
@@ -420,7 +420,7 @@ public class PositionCountValidationRuleTests
     public async Task
         Given_MonthlyResolutionWithStartOfMonthWhereSecondsMinutesAndHoursDoNotMatch_When_Validate_Then_NoValidationError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T15:18:40Z")
             .WithEndDateTime("2023-03-01T16:19:41Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -459,7 +459,7 @@ public class PositionCountValidationRuleTests
     public async Task
         Given_MonthlyResolutionWithEndOfMonthWhereSecondsMinutesAndHoursDoNotMatch_When_Validate_Then_NoValidationError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-31T23:59:59Z")
             .WithEndDateTime("2023-04-30T23:59:59Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -498,7 +498,7 @@ public class PositionCountValidationRuleTests
     public async Task
         Given_MonthlyResolutionWithMiddleOfMonthWhereSecondsMinutesAndHoursDoNotMatch_When_Validate_Then_NoValidationError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-21T15:18:40Z")
             .WithEndDateTime("2023-03-21T16:19:41Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -536,7 +536,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_MonthlyResolutionWithStartOfMonthWhereDaysDoNotMatch_When_Validate_Then_ResidualError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T15:18:40Z")
             .WithEndDateTime("2023-03-02T15:18:40Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -576,7 +576,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_MonthlyResolutionWithMiddleOfMonthWhereDaysDoMatch_When_Validate_Then_NoValidationError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-15T15:18:40Z")
             .WithEndDateTime("2023-03-15T15:18:40Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -614,7 +614,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_MonthlyResolutionWithEndOfMonthWhereDaysDoNotMatch_When_Validate_Then_ResidualError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-29T15:18:40Z")
             .WithEndDateTime("2023-04-30T15:18:40Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -655,7 +655,7 @@ public class PositionCountValidationRuleTests
     public async Task
         Given_MonthlyResolutionWithEndOfMonthWhereOneDayIsEndOfMonthAndOneIsMiddleOfMonth_When_Validate_Then_NoValidationError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-31T15:18:40Z")
             .WithEndDateTime("2023-04-30T15:18:40Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -693,7 +693,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_MonthlyResolutionWhenMiddleOfMonthWhereDaysDoNotMatch_When_Validate_Then_ResidualError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-15T15:18:40Z")
             .WithEndDateTime("2023-03-16T15:18:40Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -733,7 +733,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_MonthlyResolutionWithStartOfMonthWithWrongCount_When_Validate_Then_CountError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T15:18:40Z")
             .WithEndDateTime("2023-03-01T16:19:41Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -771,7 +771,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_MonthlyResolutionWithMiddleOfMonthWithWrongCount_When_Validate_Then_CountError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-05-17T15:18:40Z")
             .WithEndDateTime("2023-07-17T16:19:41Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -809,7 +809,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_MonthlyResolutionWithEndOfMonthWithWrongCount_When_Validate_Then_CountError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-31T15:18:40Z")
             .WithEndDateTime("2023-04-30T16:19:41Z")
             .WithResolution(Resolution.Monthly.Name)
@@ -847,7 +847,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_PositionsAreShuffledButOtherwiseValid_When_Validate_Then_NoValidationError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")
             .WithEndDateTime("2023-01-01T11:23:56Z")
             .WithResolution(Resolution.Hourly.Name)
@@ -886,7 +886,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_MissingPosition_When_Validate_Then_PositionsNotConsecutiveError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")
             .WithEndDateTime("2023-01-01T11:23:56Z")
             .WithResolution(Resolution.Hourly.Name)
@@ -929,7 +929,7 @@ public class PositionCountValidationRuleTests
     [Fact]
     public async Task Given_APositionIsDuplication_When_Validate_Then_DuplicationAndConsecutiveError()
     {
-        var inputV1 = new ForwardMeteredDataInputV1Builder()
+        var inputV1 = new SendMeasurementsInputV1Builder()
             .WithStartDateTime("2023-01-01T01:23:56Z")
             .WithEndDateTime("2023-01-01T11:23:56Z")
             .WithResolution(Resolution.Hourly.Name)

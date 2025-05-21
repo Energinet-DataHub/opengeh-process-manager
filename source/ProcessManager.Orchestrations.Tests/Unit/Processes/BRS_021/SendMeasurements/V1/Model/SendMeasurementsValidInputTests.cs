@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Model;
 using FluentAssertions;
 
@@ -26,7 +26,7 @@ public class SendMeasurementsValidInputTests
     {
         // Arrange
         const string expectedProductNumber = "8716867000030";
-        var builder = new ForwardMeteredDataInputV1Builder();
+        var builder = new SendMeasurementsInputV1Builder();
 
         var input = builder
             .WithProductNumber(null)
@@ -44,7 +44,7 @@ public class SendMeasurementsValidInputTests
     {
         // Arrange
         var expectedQuantityQuality = Quality.AsProvided;
-        var builder = new ForwardMeteredDataInputV1Builder();
+        var builder = new SendMeasurementsInputV1Builder();
 
         var meteredDataWithNoQualityAndQuantity = new ForwardMeteredDataInputV1.MeteredData("0", null, null);
         var input = builder.WithMeteredData([meteredDataWithNoQualityAndQuantity]).Build();

@@ -47,7 +47,7 @@ public class MeasurementUnitValidationRuleTests
     [Fact]
     public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -62,7 +62,7 @@ public class MeasurementUnitValidationRuleTests
     [MemberData(nameof(ValidMeasurementUnits))]
     public async Task Given_ValidMeasurementUnits_When_Validate_Then_NoValidationError(MeasurementUnit measurementUnit)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithMeasureUnit(measurementUnit.Name)
             .Build();
 
@@ -94,7 +94,7 @@ public class MeasurementUnitValidationRuleTests
     [MemberData(nameof(InvalidMeasurementUnits))]
     public async Task Given_InvalidMeasurementUnits_When_Validate_Then_ValidationError(MeasurementUnit measurementUnit)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithMeasureUnit(measurementUnit.Name)
             .Build();
 
@@ -127,7 +127,7 @@ public class MeasurementUnitValidationRuleTests
     [Fact]
     public async Task Given_MultipleMasterDataWhereMeasurementUnitDoesntMatchOneOfThem_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithMeasureUnit(MeasurementUnit.KilowattHour.Name)
             .Build();
 

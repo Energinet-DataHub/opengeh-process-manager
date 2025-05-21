@@ -58,7 +58,7 @@ public class MeteringPointTypeValidationRuleTests
     [Fact]
     public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -73,7 +73,7 @@ public class MeteringPointTypeValidationRuleTests
     [MemberData(nameof(ValidMeteringPointTypes))]
     public async Task Given_ValidMeteringPointType_When_Validate_Then_NoValidationError(MeteringPointType meteringPointType)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithMeteringPointType(meteringPointType.Name)
             .Build();
 
@@ -104,7 +104,7 @@ public class MeteringPointTypeValidationRuleTests
     [Fact]
     public async Task Given_ChangeBetweenTwoValidMeteringPointTypes_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(new(
@@ -152,7 +152,7 @@ public class MeteringPointTypeValidationRuleTests
     [Fact]
     public async Task Given_IncomingMeteringPointTypeDoesNotMatchMasterDataMeteringPointType_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             // Incoming MeteringPointType
             .WithMeteringPointType("Production")
             .Build();

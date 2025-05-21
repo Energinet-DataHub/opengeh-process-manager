@@ -23,8 +23,8 @@ using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.Measurements.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Model;
@@ -65,8 +65,8 @@ public class StartSendMeasurementsHandlerV1(
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
-        startOrchestrationInstance.OrchestrationVersion == Brs_021_ForwardedMeteredData.V1.Version &&
-        startOrchestrationInstance.OrchestrationName == Brs_021_ForwardedMeteredData.V1.Name;
+        startOrchestrationInstance.OrchestrationVersion == Brs_021_SendMeasurements.V1.Version &&
+        startOrchestrationInstance.OrchestrationName == Brs_021_SendMeasurements.V1.Name;
 
     /// <summary>
     /// This method has multiple commits to the database, to immediately transition lifecycles. This means that
@@ -201,7 +201,7 @@ public class StartSendMeasurementsHandlerV1(
         // Creates an orchestration instance (if it doesn't exist) and transitions it to queued state.
         var orchestrationInstanceId = await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
-                Brs_021_ForwardedMeteredData.V1.MapToDomain(),
+                Brs_021_SendMeasurements.V1.MapToDomain(),
                 input,
                 skipStepsBySequence: [],
                 new IdempotencyKey(idempotencyKey),
@@ -404,7 +404,7 @@ public class StartSendMeasurementsHandlerV1(
         var actorIdentity = ((ActorIdentity)orchestrationInstance.Lifecycle.CreatedBy.Value).Actor;
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-                Brs_021_ForwardedMeteredData.V1,
+                Brs_021_SendMeasurements.V1,
                 orchestrationInstance.Id.Value,
                 new ActorIdentityDto(
                     ActorNumber.Create(actorIdentity.Number.Value),

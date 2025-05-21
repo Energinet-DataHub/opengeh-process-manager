@@ -47,7 +47,7 @@ public class MeteringPointOwnershipValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new SendMeasurementsBusinessValidatedDto(
-                new ForwardMeteredDataInputV1Builder().Build(),
+                new SendMeasurementsInputV1Builder().Build(),
                 []));
 
         result.Should().BeEmpty();
@@ -73,7 +73,7 @@ public class MeteringPointOwnershipValidationRuleTests
             EnergySupplier: ActorNumber.Create("1111111111111"));
         var result = await _sut.ValidateAsync(
             new SendMeasurementsBusinessValidatedDto(
-                new ForwardMeteredDataInputV1Builder().WithGridAccessProviderNumber("9999999999999").Build(),
+                new SendMeasurementsInputV1Builder().WithGridAccessProviderNumber("9999999999999").Build(),
                 MeteringPointMasterData: [
                     new MeteringPointMasterData(
                         MeteringPointId: new MeteringPointId("1"),

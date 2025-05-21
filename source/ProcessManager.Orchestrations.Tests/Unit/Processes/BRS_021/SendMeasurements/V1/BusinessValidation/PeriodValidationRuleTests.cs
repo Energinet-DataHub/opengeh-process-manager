@@ -41,7 +41,7 @@ public class PeriodValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime($"2025-01-01T23:{minutes}:00Z")
                     .WithEndDateTime($"2025-01-31T23:{minutes}:00Z")
                     .WithResolution(Resolution.QuarterHourly.Name)
@@ -56,7 +56,7 @@ public class PeriodValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime("invalid")
                     .Build(),
                 []));
@@ -71,7 +71,7 @@ public class PeriodValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder().WithEndDateTime(endDate).Build(),
+                new SendMeasurementsInputV1Builder().WithEndDateTime(endDate).Build(),
                 []));
 
         result.Should().ContainSingle().And.Contain(PeriodValidationRule.InvalidEndDate);
@@ -82,7 +82,7 @@ public class PeriodValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime("2021-11-30T23:00:00Z")
                     .WithEndDateTime("2021-12-31T23:00:00Z")
                     .Build(),
@@ -97,7 +97,7 @@ public class PeriodValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime("2025-02-01T23:00:00Z")
                     .WithEndDateTime("2025-01-31T23:00:00Z")
                     .Build(),
@@ -114,7 +114,7 @@ public class PeriodValidationRuleTests
 
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime(startWhichIsNotAWholeQuarter.ToString())
                     .WithEndDateTime(startWhichIsNotAWholeQuarter.PlusHours(4).ToString())
                     .WithResolution(Resolution.QuarterHourly.Name)
@@ -136,7 +136,7 @@ public class PeriodValidationRuleTests
 
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime(startWhichIsNotAWholeHour.ToString())
                     .WithEndDateTime(startWhichIsNotAWholeHour.PlusHours(4).ToString())
                     .WithResolution(Resolution.Hourly.Name)
@@ -158,7 +158,7 @@ public class PeriodValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime("2025-03-24T22:00:00Z")
                     .WithEndDateTime("2025-03-25T01:00:00Z")
                     .WithResolution(resolution)
@@ -176,7 +176,7 @@ public class PeriodValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime("2025-03-30T00:00:00Z") // Danish time: 0 -> 1 -> 3 -> 4
                     .WithEndDateTime("2025-03-30T04:00:00Z") // The clock is set 1-hour forward
                     .WithResolution(resolution)
@@ -191,7 +191,7 @@ public class PeriodValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime("2025-02-28T23:00:00Z")
                     .WithEndDateTime("2025-03-31T22:00:00Z")
                     .WithResolution(Resolution.Monthly.Name)
@@ -206,7 +206,7 @@ public class PeriodValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime("2025-06-02T22:00:00Z")
                     .WithEndDateTime("2025-07-02T22:00:00Z")
                     .WithResolution(Resolution.Monthly.Name)
@@ -229,7 +229,7 @@ public class PeriodValidationRuleTests
 
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime(start.ToString())
                     .WithEndDateTime(start.ToString())
                     .WithResolution(Resolution.Monthly.Name)
@@ -246,7 +246,7 @@ public class PeriodValidationRuleTests
     {
         var result = await _sut.ValidateAsync(
             new(
-                new ForwardMeteredDataInputV1Builder()
+                new SendMeasurementsInputV1Builder()
                     .WithStartDateTime("2025-06-30T22:05:00Z")
                     .WithEndDateTime("2025-07-31T22:05:00Z")
                     .WithResolution(Resolution.Monthly.Name)

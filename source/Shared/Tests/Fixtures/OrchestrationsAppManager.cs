@@ -29,7 +29,7 @@ using Energinet.DataHub.ElectricityMarket.Integration.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
@@ -591,7 +591,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             builder
                 .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
-                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_021_ForwardedMeteredData.V1))
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_021_SendMeasurements.V1))
                 .AddSubscription(Brs023027SubscriptionName)
                     .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
                 .AddSubscription(Brs026SubscriptionName)
@@ -677,7 +677,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             builder
                 .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
-                    .AddSubjectFilter(Brs_021_ForwardedMeteredData.Name)
+                    .AddSubjectFilter(Brs_021_SendMeasurements.Name)
                 .AddSubscription(Brs023027SubscriptionName)
                     .AddSubjectFilter(Brs_023_027.Name)
                 .AddSubscription(Brs026SubscriptionName)

@@ -32,7 +32,7 @@ public class ConnectionStateValidationRuleTests
     [InlineData(ConnectionState.New)]
     public async Task Given_ValidateMeteringPointMasterData_When_ConnectionStateIsInvalid_Then_ValidationError(ConnectionState connectionState)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(new(
@@ -82,7 +82,7 @@ public class ConnectionStateValidationRuleTests
     [InlineData(ConnectionState.Disconnected)]
     public async Task Given_ValidateMeteringPointMasterData_When_ConnectionStateIsValid_Then_NoValidationError(ConnectionState connectionState)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -112,7 +112,7 @@ public class ConnectionStateValidationRuleTests
     [Fact]
     public async Task Given_ValidateMeteringPointMasterData_When_NoMasterData_Then_NoValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(

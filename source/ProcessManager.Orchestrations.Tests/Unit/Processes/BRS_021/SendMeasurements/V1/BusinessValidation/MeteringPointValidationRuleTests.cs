@@ -29,7 +29,7 @@ public class MeteringPointValidationRuleTests
     [Fact]
     public async Task Given_MeteringPointMasterData_When_Validate_Then_NoValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -59,7 +59,7 @@ public class MeteringPointValidationRuleTests
     [Fact]
     public async Task Given_NoMeteringPointMasterData_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(

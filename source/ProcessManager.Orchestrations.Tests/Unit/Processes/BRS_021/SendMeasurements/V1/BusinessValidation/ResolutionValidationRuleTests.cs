@@ -29,7 +29,7 @@ public class ResolutionValidationRuleTests
     [Fact]
     public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -45,7 +45,7 @@ public class ResolutionValidationRuleTests
     [InlineData("Hourly")]
     public async Task Given_ResolutionIsValid_When_Validate_Then_NoValidationError(string resolution)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithResolution(resolution)
             .Build();
 
@@ -77,7 +77,7 @@ public class ResolutionValidationRuleTests
     public async Task Given_MonthlyResolutionAndMeteringPointTypeIsVeProduction_When_Validate_Then_NoValidationError()
     {
         var monthlyResolution = Resolution.Monthly;
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithResolution(monthlyResolution.Name)
             .WithMeteringPointType(MeteringPointType.VeProduction.Name)
             .Build();
@@ -110,7 +110,7 @@ public class ResolutionValidationRuleTests
     [InlineData("Daily")]
     public async Task Given_InvalidResolution_When_Validate_Then_ValidationError(string resolution)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithResolution(resolution)
             .Build();
 
@@ -143,7 +143,7 @@ public class ResolutionValidationRuleTests
     public async Task Given_MasterDataHasTwoDifferentResolutions_When_Validate_Then_ValidationError()
     {
         var validResolution = Resolution.QuarterHourly;
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithResolution(validResolution.Name)
             .Build();
 
@@ -192,7 +192,7 @@ public class ResolutionValidationRuleTests
     public async Task Given_ResolutionIsMonthlyAndMasterDataMeteringPointIsNotVeProduction_When_Validate_Then_ValidationError()
     {
         var validResolutionForVeProduction = Resolution.Monthly;
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithMeteringPointType(MeteringPointType.VeProduction.Name)
             .WithResolution(validResolutionForVeProduction.Name)
             .Build();
@@ -227,7 +227,7 @@ public class ResolutionValidationRuleTests
     public async Task Given_ResolutionIsMonthlyAndInputIsNotProduction_When_Validate_Then_ValidationError()
     {
         var validResolutionForVeProduction = Resolution.Monthly;
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             // Not ve production metering point type
             .WithMeteringPointType(MeteringPointType.Consumption.Name)
             .WithResolution(validResolutionForVeProduction.Name)

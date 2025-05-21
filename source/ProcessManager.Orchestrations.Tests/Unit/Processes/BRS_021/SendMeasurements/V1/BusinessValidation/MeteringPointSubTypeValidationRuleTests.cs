@@ -40,7 +40,7 @@ public class MeteringPointSubTypeValidationRuleTests
     [Fact]
     public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -56,7 +56,7 @@ public class MeteringPointSubTypeValidationRuleTests
     public async Task Given_ValidMeteringPointSubTypes_When_Validate_Then_NoValidationError(MeteringPointSubType meteringPointSubType)
     {
         // Metering point subtype is not part of the input, its only part of the master data
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -88,7 +88,7 @@ public class MeteringPointSubTypeValidationRuleTests
     public async Task Given_InvalidMeteringPointSubType_When_Validate_Then_NoValidationError(MeteringPointSubType meteringPointSubType)
     {
         // Metering point subtype is not part of the input, its only part of the master data
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -120,7 +120,7 @@ public class MeteringPointSubTypeValidationRuleTests
     [Fact]
     public async Task Given_DifferentMeteringPointSubTypeFromMasterData_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .Build();
 
         var result = await _sut.ValidateAsync(new(

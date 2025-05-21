@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 
-public static class Brs_021_ForwardedMeteredData
-{
-    public const string Name = "Brs_021_ForwardMeteredData";
-
-    public static OrchestrationDescriptionUniqueNameDto V1 { get; } = new(Name, 1);
-}
+public sealed record MarketActorRecipientV1(ActorNumber ActorNumber, ActorRole ActorRole);

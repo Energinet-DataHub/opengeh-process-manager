@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Model;
 
@@ -47,7 +47,7 @@ public class QuantityQualityValidationRuleTests
     [MemberData(nameof(ValidQualities))]
     public async Task Given_OneMeasurement_AndGiven_ValidQuality_When_Validate_Then_NoValidationErrors(Quality? quality)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithMeteredData(
             [
                 new ForwardMeteredDataInputV1.MeteredData(
@@ -69,7 +69,7 @@ public class QuantityQualityValidationRuleTests
     public async Task Given_MultipleMeasurements_AndGiven_ValidQualities_When_Validate_Then_NoValidationErrors()
     {
         // Input that contains more than one measurement with valid qualities
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithMeteredData(
             [
                 new ForwardMeteredDataInputV1.MeteredData(
@@ -95,7 +95,7 @@ public class QuantityQualityValidationRuleTests
     [MemberData(nameof(InvalidQualities))]
     public async Task Given_OneMeasurement_AndGiven_InvalidQuality_When_Validate_Then_ValidationErrors(Quality? quality)
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithMeteredData(
             [
                 new ForwardMeteredDataInputV1.MeteredData(
@@ -117,7 +117,7 @@ public class QuantityQualityValidationRuleTests
     [Fact]
     public async Task Given_MultipleMeasurements_AndGiven_OneInvalidQuality_When_Validate_Then_ValidationError()
     {
-        var input = new ForwardMeteredDataInputV1Builder()
+        var input = new SendMeasurementsInputV1Builder()
             .WithMeteredData(
             [
                 new ForwardMeteredDataInputV1.MeteredData(

@@ -33,7 +33,7 @@ public class StartOrchestrationInstanceFromMessageHandlerTests
         var startOrchestrationInstance = new StartOrchestrationInstanceV1();
 
         var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
-            subject: "Brs_021_ForwardMeteredData",
+            subject: "Brs_021_SendMeasurements",
             messageId: Guid.NewGuid().ToString(),
             body: new BinaryData(JsonFormatter.Default.Format(startOrchestrationInstance)),
             contentType: "application/json",
@@ -68,7 +68,7 @@ public class StartOrchestrationInstanceFromMessageHandlerTests
         var startOrchestrationInstance = new StartOrchestrationInstanceV1();
 
         var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
-            subject: "Brs_021_ForwardMeteredData",
+            subject: "Brs_021_SendMeasurements",
             messageId: Guid.NewGuid().ToString(),
             body: new BinaryData(JsonFormatter.Default.Format(startOrchestrationInstance)),
             contentType: "application/json",

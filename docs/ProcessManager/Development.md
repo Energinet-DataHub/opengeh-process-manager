@@ -182,7 +182,7 @@ The projects inside solution folder `4. Orchestations` follows a strict folder s
 |   |       └── V1
 |   |           |── Activities
 |   |           |── ...
-|   |           |── Orchestration_Brs_021_ForwardMeteredData_V1.cs
+|   |           |── Orchestration_Brs_021_SendMeasurements_V1.cs
 |   |           └── OrchestrationDescriptionBuilder.cs
 │   └── BRS_XYZ
 |       |── CustomQueries

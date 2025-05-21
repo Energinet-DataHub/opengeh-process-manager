@@ -23,7 +23,7 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Triggers;
 
-public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
+public class TerminateTrigger_Brs_021_SendMeasurements_V1(
     TerminateSendMeasurementsHandlerV1 terminateSendMeasurementsHandlerV1,
     TelemetryClient telemetryClient)
 {
@@ -33,7 +33,7 @@ public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
     /// <summary>
     /// Terminate a BRS-021 ForwardMeteredData.
     /// </summary>
-    [Function(nameof(TerminateTrigger_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(TerminateTrigger_Brs_021_SendMeasurements_V1))]
     public async Task Run(
         [ServiceBusTrigger(
             $"%{Brs021SendMeasurementsTopicOptions.SectionName}:{nameof(Brs021SendMeasurementsTopicOptions.NotifyTopicName)}%",
@@ -44,7 +44,7 @@ public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
         // Tracks structured telemetry data for Application Insights, including request details such as duration, success/failure, and dependencies.
         // Enables distributed tracing, allowing correlation of this request with related telemetry (e.g., dependencies, exceptions, custom metrics) in the same operation.
         // Automatically tracks metrics like request count, duration, and failure rate for RequestTelemetry.
-        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(TerminateTrigger_Brs_021_ForwardMeteredData_V1));
+        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(TerminateTrigger_Brs_021_SendMeasurements_V1));
         try
         {
             var notify = GetNotifyOrchestrationInstanceV1(message);

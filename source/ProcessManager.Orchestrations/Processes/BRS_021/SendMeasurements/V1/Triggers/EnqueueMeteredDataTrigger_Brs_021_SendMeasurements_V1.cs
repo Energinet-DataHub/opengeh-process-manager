@@ -25,19 +25,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Triggers;
 
-public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
+public class EnqueueMeteredDataTrigger_Brs_021_SendMeasurements_V1(
     IServiceScopeFactory serviceScopeFactory,
-    ILogger<EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1> logger,
+    ILogger<EnqueueMeteredDataTrigger_Brs_021_SendMeasurements_V1> logger,
     TelemetryClient telemetryClient)
 {
     private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
-    private readonly ILogger<EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1> _logger = logger;
+    private readonly ILogger<EnqueueMeteredDataTrigger_Brs_021_SendMeasurements_V1> _logger = logger;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
     /// Enqueue Messages for BRS-021.
     /// </summary>
-    [Function(nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1))]
+    [Function(nameof(EnqueueMeteredDataTrigger_Brs_021_SendMeasurements_V1))]
     [ExponentialBackoffRetry(5, "00:00:01", "00:01:00")]
     public async Task Run(
         [EventHubTrigger(
@@ -49,7 +49,7 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
         // Tracks structured telemetry data for Application Insights, including request details such as duration, success/failure, and dependencies.
         // Enables distributed tracing, allowing correlation of this request with related telemetry (e.g., dependencies, exceptions, custom metrics) in the same operation.
         // Automatically tracks metrics like request count, duration, and failure rate for RequestTelemetry.
-        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1));
+        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(EnqueueMeteredDataTrigger_Brs_021_SendMeasurements_V1));
         try
         {
             var tasks = messages.Select(async message =>

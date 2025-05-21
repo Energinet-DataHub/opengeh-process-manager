@@ -13,7 +13,6 @@
     "ServiceBus__FullyQualifiedNamespace": "<Fully qualified namespace to the Service Bus>",
     "ProcessManagerTopic__TopicName": "<PM Service Bus topic name>",
     "ProcessManagerTopic__Brs026SubscriptionName": "<PM Service Bus BRS-026 subscription name>",
-    "ProcessManagerTopic__Brs021ForwardMeteredDataSubscriptionName": "<PM Service Bus BRS-021-ForwardMeteredData subscription name>",
     // Databricks
     "WholesaleWorkspace__BaseUrl": "<Workspace URL>",
     "WholesaleWorkspace__Token": "<Workspace Token>",

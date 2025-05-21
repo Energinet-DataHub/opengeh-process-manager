@@ -125,7 +125,6 @@ public class SearchTrigger_CalculationById_V1Tests : IAsyncLifetime
     /// <summary>
     /// This test proves that we can get "null" return from the custom query, if the type doesn't match supported Calculations.
     /// </summary>
-    [Fact(Skip = "Is there any type we can use for this test now that BRS-045 is supported?")]
     public async Task Given_UnsupportedCalculationOrchestrationInstanceInDatabase_When_QueryById_Then_ReturnsNull()
     {
         // Given
@@ -133,12 +132,18 @@ public class SearchTrigger_CalculationById_V1Tests : IAsyncLifetime
         // Mocking the databricks api. Forcing it to return a terminated successful job status
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             RunLifeCycleState.TERMINATED,
-            "MissingMeasurementsLog");
+            "MissingMeasurementsLogOnDemand");
         // Start new orchestration instance (we don't have to wait for it, we just need data in the database)
         var orchestrationInstanceId = await ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
-                new Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model.StartMissingMeasurementsLogCalculationCommandV1(
-                    Fixture.DefaultUserIdentity),
+                new Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model.
+                    StartMissingMeasurementsLogOnDemandCalculationCommandV1(
+                        Fixture.DefaultUserIdentity,
+                        new Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model.
+                            CalculationInputV1(
+                                new DateTimeOffset(2025, 1, 31, 23, 0, 0, TimeSpan.Zero),
+                                new DateTimeOffset(2025, 2, 28, 23, 0, 0, TimeSpan.Zero),
+                                ["804"])),
                 CancellationToken.None);
 
         // => Custom query

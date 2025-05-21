@@ -61,6 +61,10 @@ public class SearchCalculationsHandlerV1Tests :
         Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1
         .Orchestration.OrchestrationDescriptionBuilder();
 
+    private readonly IOrchestrationDescriptionBuilder _missingMeasurementsLogDescriptionBuilder = new
+        Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1
+        .Orchestration.OrchestrationDescriptionBuilder();
+
     public SearchCalculationsHandlerV1Tests(ProcessManagerDatabaseFixture fixture)
     {
         _fixture = fixture;
@@ -86,6 +90,8 @@ public class SearchCalculationsHandlerV1Tests :
         await SeedDatabaseWithJohnDoeLifecycleDatasetAsync();
         var electricalHeating = await SeedDatabaseWithLifecycleDatasetAsync(_electricalHeatingDescriptionBuilder);
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
+        var missingMeasurementsLog =
+            await SeedDatabaseWithLifecycleDatasetAsync(_missingMeasurementsLogDescriptionBuilder);
 
         // When
         var query = new CalculationsQueryV1(_userIdentity)
@@ -97,10 +103,14 @@ public class SearchCalculationsHandlerV1Tests :
 
         // Assert
         actual.Should()
-            .HaveCount(2)
+            .HaveCount(3)
             .And.Satisfy(
-                result => result is ElectricalHeatingCalculationResultV1 && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsRunning.Id.Value,
-                result => result is NetConsumptionCalculationResultV1 && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value);
+                result => result is ElectricalHeatingCalculationResultV1
+                          && ((ElectricalHeatingCalculationResultV1)result).Id == electricalHeating.IsRunning.Id.Value,
+                result => result is NetConsumptionCalculationResultV1
+                          && ((NetConsumptionCalculationResultV1)result).Id == netConsumption.IsRunning.Id.Value,
+                result => result is MissingMeasurementsLogCalculationResultV1
+                          && ((MissingMeasurementsLogCalculationResultV1)result).Id == missingMeasurementsLog.IsRunning.Id.Value);
     }
 
     [Fact]
@@ -759,6 +769,7 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
         var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
         var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+        var missingMeasurementsLogInstances = await SeedDatabaseWithLifecycleDatasetAsync(_missingMeasurementsLogDescriptionBuilder);
 
         // When
         var query = new CalculationsQueryV1(_userIdentity)
@@ -803,6 +814,7 @@ public class SearchCalculationsHandlerV1Tests :
         var netConsumption = await SeedDatabaseWithLifecycleDatasetAsync(_netConsumptionDescriptionBuilder);
         var capacitySettlementInstances = await SeedDatabaseWithCapacitySettlementCalculationsDatasetAsync();
         var wholesaleInstances = await SeedDatabaseWithWholesaleCalculationsDatasetAsync();
+        var missingMeasurementsLogInstances = await SeedDatabaseWithLifecycleDatasetAsync(_missingMeasurementsLogDescriptionBuilder);
 
         // When
         var query = new CalculationsQueryV1(_userIdentity)

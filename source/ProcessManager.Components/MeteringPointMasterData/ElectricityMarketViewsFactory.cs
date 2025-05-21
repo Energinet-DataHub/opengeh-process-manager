@@ -31,12 +31,12 @@ public class ElectricityMarketViewsFactory(
     private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly ProcessManagerComponentsOptions _options = options.Value;
 
-    public IElectricityMarketViews Create(string meteringPointId)
+    public IElectricityMarketViews Create(MeteringPointIdentification meteringPointId)
     {
         if (!_options.AllowMockDependenciesForTests)
             return _electricityMarketViews;
 
-        return meteringPointId.IsTestMeteringPointId()
+        return meteringPointId.Value.IsTestMeteringPointId()
             ? new ElectricityMarketViewsMock()
             : _electricityMarketViews;
     }

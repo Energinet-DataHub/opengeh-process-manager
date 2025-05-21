@@ -62,9 +62,8 @@ public class MeteringPointMasterDataProvider(
         Instant startDateTime,
         Instant endDateTime)
     {
-        var electricityMarketViews = _electricityMarketViewsFactory.Create(meteringPointId);
-
         var id = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId);
+        var electricityMarketViews = _electricityMarketViewsFactory.Create(id);
 
         IEnumerable<ElectricityMarketModels.MeteringPointMasterData> masterDataChanges;
         ElectricityMarketModels.MeteringPointMasterData currentMasterDataChanges;

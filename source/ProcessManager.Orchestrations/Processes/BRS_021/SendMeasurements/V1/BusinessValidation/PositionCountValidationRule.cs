@@ -21,7 +21,7 @@ using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.BusinessValidation;
 
-public class PositionCountValidationRule : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+public class PositionCountValidationRule : IBusinessValidationRule<SendMeasurementsBusinessValidatedDto>
 {
     public static IList<ValidationError> DuplicatedPositionError(IEnumerable<int> duplicates)
     {
@@ -57,7 +57,7 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
             ErrorCode: "E87"),
     ];
 
-    public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
+    public Task<IList<ValidationError>> ValidateAsync(SendMeasurementsBusinessValidatedDto subject)
     {
         if (subject.Input.EndDateTime is null)
         {

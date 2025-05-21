@@ -58,7 +58,7 @@ public class QuantityQualityValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [])); // Master data is unused in validation rule
 
@@ -84,7 +84,7 @@ public class QuantityQualityValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [])); // Master data is unused in validation rule
 
@@ -106,7 +106,7 @@ public class QuantityQualityValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [])); // Master data is unused in validation rule
 
@@ -136,7 +136,7 @@ public class QuantityQualityValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [])); // Master data is unused in validation rule
 

@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeas
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.BusinessValidation;
 
 public class QuantityValidationRule
-    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+    : IBusinessValidationRule<SendMeasurementsBusinessValidatedDto>
 {
     private const int MaximinNumbersOfIntegers = 10;
     private const int MaximumNumbersOfDecimals = 3;
@@ -41,7 +41,7 @@ public class QuantityValidationRule
 
     private static readonly CultureInfo _culture = CultureInfo.InvariantCulture;
 
-    public Task<IList<ValidationError>> ValidateAsync(ForwardMeteredDataBusinessValidatedDto subject)
+    public Task<IList<ValidationError>> ValidateAsync(SendMeasurementsBusinessValidatedDto subject)
     {
         var errors = new List<ValidationError>();
         var measurements = subject.Input.MeteredDataList;

@@ -18,7 +18,7 @@ syntax = "proto3";
 package google.protobuf;
 
 import "google/protobuf/timestamp.proto";
-import "Processes/BRS_021/ForwardMeteredData/Measurements/Contracts/DecimalValue.proto";
+import "Processes/BRS_021/SendMeasurements/Measurements/Contracts/DecimalValue.proto";
 
 option csharp_namespace = "Energinet.DataHub.Measurements.Contracts";
 

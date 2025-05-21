@@ -19,7 +19,7 @@ using FluentAssertions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
-public class ForwardMeteredDataValidInputTests
+public class SendMeasurementsValidInputTests
 {
     [Fact]
     public void Given_NoProductNumber_When_From_Then_ExpectedProductNumberIsSet()
@@ -33,7 +33,7 @@ public class ForwardMeteredDataValidInputTests
             .Build();
 
         // Act
-        var sut = ForwardMeteredDataValidInput.From(input);
+        var sut = SendMeasurementsValidInput.From(input);
 
         // Assert
         sut.ProductNumber.Should().Be(expectedProductNumber);
@@ -50,7 +50,7 @@ public class ForwardMeteredDataValidInputTests
         var input = builder.WithMeteredData([meteredDataWithNoQualityAndQuantity]).Build();
 
         // Act
-        var sut = ForwardMeteredDataValidInput.From(input);
+        var sut = SendMeasurementsValidInput.From(input);
 
         // Assert
         sut.Measurements.Should().Contain(m =>

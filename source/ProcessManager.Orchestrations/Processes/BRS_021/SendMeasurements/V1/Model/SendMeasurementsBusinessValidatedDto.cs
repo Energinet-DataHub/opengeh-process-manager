@@ -18,6 +18,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Model;
 
-public record ForwardMeteredDataBusinessValidatedDto(
+public record SendMeasurementsBusinessValidatedDto(
     ForwardMeteredDataInputV1 Input,
     IReadOnlyCollection<MeteringPointMasterData> MeteringPointMasterData) : IBusinessValidatedDto;

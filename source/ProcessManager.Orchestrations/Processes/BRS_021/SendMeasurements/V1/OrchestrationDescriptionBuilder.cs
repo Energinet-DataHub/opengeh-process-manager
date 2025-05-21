@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1;
 
 internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
 {
@@ -26,16 +26,13 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
     public const int ForwardToMeasurementsStep = 2;
     public const int FindReceiversStep = 3;
     public const int EnqueueActorMessagesStep = 4;
-    public static readonly OrchestrationDescriptionUniqueNameDto UniqueName = new("Brs_021_ForwardMeteredData", 1);
 
     public OrchestrationDescription Build()
     {
         var orchestrationDescriptionUniqueName = Brs_021_ForwardedMeteredData.V1;
 
         var description = new OrchestrationDescription(
-            uniqueName: new OrchestrationDescriptionUniqueName(
-                orchestrationDescriptionUniqueName.Name,
-                orchestrationDescriptionUniqueName.Version),
+            uniqueName: orchestrationDescriptionUniqueName.MapToDomain(),
             canBeScheduled: false,
             functionName: string.Empty);
 

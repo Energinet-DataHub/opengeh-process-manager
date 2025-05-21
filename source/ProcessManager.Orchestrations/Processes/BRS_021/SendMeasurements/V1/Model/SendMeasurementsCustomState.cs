@@ -19,8 +19,8 @@ using MeteringPointId = Energinet.DataHub.ProcessManager.Components.MeteringPoin
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Model;
 
-public record ForwardMeteredDataCustomStateV2(
-    IReadOnlyCollection<ForwardMeteredDataCustomStateV2.MasterData> HistoricalMeteringPointMasterData)
+public record SendMeasurementsCustomState(
+    IReadOnlyCollection<SendMeasurementsCustomState.MasterData> HistoricalMeteringPointMasterData)
 {
     public enum ConnectionState
     {

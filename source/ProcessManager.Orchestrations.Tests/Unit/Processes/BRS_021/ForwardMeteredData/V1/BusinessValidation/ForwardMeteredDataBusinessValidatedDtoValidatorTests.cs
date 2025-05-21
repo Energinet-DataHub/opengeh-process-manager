@@ -37,7 +37,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     private readonly Mock<IOptions<ProcessManagerComponentsOptions>> _optionsMock = new();
     private readonly DateTimeZone _timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!;
 
-    private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _sut;
+    private readonly BusinessValidator<SendMeasurementsBusinessValidatedDto> _sut;
 
     public ForwardMeteredDataBusinessValidatedDtoValidatorTests()
     {
@@ -60,13 +60,13 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 
         var orchestrationsAssembly = typeof(OrchestrationDescriptionBuilder).Assembly;
         var orchestrationsAbstractionsAssembly =
-            typeof(ForwardMeteredDataBusinessValidatedDto).Assembly;
+            typeof(SendMeasurementsBusinessValidatedDto).Assembly;
         services.AddBusinessValidation(assembliesToScan: [orchestrationsAssembly, orchestrationsAbstractionsAssembly]);
 
         var serviceProvider = services.BuildServiceProvider();
 
         _sut = serviceProvider
-            .GetRequiredService<BusinessValidator<ForwardMeteredDataBusinessValidatedDto>>();
+            .GetRequiredService<BusinessValidator<SendMeasurementsBusinessValidatedDto>>();
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .BuildFromInput(input);
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [
                     meteringPointMasterData,
@@ -102,7 +102,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                 endDateTime: "2025-04-24T13:37Z"); // Master data must have valid end date time
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [
                     meteringPointMasterData,
@@ -120,7 +120,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: []));
 
@@ -142,7 +142,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                 gridAccessProvider: "9999999999999"); // Different owner in master data compared to the input
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [
                     meteringPointMasterData,
@@ -166,7 +166,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                 connectionState: invalidConnectionState);
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [
                     meteringPointMasterData,
@@ -197,7 +197,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .BuildFromInput(input);
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [
                     meteringPointMasterData,
@@ -222,7 +222,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                 meteringPointType: MeteringPointType.Consumption); // Master data must have a valid metering point type
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [
                     meteringPointMasterData,
@@ -251,7 +251,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .BuildFromInput(input);
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [
                     meteringPointMasterData,
@@ -285,7 +285,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .BuildFromInput(input);
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [
                     meteringPointMasterData,
@@ -309,7 +309,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                 meteringPointSubType: invalidMeteringPointSubType);
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [
                     meteringPointMasterData,
@@ -334,7 +334,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
                 measurementUnit: MeasurementUnit.KilowattHour); // Master data must have a valid metering point type
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 Input: input,
                 MeteringPointMasterData: [
                     meteringPointMasterData,

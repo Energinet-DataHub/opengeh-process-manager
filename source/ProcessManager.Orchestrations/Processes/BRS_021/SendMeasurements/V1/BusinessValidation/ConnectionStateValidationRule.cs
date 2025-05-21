@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeas
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.BusinessValidation;
 
 public class ConnectionStateValidationRule
-    : IBusinessValidationRule<ForwardMeteredDataBusinessValidatedDto>
+    : IBusinessValidationRule<SendMeasurementsBusinessValidatedDto>
 {
     public static IList<ValidationError> MeteringPointConnectionStateError => [new(
         Message: "Målepunktet skal have status tilsluttet eller afbrudt/meteringpoint must have status connected or disconnected",
@@ -28,7 +28,7 @@ public class ConnectionStateValidationRule
     private static IList<ValidationError> NoError => [];
 
     public Task<IList<ValidationError>> ValidateAsync(
-        ForwardMeteredDataBusinessValidatedDto subject)
+        SendMeasurementsBusinessValidatedDto subject)
     {
         if (subject.MeteringPointMasterData
             .Any(x => x.ConnectionState != ConnectionState.Connected && x.ConnectionState != ConnectionState.Disconnected))

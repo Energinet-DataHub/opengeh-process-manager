@@ -27,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Send
 /// <summary>
 /// A representation of a valid input for the Forward Metered Data process.
 /// </summary>
-public record ForwardMeteredDataValidInput(
+public record SendMeasurementsValidInput(
     ActorMessageId ActorMessageId,
     TransactionId TransactionId,
     ActorNumber ActorNumber,
@@ -42,10 +42,10 @@ public record ForwardMeteredDataValidInput(
     Instant StartDateTime,
     Instant EndDateTime,
     ActorNumber GridAccessProvider,
-    IReadOnlyCollection<ForwardMeteredDataValidInput.Measurement> Measurements)
+    IReadOnlyCollection<SendMeasurementsValidInput.Measurement> Measurements)
     : IInputParameterDto
 {
-    public static ForwardMeteredDataValidInput From(ForwardMeteredDataInputV1 input)
+    public static SendMeasurementsValidInput From(ForwardMeteredDataInputV1 input)
     {
         const string energyActive = "8716867000030";
 
@@ -60,7 +60,7 @@ public record ForwardMeteredDataValidInput(
         var endDateTime = InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value;
         var registrationDateTime = InstantPatternWithOptionalSeconds.Parse(input.RegistrationDateTime).Value;
 
-        return new ForwardMeteredDataValidInput(
+        return new SendMeasurementsValidInput(
             ActorMessageId: new ActorMessageId(input.ActorMessageId),
             TransactionId: new TransactionId(input.TransactionId),
             ActorNumber: ActorNumber.Create(input.ActorNumber),

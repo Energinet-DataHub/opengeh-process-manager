@@ -44,7 +44,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -84,7 +84,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -122,7 +122,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -160,7 +160,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -198,7 +198,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -238,7 +238,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -276,7 +276,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -314,7 +314,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -354,7 +354,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -394,7 +394,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -433,7 +433,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -472,7 +472,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -511,7 +511,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -549,7 +549,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -589,7 +589,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -627,7 +627,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -668,7 +668,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -706,7 +706,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -746,7 +746,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -784,7 +784,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -822,7 +822,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -861,7 +861,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -904,7 +904,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(
@@ -947,7 +947,7 @@ public class PositionCountValidationRuleTests
             .Build();
 
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 inputV1,
                 [
                     new MeteringPointMasterData(

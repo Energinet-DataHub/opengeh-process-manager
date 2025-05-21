@@ -47,7 +47,7 @@ public class StartSendMeasurementsHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
     IMeasurementsClient measurementsClient,
-    BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
+    BusinessValidator<SendMeasurementsBusinessValidatedDto> validator,
     IMeteringPointMasterDataProvider meteringPointMasterDataProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     DelegationProvider delegationProvider,
@@ -58,7 +58,7 @@ public class StartSendMeasurementsHandlerV1(
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
     private readonly IMeasurementsClient _measurementsClient = measurementsClient;
-    private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
+    private readonly BusinessValidator<SendMeasurementsBusinessValidatedDto> _validator = validator;
     private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly DelegationProvider _delegationProvider = delegationProvider;
@@ -114,8 +114,8 @@ public class StartSendMeasurementsHandlerV1(
                 .ConfigureAwait(false);
 
             orchestrationInstance.CustomState.SetFromInstance(
-                new ForwardMeteredDataCustomStateV2(
-                    HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
+                new SendMeasurementsCustomState(
+                    HistoricalMeteringPointMasterData: SendMeasurementsCustomState.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
@@ -131,7 +131,7 @@ public class StartSendMeasurementsHandlerV1(
         {
             // Perform step: Forward to Measurements
             await ForwardToMeasurements(
-                    ForwardMeteredDataValidInput.From(input),
+                    SendMeasurementsValidInput.From(input),
                     orchestrationInstance)
                 .ConfigureAwait(false);
         }
@@ -201,7 +201,7 @@ public class StartSendMeasurementsHandlerV1(
         // Creates an orchestration instance (if it doesn't exist) and transitions it to queued state.
         var orchestrationInstanceId = await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
-                OrchestrationDescriptionBuilder.UniqueName.MapToDomain(),
+                Brs_021_ForwardedMeteredData.V1.MapToDomain(),
                 input,
                 skipStepsBySequence: [],
                 new IdempotencyKey(idempotencyKey),
@@ -264,7 +264,7 @@ public class StartSendMeasurementsHandlerV1(
         }
 
         // Fetch metering point master data and store received data used to find receiver later in the orchestration
-        var forwardMeteredDataCustomState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
+        var forwardMeteredDataCustomState = orchestrationInstance.CustomState.AsType<SendMeasurementsCustomState>();
 
         var delegationResult = await IsIncomingMeteredDataDelegated(orchestrationInstance, forwardMeteredDataCustomState)
             .ConfigureAwait(false);
@@ -292,7 +292,7 @@ public class StartSendMeasurementsHandlerV1(
         }
 
         var validationErrors = await _validator.ValidateAsync(
-                new ForwardMeteredDataBusinessValidatedDto(
+                new SendMeasurementsBusinessValidatedDto(
                     Input: input,
                     MeteringPointMasterData: forwardMeteredDataCustomState.HistoricalMeteringPointMasterData
                         .Select(mpmd => mpmd.ToMeteringPointMasterData())
@@ -321,7 +321,7 @@ public class StartSendMeasurementsHandlerV1(
 
     private async Task<(bool ShouldBeDelegated, string? DelegatedFromActorNumber)> IsIncomingMeteredDataDelegated(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataCustomStateV2 customState)
+        SendMeasurementsCustomState customState)
     {
         if (customState.HistoricalMeteringPointMasterData.Count == 0)
             return (false, null);
@@ -341,7 +341,7 @@ public class StartSendMeasurementsHandlerV1(
     }
 
     private async Task ForwardToMeasurements(
-        ForwardMeteredDataValidInput input,
+        SendMeasurementsValidInput input,
         OrchestrationInstance orchestrationInstance)
     {
         // Start Step: Forward to Measurements
@@ -404,7 +404,7 @@ public class StartSendMeasurementsHandlerV1(
         var actorIdentity = ((ActorIdentity)orchestrationInstance.Lifecycle.CreatedBy.Value).Actor;
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-                OrchestrationDescriptionBuilder.UniqueName,
+                Brs_021_ForwardedMeteredData.V1,
                 orchestrationInstance.Id.Value,
                 new ActorIdentityDto(
                     ActorNumber.Create(actorIdentity.Number.Value),
@@ -424,7 +424,7 @@ public class StartSendMeasurementsHandlerV1(
 
     private MeasurementsForMeteringPoint MapInputToMeasurements(
         OrchestrationInstanceId orchestrationInstanceId,
-        ForwardMeteredDataValidInput input) =>
+        SendMeasurementsValidInput input) =>
         new(
             OrchestrationId: orchestrationInstanceId.Value.ToString(),
             MeteringPointId: input.MeteringPointId.Value,
@@ -439,7 +439,7 @@ public class StartSendMeasurementsHandlerV1(
                     MapPoints)
                 .ToList());
 
-    private Measurement MapPoints(ForwardMeteredDataValidInput.Measurement measurement)
+    private Measurement MapPoints(SendMeasurementsValidInput.Measurement measurement)
     {
         return new Measurement(
             measurement.Position,

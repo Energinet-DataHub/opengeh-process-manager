@@ -47,7 +47,7 @@ public class MeteringPointOwnershipValidationRuleTests
     public async Task Given_NoMasterData_When_ValidateAsync_Then_NoError()
     {
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 new ForwardMeteredDataInputV1Builder().Build(),
                 []));
 
@@ -73,7 +73,7 @@ public class MeteringPointOwnershipValidationRuleTests
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create("1111111111111"));
         var result = await _sut.ValidateAsync(
-            new ForwardMeteredDataBusinessValidatedDto(
+            new SendMeasurementsBusinessValidatedDto(
                 new ForwardMeteredDataInputV1Builder().WithGridAccessProviderNumber("9999999999999").Build(),
                 MeteringPointMasterData: [
                     new MeteringPointMasterData(

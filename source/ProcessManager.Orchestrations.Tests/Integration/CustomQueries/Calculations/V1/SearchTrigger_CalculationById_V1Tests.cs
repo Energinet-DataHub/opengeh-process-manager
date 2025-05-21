@@ -133,12 +133,18 @@ public class SearchTrigger_CalculationById_V1Tests : IAsyncLifetime
         // Mocking the databricks api. Forcing it to return a terminated successful job status
         Fixture.OrchestrationsAppManager.MockServer.MockDatabricksJobStatusResponse(
             RunLifeCycleState.TERMINATED,
-            "MissingMeasurementsLog");
+            "MissingMeasurementsLogOnDemand");
         // Start new orchestration instance (we don't have to wait for it, we just need data in the database)
         var orchestrationInstanceId = await ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
-                new Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model.StartMissingMeasurementsLogCalculationCommandV1(
-                    Fixture.DefaultUserIdentity),
+                new Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model.
+                    StartMissingMeasurementsLogOnDemandCalculationCommandV1(
+                        Fixture.DefaultUserIdentity,
+                        new Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model.
+                            CalculationInputV1(
+                                new DateTimeOffset(2025, 1, 31, 23, 0, 0, TimeSpan.Zero),
+                                new DateTimeOffset(2025, 2, 28, 23, 0, 0, TimeSpan.Zero),
+                                ["804"])),
                 CancellationToken.None);
 
         // => Custom query

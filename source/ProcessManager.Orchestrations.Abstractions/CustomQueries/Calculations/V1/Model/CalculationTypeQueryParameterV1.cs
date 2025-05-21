@@ -60,4 +60,9 @@ public enum CalculationTypeQueryParameterV1
     /// BRS-021 Net Consumption (Nettoforbrug gruppe 6)
     /// </summary>
     NetConsumption = 8,
+
+    /// <summary>
+    /// BRS-045 Missing measurements (Hullerlog)
+    /// </summary>
+    MissingMeasurementsLog = 9,
 }

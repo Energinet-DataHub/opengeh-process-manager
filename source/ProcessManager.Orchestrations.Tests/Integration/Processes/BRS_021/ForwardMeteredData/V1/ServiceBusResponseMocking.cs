@@ -41,7 +41,7 @@ public static class ServiceBusResponseMocking
                     var body = EnqueueActorMessagesV1
                         .Parser.ParseJson(message.Body.ToString())!;
 
-                    var forwardMeteredDataAcceptedV1 = JsonSerializer.Deserialize<ForwardMeteredDataAcceptedV1>(body.Data);
+                    var forwardMeteredDataAcceptedV1 = JsonSerializer.Deserialize<SendMeasurementsAcceptedV1>(body.Data);
 
                     var messageIdMatches = forwardMeteredDataAcceptedV1?.OriginalActorMessageId == messageId;
                     var orchestrationIdMatches = body.OrchestrationInstanceId == orchestrationInstanceId.ToString();
@@ -53,7 +53,7 @@ public static class ServiceBusResponseMocking
         messageFound.Should().BeTrue("because EDI should have been asked to enqueue messages");
 
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
-            new ForwardMeteredDataNotifyEventV1(
+            new SendMeasurementsNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceId.ToString()),
             CancellationToken.None);
     }

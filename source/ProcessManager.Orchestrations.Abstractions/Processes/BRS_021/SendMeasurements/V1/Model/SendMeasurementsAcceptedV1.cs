@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Abstractions.Client;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 
-public record ForwardMeteredDataNotifyEventV1(
-    string OrchestrationInstanceId)
-    : NotifyOrchestrationInstanceEvent(
-        OrchestrationInstanceId,
-        EventName: OrchestrationInstanceEventName)
-{
-    /// <summary>
-    /// The event name which the orchestration instance expects (is waiting for).
-    /// </summary>
-    public const string OrchestrationInstanceEventName = "EnqueueActorMessagesCompleted";
-
-    public override string SenderClientName => NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender;
-}
+/// <summary>
+/// A model containing the data required for notifying market actors when new metered data has been accepted.
+/// </summary>
+public record SendMeasurementsAcceptedV1(
+    string OriginalActorMessageId,
+    string MeteringPointId,
+    MeteringPointType MeteringPointType,
+    string ProductNumber,
+    DateTimeOffset RegistrationDateTime,
+    DateTimeOffset StartDateTime,
+    DateTimeOffset EndDateTime,
+    IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData,
+    string GridAreaCode)
+        : IEnqueueAcceptedDataDto;

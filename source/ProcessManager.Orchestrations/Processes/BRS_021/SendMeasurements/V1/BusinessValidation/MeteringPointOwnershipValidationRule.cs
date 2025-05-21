@@ -58,7 +58,7 @@ public class MeteringPointOwnershipValidationRule(IOptions<ProcessManagerCompone
         return Task.FromResult(NoError);
     }
 
-    private bool IsPerformanceTest(ForwardMeteredDataInputV1 input)
+    private bool IsPerformanceTest(SendMeasurementsInputV1 input)
     {
         var isInputTest = input.MeteringPointId?.IsPerformanceTestUuid() ?? false;
         return _options.Value.AllowMockDependenciesForTests && isInputTest;

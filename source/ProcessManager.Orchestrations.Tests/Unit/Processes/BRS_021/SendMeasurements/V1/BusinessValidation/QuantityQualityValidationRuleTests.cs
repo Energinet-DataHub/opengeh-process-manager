@@ -50,7 +50,7 @@ public class QuantityQualityValidationRuleTests
         var input = new SendMeasurementsInputV1Builder()
             .WithMeteredData(
             [
-                new ForwardMeteredDataInputV1.MeteredData(
+                new SendMeasurementsInputV1.MeteredData(
                     Position: "1",
                     EnergyQuantity: "1",
                     QuantityQuality: quality?.Name),
@@ -72,11 +72,11 @@ public class QuantityQualityValidationRuleTests
         var input = new SendMeasurementsInputV1Builder()
             .WithMeteredData(
             [
-                new ForwardMeteredDataInputV1.MeteredData(
+                new SendMeasurementsInputV1.MeteredData(
                     Position: "1",
                     EnergyQuantity: "42",
                     QuantityQuality: null), // Valid quality
-                new ForwardMeteredDataInputV1.MeteredData(
+                new SendMeasurementsInputV1.MeteredData(
                     Position: "2",
                     EnergyQuantity: "42",
                     QuantityQuality: Quality.NotAvailable.Name), // Another valid quality
@@ -98,7 +98,7 @@ public class QuantityQualityValidationRuleTests
         var input = new SendMeasurementsInputV1Builder()
             .WithMeteredData(
             [
-                new ForwardMeteredDataInputV1.MeteredData(
+                new SendMeasurementsInputV1.MeteredData(
                     Position: "1",
                     EnergyQuantity: "42",
                     QuantityQuality: quality?.Name),
@@ -120,15 +120,15 @@ public class QuantityQualityValidationRuleTests
         var input = new SendMeasurementsInputV1Builder()
             .WithMeteredData(
             [
-                new ForwardMeteredDataInputV1.MeteredData(
+                new SendMeasurementsInputV1.MeteredData(
                     Position: "1",
                     EnergyQuantity: "42",
                     QuantityQuality: null), // Valid
-                new ForwardMeteredDataInputV1.MeteredData(
+                new SendMeasurementsInputV1.MeteredData(
                     Position: "2",
                     EnergyQuantity: "42",
                     QuantityQuality: null), // Valid
-                new ForwardMeteredDataInputV1.MeteredData(
+                new SendMeasurementsInputV1.MeteredData(
                     Position: "3",
                     EnergyQuantity: "42",
                     QuantityQuality: "invalid-quality"), // Invalid

@@ -46,7 +46,7 @@ public class SendMeasurementsValidInputTests
         var expectedQuantityQuality = Quality.AsProvided;
         var builder = new SendMeasurementsInputV1Builder();
 
-        var meteredDataWithNoQualityAndQuantity = new ForwardMeteredDataInputV1.MeteredData("0", null, null);
+        var meteredDataWithNoQualityAndQuantity = new SendMeasurementsInputV1.MeteredData("0", null, null);
         var input = builder.WithMeteredData([meteredDataWithNoQualityAndQuantity]).Build();
 
         // Act

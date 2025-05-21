@@ -55,7 +55,7 @@ public class EnqueueMeasurementsHandlerV1(
             throw new InvalidOperationException($"Orchestration instance must be running (Id={orchestrationInstance.Id}, State={orchestrationInstance.Lifecycle.State}).");
 
         // only valid data will be enqueued
-        var forwardMeteredDataInput = SendMeasurementsValidInput.From(orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>());
+        var forwardMeteredDataInput = SendMeasurementsValidInput.From(orchestrationInstance.ParameterValue.AsType<SendMeasurementsInputV1>());
 
         await TerminateForwardToMeasurementStep(orchestrationInstance).ConfigureAwait(false);
 
@@ -189,7 +189,7 @@ public class EnqueueMeasurementsHandlerV1(
                            ?? throw new InvalidOperationException($"Grid area code is required to enqueue accepted message with id {orchestrationInstance.Id}");
 
         // Enqueue forward metered data actor messages
-        var data = new ForwardMeteredDataAcceptedV1(
+        var data = new SendMeasurementsAcceptedV1(
             OriginalActorMessageId: sendMeasurementsInput.ActorMessageId.Value,
             MeteringPointId: sendMeasurementsInput.MeteringPointId.Value,
             MeteringPointType: sendMeasurementsInput.MeteringPointType,

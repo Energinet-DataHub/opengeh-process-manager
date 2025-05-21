@@ -12,22 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 
-/// <summary>
-/// A model containing the data required for notifying market actors when new metered data has been accepted.
-/// </summary>
-public record ForwardMeteredDataAcceptedV1(
+public record SendMeasurementsRejectedV1(
     string OriginalActorMessageId,
-    string MeteringPointId,
-    MeteringPointType MeteringPointType,
-    string ProductNumber,
-    DateTimeOffset RegistrationDateTime,
-    DateTimeOffset StartDateTime,
-    DateTimeOffset EndDateTime,
-    IReadOnlyCollection<ReceiversWithMeteredDataV1> ReceiversWithMeteredData,
-    string GridAreaCode)
-        : IEnqueueAcceptedDataDto;
+    string OriginalTransactionId,
+    ActorRole ForwardedForActorRole,
+    BusinessReason BusinessReason,
+    List<ValidationErrorDto> ValidationErrors,
+    string MeteringPointId)
+        : IEnqueueRejectedDataDto;

@@ -52,7 +52,7 @@ public class StartSendMeasurementsHandlerV1(
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     DelegationProvider delegationProvider,
     TelemetryClient telemetryClient)
-    : StartOrchestrationInstanceHandlerBase<ForwardMeteredDataInputV1>(logger)
+    : StartOrchestrationInstanceHandlerBase<SendMeasurementsInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
@@ -75,7 +75,7 @@ public class StartSendMeasurementsHandlerV1(
     /// </summary>
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,
-        ForwardMeteredDataInputV1 input,
+        SendMeasurementsInputV1 input,
         string idempotencyKey,
         string actorMessageId,
         string transactionId,
@@ -103,7 +103,7 @@ public class StartSendMeasurementsHandlerV1(
                 $"Orchestration instance must be running (Id={orchestrationInstance.Id}, State={orchestrationInstance.Lifecycle.State}).");
         }
 
-        var forwardMeteredDataInput = orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>();
+        var forwardMeteredDataInput = orchestrationInstance.ParameterValue.AsType<SendMeasurementsInputV1>();
 
         // Fetch metering point master data and store if needed
         if (orchestrationInstance.CustomState.IsEmpty)
@@ -192,7 +192,7 @@ public class StartSendMeasurementsHandlerV1(
     /// </summary>
     private async Task<OrchestrationInstance> InitializeOrchestrationInstance(
         ActorIdentity actorIdentity,
-        ForwardMeteredDataInputV1 input,
+        SendMeasurementsInputV1 input,
         string idempotencyKey,
         string actorMessageId,
         string transactionId,
@@ -234,7 +234,7 @@ public class StartSendMeasurementsHandlerV1(
     /// </summary>
     private async Task<IReadOnlyCollection<ValidationError>> PerformBusinessValidation(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataInputV1 input)
+        SendMeasurementsInputV1 input)
     {
         var validationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep);
 
@@ -370,7 +370,7 @@ public class StartSendMeasurementsHandlerV1(
 
     private async Task EnqueueRejectedActorMessage(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataInputV1 forwardMeteredDataInput,
+        SendMeasurementsInputV1 sendMeasurementsInput,
         IReadOnlyCollection<ValidationError> validationErrors)
     {
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
@@ -410,15 +410,15 @@ public class StartSendMeasurementsHandlerV1(
                     ActorNumber.Create(actorIdentity.Number.Value),
                     ActorRole.FromName(actorIdentity.Role.Name)),
                 idempotencyKey,
-                new ForwardMeteredDataRejectedV1(
-                    forwardMeteredDataInput.ActorMessageId,
-                    forwardMeteredDataInput.TransactionId,
-                    ForwardedForActorRole: ActorRole.FromName(forwardMeteredDataInput.ActorRole),
-                    BusinessReason.FromName(forwardMeteredDataInput.BusinessReason),
+                new SendMeasurementsRejectedV1(
+                    sendMeasurementsInput.ActorMessageId,
+                    sendMeasurementsInput.TransactionId,
+                    ForwardedForActorRole: ActorRole.FromName(sendMeasurementsInput.ActorRole),
+                    BusinessReason.FromName(sendMeasurementsInput.BusinessReason),
                     validationErrors
                         .Select(e => new ValidationErrorDto(e.Message, e.ErrorCode))
                         .ToList(),
-                    MeteringPointId: forwardMeteredDataInput.MeteringPointId!))
+                    MeteringPointId: sendMeasurementsInput.MeteringPointId!))
             .ConfigureAwait(false);
     }
 

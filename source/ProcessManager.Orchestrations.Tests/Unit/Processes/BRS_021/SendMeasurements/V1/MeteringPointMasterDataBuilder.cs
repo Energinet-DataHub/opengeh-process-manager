@@ -24,7 +24,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.B
 public class MeteringPointMasterDataBuilder
 {
     public MeteringPointMasterData BuildFromInput(
-        ForwardMeteredDataInputV1 input,
+        SendMeasurementsInputV1 input,
         MeteringPointSubType? meteringPointSubType = null,
         MeasurementUnit? measurementUnit = null,
         string? gridAccessProvider = null,

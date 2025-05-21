@@ -186,7 +186,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .WithStartDateTime("2024-04-24T22:00:00Z")
             .WithEndDateTime("2024-04-25T22:00:00Z")
             .WithMeteredData([
-                new ForwardMeteredDataInputV1.MeteredData(
+                new SendMeasurementsInputV1.MeteredData(
                     Position: "1",
                     EnergyQuantity: "42",
                     QuantityQuality: null),
@@ -240,7 +240,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .WithStartDateTime("2024-04-24T22:00:00Z")
             .WithEndDateTime("2024-04-25T02:00:00Z") // 4 hours should contain 4 * 4 = 16 positions
             .WithMeteredData([
-                new ForwardMeteredDataInputV1.MeteredData(
+                new SendMeasurementsInputV1.MeteredData(
                     Position: "1",
                     EnergyQuantity: "42",
                     QuantityQuality: null),
@@ -274,7 +274,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
             .WithEndDateTime(start.PlusHours(periodLengthInHours).ToString())
             .WithMeteredData(
                     Enumerable.Range(1, periodLengthInHours).Select(i =>
-                    new ForwardMeteredDataInputV1.MeteredData(
+                    new SendMeasurementsInputV1.MeteredData(
                         Position: i.ToString(),
                         EnergyQuantity: "42",
                         QuantityQuality: "invalid-quality"))

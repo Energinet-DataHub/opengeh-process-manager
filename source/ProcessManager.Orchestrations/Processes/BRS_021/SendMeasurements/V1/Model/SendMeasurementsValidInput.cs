@@ -45,7 +45,7 @@ public record SendMeasurementsValidInput(
     IReadOnlyCollection<SendMeasurementsValidInput.Measurement> Measurements)
     : IInputParameterDto
 {
-    public static SendMeasurementsValidInput From(ForwardMeteredDataInputV1 input)
+    public static SendMeasurementsValidInput From(SendMeasurementsInputV1 input)
     {
         const string energyActive = "8716867000030";
 

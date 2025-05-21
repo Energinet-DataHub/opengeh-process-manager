@@ -26,7 +26,7 @@ public class QuantityValidationRuleTests
     [Fact]
     public async Task Given_GoodValidQuantities_When_ValidateAsync_Then_NoError()
     {
-        var meteredData = new List<ForwardMeteredDataInputV1.MeteredData>
+        var meteredData = new List<SendMeasurementsInputV1.MeteredData>
         {
             CreateMeteredData(position: 1, quantity: "0.123"),
             CreateMeteredData(position: 2, quantity: "0.000"),
@@ -49,7 +49,7 @@ public class QuantityValidationRuleTests
     [Fact]
     public async Task Given_NegativeQuantity_When_ValidateAsync_Then_Error()
     {
-        var meteredData = new List<ForwardMeteredDataInputV1.MeteredData>
+        var meteredData = new List<SendMeasurementsInputV1.MeteredData>
         {
             CreateMeteredData(position: 1, quantity: "-1"),
         };
@@ -68,7 +68,7 @@ public class QuantityValidationRuleTests
     [Fact]
     public async Task Given_QuantityWith4Decimals_When_ValidateAsync_Then_Error()
     {
-        var meteredData = new List<ForwardMeteredDataInputV1.MeteredData>
+        var meteredData = new List<SendMeasurementsInputV1.MeteredData>
         {
             CreateMeteredData(position: 1, quantity: "0.1234"),
         };
@@ -87,7 +87,7 @@ public class QuantityValidationRuleTests
     [Fact]
     public async Task Given_QuantityWith11Integers_When_ValidateAsync_Then_Error()
     {
-        var meteredData = new List<ForwardMeteredDataInputV1.MeteredData>
+        var meteredData = new List<SendMeasurementsInputV1.MeteredData>
         {
             CreateMeteredData(position: 1, quantity: "12345678901"),
         };
@@ -106,7 +106,7 @@ public class QuantityValidationRuleTests
     [Fact]
     public async Task Given_AllQuantityErrors_when_ValidateAsync_Then_Errors()
     {
-        var meteredData = new List<ForwardMeteredDataInputV1.MeteredData>
+        var meteredData = new List<SendMeasurementsInputV1.MeteredData>
         {
             CreateMeteredData(position: 1, quantity: "12345678901.0003"), // 11 integers and 4 decimals
             CreateMeteredData(position: 2, quantity: "asd"), // Not a decimal
@@ -130,7 +130,7 @@ public class QuantityValidationRuleTests
                 ]);
     }
 
-    private ForwardMeteredDataInputV1.MeteredData CreateMeteredData(int position, string? quantity)
+    private SendMeasurementsInputV1.MeteredData CreateMeteredData(int position, string? quantity)
     {
         return new(
             EnergyQuantity: quantity,

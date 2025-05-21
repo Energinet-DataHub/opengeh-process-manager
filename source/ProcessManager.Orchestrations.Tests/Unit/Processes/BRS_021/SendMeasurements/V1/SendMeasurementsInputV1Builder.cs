@@ -37,11 +37,11 @@ public class SendMeasurementsInputV1Builder
     private string? _endDateTime = "2025-01-31T23:00:00Z"; // Seconds are optional, so we test with and without them.
     private string _gridAccessProviderNumber = ActorNumber;
 
-    private IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> _meteredData =
+    private IReadOnlyCollection<SendMeasurementsInputV1.MeteredData> _meteredData =
     [
         .. Enumerable.Range(1, 744)
             .Select(
-                i => new ForwardMeteredDataInputV1.MeteredData(
+                i => new SendMeasurementsInputV1.MeteredData(
                     Position: i.ToString(),
                     "1024",
                     Quality.AsProvided.Name)),
@@ -137,15 +137,15 @@ public class SendMeasurementsInputV1Builder
     }
 
     public SendMeasurementsInputV1Builder WithMeteredData(
-        IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> meteredData)
+        IReadOnlyCollection<SendMeasurementsInputV1.MeteredData> meteredData)
     {
         _meteredData = meteredData;
         return this;
     }
 
-    public ForwardMeteredDataInputV1 Build()
+    public SendMeasurementsInputV1 Build()
     {
-        return new ForwardMeteredDataInputV1(
+        return new SendMeasurementsInputV1(
             ActorMessageId: _actorMessageId,
             TransactionId: _transactionId,
             ActorNumber: _actorNumber,

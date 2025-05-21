@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Client;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 
-public record ForwardMeteredDataRejectedV1(
-    string OriginalActorMessageId,
-    string OriginalTransactionId,
-    ActorRole ForwardedForActorRole,
-    BusinessReason BusinessReason,
-    List<ValidationErrorDto> ValidationErrors,
-    string MeteringPointId)
-        : IEnqueueRejectedDataDto;
+public record SendMeasurementsNotifyEventV1(
+    string OrchestrationInstanceId)
+    : NotifyOrchestrationInstanceEvent(
+        OrchestrationInstanceId,
+        EventName: OrchestrationInstanceEventName)
+{
+    /// <summary>
+    /// The event name which the orchestration instance expects (is waiting for).
+    /// </summary>
+    public const string OrchestrationInstanceEventName = "EnqueueActorMessagesCompleted";
+
+    public override string SenderClientName => NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender;
+}

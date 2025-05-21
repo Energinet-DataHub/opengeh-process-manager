@@ -34,13 +34,12 @@ public class MeasurementsClientTests
     {
         var eventHubClientFactory = new Mock<IAzureClientFactory<EventHubProducerClient>>();
         EventHubProducerClientMock = new Mock<EventHubProducerClient>();
-        var loggerMock = new Mock<ILogger<MeasurementsClient>>();
 
         eventHubClientFactory
             .Setup(factory => factory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub))
             .Returns(EventHubProducerClientMock.Object);
 
-        Sut = new MeasurementsClient(eventHubClientFactory.Object, loggerMock.Object);
+        Sut = new MeasurementsClient(eventHubClientFactory.Object);
     }
 
     internal Mock<EventHubProducerClient> EventHubProducerClientMock { get; }

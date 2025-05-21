@@ -19,7 +19,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Handlers;
 
-public class TerminateForwardMeteredDataHandlerV1(
+public class TerminateSendMeasurementsHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
     TelemetryClient telemetryClient)

@@ -41,8 +41,8 @@ using StepInstanceTerminationState =
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.Handlers;
 
-public class StartForwardMeteredDataHandlerV1(
-    ILogger<StartForwardMeteredDataHandlerV1> logger,
+public class StartSendMeasurementsHandlerV1(
+    ILogger<StartSendMeasurementsHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands,
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,

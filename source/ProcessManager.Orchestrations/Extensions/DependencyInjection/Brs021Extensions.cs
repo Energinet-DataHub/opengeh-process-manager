@@ -34,7 +34,7 @@ public static class Brs021Extensions
 
         // Used by BRS-021 ForwardMeteredData process
         services.AddScoped<DelegationProvider>();
-        services.AddScoped<TerminateForwardMeteredDataHandlerV1>();
+        services.AddScoped<TerminateSendMeasurementsHandlerV1>();
         services.AddScoped<EnqueueMeasurementsHandlerV1>();
 
         return services;

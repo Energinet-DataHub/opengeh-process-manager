@@ -125,6 +125,7 @@ public class SearchTrigger_CalculationById_V1Tests : IAsyncLifetime
     /// <summary>
     /// This test proves that we can get "null" return from the custom query, if the type doesn't match supported Calculations.
     /// </summary>
+    [Fact]
     public async Task Given_UnsupportedCalculationOrchestrationInstanceInDatabase_When_QueryById_Then_ReturnsNull()
     {
         // Given

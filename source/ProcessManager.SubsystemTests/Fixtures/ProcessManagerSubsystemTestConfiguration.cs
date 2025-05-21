@@ -25,6 +25,9 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
         EnergySupplierActorNumber = Root.GetValue<string>("ENERGY_SUPPLIER_ACTOR_NUMBER")
             ?? throw new ArgumentNullException(nameof(EnergySupplierActorNumber), $"Missing configuration value for ENERGY_SUPPLIER_ACTOR_NUMBER");
 
+        GridAccessProviderActorNumber = Root.GetValue<string>("GRID_ACCESS_PROVIDER_ACTOR_NUMBER")
+            ?? throw new ArgumentNullException(nameof(GridAccessProviderActorNumber), $"Missing configuration value for GRID_ACCESS_PROVIDER_ACTOR_NUMBER");
+
         var sharedKeyVaultName = Root.GetValue<string>("SHARED_KEYVAULT_NAME")
                                 ?? throw new NullReferenceException($"Missing configuration value for SHARED_KEYVAULT_NAME");
 
@@ -72,6 +75,8 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
     }
 
     public string EnergySupplierActorNumber { get; }
+
+    public string GridAccessProviderActorNumber { get; }
 
     public string ServiceBusNamespace { get; }
 

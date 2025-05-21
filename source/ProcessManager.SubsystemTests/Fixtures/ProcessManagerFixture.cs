@@ -59,7 +59,13 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
     public ActorIdentityDto? EnergySupplierActorIdentity { get; private set; }
 
     [NotNull]
-    public UserIdentityDto? UserIdentity { get; private set; }
+    public UserIdentityDto? EnergySupplierUserIdentity { get; private set; }
+
+    [NotNull]
+    public ActorIdentityDto? GridAccessProviderActorIdentity { get; private set; }
+
+    [NotNull]
+    public UserIdentityDto? GridAccessProviderUserIdentity { get; private set; }
 
     public async Task InitializeAsync()
     {
@@ -67,10 +73,19 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
             ActorNumber.Create(Configuration.EnergySupplierActorNumber),
             ActorRole.EnergySupplier);
 
-        UserIdentity = new UserIdentityDto(
+        EnergySupplierUserIdentity = new UserIdentityDto(
             UserId: _subsystemTestUserId,
             ActorNumber: EnergySupplierActorIdentity.ActorNumber,
             ActorRole: EnergySupplierActorIdentity.ActorRole);
+
+        GridAccessProviderActorIdentity = new ActorIdentityDto(
+            ActorNumber.Create(Configuration.GridAccessProviderActorNumber),
+            ActorRole.GridAccessProvider);
+
+        GridAccessProviderUserIdentity = new UserIdentityDto(
+            UserId: _subsystemTestUserId,
+            ActorNumber: GridAccessProviderActorIdentity.ActorNumber,
+            ActorRole: GridAccessProviderActorIdentity.ActorRole);
 
         await Task.CompletedTask;
     }

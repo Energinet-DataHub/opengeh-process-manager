@@ -13,12 +13,12 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_021.SendMeasurements.V1;
 
 public record SendMeasurementsScenarioState(
-    SendMeasurementsCommandV1 Command)
+    ForwardMeteredDataCommandV1 Command)
 {
-    public OrchestrationInstanceTypedDto<SendMeasurementsInputV1>? OrchestrationInstance { get; set; }
+    public OrchestrationInstanceTypedDto<ForwardMeteredDataInputV1>? OrchestrationInstance { get; set; }
 }

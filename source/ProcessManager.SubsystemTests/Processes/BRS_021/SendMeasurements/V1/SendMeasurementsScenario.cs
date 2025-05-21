@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Messaging.EventHubs;
 using Energinet.DataHub.Core.TestCommon.Xunit.Attributes;
 using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions;
-using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Extensions;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
-using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_026_028.BRS_026.V1;
+using Google.Protobuf;
 using NodaTime;
 using NodaTime.Text;
 using Xunit.Abstractions;
@@ -70,9 +70,9 @@ public class SendMeasurementsScenario
         var actorMessageId = Guid.NewGuid().ToTestMessageUuid();
         var transactionId = Guid.NewGuid().ToTestMessageUuid();
         _fixture.TestConfiguration = new SendMeasurementsScenarioState(
-            Command: new SendMeasurementsCommandV1(
+            Command: new ForwardMeteredDataCommandV1(
                 operatingIdentity: _fixture.GridAccessProviderActorIdentity,
-                inputParameter: new SendMeasurementsInputV1(
+                inputParameter: new ForwardMeteredDataInputV1(
                     ActorMessageId: actorMessageId,
                     TransactionId: transactionId,
                     ActorNumber: _fixture.GridAccessProviderActorIdentity.ActorNumber.Value,
@@ -89,7 +89,7 @@ public class SendMeasurementsScenario
                     GridAccessProviderNumber: _fixture.GridAccessProviderActorIdentity.ActorNumber.Value,
                     MeteredDataList: Enumerable.Range(0, numberOfMeasurements)
                         .Select(
-                            i => new SendMeasurementsInputV1.MeteredData(
+                            i => new ForwardMeteredDataInputV1.MeteredData(
                                 Position: (i + 1).ToString(), // Position is 1 based
                                 EnergyQuantity: "42.0",
                                 QuantityQuality: Quality.AsProvided.Name))
@@ -112,7 +112,7 @@ public class SendMeasurementsScenario
     {
         var (success, orchestrationInstance, _) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
-                SendMeasurementsInputV1, SendMeasurementsScenarioState>(
+                ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
                 _fixture.TestConfiguration.Command.IdempotencyKey,
                 OrchestrationInstanceLifecycleState.Running);
 
@@ -133,9 +133,9 @@ public class SendMeasurementsScenario
 
         var (success, orchestrationInstance, businessValidationStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
-                SendMeasurementsInputV1, SendMeasurementsScenarioState>(
+                ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
                 idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
-                stepSequence: Orchestrations.Processes.BRS_021.SendMeasurements.V1.OrchestrationDescriptionBuilder.BusinessValidationStep,
+                stepSequence: Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.OrchestrationDescriptionBuilder.BusinessValidationStep,
                 stepState: StepInstanceLifecycleState.Terminated);
 
         _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
@@ -147,5 +147,127 @@ public class SendMeasurementsScenario
             () => Assert.True(success, $"Business validation step should be terminated."),
             () => Assert.Equal(StepInstanceLifecycleState.Terminated, businessValidationStep?.Lifecycle.State),
             () => Assert.Equal(StepInstanceTerminationState.Succeeded, businessValidationStep?.Lifecycle.TerminationState));
+    }
+
+    [SubsystemFact]
+    [ScenarioStep(5)]
+    public async Task AndThen_MeasurementsAreSentToMeasurementsSubsystem()
+    {
+        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+
+        var (success, orchestrationInstance, forwardToMeasurementsStep) =
+            await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
+                ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
+                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                stepSequence: Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.OrchestrationDescriptionBuilder.ForwardToMeasurementsStep,
+                stepState: StepInstanceLifecycleState.Running);
+
+        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+
+        Assert.Multiple(
+            () => Assert.True(success, "Forward to measurements step should be running"),
+            () => Assert.Equal(StepInstanceLifecycleState.Running, forwardToMeasurementsStep?.Lifecycle.State),
+            () => Assert.Null(forwardToMeasurementsStep?.Lifecycle.TerminationState));
+    }
+
+    [SubsystemFact]
+    [ScenarioStep(6)]
+    public async Task AndThen_ReceivedSendMeasurementsNotifyFromMeasurementsTransitionsForwardToMeasurementsToSuccessful()
+    {
+        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+
+        // Simulate "ForwardMeteredDataNotifyV1" message from Measurements to Process Manager event hub
+        var notifyFromMeasurementsMessage = new Brs021ForwardMeteredDataNotifyV1
+        {
+            Version = "1",
+            OrchestrationInstanceId = _fixture.TestConfiguration.OrchestrationInstance.Id.ToString(),
+        };
+
+        await _fixture.ProcessManagerEventHubProducerClient.SendAsync(
+            [new EventData(notifyFromMeasurementsMessage.ToByteArray())],
+            CancellationToken.None);
+
+        var (success, orchestrationInstance, forwardToMeasurementsStep) =
+            await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
+                ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
+                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                stepSequence: Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.OrchestrationDescriptionBuilder.ForwardToMeasurementsStep,
+                stepState: StepInstanceLifecycleState.Terminated);
+
+        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+
+        Assert.Multiple(
+            () => Assert.True(success, "Forward to Measurements step should be terminated"),
+            () => Assert.Equal(StepInstanceLifecycleState.Terminated, forwardToMeasurementsStep?.Lifecycle.State),
+            () => Assert.Equal(StepInstanceTerminationState.Succeeded, forwardToMeasurementsStep?.Lifecycle.TerminationState));
+    }
+
+    [SubsystemFact]
+    [ScenarioStep(7)]
+    public async Task AndThen_EnqueueActorMessagesIsSentToEDI()
+    {
+        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+
+        var (success, orchestrationInstance, enqueueActorMessagesStep) =
+            await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
+                ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
+                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                stepSequence: Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.OrchestrationDescriptionBuilder.EnqueueActorMessagesStep,
+                stepState: StepInstanceLifecycleState.Running);
+
+        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+
+        Assert.Multiple(
+            () => Assert.True(success, "Enqueue actor messages step should be running"),
+            () => Assert.Equal(StepInstanceLifecycleState.Running, enqueueActorMessagesStep?.Lifecycle.State),
+            () => Assert.Null(enqueueActorMessagesStep?.Lifecycle.TerminationState));
+    }
+
+    [SubsystemFact]
+    [ScenarioStep(8)]
+    public async Task AndThen_ReceivingNotifyEnqueueActorMessagesCompletedTransitionsEnqueueActorMessagesStepToSuccessful()
+    {
+        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+
+        // Send notify "EnqueueActorMessagesCompleted" message to the orchestration instance
+        await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
+            new ForwardMeteredDataNotifyEventV1(
+                OrchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstance.Id.ToString()),
+            CancellationToken.None);
+
+        // Wait for the enqueue actor messages step to be terminated
+        var (success, orchestrationInstance, enqueueActorMessagesStep) =
+            await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
+                ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
+                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                stepSequence: Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.OrchestrationDescriptionBuilder.EnqueueActorMessagesStep,
+                stepState: StepInstanceLifecycleState.Terminated);
+
+        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+
+        Assert.Multiple(
+            () => Assert.True(success, "Enqueue actor messages step should be terminated"),
+            () => Assert.Equal(StepInstanceLifecycleState.Terminated, enqueueActorMessagesStep?.Lifecycle.State),
+            () => Assert.Equal(StepInstanceTerminationState.Succeeded, enqueueActorMessagesStep?.Lifecycle.TerminationState));
+    }
+
+    [SubsystemFact]
+    [ScenarioStep(9)]
+    public async Task AndThen_OrchestrationInstanceIsTerminatedWithSuccess()
+    {
+        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+
+        var (success, orchestrationInstance, _) =
+            await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
+                ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
+                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated);
+
+        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+
+        Assert.Multiple(
+            () => Assert.True(success, "The orchestration instance should be terminated"),
+            () => Assert.Equal(OrchestrationInstanceLifecycleState.Terminated, orchestrationInstance?.Lifecycle.State),
+            () => Assert.Equal(OrchestrationInstanceTerminationState.Succeeded, orchestrationInstance?.Lifecycle.TerminationState));
     }
 }

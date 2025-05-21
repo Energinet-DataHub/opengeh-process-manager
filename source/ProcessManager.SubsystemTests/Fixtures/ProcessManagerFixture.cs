@@ -13,21 +13,28 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using Azure.Identity;
+using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 
 public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
 {
+    private const string ProcessManagerEventHubProducerClientName = "ProcessManagerEventHubClient";
+
     private readonly Guid _subsystemTestUserId = Guid.Parse("00000000-0000-0000-0000-000000000999");
 
     private readonly ServiceProvider _services;
@@ -54,6 +61,10 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
     public IProcessManagerMessageClient ProcessManagerMessageClient => _services.GetRequiredService<IProcessManagerMessageClient>();
 
     public IProcessManagerClient ProcessManagerHttpClient => _services.GetRequiredService<IProcessManagerClient>();
+
+    public EventHubProducerClient ProcessManagerEventHubProducerClient => _services
+        .GetRequiredService<IAzureClientFactory<EventHubProducerClient>>()
+        .CreateClient(ProcessManagerEventHubProducerClientName);
 
     [NotNull]
     public ActorIdentityDto? EnergySupplierActorIdentity { get; private set; }
@@ -138,7 +149,23 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
             },
         });
 
-        serviceCollection.AddAzureClients(b => b.AddServiceBusClientWithNamespace(Configuration.ServiceBusNamespace));
+        serviceCollection.AddAzureClients(b =>
+        {
+            // Add service bus client for Process Manager message client
+            b.AddServiceBusClientWithNamespace(Configuration.ServiceBusNamespace);
+
+            // Add event hub producer client to fake messages from Measurements to Process Manager
+            b.AddEventHubProducerClientWithNamespace(Configuration.EventHubNamespace, Configuration.ProcessManagerEventHubName)
+                .WithName(ProcessManagerEventHubProducerClientName);
+            // b.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
+            //         (_, _, provider) =>
+            //         {
+            //             var azureCredential = new DefaultAzureCredential();
+            //             return new EventHubProducerClient(Configuration.EventHubNamespace, Configuration.ProcessManagerEventHubName, azureCredential);
+            //         })
+            //     .WithName(ProcessManagerEventHubClientName);
+        });
+
         serviceCollection.AddProcessManagerMessageClient();
         serviceCollection.AddProcessManagerHttpClients();
 

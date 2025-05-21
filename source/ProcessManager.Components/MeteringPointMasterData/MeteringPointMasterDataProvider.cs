@@ -69,23 +69,7 @@ public class MeteringPointMasterDataProvider(
 
         try
         {
-            if (IsPerformanceTest(meteringPointId))
-            {
-                // Ensure we request a valid metering point id for the performance test
-                // to test the performance of the master data provider
-                id = new ElectricityMarketModels.MeteringPointIdentification("571313115200462957");
-            }
-
-            masterDataChanges = await _electricityMarketViews
-                .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime, endDateTime))
-                .ConfigureAwait(false);
-
-            // Get current master data to get the current grid area owner, and current grid areas neighboring grid area owners.
-            currentMasterDataChanges = (await _electricityMarketViews
-                .GetMeteringPointMasterDataChangesAsync(id, new Interval(_clock.GetCurrentInstant(), _clock.GetCurrentInstant().PlusSeconds(1)))
-                .ConfigureAwait(false)).Single();
-
-            // The performance test uses non-existing metering points, so we must fake a succesful
+            // The performance test uses non-existing metering points, so we must fake a successful
             // master data response from Electricity Market
             if (IsPerformanceTest(meteringPointId))
             {
@@ -98,6 +82,17 @@ public class MeteringPointMasterDataProvider(
                     meteringPointId,
                     _clock.GetCurrentInstant(),
                     _clock.GetCurrentInstant().PlusSeconds(1)).Single();
+            }
+            else
+            {
+                masterDataChanges = await _electricityMarketViews
+                    .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime, endDateTime))
+                    .ConfigureAwait(false);
+
+                // Get current master data to get the current grid area owner, and current grid areas neighboring grid area owners.
+                currentMasterDataChanges = (await _electricityMarketViews
+                    .GetMeteringPointMasterDataChangesAsync(id, new Interval(_clock.GetCurrentInstant(), _clock.GetCurrentInstant().PlusSeconds(1)))
+                    .ConfigureAwait(false)).Single();
             }
         }
         catch (Exception e)

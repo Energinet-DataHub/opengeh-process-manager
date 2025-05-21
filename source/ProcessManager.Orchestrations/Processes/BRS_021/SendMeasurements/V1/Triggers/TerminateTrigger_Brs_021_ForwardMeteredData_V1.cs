@@ -36,8 +36,8 @@ public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
     [Function(nameof(TerminateTrigger_Brs_021_ForwardMeteredData_V1))]
     public async Task Run(
         [ServiceBusTrigger(
-            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}%",
-            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}%",
+            $"%{Brs021SendMeasurementsTopicOptions.SectionName}:{nameof(Brs021SendMeasurementsTopicOptions.NotifyTopicName)}%",
+            $"%{Brs021SendMeasurementsTopicOptions.SectionName}:{nameof(Brs021SendMeasurementsTopicOptions.NotifySubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         string message)
     {

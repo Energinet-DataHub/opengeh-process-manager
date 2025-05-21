@@ -37,8 +37,8 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjec
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.CapacitySettlementCalculation.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.NetConsumptionCalculation.V1.Options;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_026.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Options;
@@ -383,16 +383,16 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
         // => BRS-021 Forward Metered Data topics and subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",
+            $"{Brs021SendMeasurementsTopicOptions.SectionName}__{nameof(Brs021SendMeasurementsTopicOptions.StartTopicName)}",
             brs21fmdTopicResources.StartTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}",
+            $"{Brs021SendMeasurementsTopicOptions.SectionName}__{nameof(Brs021SendMeasurementsTopicOptions.NotifyTopicName)}",
             brs21fmdTopicResources.NotifyTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}",
+            $"{Brs021SendMeasurementsTopicOptions.SectionName}__{nameof(Brs021SendMeasurementsTopicOptions.StartSubscriptionName)}",
             brs21fmdTopicResources.StartSubscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}",
+            $"{Brs021SendMeasurementsTopicOptions.SectionName}__{nameof(Brs021SendMeasurementsTopicOptions.NotifySubscriptionName)}",
             brs21fmdTopicResources.NotifySubscription.SubscriptionName);
 
         // => Edi enqueue topic

@@ -39,8 +39,8 @@ public static class ProcessManagerTopicExtensions
             .ValidateDataAnnotations();
 
         services
-            .AddOptions<Brs021ForwardMeteredDataTopicOptions>()
-            .BindConfiguration(Brs021ForwardMeteredDataTopicOptions.SectionName)
+            .AddOptions<Brs021SendMeasurementsTopicOptions>()
+            .BindConfiguration(Brs021SendMeasurementsTopicOptions.SectionName)
             .ValidateDataAnnotations();
 
         services.AddHealthChecks()
@@ -78,38 +78,38 @@ public static class ProcessManagerTopicExtensions
             // Add health check for the Brs021ForwardMeteredData start Topic and subscription
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.StartTopicName,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.StartTopicName,
                 tokenCredentialFactory: _ => credential,
                 name: "BRS-021-ForwardMeteredData Start Topic")
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.StartTopicName,
-                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.StartSubscriptionName,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.StartTopicName,
+                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.StartSubscriptionName,
                 tokenCredentialFactory: _ => credential,
                 name: "BRS-021-ForwardMeteredData Start Subscription")
             .AddServiceBusTopicSubscriptionDeadLetter(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.StartTopicName,
-                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.StartSubscriptionName,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.StartTopicName,
+                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.StartSubscriptionName,
                 tokenCredentialFactory: _ => credential,
                 name: "BRS-021-ForwardMeteredData Start Dead-letter",
                 [HealthChecksConstants.StatusHealthCheckTag])
             // Add health check for the Brs021ForwardMeteredData notify Topic and subscription
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.NotifyTopicName,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.NotifyTopicName,
                 tokenCredentialFactory: _ => credential,
                 name: "BRS-021-ForwardMeteredData Notify Topic")
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.NotifyTopicName,
-                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.NotifySubscriptionName,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.NotifyTopicName,
+                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.NotifySubscriptionName,
                 tokenCredentialFactory: _ => credential,
                 name: "BRS-021-ForwardMeteredData Notify Subscription")
             .AddServiceBusTopicSubscriptionDeadLetter(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
-                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.NotifyTopicName,
-                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.NotifySubscriptionName,
+                topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.NotifyTopicName,
+                subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.NotifySubscriptionName,
                 tokenCredentialFactory: _ => credential,
                 name: "BRS-021-ForwardMeteredData Notify Dead-letter",
                 [HealthChecksConstants.StatusHealthCheckTag]);

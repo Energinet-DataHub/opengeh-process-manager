@@ -20,9 +20,9 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements;
 
-public class StartTrigger_Brs_021_ForwardMeteredData(
+public class StartTrigger_Brs_021_SendMeasurements(
     IStartOrchestrationInstanceFromMessageHandler handler,
     TelemetryClient telemetryClient)
 {
@@ -32,18 +32,18 @@ public class StartTrigger_Brs_021_ForwardMeteredData(
     /// <summary>
     /// Start a BRS-021 ForwardMeteredData.
     /// </summary>
-    [Function(nameof(StartTrigger_Brs_021_ForwardMeteredData))]
+    [Function(nameof(StartTrigger_Brs_021_SendMeasurements))]
     public async Task Run(
         [ServiceBusTrigger(
-            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}%",
-            $"%{Brs021ForwardMeteredDataTopicOptions.SectionName}:{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}%",
+            $"%{Brs021SendMeasurementsTopicOptions.SectionName}:{nameof(Brs021SendMeasurementsTopicOptions.StartTopicName)}%",
+            $"%{Brs021SendMeasurementsTopicOptions.SectionName}:{nameof(Brs021SendMeasurementsTopicOptions.StartSubscriptionName)}%",
             Connection = ServiceBusNamespaceOptions.SectionName)]
         ServiceBusReceivedMessage message)
     {
         // Tracks structured telemetry data for Application Insights, including request details such as duration, success/failure, and dependencies.
         // Enables distributed tracing, allowing correlation of this request with related telemetry (e.g., dependencies, exceptions, custom metrics) in the same operation.
         // Automatically tracks metrics like request count, duration, and failure rate for RequestTelemetry.
-        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(StartTrigger_Brs_021_ForwardMeteredData));
+        using var operation = _telemetryClient.StartOperation<RequestTelemetry>(nameof(StartTrigger_Brs_021_SendMeasurements));
         try
         {
             await _handler.HandleAsync(message).ConfigureAwait(false);

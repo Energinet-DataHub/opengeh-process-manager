@@ -174,12 +174,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
     [Fact]
     public async Task
-        Given_ValidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+        Given_ValidSendMeasurementsInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         // Arrange
         SetupElectricityMarketWireMocking();
 
-        var input = CreateForwardMeteredDataInputV1();
+        var input = CreateSendMeasurementsInputV1();
 
         var forwardCommand = new SendMeasurementsCommandV1(
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.GridAccessProvider),
@@ -203,7 +203,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
-        var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
+        var verifySendMeasurementsToMeasurementsEvent = await _fixture.EventHubListener.When(
                 (message) =>
                 {
                     var persistSubmittedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
@@ -215,7 +215,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 })
             .VerifyCountAsync(1);
 
-        var persistSubmittedTransactionEventFound = verifyForwardMeteredDataToMeasurementsEvent.Wait(TimeSpan.FromSeconds(60));
+        var persistSubmittedTransactionEventFound = verifySendMeasurementsToMeasurementsEvent.Wait(TimeSpan.FromSeconds(60));
         persistSubmittedTransactionEventFound.Should().BeTrue($"because a {nameof(PersistSubmittedTransaction)} event should have been sent");
 
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
@@ -286,13 +286,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
     [Fact]
     public async Task
-        Given_ValidForwardMeteredDataInputV1FromDelegatedGridOperator_When_StartedAndDelegation_Then_OrchestrationInstanceTerminatesWithSuccess()
+        Given_ValidSendMeasurementsInputV1FromDelegatedGridOperator_When_StartedAndDelegation_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         // Arrange
         SetupElectricityMarketWireMocking();
         SetupElectricityMarketDelegationWireMocking();
 
-        var input = CreateForwardMeteredDataInputV1();
+        var input = CreateSendMeasurementsInputV1();
 
         var forwardCommand = new SendMeasurementsCommandV1(
             new ActorIdentityDto(ActorNumber.Create(DelegatedToGridAccessProvider), ActorRole.Delegated),
@@ -316,7 +316,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
-        var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
+        var verifySendMeasurementsToMeasurementsEvent = await _fixture.EventHubListener.When(
                 (message) =>
                 {
                     var persistSubmittedTransaction = PersistSubmittedTransaction.Parser.ParseFrom(message.EventBody.ToArray());
@@ -328,7 +328,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 })
             .VerifyCountAsync(1);
 
-        var persistSubmittedTransactionEventFound = verifyForwardMeteredDataToMeasurementsEvent.Wait(TimeSpan.FromSeconds(60));
+        var persistSubmittedTransactionEventFound = verifySendMeasurementsToMeasurementsEvent.Wait(TimeSpan.FromSeconds(60));
         persistSubmittedTransactionEventFound.Should().BeTrue($"because a {nameof(PersistSubmittedTransaction)} event should have been sent");
 
         // Send a notification to the Process Manager Event Hub to simulate the notification event from measurements
@@ -398,12 +398,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
+    public async Task Given_InvalidSendMeasurementsInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
         // Given
         SetupElectricityMarketWireMocking();
 
-        var invalidInput = CreateForwardMeteredDataInputV1() with { EndDateTime = null };
+        var invalidInput = CreateSendMeasurementsInputV1() with { EndDateTime = null };
 
         var invalidForwardCommand = new SendMeasurementsCommandV1(
             new ActorIdentityDto(ActorNumber.Create(invalidInput.ActorNumber), ActorRole.GridAccessProvider),
@@ -433,7 +433,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                     if (!message.TryParseAsEnqueueActorMessages(Brs_021_SendMeasurements.Name, out var enqueueActorMessagesV1))
                         return false;
 
-                    var forwardMeteredDataRejectedV1 = enqueueActorMessagesV1.ParseData<ForwardMeteredDataRejectedV1>();
+                    var forwardMeteredDataRejectedV1 = enqueueActorMessagesV1.ParseData<SendMeasurementsRejectedV1>();
 
                     forwardMeteredDataRejectedV1.ValidationErrors.Should()
                         .HaveCount(2)
@@ -446,7 +446,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .VerifyCountAsync(1);
 
         var enqueueMessageFound = verifyEnqueueRejectedActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
-        enqueueMessageFound.Should().BeTrue($"because a {nameof(ForwardMeteredDataRejectedV1)} service bus message should have been sent");
+        enqueueMessageFound.Should().BeTrue($"because a {nameof(SendMeasurementsRejectedV1)} service bus message should have been sent");
 
         // Send EnqueueActorMessagesCompleted event
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
@@ -555,7 +555,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         wasExecutedExpectedTimes.Should().BeTrue("because we expected the trigger to be executed at least twice because of the configured 'ExponentialBackoffRetry' retry policy");
     }
 
-    private static SendMeasurementsInputV1 CreateForwardMeteredDataInputV1(bool isDelegation = false)
+    private static SendMeasurementsInputV1 CreateSendMeasurementsInputV1(bool isDelegation = false)
     {
         var sender = isDelegation ? DelegatedToGridAccessProvider : GridAccessProvider;
         var input = new SendMeasurementsInputV1(

@@ -19,7 +19,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 
-public record ForwardMeteredDataRejectedV1(
+public record SendMeasurementsRejectedV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
     ActorRole ForwardedForActorRole,

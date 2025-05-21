@@ -30,7 +30,7 @@ public class StartTrigger_Brs_021_SendMeasurements(
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
-    /// Start a BRS-021 ForwardMeteredData.
+    /// Start a BRS-021 SendMeasurements.
     /// </summary>
     [Function(nameof(StartTrigger_Brs_021_SendMeasurements))]
     public async Task Run(

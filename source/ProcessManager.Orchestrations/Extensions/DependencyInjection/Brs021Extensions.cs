@@ -32,7 +32,7 @@ public static class Brs021Extensions
         services.AddScoped<IMeteringPointMasterDataProvider, MeteringPointMasterDataProvider>();
         services.AddScoped<MeteringPointReceiversProvider>();
 
-        // Used by BRS-021 ForwardMeteredData process
+        // Used by BRS-021 SendMeasurements process
         services.AddScoped<DelegationProvider>();
         services.AddScoped<TerminateSendMeasurementsHandlerV1>();
         services.AddScoped<EnqueueMeasurementsHandlerV1>();

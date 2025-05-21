@@ -31,7 +31,7 @@ using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.SendMeasurements.V1.BusinessValidation;
 
-public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
+public class SendMeasurementsBusinessValidatedDtoValidatorTests
 {
     private readonly Mock<IClock> _clockMock = new();
     private readonly Mock<IOptions<ProcessManagerComponentsOptions>> _optionsMock = new();
@@ -39,7 +39,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
 
     private readonly BusinessValidator<SendMeasurementsBusinessValidatedDto> _sut;
 
-    public ForwardMeteredDataBusinessValidatedDtoValidatorTests()
+    public SendMeasurementsBusinessValidatedDtoValidatorTests()
     {
         _clockMock.Setup(c => c.GetCurrentInstant())
             .Returns(Instant.FromUtc(2024, 11, 15, 16, 46, 43));
@@ -70,7 +70,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     }
 
     [Fact]
-    public async Task Given_ValidForwardMeteredDataBusinessValidatedDto_When_Validate_Then_NoValidationError()
+    public async Task Given_ValidSendMeasurementsBusinessValidatedDto_When_Validate_Then_NoValidationError()
     {
         var input = new SendMeasurementsInputV1Builder()
             .Build();
@@ -180,7 +180,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
     public async Task Given_InvalidResolution_When_Validate_Then_ValidationError()
     {
         var input = new SendMeasurementsInputV1Builder()
-            .WithResolution(Resolution.Daily.Name) // Daily resolution is invalid for ForwardMeteredData
+            .WithResolution(Resolution.Daily.Name) // Daily resolution is invalid for SendMeasurements
 
             // Daily resolution requires the correct amount of measurements, else we also get other validation errors.
             .WithStartDateTime("2024-04-24T22:00:00Z")

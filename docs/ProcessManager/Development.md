@@ -178,7 +178,7 @@ The projects inside solution folder `4. Orchestations` follows a strict folder s
 |   |   |       |── ...
 |   |   |       |── Orchestration_Brs_021_ElectricalHeatingCalculation_V1.cs
 |   |   |       └── OrchestrationDescriptionBuilder.cs
-|   |   └── ForwardMeteredData
+|   |   └── SendMeasurements
 |   |       └── V1
 |   |           |── Activities
 |   |           |── ...

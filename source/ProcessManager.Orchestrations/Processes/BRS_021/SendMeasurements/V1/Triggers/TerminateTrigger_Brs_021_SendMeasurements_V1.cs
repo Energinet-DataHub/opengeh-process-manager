@@ -31,7 +31,7 @@ public class TerminateTrigger_Brs_021_SendMeasurements_V1(
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     /// <summary>
-    /// Terminate a BRS-021 ForwardMeteredData.
+    /// Terminate a BRS-021 SendMeasurements.
     /// </summary>
     [Function(nameof(TerminateTrigger_Brs_021_SendMeasurements_V1))]
     public async Task Run(

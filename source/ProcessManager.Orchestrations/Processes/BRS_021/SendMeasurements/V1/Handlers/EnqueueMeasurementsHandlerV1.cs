@@ -150,7 +150,7 @@ public class EnqueueMeasurementsHandlerV1(
                     meteringPointMasterData,
                     measurements));
 
-        return receiversWithMeasurements.ToForwardMeteredDataReceiversWithMeasurementsV1();
+        return receiversWithMeasurements.ToSendMeasurementsReceiversWithMeasurementsV1();
     }
 
     private async Task EnqueueAcceptedActorMessagesAsync(

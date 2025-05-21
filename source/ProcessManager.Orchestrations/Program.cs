@@ -76,7 +76,7 @@ var host = new HostBuilder()
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
 
-        // BRS-021 (ForwardMeteredData, ElectricalHeatingCalculation, CapacitySettlementCalculation & NetConsumptionCalculation)
+        // BRS-021 (SendMeasurements, ElectricalHeatingCalculation, CapacitySettlementCalculation & NetConsumptionCalculation)
         services.AddBrs021(azureCredential);
     })
     .ConfigureFunctionsWebApplication(builder =>

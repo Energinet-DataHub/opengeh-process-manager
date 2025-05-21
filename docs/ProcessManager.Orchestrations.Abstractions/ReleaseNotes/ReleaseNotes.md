@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.4.0
+
+- Rename `ForwardMeteredData` to `SendMeasurements`. This updates all namespaces and types to match the new name.
+
 ## Version 2.3.0
 
 - Add `MissingMeasurementsLogCalculationResultV1`

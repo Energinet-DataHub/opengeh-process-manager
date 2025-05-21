@@ -14,8 +14,8 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.SendMeasurements.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1;
@@ -29,14 +29,12 @@ internal class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilde
 
     public OrchestrationDescription Build()
     {
-        var orchestrationDescriptionUniqueName = Brs_021_ForwardedMeteredData.V1;
-
         var description = new OrchestrationDescription(
-            uniqueName: orchestrationDescriptionUniqueName.MapToDomain(),
+            uniqueName: Brs_021_SendMeasurements.V1.MapToDomain(),
             canBeScheduled: false,
             functionName: string.Empty);
 
-        description.ParameterDefinition.SetFromType<ForwardMeteredDataInputV1>();
+        description.ParameterDefinition.SetFromType<SendMeasurementsInputV1>();
         description.AppendStepDescription("Forretningsvalidering");
         description.AppendStepDescription("Gemmer måledata", canBeSkipped: true, skipReason: "Skipped if business validation fails");
         description.AppendStepDescription("Finder modtagere", canBeSkipped: true, skipReason: "Skipped if business validation fails");

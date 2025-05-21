@@ -24,5 +24,5 @@ public static class NotifySenderClientNames
     /// <summary>
     /// Service Bus sender for sending BRS-021 Forward Metered Data notify events (service bus messages) to the Process Manager.
     /// </summary>
-    public const string Brs021ForwardMeteredDataNotifySender = "Brs021ForwardMeteredDataNotifySender";
+    public const string Brs021SendMeasurementsNotifySender = "Brs021SendMeasurementsNotifySender";
 }

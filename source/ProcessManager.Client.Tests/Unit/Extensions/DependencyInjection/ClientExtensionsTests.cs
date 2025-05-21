@@ -34,8 +34,8 @@ public class ClientExtensionsTests
     private const string ServiceBusNamespace = "namespace.servicebus.windows.net";
     private const string ProcessManagerStartTopicName = "start-topic-name";
     private const string ProcessManagerNotifyTopicName = "notify-topic-name";
-    private const string Brs021ForwardMeteredDataStartTopicName = "brs021fwd-start-topic-name";
-    private const string Brs021ForwardMeteredDataNotifyTopicName = "brs021fwd-notify-topic-name";
+    private const string Brs021SendMeasurementsStartTopicName = "brs021sm-start-topic-name";
+    private const string Brs021SendMeasurementsNotifyTopicName = "brs021sm-notify-topic-name";
 
     public ClientExtensionsTests()
     {
@@ -127,8 +127,8 @@ public class ClientExtensionsTests
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"] = ProcessManagerStartTopicName,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"] = ProcessManagerNotifyTopicName,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"] = Brs021ForwardMeteredDataStartTopicName,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"] = Brs021ForwardMeteredDataNotifyTopicName,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"] = Brs021SendMeasurementsStartTopicName,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"] = Brs021SendMeasurementsNotifyTopicName,
         });
 
         // Act
@@ -151,8 +151,8 @@ public class ClientExtensionsTests
         // => Sender clients
         var processManagerStartSenderClient = senderClientFactory.CreateClient(StartSenderClientNames.ProcessManagerStartSender);
         var processManagerNotifySenderClient = senderClientFactory.CreateClient(NotifySenderClientNames.ProcessManagerNotifySender);
-        var brs021fmdStartSenderClient = senderClientFactory.CreateClient(StartSenderClientNames.Brs021ForwardMeteredDataStartSender);
-        var brs021fmdNotifySenderClient = senderClientFactory.CreateClient(NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender);
+        var brs021fmdStartSenderClient = senderClientFactory.CreateClient(StartSenderClientNames.Brs021SendMeasurementsStartSender);
+        var brs021fmdNotifySenderClient = senderClientFactory.CreateClient(NotifySenderClientNames.Brs021SendMeasurementsNotifySender);
     }
 
     [Fact]
@@ -177,8 +177,8 @@ public class ClientExtensionsTests
             .And.Failures.Should()
                 .ContainMatch("* StartTopicName field is required*")
                 .And.ContainMatch("* NotifyTopicName field is required*")
-                .And.ContainMatch("* Brs021ForwardMeteredDataStartTopicName field is required*")
-                .And.ContainMatch("* Brs021ForwardMeteredDataNotifyTopicName field is required*");
+                .And.ContainMatch("* Brs021SendMeasurementsStartTopicName field is required*")
+                .And.ContainMatch("* Brs021SendMeasurementsNotifyTopicName field is required*");
     }
 
     [Fact]
@@ -189,8 +189,8 @@ public class ClientExtensionsTests
         {
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"] = ProcessManagerStartTopicName,
             [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"] = ProcessManagerNotifyTopicName,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"] = Brs021ForwardMeteredDataStartTopicName,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"] = Brs021ForwardMeteredDataNotifyTopicName,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"] = Brs021SendMeasurementsStartTopicName,
+            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"] = Brs021SendMeasurementsNotifyTopicName,
         });
 
         // Act

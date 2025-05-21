@@ -28,5 +28,5 @@ public record SendMeasurementsNotifyEventV1(
     /// </summary>
     public const string OrchestrationInstanceEventName = "EnqueueActorMessagesCompleted";
 
-    public override string SenderClientName => NotifySenderClientNames.Brs021ForwardMeteredDataNotifySender;
+    public override string SenderClientName => NotifySenderClientNames.Brs021SendMeasurementsNotifySender;
 }

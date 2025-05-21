@@ -410,7 +410,7 @@ public class StartSendMeasurementsHandlerV1(
                     ActorNumber.Create(actorIdentity.Number.Value),
                     ActorRole.FromName(actorIdentity.Role.Name)),
                 idempotencyKey,
-                new SendMeasurementsRejectedV1(
+                new ForwardMeteredDataRejectedV1(
                     sendMeasurementsInput.ActorMessageId,
                     sendMeasurementsInput.TransactionId,
                     ForwardedForActorRole: ActorRole.FromName(sendMeasurementsInput.ActorRole),

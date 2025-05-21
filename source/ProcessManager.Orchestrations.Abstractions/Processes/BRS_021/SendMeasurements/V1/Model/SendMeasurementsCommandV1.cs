@@ -48,5 +48,5 @@ public record SendMeasurementsCommandV1
     {
     }
 
-    public override string SenderClientName => StartSenderClientNames.Brs021ForwardMeteredDataStartSender;
+    public override string SenderClientName => StartSenderClientNames.Brs021SendMeasurementsStartSender;
 }

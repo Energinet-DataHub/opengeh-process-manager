@@ -75,7 +75,7 @@ public static class ProcessManagerTopicExtensions
                 tokenCredentialFactory: _ => credential,
                 name: "BRS-028 Dead-letter",
                 [HealthChecksConstants.StatusHealthCheckTag])
-            // Add health check for the Brs021ForwardMeteredData start Topic and subscription
+            // Add health check for the Brs021SendMeasurements start Topic and subscription
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.StartTopicName,
@@ -94,7 +94,7 @@ public static class ProcessManagerTopicExtensions
                 tokenCredentialFactory: _ => credential,
                 name: "BRS-021-ForwardMeteredData Start Dead-letter",
                 [HealthChecksConstants.StatusHealthCheckTag])
-            // Add health check for the Brs021ForwardMeteredData notify Topic and subscription
+            // Add health check for the Brs021SendMeasurements notify Topic and subscription
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021SendMeasurementsTopicOptions>>().Value.NotifyTopicName,

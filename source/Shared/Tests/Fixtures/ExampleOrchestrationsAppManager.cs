@@ -108,10 +108,10 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     public TopicResource? ProcessManagerStartTopic { get; private set; }
 
     [NotNull]
-    public TopicResource? Brs021ForwardMeteredDataStartTopic { get; private set; }
+    public TopicResource? Brs021SendMeasurementsStartTopic { get; private set; }
 
     [NotNull]
-    public TopicResource? Brs021ForwardMeteredDataNotifyTopic { get; private set; }
+    public TopicResource? Brs021SendMeasurementsNotifyTopic { get; private set; }
 
     private IntegrationTestConfiguration IntegrationTestConfiguration { get; }
 
@@ -141,9 +141,9 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         ProcessManagerStartTopic = startTopicResources.StartTopic;
 
         // Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
-        var brs021fmdTopicResource = await Brs021ForwardMeteredDataTopicResources.CreateNewAsync(ServiceBusResourceProvider);
-        Brs021ForwardMeteredDataStartTopic = brs021fmdTopicResource.StartTopic;
-        Brs021ForwardMeteredDataNotifyTopic = brs021fmdTopicResource.NotifyTopic;
+        var brs021fmdTopicResource = await Brs021SendMeasurementsTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        Brs021SendMeasurementsStartTopic = brs021fmdTopicResource.StartTopic;
+        Brs021SendMeasurementsNotifyTopic = brs021fmdTopicResource.NotifyTopic;
 
         // Creates EDI enqueue actor messages topic and subscriptions
         ediEnqueueTopicResources ??= await EdiEnqueueTopicResources.CreateNewAsync(ServiceBusResourceProvider);
@@ -223,7 +223,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     private FunctionAppHostSettings CreateAppHostSettings(
         string csprojName,
         ProcessManagerStartTopicResources startTopicResources,
-        Brs021ForwardMeteredDataTopicResources brs021fmdTopicResources,
+        Brs021SendMeasurementsTopicResources brs021fmdTopicResources,
         EdiEnqueueTopicResources ediEnqueueTopicResources)
     {
         var buildConfiguration = GetBuildConfiguration();
@@ -315,16 +315,16 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
 
         // => BRS-021 Forward Metered Data topics and subscriptions
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartTopicName)}",
+            $"{Brs021SendMeasurementsTopicOptions.SectionName}__{nameof(Brs021SendMeasurementsTopicOptions.StartTopicName)}",
             brs021fmdTopicResources.StartTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifyTopicName)}",
+            $"{Brs021SendMeasurementsTopicOptions.SectionName}__{nameof(Brs021SendMeasurementsTopicOptions.NotifyTopicName)}",
             brs021fmdTopicResources.NotifyTopic.Name);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.StartSubscriptionName)}",
+            $"{Brs021SendMeasurementsTopicOptions.SectionName}__{nameof(Brs021SendMeasurementsTopicOptions.StartSubscriptionName)}",
             brs021fmdTopicResources.StartSubscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}",
+            $"{Brs021SendMeasurementsTopicOptions.SectionName}__{nameof(Brs021SendMeasurementsTopicOptions.NotifySubscriptionName)}",
             brs021fmdTopicResources.NotifySubscription.SubscriptionName);
 
         // => Edi enqueue topic
@@ -469,7 +469,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
     /// <summary>
     /// BRS-021 Forward Metered Data start + notify topic and subscription resources used by the Example Orchestrations app.
     /// </summary>
-    private record Brs021ForwardMeteredDataTopicResources(
+    private record Brs021SendMeasurementsTopicResources(
         TopicResource StartTopic,
         SubscriptionProperties StartSubscription,
         TopicResource NotifyTopic,
@@ -478,7 +478,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         private const string StartSubscriptionName = "brs-021-forwardmetereddata-start";
         private const string NotifySubscriptionName = "brs-021-forwardmetereddata-notify";
 
-        internal static async Task<Brs021ForwardMeteredDataTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<Brs021SendMeasurementsTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var startTopic = await serviceBusResourceProvider
                 .BuildTopic("brs021-start-topic")
@@ -490,7 +490,7 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
                 .AddSubscription(NotifySubscriptionName)
                 .CreateAsync();
 
-            return new Brs021ForwardMeteredDataTopicResources(
+            return new Brs021SendMeasurementsTopicResources(
                 StartTopic: startTopic,
                 StartSubscription: startTopic.Subscriptions.Single(),
                 NotifyTopic: notifyTopic,

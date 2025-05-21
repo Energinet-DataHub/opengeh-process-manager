@@ -130,10 +130,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
     public TopicResource? ProcessManagerStartTopic { get; private set; }
 
     [NotNull]
-    public TopicResource? Brs021ForwardMeteredDataStartTopic { get; private set; }
+    public TopicResource? Brs021SendMeasurementsStartTopic { get; private set; }
 
     [NotNull]
-    public TopicResource? Brs021ForwardMeteredDataNotifyTopic { get; private set; }
+    public TopicResource? Brs021SendMeasurementsNotifyTopic { get; private set; }
 
     [NotNull]
     public string? MeasurementEventHubName { get; private set; }
@@ -182,9 +182,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
         ProcessManagerStartTopic = startTopicResources.StartTopic;
 
         // Creates BRS-021 Forward Metered Data Start/Notify topics and subscriptions
-        var brs21fmdTopicResource = await Brs021ForwardMeteredDataTopicResources.CreateNewAsync(ServiceBusResourceProvider);
-        Brs021ForwardMeteredDataStartTopic = brs21fmdTopicResource.StartTopic;
-        Brs021ForwardMeteredDataNotifyTopic = brs21fmdTopicResource.NotifyTopic;
+        var brs21fmdTopicResource = await Brs021SendMeasurementsTopicResources.CreateNewAsync(ServiceBusResourceProvider);
+        Brs021SendMeasurementsStartTopic = brs21fmdTopicResource.StartTopic;
+        Brs021SendMeasurementsNotifyTopic = brs21fmdTopicResource.NotifyTopic;
 
         // Creates EDI enqueue actor messages topic and subscriptions
         ediEnqueueTopicResources ??= await EdiEnqueueTopicResources.CreateNewAsync(ServiceBusResourceProvider);
@@ -292,7 +292,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         string csprojName,
         ProcessManagerStartTopicResources startTopicResources,
         EdiEnqueueTopicResources ediEnqueueTopicResources,
-        Brs021ForwardMeteredDataTopicResources brs21fmdTopicResources,
+        Brs021SendMeasurementsTopicResources brs21fmdTopicResources,
         IntegrationEventTopicResources integrationEventTopicResources,
         EventHubResource eventHubResource,
         EventHubResource processManagerEventhubResource)
@@ -565,12 +565,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     public record EdiEnqueueTopicResources(
         TopicResource EnqueueTopic,
-        SubscriptionProperties Brs021ForwardMeteredDataSubscription,
+        SubscriptionProperties Brs021SendMeasurementsSubscription,
         SubscriptionProperties Brs023027Subscription,
         SubscriptionProperties Brs026Subscription,
         SubscriptionProperties Brs028Subscription)
     {
-        private const string Brs021ForwardMeteredDataSubscriptionName = "brs-021-forwardmetereddata";
+        private const string Brs021SendMeasurementsSubscriptionName = "brs-021-sendmeasurements";
         private const string Brs023027SubscriptionName = "brs-023-027";
         private const string Brs026SubscriptionName = "brs-026";
         private const string Brs028SubscriptionName = "brs-028";
@@ -590,7 +590,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         public static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
-                .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
+                .AddSubscription(Brs021SendMeasurementsSubscriptionName)
                     .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_021_SendMeasurements.V1))
                 .AddSubscription(Brs023027SubscriptionName)
                     .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
@@ -610,8 +610,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
         /// </summary>
         public static EdiEnqueueTopicResources CreateFromTopic(TopicResource topic)
         {
-            var enqueueBrs021ForwardMeteredDataSubscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(Brs021ForwardMeteredDataSubscriptionName));
+            var enqueueBrs021SendMeasurementsSubscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(Brs021SendMeasurementsSubscriptionName));
             var enqueueBrs023027Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs023027SubscriptionName));
             var enqueueBrs026Subscription = topic.Subscriptions
@@ -621,7 +621,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
             return new EdiEnqueueTopicResources(
                 EnqueueTopic: topic,
-                Brs021ForwardMeteredDataSubscription: enqueueBrs021ForwardMeteredDataSubscription,
+                Brs021SendMeasurementsSubscription: enqueueBrs021SendMeasurementsSubscription,
                 Brs023027Subscription: enqueueBrs023027Subscription,
                 Brs026Subscription: enqueueBrs026Subscription,
                 Brs028Subscription: enqueueBrs028Subscription);
@@ -651,12 +651,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// </summary>
     private record ProcessManagerStartTopicResources(
         TopicResource StartTopic,
-        SubscriptionProperties Brs021ForwardMeteredDataSubscription,
+        SubscriptionProperties Brs021SendMeasurementsSubscription,
         SubscriptionProperties Brs023027Subscription,
         SubscriptionProperties Brs026Subscription,
         SubscriptionProperties Brs028Subscription)
     {
-        private const string Brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data";
+        private const string Brs021SendMeasurementsSubscriptionName = "brs-021-send-measurements";
         private const string Brs023027SubscriptionName = "brs-023-027";
         private const string Brs026SubscriptionName = "brs-026";
         private const string Brs028SubscriptionName = "brs-028";
@@ -676,7 +676,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         private static TopicResourceBuilder AddSubscriptionsToTopicBuilder(TopicResourceBuilder builder)
         {
             builder
-                .AddSubscription(Brs021ForwardMeteredDataSubscriptionName)
+                .AddSubscription(Brs021SendMeasurementsSubscriptionName)
                     .AddSubjectFilter(Brs_021_SendMeasurements.Name)
                 .AddSubscription(Brs023027SubscriptionName)
                     .AddSubjectFilter(Brs_023_027.Name)
@@ -697,7 +697,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         private static ProcessManagerStartTopicResources CreateFromTopic(TopicResource topic)
         {
             var brs021ForwardMeteredDataSubscription = topic.Subscriptions
-                .Single(x => x.SubscriptionName.Equals(Brs021ForwardMeteredDataSubscriptionName));
+                .Single(x => x.SubscriptionName.Equals(Brs021SendMeasurementsSubscriptionName));
 
             var brs023027Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs023027SubscriptionName));
@@ -710,7 +710,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
 
             return new ProcessManagerStartTopicResources(
                 StartTopic: topic,
-                Brs021ForwardMeteredDataSubscription: brs021ForwardMeteredDataSubscription,
+                Brs021SendMeasurementsSubscription: brs021ForwardMeteredDataSubscription,
                 Brs023027Subscription: brs023027Subscription,
                 Brs026Subscription: brs026Subscription,
                 Brs028Subscription: brs028Subscription);
@@ -720,7 +720,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
     /// <summary>
     /// BRS-021 Forward Metered Data start + notify topic and subscription resources used by the Orchestrations app.
     /// </summary>
-    private record Brs021ForwardMeteredDataTopicResources(
+    private record Brs021SendMeasurementsTopicResources(
         TopicResource StartTopic,
         SubscriptionProperties StartSubscription,
         TopicResource NotifyTopic,
@@ -729,7 +729,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         private const string StartSubscriptionName = "brs-021-forwardmetereddata-start";
         private const string NotifySubscriptionName = "brs-021-forwardmetereddata-notify";
 
-        internal static async Task<Brs021ForwardMeteredDataTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
+        internal static async Task<Brs021SendMeasurementsTopicResources> CreateNewAsync(ServiceBusResourceProvider serviceBusResourceProvider)
         {
             var startTopic = await serviceBusResourceProvider
                 .BuildTopic("brs021-start-topic")
@@ -741,7 +741,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 .AddSubscription(NotifySubscriptionName)
                 .CreateAsync();
 
-            return new Brs021ForwardMeteredDataTopicResources(
+            return new Brs021SendMeasurementsTopicResources(
                 StartTopic: startTopic,
                 StartSubscription: startTopic.Subscriptions.Single(),
                 NotifyTopic: notifyTopic,

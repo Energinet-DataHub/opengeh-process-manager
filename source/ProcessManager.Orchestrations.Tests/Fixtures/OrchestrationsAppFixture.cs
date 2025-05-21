@@ -74,7 +74,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
 
-        EnqueueBrs021ForwardMeteredDataServiceBusListener = new ServiceBusListenerMock(
+        EnqueueBrs021SendMeasurementsServiceBusListener = new ServiceBusListenerMock(
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
@@ -109,7 +109,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     [NotNull]
     public IDurableClient? DurableClient { get; private set; }
 
-    public ServiceBusListenerMock EnqueueBrs021ForwardMeteredDataServiceBusListener { get; }
+    public ServiceBusListenerMock EnqueueBrs021SendMeasurementsServiceBusListener { get; }
 
     public ServiceBusListenerMock EnqueueBrs023027ServiceBusListener { get; }
 
@@ -152,9 +152,9 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         // Creates EDI enqueue actor messages topic and subscriptions
         var ediEnqueueTopicResources = await OrchestrationsAppManager.EdiEnqueueTopicResources.CreateNewAsync(ServiceBusResourceProvider);
         // => Create listeners for enqueue messages
-        await EnqueueBrs021ForwardMeteredDataServiceBusListener.AddTopicSubscriptionListenerAsync(
-            ediEnqueueTopicResources.Brs021ForwardMeteredDataSubscription.TopicName,
-            ediEnqueueTopicResources.Brs021ForwardMeteredDataSubscription.SubscriptionName);
+        await EnqueueBrs021SendMeasurementsServiceBusListener.AddTopicSubscriptionListenerAsync(
+            ediEnqueueTopicResources.Brs021SendMeasurementsSubscription.TopicName,
+            ediEnqueueTopicResources.Brs021SendMeasurementsSubscription.SubscriptionName);
         await EnqueueBrs023027ServiceBusListener.AddTopicSubscriptionListenerAsync(
             ediEnqueueTopicResources.Brs023027Subscription.TopicName,
             ediEnqueueTopicResources.Brs023027Subscription.SubscriptionName);

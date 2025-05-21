@@ -33,11 +33,6 @@ public class MeasurementsClientExtensionsTests
 
     private static readonly TokenCredential _azureCredential = new DefaultAzureCredential();
 
-    public MeasurementsClientExtensionsTests()
-    {
-        Services.AddLogging();
-    }
-
     private ServiceCollection Services { get; } = new();
 
     [Fact]

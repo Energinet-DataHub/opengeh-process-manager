@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.Shared;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.Databricks.SqlStatements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Options;
 using Microsoft.Azure.Functions.Worker;
@@ -65,7 +66,7 @@ public class EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V
     [Function(nameof(EnqueueActorMessageActivity_Brs_045_Shared_MissingMeasurementsLog_V1))]
     public async Task<int> Run([ActivityTrigger] ActivityInput input)
     {
-        var schemaDescription = new MissingMeasurementsLogSchemaDescription(_databricksQueryOptions);
+        var schemaDescription = new CalculatedMeasurementsSchemaDescription(_databricksQueryOptions);
         var query = new MissingMeasurementsLogQuery(
             _logger,
             schemaDescription,

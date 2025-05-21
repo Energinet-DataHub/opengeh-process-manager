@@ -23,10 +23,9 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeas
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.Measurements;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.SendMeasurements.Measurements;
 
 public class MeasurementsClientTests
 {

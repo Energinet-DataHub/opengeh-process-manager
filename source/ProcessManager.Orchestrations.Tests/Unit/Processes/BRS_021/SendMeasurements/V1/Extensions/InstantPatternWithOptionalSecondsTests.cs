@@ -14,7 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Extensions;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.SendMeasurements.V1.Extensions;
 
 public class InstantPatternWithOptionalSecondsTests
 {

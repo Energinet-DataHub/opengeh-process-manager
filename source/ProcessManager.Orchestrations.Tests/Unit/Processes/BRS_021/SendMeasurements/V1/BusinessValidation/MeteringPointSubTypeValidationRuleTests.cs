@@ -15,34 +15,26 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.SendMeasurements.V1.BusinessValidation;
 using FluentAssertions;
 using NodaTime;
 using MeteringPointId = Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model.MeteringPointId;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.SendMeasurements.V1.BusinessValidation;
 
-public class MeasurementUnitValidationRuleTests
+public class MeteringPointSubTypeValidationRuleTests
 {
-    private readonly MeasurementUnitValidationRule _sut = new();
+    private readonly MeteringPointSubTypeValidationRule _sut = new();
 
-    public static TheoryData<MeasurementUnit> ValidMeasurementUnits => new()
+    public static TheoryData<MeteringPointSubType> ValidMeteringPointSubTypes => new()
     {
-        MeasurementUnit.KilowattHour,
-        MeasurementUnit.KiloVoltAmpereReactiveHour,
+        MeteringPointSubType.Physical,
+        MeteringPointSubType.Virtual,
     };
 
-    public static TheoryData<MeasurementUnit> InvalidMeasurementUnits => new()
+    public static TheoryData<MeteringPointSubType> InvalidMeteringPointSubTypes => new()
     {
-        MeasurementUnit.Ampere,
-        MeasurementUnit.Pieces,
-        MeasurementUnit.Kilowatt,
-        MeasurementUnit.Megawatt,
-        MeasurementUnit.MegawattHour,
-        MeasurementUnit.MetricTon,
-        MeasurementUnit.MegaVoltAmpereReactivePower,
-        MeasurementUnit.DanishTariffCode,
+        MeteringPointSubType.Calculated,
     };
 
     [Fact]
@@ -60,11 +52,11 @@ public class MeasurementUnitValidationRuleTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidMeasurementUnits))]
-    public async Task Given_ValidMeasurementUnits_When_Validate_Then_NoValidationError(MeasurementUnit measurementUnit)
+    [MemberData(nameof(ValidMeteringPointSubTypes))]
+    public async Task Given_ValidMeteringPointSubTypes_When_Validate_Then_NoValidationError(MeteringPointSubType meteringPointSubType)
     {
+        // Metering point subtype is not part of the input, its only part of the master data
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeasureUnit(measurementUnit.Name)
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -80,9 +72,9 @@ public class MeasurementUnitValidationRuleTests
                         [],
                         ConnectionState.Connected,
                         MeteringPointType.Production,
-                        MeteringPointSubType.Physical,
+                        meteringPointSubType,
                         Resolution.QuarterHourly,
-                        measurementUnit,
+                        MeasurementUnit.KilowattHour,
                         "product",
                         null,
                         ActorNumber.Create("1111111111112")),
@@ -92,11 +84,11 @@ public class MeasurementUnitValidationRuleTests
     }
 
     [Theory]
-    [MemberData(nameof(InvalidMeasurementUnits))]
-    public async Task Given_InvalidMeasurementUnits_When_Validate_Then_ValidationError(MeasurementUnit measurementUnit)
+    [MemberData(nameof(InvalidMeteringPointSubTypes))]
+    public async Task Given_InvalidMeteringPointSubType_When_Validate_Then_NoValidationError(MeteringPointSubType meteringPointSubType)
     {
+        // Metering point subtype is not part of the input, its only part of the master data
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeasureUnit(measurementUnit.Name)
             .Build();
 
         var result = await _sut.ValidateAsync(
@@ -112,9 +104,9 @@ public class MeasurementUnitValidationRuleTests
                         [],
                         ConnectionState.Connected,
                         MeteringPointType.Production,
-                        MeteringPointSubType.Physical,
+                        meteringPointSubType,
                         Resolution.QuarterHourly,
-                        measurementUnit,
+                        MeasurementUnit.KilowattHour,
                         "product",
                         null,
                         ActorNumber.Create("1111111111112")),
@@ -122,14 +114,13 @@ public class MeasurementUnitValidationRuleTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeasurementUnitError);
+            .And.BeEquivalentTo(MeteringPointSubTypeValidationRule.WrongMeteringPointSubTypeError);
     }
 
     [Fact]
-    public async Task Given_MultipleMasterDataWhereMeasurementUnitDoesntMatchOneOfThem_When_Validate_Then_ValidationError()
+    public async Task Given_DifferentMeteringPointSubTypeFromMasterData_When_Validate_Then_ValidationError()
     {
         var input = new ForwardMeteredDataInputV1Builder()
-            .WithMeasureUnit(MeasurementUnit.KilowattHour.Name)
             .Build();
 
         var result = await _sut.ValidateAsync(new(
@@ -144,9 +135,9 @@ public class MeasurementUnitValidationRuleTests
                     [],
                     ConnectionState.Connected,
                     MeteringPointType.Production,
+                    // One MeteringPointSubType
                     MeteringPointSubType.Physical,
                     Resolution.QuarterHourly,
-                    // Correct MeasurementUnit
                     MeasurementUnit.KilowattHour,
                     "product",
                     null,
@@ -160,10 +151,10 @@ public class MeasurementUnitValidationRuleTests
                     [],
                     ConnectionState.Connected,
                     MeteringPointType.Production,
-                    MeteringPointSubType.Physical,
+                    // A different MeteringPointSubType
+                    MeteringPointSubType.Virtual,
                     Resolution.QuarterHourly,
-                    // Incorrect MeasurementUnit
-                    MeasurementUnit.KiloVoltAmpereReactiveHour,
+                    MeasurementUnit.KilowattHour,
                     "product",
                     null,
                     ActorNumber.Create("1111111111112")),
@@ -171,6 +162,6 @@ public class MeasurementUnitValidationRuleTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(MeasurementUnitValidationRule.MeasurementUnitNotAllowedError);
+            .And.BeEquivalentTo(MeteringPointSubTypeValidationRule.WrongMeteringPointSubTypeError);
     }
 }

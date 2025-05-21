@@ -52,11 +52,15 @@ public class MeteringPointMasterDataProviderTests
 
         optionsMock.Setup(o => o.Value).Returns(expectedOptions);
 
+        var electricityMarketViewsFactoryMock = new Mock<ElectricityMarketViewsFactory>();
+        electricityMarketViewsFactoryMock.Setup(f => f.Create(It.IsAny<string>()))
+            .Returns(new ElectricityMarketViewsMock());
+
         _sut = new MeteringPointMasterDataProvider(
-            new ElectricityMarketViewsMock(),
             new Mock<ILogger<MeteringPointMasterDataProvider>>().Object,
             clock.Object,
-            optionsMock.Object);
+            optionsMock.Object,
+            electricityMarketViewsFactoryMock.Object);
     }
 
     [Fact]

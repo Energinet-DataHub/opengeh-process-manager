@@ -32,16 +32,16 @@ namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
     "SA1118:Parameter should not span multiple lines",
     Justification = "Readability")]
 public class MeteringPointMasterDataProvider(
-    IElectricityMarketViews electricityMarketViews,
     ILogger<MeteringPointMasterDataProvider> logger,
     IClock clock,
-    IOptions<ProcessManagerComponentsOptions> options)
+    IOptions<ProcessManagerComponentsOptions> options,
+    ElectricityMarketViewsFactory electricityMarketViewsFactory)
         : IMeteringPointMasterDataProvider
 {
-    private readonly IElectricityMarketViews _electricityMarketViews = electricityMarketViews;
     private readonly ILogger<MeteringPointMasterDataProvider> _logger = logger;
     private readonly IClock _clock = clock;
     private readonly IOptions<ProcessManagerComponentsOptions> _options = options;
+    private readonly ElectricityMarketViewsFactory _electricityMarketViewsFactory = electricityMarketViewsFactory;
 
     public Task<IReadOnlyCollection<Model.MeteringPointMasterData>> GetMasterData(
         string meteringPointId,
@@ -62,6 +62,8 @@ public class MeteringPointMasterDataProvider(
         Instant startDateTime,
         Instant endDateTime)
     {
+        var electricityMarketViews = _electricityMarketViewsFactory.Create(meteringPointId);
+
         var id = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId);
 
         IEnumerable<ElectricityMarketModels.MeteringPointMasterData> masterDataChanges;
@@ -85,12 +87,12 @@ public class MeteringPointMasterDataProvider(
             }
             else
             {
-                masterDataChanges = await _electricityMarketViews
+                masterDataChanges = await electricityMarketViews
                     .GetMeteringPointMasterDataChangesAsync(id, new Interval(startDateTime, endDateTime))
                     .ConfigureAwait(false);
 
                 // Get current master data to get the current grid area owner, and current grid areas neighboring grid area owners.
-                currentMasterDataChanges = (await _electricityMarketViews
+                currentMasterDataChanges = (await electricityMarketViews
                     .GetMeteringPointMasterDataChangesAsync(id, new Interval(_clock.GetCurrentInstant(), _clock.GetCurrentInstant().PlusSeconds(1)))
                     .ConfigureAwait(false)).Single();
             }
@@ -146,7 +148,7 @@ public class MeteringPointMasterDataProvider(
             }
 
             var parentId = meteringPointMasterData.ParentIdentification.Value;
-            var parentMasterData = (await _electricityMarketViews
+            var parentMasterData = (await electricityMarketViews
                     .GetMeteringPointMasterDataChangesAsync(
                         new ElectricityMarketModels.MeteringPointIdentification(parentId),
                         new Interval(from, to))

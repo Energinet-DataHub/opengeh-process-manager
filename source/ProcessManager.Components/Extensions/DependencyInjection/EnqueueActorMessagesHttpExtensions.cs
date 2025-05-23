@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Core;
 using Energinet.DataHub.Core.App.Common.Extensions.Builder;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.Common.Identity;
@@ -35,7 +34,9 @@ public static class EnqueueActorMessagesHttpExtensions
             .BindConfiguration(EnqueueActorMessagesHttpClientOptions.SectionName)
             .ValidateDataAnnotations();
 
-        services.AddAuthorizationHeaderProvider();
+        services
+            .AddTokenCredentialProvider()
+            .AddAuthorizationHeaderProvider();
 
         services.AddHttpClient(
             HttpClientNames.EdiEnqueueActorMessagesClientName,

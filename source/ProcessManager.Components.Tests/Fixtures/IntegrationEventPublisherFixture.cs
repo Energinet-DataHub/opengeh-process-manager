@@ -142,7 +142,7 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
 
         services.AddScoped<IConfiguration>(_ => configuration);
         services.AddServiceBusClientForApplication(configuration);
-        services.AddIntegrationEventPublisher(IntegrationTestConfiguration.Credential);
+        services.AddIntegrationEventPublisher();
     }
 
     private async Task<(TopicResource TopicResource, SubscriptionProperties SubscriptionProperties)> CreateServiceBusTopic()

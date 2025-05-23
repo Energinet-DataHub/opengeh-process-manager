@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Identity;
 using DurableFunctionsMonitor.DotNetIsolated;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
@@ -35,8 +34,6 @@ var host = new HostBuilder()
     {
         services.AddTransient<IConfiguration>(_ => context.Configuration);
 
-        var azureCredential = new DefaultAzureCredential();
-
         // Common
         services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
         services.AddHealthChecksForIsolatedWorker();
@@ -54,11 +51,11 @@ var host = new HostBuilder()
         services.AddDatabricksSqlStatementApi(context.Configuration);
 
         // Enqueue Messages in EDI
-        services.AddEnqueueActorMessages(azureCredential);
+        services.AddEnqueueActorMessages();
         services.AddEnqueueActorMessagesHttp(context.Configuration);
 
         // Integration event publisher
-        services.AddIntegrationEventPublisher(azureCredential);
+        services.AddIntegrationEventPublisher();
 
         // Business validation
         var orchestrationsAssembly = typeof(Program).Assembly;
@@ -72,12 +69,12 @@ var host = new HostBuilder()
         services.AddDataHubCalendarComponent();
 
         // ProcessManager
-        services.AddProcessManagerTopic(azureCredential);
+        services.AddProcessManagerTopic();
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
 
         // BRS-021 (ForwardMeteredData, ElectricalHeatingCalculation, CapacitySettlementCalculation & NetConsumptionCalculation)
-        services.AddBrs021(azureCredential);
+        services.AddBrs021();
     })
     .ConfigureFunctionsWebApplication(builder =>
     {

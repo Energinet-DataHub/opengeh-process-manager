@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Identity;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
@@ -30,8 +29,6 @@ using Microsoft.FeatureManagement;
 var host = new HostBuilder()
     .ConfigureServices((context, services) =>
     {
-        var azureCredential = new DefaultAzureCredential();
-
         // Common
         services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
         services.AddHealthChecksForIsolatedWorker();
@@ -44,7 +41,7 @@ var host = new HostBuilder()
             .AddFeatureManagement();
 
         // Api
-        services.AddNotifyOrchestrationInstance(azureCredential);
+        services.AddNotifyOrchestrationInstance();
 
         // ProcessManager
         services.AddProcessManagerCore();

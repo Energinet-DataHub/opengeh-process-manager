@@ -14,6 +14,8 @@
 
 using Azure.Core;
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.Messaging.Communication.Publisher;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
@@ -26,7 +28,7 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class IntegrationEventPublisherExtensions
 {
-        public static IServiceCollection AddIntegrationEventPublisher(this IServiceCollection services, TokenCredential azureCredential)
+        public static IServiceCollection AddIntegrationEventPublisher(this IServiceCollection services)
     {
         services.AddOptions<ServiceBusNamespaceOptions>()
             .BindConfiguration(ServiceBusNamespaceOptions.SectionName)
@@ -37,11 +39,12 @@ public static class IntegrationEventPublisherExtensions
             .ValidateDataAnnotations();
 
         services
+            .AddTokenCredentialProvider()
             .AddHealthChecks()
             .AddAzureServiceBusTopic(
                 sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 sp => sp.GetRequiredService<IOptions<IntegrationEventTopicOptions>>().Value.Name,
-                tokenCredentialFactory: _ => azureCredential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "Integration Event topic");
 
         services.AddAzureClients(

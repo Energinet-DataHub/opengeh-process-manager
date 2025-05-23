@@ -14,6 +14,8 @@
 
 using Azure.Core;
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
@@ -25,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class EnqueueActorMessagesExtensions
 {
-    public static IServiceCollection AddEnqueueActorMessages(this IServiceCollection services, TokenCredential azureCredential)
+    public static IServiceCollection AddEnqueueActorMessages(this IServiceCollection services)
     {
         services
             .AddOptions<ProcessManagerComponentsOptions>()
@@ -42,26 +44,27 @@ public static class EnqueueActorMessagesExtensions
             .ValidateDataAnnotations();
 
         services
+            .AddTokenCredentialProvider()
             .AddHealthChecks()
             .AddAzureServiceBusTopic(
                 sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 sp => sp.GetRequiredService<IOptions<EdiTopicOptions>>().Value.Name,
-                tokenCredentialFactory: _ => azureCredential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "EDI topic");
 
         services.AddAzureClients(
             builder =>
             {
                 builder.AddClient<ServiceBusSender, ServiceBusClientOptions>(
-                        (_, _, provider) =>
-                        {
-                            var serviceBusOptions = provider.GetRequiredService<IOptions<EdiTopicOptions>>().Value;
-                            var serviceBusSender = provider
-                                .GetRequiredService<ServiceBusClient>()
-                                .CreateSender(serviceBusOptions.Name);
+                    (_, _, provider) =>
+                    {
+                        var serviceBusOptions = provider.GetRequiredService<IOptions<EdiTopicOptions>>().Value;
+                        var serviceBusSender = provider
+                            .GetRequiredService<ServiceBusClient>()
+                            .CreateSender(serviceBusOptions.Name);
 
-                            return serviceBusSender;
-                        })
+                        return serviceBusSender;
+                    })
                     .WithName(ServiceBusSenderNames.EdiTopic);
             });
 

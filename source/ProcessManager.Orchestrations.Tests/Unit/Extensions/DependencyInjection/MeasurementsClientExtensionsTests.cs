@@ -31,8 +31,6 @@ public class MeasurementsClientExtensionsTests
     private const string EventHubName = "event-hub-name";
     private const string FullyQualifiedNamespace = "namespace.eventhub.windows.net";
 
-    private static readonly TokenCredential _azureCredential = new DefaultAzureCredential();
-
     private ServiceCollection Services { get; } = new();
 
     [Fact]
@@ -46,7 +44,7 @@ public class MeasurementsClientExtensionsTests
         });
 
         // Act
-        Services.AddMeasurementsClient(_azureCredential);
+        Services.AddMeasurementsClient();
 
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
@@ -62,7 +60,7 @@ public class MeasurementsClientExtensionsTests
         Services.AddInMemoryConfiguration([]);
 
         // Act
-        Services.AddMeasurementsClient(_azureCredential);
+        Services.AddMeasurementsClient();
 
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
@@ -85,7 +83,7 @@ public class MeasurementsClientExtensionsTests
             [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
             [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
         });
-        Services.AddMeasurementsClient(_azureCredential);
+        Services.AddMeasurementsClient();
         var serviceProvider = Services.BuildServiceProvider();
 
         // Act

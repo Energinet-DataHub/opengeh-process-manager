@@ -14,6 +14,8 @@
 
 using Azure.Core;
 using Azure.Messaging.EventHubs.Producer;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
@@ -32,24 +34,25 @@ public static class MeasurementsClientExtensions
     /// <summary>
     /// Register Measurements client.
     /// </summary>
-    public static IServiceCollection AddMeasurementsClient(
-        this IServiceCollection services,
-        TokenCredential azureCredential)
+    public static IServiceCollection AddMeasurementsClient(this IServiceCollection services)
     {
         services
             .AddOptions<MeasurementsClientOptions>()
             .BindConfiguration(MeasurementsClientOptions.SectionName)
             .ValidateDataAnnotations();
 
-        services.AddAzureClients(
-            builder =>
+        services
+            .AddTokenCredentialProvider()
+            .AddAzureClients(builder =>
             {
+                builder.UseCredential(sp => sp.GetRequiredService<TokenCredentialProvider>().Credential);
+
                 builder.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
-                        (_, _, provider) =>
-                        {
-                            var options = provider.GetRequiredService<IOptions<MeasurementsClientOptions>>().Value;
-                            return new EventHubProducerClient($"{options.FullyQualifiedNamespace}", options.EventHubName, azureCredential);
-                        })
+                    (_, credential, provider) =>
+                    {
+                        var options = provider.GetRequiredService<IOptions<MeasurementsClientOptions>>().Value;
+                        return new EventHubProducerClient($"{options.FullyQualifiedNamespace}", options.EventHubName, credential);
+                    })
                     .WithName(EventHubProducerClientNames.MeasurementsEventHub);
             });
 

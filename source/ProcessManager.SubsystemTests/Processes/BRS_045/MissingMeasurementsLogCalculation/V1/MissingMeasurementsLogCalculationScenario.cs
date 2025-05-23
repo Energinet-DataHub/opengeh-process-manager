@@ -15,24 +15,24 @@
 using Energinet.DataHub.Core.TestCommon.Xunit.Attributes;
 using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared.V1;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_021.ElectricalHeatingCalculation.V1;
+namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.MissingMeasurementsLogCalculation.V1;
 
 [TestCaseOrderer(
     ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
-public class ElectricalHeatingCalculationScenario
+public class MissingMeasurementsLogCalculationScenario
     : IClassFixture<ProcessManagerFixture<CalculationScenarioState>>,
     IAsyncLifetime
 {
     private readonly ProcessManagerFixture<CalculationScenarioState> _fixture;
 
-    public ElectricalHeatingCalculationScenario(
+    public MissingMeasurementsLogCalculationScenario(
         ProcessManagerFixture<CalculationScenarioState> fixture,
         ITestOutputHelper testOutputHelper)
     {
@@ -59,7 +59,7 @@ public class ElectricalHeatingCalculationScenario
         await _fixture.StartDatabricksSqlWarehouseAsync();
 
         _fixture.ScenarioState = new CalculationScenarioState(
-            startCommand: new StartElectricalHeatingCalculationCommandV1(_fixture.UserIdentity));
+            startCommand: new StartMissingMeasurementsLogCalculationCommandV1(_fixture.UserIdentity));
     }
 
     [SubsystemFact]

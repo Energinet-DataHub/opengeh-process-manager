@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Application;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ElectricalHeatingCalculation.V1.Options;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.Shared.MissingMeasurementsLog.V1.Options;
 
 public class OptionsConfiguration : IOptionsConfiguration
 {
     public IServiceCollection Configure(IServiceCollection services)
     {
         services
-            .AddOptions<OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1>()
-            .BindConfiguration(OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.SectionName)
+            .AddOptions<DatabricksQueryOptions>(name: QueryOptionsSectionNames.MissingMeasurementsLogQuery)
+            .BindConfiguration(QueryOptionsSectionNames.MissingMeasurementsLogQuery)
             .ValidateDataAnnotations();
 
         return services;

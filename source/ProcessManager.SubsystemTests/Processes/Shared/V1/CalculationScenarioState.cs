@@ -13,14 +13,14 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 
-namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_021.ElectricalHeatingCalculation.V1;
+namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared.V1;
 
-public class ElectricalHeatingCalculationScenarioState(
-    StartElectricalHeatingCalculationCommandV1 startCommand)
+public class CalculationScenarioState(
+    StartOrchestrationInstanceCommand<UserIdentityDto> startCommand)
 {
-    public StartElectricalHeatingCalculationCommandV1 StartCommand { get; } = startCommand;
+    public StartOrchestrationInstanceCommand<UserIdentityDto> StartCommand { get; } = startCommand;
 
     public OrchestrationInstanceTypedDto? OrchestrationInstance { get; set; }
 

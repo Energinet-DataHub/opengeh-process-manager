@@ -15,28 +15,33 @@
 using Energinet.DataHub.Core.TestCommon.Xunit.Attributes;
 using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ElectricalHeatingCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Components.Time;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
+using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared.V1;
+using NodaTime;
+using NodaTime.Extensions;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_021.ElectricalHeatingCalculation.V1;
+namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_045.MissingMeasurementsLogOnDemand.V1;
 
 [TestCaseOrderer(
     ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
-public class ElectricalHeatingCalculationScenario
-    : IClassFixture<ProcessManagerFixture<CalculationScenarioState>>,
-    IAsyncLifetime
+public class MissingMeasurementsLogOnDemandCalculationScenario
+    : IClassFixture<ProcessManagerFixture<CalculationScenarioState>>, IAsyncLifetime
 {
     private readonly ProcessManagerFixture<CalculationScenarioState> _fixture;
+    private readonly TimeHelper _timeHelper;
 
-    public ElectricalHeatingCalculationScenario(
+    public MissingMeasurementsLogOnDemandCalculationScenario(
         ProcessManagerFixture<CalculationScenarioState> fixture,
         ITestOutputHelper testOutputHelper)
     {
         _fixture = fixture;
+        _timeHelper = new TimeHelper(DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Copenhagen")!);
         _fixture.SetTestOutputHelper(testOutputHelper);
     }
 
@@ -53,13 +58,18 @@ public class ElectricalHeatingCalculationScenario
 
     [SubsystemFact]
     [ScenarioStep(1)]
-    public async Task Given_ValidStartCalculationCommand()
+    public Task Given_ValidInputParameters()
     {
-        // Warm up SQL warehouse, so it is ready for the sql queries at the end of the orchestration
-        await _fixture.StartDatabricksSqlWarehouseAsync();
+        var periodStart = _timeHelper.GetMidnightZonedDateTime(DateTimeOffset.Now.ToInstant());
+        var periodEnd = periodStart.Plus(Duration.FromDays(1));
+        var gridAreaCodes = new[] { "301" };
 
         _fixture.ScenarioState = new CalculationScenarioState(
-            startCommand: new StartElectricalHeatingCalculationCommandV1(_fixture.UserIdentity));
+            startCommand: new StartMissingMeasurementsLogOnDemandCalculationCommandV1(
+                _fixture.UserIdentity,
+                new CalculationInputV1(periodStart.ToDateTimeOffset(), periodEnd.ToDateTimeOffset(), gridAreaCodes)));
+
+        return Task.CompletedTask;
     }
 
     [SubsystemFact]

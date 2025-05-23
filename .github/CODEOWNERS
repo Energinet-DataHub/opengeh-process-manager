@@ -1,6 +1,10 @@
 * @Energinet-DataHub/team-mosaic
-/.github/actions @Energinet-DataHub/TeamFusion
-/.github/workflows @Energinet-DataHub/TeamFusion
+
+/.github/actions @Energinet-DataHub/TeamFusion @Energinet-DataHub/team-mosaic
+/.github/workflows @Energinet-DataHub/TeamFusion @Energinet-DataHub/team-mosaic
+/.github/CODEOWNERS @Energinet-DataHub/TeamFusion
+/.github/workflows/ci-orchestrator.yml @Energinet-DataHub/TeamFusion
+/.github/workflows/cd.yml @Energinet-DataHub/TeamFusion
 # The following projects (directories) are for implementation of Orchestrations
 # We allow teams to work with tests in general
 /source/ProcessManager.Orchestrations.Tests @Energinet-DataHub/Team-Mosaic @Energinet-DataHub/Mandalorian

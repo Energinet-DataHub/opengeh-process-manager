@@ -59,7 +59,7 @@ public class MissingMeasurementsLogCalculationScenario
         await _fixture.StartDatabricksSqlWarehouseAsync();
 
         _fixture.ScenarioState = new CalculationScenarioState(
-            startCommand: new StartMissingMeasurementsLogCalculationCommandV1(_fixture.UserIdentity));
+            startCommand: new StartMissingMeasurementsLogCalculationCommandV1(_fixture.EnergySupplierUserIdentity));
     }
 
     [SubsystemFact]

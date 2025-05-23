@@ -30,6 +30,8 @@ public static class Brs021Extensions
     {
         services.AddMeasurementsClient(azureCredential);
         services.AddScoped<IMeteringPointMasterDataProvider, MeteringPointMasterDataProvider>();
+        services.AddTransient<ElectricityMarketViewsFactory>();
+        services.AddScoped<MeteringPointReceiversProvider>();
         services.AddScoped<MeteringPointReceiversProvider>();
 
         // Used by BRS-021 ForwardMeteredData process

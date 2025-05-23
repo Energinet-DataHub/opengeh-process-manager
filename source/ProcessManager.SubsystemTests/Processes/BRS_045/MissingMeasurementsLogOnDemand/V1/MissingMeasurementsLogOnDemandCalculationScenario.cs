@@ -66,7 +66,7 @@ public class MissingMeasurementsLogOnDemandCalculationScenario
 
         _fixture.ScenarioState = new CalculationScenarioState(
             startCommand: new StartMissingMeasurementsLogOnDemandCalculationCommandV1(
-                _fixture.UserIdentity,
+                _fixture.EnergySupplierUserIdentity,
                 new CalculationInputV1(periodStart.ToDateTimeOffset(), periodEnd.ToDateTimeOffset(), gridAreaCodes)));
 
         return Task.CompletedTask;

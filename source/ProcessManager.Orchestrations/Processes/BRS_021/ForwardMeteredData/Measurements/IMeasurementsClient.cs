@@ -19,7 +19,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public interface IMeasurementsClient
 {
     /// <summary>
-    /// Responsible for sending measurements for a metering point to Measurements subsytem.
+    /// Responsible for sending measurements for a metering point to Measurements subsystem.
     /// </summary>
     /// <param name="measurementsForMeteringPoint"></param>
     /// <param name="cancellationToken"></param>

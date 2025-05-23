@@ -69,7 +69,7 @@ public class SendMeasurementsScenario
 
         var actorMessageId = Guid.NewGuid().ToTestMessageUuid();
         var transactionId = Guid.NewGuid().ToTestMessageUuid();
-        _fixture.TestConfiguration = new SendMeasurementsScenarioState(
+        _fixture.ScenarioState = new SendMeasurementsScenarioState(
             Command: new ForwardMeteredDataCommandV1(
                 operatingIdentity: _fixture.GridAccessProviderActorIdentity,
                 inputParameter: new ForwardMeteredDataInputV1(
@@ -102,7 +102,7 @@ public class SendMeasurementsScenario
     public async Task AndGiven_StartNewOrchestrationInstanceIsSent()
     {
         await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
-            _fixture.TestConfiguration.Command,
+            _fixture.ScenarioState.Command,
             CancellationToken.None);
     }
 
@@ -113,32 +113,32 @@ public class SendMeasurementsScenario
         var (success, orchestrationInstance, _) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
-                _fixture.TestConfiguration.Command.IdempotencyKey,
+                _fixture.ScenarioState.Command.IdempotencyKey,
                 OrchestrationInstanceLifecycleState.Running);
 
         Assert.Multiple(
             () => Assert.True(
                 success,
-                $"An orchestration instance for idempotency key \"{_fixture.TestConfiguration.Command.IdempotencyKey}\" should have been found"),
+                $"An orchestration instance for idempotency key \"{_fixture.ScenarioState.Command.IdempotencyKey}\" should have been found"),
             () => Assert.NotNull(orchestrationInstance));
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
     }
 
     [SubsystemFact]
     [ScenarioStep(4)]
     public async Task Then_BusinessValidationIsSuccessful()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, businessValidationStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
-                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                idempotencyKey: _fixture.ScenarioState.Command.IdempotencyKey,
                 stepSequence: Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.OrchestrationDescriptionBuilder.BusinessValidationStep,
                 stepState: StepInstanceLifecycleState.Terminated);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         if (businessValidationStep?.CustomState.Length > 0)
             _fixture.Logger.WriteLine($"Business validation step custom state: {businessValidationStep?.CustomState}.");
@@ -153,16 +153,16 @@ public class SendMeasurementsScenario
     [ScenarioStep(5)]
     public async Task AndThen_MeasurementsAreSentToMeasurementsSubsystem()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, forwardToMeasurementsStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
-                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                idempotencyKey: _fixture.ScenarioState.Command.IdempotencyKey,
                 stepSequence: Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.OrchestrationDescriptionBuilder.ForwardToMeasurementsStep,
                 stepState: StepInstanceLifecycleState.Running);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         Assert.Multiple(
             () => Assert.True(success, "Forward to measurements step should be running"),
@@ -174,13 +174,13 @@ public class SendMeasurementsScenario
     [ScenarioStep(6)]
     public async Task AndThen_ReceivedSendMeasurementsNotifyFromMeasurementsTransitionsForwardToMeasurementsToSuccessful()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         // Simulate "ForwardMeteredDataNotifyV1" message from Measurements to Process Manager event hub
         var notifyFromMeasurementsMessage = new Brs021ForwardMeteredDataNotifyV1
         {
             Version = "1",
-            OrchestrationInstanceId = _fixture.TestConfiguration.OrchestrationInstance.Id.ToString(),
+            OrchestrationInstanceId = _fixture.ScenarioState.OrchestrationInstance.Id.ToString(),
         };
 
         await _fixture.ProcessManagerEventHubProducerClient.SendAsync(
@@ -190,11 +190,11 @@ public class SendMeasurementsScenario
         var (success, orchestrationInstance, forwardToMeasurementsStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
-                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                idempotencyKey: _fixture.ScenarioState.Command.IdempotencyKey,
                 stepSequence: Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.OrchestrationDescriptionBuilder.ForwardToMeasurementsStep,
                 stepState: StepInstanceLifecycleState.Terminated);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         Assert.Multiple(
             () => Assert.True(success, "Forward to Measurements step should be terminated"),
@@ -206,16 +206,16 @@ public class SendMeasurementsScenario
     [ScenarioStep(7)]
     public async Task AndThen_EnqueueActorMessagesIsSentToEDI()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
-                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                idempotencyKey: _fixture.ScenarioState.Command.IdempotencyKey,
                 stepSequence: Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.OrchestrationDescriptionBuilder.EnqueueActorMessagesStep,
                 stepState: StepInstanceLifecycleState.Running);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         Assert.Multiple(
             () => Assert.True(success, "Enqueue actor messages step should be running"),
@@ -227,23 +227,23 @@ public class SendMeasurementsScenario
     [ScenarioStep(8)]
     public async Task AndThen_ReceivingNotifyEnqueueActorMessagesCompletedTransitionsEnqueueActorMessagesStepToSuccessful()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         // Send notify "EnqueueActorMessagesCompleted" message to the orchestration instance
         await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new ForwardMeteredDataNotifyEventV1(
-                OrchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstance.Id.ToString()),
+                OrchestrationInstanceId: _fixture.ScenarioState.OrchestrationInstance.Id.ToString()),
             CancellationToken.None);
 
         // Wait for the enqueue actor messages step to be terminated
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
-                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                idempotencyKey: _fixture.ScenarioState.Command.IdempotencyKey,
                 stepSequence: Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.OrchestrationDescriptionBuilder.EnqueueActorMessagesStep,
                 stepState: StepInstanceLifecycleState.Terminated);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         Assert.Multiple(
             () => Assert.True(success, "Enqueue actor messages step should be terminated"),
@@ -255,15 +255,15 @@ public class SendMeasurementsScenario
     [ScenarioStep(9)]
     public async Task AndThen_OrchestrationInstanceIsTerminatedWithSuccess()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, _) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 ForwardMeteredDataInputV1, SendMeasurementsScenarioState>(
-                idempotencyKey: _fixture.TestConfiguration.Command.IdempotencyKey,
+                idempotencyKey: _fixture.ScenarioState.Command.IdempotencyKey,
                 orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         Assert.Multiple(
             () => Assert.True(success, "The orchestration instance should be terminated"),

@@ -59,7 +59,7 @@ public class RequestCalculatedWholesaleServicesScenario :
     public void Given_ValidRequestCalculatedWholesaleServicesRequest()
     {
         var testUuid = Guid.NewGuid().ToTestMessageUuid();
-        _fixture.TestConfiguration = new RequestCalculatedWholesaleServicesScenarioState(
+        _fixture.ScenarioState = new RequestCalculatedWholesaleServicesScenarioState(
             request: new RequestCalculatedWholesaleServicesCommandV1(
                 operatingIdentity: _fixture.EnergySupplierActorIdentity,
                 inputParameter: new RequestCalculatedWholesaleServicesInputV1(
@@ -86,7 +86,7 @@ public class RequestCalculatedWholesaleServicesScenario :
     public async Task AndGiven_StartNewOrchestrationInstanceIsSent()
     {
         await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
-            _fixture.TestConfiguration.Request,
+            _fixture.ScenarioState.Request,
             CancellationToken.None);
     }
 
@@ -97,24 +97,24 @@ public class RequestCalculatedWholesaleServicesScenario :
         var (success, orchestrationInstance, _) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
-                    _fixture.TestConfiguration.Request.IdempotencyKey,
+                    _fixture.ScenarioState.Request.IdempotencyKey,
                     OrchestrationInstanceLifecycleState.Running);
 
         Assert.Multiple(
             () => Assert.True(
                 success,
-                $"An orchestration instance for idempotency key \"{_fixture.TestConfiguration.Request.IdempotencyKey}\" should have been found"),
+                $"An orchestration instance for idempotency key \"{_fixture.ScenarioState.Request.IdempotencyKey}\" should have been found"),
             () => Assert.NotNull(orchestrationInstance));
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
     }
 
     [SubsystemFact]
     [ScenarioStep(4)]
     public void Then_OrchestrationInstanceHasCorrectValues()
     {
-        var request = _fixture.TestConfiguration.Request;
-        var orchestrationInstance = _fixture.TestConfiguration.OrchestrationInstance;
+        var request = _fixture.ScenarioState.Request;
+        var orchestrationInstance = _fixture.ScenarioState.OrchestrationInstance;
 
         Assert.NotNull(orchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
@@ -133,16 +133,16 @@ public class RequestCalculatedWholesaleServicesScenario :
     [ScenarioStep(5)]
     public async Task AndThen_BusinessValidationStepIsSuccessful()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, businessValidationStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
-                    idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
+                    idempotencyKey: _fixture.ScenarioState.Request.IdempotencyKey,
                     stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.BusinessValidationStep.StepSequence,
                     stepState: StepInstanceLifecycleState.Terminated);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         if (businessValidationStep?.CustomState.Length > 0)
             _fixture.Logger.WriteLine($"Business validation step custom state: {businessValidationStep?.CustomState}.");
@@ -157,16 +157,16 @@ public class RequestCalculatedWholesaleServicesScenario :
     [ScenarioStep(6)]
     public async Task AndThen_EnqueueActorMessagesStepIsRunning()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
-                    idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
+                    idempotencyKey: _fixture.ScenarioState.Request.IdempotencyKey,
                     stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
                     stepState: StepInstanceLifecycleState.Running);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         Assert.Multiple(
             () => Assert.True(success, "Enqueue actor messages step should be running"),
@@ -178,23 +178,23 @@ public class RequestCalculatedWholesaleServicesScenario :
     [ScenarioStep(7)]
     public async Task AndThen_ReceivingNotifyEnqueueActorMessagesCompletedTransitionsEnqueueActorMessagesStepToSuccessful()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         // Send notify "EnqueueActorMessagesCompleted" message to the orchestration instance
         await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new RequestCalculatedWholesaleServicesNotifyEventV1(
-                OrchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstance.Id.ToString()),
+                OrchestrationInstanceId: _fixture.ScenarioState.OrchestrationInstance.Id.ToString()),
             CancellationToken.None);
 
         // Wait for the enqueue actor messages step to be terminated
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
-                    idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
+                    idempotencyKey: _fixture.ScenarioState.Request.IdempotencyKey,
                     stepSequence: Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps.EnqueueActorMessagesStep.StepSequence,
                     stepState: StepInstanceLifecycleState.Terminated);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         Assert.Multiple(
             () => Assert.True(success, "Enqueue actor messages step should be terminated"),
@@ -206,15 +206,15 @@ public class RequestCalculatedWholesaleServicesScenario :
     [ScenarioStep(8)]
     public async Task AndThen_OrchestrationInstanceIsTerminatedWithSuccess()
     {
-        Assert.NotNull(_fixture.TestConfiguration.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
 
         var (success, orchestrationInstance, _) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
                 RequestCalculatedWholesaleServicesInputV1, RequestCalculatedWholesaleServicesScenarioState>(
-                    idempotencyKey: _fixture.TestConfiguration.Request.IdempotencyKey,
+                    idempotencyKey: _fixture.ScenarioState.Request.IdempotencyKey,
                     orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         Assert.Multiple(
             () => Assert.True(success, "The orchestration instance should be terminated"),

@@ -71,7 +71,8 @@ jobs:
             {
               'core': 'ProcessManager.csproj',
               'orchestrations': 'ProcessManager.Orchestrations.csproj',
-              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj'
+              'dbmigrations': 'ProcessManager.DatabaseMigration.csproj',
+              'subsystemtests': 'ProcessManager.SubsystemTests.csproj',
             }"
           print_debug_output: ${{ inputs.print_debug_output }}
 

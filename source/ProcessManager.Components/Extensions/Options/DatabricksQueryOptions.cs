@@ -30,12 +30,12 @@ public class DatabricksQueryOptions
     /// Should point at the unity catalog when running in Azure,
     /// and use 'hive_metastore' when running in tests.
     /// </remarks>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string CatalogName { get; set; } = null!;
 
     /// <summary>
     /// Name of the Databricks database.
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string DatabaseName { get; set; } = null!;
 }

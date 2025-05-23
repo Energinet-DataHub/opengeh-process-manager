@@ -58,7 +58,7 @@ public class ElectricalHeatingCalculationScenario
         // Warm up SQL warehouse, so it is ready for the sql queries at the end of the orchestration
         await _fixture.StartDatabricksSqlWarehouseAsync();
 
-        _fixture.TestConfiguration = new CalculationScenarioState(
+        _fixture.ScenarioState = new CalculationScenarioState(
             startCommand: new StartElectricalHeatingCalculationCommandV1(_fixture.UserIdentity));
     }
 
@@ -67,45 +67,45 @@ public class ElectricalHeatingCalculationScenario
     public async Task AndGiven_StartNewOrchestrationInstanceIsSent()
     {
         var orchestrationInstanceId = await _fixture.ProcessManagerHttpClient.StartNewOrchestrationInstanceAsync(
-            _fixture.TestConfiguration.StartCommand,
+            _fixture.ScenarioState.StartCommand,
             CancellationToken.None);
 
-        _fixture.TestConfiguration.OrchestrationInstanceId = orchestrationInstanceId;
+        _fixture.ScenarioState.OrchestrationInstanceId = orchestrationInstanceId;
     }
 
     [SubsystemFact]
     [ScenarioStep(3)]
     public async Task When_OrchestrationInstanceIsRunning()
     {
-        Assert.True(_fixture.TestConfiguration.OrchestrationInstanceId != Guid.Empty, "If orchestration instance id wasn't set earlier, end tests early.");
+        Assert.True(_fixture.ScenarioState.OrchestrationInstanceId != Guid.Empty, "If orchestration instance id wasn't set earlier, end tests early.");
 
         var (success, orchestrationInstance, _) = await _fixture.WaitForOrchestrationInstanceByIdAsync(
-            orchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstanceId,
+            orchestrationInstanceId: _fixture.ScenarioState.OrchestrationInstanceId,
             orchestrationInstanceState: OrchestrationInstanceLifecycleState.Running);
 
         Assert.Multiple(
             () => Assert.True(
                 success,
-                $"An orchestration instance for id \"{_fixture.TestConfiguration.OrchestrationInstanceId}\" should be running."),
+                $"An orchestration instance for id \"{_fixture.ScenarioState.OrchestrationInstanceId}\" should be running."),
             () => Assert.NotNull(orchestrationInstance));
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
     }
 
     [SubsystemFact]
     [ScenarioStep(4)]
     public async Task Then_OrchestrationInstanceIsTerminatedWithSuccess()
     {
-        Assert.True(_fixture.TestConfiguration.OrchestrationInstanceId != Guid.Empty, "If orchestration instance id wasn't set earlier, end tests early.");
+        Assert.True(_fixture.ScenarioState.OrchestrationInstanceId != Guid.Empty, "If orchestration instance id wasn't set earlier, end tests early.");
 
         // Wait up to 30 minutes for the orchestration instance to be terminated. If the databricks warehouse
         // isn't currently running, it takes 5-20 minutes before the databricks query actually starts running.
         var (success, orchestrationInstance, _) = await _fixture.WaitForOrchestrationInstanceByIdAsync(
-                orchestrationInstanceId: _fixture.TestConfiguration.OrchestrationInstanceId,
+                orchestrationInstanceId: _fixture.ScenarioState.OrchestrationInstanceId,
                 orchestrationInstanceState: OrchestrationInstanceLifecycleState.Terminated,
                 timeoutInMinutes: 30);
 
-        _fixture.TestConfiguration.OrchestrationInstance = orchestrationInstance;
+        _fixture.ScenarioState.OrchestrationInstance = orchestrationInstance;
 
         Assert.Multiple(
             () => Assert.True(success, "The orchestration instance should be terminated"),

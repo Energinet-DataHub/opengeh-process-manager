@@ -20,7 +20,4 @@ public static class QueryOptionsSectionNames
     /// Used to name a query to avoid naming conflicts with other queries.
     /// </summary>
     public const string MissingMeasurementsLogQuery = "MissingMeasurementsLogQuery";
-
-    // TODO AJW: Remove when the problem is fixed
-    public const string TempMissingMeasurementsLogQuery = "CalculatedMeasurementsQuery";
 }

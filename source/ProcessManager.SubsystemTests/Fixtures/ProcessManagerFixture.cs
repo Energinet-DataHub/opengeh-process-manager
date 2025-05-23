@@ -26,7 +26,7 @@ using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 
-public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
+public class ProcessManagerFixture<TScenarioState> : IAsyncLifetime
 {
     private readonly Guid _subsystemTestUserId = Guid.Parse("00000000-0000-0000-0000-000000000999");
 
@@ -41,7 +41,7 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
         var serviceCollection = BuildServices();
         _services = serviceCollection.BuildServiceProvider();
 
-        TestConfiguration = default;
+        ScenarioState = default;
     }
 
     public ProcessManagerSubsystemTestConfiguration Configuration { get; }
@@ -49,7 +49,7 @@ public class ProcessManagerFixture<TConfiguration> : IAsyncLifetime
     public TestDiagnosticsLogger Logger { get; }
 
     [NotNull]
-    public TConfiguration? TestConfiguration { get; set; }
+    public TScenarioState? ScenarioState { get; set; }
 
     public IProcessManagerMessageClient ProcessManagerMessageClient => _services.GetRequiredService<IProcessManagerMessageClient>();
 

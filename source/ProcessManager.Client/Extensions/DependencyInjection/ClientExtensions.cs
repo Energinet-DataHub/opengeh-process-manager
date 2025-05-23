@@ -41,7 +41,9 @@ public static class ClientExtensions
             .BindConfiguration(ProcessManagerHttpClientsOptions.SectionName)
             .ValidateDataAnnotations();
 
-        services.AddAuthorizationHeaderProvider();
+        services
+            .AddTokenCredentialProvider()
+            .AddAuthorizationHeaderProvider();
 
         services.AddHttpClient(HttpClientNames.GeneralApi, (sp, httpClient) =>
         {

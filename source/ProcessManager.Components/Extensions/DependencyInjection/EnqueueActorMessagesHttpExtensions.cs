@@ -35,7 +35,9 @@ public static class EnqueueActorMessagesHttpExtensions
             .BindConfiguration(EnqueueActorMessagesHttpClientOptions.SectionName)
             .ValidateDataAnnotations();
 
-        services.AddAuthorizationHeaderProvider();
+        services
+            .AddTokenCredentialProvider()
+            .AddAuthorizationHeaderProvider();
 
         services.AddHttpClient(
             HttpClientNames.EdiEnqueueActorMessagesClientName,

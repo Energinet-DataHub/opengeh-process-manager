@@ -1,5 +1,9 @@
 # ProcessManager.Client Release Notes
 
+## Version 5.1.1
+
+- Updated `AddProcessManagerHttpClients` to use `AddTokenCredentialProvider` from `Energinet.DataHub.Core.App.Common` package.
+
 ## Version 5.1.0
 
 - Updated `AddProcessManagerHttpClients` to use `AddAuthorizationHeaderProvider` from `Energinet.DataHub.Core.App.Common` package.

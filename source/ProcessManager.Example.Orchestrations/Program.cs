@@ -29,8 +29,6 @@ using Microsoft.FeatureManagement;
 var host = new HostBuilder()
     .ConfigureServices((context, services) =>
     {
-        var azureCredential = new DefaultAzureCredential();
-
         // Common
         services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Example");
         services.AddHealthChecksForIsolatedWorker();
@@ -46,7 +44,7 @@ var host = new HostBuilder()
 
         // => Add EnqueueActorMessages client
         services.AddServiceBusClientForApplication(context.Configuration);
-        services.AddEnqueueActorMessages(azureCredential);
+        services.AddEnqueueActorMessages();
 
         // Add BusinessValidation
         var orchestrationsExampleAssembly = typeof(Program).Assembly;

@@ -27,7 +27,7 @@ public class EdiTopicServiceBusSenderFactory(
     IOptions<ProcessManagerComponentsOptions> options,
     IAzureClientFactory<ServiceBusSender> serviceBusFactory)
 {
-    private readonly IOptions<ProcessManagerComponentsOptions> _options = options;
+    private readonly ProcessManagerComponentsOptions _options = options.Value;
     private readonly IAzureClientFactory<ServiceBusSender> _serviceBusFactory = serviceBusFactory;
 
     /// <summary>
@@ -39,7 +39,7 @@ public class EdiTopicServiceBusSenderFactory(
     /// </summary>
     public ServiceBusSender CreateSender(IEnqueueDataDto data)
     {
-        if (!_options.Value.AllowMockDependenciesForTests)
+        if (!_options.AllowMockDependenciesForTests)
             return CreateEdiServiceBusSender();
 
         var originalActorMessageId = data switch

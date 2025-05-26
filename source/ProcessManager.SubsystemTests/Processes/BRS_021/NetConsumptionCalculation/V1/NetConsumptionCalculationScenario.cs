@@ -59,7 +59,7 @@ public class NetConsumptionCalculationScenario
         await _fixture.StartDatabricksSqlWarehouseAsync();
 
         _fixture.ScenarioState = new CalculationScenarioState(
-            startCommand: new StartNetConsumptionCalculationCommandV1(_fixture.UserIdentity));
+            startCommand: new StartNetConsumptionCalculationCommandV1(_fixture.EnergySupplierUserIdentity));
     }
 
     [SubsystemFact]

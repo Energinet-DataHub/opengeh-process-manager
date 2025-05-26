@@ -27,7 +27,13 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class IntegrationEventPublisherExtensions
 {
-        public static IServiceCollection AddIntegrationEventPublisher(this IServiceCollection services)
+    /// <summary>
+    /// Register services and health checks for integration event publisher.
+    /// </summary>
+    /// <remarks>
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
+    /// </remarks>
+    public static IServiceCollection AddIntegrationEventPublisher(this IServiceCollection services)
     {
         services.AddOptions<ServiceBusNamespaceOptions>()
             .BindConfiguration(ServiceBusNamespaceOptions.SectionName)
@@ -38,7 +44,6 @@ public static class IntegrationEventPublisherExtensions
             .ValidateDataAnnotations();
 
         services
-            .AddTokenCredentialProvider()
             .AddHealthChecks()
             .AddAzureServiceBusTopic(
                 sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,

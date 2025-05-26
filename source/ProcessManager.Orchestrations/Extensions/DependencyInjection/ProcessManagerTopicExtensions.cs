@@ -28,6 +28,9 @@ public static class ProcessManagerTopicExtensions
     /// <summary>
     /// Add required dependencies to use the Process Manager Service Bus topic.
     /// </summary>
+    /// <remarks>
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
+    /// </remarks>
     public static IServiceCollection AddProcessManagerTopic(this IServiceCollection services)
     {
         services.AddOptions<ServiceBusNamespaceOptions>()
@@ -45,7 +48,6 @@ public static class ProcessManagerTopicExtensions
             .ValidateDataAnnotations();
 
         services
-            .AddTokenCredentialProvider()
             .AddHealthChecks()
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,

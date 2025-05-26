@@ -26,6 +26,12 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class EnqueueActorMessagesExtensions
 {
+    /// <summary>
+    /// Register services and health checks for enqueue actor messages over service bus.
+    /// </summary>
+    /// <remarks>
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
+    /// </remarks>
     public static IServiceCollection AddEnqueueActorMessages(this IServiceCollection services)
     {
         services
@@ -43,7 +49,6 @@ public static class EnqueueActorMessagesExtensions
             .ValidateDataAnnotations();
 
         services
-            .AddTokenCredentialProvider()
             .AddHealthChecks()
             .AddAzureServiceBusTopic(
                 sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,

@@ -33,6 +33,9 @@ public static class MeasurementsClientExtensions
     /// <summary>
     /// Register Measurements client.
     /// </summary>
+    /// <remarks>
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
+    /// </remarks>
     public static IServiceCollection AddMeasurementsClient(this IServiceCollection services)
     {
         services
@@ -41,7 +44,6 @@ public static class MeasurementsClientExtensions
             .ValidateDataAnnotations();
 
         services
-            .AddTokenCredentialProvider()
             .AddAzureClients(builder =>
             {
                 builder.UseCredential(sp => sp.GetRequiredService<TokenCredentialProvider>().Credential);
@@ -58,11 +60,13 @@ public static class MeasurementsClientExtensions
         services.AddTransient<IMeasurementsClient, MeasurementsClient>();
         services.AddTransient<MeasurementsEventHubProducerClientFactory>();
 
-        services.AddHealthChecks()
+        services
+            .AddHealthChecks()
             .AddAzureEventHub(
                 clientFactory: sp => sp.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>().CreateClient(EventHubProducerClientNames.MeasurementsEventHub),
                 name: EventHubProducerClientNames.MeasurementsEventHub,
                 HealthStatus.Unhealthy);
+
         return services;
     }
 }

@@ -27,11 +27,12 @@ public static class ServiceBusExtensions
 {
     /// <summary>
     /// Add required services for handling notify orchestration instance Service Bus messages.
+    /// </summary>
     /// <remarks>
     /// Requires <see cref="ProcessManagerNotifyTopicOptions"/> to be present in the app settings.
     /// Requires <see cref="ServiceBusNamespaceOptions"/> to be present in the app settings.
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
     /// </remarks>
-    /// </summary>
     public static IServiceCollection AddNotifyOrchestrationInstance(this IServiceCollection serviceCollection)
     {
         serviceCollection
@@ -45,7 +46,6 @@ public static class ServiceBusExtensions
             .ValidateDataAnnotations();
 
         serviceCollection
-            .AddTokenCredentialProvider()
             .AddHealthChecks()
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,

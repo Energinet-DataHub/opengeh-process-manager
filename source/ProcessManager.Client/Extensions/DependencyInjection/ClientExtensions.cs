@@ -34,6 +34,9 @@ public static class ClientExtensions
     /// Configures http clients with an "Authorization" header value and
     /// forward it to the Process Manager API for authentication/authorization.
     /// </summary>
+    /// <remarks>
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
+    /// </remarks>
     public static IServiceCollection AddProcessManagerHttpClients(this IServiceCollection services)
     {
         services
@@ -42,7 +45,6 @@ public static class ClientExtensions
             .ValidateDataAnnotations();
 
         services
-            .AddTokenCredentialProvider()
             .AddAuthorizationHeaderProvider();
 
         services.AddHttpClient(HttpClientNames.GeneralApi, (sp, httpClient) =>

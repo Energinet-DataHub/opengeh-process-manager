@@ -25,6 +25,12 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class EnqueueActorMessagesHttpExtensions
 {
+    /// <summary>
+    /// Register services and health checks for enqueue actor messages over http.
+    /// </summary>
+    /// <remarks>
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
+    /// </remarks>
     public static IServiceCollection AddEnqueueActorMessagesHttp(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
@@ -35,7 +41,6 @@ public static class EnqueueActorMessagesHttpExtensions
             .ValidateDataAnnotations();
 
         services
-            .AddTokenCredentialProvider()
             .AddAuthorizationHeaderProvider();
 
         services.AddHttpClient(

@@ -22,56 +22,37 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
 {
     public ProcessManagerSubsystemTestConfiguration()
     {
-        EnergySupplierActorNumber = Root.GetValue<string>("ENERGY_SUPPLIER_ACTOR_NUMBER")
-            ?? throw new ArgumentNullException(nameof(EnergySupplierActorNumber), $"Missing configuration value for ENERGY_SUPPLIER_ACTOR_NUMBER");
+        EnergySupplierActorNumber = GetValueFromConfiguration(Root, "ENERGY_SUPPLIER_ACTOR_NUMBER");
+        GridAccessProviderActorNumber = GetValueFromConfiguration(Root, "GRID_ACCESS_PROVIDER_ACTOR_NUMBER");
 
-        var sharedKeyVaultName = Root.GetValue<string>("SHARED_KEYVAULT_NAME")
-                                ?? throw new NullReferenceException($"Missing configuration value for SHARED_KEYVAULT_NAME");
-
-        var internalKeyVaultName = Root.GetValue<string>("INTERNAL_KEYVAULT_NAME")
-                                ?? throw new NullReferenceException($"Missing configuration value for INTERNAL_KEYVAULT_NAME");
+        var sharedKeyVaultName = GetValueFromConfiguration(Root, "SHARED_KEYVAULT_NAME");
+        var internalKeyVaultName = GetValueFromConfiguration(Root, "INTERNAL_KEYVAULT_NAME");
 
         var keyVaultConfiguration = GetKeyVaultConfiguration(sharedKeyVaultName, internalKeyVaultName);
 
-        ServiceBusNamespace = keyVaultConfiguration.GetValue<string>("sb-domain-relay-namespace-endpoint")
-                                       ?? throw new ArgumentNullException(nameof(ServiceBusNamespace), $"Missing configuration value for {nameof(ServiceBusNamespace)}");
-
-        ProcessManagerStartTopicName = keyVaultConfiguration.GetValue<string>("sbt-processmanagerstart-name")
-            ?? throw new ArgumentNullException(nameof(ProcessManagerStartTopicName), $"Missing configuration value for {nameof(ProcessManagerStartTopicName)}");
-
-        ProcessManagerNotifyTopicName = keyVaultConfiguration.GetValue<string>("sbt-processmanagernotify-name")
-            ?? throw new ArgumentNullException(nameof(ProcessManagerNotifyTopicName), $"Missing configuration value for {nameof(ProcessManagerNotifyTopicName)}");
-
-        ProcessManagerBrs021StartTopicName = keyVaultConfiguration.GetValue<string>("sbt-brs021forwardmetereddatastart-name")
-            ?? throw new ArgumentNullException(nameof(ProcessManagerBrs021StartTopicName), $"Missing configuration value for {nameof(ProcessManagerBrs021StartTopicName)}");
-
-        ProcessManagerBrs021NotifyTopicName = keyVaultConfiguration.GetValue<string>("sbt-brs021forwardmetereddatanotify-name")
-            ?? throw new ArgumentNullException(nameof(ProcessManagerBrs021NotifyTopicName), $"Missing configuration value for {nameof(ProcessManagerBrs021NotifyTopicName)}");
-
-        ProcessManagerApplicationIdUri = keyVaultConfiguration.GetValue<string>("processmanager-application-id-uri")
-            ?? throw new ArgumentNullException(nameof(ProcessManagerApplicationIdUri), $"Missing configuration value for {nameof(ProcessManagerApplicationIdUri)}");
+        ServiceBusNamespace = GetValueFromConfiguration(keyVaultConfiguration, "sb-domain-relay-namespace-endpoint");
+        ProcessManagerStartTopicName = GetValueFromConfiguration(keyVaultConfiguration, "sbt-processmanagerstart-name");
+        ProcessManagerNotifyTopicName = GetValueFromConfiguration(keyVaultConfiguration, "sbt-processmanagernotify-name");
+        ProcessManagerBrs021StartTopicName = GetValueFromConfiguration(keyVaultConfiguration, "sbt-brs021forwardmetereddatastart-name");
+        ProcessManagerBrs021NotifyTopicName = GetValueFromConfiguration(keyVaultConfiguration, "sbt-brs021forwardmetereddatanotify-name");
 
         // /.default must be added when running in the CD, else we get the following error: "Client credential flows
         // must have a scope value with /.default suffixed to the resource identifier (application ID URI)"
-        ProcessManagerApplicationIdUri = $"{ProcessManagerApplicationIdUri}/.default";
+        ProcessManagerApplicationIdUri = GetValueFromConfiguration(keyVaultConfiguration, "processmanager-application-id-uri") + "/.default";
+        ProcessManagerGeneralApiBaseAddress = GetValueFromConfiguration(keyVaultConfiguration, "func-api-pmcore-base-url");
+        ProcessManagerOrchestrationsApiBaseAddress = GetValueFromConfiguration(keyVaultConfiguration, "func-orchestrations-pmorch-base-url");
 
-        ProcessManagerGeneralApiBaseAddress = keyVaultConfiguration.GetValue<string>("func-api-pmcore-base-url")
-            ?? throw new ArgumentNullException(nameof(ProcessManagerGeneralApiBaseAddress), $"Missing configuration value for {nameof(ProcessManagerGeneralApiBaseAddress)}");
+        ProcessManagerDatabricksWorkspaceUrl = GetValueFromConfiguration(keyVaultConfiguration, "dbw-workspace-https-url");
+        ProcessManagerDatabricksToken = GetValueFromConfiguration(keyVaultConfiguration, "dbw-workspace-token");
+        ProcessManagerDatabricksSqlWarehouseId = GetValueFromConfiguration(keyVaultConfiguration, "process-manager-warehouse-id");
 
-        ProcessManagerOrchestrationsApiBaseAddress = keyVaultConfiguration.GetValue<string>("func-orchestrations-pmorch-base-url")
-            ?? throw new ArgumentNullException(nameof(ProcessManagerOrchestrationsApiBaseAddress), $"Missing configuration value for {nameof(ProcessManagerOrchestrationsApiBaseAddress)}");
-
-        ProcessManagerDatabricksWorkspaceUrl = keyVaultConfiguration.GetValue<string>("dbw-workspace-https-url")
-            ?? throw new ArgumentNullException(nameof(ProcessManagerDatabricksWorkspaceUrl), $"Missing configuration value for {nameof(ProcessManagerDatabricksWorkspaceUrl)}");
-
-        ProcessManagerDatabricksToken = keyVaultConfiguration.GetValue<string>("dbw-workspace-token")
-            ?? throw new ArgumentNullException(nameof(ProcessManagerDatabricksToken), $"Missing configuration value for {nameof(ProcessManagerDatabricksToken)}");
-
-        ProcessManagerDatabricksSqlWarehouseId = keyVaultConfiguration.GetValue<string>("process-manager-warehouse-id")
-            ?? throw new ArgumentNullException(nameof(ProcessManagerDatabricksSqlWarehouseId), $"Missing configuration value for {nameof(ProcessManagerDatabricksSqlWarehouseId)}");
+        EventHubNamespace = GetValueFromConfiguration(keyVaultConfiguration, "evhns-subsystemrelay-name") + ".servicebus.windows.net";
+        ProcessManagerEventHubName = GetValueFromConfiguration(keyVaultConfiguration, "evh-brs021forwardmetereddatanotify-name");
     }
 
     public string EnergySupplierActorNumber { get; }
+
+    public string GridAccessProviderActorNumber { get; }
 
     public string ServiceBusNamespace { get; }
 
@@ -95,6 +76,10 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
 
     public string ProcessManagerDatabricksSqlWarehouseId { get; }
 
+    public string EventHubNamespace { get; }
+
+    public string ProcessManagerEventHubName { get; }
+
     /// <summary>
     /// Build configuration for loading settings from key vault secrets.
     /// </summary>
@@ -107,5 +92,11 @@ public class ProcessManagerSubsystemTestConfiguration : SubsystemTestConfigurati
             .AddAuthenticatedAzureKeyVault(sharedKeyVaultUrl)
             .AddAuthenticatedAzureKeyVault(internalKeyVaultUrl)
             .Build();
+    }
+
+    private string GetValueFromConfiguration(IConfigurationRoot configuration, string key)
+    {
+        return configuration.GetValue<string>(key)
+               ?? throw new NullReferenceException($"Missing configuration value for {key}");
     }
 }

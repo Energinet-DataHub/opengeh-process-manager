@@ -17,6 +17,7 @@ using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
@@ -24,6 +25,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.Measurements;
@@ -32,6 +34,14 @@ public class MeasurementsClientTests
 {
     public MeasurementsClientTests()
     {
+        var optionsMock = new Mock<IOptions<ProcessManagerComponentsOptions>>();
+        optionsMock
+            .Setup(o => o.Value)
+            .Returns(new ProcessManagerComponentsOptions
+            {
+                AllowMockDependenciesForTests = false,
+            });
+
         var eventHubClientFactory = new Mock<IAzureClientFactory<EventHubProducerClient>>();
         EventHubProducerClientMock = new Mock<EventHubProducerClient>();
 
@@ -39,7 +49,11 @@ public class MeasurementsClientTests
             .Setup(factory => factory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub))
             .Returns(EventHubProducerClientMock.Object);
 
-        Sut = new MeasurementsClient(eventHubClientFactory.Object);
+        var measurementsEventHubProducerClientFactory = new MeasurementsEventHubProducerClientFactory(
+            optionsMock.Object,
+            eventHubClientFactory.Object);
+
+        Sut = new MeasurementsClient(measurementsEventHubProducerClientFactory);
     }
 
     internal Mock<EventHubProducerClient> EventHubProducerClientMock { get; }

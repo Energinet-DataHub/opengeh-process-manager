@@ -14,6 +14,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.WebApp.Extensions.Builder;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
@@ -141,7 +142,9 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
             .Build();
 
         services.AddScoped<IConfiguration>(_ => configuration);
-        services.AddServiceBusClientForApplication(configuration);
+        services.AddServiceBusClientForApplication(
+            configuration,
+            _ => IntegrationTestConfiguration.Credential);
         services.AddIntegrationEventPublisher();
     }
 

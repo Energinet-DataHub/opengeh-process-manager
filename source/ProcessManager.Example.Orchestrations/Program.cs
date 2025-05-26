@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
@@ -22,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
 
@@ -31,6 +33,7 @@ var host = new HostBuilder()
         // Common
         services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Example");
         services.AddHealthChecksForIsolatedWorker();
+        services.AddTokenCredentialProvider();
         services.AddNodaTimeForApplication();
         services.AddSubsystemAuthenticationForIsolatedWorker(context.Configuration);
         // => Feature management
@@ -42,7 +45,9 @@ var host = new HostBuilder()
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
 
         // => Add EnqueueActorMessages client
-        services.AddServiceBusClientForApplication(context.Configuration);
+        services.AddServiceBusClientForApplication(
+            context.Configuration,
+            sp => sp.GetRequiredService<TokenCredentialProvider>().Credential);
         services.AddEnqueueActorMessages();
 
         // Add BusinessValidation

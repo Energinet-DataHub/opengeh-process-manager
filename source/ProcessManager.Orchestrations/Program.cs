@@ -14,6 +14,7 @@
 
 using DurableFunctionsMonitor.DotNetIsolated;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
@@ -37,9 +38,12 @@ var host = new HostBuilder()
         // Common
         services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
         services.AddHealthChecksForIsolatedWorker();
+        services.AddTokenCredentialProvider();
         services.AddNodaTimeForApplication();
         services.AddSubsystemAuthenticationForIsolatedWorker(context.Configuration);
-        services.AddServiceBusClientForApplication(context.Configuration);
+        services.AddServiceBusClientForApplication(
+            context.Configuration,
+            sp => sp.GetRequiredService<TokenCredentialProvider>().Credential);
         // => Feature management
         services
             .AddAzureAppConfiguration()

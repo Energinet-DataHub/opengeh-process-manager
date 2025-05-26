@@ -114,7 +114,7 @@ public class MeteringPointMasterDataProvider(
             }
             else
             {
-                _logger.LogError(
+                _logger.LogWarning(
                     e,
                     $"Failed to get metering point master data for '{meteringPointId}' in {startDateTime}–{endDateTime}.");
                 return [];

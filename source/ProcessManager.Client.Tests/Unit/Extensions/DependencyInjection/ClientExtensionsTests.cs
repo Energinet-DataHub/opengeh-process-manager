@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Abstractions.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
@@ -48,12 +49,14 @@ public class ClientExtensionsTests
     public void OptionsAreConfigured_WhenAddProcessManagerHttpClients_ClientCanBeCreated()
     {
         // Arrange
-        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
-        {
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
-        });
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
+            });
 
         // Act
         Services.AddProcessManagerHttpClients();
@@ -69,7 +72,9 @@ public class ClientExtensionsTests
     public void OptionsAreNotConfigured_WhenAddProcessManagerHttpClients_ExceptionIsThrownWhenRequestingClient()
     {
         // Arrange
-        Services.AddInMemoryConfiguration([]);
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration([]);
 
         // Act
         Services.AddProcessManagerHttpClients();
@@ -91,12 +96,14 @@ public class ClientExtensionsTests
     public void OptionsAreConfiguredAndAddProcessManagerHttpClients_WhenCreatingEachHttpClient_HttpClientCanBeCreatedWithExpectedBaseAddress()
     {
         // Arrange
-        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
-        {
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
-        });
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
+            });
 
         Services.AddProcessManagerHttpClients();
 

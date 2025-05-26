@@ -15,6 +15,7 @@
 using System.Net;
 using Azure.Core;
 using Azure.Identity;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
@@ -44,7 +45,9 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
                 SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
         };
 
-        Services.AddInMemoryConfiguration(configuration);
+        Services
+            .AddInMemoryConfiguration(configuration)
+            .AddTokenCredentialProvider();
 
         Services.AddEnqueueActorMessagesHttp(
             new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());

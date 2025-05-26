@@ -56,6 +56,7 @@ public static class MeasurementsClientExtensions
             });
 
         services.AddTransient<IMeasurementsClient, MeasurementsClient>();
+        services.AddTransient<MeasurementsEventHubProducerClientFactory>();
 
         services.AddHealthChecks()
             .AddAzureEventHub(

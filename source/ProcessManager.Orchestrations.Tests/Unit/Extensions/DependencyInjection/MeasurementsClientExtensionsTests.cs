@@ -34,7 +34,7 @@ public class MeasurementsClientExtensionsTests
     private ServiceCollection Services { get; } = new();
 
     [Fact]
-    public void MeasurementsClientOptionsAreConfigured_WhenAddMeasurementsClient_ClientCanBeCreated()
+    public void Given_MeasurementsClientOptionsAreConfigured_When_AddMeasurementsClient_Then_MeasurementsClientAndEventHubClientCanBeCreated()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
@@ -51,10 +51,14 @@ public class MeasurementsClientExtensionsTests
 
         var actualClient = serviceProvider.GetRequiredService<IMeasurementsClient>();
         actualClient.Should().BeOfType<MeasurementsClient>();
+
+        var eventHubClientFactory = serviceProvider.GetRequiredService<MeasurementsEventHubProducerClientFactory>();
+        var act = () => eventHubClientFactory.Create("test-metering-point-id");
+        act.Should().NotThrow();
     }
 
     [Fact]
-    public void MeasurementsClientOptionsAreNotConfigured_WhenAddMeasurementsClient_ExceptionIsThrownWhenRequestingClient()
+    public void Given_MeasurementsClientOptionsAreNotConfigured_When_AddMeasurementsClient_Then_ExceptionIsThrownWhenCreatingEventHubClient()
     {
         // Arrange
         Services.AddInMemoryConfiguration([]);
@@ -65,8 +69,10 @@ public class MeasurementsClientExtensionsTests
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
 
-        var clientAct = () => serviceProvider.GetRequiredService<IMeasurementsClient>();
-        clientAct.Should()
+        var eventHubClientFactory = serviceProvider.GetRequiredService<MeasurementsEventHubProducerClientFactory>();
+
+        var act = () => eventHubClientFactory.Create("test-metering-point-id");
+        act.Should()
             .Throw<OptionsValidationException>()
                 .WithMessage("DataAnnotation validation failed for 'MeasurementsClientOptions'*")
             .And.Failures.Should()
@@ -75,7 +81,7 @@ public class MeasurementsClientExtensionsTests
     }
 
     [Fact]
-    public void AzureEventHubHealthCheckAreConfigured_WhenAddMeasurementsClient_MeasurementsEventHubHealthCheckIsRegistered()
+    public void Given_AzureEventHubHealthCheckAreConfigured_When_AddMeasurementsClient_Then_MeasurementsEventHubHealthCheckIsRegistered()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()

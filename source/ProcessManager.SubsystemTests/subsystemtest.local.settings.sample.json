@@ -4,5 +4,6 @@
   // github.com/Energinet-DataHub/dh3-dev-secrets/blob/main/opengeh-process-manager/SubsystemTests/subsystemtest.dev002.settings.json
   "SHARED_KEYVAULT_NAME": "<shared keyvault name>",
   "ENERGY_SUPPLIER_ACTOR_NUMBER": "<energy supplier actor number, used to make requests to the Process Manager>",
+  "GRID_ACCESS_PROVIDER_ACTOR_NUMBER": "<grid access provider actor number, used to make requests to the Process Manager>",
   "SUBSYSTEMFACT_SKIP": "false"
 }

@@ -18,6 +18,7 @@ public static class TestMessageIdExtensions
 {
     public const string TestUuidPrefix = "test__";
     public const string PerformanceTestUuidPrefix = "perf_test";
+    public const string TestMeteringPointIdPrefix = "test__";
 
     /// <summary>
     /// Converts the guid to a shorter version, prefixed with the <see cref="TestUuidPrefix"/>.
@@ -37,6 +38,19 @@ public static class TestMessageIdExtensions
     public static bool IsPerformanceTestUuid(this string messageId)
     {
         return messageId.StartsWith(PerformanceTestUuidPrefix);
+    }
+
+    /// <summary>
+    /// Prefixes the metering point id with <see cref="TestMeteringPointIdPrefix"/>.
+    /// </summary>
+    public static string ToTestMeteringPointId(this string meteringPointId)
+    {
+        return $"{TestMeteringPointIdPrefix}{meteringPointId}";
+    }
+
+    public static bool IsTestMeteringPointId(this string meteringPointId)
+    {
+        return meteringPointId.StartsWith(TestMeteringPointIdPrefix);
     }
 
     /// <summary>

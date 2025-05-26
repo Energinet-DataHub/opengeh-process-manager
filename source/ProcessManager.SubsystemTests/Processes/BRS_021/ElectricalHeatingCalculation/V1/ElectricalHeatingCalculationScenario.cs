@@ -59,7 +59,7 @@ public class ElectricalHeatingCalculationScenario
         await _fixture.StartDatabricksSqlWarehouseAsync();
 
         _fixture.ScenarioState = new CalculationScenarioState(
-            startCommand: new StartElectricalHeatingCalculationCommandV1(_fixture.UserIdentity));
+            startCommand: new StartElectricalHeatingCalculationCommandV1(_fixture.EnergySupplierUserIdentity));
     }
 
     [SubsystemFact]

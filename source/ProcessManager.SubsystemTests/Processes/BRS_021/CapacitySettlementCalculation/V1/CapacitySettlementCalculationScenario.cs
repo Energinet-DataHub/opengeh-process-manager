@@ -60,7 +60,7 @@ public class CapacitySettlementCalculationScenario
         var calculationInput = new CalculationInputV1(2024, 1);
 
         _fixture.ScenarioState = new CalculationScenarioState(
-            startCommand: new StartCapacitySettlementCalculationCommandV1(_fixture.UserIdentity, calculationInput));
+            startCommand: new StartCapacitySettlementCalculationCommandV1(_fixture.EnergySupplierUserIdentity, calculationInput));
     }
 
     [SubsystemFact]

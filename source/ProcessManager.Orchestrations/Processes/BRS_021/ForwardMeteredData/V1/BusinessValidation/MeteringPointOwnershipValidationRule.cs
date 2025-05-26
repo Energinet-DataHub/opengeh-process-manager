@@ -43,7 +43,7 @@ public class MeteringPointOwnershipValidationRule(IOptions<ProcessManagerCompone
         ForwardMeteredDataBusinessValidatedDto subject)
     {
         // The performance test uses non-existing metering points, so we must skip this validation
-        if (IsPerformanceTest(subject.Input))
+        if (_options.Value.AllowMockDependenciesForTests && IsTest(subject.Input))
             return Task.FromResult(NoError);
 
         // All the historical metering point master data, have the current grid access provider provided.
@@ -58,9 +58,13 @@ public class MeteringPointOwnershipValidationRule(IOptions<ProcessManagerCompone
         return Task.FromResult(NoError);
     }
 
-    private bool IsPerformanceTest(ForwardMeteredDataInputV1 input)
+    private bool IsTest(ForwardMeteredDataInputV1 input)
     {
-        var isInputTest = input.MeteringPointId?.IsPerformanceTestUuid() ?? false;
-        return _options.Value.AllowMockDependenciesForTests && isInputTest;
+        if (input.MeteringPointId is null)
+            return false;
+
+        var isPerformanceTest = input.MeteringPointId.IsPerformanceTestUuid();
+        var isTest = input.MeteringPointId.IsTestMeteringPointId();
+        return isPerformanceTest || isTest;
     }
 }

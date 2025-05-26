@@ -64,8 +64,10 @@ public static class ClientExtensions
 
     /// <summary>
     /// Register Process Manager message client for use in applications.
-    /// <remarks>The application must register the <see cref="ServiceBusClient"/> and contain configuration for <see cref="ProcessManagerServiceBusClientOptions"/></remarks>
     /// </summary>
+    /// <remarks>
+    /// The application must register the <see cref="ServiceBusClient"/> and contain configuration for <see cref="ProcessManagerServiceBusClientOptions"/>
+    /// </remarks>
     public static IServiceCollection AddProcessManagerMessageClient(this IServiceCollection services)
     {
         services

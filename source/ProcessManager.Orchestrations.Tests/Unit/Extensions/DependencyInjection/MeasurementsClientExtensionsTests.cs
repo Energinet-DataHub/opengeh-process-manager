@@ -36,7 +36,7 @@ public class MeasurementsClientExtensionsTests
     private ServiceCollection Services { get; } = new();
 
     [Fact]
-    public void Given_MeasurementsClientOptionsAreConfigured_When_AddMeasurementsClient_Then_ClientAndEventHubFactoryCanBeCreated()
+    public void Given_MeasurementsClientOptionsAreConfigured_When_AddMeasurementsClient_Then_ClientAndEventHubProducerCanBeCreated()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()

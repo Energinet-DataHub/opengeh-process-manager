@@ -49,8 +49,8 @@ public class MeteringPointOwnershipValidationRule(IOptions<ProcessManagerCompone
         // All the historical metering point master data, have the current grid access provider provided.
         var meteringPointMasterData = subject.MeteringPointMasterData.FirstOrDefault();
 
-        if (meteringPointMasterData != null && !meteringPointMasterData.CurrentGridAccessProvider.Value
-                .Equals(subject.Input.GridAccessProviderNumber))
+        if (meteringPointMasterData != null &&
+            !meteringPointMasterData.CurrentGridAccessProvider.Value.Equals(subject.Input.GridAccessProviderNumber))
         {
             return Task.FromResult(MeteringPointHasWrongOwnerError);
         }

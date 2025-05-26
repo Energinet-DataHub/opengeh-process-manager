@@ -16,6 +16,7 @@ using System.Net;
 using System.Text.Json;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
@@ -94,6 +95,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         _fixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
+        services.AddTokenCredentialProvider();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             // Process Manager HTTP client

@@ -14,6 +14,7 @@
 
 using Azure.Core;
 using Azure.Identity;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
@@ -37,11 +38,13 @@ public class MeasurementsClientExtensionsTests
     public void Given_MeasurementsClientOptionsAreConfigured_When_AddMeasurementsClient_Then_MeasurementsClientAndEventHubClientCanBeCreated()
     {
         // Arrange
-        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
-        {
-            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
-            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
-        });
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
+                [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
+            });
 
         // Act
         Services.AddMeasurementsClient();
@@ -61,7 +64,9 @@ public class MeasurementsClientExtensionsTests
     public void Given_MeasurementsClientOptionsAreNotConfigured_When_AddMeasurementsClient_Then_ExceptionIsThrownWhenCreatingEventHubClient()
     {
         // Arrange
-        Services.AddInMemoryConfiguration([]);
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration([]);
 
         // Act
         Services.AddMeasurementsClient();
@@ -84,11 +89,13 @@ public class MeasurementsClientExtensionsTests
     public void Given_AzureEventHubHealthCheckAreConfigured_When_AddMeasurementsClient_Then_MeasurementsEventHubHealthCheckIsRegistered()
     {
         // Arrange
-        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
-        {
-            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
-            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
-        });
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
+                [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
+            });
         Services.AddMeasurementsClient();
         var serviceProvider = Services.BuildServiceProvider();
 

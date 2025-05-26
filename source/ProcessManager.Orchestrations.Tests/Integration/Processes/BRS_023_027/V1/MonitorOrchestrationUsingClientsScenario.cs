@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
@@ -53,6 +54,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.SetTestOutputHelper(testOutputHelper);
 
         var services = new ServiceCollection();
+        services.AddTokenCredentialProvider();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             // Process Manager HTTP client

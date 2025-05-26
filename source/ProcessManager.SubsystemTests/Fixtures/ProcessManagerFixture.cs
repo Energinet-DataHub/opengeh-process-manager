@@ -157,13 +157,6 @@ public class ProcessManagerFixture<TScenarioState> : IAsyncLifetime
             // Add event hub producer client to fake messages from Measurements to Process Manager
             b.AddEventHubProducerClientWithNamespace(Configuration.EventHubNamespace, Configuration.ProcessManagerEventHubName)
                 .WithName(ProcessManagerEventHubProducerClientName);
-            // b.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
-            //         (_, _, provider) =>
-            //         {
-            //             var azureCredential = new DefaultAzureCredential();
-            //             return new EventHubProducerClient(Configuration.EventHubNamespace, Configuration.ProcessManagerEventHubName, azureCredential);
-            //         })
-            //     .WithName(ProcessManagerEventHubClientName);
         });
 
         serviceCollection.AddProcessManagerMessageClient();

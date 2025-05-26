@@ -14,7 +14,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.WebApp.Extensions.Builder;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;

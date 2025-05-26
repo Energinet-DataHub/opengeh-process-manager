@@ -55,6 +55,7 @@ public class SearchTrigger_ExampleById_V1Tests : IAsyncLifetime
                     = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
             });
 
+        // Process Manager HTTP client
         services.AddProcessManagerHttpClients();
 
         ServiceProvider = services.BuildServiceProvider();

@@ -32,7 +32,6 @@ public static class Brs021Extensions
         services.AddScoped<IMeteringPointMasterDataProvider, MeteringPointMasterDataProvider>();
         services.AddTransient<ElectricityMarketViewsFactory>();
         services.AddScoped<MeteringPointReceiversProvider>();
-        services.AddScoped<MeteringPointReceiversProvider>();
 
         // Used by BRS-021 ForwardMeteredData process
         services.AddScoped<DelegationProvider>();

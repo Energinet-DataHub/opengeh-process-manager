@@ -143,6 +143,9 @@ public class SendMeasurementsScenario
         if (businessValidationStep?.CustomState.Length > 0)
             _fixture.Logger.WriteLine($"Business validation step custom state: {businessValidationStep?.CustomState}.");
 
+        if (businessValidationStep?.Lifecycle.TerminationState != StepInstanceTerminationState.Succeeded)
+            _fixture.ScenarioState.BusinessValidationFailed = true;
+
         Assert.Multiple(
             () => Assert.True(success, $"Business validation step should be terminated."),
             () => Assert.Equal(StepInstanceLifecycleState.Terminated, businessValidationStep?.Lifecycle.State),
@@ -154,6 +157,7 @@ public class SendMeasurementsScenario
     public async Task AndThen_MeasurementsAreSentToMeasurementsSubsystem()
     {
         Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.False(_fixture.ScenarioState.BusinessValidationFailed); // If business validation failed, end test early.
 
         var (success, orchestrationInstance, forwardToMeasurementsStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
@@ -175,6 +179,7 @@ public class SendMeasurementsScenario
     public async Task AndThen_ReceivedSendMeasurementsNotifyFromMeasurementsTransitionsForwardToMeasurementsToSuccessful()
     {
         Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.False(_fixture.ScenarioState.BusinessValidationFailed); // If business validation failed, end test early.
 
         // Simulate "ForwardMeteredDataNotifyV1" message from Measurements to Process Manager event hub
         var notifyFromMeasurementsMessage = new Brs021ForwardMeteredDataNotifyV1
@@ -207,6 +212,7 @@ public class SendMeasurementsScenario
     public async Task AndThen_EnqueueActorMessagesIsSentToEDI()
     {
         Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.False(_fixture.ScenarioState.BusinessValidationFailed); // If business validation failed, end test early.
 
         var (success, orchestrationInstance, enqueueActorMessagesStep) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<
@@ -228,6 +234,7 @@ public class SendMeasurementsScenario
     public async Task AndThen_ReceivingNotifyEnqueueActorMessagesCompletedTransitionsEnqueueActorMessagesStepToSuccessful()
     {
         Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.False(_fixture.ScenarioState.BusinessValidationFailed); // If business validation failed, end test early.
 
         // Send notify "EnqueueActorMessagesCompleted" message to the orchestration instance
         await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
@@ -256,6 +263,7 @@ public class SendMeasurementsScenario
     public async Task AndThen_OrchestrationInstanceIsTerminatedWithSuccess()
     {
         Assert.NotNull(_fixture.ScenarioState.OrchestrationInstance); // If orchestration instance wasn't found in earlier test, end test early.
+        Assert.False(_fixture.ScenarioState.BusinessValidationFailed); // If business validation failed, end test early.
 
         var (success, orchestrationInstance, _) =
             await _fixture.WaitForOrchestrationInstanceByIdempotencyKeyAsync<

@@ -21,4 +21,6 @@ public record SendMeasurementsScenarioState(
     ForwardMeteredDataCommandV1 Command)
 {
     public OrchestrationInstanceTypedDto<ForwardMeteredDataInputV1>? OrchestrationInstance { get; set; }
+
+    public bool BusinessValidationFailed { get; set; } = false;
 }

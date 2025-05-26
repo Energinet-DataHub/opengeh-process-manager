@@ -1,0 +1,187 @@
+﻿// Copyright 2020 Energinet DataHub A/S
+//
+// Licensed under the Apache License, Version 2.0 (the "License2");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using NodaTime;
+
+namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
+
+public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
+{
+    private readonly ProcessManagerCoreFixture _fixture;
+    private readonly ProcessManagerContext _dbContext;
+    private readonly SendMeasurementsInstanceRepository _sut;
+
+    public SendMeasurementsInstanceRepositoryTests(ProcessManagerCoreFixture fixture)
+    {
+        _fixture = fixture;
+        _dbContext = _fixture.DatabaseManager.CreateDbContext();
+        _sut = new SendMeasurementsInstanceRepository(_dbContext);
+    }
+
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _dbContext.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task Given_SendMeasurementsInstanceNotInDatabase_When_GetById_Then_ThrowsException()
+    {
+        // Arrange
+        var id = new SendMeasurementsInstanceId(Guid.NewGuid());
+
+        // Act
+        var act = () => _sut.GetAsync(id);
+
+        // Assert
+        await act.Should()
+            .ThrowAsync<NullReferenceException>()
+            .WithMessage("*SendMeasurementsInstance not found*");
+    }
+
+    [Fact]
+    public async Task Given_SendMeasurementsInstanceInDatabase_When_GetById_Then_ExpectedInstanceIsRetrieved()
+    {
+        // Arrange
+        var instance = CreateSendMeasurementsInstance();
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.SendMeasurementsInstances.Add(instance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        var actual = await _sut.GetAsync(instance.Id);
+
+        // Assert
+        actual.Should().BeEquivalentTo(instance);
+    }
+
+    [Fact]
+    public async Task Given_SendMeasurementsInstanceInDatabase_When_InstanceIsUpdated_Then_InstanceIsUpdatedInDatabase()
+    {
+        // Arrange
+        var instance = CreateSendMeasurementsInstance();
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.SendMeasurementsInstances.Add(instance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        var sentToMeasurementsAt = Instant.FromUtc(2025, 01, 01, 01, 01);
+
+        // Act
+        var instanceToUpdate = await _sut.GetAsync(instance.Id);
+        instanceToUpdate.MarkAsSentToMeasurements(sentToMeasurementsAt);
+
+        await _sut.UnitOfWork.CommitAsync();
+
+        // Assert
+        await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
+        var repository = new SendMeasurementsInstanceRepository(readDbContext);
+        var actual = await repository.GetAsync(instance.Id);
+        actual.SentToMeasurementsAt.Should().Be(sentToMeasurementsAt);
+    }
+
+    [Fact]
+    public async Task Given_SendMeasurementsInstanceChangedFromMultipleConsumers_When_SavingChanges_Then_OptimisticConcurrencyEnsureExceptionIsThrown()
+    {
+        // Arrange
+        var instance = CreateSendMeasurementsInstance();
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.SendMeasurementsInstances.Add(instance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // => First consumer (sut)
+        var actual01 = await _sut.GetAsync(instance.Id);
+        actual01.MarkAsSentToMeasurements(Instant.FromUtc(2025, 01, 01, 01, 01));
+
+        // => Second consumer (sut02)
+        await using var dbContext02 = _fixture.DatabaseManager.CreateDbContext();
+        var sut02 = new SendMeasurementsInstanceRepository(dbContext02);
+        var actual02 = await sut02.GetAsync(instance.Id);
+        actual02.MarkAsSentToMeasurements(Instant.FromUtc(2026, 02, 02, 02, 02));
+
+        await _sut.UnitOfWork.CommitAsync();
+
+        // Act
+        var act = () => sut02.UnitOfWork.CommitAsync();
+
+        // Assert
+        await using var dbContext03 = _fixture.DatabaseManager.CreateDbContext();
+        var sut03 = new SendMeasurementsInstanceRepository(dbContext03);
+        var actual03 = await sut03.GetAsync(instance.Id);
+        actual03.Should().NotBeNull();
+
+        await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
+    }
+
+    [Fact]
+    public async Task Given_SendMeasurementsInstanceInDatabase_When_GetByTransactionId_Then_ExpectedInstanceIsRetrieved()
+    {
+        // Arrange
+        var instance = CreateSendMeasurementsInstance();
+
+        await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            writeDbContext.SendMeasurementsInstances.Add(instance);
+            await writeDbContext.SaveChangesAsync();
+        }
+
+        // Act
+        var actual = await _sut.GetOrDefaultAsync(instance.TransactionId);
+
+        // Assert
+        actual.Should().BeEquivalentTo(instance);
+    }
+
+    [Fact]
+    public async Task Given_SendMeasurementsInstanceNotInDatabase_When_GetByTransactionId_Then_ReturnsNull()
+    {
+        // Arrange
+        var transactionId = new TransactionId(Guid.NewGuid().ToString());
+
+        // Act
+        var actual = await _sut.GetOrDefaultAsync(transactionId);
+
+        // Assert
+        actual.Should().BeNull();
+    }
+
+    private static SendMeasurementsInstance CreateSendMeasurementsInstance()
+    {
+        return new SendMeasurementsInstance(
+            SystemClock.Instance.GetCurrentInstant(),
+            new Actor(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider),
+            new TransactionId(Guid.NewGuid().ToString()),
+            new MeteringPointId("test-metering-point-id"));
+    }
+}

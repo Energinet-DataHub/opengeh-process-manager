@@ -23,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
@@ -44,6 +45,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class StartForwardMeteredDataHandlerV1(
     ILogger<StartForwardMeteredDataHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands,
+    ISendMeasurementsInstanceRepository sendMeasurementsInstanceRepository,
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
     IMeasurementsClient measurementsClient,
@@ -55,6 +57,7 @@ public class StartForwardMeteredDataHandlerV1(
     : StartOrchestrationInstanceHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
+    private readonly ISendMeasurementsInstanceRepository _sendMeasurementsInstanceRepository = sendMeasurementsInstanceRepository;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
     private readonly IMeasurementsClient _measurementsClient = measurementsClient;
@@ -209,6 +212,14 @@ public class StartForwardMeteredDataHandlerV1(
                 new TransactionId(transactionId),
                 meteringPointId is not null ? new MeteringPointId(meteringPointId) : null)
             .ConfigureAwait(false);
+
+        var sendMeasurementsInstance = new SendMeasurementsInstance(
+            createdAt: _clock.GetCurrentInstant(),
+            createdBy: actorIdentity.Actor,
+            transactionId: new TransactionId(transactionId),
+            meteringPointId: meteringPointId is not null ? new MeteringPointId(meteringPointId) : null);
+        _sendMeasurementsInstanceRepository.AddAsync(sendMeasurementsInstance);
+        await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         var orchestrationInstance = await _progressRepository
             .GetAsync(orchestrationInstanceId)

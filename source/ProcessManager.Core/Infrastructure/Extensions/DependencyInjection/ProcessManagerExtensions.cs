@@ -95,6 +95,9 @@ public static class ProcessManagerExtensions
         // => Public queries
         services.TryAddScoped<IOrchestrationInstanceQueries>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
 
+        // => Send Measurements orchestration instance
+        services.TryAddScoped<ISendMeasurementsInstanceRepository, SendMeasurementsInstanceRepository>();
+
         return services;
     }
 
@@ -163,6 +166,9 @@ public static class ProcessManagerExtensions
 
         // => For the feature Migrate Wholesale Calculations
         services.TryAddTransient<IOrchestrationInstanceFactory, OrchestrationInstanceFactory>();
+
+        // => Send Measurements orchestration instance
+        services.TryAddScoped<ISendMeasurementsInstanceRepository, SendMeasurementsInstanceRepository>();
 
         return services;
     }

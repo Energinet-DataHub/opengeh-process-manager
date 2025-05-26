@@ -18,27 +18,43 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 
 public record ActorRole : DataHubRecordType<ActorRole>
 {
-    public static readonly ActorRole MeteringPointAdministrator = new("MeteringPointAdministrator");
-    public static readonly ActorRole EnergySupplier = new("EnergySupplier");
-    public static readonly ActorRole GridAccessProvider = new("GridAccessProvider");
-    public static readonly ActorRole MeteredDataAdministrator = new("MeteredDataAdministrator");
-    public static readonly ActorRole MeteredDataResponsible = new("MeteredDataResponsible");
-    public static readonly ActorRole BalanceResponsibleParty = new("BalanceResponsibleParty");
-    public static readonly ActorRole ImbalanceSettlementResponsible = new("ImbalanceSettlementResponsible");
-    public static readonly ActorRole SystemOperator = new("SystemOperator");
-    public static readonly ActorRole DanishEnergyAgency = new("DanishEnergyAgency");
-    public static readonly ActorRole Delegated = new("Delegated");
-    public static readonly ActorRole DataHubAdministrator = new("DataHubAdministrator");
+    public static readonly ActorRole MeteringPointAdministrator = new("MeteringPointAdministrator", 1);
+    public static readonly ActorRole EnergySupplier = new("EnergySupplier", 2);
+    public static readonly ActorRole GridAccessProvider = new("GridAccessProvider", 3);
+    public static readonly ActorRole MeteredDataAdministrator = new("MeteredDataAdministrator", 4);
+    public static readonly ActorRole MeteredDataResponsible = new("MeteredDataResponsible", 5);
+    public static readonly ActorRole BalanceResponsibleParty = new("BalanceResponsibleParty", 6);
+    public static readonly ActorRole ImbalanceSettlementResponsible = new("ImbalanceSettlementResponsible", 7);
+    public static readonly ActorRole SystemOperator = new("SystemOperator", 8);
+    public static readonly ActorRole DanishEnergyAgency = new("DanishEnergyAgency", 9);
+    public static readonly ActorRole Delegated = new("Delegated", 10);
+    public static readonly ActorRole DataHubAdministrator = new("DataHubAdministrator", 11);
 
     [JsonConstructor]
-    private ActorRole(string name)
+    private ActorRole(string name, byte byteValue)
         : base(name)
     {
+        ByteValue = byteValue;
     }
+
+    /// <summary>
+    /// Each actor role is assigned a unique byte value, allowing for efficient storage and retrieval.
+    /// It ensures consistency and performance while mapping roles to database values and application logic.
+    /// Creating a new actor role must be done with caution to avoid conflicts with existing roles.
+    /// Changing the byte value of an existing role is not allowed, as it would break the existing data.
+    /// </summary>
+    public byte ByteValue { get; }
 
     public static ActorRole From(Contracts.ActorRoleV1 actorRoleV1)
     {
         return FromName(actorRoleV1.ToString());
+    }
+
+    public static ActorRole FromByteValue(byte byteValue)
+    {
+        return GetAll<ActorRole>().FirstOrDefault(t => t.ByteValue == byteValue)
+               ?? throw new InvalidOperationException(
+                   $"Byte value \"{byteValue}\" is not a valid {nameof(ActorRole)}");
     }
 
     public Contracts.ActorRoleV1 ToActorRoleV1()

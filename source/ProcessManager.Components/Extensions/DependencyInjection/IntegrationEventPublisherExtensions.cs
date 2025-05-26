@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Azure.Messaging.ServiceBus;
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.Messaging.Communication.Publisher;

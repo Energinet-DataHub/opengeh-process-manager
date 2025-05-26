@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Azure.Messaging.EventHubs.Producer;
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;

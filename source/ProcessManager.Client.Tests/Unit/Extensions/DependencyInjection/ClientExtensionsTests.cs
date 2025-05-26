@@ -46,7 +46,7 @@ public class ClientExtensionsTests
     private ServiceCollection Services { get; }
 
     [Fact]
-    public void OptionsAreConfigured_WhenAddProcessManagerHttpClients_ClientCanBeCreated()
+    public void Given_TokenCredentialIsRegisteredAndOptionsAreConfigured_When_AddProcessManagerHttpClients_Then_ClientCanBeCreated()
     {
         // Arrange
         Services
@@ -69,7 +69,7 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void OptionsAreNotConfigured_WhenAddProcessManagerHttpClients_ExceptionIsThrownWhenRequestingClient()
+    public void Given_TokenCredentialIsRegisteredAndOptionsAreNotConfigured_When_AddProcessManagerHttpClients_Then_ExceptionIsThrownWhenRequestingClient()
     {
         // Arrange
         Services
@@ -93,7 +93,7 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void OptionsAreConfiguredAndAddProcessManagerHttpClients_WhenCreatingEachHttpClient_HttpClientCanBeCreatedWithExpectedBaseAddress()
+    public void Given_TokenCredentialIsRegisteredAndOptionsAreConfiguredAndAddProcessManagerHttpClients_When_CreatingEachHttpClient_Then_HttpClientCanBeCreatedWithExpectedBaseAddress()
     {
         // Arrange
         Services
@@ -124,7 +124,7 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void ServiceBusClientIsRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_ClientAndOptionsAndSenderClientsCanBeCreated()
+    public void Given_ServiceBusClientIsRegisteredAndOptionsAreConfigured_When_AddProcessManagerMessageClient_Then_ClientAndOptionsAndSenderClientsCanBeCreated()
     {
         // Arrange
         Services.AddAzureClients(
@@ -163,7 +163,7 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void ServiceBusClientIsRegisteredAndOptionsAreNotConfigured_WhenAddProcessManagerMessageClient_ExceptionIsThrownWhenRequestingOptions()
+    public void Given_ServiceBusClientIsRegisteredAndOptionsAreNotConfigured_When_AddProcessManagerMessageClient_Then_ExceptionIsThrownWhenRequestingOptions()
     {
         // Arrange
         Services.AddAzureClients(
@@ -189,7 +189,7 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void ServiceBusClientIsNotRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_ExceptionIsThrownWhenRequestingSenderClient()
+    public void Given_ServiceBusClientIsNotRegisteredAndOptionsAreConfigured_When_AddProcessManagerMessageClient_Then_ExceptionIsThrownWhenRequestingSenderClient()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()

@@ -57,7 +57,9 @@ public class MeasurementsEventHubProducerClientFactory(
     /// </summary>
     private class EventHubProducerClientMock : EventHubProducerClient
     {
-        public override Task SendAsync(IEnumerable<EventData> eventBatch, CancellationToken cancellationToken = default)
+        public override Task SendAsync(
+            IEnumerable<EventData> eventBatch,
+            CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;
         }
@@ -70,7 +72,9 @@ public class MeasurementsEventHubProducerClientFactory(
             return Task.CompletedTask;
         }
 
-        public override Task SendAsync(EventDataBatch eventBatch, CancellationToken cancellationToken = default)
+        public override Task SendAsync(
+            EventDataBatch eventBatch,
+            CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;
         }

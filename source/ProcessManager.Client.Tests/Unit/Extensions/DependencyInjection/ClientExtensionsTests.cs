@@ -46,6 +46,30 @@ public class ClientExtensionsTests
     private ServiceCollection Services { get; }
 
     [Fact]
+    public void Given_TokenCredentialIsNotRegisteredAndOptionsAreConfigured_When_AddProcessManagerHttpClients_Then_ExceptionIsThrownWhenRequestingClient()
+    {
+        // Arrange
+        Services
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
+            });
+
+        // Act
+        Services.AddProcessManagerHttpClients();
+
+        // Assert
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var clientAct = () => serviceProvider.GetRequiredService<IProcessManagerClient>();
+        clientAct.Should()
+            .Throw<InvalidOperationException>()
+                .WithMessage("No service for type 'Energinet.DataHub.Core.App.Common.Identity.TokenCredentialProvider' has been registered*");
+    }
+
+    [Fact]
     public void Given_TokenCredentialIsRegisteredAndOptionsAreConfigured_When_AddProcessManagerHttpClients_Then_ClientCanBeCreated()
     {
         // Arrange
@@ -69,11 +93,10 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void Given_TokenCredentialIsRegisteredAndOptionsAreNotConfigured_When_AddProcessManagerHttpClients_Then_ExceptionIsThrownWhenRequestingClient()
+    public void Given_OptionsAreNotConfigured_When_AddProcessManagerHttpClients_Then_ExceptionIsThrownWhenRequestingClient()
     {
         // Arrange
         Services
-            .AddTokenCredentialProvider()
             .AddInMemoryConfiguration([]);
 
         // Act

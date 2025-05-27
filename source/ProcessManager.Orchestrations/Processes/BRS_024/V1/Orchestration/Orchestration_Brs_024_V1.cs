@@ -15,6 +15,9 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Activities;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration.Steps;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
@@ -48,13 +51,27 @@ public class Orchestration_Brs_024_V1
     {
         var orchestrationInstanceContext = await InitializeOrchestrationAsync(context);
 
+        var validationResult = await new BusinessValidationStep(
+                context,
+                _defaultRetryOptions,
+                orchestrationInstanceContext.Id)
+            .ExecuteAsync();
+
+        await new EnqueueActorMessagesStep(
+                context,
+                _defaultRetryOptions,
+                orchestrationInstanceContext.Id,
+                validationResult,
+                orchestrationInstanceContext.Options.EnqueueActorMessagesTimeout)
+            .ExecuteAsync();
+
         return await SetTerminateOrchestrationAsync(
             context,
-            new OrchestrationInstanceId(Guid.NewGuid()), // orchestrationInstanceContext.OrchestrationInstanceId,
+            orchestrationInstanceContext.Id,
             success: true);
     }
 
-    private async Task<object> InitializeOrchestrationAsync(TaskOrchestrationContext context)
+    private async Task<OrchestrationInstanceContext> InitializeOrchestrationAsync(TaskOrchestrationContext context)
     {
         var instanceId = new OrchestrationInstanceId(Guid.Parse(context.InstanceId));
 
@@ -64,7 +81,13 @@ public class Orchestration_Brs_024_V1
                 instanceId),
             _defaultTaskOptions);
 
-        return "fix";
+        var orchestrationInstanceContext = await context.CallActivityAsync<OrchestrationInstanceContext>(
+            nameof(GetOrchestrationInstanceContextActivity_Brs_024_V1),
+            new GetOrchestrationInstanceContextActivity_Brs_024_V1.ActivityInput(
+                instanceId),
+            new TaskOptions(_defaultRetryOptions));
+
+        return orchestrationInstanceContext;
     }
 
     private async Task<string> SetTerminateOrchestrationAsync(

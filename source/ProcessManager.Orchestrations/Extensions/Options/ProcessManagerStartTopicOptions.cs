@@ -35,6 +35,12 @@ public class ProcessManagerStartTopicOptions
     public string TopicName { get; set; } = string.Empty;
 
     /// <summary>
+    /// Name of the subscription for BRS024 to the Process Manager Start topic.
+    /// </summary>
+    [Required(AllowEmptyStrings = false)]
+    public string Brs024SubscriptionName { get; set; } = string.Empty;
+
+    /// <summary>
     /// Name of the subscription for BRS026 to the Process Manager Start topic.
     /// </summary>
     [Required(AllowEmptyStrings = false)]

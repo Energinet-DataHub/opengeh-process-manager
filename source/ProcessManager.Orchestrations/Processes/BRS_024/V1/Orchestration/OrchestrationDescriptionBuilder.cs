@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration;
 
@@ -30,6 +31,8 @@ public class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
             canBeScheduled: true,
             functionName: nameof(Orchestration_Brs_024_V1));
 
+        description.AppendStepDescription(BusinessValidationStep.StepDescription);
+        description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
         return description;
     }
 }

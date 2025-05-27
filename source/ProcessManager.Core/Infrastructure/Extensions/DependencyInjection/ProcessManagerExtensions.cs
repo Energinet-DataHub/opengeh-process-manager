@@ -383,7 +383,7 @@ public static class ProcessManagerExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddTransient<IFileStorageClient, BlobFileStorageClient>();
+        services.AddTransient<IFileStorageClient, ProcessManagerBlobFileStorageClient>();
 
         services.AddAzureClients(
             builder =>
@@ -392,7 +392,7 @@ public static class ProcessManagerExtensions
 
                 builder
                     .AddBlobServiceClient(configuration.GetSection(ProcessManagerFileStorageOptions.SectionName))
-                    .WithName(BlobFileStorageClient.ClientName);
+                    .WithName(ProcessManagerBlobFileStorageClient.ClientName);
             });
 
         services.TryAddHealthChecks(
@@ -402,7 +402,7 @@ public static class ProcessManagerExtensions
                 builder.AddAzureBlobStorage(
                     clientFactory: sp =>
                         sp.GetRequiredService<IAzureClientFactory<BlobServiceClient>>()
-                            .CreateClient(BlobFileStorageClient.ClientName),
+                            .CreateClient(ProcessManagerBlobFileStorageClient.ClientName),
                     name: key);
             });
 

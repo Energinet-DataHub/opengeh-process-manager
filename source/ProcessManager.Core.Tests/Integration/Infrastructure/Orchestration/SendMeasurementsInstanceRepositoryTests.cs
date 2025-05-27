@@ -50,10 +50,10 @@ public class SendMeasurementsInstanceRepositoryTests :
         _dbContext = _fixture.DatabaseManager.CreateDbContext();
 
         var services = new ServiceCollection();
-        services.AddTransient<IFileStorageClient, BlobFileStorageClient>();
+        services.AddTransient<IFileStorageClient, ProcessManagerBlobFileStorageClient>();
         services.AddAzureClients(builder => builder
             .AddBlobServiceClient(_azuriteFixture.AzuriteManager.BlobStorageConnectionString)
-            .WithName(BlobFileStorageClient.ClientName));
+            .WithName(ProcessManagerBlobFileStorageClient.ClientName));
         var serviceProvider = services.BuildServiceProvider();
         _fileStorageClient = serviceProvider.GetRequiredService<IFileStorageClient>();
 

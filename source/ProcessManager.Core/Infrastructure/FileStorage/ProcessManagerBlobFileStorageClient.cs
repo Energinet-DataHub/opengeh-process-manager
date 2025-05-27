@@ -19,11 +19,11 @@ using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.FileStorage;
 
-public class BlobFileStorageClient(
+public class ProcessManagerBlobFileStorageClient(
     IAzureClientFactory<BlobServiceClient> blobServiceClientFactory)
         : IFileStorageClient
 {
-    public const string ClientName = "BlobFileStorageClient";
+    public const string ClientName = "ProcessManagerBlobFileStorageClient";
 
     private readonly BlobServiceClient _blobServiceClient = blobServiceClientFactory.CreateClient(ClientName);
 

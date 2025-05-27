@@ -13,14 +13,17 @@
 // limitations under the License.
 
 using System.Reflection;
+using Azure.Identity;
 using Energinet.DataHub.ProcessManager.Core.Application;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
+using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Diagnostics.HealthChecks;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
@@ -28,6 +31,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -47,53 +51,65 @@ public static class ProcessManagerExtensions
     /// to manage and monitor orchestrations.
     /// Should be used from the Process Manager API / Scheduler application.
     /// </summary>
-    public static IServiceCollection AddProcessManagerCore(this IServiceCollection services)
+    public static IServiceCollection AddProcessManagerCore(this IServiceCollection services, IConfiguration configuration)
     {
         // Process Manager Core
         services
             .AddProcessManagerOptions()
-            .AddProcessManagerDatabase();
+            .AddProcessManagerDatabase()
+            .AddProcessManagerFileStorage(configuration);
 
         // DurableClient connected to Task Hub
         services.AddTaskHubStorage();
         services
             .AddDurableClientFactory()
-            .TryAddSingleton<IDurableClient>(sp =>
-            {
-                // IDurableClientFactory has a singleton lifecycle and caches clients
-                var clientFactory = sp.GetRequiredService<IDurableClientFactory>();
-                var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerTaskHubOptions>>().Value;
-
-                var durableClient = clientFactory.CreateClient(new DurableClientOptions
+            .TryAddSingleton<IDurableClient>(
+                sp =>
                 {
-                    ConnectionName = nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString),
-                    TaskHub = processManagerOptions.ProcessManagerTaskHubName,
-                    IsExternalClient = true,
-                });
+                    // IDurableClientFactory has a singleton lifecycle and caches clients
+                    var clientFactory = sp.GetRequiredService<IDurableClientFactory>();
+                    var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerTaskHubOptions>>().Value;
 
-                return durableClient;
-            });
+                    var durableClient = clientFactory.CreateClient(
+                        new DurableClientOptions
+                        {
+                            ConnectionName =
+                                nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString),
+                            TaskHub = processManagerOptions.ProcessManagerTaskHubName,
+                            IsExternalClient = true,
+                        });
+
+                    return durableClient;
+                });
 
         // ProcessManager components using interfaces to restrict access to functionality
         // => Types that implements multiple interfaces with same scope for all interfaces
         services.TryAddScoped<OrchestrationInstanceRepository, OrchestrationInstanceRepository>();
         services.TryAddScoped<OrchestrationInstanceManager, OrchestrationInstanceManager>();
         // => Scheduling
-        services.TryAddScoped<IScheduledOrchestrationInstancesByInstantQuery>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
-        services.TryAddScoped<IStartScheduledOrchestrationInstanceCommand>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<IScheduledOrchestrationInstancesByInstantQuery>(
+            sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IStartScheduledOrchestrationInstanceCommand>(
+            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         services.TryAddScoped<IRecurringOrchestrationQueries, RecurringOrchestrationQueries>();
         // => Cancellation (manager)
-        services.TryAddScoped<ICancelScheduledOrchestrationInstanceCommand>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<ICancelScheduledOrchestrationInstanceCommand>(
+            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         // => Start instance (manager)
         services.TryAddScoped<IOrchestrationInstanceExecutor, DurableOrchestrationInstanceExecutor>();
         services.TryAddScoped<IOrchestrationRegisterQueries, OrchestrationRegister>();
-        services.TryAddScoped<IOrchestrationInstanceRepository>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
-        services.TryAddScoped<IStartOrchestrationInstanceCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
-        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<IOrchestrationInstanceRepository>(
+            sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IStartOrchestrationInstanceCommands>(
+            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands>(
+            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         // => Notify instance (manager)
-        services.TryAddScoped<INotifyOrchestrationInstanceCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<INotifyOrchestrationInstanceCommands>(
+            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         // => Public queries
-        services.TryAddScoped<IOrchestrationInstanceQueries>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IOrchestrationInstanceQueries>(
+            sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
 
         // => Send Measurements orchestration instance
         services.TryAddScoped<ISendMeasurementsInstanceRepository, SendMeasurementsInstanceRepository>();
@@ -108,7 +124,9 @@ public static class ProcessManagerExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <param name="assemblyToScan">Specify the host assembly to scan for types implementing <see cref="IOrchestrationDescriptionBuilder"/>.</param>
-    public static IServiceCollection AddProcessManagerForOrchestrations(this IServiceCollection services, Assembly assemblyToScan)
+    public static IServiceCollection AddProcessManagerForOrchestrations(
+        this IServiceCollection services,
+        Assembly assemblyToScan)
     {
         // Process Manager Core
         services
@@ -120,21 +138,24 @@ public static class ProcessManagerExtensions
         services.AddTaskHubStorage();
         services
             .AddDurableClientFactory()
-            .TryAddSingleton<IDurableClient>(sp =>
-            {
-                // IDurableClientFactory has a singleton lifecycle and caches clients
-                var clientFactory = sp.GetRequiredService<IDurableClientFactory>();
-                var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerTaskHubOptions>>().Value;
-
-                var durableClient = clientFactory.CreateClient(new DurableClientOptions
+            .TryAddSingleton<IDurableClient>(
+                sp =>
                 {
-                    ConnectionName = nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString),
-                    TaskHub = processManagerOptions.ProcessManagerTaskHubName,
-                    IsExternalClient = true,
-                });
+                    // IDurableClientFactory has a singleton lifecycle and caches clients
+                    var clientFactory = sp.GetRequiredService<IDurableClientFactory>();
+                    var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerTaskHubOptions>>().Value;
 
-                return durableClient;
-            });
+                    var durableClient = clientFactory.CreateClient(
+                        new DurableClientOptions
+                        {
+                            ConnectionName =
+                                nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString),
+                            TaskHub = processManagerOptions.ProcessManagerTaskHubName,
+                            IsExternalClient = true,
+                        });
+
+                    return durableClient;
+                });
 
         // ProcessManager components using interfaces to restrict access to functionality
         // => Types that implements multiple interfaces with same scope for all interfaces
@@ -146,13 +167,18 @@ public static class ProcessManagerExtensions
         // => Start instance (manager)
         services.TryAddScoped<IOrchestrationInstanceExecutor, DurableOrchestrationInstanceExecutor>();
         services.TryAddScoped<IOrchestrationRegisterQueries, OrchestrationRegister>();
-        services.TryAddScoped<IOrchestrationInstanceRepository>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
-        services.TryAddScoped<IStartOrchestrationInstanceCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
-        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<IOrchestrationInstanceRepository>(
+            sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IStartOrchestrationInstanceCommands>(
+            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands>(
+            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         // => Public queries
-        services.TryAddScoped<IOrchestrationInstanceQueries>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IOrchestrationInstanceQueries>(
+            sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
         // => Public progress repository
-        services.TryAddScoped<IOrchestrationInstanceProgressRepository>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IOrchestrationInstanceProgressRepository>(
+            sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
         // => Custom handlers
         services.AddCustomHandlersForHttpTriggers(assemblyToScan);
         services.AddCustomHandlersForServiceBusTriggers(assemblyToScan);
@@ -176,16 +202,19 @@ public static class ProcessManagerExtensions
     /// <summary>
     /// Register implementations of <see cref="IOrchestrationDescriptionBuilder"/> found in <paramref name="assemblyToScan"/>.
     /// </summary>
-    internal static IServiceCollection AddOrchestrationDescriptionBuilders(this IServiceCollection services, Assembly assemblyToScan)
+    internal static IServiceCollection AddOrchestrationDescriptionBuilders(
+        this IServiceCollection services,
+        Assembly assemblyToScan)
     {
         var interfaceType = typeof(IOrchestrationDescriptionBuilder);
 
         var implementingTypes = assemblyToScan
             .DefinedTypes
-            .Where(typeInfo =>
-                typeInfo.IsClass
-                && !typeInfo.IsAbstract
-                && interfaceType.IsAssignableFrom(typeInfo))
+            .Where(
+                typeInfo =>
+                    typeInfo.IsClass
+                    && !typeInfo.IsAbstract
+                    && interfaceType.IsAssignableFrom(typeInfo))
             .ToList();
 
         foreach (var implementingType in implementingTypes)
@@ -199,7 +228,9 @@ public static class ProcessManagerExtensions
     /// <summary>
     /// Register implementations of various custom handler used from HTTP triggers found in <paramref name="assemblyToScan"/>.
     /// </summary>
-    internal static IServiceCollection AddCustomHandlersForHttpTriggers(this IServiceCollection services, Assembly assemblyToScan)
+    internal static IServiceCollection AddCustomHandlersForHttpTriggers(
+        this IServiceCollection services,
+        Assembly assemblyToScan)
     {
         var handlerInterfaces = new List<Type>
         {
@@ -213,10 +244,12 @@ public static class ProcessManagerExtensions
         {
             var implementingTypes = assemblyToScan
                 .DefinedTypes
-                .Where(typeInfo =>
-                    typeInfo.IsClass &&
-                    !typeInfo.IsAbstract &&
-                    typeInfo.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterface))
+                .Where(
+                    typeInfo =>
+                        typeInfo.IsClass &&
+                        !typeInfo.IsAbstract &&
+                        typeInfo.GetInterfaces()
+                            .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterface))
                 .ToList();
 
             foreach (var implementingType in implementingTypes)
@@ -233,23 +266,28 @@ public static class ProcessManagerExtensions
     /// <summary>
     /// Register implementations of various custom handler used from ServiceBus triggers found in <paramref name="assemblyToScan"/>.
     /// </summary>
-    internal static IServiceCollection AddCustomHandlersForServiceBusTriggers(this IServiceCollection services, Assembly assemblyToScan)
+    internal static IServiceCollection AddCustomHandlersForServiceBusTriggers(
+        this IServiceCollection services,
+        Assembly assemblyToScan)
     {
         var interfaceType = typeof(IStartOrchestrationInstanceHandler);
 
         var implementations = assemblyToScan
             .GetTypes()
-            .Where(t =>
-                t.IsClass &&
-                !t.IsAbstract &&
-                interfaceType.IsAssignableFrom(t));
+            .Where(
+                t =>
+                    t.IsClass &&
+                    !t.IsAbstract &&
+                    interfaceType.IsAssignableFrom(t));
 
         foreach (var implementation in implementations)
         {
             services.AddTransient(interfaceType, implementation);
         }
 
-        services.TryAddTransient<IStartOrchestrationInstanceFromMessageHandler, StartOrchestrationInstanceFromMessageHandler>();
+        services
+            .TryAddTransient<IStartOrchestrationInstanceFromMessageHandler,
+                StartOrchestrationInstanceFromMessageHandler>();
 
         return services;
     }
@@ -264,16 +302,17 @@ public static class ProcessManagerExtensions
         var interfaceType = typeof(IOptionsConfiguration);
 
         var implementingTypes = assemblyToScan.DefinedTypes
-            .Where(typeInfo =>
-                typeInfo.IsClass &&
-                !typeInfo.IsAbstract &&
-                typeInfo.IsAssignableTo(interfaceType))
+            .Where(
+                typeInfo =>
+                    typeInfo.IsClass &&
+                    !typeInfo.IsAbstract &&
+                    typeInfo.IsAssignableTo(interfaceType))
             .ToList();
 
         var serviceAdders = implementingTypes
-                .Select(Activator.CreateInstance)
-                .Where(instance => instance != null)
-                .Select(instance => (IOptionsConfiguration)instance!);
+            .Select(Activator.CreateInstance)
+            .Where(instance => instance != null)
+            .Select(instance => (IOptionsConfiguration)instance!);
 
         foreach (var adder in serviceAdders)
         {
@@ -311,16 +350,19 @@ public static class ProcessManagerExtensions
     private static IServiceCollection AddProcessManagerDatabase(this IServiceCollection services)
     {
         services
-            .AddDbContext<ProcessManagerContext>((sp, optionsBuilder) =>
-            {
-                var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
-
-                optionsBuilder.UseSqlServer(processManagerOptions.SqlDatabaseConnectionString, providerOptionsBuilder =>
+            .AddDbContext<ProcessManagerContext>(
+                (sp, optionsBuilder) =>
                 {
-                    providerOptionsBuilder.UseNodaTime();
-                    providerOptionsBuilder.EnableRetryOnFailure();
+                    var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
+
+                    optionsBuilder.UseSqlServer(
+                        processManagerOptions.SqlDatabaseConnectionString,
+                        providerOptionsBuilder =>
+                        {
+                            providerOptionsBuilder.UseNodaTime();
+                            providerOptionsBuilder.EnableRetryOnFailure();
+                        });
                 });
-            });
 
         services
             .AddHealthChecks()
@@ -335,16 +377,18 @@ public static class ProcessManagerExtensions
     /// </summary>
     private static IServiceCollection AddProcessManagerReaderContext(this IServiceCollection services)
     {
-        services.
-            AddDbContext<ProcessManagerReaderContext>((sp, optionsBuilder) =>
+        services.AddDbContext<ProcessManagerReaderContext>(
+            (sp, optionsBuilder) =>
             {
                 var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
 
-                optionsBuilder.UseSqlServer(processManagerOptions.SqlDatabaseConnectionString, providerOptionsBuilder =>
-                {
-                    providerOptionsBuilder.UseNodaTime();
-                    providerOptionsBuilder.EnableRetryOnFailure();
-                });
+                optionsBuilder.UseSqlServer(
+                    processManagerOptions.SqlDatabaseConnectionString,
+                    providerOptionsBuilder =>
+                    {
+                        providerOptionsBuilder.UseNodaTime();
+                        providerOptionsBuilder.EnableRetryOnFailure();
+                    });
             });
 
         return services;
@@ -359,6 +403,28 @@ public static class ProcessManagerExtensions
             .AddOptions<ProcessManagerTaskHubOptions>()
             .BindConfiguration(configSectionPath: string.Empty)
             .ValidateDataAnnotations();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Register Task Hub storage options.
+    /// </summary>
+    private static IServiceCollection AddProcessManagerFileStorage(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddTransient<IFileStorageClient, BlobFileStorageClient>();
+
+        services.AddAzureClients(
+            builder =>
+            {
+                builder.UseCredential(new DefaultAzureCredential());
+
+                builder
+                    .AddBlobServiceClient(configuration.GetSection(ProcessManagerFileStorageOptions.SectionName))
+                    .WithName(BlobFileStorageClient.ClientName);
+            });
 
         return services;
     }

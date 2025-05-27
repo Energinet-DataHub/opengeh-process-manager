@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
@@ -21,16 +22,22 @@ using Microsoft.EntityFrameworkCore;
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 
 public class SendMeasurementsInstanceRepository(
-    ProcessManagerContext dbContext)
+    ProcessManagerContext dbContext,
+    IFileStorageClient fileStorageClient)
         : ISendMeasurementsInstanceRepository
 {
     private readonly ProcessManagerContext _dbContext = dbContext;
+    private readonly IFileStorageClient _fileStorageClient = fileStorageClient;
 
     public IUnitOfWork UnitOfWork => _dbContext;
 
-    public void AddAsync(SendMeasurementsInstance instance)
+    public Task AddAsync(SendMeasurementsInstance instance, Stream input)
     {
         _dbContext.SendMeasurementsInstances.Add(instance);
+
+        var uploadTask = _fileStorageClient.UploadAsync(instance.FileStorageReference, input);
+
+        return uploadTask;
     }
 
     public async Task<SendMeasurementsInstance> GetAsync(SendMeasurementsInstanceId id)

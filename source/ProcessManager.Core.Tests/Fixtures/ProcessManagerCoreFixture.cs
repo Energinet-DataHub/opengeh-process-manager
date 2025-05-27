@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Storage.Blobs;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
+using Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
@@ -21,17 +24,40 @@ public class ProcessManagerCoreFixture : IAsyncLifetime
     public ProcessManagerCoreFixture()
     {
         DatabaseManager = new ProcessManagerDatabaseManager("ProcessManager_Core");
+        AzuriteManager = new AzuriteManager(useOAuth: false, useSilentMode: true);
     }
 
     public ProcessManagerDatabaseManager DatabaseManager { get; }
 
+    public AzuriteManager AzuriteManager { get; }
+
     public async Task InitializeAsync()
     {
         await DatabaseManager.CreateDatabaseAsync();
+        AzuriteManager.CleanupAzuriteStorage();
+        AzuriteManager.StartAzurite();
+        await CreateRequiredStorageContainers();
     }
 
     public async Task DisposeAsync()
     {
         await DatabaseManager.DeleteDatabaseAsync();
+        AzuriteManager.CleanupAzuriteStorage();
+        AzuriteManager.Dispose();
+    }
+
+    private async Task CreateRequiredStorageContainers()
+    {
+        List<string> containers = [FileStorageReference.SendMeasurementsInstanceInputCategory];
+
+        var blobServiceClient = new BlobServiceClient(AzuriteManager.BlobStorageConnectionString);
+        foreach (var containerName in containers)
+        {
+            var container = blobServiceClient.GetBlobContainerClient(containerName);
+            var containerExists = await container.ExistsAsync();
+
+            if (!containerExists.Value)
+                await container.CreateAsync();
+        }
     }
 }

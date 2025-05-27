@@ -12,14 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
+using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
+using Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
@@ -28,13 +40,23 @@ public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessMana
 {
     private readonly ProcessManagerCoreFixture _fixture;
     private readonly ProcessManagerContext _dbContext;
+    private readonly IFileStorageClient _fileStorageClient;
     private readonly SendMeasurementsInstanceRepository _sut;
 
     public SendMeasurementsInstanceRepositoryTests(ProcessManagerCoreFixture fixture)
     {
         _fixture = fixture;
         _dbContext = _fixture.DatabaseManager.CreateDbContext();
-        _sut = new SendMeasurementsInstanceRepository(_dbContext);
+
+        var services = new ServiceCollection();
+        services.AddTransient<IFileStorageClient, BlobFileStorageClient>();
+        services.AddAzureClients(builder => builder
+            .AddBlobServiceClient(_fixture.AzuriteManager.FullConnectionString)
+            .WithName(BlobFileStorageClient.ClientName));
+        var serviceProvider = services.BuildServiceProvider();
+        _fileStorageClient = serviceProvider.GetRequiredService<IFileStorageClient>();
+
+        _sut = new SendMeasurementsInstanceRepository(_dbContext, _fileStorageClient);
     }
 
     public Task InitializeAsync()
@@ -103,7 +125,7 @@ public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessMana
 
         // Assert
         await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
-        var repository = new SendMeasurementsInstanceRepository(readDbContext);
+        var repository = new SendMeasurementsInstanceRepository(readDbContext, _fileStorageClient);
         var actual = await repository.GetAsync(instance.Id);
         actual.SentToMeasurementsAt.Should().Be(sentToMeasurementsAt);
     }
@@ -126,7 +148,7 @@ public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessMana
 
         // => Second consumer (sut02)
         await using var dbContext02 = _fixture.DatabaseManager.CreateDbContext();
-        var sut02 = new SendMeasurementsInstanceRepository(dbContext02);
+        var sut02 = new SendMeasurementsInstanceRepository(dbContext02, _fileStorageClient);
         var actual02 = await sut02.GetAsync(instance.Id);
         actual02.MarkAsSentToMeasurements(Instant.FromUtc(2026, 02, 02, 02, 02));
 
@@ -137,7 +159,7 @@ public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessMana
 
         // Assert
         await using var dbContext03 = _fixture.DatabaseManager.CreateDbContext();
-        var sut03 = new SendMeasurementsInstanceRepository(dbContext03);
+        var sut03 = new SendMeasurementsInstanceRepository(dbContext03, _fileStorageClient);
         var actual03 = await sut03.GetAsync(instance.Id);
         actual03.Should().NotBeNull();
 
@@ -176,12 +198,57 @@ public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessMana
         actual.Should().BeNull();
     }
 
-    private static SendMeasurementsInstance CreateSendMeasurementsInstance()
+    [Fact]
+    public async Task When_AddSendMeasurementsInstance_Then_InstanceIsAddedToDatabase()
+    {
+        // Arrange
+        var newInstance = CreateSendMeasurementsInstance();
+
+        // Act
+        await _sut.AddAsync(newInstance, new MemoryStream());
+        await _sut.UnitOfWork.CommitAsync();
+
+        // Assert
+        var actual = await _sut.GetAsync(newInstance.Id);
+        actual.Should()
+            .BeEquivalentTo(newInstance);
+    }
+
+    [Fact]
+    public async Task When_AddSendMeasurementsInstance_Then_InputIsAddedToFileStorage()
+    {
+        // Arrange
+        var newInstance = CreateSendMeasurementsInstance();
+
+        const string expectedInputContent = "Test content";
+        var inputAsStream = new MemoryStream();
+        await JsonSerializer.SerializeAsync(inputAsStream, expectedInputContent);
+
+        // Act
+        await _sut.AddAsync(newInstance, inputAsStream);
+
+        // Assert
+        var fileContent = await DownloadFileContent(newInstance.FileStorageReference);
+
+        var stringContent = fileContent.ToObjectFromJson<string>();
+        stringContent.Should().Be(expectedInputContent);
+    }
+
+    private SendMeasurementsInstance CreateSendMeasurementsInstance()
     {
         return new SendMeasurementsInstance(
             SystemClock.Instance.GetCurrentInstant(),
             new Actor(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider),
             new TransactionId(Guid.NewGuid().ToString()),
             new MeteringPointId("test-metering-point-id"));
+    }
+
+    private async Task<BinaryData> DownloadFileContent(FileStorageReference fileStorageReference)
+    {
+        var blobServiceClient = new BlobServiceClient(_fixture.AzuriteManager.FullConnectionString);
+        var blobContainerClient = blobServiceClient.GetBlobContainerClient(fileStorageReference.Category);
+        var blobClient = blobContainerClient.GetBlobClient(fileStorageReference.Path);
+        var fileContent = await blobClient.DownloadContentAsync();
+        return fileContent.Value.Content;
     }
 }

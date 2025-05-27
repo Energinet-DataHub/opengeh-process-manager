@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -92,6 +93,14 @@ public class StartForwardMeteredDataHandlerV1(
                 idempotencyKey,
                 actorMessageId,
                 transactionId,
+                meteringPointId)
+            .ConfigureAwait(false);
+
+        var sendMeasurementsInstance = await InitializeSendMeasurementsInstance(
+                actorIdentity.Actor,
+                input,
+                idempotencyKey,
+                new TransactionId(transactionId),
                 meteringPointId)
             .ConfigureAwait(false);
 
@@ -213,14 +222,6 @@ public class StartForwardMeteredDataHandlerV1(
                 meteringPointId is not null ? new MeteringPointId(meteringPointId) : null)
             .ConfigureAwait(false);
 
-        var sendMeasurementsInstance = new SendMeasurementsInstance(
-            createdAt: _clock.GetCurrentInstant(),
-            createdBy: actorIdentity.Actor,
-            transactionId: new TransactionId(transactionId),
-            meteringPointId: meteringPointId is not null ? new MeteringPointId(meteringPointId) : null);
-        _sendMeasurementsInstanceRepository.AddAsync(sendMeasurementsInstance);
-        await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-
         var orchestrationInstance = await _progressRepository
             .GetAsync(orchestrationInstanceId)
             .ConfigureAwait(false);
@@ -238,6 +239,44 @@ public class StartForwardMeteredDataHandlerV1(
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         return orchestrationInstance;
+    }
+
+    /// <summary>
+    /// Create a Send Measurements instance (if it doesn't already exist), and returns it.
+    /// <remarks>If the Send Measurements instance already exists, the existing instance is returned.</remarks>
+    /// </summary>
+    private async Task<SendMeasurementsInstance> InitializeSendMeasurementsInstance(
+        Actor actor,
+        ForwardMeteredDataInputV1 input,
+        string idempotencyKey,
+        TransactionId transactionId,
+        string? meteringPointId)
+    {
+        if (transactionId.Value != idempotencyKey)
+            throw new InvalidOperationException($"The idempotency key must be the transaction id (IdempotencyKey={idempotencyKey}, TransactionId={transactionId.Value}).");
+
+        // Creates a Send Measurements instance (if it doesn't already exist).
+        var instance = await _sendMeasurementsInstanceRepository.GetOrDefaultAsync(transactionId).ConfigureAwait(false);
+
+        if (instance == null)
+        {
+            instance = new SendMeasurementsInstance(
+                createdAt: _clock.GetCurrentInstant(),
+                createdBy: actor,
+                transactionId: transactionId,
+                meteringPointId: meteringPointId is not null ? new MeteringPointId(meteringPointId) : null);
+
+            using var inputAsStream = new MemoryStream();
+            await JsonSerializer.SerializeAsync(inputAsStream, input).ConfigureAwait(false);
+
+            // Must await the AddAsync method to ensure the input is uploaded to the file storage before committing.
+            await _sendMeasurementsInstanceRepository.AddAsync(instance, inputAsStream)
+                .ConfigureAwait(false);
+
+            await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        }
+
+        return instance;
     }
 
     /// <summary>

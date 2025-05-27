@@ -25,10 +25,12 @@ public interface ISendMeasurementsInstanceRepository
     IUnitOfWork UnitOfWork { get; }
 
     /// <summary>
-    /// Add the BRS-021 Send Measurements orchestration instance.
+    /// Add the BRS-021 Send Measurements orchestration instance to the database, and upload the input to file storage.
     /// To commit changes use <see cref="UnitOfWork"/>.
     /// </summary>
-    void AddAsync(SendMeasurementsInstance instance);
+    /// <param name="instance">The instance to add to the database.</param>
+    /// <param name="input">The input (as a stream) to upload to file storage</param>
+    Task AddAsync(SendMeasurementsInstance instance, Stream input);
 
     /// <summary>
     /// Get existing orchestration instance by id.

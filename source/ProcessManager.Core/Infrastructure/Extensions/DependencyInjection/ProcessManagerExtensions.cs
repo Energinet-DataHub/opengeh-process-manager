@@ -323,16 +323,17 @@ public static class ProcessManagerExtensions
     /// </summary>
     private static IServiceCollection AddProcessManagerDatabase(this IServiceCollection services)
     {
-        services.AddDbContext<ProcessManagerContext>((sp, optionsBuilder) =>
-        {
-            var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
-
-            optionsBuilder.UseSqlServer(processManagerOptions.SqlDatabaseConnectionString, providerOptionsBuilder =>
+        services
+            .AddDbContext<ProcessManagerContext>((sp, optionsBuilder) =>
             {
-                providerOptionsBuilder.UseNodaTime();
-                providerOptionsBuilder.EnableRetryOnFailure();
+                var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
+
+                optionsBuilder.UseSqlServer(processManagerOptions.SqlDatabaseConnectionString, providerOptionsBuilder =>
+                {
+                    providerOptionsBuilder.UseNodaTime();
+                    providerOptionsBuilder.EnableRetryOnFailure();
+                });
             });
-        });
 
         services
             .AddHealthChecks()
@@ -347,16 +348,17 @@ public static class ProcessManagerExtensions
     /// </summary>
     private static IServiceCollection AddProcessManagerReaderContext(this IServiceCollection services)
     {
-        services.AddDbContext<ProcessManagerReaderContext>((sp, optionsBuilder) =>
-        {
-            var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
-
-            optionsBuilder.UseSqlServer(processManagerOptions.SqlDatabaseConnectionString, providerOptionsBuilder =>
+        services
+            .AddDbContext<ProcessManagerReaderContext>((sp, optionsBuilder) =>
             {
-                providerOptionsBuilder.UseNodaTime();
-                providerOptionsBuilder.EnableRetryOnFailure();
+                var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
+
+                optionsBuilder.UseSqlServer(processManagerOptions.SqlDatabaseConnectionString, providerOptionsBuilder =>
+                {
+                    providerOptionsBuilder.UseNodaTime();
+                    providerOptionsBuilder.EnableRetryOnFailure();
+                });
             });
-        });
 
         return services;
     }

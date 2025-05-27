@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Tests.Unit.Infrastructure.Extens
 
 public class ActorRoleExtensionsTest
 {
-    private static readonly Dictionary<ActorRole, byte> _expectedActorRoleToByteValueMap = new()
+    private static readonly IReadOnlyDictionary<ActorRole, byte> _expectedActorRoleToByteValueMap = new Dictionary<ActorRole, byte>
     {
         { ActorRole.MeteringPointAdministrator, 1 },
         { ActorRole.EnergySupplier, 2 },

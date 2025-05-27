@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
-using System.Text;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using NodaTime;
@@ -22,7 +20,7 @@ using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 
-public class SendMeasurementsInstance // TODO: Name? SendMeasurementsInstance instead?
+public class SendMeasurementsInstance
 {
     /// <summary>
     /// Creates a new instance of <see cref="SendMeasurementsInstance"/>.

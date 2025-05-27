@@ -21,7 +21,7 @@ public static class ActorRoleExtensions
     /// <summary>
     /// Actor role to byte value mapping. The byte values are saved to the database, so they MUST NOT be changed.
     /// </summary>
-    internal static readonly Dictionary<ActorRole, byte> ActorRoleToByteValueMap = new()
+    internal static readonly IReadOnlyDictionary<ActorRole, byte> ActorRoleToByteValueMap = new Dictionary<ActorRole, byte>
     {
         { ActorRole.MeteringPointAdministrator, 1 },
         { ActorRole.EnergySupplier, 2 },
@@ -36,7 +36,7 @@ public static class ActorRoleExtensions
         { ActorRole.DataHubAdministrator, 11 },
     };
 
-    private static readonly Dictionary<byte, ActorRole> _byteValueToActorRoleMap = ActorRoleToByteValueMap
+    private static readonly IReadOnlyDictionary<byte, ActorRole> _byteValueToActorRoleMap = ActorRoleToByteValueMap
         .ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
 
     public static byte ToByteValue(this ActorRole actorRole) => ActorRoleToByteValueMap[actorRole];

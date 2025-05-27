@@ -22,7 +22,7 @@ public interface IFileStorageClient
     /// <summary>
     /// Upload a stream using the reference parameter as a unique representation.
     /// </summary>
-    /// <param name="reference">A unique string representing the file, which can have any string value. If a file already exists with the given reference, a <see cref="RequestFailedException" /> will be thrown.</param>
+    /// <param name="reference">A <see cref="FileStorageReference"/> representing the file, which can have any string value. If a file already exists with the given reference, a <see cref="RequestFailedException" /> will be thrown.</param>
     /// <param name="stream">A stream which contains the binary file.</param>
     Task UploadAsync(FileStorageReference reference, Stream stream);
 

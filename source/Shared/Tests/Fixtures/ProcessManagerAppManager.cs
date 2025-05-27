@@ -25,6 +25,7 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -109,6 +110,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         {
             AzuriteManager.CleanupAzuriteStorage();
             AzuriteManager.StartAzurite();
+            await AzuriteManager.CreateRequiredContainersAsync();
         }
 
         if (_manageDatabase)

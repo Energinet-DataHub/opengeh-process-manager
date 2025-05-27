@@ -24,6 +24,7 @@ using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Xunit.Abstractions;
 
@@ -140,6 +141,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     {
         AzuriteManager.CleanupAzuriteStorage();
         AzuriteManager.StartAzurite();
+        await AzuriteManager.CreateRequiredContainersAsync();
 
         await DatabaseManager.CreateDatabaseAsync();
 

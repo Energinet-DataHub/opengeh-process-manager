@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration.Steps;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration;
@@ -30,6 +31,8 @@ public class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
                 orchestrationDescriptionUniqueName.Version),
             canBeScheduled: true,
             functionName: nameof(Orchestration_Brs_024_V1));
+
+        description.ParameterDefinition.SetFromType<RequestYearlyMeasurementsInputV1>();
 
         description.AppendStepDescription(BusinessValidationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);

@@ -60,7 +60,7 @@ public static class ProcessManagerTopicExtensions
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.Brs024SubscriptionName,
                 tokenCredentialFactory: _ => credential,
-                name: "BRS-026 Dead-letter",
+                name: "BRS-024 Dead-letter",
                 [HealthChecksConstants.StatusHealthCheckTag])
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,

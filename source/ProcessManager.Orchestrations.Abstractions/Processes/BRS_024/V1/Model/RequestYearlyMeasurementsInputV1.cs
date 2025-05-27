@@ -24,5 +24,5 @@ public record RequestYearlyMeasurementsInputV1(
     string ActorRole,
     string BusinessReason,
     string ReceivedAt,
-    string? MeteringPointId)
+    string MeteringPointId)
     : IInputParameterDto, IBusinessValidatedDto;

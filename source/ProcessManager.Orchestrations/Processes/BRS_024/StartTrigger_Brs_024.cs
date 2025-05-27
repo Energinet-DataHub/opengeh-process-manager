@@ -21,7 +21,7 @@ using Microsoft.Azure.Functions.Worker;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024;
 
 /// <summary>
-/// Start a BRS-026 request.
+/// Start a BRS-024 request.
 /// </summary>
 public class StartTrigger_Brs_024(IStartOrchestrationInstanceFromMessageHandler handler)
 {

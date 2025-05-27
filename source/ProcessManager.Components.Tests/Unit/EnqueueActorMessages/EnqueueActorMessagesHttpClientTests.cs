@@ -37,10 +37,10 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] =
-                    MockServer.Url,
-                [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] =
-                    SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
+                [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"]
+                    = MockServer.Url,
+                [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"]
+                    = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
             })
             .Build();
 

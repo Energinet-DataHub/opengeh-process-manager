@@ -56,7 +56,7 @@ public static class ProcessManagerFixtureExtensions
                 orchestrationInstance = await fixture.ProcessManagerHttpClient
                     .GetOrchestrationInstanceByIdempotencyKeyAsync<TInputParameterDto>(
                         new GetOrchestrationInstanceByIdempotencyKeyQuery(
-                            operatingIdentity: fixture.UserIdentity,
+                            operatingIdentity: fixture.EnergySupplierUserIdentity,
                             idempotencyKey: idempotencyKey),
                         CancellationToken.None);
 
@@ -119,7 +119,7 @@ public static class ProcessManagerFixtureExtensions
                 orchestrationInstance = await fixture.ProcessManagerHttpClient
                     .GetOrchestrationInstanceByIdAsync(
                         new GetOrchestrationInstanceByIdQuery(
-                            operatingIdentity: fixture.UserIdentity,
+                            operatingIdentity: fixture.EnergySupplierUserIdentity,
                             id: orchestrationInstanceId),
                         CancellationToken.None);
 

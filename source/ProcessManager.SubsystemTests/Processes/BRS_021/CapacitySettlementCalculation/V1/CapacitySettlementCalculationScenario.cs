@@ -15,24 +15,24 @@
 using Energinet.DataHub.Core.TestCommon.Xunit.Attributes;
 using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.NetConsumptionCalculation.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.CapacitySettlementCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Processes.Shared.V1;
 using Xunit.Abstractions;
 
-namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_021.NetConsumptionCalculation.V1;
+namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_021.CapacitySettlementCalculation.V1;
 
 [TestCaseOrderer(
     ordererTypeName: TestCaseOrdererLocation.OrdererTypeName,
     ordererAssemblyName: TestCaseOrdererLocation.OrdererAssemblyName)]
-public class NetConsumptionCalculationScenario
+public class CapacitySettlementCalculationScenario
     : IClassFixture<ProcessManagerFixture<CalculationScenarioState>>,
     IAsyncLifetime
 {
     private readonly ProcessManagerFixture<CalculationScenarioState> _fixture;
 
-    public NetConsumptionCalculationScenario(
+    public CapacitySettlementCalculationScenario(
         ProcessManagerFixture<CalculationScenarioState> fixture,
         ITestOutputHelper testOutputHelper)
     {
@@ -57,9 +57,10 @@ public class NetConsumptionCalculationScenario
     {
         // Warm up SQL warehouse, so it is ready for the sql queries at the end of the orchestration
         await _fixture.StartDatabricksSqlWarehouseAsync();
+        var calculationInput = new CalculationInputV1(2024, 1);
 
         _fixture.ScenarioState = new CalculationScenarioState(
-            startCommand: new StartNetConsumptionCalculationCommandV1(_fixture.EnergySupplierUserIdentity));
+            startCommand: new StartCapacitySettlementCalculationCommandV1(_fixture.EnergySupplierUserIdentity, calculationInput));
     }
 
     [SubsystemFact]

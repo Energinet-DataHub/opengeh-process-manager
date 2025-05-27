@@ -30,12 +30,6 @@ public class ProcessManagerOptions
     public string SqlDatabaseConnectionString { get; set; } = string.Empty;
 
     /// <summary>
-    /// Connection string to the SQL database used by Process Manager components.
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    public string BlobServiceConnectionString { get; set; } = string.Empty;
-
-    /// <summary>
     /// Allow the orchestration register to update the orchestration description with breaking changes.
     /// </summary>
     [Required]

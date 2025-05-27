@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.FeatureManagement;
+
 namespace Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 
 /// <summary>
@@ -20,4 +22,13 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 internal static class FeatureManagerExtensions
 {
     // Add extension methods for each feature flag name...
+
+    /// <summary>
+    /// Whether to use the new BRS-021 Send Measurements database, where the processes are stored in a separate database
+    /// table.
+    /// </summary>
+    public static Task<bool> UseSendMeasurementsDatabaseV2(this IFeatureManager featureManager)
+    {
+        return featureManager.IsEnabledAsync(FeatureFlagNames.UseSendMeasurementsDatabaseV2);
+    }
 }

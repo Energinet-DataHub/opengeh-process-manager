@@ -247,7 +247,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         // => File Storage
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerFileStorageOptions.SectionName}__{nameof(ProcessManagerFileStorageOptions.ServiceUri)}",
-            AzuriteManager.BlobStorageConnectionString);
+            AzuriteManager.BlobStorageServiceUri.AbsoluteUri);
         // => Authentication
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.ApplicationIdUri)}",

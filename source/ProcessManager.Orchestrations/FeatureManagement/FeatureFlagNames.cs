@@ -37,4 +37,5 @@ internal static class FeatureFlagNames
     public const string SectionName = "FeatureManagement";
 
     // Add feature flag names here...
+    public const string UseSendMeasurementsDatabaseV2 = "UseSendMeasurementsDatabaseV2";
 }

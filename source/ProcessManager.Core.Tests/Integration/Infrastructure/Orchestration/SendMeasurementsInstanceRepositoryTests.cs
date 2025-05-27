@@ -194,7 +194,7 @@ public class SendMeasurementsInstanceRepositoryTests :
     }
 
     [Fact]
-    public async Task Given_SendMeasurementsInstanceNotInDatabase_When_GetByTransactionId_Then_ReturnsNull()
+    public async Task Given_SendMeasurementsInstanceNotInDatabase_When_GetByIdempotencyKey_Then_ReturnsNull()
     {
         // Arrange
         var idempotencyKey = IdempotencyKey.CreateNew();

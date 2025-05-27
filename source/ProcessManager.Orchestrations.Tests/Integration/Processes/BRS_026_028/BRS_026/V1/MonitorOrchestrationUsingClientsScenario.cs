@@ -12,13 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026.V1.Model;
@@ -28,8 +24,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attri
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_026_028.BRS_026.V1;
@@ -50,36 +44,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         _fixture = fixture;
         _fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services.AddInMemoryConfiguration(new Dictionary<string, string?>
-        {
-            // Process Manager HTTP client
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                = _fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-
-            // Process Manager message client
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
-                = _fixture.OrchestrationsAppManager.ProcessManagerStartTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
-                = _fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
-                = _fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
-                = _fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
-        });
-        services.AddAzureClients(
-            builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
-        services.AddProcessManagerMessageClient();
-        services.AddProcessManagerHttpClients();
-        ServiceProvider = services.BuildServiceProvider();
     }
-
-    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
@@ -90,13 +55,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         _fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         _fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
         _fixture.EnqueueBrs026ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -105,20 +70,18 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_ValidRequestCalculatedEnergyTimeSeries_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
         const string gridAreaCode = "804";
         _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
         // Step 1: Start new orchestration instance
         var requestCommand = GivenRequestCalculatedEnergyTimeSeries(gridAreaCode);
 
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             requestCommand,
             CancellationToken.None);
 
         // Step 2a: Query until waiting for EnqueueActorMessagesCompleted notify event
-        var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
+        var (isWaitingForNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForStepToBeRunning<RequestCalculatedEnergyTimeSeriesInputV1>(
                 requestCommand.IdempotencyKey,
                 EnqueueActorMessagesStep.StepSequence);
@@ -143,13 +106,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestCalculatedEnergyTimeSeriesAcceptedV1)} service bus message should have been sent");
 
         // Step 3: Send EnqueueActorMessagesCompleted event
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (orchestrationTerminated, terminatedOrchestrationInstance) = await processManagerClient
+        var (orchestrationTerminated, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<RequestCalculatedEnergyTimeSeriesInputV1>(
                 requestCommand.IdempotencyKey);
 
@@ -179,20 +142,18 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_InvalidRequestCalculatedEnergyTimeSeries_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
         const string gridAreaCode = "804";
         _fixture.OrchestrationsAppManager.MockServer.MockGetGridAreaOwner(gridAreaCode);
 
         // Step 1: Start new orchestration instance
         var invalidRequestCommand = GivenRequestCalculatedEnergyTimeSeries(gridAreaCode, shouldFailBusinessValidation: true);
 
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             invalidRequestCommand,
             CancellationToken.None);
 
         // Step 2a: Query until waiting for EnqueueActorMessagesCompleted notify event
-        var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
+        var (isWaitingForNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForStepToBeRunning<RequestCalculatedEnergyTimeSeriesInputV1>(
                 idempotencyKey: invalidRequestCommand.IdempotencyKey,
                 stepSequence: EnqueueActorMessagesStep.StepSequence);
@@ -222,13 +183,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestCalculatedEnergyTimeSeriesRejectedV1)} service bus message should have been sent");
 
         // Step 3: Send EnqueueActorMessagesCompleted event
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new RequestCalculatedEnergyTimeSeriesNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (orchestrationWasTerminated, terminatedOrchestrationInstance) = await processManagerClient
+        var (orchestrationWasTerminated, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<RequestCalculatedEnergyTimeSeriesInputV1>(
                 idempotencyKey: invalidRequestCommand.IdempotencyKey);
 

@@ -13,11 +13,8 @@
 // limitations under the License.
 
 using System.Text.Json;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Example.Consumer.Functions.BRS_X02.ActorRequestProcessExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X02.ActorRequestProcessExample.V1.Model;
@@ -27,7 +24,6 @@ using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X02.ActorRequestProcessExample.V1;
@@ -45,28 +41,9 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services.AddInMemoryConfiguration(new Dictionary<string, string?>
-        {
-            // Process Manager HTTP client
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-        });
-
-        // Process Manager HTTP client
-        services.AddProcessManagerHttpClients();
-
-        ServiceProvider = services.BuildServiceProvider();
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
@@ -77,11 +54,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         Fixture.SetTestOutputHelper(null);
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -96,8 +73,6 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     [Fact]
     public async Task Given_ConsumerApp_When_BRS_X02_ActorRequestProcessExample_OrchestrationInstanceStartedByConsumer_Then_OrchestrationTerminatesSuccessfully()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Start new BRS-X02 ActorRequestProcessExample using the Example.Consumer app
         var idempotencyKey = Guid.NewGuid().ToString();
         var startTriggerInput = new StartTrigger_Brs_X02_ActorRequestProcessExample.StartTriggerInput(
@@ -108,7 +83,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             value: startTriggerInput);
 
         // Step 2: Query until terminated with succeeded
-        var (isTerminated, succeededOrchestrationInstance) = await processManagerClient
+        var (isTerminated, succeededOrchestrationInstance) = await Fixture.ProcessManagerClient
             .TryWaitForOrchestrationInstance<ActorRequestProcessExampleInputV1>(
                 idempotencyKey: idempotencyKey,
                 (oi) => oi is
@@ -147,8 +122,6 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     [Fact]
     public async Task Given_ConsumerApp_AndGiven_InvalidBusinessReasonInput_When_BRS_X02_ActorRequestProcessExample_OrchestrationInstanceStartedByConsumer_Then_OrchestrationTerminatesWithFailed_AndThen_ValidationStepTerminatesWithFailed()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Start new BRS-X02 ActorRequestProcessExample using the Example.Consumer app, with an invalid business reason (empty string)
         var idempotencyKey = Guid.NewGuid().ToString();
         var startTriggerInput = new StartTrigger_Brs_X02_ActorRequestProcessExample.StartTriggerInput(
@@ -159,7 +132,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             value: startTriggerInput);
 
         // Step 2: Query until terminated
-        var (isTerminated, orchestrationInstance) = await processManagerClient
+        var (isTerminated, orchestrationInstance) = await Fixture.ProcessManagerClient
             .TryWaitForOrchestrationInstance<ActorRequestProcessExampleInputV1>(
                 idempotencyKey: idempotencyKey,
                 (oi) => oi is

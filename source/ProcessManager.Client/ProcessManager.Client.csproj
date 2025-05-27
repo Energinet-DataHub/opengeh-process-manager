@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <PackageId>Energinet.DataHub.ProcessManager.Client</PackageId>
-    <PackageVersion>5.1.0$(VersionSuffix)</PackageVersion>
+    <PackageVersion>6.0.0$(VersionSuffix)</PackageVersion>
     <Title>DH3 Process Manager Client library</Title>
     <Company>Energinet-DataHub</Company>
     <Authors>Energinet-DataHub</Authors>
@@ -50,11 +50,11 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.19.0" />
-    <PackageReference Include="Energinet.DataHub.Core.App.Common" Version="15.4.0" />
+    <PackageReference Include="Energinet.DataHub.Core.App.Common" Version="15.5.0" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.11.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="9.0.5" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

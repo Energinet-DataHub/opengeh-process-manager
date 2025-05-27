@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Core;
-using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Core.App.Common.Diagnostics.HealthChecks;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Builder;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Extensions.Options;
@@ -27,12 +26,13 @@ public static class ServiceBusExtensions
 {
     /// <summary>
     /// Add required services for handling notify orchestration instance Service Bus messages.
+    /// </summary>
     /// <remarks>
     /// Requires <see cref="ProcessManagerNotifyTopicOptions"/> to be present in the app settings.
-    /// Requires a <see cref="ServiceBusClient"/> to already be registered in the service collection.
+    /// Requires <see cref="ServiceBusNamespaceOptions"/> to be present in the app settings.
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
     /// </remarks>
-    /// </summary>
-    public static IServiceCollection AddNotifyOrchestrationInstance(this IServiceCollection serviceCollection, TokenCredential azureCredential)
+    public static IServiceCollection AddNotifyOrchestrationInstance(this IServiceCollection serviceCollection)
     {
         serviceCollection
             .AddOptions<ServiceBusNamespaceOptions>()
@@ -49,19 +49,19 @@ public static class ServiceBusExtensions
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.TopicName,
-                tokenCredentialFactory: _ => azureCredential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "Process Manager Notify Topic")
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.SubscriptionName,
-                tokenCredentialFactory: _ => azureCredential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "NotifyOrchestrationInstance Subscription")
             .AddServiceBusTopicSubscriptionDeadLetter(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerNotifyTopicOptions>>().Value.SubscriptionName,
-                tokenCredentialFactory: _ => azureCredential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "NotifyOrchestrationInstance Dead-letter",
                 tags: [HealthChecksConstants.StatusHealthCheckTag]);
 

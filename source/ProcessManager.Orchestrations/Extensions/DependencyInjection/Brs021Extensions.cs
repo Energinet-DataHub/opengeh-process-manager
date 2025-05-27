@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Identity;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,10 +24,9 @@ public static class Brs021Extensions
     /// Add required dependencies for BRS-021 Send Measurements.
     /// </summary>
     public static IServiceCollection AddBrs021(
-        this IServiceCollection services,
-        DefaultAzureCredential azureCredential)
+        this IServiceCollection services)
     {
-        services.AddMeasurementsClient(azureCredential);
+        services.AddMeasurementsClient();
         services.AddScoped<IMeteringPointMasterDataProvider, MeteringPointMasterDataProvider>();
         services.AddTransient<ElectricityMarketViewsFactory>();
         services.AddScoped<MeteringPointReceiversProvider>();

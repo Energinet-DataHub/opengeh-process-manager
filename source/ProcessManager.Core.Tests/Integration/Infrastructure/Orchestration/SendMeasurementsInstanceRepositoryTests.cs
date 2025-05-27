@@ -47,7 +47,9 @@ public class SendMeasurementsInstanceRepositoryTests :
     private readonly IFileStorageClient _fileStorageClient;
     private readonly SendMeasurementsInstanceRepository _sut;
 
-    public SendMeasurementsInstanceRepositoryTests(ProcessManagerCoreFixture fixture, ProcessManagerCoreAzuriteFixture azuriteFixture)
+    public SendMeasurementsInstanceRepositoryTests(
+        ProcessManagerCoreFixture fixture,
+        ProcessManagerCoreAzuriteFixture azuriteFixture)
     {
         _fixture = fixture;
         _azuriteFixture = azuriteFixture;

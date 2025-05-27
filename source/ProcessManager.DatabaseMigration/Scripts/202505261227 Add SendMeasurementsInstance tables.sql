@@ -1,7 +1,8 @@
 ﻿CREATE TABLE [pm].[SendMeasurementsInstance]
 (
-    [Id]            UNIQUEIDENTIFIER NOT NULL,
-    [RowVersion]    ROWVERSION NOT NULL,
+    [Id]                UNIQUEIDENTIFIER NOT NULL,
+    [RowVersion]        ROWVERSION NOT NULL,
+    [IdempotencyKey]    BINARY(32) NOT NULL,
 
     [CreatedAt]             DATETIME2 NOT NULL,
     [CreatedByActorNumber]  VARCHAR(16) NOT NULL,

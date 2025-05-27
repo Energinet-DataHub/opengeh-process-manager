@@ -37,6 +37,9 @@ internal class SendMeasurementsInstanceEntityConfiguration : IEntityTypeConfigur
         builder.Property(o => o.RowVersion)
             .IsRowVersion();
 
+        builder.Property(o => o.IdempotencyKey)
+            .HasColumnType("BINARY(32)");
+
         builder.Property(o => o.CreatedAt);
         builder.Property(o => o.CreatedByActorNumber)
             .HasConversion(

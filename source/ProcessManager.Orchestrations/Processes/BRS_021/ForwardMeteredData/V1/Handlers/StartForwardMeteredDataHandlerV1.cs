@@ -23,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
@@ -105,7 +106,7 @@ public class StartForwardMeteredDataHandlerV1(
             await InitializeSendMeasurementsInstance(
                     actorIdentity.Actor,
                     input,
-                    idempotencyKey,
+                    new IdempotencyKey(idempotencyKey),
                     new TransactionId(transactionId),
                     meteringPointId)
                 .ConfigureAwait(false);
@@ -255,15 +256,12 @@ public class StartForwardMeteredDataHandlerV1(
     private async Task<SendMeasurementsInstance> InitializeSendMeasurementsInstance(
         Actor actor,
         ForwardMeteredDataInputV1 input,
-        string idempotencyKey,
+        IdempotencyKey idempotencyKey,
         TransactionId transactionId,
         string? meteringPointId)
     {
-        if (transactionId.Value != idempotencyKey)
-            throw new InvalidOperationException($"The idempotency key must be the transaction id (IdempotencyKey={idempotencyKey}, TransactionId={transactionId.Value}).");
-
         // Creates a Send Measurements instance (if it doesn't already exist).
-        var instance = await _sendMeasurementsInstanceRepository.GetOrDefaultAsync(transactionId).ConfigureAwait(false);
+        var instance = await _sendMeasurementsInstanceRepository.GetOrDefaultAsync(idempotencyKey).ConfigureAwait(false);
 
         if (instance == null)
         {
@@ -271,7 +269,8 @@ public class StartForwardMeteredDataHandlerV1(
                 createdAt: _clock.GetCurrentInstant(),
                 createdBy: actor,
                 transactionId: transactionId,
-                meteringPointId: meteringPointId is not null ? new MeteringPointId(meteringPointId) : null);
+                meteringPointId: meteringPointId is not null ? new MeteringPointId(meteringPointId) : null,
+                idempotencyKey: idempotencyKey);
 
             using var inputAsStream = new MemoryStream();
             await JsonSerializer.SerializeAsync(inputAsStream, input).ConfigureAwait(false);

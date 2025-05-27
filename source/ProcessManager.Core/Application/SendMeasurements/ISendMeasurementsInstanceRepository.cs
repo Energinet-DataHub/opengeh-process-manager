@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 
-namespace Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+namespace Energinet.DataHub.ProcessManager.Core.Application.SendMeasurements;
 
 public interface ISendMeasurementsInstanceRepository
 {
@@ -40,5 +41,5 @@ public interface ISendMeasurementsInstanceRepository
     /// <summary>
     /// Get existing orchestration instance by transaction id (used for idempotency key).
     /// </summary>
-    Task<SendMeasurementsInstance?> GetOrDefaultAsync(TransactionId transactionId);
+    Task<SendMeasurementsInstance?> GetOrDefaultAsync(IdempotencyKey idempotencyKey);
 }

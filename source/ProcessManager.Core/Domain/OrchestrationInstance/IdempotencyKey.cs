@@ -12,6 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Security.Cryptography;
+using System.Text;
+
 namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 
-public record IdempotencyKey(string Value);
+public record IdempotencyKey(string Value)
+{
+    /// <summary>
+    /// Hash the idempotency key using SHA-256 and return the hash as a byte array, which is exactly 32 bytes.
+    /// </summary>
+    public byte[] ToHash()
+    {
+        return SHA256.HashData(Encoding.UTF8.GetBytes(Value));
+    }
+
+    public static IdempotencyKey CreateNew() => new IdempotencyKey(Guid.NewGuid().ToString());
+}

@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -49,9 +50,9 @@ public class SendMeasurementsInstanceRepository(
         return instance ?? throw new NullReferenceException($"{nameof(SendMeasurementsInstance)} not found (Id={id.Value}).");
     }
 
-    public Task<SendMeasurementsInstance?> GetOrDefaultAsync(TransactionId transactionId)
+    public Task<SendMeasurementsInstance?> GetOrDefaultAsync(IdempotencyKey idempotencyKey)
     {
         return _dbContext.SendMeasurementsInstances
-            .SingleOrDefaultAsync(i => i.TransactionId == transactionId);
+            .SingleOrDefaultAsync(i => i.IdempotencyKey == idempotencyKey.ToHash());
     }
 }

@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Security.Cryptography;
+using System.Text;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using NodaTime;
 using NodaTime.Text;
@@ -22,11 +23,20 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 
 public class SendMeasurementsInstance // TODO: Name? SendMeasurementsInstance instead?
 {
+    /// <summary>
+    /// Creates a new instance of <see cref="SendMeasurementsInstance"/>.
+    /// </summary>
+    /// <param name="createdAt"></param>
+    /// <param name="createdBy"></param>
+    /// <param name="transactionId"></param>
+    /// <param name="meteringPointId"></param>
+    /// <param name="idempotencyKey">The idempotency key will be SHA-256 hashed and saved as a byte array.</param>
     public SendMeasurementsInstance(
         Instant createdAt,
         Actor createdBy,
         TransactionId transactionId,
-        MeteringPointId? meteringPointId)
+        MeteringPointId? meteringPointId,
+        IdempotencyKey idempotencyKey)
     {
         Id = SendMeasurementsInstanceId.CreateNew();
 
@@ -36,6 +46,8 @@ public class SendMeasurementsInstance // TODO: Name? SendMeasurementsInstance in
 
         TransactionId = transactionId;
         MeteringPointId = meteringPointId;
+
+        IdempotencyKey = idempotencyKey.ToHash();
     }
 
     /// <summary>
@@ -49,6 +61,11 @@ public class SendMeasurementsInstance // TODO: Name? SendMeasurementsInstance in
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     public SendMeasurementsInstanceId Id { get; }
+
+    /// <summary>
+    /// A SHA256 hash of the idempotency key, which is saved as a BINARY(32) in the database.
+    /// </summary>
+    public byte[] IdempotencyKey { get; }
 
     public Instant CreatedAt { get; }
 

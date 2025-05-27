@@ -167,10 +167,11 @@ public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessMana
     }
 
     [Fact]
-    public async Task Given_SendMeasurementsInstanceInDatabase_When_GetByTransactionId_Then_ExpectedInstanceIsRetrieved()
+    public async Task Given_SendMeasurementsInstanceInDatabase_When_GetByIdempotencyKey_Then_ExpectedInstanceIsRetrieved()
     {
         // Arrange
-        var instance = CreateSendMeasurementsInstance();
+        var idempotencyKey = IdempotencyKey.CreateNew();
+        var instance = CreateSendMeasurementsInstance(idempotencyKey);
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -179,7 +180,7 @@ public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessMana
         }
 
         // Act
-        var actual = await _sut.GetOrDefaultAsync(instance.TransactionId);
+        var actual = await _sut.GetOrDefaultAsync(idempotencyKey);
 
         // Assert
         actual.Should().BeEquivalentTo(instance);
@@ -189,10 +190,10 @@ public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessMana
     public async Task Given_SendMeasurementsInstanceNotInDatabase_When_GetByTransactionId_Then_ReturnsNull()
     {
         // Arrange
-        var transactionId = new TransactionId(Guid.NewGuid().ToString());
+        var idempotencyKey = IdempotencyKey.CreateNew();
 
         // Act
-        var actual = await _sut.GetOrDefaultAsync(transactionId);
+        var actual = await _sut.GetOrDefaultAsync(idempotencyKey);
 
         // Assert
         actual.Should().BeNull();
@@ -234,13 +235,16 @@ public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessMana
         stringContent.Should().Be(expectedInputContent);
     }
 
-    private SendMeasurementsInstance CreateSendMeasurementsInstance()
+    private SendMeasurementsInstance CreateSendMeasurementsInstance(IdempotencyKey? idempotencyKey = null)
     {
+        idempotencyKey ??= IdempotencyKey.CreateNew();
+
         return new SendMeasurementsInstance(
-            SystemClock.Instance.GetCurrentInstant(),
-            new Actor(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider),
-            new TransactionId(Guid.NewGuid().ToString()),
-            new MeteringPointId("test-metering-point-id"));
+            createdAt: SystemClock.Instance.GetCurrentInstant(),
+            createdBy: new Actor(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider),
+            transactionId: new TransactionId(Guid.NewGuid().ToString()),
+            meteringPointId: new MeteringPointId("test-metering-point-id"),
+            idempotencyKey: idempotencyKey);
     }
 
     private async Task<BinaryData> DownloadFileContent(FileStorageReference fileStorageReference)

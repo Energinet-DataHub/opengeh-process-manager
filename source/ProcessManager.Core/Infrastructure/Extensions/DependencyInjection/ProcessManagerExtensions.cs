@@ -22,6 +22,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
+using Energinet.DataHub.ProcessManager.Core.Application.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Diagnostics.HealthChecks;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;

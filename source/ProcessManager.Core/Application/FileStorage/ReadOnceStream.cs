@@ -26,16 +26,16 @@ public class ReadOnceStream
         _stream = stream;
     }
 
-    public bool IsRead { get; private set; }
+    public bool CanRead { get; private set; } = true;
 
     public Stream Stream
     {
         get
         {
-            if (IsRead)
+            if (!CanRead)
                 throw new InvalidOperationException("Trying to read a stream that has already been read. ReadOnceStream can only be read once.");
 
-            IsRead = true;
+            CanRead = false;
             return _stream;
         }
     }

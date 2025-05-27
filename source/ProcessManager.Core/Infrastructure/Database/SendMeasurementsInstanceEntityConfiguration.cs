@@ -57,6 +57,7 @@ internal class SendMeasurementsInstanceEntityConfiguration : IEntityTypeConfigur
                 dbValue => new TransactionId(dbValue));
 
         builder.Property(o => o.MeteringPointId)
+            .HasColumnType("CHAR(36)")
             .HasConversion(
                 state => state != null
                     ? state.Value

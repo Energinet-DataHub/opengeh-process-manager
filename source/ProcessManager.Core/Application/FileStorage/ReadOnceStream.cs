@@ -17,7 +17,7 @@ namespace Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 /// <summary>
 /// Wraps a stream that can only be read once, and protects it against being read multiple times.
 /// </summary>
-public class ReadOnceStream
+public sealed class ReadOnceStream : IDisposable, IAsyncDisposable
 {
     private readonly Stream _stream;
 
@@ -43,5 +43,15 @@ public class ReadOnceStream
     public static ReadOnceStream Create(Stream stream)
     {
         return new ReadOnceStream(stream);
+    }
+
+    public void Dispose()
+    {
+        _stream.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _stream.DisposeAsync().ConfigureAwait(false);
     }
 }

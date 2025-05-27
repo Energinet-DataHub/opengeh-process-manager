@@ -27,8 +27,8 @@ internal static class FeatureManagerExtensions
     /// Whether to use the new BRS-021 Send Measurements database, where the processes are stored in a separate database
     /// table.
     /// </summary>
-    public static Task<bool> UseSendMeasurementsDatabaseV2(this IFeatureManager featureManager)
+    public static Task<bool> UseNewSendMeasurementsTable(this IFeatureManager featureManager)
     {
-        return featureManager.IsEnabledAsync(FeatureFlagNames.UseSendMeasurementsDatabaseV2);
+        return featureManager.IsEnabledAsync(FeatureFlagNames.UseNewSendMeasurementsTable);
     }
 }

@@ -101,7 +101,7 @@ public class StartForwardMeteredDataHandlerV1(
                 meteringPointId)
             .ConfigureAwait(false);
 
-        if (await _featureManager.UseSendMeasurementsDatabaseV2().ConfigureAwait(false))
+        if (await _featureManager.UseNewSendMeasurementsTable().ConfigureAwait(false))
         {
             await InitializeSendMeasurementsInstance(
                     actorIdentity.Actor,

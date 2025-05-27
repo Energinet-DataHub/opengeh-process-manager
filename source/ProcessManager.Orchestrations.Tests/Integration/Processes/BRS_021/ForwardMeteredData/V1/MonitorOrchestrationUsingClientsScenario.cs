@@ -16,7 +16,6 @@ using System.Net;
 using System.Text.Json;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
@@ -29,7 +28,6 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
@@ -43,7 +41,6 @@ using FluentAssertions.Execution;
 using Google.Protobuf;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
@@ -90,48 +87,29 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         _fixture = fixture;
         _fixture.SetTestOutputHelper(testOutputHelper);
 
-        var services = new ServiceCollection();
-        services.AddTokenCredentialProvider();
-        services.AddInMemoryConfiguration(new Dictionary<string, string?>
-        {
-            // Measurements Eventhub client
-            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"]
-                = _fixture.OrchestrationsAppManager.MeasurementEventHubName,
-            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"]
-                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
-
-            // Process Manager Eventhub client to simulate the notification event from measurements
-            [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.EventHubName)}"]
-                = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
-            [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}"]
-                = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
-        });
-
-        services
-            .AddOptions<ProcessManagerEventHubOptions>()
-            .BindConfiguration(ProcessManagerEventHubOptions.SectionName)
-            .ValidateDataAnnotations();
-
         // Add event hub producer client for ProcessManagerEventHub to simulate the notification event from measurements
+        var services = new ServiceCollection();
         services.AddAzureClients(
             builder =>
             {
                 builder.AddClient<EventHubProducerClient, EventHubProducerClientOptions>(
-                        (_, _, provider) =>
+                        (_, _, _) =>
                         {
-                            var options = provider.GetRequiredService<IOptions<ProcessManagerEventHubOptions>>()
-                                .Value;
                             return new EventHubProducerClient(
-                                $"{options.FullyQualifiedNamespace}",
-                                options.EventHubName,
+                                _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
+                                _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
                                 _fixture.IntegrationTestConfiguration.Credential);
                         })
                     .WithName(ProcessManagerEventHubProducerClientName);
             });
         ServiceProvider = services.BuildServiceProvider();
+        var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
+        ProcessManagerEventHubProducerClient = eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
     }
 
     private ServiceProvider ServiceProvider { get; }
+
+    private EventHubProducerClient ProcessManagerEventHubProducerClient { get; }
 
     public Task InitializeAsync()
     {
@@ -164,8 +142,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.GridAccessProvider),
             input,
             idempotencyKey: Guid.NewGuid().ToString());
-
-        var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
 
         // Act
         await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(forwardCommand, CancellationToken.None);
@@ -203,8 +179,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         };
 
         var eventHubEventData = new EventData(notifyFromMeasurements.ToByteArray());
-        var processManagerEventHubProducerClient = eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
-        await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
+        await ProcessManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
 
         // Wait for enqueue messages sent to EDI and send mock notify response to Process Manager
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
@@ -276,8 +251,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
-        var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
-
         // Act
         await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(forwardCommand, CancellationToken.None);
 
@@ -314,8 +287,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         };
 
         var eventHubEventData = new EventData(notifyFromMeasurements.ToByteArray());
-        var processManagerEventHubProducerClient = eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
-        await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
+        await ProcessManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
 
         // Wait for enqueue messages sent to EDI and send mock notify response to Process Manager
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
@@ -495,9 +467,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     public async Task Given_InvalidNotifyEvent_When_NotifyOrchestrationInstance_Then_EnqueueMeteredDataTriggerIsExecutedAtLeastTwice()
     {
         // Given
-        var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
-        var processManagerEventHubProducerClient = eventHubClientFactory.CreateClient(ProcessManagerEventHubProducerClientName);
-
         var invalidNotifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()
         {
             Version = "invalid-value",
@@ -506,7 +475,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var eventHubEventData = new EventData(invalidNotifyFromMeasurements.ToByteArray());
 
         // When
-        await processManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
+        await ProcessManagerEventHubProducerClient.SendAsync([eventHubEventData], CancellationToken.None);
 
         // Then
         var expectedFunctionName = nameof(EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1);

@@ -96,8 +96,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task
-        Given_ValidRequestYearlyMeasurements_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+    public async Task Given_ValidRequestYearlyMeasurements_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
         var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
         var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();

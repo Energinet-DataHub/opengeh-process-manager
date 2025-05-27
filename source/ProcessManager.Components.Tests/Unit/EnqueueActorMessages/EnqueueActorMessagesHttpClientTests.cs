@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using System.Net;
-using Azure.Core;
-using Azure.Identity;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
@@ -24,7 +22,6 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using WireMock.Server;
 using Xunit;
 

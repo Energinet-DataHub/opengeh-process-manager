@@ -129,16 +129,14 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
 
     private void ConfigureServices(IServiceCollection services)
     {
-        var configurations = new Dictionary<string, string?>
-        {
-            [$"{ServiceBusNamespaceOptions.SectionName}:{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}"]
-                = IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
-            [$"{IntegrationEventTopicOptions.SectionName}:{nameof(IntegrationEventTopicOptions.Name)}"]
-                = IntegrationEventTopic.Name,
-        };
-
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configurations)
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [$"{ServiceBusNamespaceOptions.SectionName}:{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}"]
+                = IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+                [$"{IntegrationEventTopicOptions.SectionName}:{nameof(IntegrationEventTopicOptions.Name)}"]
+                = IntegrationEventTopic.Name,
+            })
             .Build();
 
         services

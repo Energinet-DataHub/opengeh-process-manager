@@ -48,52 +48,9 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services
-            .AddTokenCredentialProvider()
-            .AddInMemoryConfiguration(new Dictionary<string, string?>
-            {
-                // Process Manager HTTP client
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                    = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                    = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                    = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-
-                // Process Manager message client
-                [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
-                    = Fixture.ExampleOrchestrationsAppManager.ProcessManagerStartTopic.Name,
-                [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
-                    = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-                [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
-                    = Fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
-                [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
-                    = Fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
-            });
-
-        // Process Manager HTTP client
-        services.AddProcessManagerHttpClients();
-
-        // Process Manager message client
-        services.AddAzureClients(
-            builder => builder.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
-        services.AddProcessManagerMessageClient();
-
-        ServiceProvider = services.BuildServiceProvider();
-
-        ProcessManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-        ProcessManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
-
-    private IProcessManagerClient ProcessManagerClient { get; }
-
-    private IProcessManagerMessageClient ProcessManagerMessageClient { get; }
 
     public Task InitializeAsync()
     {
@@ -103,12 +60,12 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -126,12 +83,12 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString());
 
-        await ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startRequestCommand,
             CancellationToken.None);
 
         // Step 2: Query until waiting for ExampleNotifyEvent
-        var (isWaitingForNotify, orchestrationInstanceWaitingForEvent) = await ProcessManagerClient
+        var (isWaitingForNotify, orchestrationInstanceWaitingForEvent) = await Fixture.ProcessManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 comparer: (oi) =>
@@ -150,14 +107,14 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 3: Send ExampleNotifyEvent event
         const string expectedEventDataMessage = "This is a notification data example";
-        await ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent!.Id.ToString(),
                 Data: new ExampleNotifyEventDataV1(expectedEventDataMessage)),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (isTerminated, orchestrationInstance) = await ProcessManagerClient
+        var (isTerminated, orchestrationInstance) = await Fixture.ProcessManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 (oi) => oi is
@@ -194,12 +151,12 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString());
 
-        await ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startRequestCommand,
             CancellationToken.None);
 
         // Step 2: Query until waiting for ExampleNotifyEvent
-        var (isWaitingForNotify, orchestrationInstanceWaitingForEvent) = await ProcessManagerClient
+        var (isWaitingForNotify, orchestrationInstanceWaitingForEvent) = await Fixture.ProcessManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 comparer: (oi) =>
@@ -215,7 +172,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 3a: Send first ExampleNotifyEvent event
         var expectedEventDataMessage = "The expected data message";
-        await ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent!.Id.ToString(),
                 Data: new ExampleNotifyEventDataV1(expectedEventDataMessage)),
@@ -223,14 +180,14 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 3b: Send another ExampleNotifyEvent event
         var ignoredEventDataMessage = "An incorrect data message";
-        await ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent.Id.ToString(),
                 Data: new ExampleNotifyEventDataV1(ignoredEventDataMessage)),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (isTerminated, orchestrationInstance) = await ProcessManagerClient
+        var (isTerminated, orchestrationInstance) = await Fixture.ProcessManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 (oi) => oi is

@@ -18,29 +18,15 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
 
-public record FileStorageReference
+public abstract record FileStorageReference
 {
-    // Category is used for the file storage container name, and must be all lowercase.
-    public const string SendMeasurementsInstanceInputCategory = "send-measurements-instance-input";
+    /// <summary>
+    /// Path must be supported by Azure File Storage, so there should be no "-" or other unsupported characters.
+    /// </summary>
+    public abstract string Path { get; }
 
-    private FileStorageReference(string path, string category)
-    {
-        Path = path;
-        Category = category;
-    }
-
-    public string Path { get; }
-
-    public string Category { get; }
-
-    public static FileStorageReference ForSendMeasurementsInstanceInput(Instant createdAt, ActorNumber createdBy, TransactionId transactionId)
-    {
-        // "-" is not allowed in Azure Blob Storage paths, so we remove it from the transaction ID.
-        var sanitizedTransactionId = transactionId.Value.Replace("-", string.Empty);
-
-        var dateTimeUtc = createdAt.ToDateTimeUtc();
-        var path = $"{createdBy.Value}/{dateTimeUtc.Year:0000}/{dateTimeUtc.Month:00}/{dateTimeUtc.Day:00}/{sanitizedTransactionId}";
-
-        return new FileStorageReference(path, SendMeasurementsInstanceInputCategory);
-    }
+    /// <summary>
+    /// Category is used for the file storage container name, and must be all lowercase.
+    /// </summary>
+    public abstract string Category { get; }
 }

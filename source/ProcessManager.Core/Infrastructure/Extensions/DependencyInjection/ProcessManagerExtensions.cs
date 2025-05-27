@@ -14,6 +14,8 @@
 
 using System.Reflection;
 using Azure.Identity;
+using Azure.Storage.Blobs;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Application;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
@@ -424,6 +426,17 @@ public static class ProcessManagerExtensions
                 builder
                     .AddBlobServiceClient(configuration.GetSection(ProcessManagerFileStorageOptions.SectionName))
                     .WithName(BlobFileStorageClient.ClientName);
+            });
+
+        services.TryAddHealthChecks(
+            "Process Manager File Storage",
+            (key, builder) =>
+            {
+                builder.AddAzureBlobStorage(
+                    clientFactory: sp =>
+                        sp.GetRequiredService<IAzureClientFactory<BlobServiceClient>>()
+                            .CreateClient(BlobFileStorageClient.ClientName),
+                    name: key);
             });
 
         return services;

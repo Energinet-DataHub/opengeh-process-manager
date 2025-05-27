@@ -70,7 +70,7 @@ public class SendMeasurementsInstance // TODO: Name? SendMeasurementsInstance in
         terminatedAt: TerminatedAt,
         failedAt: FailedAt);
 
-    public FileStorageReference FileStorageReference => FileStorageReference.ForSendMeasurementsInstanceInput(
+    public SendMeasurementsInputFileStorageReference FileStorageReference => SendMeasurementsInputFileStorageReference.Create(
         CreatedAt,
         CreatedByActorNumber,
         TransactionId);

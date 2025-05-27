@@ -15,6 +15,7 @@
 using Azure.Storage.Blobs;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
+using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
@@ -48,7 +49,7 @@ public class ProcessManagerCoreFixture : IAsyncLifetime
 
     private async Task CreateRequiredStorageContainers()
     {
-        List<string> containers = [FileStorageReference.SendMeasurementsInstanceInputCategory];
+        List<string> containers = [SendMeasurementsInputFileStorageReference.ContainerName];
 
         var blobServiceClient = new BlobServiceClient(AzuriteManager.BlobStorageConnectionString);
         foreach (var containerName in containers)

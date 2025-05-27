@@ -65,5 +65,13 @@ internal class SendMeasurementsInstanceEntityConfiguration : IEntityTypeConfigur
                     : null);
 
         builder.Property(o => o.SentToMeasurementsAt);
+        builder.Property(o => o.ReceivedFromMeasurementsAt);
+
+        builder.Property(o => o.SentToEnqueueActorMessagesAt);
+        builder.Property(o => o.ReceivedFromEnqueueActorMessagesAt);
+
+        builder.Property(o => o.TerminatedAt);
+        builder.Property(o => o.FailedAt);
+        builder.Property(o => o.ErrorText);
     }
 }

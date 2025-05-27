@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -79,9 +80,18 @@ public class SendMeasurementsInstance // TODO: Name? SendMeasurementsInstance in
 
     public Instant? SentToMeasurementsAt { get; private set; }
 
+    public Instant? ReceivedFromMeasurementsAt { get; private set; }
+
+    public Instant? SentToEnqueueActorMessagesAt { get; private set; }
+
+    public Instant? ReceivedFromEnqueueActorMessagesAt { get; private set; }
+
     public Instant? TerminatedAt { get; private set; }
 
     public Instant? FailedAt { get; private set; }
+
+    [MaxLength(1000)]
+    public string? ErrorText { get; private set; }
 
     public SendMeasurementsInstanceLifecycle Lifecycle => new SendMeasurementsInstanceLifecycle(
         terminatedAt: TerminatedAt,

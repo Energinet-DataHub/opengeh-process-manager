@@ -205,6 +205,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         AzuriteManager.Dispose();
         await ServiceBusResourceProvider.DisposeAsync();
         await EnqueueBrs023027ServiceBusListener.DisposeAsync();
+        await EnqueueBrs024ServiceBusListener.DisposeAsync();
         await EnqueueBrs026ServiceBusListener.DisposeAsync();
         await EnqueueBrs028ServiceBusListener.DisposeAsync();
         await IntegrationEventServiceBusListener.DisposeAsync();

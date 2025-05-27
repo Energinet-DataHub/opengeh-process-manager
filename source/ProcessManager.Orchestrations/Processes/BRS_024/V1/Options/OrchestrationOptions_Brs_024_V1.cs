@@ -22,7 +22,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.O
 /// </summary>
 public class OrchestrationOptions_Brs_024_V1
 {
-    public const string SectionName = "Orchestration_Brs_026_V1";
+    public const string SectionName = "Orchestration_Brs_024_V1";
 
     /// <summary>
     /// The timeout to wait for actor messages to be enqueued.

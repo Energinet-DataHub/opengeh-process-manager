@@ -18,7 +18,7 @@ using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024;
 
 /// <summary>
 /// Start a BRS-026 request.

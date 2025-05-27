@@ -27,12 +27,14 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using NodaTime;
 using OrchestrationInstanceLifecycleState =
     Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
@@ -54,7 +56,8 @@ public class StartForwardMeteredDataHandlerV1(
     IMeteringPointMasterDataProvider meteringPointMasterDataProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     DelegationProvider delegationProvider,
-    TelemetryClient telemetryClient)
+    TelemetryClient telemetryClient,
+    IFeatureManager featureManager)
     : StartOrchestrationInstanceHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
@@ -67,6 +70,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly DelegationProvider _delegationProvider = delegationProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
+    private readonly IFeatureManager _featureManager = featureManager;
 
     public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
         startOrchestrationInstance.OrchestrationVersion == Brs_021_ForwardedMeteredData.V1.Version &&
@@ -96,13 +100,16 @@ public class StartForwardMeteredDataHandlerV1(
                 meteringPointId)
             .ConfigureAwait(false);
 
-        var sendMeasurementsInstance = await InitializeSendMeasurementsInstance(
-                actorIdentity.Actor,
-                input,
-                idempotencyKey,
-                new TransactionId(transactionId),
-                meteringPointId)
-            .ConfigureAwait(false);
+        if (await _featureManager.UseSendMeasurementsDatabaseV2().ConfigureAwait(false))
+        {
+            await InitializeSendMeasurementsInstance(
+                    actorIdentity.Actor,
+                    input,
+                    idempotencyKey,
+                    new TransactionId(transactionId),
+                    meteringPointId)
+                .ConfigureAwait(false);
+        }
 
         // If the orchestration instance is terminated, do nothing (idempotency/retry check).
         if (orchestrationInstance.Lifecycle.State is OrchestrationInstanceLifecycleState.Terminated)

@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_045.Shared;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -28,7 +23,6 @@ using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Azure.Databricks.Client.Models;
-using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using Xunit.Abstractions;
 
@@ -50,29 +44,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services
-            .AddTokenCredentialProvider()
-            .AddInMemoryConfiguration(new Dictionary<string, string?>
-            {
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                    = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                    = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                    = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            });
-
-        // Process Manager HTTP client
-        services.AddProcessManagerHttpClients();
-
-        ServiceProvider = services.BuildServiceProvider();
     }
 
     private OrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
@@ -84,12 +58,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         Fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     [Fact]
@@ -127,10 +101,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             },
         ]);
 
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Start new calculation orchestration instance
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartMissingMeasurementsLogCalculationCommandV1(
                     Fixture.DefaultUserIdentity),
@@ -147,7 +119,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ]);
 
         // Step 2: Query until terminated
-        var (isTerminated, terminatedOrchestrationInstance) = await processManagerClient
+        var (isTerminated, terminatedOrchestrationInstance) = await Fixture.ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated(
                 orchestrationInstanceId: orchestrationInstanceId);
 

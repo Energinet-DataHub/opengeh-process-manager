@@ -12,15 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Databricks.Jobs.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_023_027.V1.Activities;
@@ -33,14 +28,11 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Wiremock;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Model;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Azure.Databricks.Client.Models;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using Proto = Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027.V1.Contracts;
 
@@ -61,52 +53,9 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services
-            .AddTokenCredentialProvider()
-            .AddInMemoryConfiguration(new Dictionary<string, string?>
-            {
-                // Process Manager HTTP client
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                    = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                    = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                    = Fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-
-                // Process Manager message client
-                [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
-                    = Fixture.OrchestrationsAppManager.ProcessManagerStartTopic.Name,
-                [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
-                    = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-                [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
-                    = Fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
-                [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
-                    = Fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
-            });
-
-        // Process Manager HTTP client
-        services.AddProcessManagerHttpClients();
-
-        // Process Manager message client
-        services.AddAzureClients(
-            builder => builder.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
-        services.AddProcessManagerMessageClient();
-
-        ServiceProvider = services.BuildServiceProvider();
-
-        ProcessManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-        ProcessManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
     }
 
     private OrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
-
-    private IProcessManagerClient ProcessManagerClient { get; }
-
-    private IProcessManagerMessageClient ProcessManagerMessageClient { get; }
 
     public Task InitializeAsync()
     {
@@ -121,12 +70,12 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         Fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -147,7 +96,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         // step 2.0: Wait for service bus message to EDI and mock a response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
-            processManagerMessageClient: ProcessManagerMessageClient,
+            processManagerMessageClient: Fixture.ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationId);
 
         // step 2.5: Wait for the integration event to be published
@@ -221,7 +170,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         // Lets the durable function run to completion
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
-            processManagerMessageClient: ProcessManagerMessageClient,
+            processManagerMessageClient: Fixture.ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationInstanceId);
 
         var status = await Fixture.DurableClient.GetStatusAsync(
@@ -282,7 +231,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         var isTerminatedSuccessfully = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await ProcessManagerClient
+                var orchestrationInstance = await Fixture.ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             Fixture.DefaultUserIdentity,
@@ -318,7 +267,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 
         // step 2.0: Wait for service bus message to EDI and mock a failed response
         await Fixture.EnqueueBrs023027ServiceBusListener.WaitAndMockServiceBusMessageToAndFromEdi(
-            processManagerMessageClient: ProcessManagerMessageClient,
+            processManagerMessageClient: Fixture.ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationId,
             successfulResponse: false);
 
@@ -342,7 +291,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         // => Verify that the durable function failed
         completeOrchestrationStatus.RuntimeStatus.Should().Be(OrchestrationRuntimeStatus.Failed);
 
-        var orchestrationInstance = await ProcessManagerClient
+        var orchestrationInstance = await Fixture.ProcessManagerClient
             .GetOrchestrationInstanceByIdAsync<CalculationInputV1>(
                 new GetOrchestrationInstanceByIdQuery(
                     Fixture.DefaultUserIdentity,
@@ -410,7 +359,7 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
             PeriodStartDate: new DateTimeOffset(2023, 1, 31, 23, 0, 0, TimeSpan.Zero),
             PeriodEndDate: new DateTimeOffset(2023, 2, 28, 23, 0, 0, TimeSpan.Zero),
             IsInternalCalculation: isInternalCalculation);
-        var orchestrationInstanceId = await ProcessManagerClient
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartCalculationCommandV1(
                     userIdentity ?? Fixture.DefaultUserIdentity,

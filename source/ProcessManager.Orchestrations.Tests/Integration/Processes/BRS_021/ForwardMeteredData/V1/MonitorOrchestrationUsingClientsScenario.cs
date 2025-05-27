@@ -17,7 +17,6 @@ using System.Text.Json;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.EventHub.ListenerMock;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.Core.TestCommon;
@@ -26,9 +25,6 @@ using Energinet.DataHub.ElectricityMarket.Integration.Models.ProcessDelegation;
 using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
@@ -98,14 +94,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         services.AddTokenCredentialProvider();
         services.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
-            // Process Manager HTTP client
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                = _fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                = _fixture.OrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-
             // Measurements Eventhub client
             [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"]
                 = _fixture.OrchestrationsAppManager.MeasurementEventHubName,
@@ -117,21 +105,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 = _fixture.OrchestrationsAppManager.ProcessManagerEventhubName,
             [$"{ProcessManagerEventHubOptions.SectionName}:{nameof(ProcessManagerEventHubOptions.FullyQualifiedNamespace)}"]
                 = _fixture.IntegrationTestConfiguration.EventHubFullyQualifiedNamespace,
-
-            // Process Manager message client
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
-                = _fixture.OrchestrationsAppManager.ProcessManagerStartTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
-                = _fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
-                = _fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
-                = _fixture.OrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
         });
-        services.AddAzureClients(
-            builder => builder.AddServiceBusClientWithNamespace(_fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
-        services.AddProcessManagerMessageClient();
-        services.AddProcessManagerHttpClients();
 
         services
             .AddOptions<ProcessManagerEventHubOptions>()
@@ -191,15 +165,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
 
         // Act
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(forwardCommand, CancellationToken.None);
+        await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(forwardCommand, CancellationToken.None);
 
         // Step 2a: Query until waiting for Event Hub notify event from Measurements
-        var (isWaitingForMeasurementsNotify, orchestrationInstance) = await processManagerClient
+        var (isWaitingForMeasurementsNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
                 forwardCommand.IdempotencyKey,
                 OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
@@ -236,12 +208,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Wait for enqueue messages sent to EDI and send mock notify response to Process Manager
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
-            processManagerMessageClient: processManagerMessageClient,
+            processManagerMessageClient: _fixture.ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationInstance.Id,
             messageId: forwardCommand.ActorMessageId);
 
         // Query until terminated
-        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
+        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
                 idempotencyKey: forwardCommand.IdempotencyKey);
 
@@ -304,15 +276,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             input,
             idempotencyKey: Guid.NewGuid().ToString());
 
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
         var eventHubClientFactory = ServiceProvider.GetRequiredService<IAzureClientFactory<EventHubProducerClient>>();
 
         // Act
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(forwardCommand, CancellationToken.None);
+        await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(forwardCommand, CancellationToken.None);
 
         // Step 2a: Query until waiting for Event Hub notify event from Measurements
-        var (isWaitingForMeasurementsNotify, orchestrationInstance) = await processManagerClient
+        var (isWaitingForMeasurementsNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
                 forwardCommand.IdempotencyKey,
                 OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
@@ -349,12 +319,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Wait for enqueue messages sent to EDI and send mock notify response to Process Manager
         await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.WaitOnEnqueueMessagesInEdiAndMockNotifyToProcessManager(
-            processManagerMessageClient: processManagerMessageClient,
+            processManagerMessageClient: _fixture.ProcessManagerMessageClient,
             orchestrationInstanceId: orchestrationInstance.Id,
             messageId: forwardCommand.ActorMessageId);
 
         // Query until terminated
-        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
+        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
                 idempotencyKey: forwardCommand.IdempotencyKey);
 
@@ -415,15 +385,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             invalidInput,
             idempotencyKey: Guid.NewGuid().ToString());
 
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // When
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(invalidForwardCommand, CancellationToken.None);
+        await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(invalidForwardCommand, CancellationToken.None);
 
         // Then
         // Query until waiting for EnqueueActorMessagesCompleted notify event (a reject message should be enqueued)
-        var (isWaitingForNotify, orchestrationInstance) = await processManagerClient
+        var (isWaitingForNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
                 invalidForwardCommand.IdempotencyKey,
                 OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
@@ -454,13 +421,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         enqueueMessageFound.Should().BeTrue($"because a {nameof(ForwardMeteredDataRejectedV1)} service bus message should have been sent");
 
         // Send EnqueueActorMessagesCompleted event
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new ForwardMeteredDataNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
             CancellationToken.None);
 
         // Query until terminated
-        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await processManagerClient
+        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
                 idempotencyKey: invalidForwardCommand.IdempotencyKey);
 

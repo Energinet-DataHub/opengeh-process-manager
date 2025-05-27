@@ -9,7 +9,7 @@
     [CreatedByActorRole]    TINYINT NOT NULL,
 
     [TransactionId]     VARCHAR(36) NOT NULL,
-    [MeteringPointId]   CHAR(36) NULL, -- Is nullable since it is optional in the actor message schema.
+    [MeteringPointId]   VARCHAR(36) NULL, -- Is nullable since it is optional in the actor message schema.
 
     [MasterData]        VARCHAR(MAX) NULL,
     [ValidationErrors]  VARCHAR(MAX) NULL,

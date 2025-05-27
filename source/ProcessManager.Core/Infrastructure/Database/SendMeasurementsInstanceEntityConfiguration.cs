@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions;
@@ -57,7 +56,6 @@ internal class SendMeasurementsInstanceEntityConfiguration : IEntityTypeConfigur
                 dbValue => new TransactionId(dbValue));
 
         builder.Property(o => o.MeteringPointId)
-            .HasColumnType("CHAR(36)")
             .HasConversion(
                 state => state != null
                     ? state.Value

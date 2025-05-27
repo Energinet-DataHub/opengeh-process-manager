@@ -32,7 +32,8 @@ public class RequestYearlyMeasurementsHandlerV1(
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 
     public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
-        startOrchestrationInstance.OrchestrationName == Brs_024.V1.Name;
+        startOrchestrationInstance.OrchestrationName == Brs_024.V1.Name &&
+        startOrchestrationInstance.OrchestrationVersion == Brs_024.V1.Version;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,

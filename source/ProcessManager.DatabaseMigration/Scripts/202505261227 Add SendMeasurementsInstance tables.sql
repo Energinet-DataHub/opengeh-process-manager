@@ -9,7 +9,7 @@
     [CreatedByActorRole]    TINYINT NOT NULL,
 
     [TransactionId]     VARCHAR(36) NOT NULL,
-    [MeteringPointId]   VARCHAR(36) NULL, -- Is nullable since it is optional in the actor message. TODO: How many characters can a metering point id have?
+    [MeteringPointId]   CHAR(36) NULL, -- Is nullable since it is optional in the actor message schema.
 
     [MasterData]        VARCHAR(MAX) NULL,
     [ValidationErrors]  VARCHAR(MAX) NULL,

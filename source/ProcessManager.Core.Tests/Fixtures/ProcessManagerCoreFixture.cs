@@ -17,6 +17,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 
@@ -37,7 +38,7 @@ public class ProcessManagerCoreFixture : IAsyncLifetime
         await DatabaseManager.CreateDatabaseAsync();
         AzuriteManager.CleanupAzuriteStorage();
         AzuriteManager.StartAzurite();
-        await CreateRequiredStorageContainers();
+        await AzuriteManager.CreateRequiredContainersAsync();
     }
 
     public async Task DisposeAsync()
@@ -45,20 +46,5 @@ public class ProcessManagerCoreFixture : IAsyncLifetime
         await DatabaseManager.DeleteDatabaseAsync();
         AzuriteManager.CleanupAzuriteStorage();
         AzuriteManager.Dispose();
-    }
-
-    private async Task CreateRequiredStorageContainers()
-    {
-        List<string> containers = [SendMeasurementsInputFileStorageReference.ContainerName];
-
-        var blobServiceClient = new BlobServiceClient(AzuriteManager.BlobStorageConnectionString);
-        foreach (var containerName in containers)
-        {
-            var container = blobServiceClient.GetBlobContainerClient(containerName);
-            var containerExists = await container.ExistsAsync();
-
-            if (!containerExists.Value)
-                await container.CreateAsync();
-        }
     }
 }

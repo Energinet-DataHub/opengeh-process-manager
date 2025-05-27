@@ -35,7 +35,6 @@ public class ProcessManagerCoreAzuriteFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        AzuriteManager.CleanupAzuriteStorage();
         AzuriteManager.Dispose();
 
         await Task.CompletedTask;

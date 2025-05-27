@@ -40,7 +40,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
-    private readonly ActorIdentityDto _actorIdentity = new ActorIdentityDto(
+    private readonly ActorIdentityDto _actorIdentity = new(
         ActorNumber: ActorNumber.Create("1234567891234"),
         ActorRole: ActorRole.EnergySupplier);
 
@@ -84,11 +84,18 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         services.AddProcessManagerMessageClient();
 
         ServiceProvider = services.BuildServiceProvider();
+
+        ProcessManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        ProcessManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
 
     private ServiceProvider ServiceProvider { get; }
+
+    private IProcessManagerClient ProcessManagerClient { get; }
+
+    private IProcessManagerMessageClient ProcessManagerMessageClient { get; }
 
     public Task InitializeAsync()
     {
@@ -117,13 +124,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_ValidRequestToUpdateMeteringPointConnectionState_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Act as EDI => Send start command to start new orchestration instance
         var startCommand = GivenStartCommand();
 
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startCommand,
             CancellationToken.None);
 
@@ -146,13 +150,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             $"because a {nameof(UpdateMeteringPointConnectionStateAcceptedV1)} service bus message should have been sent");
 
         // Step 3: Act as EDI => Send "notify" event to orchestration instance, to inform that messages has been enqueued
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new UpdateMeteringPointConnectionStateNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceId!),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (orchestrationTerminated, terminatedOrchestrationInstance) = await processManagerClient
+        var (orchestrationTerminated, terminatedOrchestrationInstance) = await ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<UpdateMeteringPointConnectionStateInputV1>(
                 startCommand.IdempotencyKey);
 
@@ -183,13 +187,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_InvalidRequestToUpdateMeteringPointConnectionState_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Act as EDI => Send start command to start new orchestration instance
         var startCommand = GivenStartCommand(shouldFailBusinessValidation: true);
 
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startCommand,
             CancellationToken.None);
 
@@ -219,13 +220,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             $"because a {nameof(UpdateMeteringPointConnectionStateRejectedV1)} service bus message should have been sent");
 
         // Step 3: Act as EDI => Send "notify" event to orchestration instance, to inform that messages has been enqueued
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new UpdateMeteringPointConnectionStateNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceId!),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (orchestrationTerminated, terminatedOrchestrationInstance) = await processManagerClient
+        var (orchestrationTerminated, terminatedOrchestrationInstance) = await ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<UpdateMeteringPointConnectionStateInputV1>(
                 startCommand.IdempotencyKey);
 

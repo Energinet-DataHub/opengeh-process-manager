@@ -82,11 +82,18 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         services.AddProcessManagerMessageClient();
 
         ServiceProvider = services.BuildServiceProvider();
+
+        ProcessManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
+        ProcessManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
 
     private ServiceProvider ServiceProvider { get; }
+
+    private IProcessManagerClient ProcessManagerClient { get; }
+
+    private IProcessManagerMessageClient ProcessManagerMessageClient { get; }
 
     public Task InitializeAsync()
     {
@@ -110,9 +117,6 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     [Fact]
     public async Task NotifyOrchestrationInstanceExample_WhenStarted_CanReceiveExampleNotifyEventWithData()
     {
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Start new orchestration instance
         var startRequestCommand = new StartNotifyOrchestrationInstanceExampleCommandV1(
             _actorIdentity,
@@ -122,12 +126,12 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString());
 
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startRequestCommand,
             CancellationToken.None);
 
         // Step 2: Query until waiting for ExampleNotifyEvent
-        var (isWaitingForNotify, orchestrationInstanceWaitingForEvent) = await processManagerClient
+        var (isWaitingForNotify, orchestrationInstanceWaitingForEvent) = await ProcessManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 comparer: (oi) =>
@@ -146,14 +150,14 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 3: Send ExampleNotifyEvent event
         const string expectedEventDataMessage = "This is a notification data example";
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent!.Id.ToString(),
                 Data: new ExampleNotifyEventDataV1(expectedEventDataMessage)),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (isTerminated, orchestrationInstance) = await processManagerClient
+        var (isTerminated, orchestrationInstance) = await ProcessManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 (oi) => oi is
@@ -181,9 +185,6 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     [Fact]
     public async Task NotifyOrchestrationInstanceExample_WhenReceivedMultipleNotifyEvents_OnlyFirstNotifyEventIsUsed()
     {
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Start new orchestration instance
         var startRequestCommand = new StartNotifyOrchestrationInstanceExampleCommandV1(
             _actorIdentity,
@@ -193,12 +194,12 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString());
 
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startRequestCommand,
             CancellationToken.None);
 
         // Step 2: Query until waiting for ExampleNotifyEvent
-        var (isWaitingForNotify, orchestrationInstanceWaitingForEvent) = await processManagerClient
+        var (isWaitingForNotify, orchestrationInstanceWaitingForEvent) = await ProcessManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 comparer: (oi) =>
@@ -214,7 +215,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 3a: Send first ExampleNotifyEvent event
         var expectedEventDataMessage = "The expected data message";
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent!.Id.ToString(),
                 Data: new ExampleNotifyEventDataV1(expectedEventDataMessage)),
@@ -222,14 +223,14 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 
         // Step 3b: Send another ExampleNotifyEvent event
         var ignoredEventDataMessage = "An incorrect data message";
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new NotifyOrchestrationInstanceExampleNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceWaitingForEvent.Id.ToString(),
                 Data: new ExampleNotifyEventDataV1(ignoredEventDataMessage)),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (isTerminated, orchestrationInstance) = await processManagerClient
+        var (isTerminated, orchestrationInstance) = await ProcessManagerClient
             .TryWaitForOrchestrationInstance<NotifyOrchestrationInstanceExampleInputV1>(
                 idempotencyKey: startRequestCommand.IdempotencyKey,
                 (oi) => oi is

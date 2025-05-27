@@ -16,6 +16,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -47,8 +48,8 @@ internal class SendMeasurementsInstanceEntityConfiguration : IEntityTypeConfigur
                 dbValue => ActorNumber.Create(dbValue));
         builder.Property(o => o.CreatedByActorRole)
             .HasConversion(
-                state => state.ByteValue,
-                dbValue => ActorRole.FromByteValue(dbValue));
+                state => state.ToByteValue(),
+                dbValue => dbValue.ToActorRole());
 
         builder.Property(o => o.TransactionId)
             .HasConversion(

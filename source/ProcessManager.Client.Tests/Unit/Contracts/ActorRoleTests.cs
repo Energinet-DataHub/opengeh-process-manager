@@ -78,7 +78,7 @@ public class ActorRoleTests
             type: typeof(ActorRole),
             bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic,
             binder: null,
-            args: ["EnergySupplier2", (byte)0],
+            args: ["EnergySupplier2"],
             culture: null)!;
 
         var act = () => invalidActorRole.ToActorRoleV1();

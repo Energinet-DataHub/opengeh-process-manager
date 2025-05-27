@@ -117,7 +117,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         isWaitingForNotify.Should()
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
 
-                // Step 2b: Verify an enqueue actor messages event is sent on the service bus
+        // Step 2b: Verify an enqueue actor messages event is sent on the service bus
         var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs024ServiceBusListener.When(
                 (message) =>
                 {

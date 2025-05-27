@@ -13,25 +13,22 @@
 // limitations under the License.
 
 using Azure.Messaging.EventHubs;
-using Azure.Messaging.EventHubs.Producer;
 using Energinet.DataHub.Measurements.Contracts;
-using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Mappers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Azure;
 using NodaTime;
 using Point = Energinet.DataHub.Measurements.Contracts.Point;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 
 public class MeasurementsClient(
-    IAzureClientFactory<EventHubProducerClient> eventHubClientFactory)
+    MeasurementsEventHubProducerClientFactory measurementsEventHubProducerClientFactory)
         : IMeasurementsClient
 {
-    private readonly EventHubProducerClient _measurementEventHubProducerClient =
-        eventHubClientFactory.CreateClient(EventHubProducerClientNames.MeasurementsEventHub);
+    private readonly MeasurementsEventHubProducerClientFactory _measurementsEventHubProducerClientFactory
+        = measurementsEventHubProducerClientFactory;
 
     public async Task SendAsync(
         MeasurementsForMeteringPoint measurementsForMeteringPoint,
@@ -63,7 +60,11 @@ public class MeasurementsClient(
 
         // Serialize the data to a byte array
         var eventData = new EventData(data.ToByteArray());
-        await _measurementEventHubProducerClient.SendAsync([eventData], cancellationToken).ConfigureAwait(false);
+
+        var measurementEventHubProducerClient = _measurementsEventHubProducerClientFactory
+            .Create(measurementsForMeteringPoint.MeteringPointId);
+
+        await measurementEventHubProducerClient.SendAsync([eventData], cancellationToken).ConfigureAwait(false);
     }
 
     private static Timestamp MapDateTime(Instant instant) => Timestamp.FromDateTimeOffset(instant.ToDateTimeOffset());

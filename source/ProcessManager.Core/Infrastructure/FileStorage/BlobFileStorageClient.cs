@@ -27,6 +27,7 @@ public class BlobFileStorageClient(
 
     private readonly BlobServiceClient _blobServiceClient = blobServiceClientFactory.CreateClient(ClientName);
 
+    /// <inheritdoc />
     public Task UploadAsync(FileStorageReference reference, Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -38,17 +39,7 @@ public class BlobFileStorageClient(
         return container.UploadBlobAsync(reference.Path, stream);
     }
 
-    public async Task UploadAsync(FileStorageReference reference, string content)
-    {
-        using var memoryStream = new MemoryStream();
-        using var streamWriter = new StreamWriter(memoryStream);
-
-        await streamWriter.WriteAsync(content).ConfigureAwait(false);
-        await streamWriter.FlushAsync().ConfigureAwait(false);
-
-        await UploadAsync(reference, memoryStream).ConfigureAwait(false);
-    }
-
+    /// <inheritdoc />
     public async Task<ReadOnceStream> DownloadAsync(FileStorageReference reference, CancellationToken cancellationToken)
     {
         var container = _blobServiceClient.GetBlobContainerClient(reference.Category);

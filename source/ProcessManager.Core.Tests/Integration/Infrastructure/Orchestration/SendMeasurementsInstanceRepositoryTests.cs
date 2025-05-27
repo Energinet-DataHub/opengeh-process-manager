@@ -58,7 +58,7 @@ public class SendMeasurementsInstanceRepositoryTests :
         var services = new ServiceCollection();
         services.AddTransient<IFileStorageClient, BlobFileStorageClient>();
         services.AddAzureClients(builder => builder
-            .AddBlobServiceClient(_azuriteFixture.AzuriteManager.FullConnectionString)
+            .AddBlobServiceClient(_azuriteFixture.AzuriteManager.BlobStorageConnectionString)
             .WithName(BlobFileStorageClient.ClientName));
         var serviceProvider = services.BuildServiceProvider();
         _fileStorageClient = serviceProvider.GetRequiredService<IFileStorageClient>();
@@ -256,7 +256,7 @@ public class SendMeasurementsInstanceRepositoryTests :
 
     private async Task<BinaryData> DownloadFileContent(FileStorageReference fileStorageReference)
     {
-        var blobServiceClient = new BlobServiceClient(_azuriteFixture.AzuriteManager.FullConnectionString);
+        var blobServiceClient = new BlobServiceClient(_azuriteFixture.AzuriteManager.BlobStorageConnectionString);
         var blobContainerClient = blobServiceClient.GetBlobContainerClient(fileStorageReference.Category);
         var blobClient = blobContainerClient.GetBlobClient(fileStorageReference.Path);
         var fileContent = await blobClient.DownloadContentAsync();

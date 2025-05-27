@@ -77,8 +77,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         services.AddProcessManagerHttpClients();
 
         // Process Manager message client
-        services.AddAzureClients(b =>
-            b.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
+        services.AddAzureClients(
+            builder => builder.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
         services.AddProcessManagerMessageClient();
 
         ServiceProvider = services.BuildServiceProvider();

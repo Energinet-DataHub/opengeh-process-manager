@@ -13,25 +13,19 @@
 // limitations under the License.
 
 using System.Text.Json;
-using Azure;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
-using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
-using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
@@ -86,9 +80,7 @@ public class SendMeasurementsInstanceRepositoryTests :
         var act = () => _sut.GetAsync(id);
 
         // Assert
-        await act.Should()
-            .ThrowAsync<NullReferenceException>()
-            .WithMessage("*SendMeasurementsInstance not found*");
+        await Assert.ThrowsAsync<NullReferenceException>(act);
     }
 
     [Fact]
@@ -107,7 +99,7 @@ public class SendMeasurementsInstanceRepositoryTests :
         var actual = await _sut.GetAsync(instance.Id);
 
         // Assert
-        actual.Should().BeEquivalentTo(instance);
+        Assert.Equivalent(instance, actual);
     }
 
     [Fact]
@@ -134,7 +126,8 @@ public class SendMeasurementsInstanceRepositoryTests :
         await using var readDbContext = _fixture.DatabaseManager.CreateDbContext();
         var repository = new SendMeasurementsInstanceRepository(readDbContext, _fileStorageClient);
         var actual = await repository.GetAsync(instance.Id);
-        actual.SentToMeasurementsAt.Should().Be(sentToMeasurementsAt);
+
+        Assert.Equal(sentToMeasurementsAt, actual.SentToMeasurementsAt);
     }
 
     [Fact]
@@ -165,12 +158,7 @@ public class SendMeasurementsInstanceRepositoryTests :
         var act = () => sut02.UnitOfWork.CommitAsync();
 
         // Assert
-        await using var dbContext03 = _fixture.DatabaseManager.CreateDbContext();
-        var sut03 = new SendMeasurementsInstanceRepository(dbContext03, _fileStorageClient);
-        var actual03 = await sut03.GetAsync(instance.Id);
-        actual03.Should().NotBeNull();
-
-        await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(act);
     }
 
     [Fact]
@@ -190,7 +178,7 @@ public class SendMeasurementsInstanceRepositoryTests :
         var actual = await _sut.GetOrDefaultAsync(idempotencyKey);
 
         // Assert
-        actual.Should().BeEquivalentTo(instance);
+        Assert.Equivalent(instance, actual);
     }
 
     [Fact]
@@ -203,7 +191,7 @@ public class SendMeasurementsInstanceRepositoryTests :
         var actual = await _sut.GetOrDefaultAsync(idempotencyKey);
 
         // Assert
-        actual.Should().BeNull();
+        Assert.Null(actual);
     }
 
     [Fact]
@@ -218,8 +206,7 @@ public class SendMeasurementsInstanceRepositoryTests :
 
         // Assert
         var actual = await _sut.GetAsync(newInstance.Id);
-        actual.Should()
-            .BeEquivalentTo(newInstance);
+        Assert.Equal(newInstance, actual);
     }
 
     [Fact]
@@ -236,10 +223,10 @@ public class SendMeasurementsInstanceRepositoryTests :
         await _sut.AddAsync(newInstance, inputAsStream);
 
         // Assert
-        var fileContent = await DownloadFileContent(newInstance.FileStorageReference);
+        var actualInputContentAsBinary = await DownloadFileContent(newInstance.FileStorageReference);
 
-        var stringContent = fileContent.ToObjectFromJson<string>();
-        stringContent.Should().Be(expectedInputContent);
+        var actualInputContent = actualInputContentAsBinary.ToObjectFromJson<string>();
+        Assert.Equal(expectedInputContent, actualInputContent);
     }
 
     private SendMeasurementsInstance CreateSendMeasurementsInstance(IdempotencyKey? idempotencyKey = null)

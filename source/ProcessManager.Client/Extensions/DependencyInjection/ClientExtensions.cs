@@ -34,6 +34,9 @@ public static class ClientExtensions
     /// Configures http clients with an "Authorization" header value and
     /// forward it to the Process Manager API for authentication/authorization.
     /// </summary>
+    /// <remarks>
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
+    /// </remarks>
     public static IServiceCollection AddProcessManagerHttpClients(this IServiceCollection services)
     {
         services
@@ -61,8 +64,10 @@ public static class ClientExtensions
 
     /// <summary>
     /// Register Process Manager message client for use in applications.
-    /// <remarks>The application must register the <see cref="ServiceBusClient"/> and contain configuration for <see cref="ProcessManagerServiceBusClientOptions"/></remarks>
     /// </summary>
+    /// <remarks>
+    /// The application must register the <see cref="ServiceBusClient"/> and contain configuration for <see cref="ProcessManagerServiceBusClientOptions"/>
+    /// </remarks>
     public static IServiceCollection AddProcessManagerMessageClient(this IServiceCollection services)
     {
         services

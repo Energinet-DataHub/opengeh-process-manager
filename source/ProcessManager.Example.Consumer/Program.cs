@@ -13,10 +13,12 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
@@ -25,13 +27,16 @@ var host = new HostBuilder()
         // Common
         services.AddApplicationInsightsForIsolatedWorker("ProcessManager.Example.Consumer");
         services.AddHealthChecksForIsolatedWorker();
+        services.AddTokenCredentialProvider();
         services.AddNodaTimeForApplication();
 
         // => Add Process Manager HTTP clients
         services.AddProcessManagerHttpClients();
 
         // => Add Process Manager message client
-        services.AddServiceBusClientForApplication(context.Configuration);
+        services.AddServiceBusClientForApplication(
+            context.Configuration,
+            sp => sp.GetRequiredService<TokenCredentialProvider>().Credential);
         services.AddProcessManagerMessageClient();
     })
     .ConfigureFunctionsWebApplication()

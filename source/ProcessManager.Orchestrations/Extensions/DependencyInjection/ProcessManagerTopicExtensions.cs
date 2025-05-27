@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Core;
 using Energinet.DataHub.Core.App.Common.Diagnostics.HealthChecks;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Builder;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
@@ -27,7 +27,10 @@ public static class ProcessManagerTopicExtensions
     /// <summary>
     /// Add required dependencies to use the Process Manager Service Bus topic.
     /// </summary>
-    public static IServiceCollection AddProcessManagerTopic(this IServiceCollection services, TokenCredential credential)
+    /// <remarks>
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
+    /// </remarks>
+    public static IServiceCollection AddProcessManagerTopic(this IServiceCollection services)
     {
         services.AddOptions<ServiceBusNamespaceOptions>()
             .BindConfiguration(ServiceBusNamespaceOptions.SectionName)
@@ -43,74 +46,75 @@ public static class ProcessManagerTopicExtensions
             .BindConfiguration(Brs021ForwardMeteredDataTopicOptions.SectionName)
             .ValidateDataAnnotations();
 
-        services.AddHealthChecks()
+        services
+            .AddHealthChecks()
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.TopicName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "Process Manager Start Topic")
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.Brs026SubscriptionName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "BRS-026 Subscription")
             .AddServiceBusTopicSubscriptionDeadLetter(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.Brs026SubscriptionName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "BRS-026 Dead-letter",
                 [HealthChecksConstants.StatusHealthCheckTag])
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.Brs028SubscriptionName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "BRS-028 Subscription")
             .AddServiceBusTopicSubscriptionDeadLetter(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.TopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<ProcessManagerStartTopicOptions>>().Value.Brs028SubscriptionName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "BRS-028 Dead-letter",
                 [HealthChecksConstants.StatusHealthCheckTag])
             // Add health check for the Brs021ForwardMeteredData start Topic and subscription
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.StartTopicName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "BRS-021-ForwardMeteredData Start Topic")
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.StartTopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.StartSubscriptionName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "BRS-021-ForwardMeteredData Start Subscription")
             .AddServiceBusTopicSubscriptionDeadLetter(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.StartTopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.StartSubscriptionName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "BRS-021-ForwardMeteredData Start Dead-letter",
                 [HealthChecksConstants.StatusHealthCheckTag])
             // Add health check for the Brs021ForwardMeteredData notify Topic and subscription
             .AddAzureServiceBusTopic(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.NotifyTopicName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "BRS-021-ForwardMeteredData Notify Topic")
             .AddAzureServiceBusSubscription(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.NotifyTopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.NotifySubscriptionName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "BRS-021-ForwardMeteredData Notify Subscription")
             .AddServiceBusTopicSubscriptionDeadLetter(
                 fullyQualifiedNamespaceFactory: sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 topicNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.NotifyTopicName,
                 subscriptionNameFactory: sp => sp.GetRequiredService<IOptions<Brs021ForwardMeteredDataTopicOptions>>().Value.NotifySubscriptionName,
-                tokenCredentialFactory: _ => credential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "BRS-021-ForwardMeteredData Notify Dead-letter",
                 [HealthChecksConstants.StatusHealthCheckTag]);
 

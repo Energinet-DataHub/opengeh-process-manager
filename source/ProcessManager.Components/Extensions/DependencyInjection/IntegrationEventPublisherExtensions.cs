@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Core;
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.Messaging.Communication.Publisher;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
@@ -26,7 +26,13 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class IntegrationEventPublisherExtensions
 {
-        public static IServiceCollection AddIntegrationEventPublisher(this IServiceCollection services, TokenCredential azureCredential)
+    /// <summary>
+    /// Register services and health checks for integration event publisher.
+    /// </summary>
+    /// <remarks>
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
+    /// </remarks>
+    public static IServiceCollection AddIntegrationEventPublisher(this IServiceCollection services)
     {
         services.AddOptions<ServiceBusNamespaceOptions>()
             .BindConfiguration(ServiceBusNamespaceOptions.SectionName)
@@ -41,7 +47,7 @@ public static class IntegrationEventPublisherExtensions
             .AddAzureServiceBusTopic(
                 sp => sp.GetRequiredService<IOptions<ServiceBusNamespaceOptions>>().Value.FullyQualifiedNamespace,
                 sp => sp.GetRequiredService<IOptions<IntegrationEventTopicOptions>>().Value.Name,
-                tokenCredentialFactory: _ => azureCredential,
+                tokenCredentialFactory: sp => sp.GetRequiredService<TokenCredentialProvider>().Credential,
                 name: "Integration Event topic");
 
         services.AddAzureClients(

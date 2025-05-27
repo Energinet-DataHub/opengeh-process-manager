@@ -13,8 +13,7 @@
 // limitations under the License.
 
 using System.Net;
-using Azure.Core;
-using Azure.Identity;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
@@ -23,7 +22,6 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using WireMock.Server;
 using Xunit;
 
@@ -36,18 +34,21 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
         MockServer = WireMockServer.Start(port: 8989);
         Services = new ServiceCollection();
 
-        var configuration = new Dictionary<string, string?>()
-        {
-            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] =
-                MockServer.Url,
-            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] =
-                SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"]
+                    = MockServer.Url,
+                [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"]
+                    = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
+            })
+            .Build();
 
-        Services.AddInMemoryConfiguration(configuration);
+        Services
+            .AddScoped<IConfiguration>(_ => configuration)
+            .AddTokenCredentialProvider();
 
-        Services.AddEnqueueActorMessagesHttp(
-            new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
+        Services.AddEnqueueActorMessagesHttp(configuration);
         ServiceProvider = Services.BuildServiceProvider();
         Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesHttpClient>();
     }

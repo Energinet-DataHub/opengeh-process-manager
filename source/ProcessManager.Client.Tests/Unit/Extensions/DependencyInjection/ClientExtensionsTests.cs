@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Azure.Messaging.ServiceBus;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Abstractions.Client;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
@@ -45,15 +46,41 @@ public class ClientExtensionsTests
     private ServiceCollection Services { get; }
 
     [Fact]
-    public void OptionsAreConfigured_WhenAddProcessManagerHttpClients_ClientCanBeCreated()
+    public void Given_TokenCredentialIsNotRegisteredAndOptionsAreConfigured_When_AddProcessManagerHttpClients_Then_ExceptionIsThrownWhenRequestingClient()
     {
         // Arrange
-        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
-        {
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
-        });
+        Services
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
+            });
+
+        // Act
+        Services.AddProcessManagerHttpClients();
+
+        // Assert
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var clientAct = () => serviceProvider.GetRequiredService<IProcessManagerClient>();
+        clientAct.Should()
+            .Throw<InvalidOperationException>()
+                .WithMessage("No service for type 'Energinet.DataHub.Core.App.Common.Identity.TokenCredentialProvider' has been registered*");
+    }
+
+    [Fact]
+    public void Given_TokenCredentialIsRegisteredAndOptionsAreConfigured_When_AddProcessManagerHttpClients_Then_ClientCanBeCreated()
+    {
+        // Arrange
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
+            });
 
         // Act
         Services.AddProcessManagerHttpClients();
@@ -66,10 +93,11 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void OptionsAreNotConfigured_WhenAddProcessManagerHttpClients_ExceptionIsThrownWhenRequestingClient()
+    public void Given_OptionsAreNotConfigured_When_AddProcessManagerHttpClients_Then_ExceptionIsThrownWhenRequestingClient()
     {
         // Arrange
-        Services.AddInMemoryConfiguration([]);
+        Services
+            .AddInMemoryConfiguration([]);
 
         // Act
         Services.AddProcessManagerHttpClients();
@@ -88,15 +116,17 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void OptionsAreConfiguredAndAddProcessManagerHttpClients_WhenCreatingEachHttpClient_HttpClientCanBeCreatedWithExpectedBaseAddress()
+    public void Given_TokenCredentialIsRegisteredAndOptionsAreConfiguredAndAddProcessManagerHttpClients_When_CreatingEachHttpClient_Then_HttpClientCanBeCreatedWithExpectedBaseAddress()
     {
         // Arrange
-        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
-        {
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
-        });
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"] = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"] = GeneralApiBaseAddressFake,
+                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"] = OrchestrationsApiBaseAddressFake,
+            });
 
         Services.AddProcessManagerHttpClients();
 
@@ -117,7 +147,7 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void ServiceBusClientIsRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_ClientAndOptionsAndSenderClientsCanBeCreated()
+    public void Given_ServiceBusClientIsRegisteredAndOptionsAreConfigured_When_AddProcessManagerMessageClient_Then_ClientAndOptionsAndSenderClientsCanBeCreated()
     {
         // Arrange
         Services.AddAzureClients(
@@ -156,7 +186,7 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void ServiceBusClientIsRegisteredAndOptionsAreNotConfigured_WhenAddProcessManagerMessageClient_ExceptionIsThrownWhenRequestingOptions()
+    public void Given_ServiceBusClientIsRegisteredAndOptionsAreNotConfigured_When_AddProcessManagerMessageClient_Then_ExceptionIsThrownWhenRequestingOptions()
     {
         // Arrange
         Services.AddAzureClients(
@@ -182,7 +212,7 @@ public class ClientExtensionsTests
     }
 
     [Fact]
-    public void ServiceBusClientIsNotRegisteredAndOptionsAreConfigured_WhenAddProcessManagerMessageClient_ExceptionIsThrownWhenRequestingSenderClient()
+    public void Given_ServiceBusClientIsNotRegisteredAndOptionsAreConfigured_When_AddProcessManagerMessageClient_Then_ExceptionIsThrownWhenRequestingSenderClient()
     {
         // Arrange
         Services.AddInMemoryConfiguration(new Dictionary<string, string?>()

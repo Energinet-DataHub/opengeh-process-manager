@@ -17,7 +17,7 @@
     <PackageReference Include="Energinet.DataHub.Core.Databricks.SqlStatementExecution" Version="13.0.0" />
     <PackageReference Include="Energinet.DataHub.ElectricityMarket.Integration" Version="4.5.0" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.11.0" />
-    <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="7.1.0-alpha-152" />
+    <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="7.1.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.5" />
     <PackageReference Include="Microsoft.Azure.Databricks.Client" Version="2.8.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.5" />

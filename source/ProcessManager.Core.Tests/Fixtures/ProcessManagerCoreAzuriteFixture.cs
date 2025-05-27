@@ -12,26 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
+using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 
-public class ProcessManagerCoreFixture : IAsyncLifetime
+public class ProcessManagerCoreAzuriteFixture : IAsyncLifetime
 {
-    public ProcessManagerCoreFixture()
+    public ProcessManagerCoreAzuriteFixture()
     {
-        DatabaseManager = new ProcessManagerDatabaseManager("ProcessManager_Core");
+        AzuriteManager = new AzuriteManager(useOAuth: false, useSilentMode: true);
     }
 
-    public ProcessManagerDatabaseManager DatabaseManager { get; }
+    public AzuriteManager AzuriteManager { get; }
 
     public async Task InitializeAsync()
     {
-        await DatabaseManager.CreateDatabaseAsync();
+        AzuriteManager.CleanupAzuriteStorage();
+        AzuriteManager.StartAzurite();
+        await AzuriteManager.CreateRequiredContainersAsync();
     }
 
     public async Task DisposeAsync()
     {
-        await DatabaseManager.DeleteDatabaseAsync();
+        AzuriteManager.CleanupAzuriteStorage();
+        AzuriteManager.Dispose();
+
+        await Task.CompletedTask;
     }
 }

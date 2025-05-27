@@ -36,22 +36,27 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
 
-public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessManagerCoreFixture>, IAsyncLifetime
+[Collection(ProcessManagerCoreAzuriteCollection.CollectionName)]
+public class SendMeasurementsInstanceRepositoryTests :
+    IAsyncLifetime,
+    IClassFixture<ProcessManagerCoreFixture>
 {
     private readonly ProcessManagerCoreFixture _fixture;
+    private readonly ProcessManagerCoreAzuriteFixture _azuriteFixture;
     private readonly ProcessManagerContext _dbContext;
     private readonly IFileStorageClient _fileStorageClient;
     private readonly SendMeasurementsInstanceRepository _sut;
 
-    public SendMeasurementsInstanceRepositoryTests(ProcessManagerCoreFixture fixture)
+    public SendMeasurementsInstanceRepositoryTests(ProcessManagerCoreFixture fixture, ProcessManagerCoreAzuriteFixture azuriteFixture)
     {
         _fixture = fixture;
+        _azuriteFixture = azuriteFixture;
         _dbContext = _fixture.DatabaseManager.CreateDbContext();
 
         var services = new ServiceCollection();
         services.AddTransient<IFileStorageClient, BlobFileStorageClient>();
         services.AddAzureClients(builder => builder
-            .AddBlobServiceClient(_fixture.AzuriteManager.FullConnectionString)
+            .AddBlobServiceClient(_azuriteFixture.AzuriteManager.FullConnectionString)
             .WithName(BlobFileStorageClient.ClientName));
         var serviceProvider = services.BuildServiceProvider();
         _fileStorageClient = serviceProvider.GetRequiredService<IFileStorageClient>();
@@ -249,7 +254,7 @@ public class SendMeasurementsInstanceRepositoryTests : IClassFixture<ProcessMana
 
     private async Task<BinaryData> DownloadFileContent(FileStorageReference fileStorageReference)
     {
-        var blobServiceClient = new BlobServiceClient(_fixture.AzuriteManager.FullConnectionString);
+        var blobServiceClient = new BlobServiceClient(_azuriteFixture.AzuriteManager.FullConnectionString);
         var blobContainerClient = blobServiceClient.GetBlobContainerClient(fileStorageReference.Category);
         var blobClient = blobContainerClient.GetBlobClient(fileStorageReference.Path);
         var fileContent = await blobClient.DownloadContentAsync();

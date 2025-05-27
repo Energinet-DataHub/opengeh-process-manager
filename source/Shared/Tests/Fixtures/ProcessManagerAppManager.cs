@@ -244,6 +244,10 @@ public class ProcessManagerAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+        // => File Storage
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerFileStorageOptions.SectionName}__{nameof(ProcessManagerFileStorageOptions.ServiceUri)}",
+            AzuriteManager.BlobStorageConnectionString);
         // => Authentication
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.ApplicationIdUri)}",

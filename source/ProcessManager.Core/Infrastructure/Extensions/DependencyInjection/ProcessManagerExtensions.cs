@@ -189,19 +189,16 @@ public static class ProcessManagerExtensions
     /// <summary>
     /// Register implementations of <see cref="IOrchestrationDescriptionBuilder"/> found in <paramref name="assemblyToScan"/>.
     /// </summary>
-    internal static IServiceCollection AddOrchestrationDescriptionBuilders(
-        this IServiceCollection services,
-        Assembly assemblyToScan)
+    internal static IServiceCollection AddOrchestrationDescriptionBuilders(this IServiceCollection services, Assembly assemblyToScan)
     {
         var interfaceType = typeof(IOrchestrationDescriptionBuilder);
 
         var implementingTypes = assemblyToScan
             .DefinedTypes
-            .Where(
-                typeInfo =>
-                    typeInfo.IsClass
-                    && !typeInfo.IsAbstract
-                    && interfaceType.IsAssignableFrom(typeInfo))
+            .Where(typeInfo =>
+                typeInfo.IsClass
+                && !typeInfo.IsAbstract
+                && interfaceType.IsAssignableFrom(typeInfo))
             .ToList();
 
         foreach (var implementingType in implementingTypes)
@@ -215,9 +212,7 @@ public static class ProcessManagerExtensions
     /// <summary>
     /// Register implementations of various custom handler used from HTTP triggers found in <paramref name="assemblyToScan"/>.
     /// </summary>
-    internal static IServiceCollection AddCustomHandlersForHttpTriggers(
-        this IServiceCollection services,
-        Assembly assemblyToScan)
+    internal static IServiceCollection AddCustomHandlersForHttpTriggers(this IServiceCollection services, Assembly assemblyToScan)
     {
         var handlerInterfaces = new List<Type>
         {
@@ -231,12 +226,10 @@ public static class ProcessManagerExtensions
         {
             var implementingTypes = assemblyToScan
                 .DefinedTypes
-                .Where(
-                    typeInfo =>
-                        typeInfo.IsClass &&
-                        !typeInfo.IsAbstract &&
-                        typeInfo.GetInterfaces()
-                            .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterface))
+                .Where(typeInfo =>
+                    typeInfo.IsClass &&
+                    !typeInfo.IsAbstract &&
+                    typeInfo.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterface))
                 .ToList();
 
             foreach (var implementingType in implementingTypes)
@@ -253,28 +246,23 @@ public static class ProcessManagerExtensions
     /// <summary>
     /// Register implementations of various custom handler used from ServiceBus triggers found in <paramref name="assemblyToScan"/>.
     /// </summary>
-    internal static IServiceCollection AddCustomHandlersForServiceBusTriggers(
-        this IServiceCollection services,
-        Assembly assemblyToScan)
+    internal static IServiceCollection AddCustomHandlersForServiceBusTriggers(this IServiceCollection services, Assembly assemblyToScan)
     {
         var interfaceType = typeof(IStartOrchestrationInstanceHandler);
 
         var implementations = assemblyToScan
             .GetTypes()
-            .Where(
-                t =>
-                    t.IsClass &&
-                    !t.IsAbstract &&
-                    interfaceType.IsAssignableFrom(t));
+            .Where(t =>
+                t.IsClass &&
+                !t.IsAbstract &&
+                interfaceType.IsAssignableFrom(t));
 
         foreach (var implementation in implementations)
         {
             services.AddTransient(interfaceType, implementation);
         }
 
-        services
-            .TryAddTransient<IStartOrchestrationInstanceFromMessageHandler,
-                StartOrchestrationInstanceFromMessageHandler>();
+        services.TryAddTransient<IStartOrchestrationInstanceFromMessageHandler, StartOrchestrationInstanceFromMessageHandler>();
 
         return services;
     }
@@ -289,11 +277,10 @@ public static class ProcessManagerExtensions
         var interfaceType = typeof(IOptionsConfiguration);
 
         var implementingTypes = assemblyToScan.DefinedTypes
-            .Where(
-                typeInfo =>
-                    typeInfo.IsClass &&
-                    !typeInfo.IsAbstract &&
-                    typeInfo.IsAssignableTo(interfaceType))
+            .Where(typeInfo =>
+                typeInfo.IsClass &&
+                !typeInfo.IsAbstract &&
+                typeInfo.IsAssignableTo(interfaceType))
             .ToList();
 
         var serviceAdders = implementingTypes
@@ -336,20 +323,16 @@ public static class ProcessManagerExtensions
     /// </summary>
     private static IServiceCollection AddProcessManagerDatabase(this IServiceCollection services)
     {
-        services
-            .AddDbContext<ProcessManagerContext>(
-                (sp, optionsBuilder) =>
-                {
-                    var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
+        services.AddDbContext<ProcessManagerContext>((sp, optionsBuilder) =>
+        {
+            var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
 
-                    optionsBuilder.UseSqlServer(
-                        processManagerOptions.SqlDatabaseConnectionString,
-                        providerOptionsBuilder =>
-                        {
-                            providerOptionsBuilder.UseNodaTime();
-                            providerOptionsBuilder.EnableRetryOnFailure();
-                        });
-                });
+            optionsBuilder.UseSqlServer(processManagerOptions.SqlDatabaseConnectionString, providerOptionsBuilder =>
+            {
+                providerOptionsBuilder.UseNodaTime();
+                providerOptionsBuilder.EnableRetryOnFailure();
+            });
+        });
 
         services
             .AddHealthChecks()
@@ -364,19 +347,16 @@ public static class ProcessManagerExtensions
     /// </summary>
     private static IServiceCollection AddProcessManagerReaderContext(this IServiceCollection services)
     {
-        services.AddDbContext<ProcessManagerReaderContext>(
-            (sp, optionsBuilder) =>
-            {
-                var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
+        services.AddDbContext<ProcessManagerReaderContext>((sp, optionsBuilder) =>
+        {
+            var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
 
-                optionsBuilder.UseSqlServer(
-                    processManagerOptions.SqlDatabaseConnectionString,
-                    providerOptionsBuilder =>
-                    {
-                        providerOptionsBuilder.UseNodaTime();
-                        providerOptionsBuilder.EnableRetryOnFailure();
-                    });
+            optionsBuilder.UseSqlServer(processManagerOptions.SqlDatabaseConnectionString, providerOptionsBuilder =>
+            {
+                providerOptionsBuilder.UseNodaTime();
+                providerOptionsBuilder.EnableRetryOnFailure();
             });
+        });
 
         return services;
     }

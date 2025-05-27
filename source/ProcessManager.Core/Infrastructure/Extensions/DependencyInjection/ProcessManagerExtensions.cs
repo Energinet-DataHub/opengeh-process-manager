@@ -126,15 +126,18 @@ public static class ProcessManagerExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <param name="assemblyToScan">Specify the host assembly to scan for types implementing <see cref="IOrchestrationDescriptionBuilder"/>.</param>
+    /// <param name="configuration"></param>
     public static IServiceCollection AddProcessManagerForOrchestrations(
         this IServiceCollection services,
-        Assembly assemblyToScan)
+        Assembly assemblyToScan,
+        IConfiguration configuration)
     {
         // Process Manager Core
         services
             .AddProcessManagerOptions()
             .AddProcessManagerDatabase()
-            .AddProcessManagerReaderContext();
+            .AddProcessManagerReaderContext()
+            .AddProcessManagerFileStorage(configuration);
 
         // Task Hub connected to Durable Functions
         services.AddTaskHubStorage();

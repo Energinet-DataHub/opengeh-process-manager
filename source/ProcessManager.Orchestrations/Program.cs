@@ -74,7 +74,7 @@ var host = new HostBuilder()
         // ProcessManager
         services.AddProcessManagerTopic(azureCredential);
         // => Auto register Orchestration Descriptions builders and custom handlers
-        services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
+        services.AddProcessManagerForOrchestrations(typeof(Program).Assembly, context.Configuration);
 
         // BRS-021 (ForwardMeteredData, ElectricalHeatingCalculation, CapacitySettlementCalculation & NetConsumptionCalculation)
         services.AddBrs021(azureCredential);

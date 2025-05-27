@@ -7,6 +7,8 @@
     //  - 'ProcessManager' (host) and 'ProcessManager.Orchestrations' (host) must use the same Task Hub
     "ProcessManagerStorageConnectionString": "UseDevelopmentStorage=true",
     "ProcessManagerTaskHubName": "Orchestrations01",
-    "ProcessManager__SqlDatabaseConnectionString": "<database connection string>"
+    "ProcessManager__SqlDatabaseConnectionString": "<database connection string>",
+    // File storage
+    "ProcessManagerFileStorage__ServiceUri": "<File storage service URI>"
   }
 }

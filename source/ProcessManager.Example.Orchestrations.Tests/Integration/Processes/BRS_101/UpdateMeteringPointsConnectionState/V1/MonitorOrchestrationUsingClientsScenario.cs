@@ -12,21 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_101.UpdateMeteringPointConnectionState.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_101.UpdateMeteringPointsConnectionState.V1;
@@ -39,7 +33,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
-    private readonly ActorIdentityDto _actorIdentity = new ActorIdentityDto(
+    private readonly ActorIdentityDto _actorIdentity = new(
         ActorNumber: ActorNumber.Create("1234567891234"),
         ActorRole: ActorRole.EnergySupplier);
 
@@ -49,43 +43,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services.AddInMemoryConfiguration(new Dictionary<string, string?>
-        {
-            // Process Manager HTTP client
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-
-            // Process Manager message client
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.StartTopicName)}"]
-                = Fixture.ExampleOrchestrationsAppManager.ProcessManagerStartTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.NotifyTopicName)}"]
-                = Fixture.ProcessManagerAppManager.ProcessManagerNotifyTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataStartTopicName)}"]
-                = Fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataStartTopic.Name,
-            [$"{ProcessManagerServiceBusClientOptions.SectionName}:{nameof(ProcessManagerServiceBusClientOptions.Brs021ForwardMeteredDataNotifyTopicName)}"]
-                = Fixture.ExampleOrchestrationsAppManager.Brs021ForwardMeteredDataNotifyTopic.Name,
-        });
-
-        // Process Manager HTTP client
-        services.AddProcessManagerHttpClients();
-
-        // Process Manager message client
-        services.AddAzureClients(
-            builder => builder.AddServiceBusClientWithNamespace(Fixture.IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace));
-        services.AddProcessManagerMessageClient();
-
-        ServiceProvider = services.BuildServiceProvider();
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
@@ -97,14 +57,14 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
         Fixture.EnqueueBrs101ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -114,13 +74,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_ValidRequestToUpdateMeteringPointConnectionState_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Act as EDI => Send start command to start new orchestration instance
         var startCommand = GivenStartCommand();
 
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startCommand,
             CancellationToken.None);
 
@@ -143,13 +100,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             $"because a {nameof(UpdateMeteringPointConnectionStateAcceptedV1)} service bus message should have been sent");
 
         // Step 3: Act as EDI => Send "notify" event to orchestration instance, to inform that messages has been enqueued
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new UpdateMeteringPointConnectionStateNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceId!),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (orchestrationTerminated, terminatedOrchestrationInstance) = await processManagerClient
+        var (orchestrationTerminated, terminatedOrchestrationInstance) = await Fixture.ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<UpdateMeteringPointConnectionStateInputV1>(
                 startCommand.IdempotencyKey);
 
@@ -180,13 +137,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_InvalidRequestToUpdateMeteringPointConnectionState_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
-        var processManagerMessageClient = ServiceProvider.GetRequiredService<IProcessManagerMessageClient>();
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Act as EDI => Send start command to start new orchestration instance
         var startCommand = GivenStartCommand(shouldFailBusinessValidation: true);
 
-        await processManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             startCommand,
             CancellationToken.None);
 
@@ -216,13 +170,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             $"because a {nameof(UpdateMeteringPointConnectionStateRejectedV1)} service bus message should have been sent");
 
         // Step 3: Act as EDI => Send "notify" event to orchestration instance, to inform that messages has been enqueued
-        await processManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new UpdateMeteringPointConnectionStateNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstanceId!),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (orchestrationTerminated, terminatedOrchestrationInstance) = await processManagerClient
+        var (orchestrationTerminated, terminatedOrchestrationInstance) = await Fixture.ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<UpdateMeteringPointConnectionStateInputV1>(
                 startCommand.IdempotencyKey);
 

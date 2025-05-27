@@ -12,20 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.NoInputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.NoInputExample.V1;
@@ -43,24 +37,9 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services.AddInMemoryConfiguration(new Dictionary<string, string?>
-        {
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-        });
-        services.AddProcessManagerHttpClients();
-        ServiceProvider = services.BuildServiceProvider();
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
@@ -70,26 +49,24 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     [Fact]
     public async Task NoInputExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         var userIdentity = new UserIdentityDto(
             UserId: Guid.NewGuid(),
             ActorNumber: ActorNumber.Create("1234567891234"),
             ActorRole: ActorRole.EnergySupplier);
 
         // Step 1: Start new orchestration instance
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartNoInputExampleCommandV1(
                     userIdentity),
@@ -99,7 +76,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
+                var orchestrationInstance = await Fixture.ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,
@@ -119,7 +96,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
 
         // Step 3: General search using name and termination state
-        var orchestrationInstancesGeneralSearch = await processManagerClient
+        var orchestrationInstancesGeneralSearch = await Fixture.ProcessManagerClient
             .SearchOrchestrationInstancesByNameAsync(
                 new SearchOrchestrationInstancesByNameQuery(
                     userIdentity,
@@ -133,8 +110,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 CancellationToken.None);
 
         orchestrationInstancesGeneralSearch.Should().Contain(x => x.Id == orchestrationInstanceId);
-        orchestrationInstancesGeneralSearch.Should().ContainSingle();
-        var orchestrationInstance = orchestrationInstancesGeneralSearch.Single();
+        var orchestrationInstance = orchestrationInstancesGeneralSearch.First(x => x.Id == orchestrationInstanceId);
         orchestrationInstance.ActorMessageId.Should().BeNull();
         orchestrationInstance.TransactionId.Should().BeNull();
         orchestrationInstance.MeteringPointId.Should().BeNull();

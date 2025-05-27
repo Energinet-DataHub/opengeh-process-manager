@@ -15,6 +15,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Azure.Identity;
 using Azure.Messaging.EventHubs.Producer;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -115,6 +116,7 @@ public class ProcessManagerFixture<TScenarioState> : IAsyncLifetime
     {
         var serviceCollection = new ServiceCollection();
 
+        serviceCollection.AddTokenCredentialProvider();
         serviceCollection.AddInMemoryConfiguration(new Dictionary<string, string?>
         {
             // Message client options

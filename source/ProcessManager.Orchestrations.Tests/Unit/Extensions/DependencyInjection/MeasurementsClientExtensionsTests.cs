@@ -14,6 +14,8 @@
 
 using Azure.Core;
 using Azure.Identity;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
@@ -31,22 +33,47 @@ public class MeasurementsClientExtensionsTests
     private const string EventHubName = "event-hub-name";
     private const string FullyQualifiedNamespace = "namespace.eventhub.windows.net";
 
-    private static readonly TokenCredential _azureCredential = new DefaultAzureCredential();
-
     private ServiceCollection Services { get; } = new();
 
     [Fact]
-    public void Given_MeasurementsClientOptionsAreConfigured_When_AddMeasurementsClient_Then_MeasurementsClientAndEventHubClientCanBeCreated()
+    public void Given_TokenCredentialIsNotRegisteredAndOptionsAreConfigured_When_AddMeasurementsClient_Then_ExceptionIsThrownWhenCreatingEventHubClient()
     {
         // Arrange
-        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
-        {
-            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
-            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
-        });
+        Services
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{ProcessManagerComponentsOptions.SectionName}:{nameof(ProcessManagerComponentsOptions.AllowMockDependenciesForTests)}"] = "false",
+                [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
+                [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
+            });
 
         // Act
-        Services.AddMeasurementsClient(_azureCredential);
+        Services.AddMeasurementsClient();
+
+        // Assert
+        var serviceProvider = Services.BuildServiceProvider();
+
+        var eventHubClientFactory = serviceProvider.GetRequiredService<MeasurementsEventHubProducerClientFactory>();
+        var act = () => eventHubClientFactory.Create("test-metering-point-id");
+        act.Should()
+            .Throw<InvalidOperationException>()
+                .WithMessage("No service for type 'Energinet.DataHub.Core.App.Common.Identity.TokenCredentialProvider' has been registered*");
+    }
+
+    [Fact]
+    public void Given_TokenCredentialIsRegisteredAndOptionsAreConfigured_When_AddMeasurementsClient_Then_MeasurementsClientAndEventHubClientCanBeCreated()
+    {
+        // Arrange
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
+                [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
+            });
+
+        // Act
+        Services.AddMeasurementsClient();
 
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
@@ -60,13 +87,15 @@ public class MeasurementsClientExtensionsTests
     }
 
     [Fact]
-    public void Given_MeasurementsClientOptionsAreNotConfigured_When_AddMeasurementsClient_Then_ExceptionIsThrownWhenCreatingEventHubClient()
+    public void Given_TokenCredentialIsRegisteredAndOptionsAreNotConfigured_When_AddMeasurementsClient_Then_ExceptionIsThrownWhenCreatingEventHubClient()
     {
         // Arrange
-        Services.AddInMemoryConfiguration([]);
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration([]);
 
         // Act
-        Services.AddMeasurementsClient(_azureCredential);
+        Services.AddMeasurementsClient();
 
         // Assert
         var serviceProvider = Services.BuildServiceProvider();
@@ -86,12 +115,14 @@ public class MeasurementsClientExtensionsTests
     public void Given_AzureEventHubHealthCheckAreConfigured_When_AddMeasurementsClient_Then_MeasurementsEventHubHealthCheckIsRegistered()
     {
         // Arrange
-        Services.AddInMemoryConfiguration(new Dictionary<string, string?>()
-        {
-            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
-            [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
-        });
-        Services.AddMeasurementsClient(_azureCredential);
+        Services
+            .AddTokenCredentialProvider()
+            .AddInMemoryConfiguration(new Dictionary<string, string?>()
+            {
+                [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.FullyQualifiedNamespace)}"] = FullyQualifiedNamespace,
+                [$"{MeasurementsClientOptions.SectionName}:{nameof(MeasurementsClientOptions.EventHubName)}"] = EventHubName,
+            });
+        Services.AddMeasurementsClient();
         var serviceProvider = Services.BuildServiceProvider();
 
         // Act

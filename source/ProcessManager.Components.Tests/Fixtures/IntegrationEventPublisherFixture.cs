@@ -14,6 +14,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.WebApp.Extensions.Builder;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
@@ -128,21 +129,23 @@ public sealed class IntegrationEventPublisherFixture : IAsyncLifetime
 
     private void ConfigureServices(IServiceCollection services)
     {
-        var configurations = new Dictionary<string, string?>
-        {
-            [$"{ServiceBusNamespaceOptions.SectionName}:{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}"]
-                = IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
-            [$"{IntegrationEventTopicOptions.SectionName}:{nameof(IntegrationEventTopicOptions.Name)}"]
-                = IntegrationEventTopic.Name,
-        };
-
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configurations)
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [$"{ServiceBusNamespaceOptions.SectionName}:{nameof(ServiceBusNamespaceOptions.FullyQualifiedNamespace)}"]
+                = IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+                [$"{IntegrationEventTopicOptions.SectionName}:{nameof(IntegrationEventTopicOptions.Name)}"]
+                = IntegrationEventTopic.Name,
+            })
             .Build();
 
-        services.AddScoped<IConfiguration>(_ => configuration);
-        services.AddServiceBusClientForApplication(configuration);
-        services.AddIntegrationEventPublisher(IntegrationTestConfiguration.Credential);
+        services
+            .AddScoped<IConfiguration>(_ => configuration)
+            .AddTokenCredentialProvider()
+            .AddServiceBusClientForApplication(
+                configuration,
+                _ => IntegrationTestConfiguration.Credential)
+            .AddIntegrationEventPublisher();
     }
 
     private async Task<(TopicResource TopicResource, SubscriptionProperties SubscriptionProperties)> CreateServiceBusTopic()

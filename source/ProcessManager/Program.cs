@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Identity;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
@@ -30,21 +30,22 @@ using Microsoft.FeatureManagement;
 var host = new HostBuilder()
     .ConfigureServices((context, services) =>
     {
-        var azureCredential = new DefaultAzureCredential();
-
         // Common
         services.AddApplicationInsightsForIsolatedWorker(TelemetryConstants.SubsystemName);
         services.AddHealthChecksForIsolatedWorker();
+        services.AddTokenCredentialProvider();
         services.AddNodaTimeForApplication();
         services.AddSubsystemAuthenticationForIsolatedWorker(context.Configuration);
-        services.AddServiceBusClientForApplication(context.Configuration);
+        services.AddServiceBusClientForApplication(
+            context.Configuration,
+            sp => sp.GetRequiredService<TokenCredentialProvider>().Credential);
         // => Feature management
         services
             .AddAzureAppConfiguration()
             .AddFeatureManagement();
 
         // Api
-        services.AddNotifyOrchestrationInstance(azureCredential);
+        services.AddNotifyOrchestrationInstance();
 
         // ProcessManager
         services.AddProcessManagerCore();

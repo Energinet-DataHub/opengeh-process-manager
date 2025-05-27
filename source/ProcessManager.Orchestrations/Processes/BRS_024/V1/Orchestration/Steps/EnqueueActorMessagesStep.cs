@@ -35,6 +35,10 @@ internal class EnqueueActorMessagesStep(
 
     protected override int StepSequenceNumber => StepSequence;
 
+    /// <summary>
+    /// The following activities are dependent of the input, when the validation rules are implemented
+    /// Then we should change to a "validated" type
+    /// </summary>
     protected override async Task<StepInstanceTerminationState> OnExecuteAsync()
     {
         var idempotencyKey = Context.NewGuid();
@@ -51,13 +55,13 @@ internal class EnqueueActorMessagesStep(
         {
             ArgumentNullException.ThrowIfNull(validationResult.ValidationErrors);
 
-            // await Context.CallActivityAsync(
-            //     nameof(EnqueueRejectMessageActivity_Brs_024_V1),
-            //     new EnqueueRejectMessageActivity_Brs_024_V1.ActivityInput(
-            //         InstanceId,
-            //         validationResult.ValidationErrors,
-            //         idempotencyKey),
-            //     DefaultRetryOptions);
+            await Context.CallActivityAsync(
+                nameof(EnqueueRejectMessageActivity_Brs_024_V1),
+                new EnqueueRejectMessageActivity_Brs_024_V1.ActivityInput(
+                    InstanceId,
+                    validationResult.ValidationErrors,
+                    idempotencyKey),
+                DefaultRetryOptions);
         }
 
         // Pattern #5: Human interaction - https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview?tabs=isolated-process#human

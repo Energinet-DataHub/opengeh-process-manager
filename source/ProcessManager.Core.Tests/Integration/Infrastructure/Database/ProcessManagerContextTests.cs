@@ -110,7 +110,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance = CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
-            idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
+            idempotencyKey: IdempotencyKey.CreateNew());
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -154,7 +154,7 @@ public class ProcessManagerContextTests : IClassFixture<ProcessManagerCoreFixtur
     public async Task Given_MultipleOrchestrationInstancesWithSameValueInIdempotencyKeyAddedToDbContext_When_SaveChangesAsync_Then_ThrowsExpectedException()
     {
         // Arrange
-        var idempotencyKey = new IdempotencyKey(Guid.NewGuid().ToString());
+        var idempotencyKey = IdempotencyKey.CreateNew();
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var newOrchestrationInstance01 = CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,

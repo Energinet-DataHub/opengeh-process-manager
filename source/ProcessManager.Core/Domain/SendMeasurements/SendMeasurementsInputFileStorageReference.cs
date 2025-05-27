@@ -21,6 +21,9 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 
 public record SendMeasurementsInputFileStorageReference : FileStorageReference
 {
+    /// <summary>
+    /// The container must also be created in the infrastructure (st-filestorage.tf)
+    /// </summary>
     public const string ContainerName = "send-measurements-instance-input";
 
     private SendMeasurementsInputFileStorageReference(

@@ -66,34 +66,29 @@ public static class ProcessManagerExtensions
         services.AddTaskHubStorage();
         services
             .AddDurableClientFactory()
-            .TryAddSingleton<IDurableClient>(
-                sp =>
+            .TryAddSingleton<IDurableClient>(sp =>
+            {
+                // IDurableClientFactory has a singleton lifecycle and caches clients
+                var clientFactory = sp.GetRequiredService<IDurableClientFactory>();
+                var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerTaskHubOptions>>().Value;
+
+                var durableClient = clientFactory.CreateClient(new DurableClientOptions
                 {
-                    // IDurableClientFactory has a singleton lifecycle and caches clients
-                    var clientFactory = sp.GetRequiredService<IDurableClientFactory>();
-                    var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerTaskHubOptions>>().Value;
-
-                    var durableClient = clientFactory.CreateClient(
-                        new DurableClientOptions
-                        {
-                            ConnectionName =
-                                nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString),
-                            TaskHub = processManagerOptions.ProcessManagerTaskHubName,
-                            IsExternalClient = true,
-                        });
-
-                    return durableClient;
+                    ConnectionName = nameof(ProcessManagerTaskHubOptions.ProcessManagerStorageConnectionString),
+                    TaskHub = processManagerOptions.ProcessManagerTaskHubName,
+                    IsExternalClient = true,
                 });
+
+                return durableClient;
+            });
 
         // ProcessManager components using interfaces to restrict access to functionality
         // => Types that implements multiple interfaces with same scope for all interfaces
         services.TryAddScoped<OrchestrationInstanceRepository, OrchestrationInstanceRepository>();
         services.TryAddScoped<OrchestrationInstanceManager, OrchestrationInstanceManager>();
         // => Scheduling
-        services.TryAddScoped<IScheduledOrchestrationInstancesByInstantQuery>(
-            sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
-        services.TryAddScoped<IStartScheduledOrchestrationInstanceCommand>(
-            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<IScheduledOrchestrationInstancesByInstantQuery>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IStartScheduledOrchestrationInstanceCommand>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         services.TryAddScoped<IRecurringOrchestrationQueries, RecurringOrchestrationQueries>();
         // => Cancellation (manager)
         services.TryAddScoped<ICancelScheduledOrchestrationInstanceCommand>(
@@ -101,18 +96,13 @@ public static class ProcessManagerExtensions
         // => Start instance (manager)
         services.TryAddScoped<IOrchestrationInstanceExecutor, DurableOrchestrationInstanceExecutor>();
         services.TryAddScoped<IOrchestrationRegisterQueries, OrchestrationRegister>();
-        services.TryAddScoped<IOrchestrationInstanceRepository>(
-            sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
-        services.TryAddScoped<IStartOrchestrationInstanceCommands>(
-            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
-        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands>(
-            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<IOrchestrationInstanceRepository>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IStartOrchestrationInstanceCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<IStartOrchestrationInstanceMessageCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         // => Notify instance (manager)
-        services.TryAddScoped<INotifyOrchestrationInstanceCommands>(
-            sp => sp.GetRequiredService<OrchestrationInstanceManager>());
+        services.TryAddScoped<INotifyOrchestrationInstanceCommands>(sp => sp.GetRequiredService<OrchestrationInstanceManager>());
         // => Public queries
-        services.TryAddScoped<IOrchestrationInstanceQueries>(
-            sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
+        services.TryAddScoped<IOrchestrationInstanceQueries>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
 
         // => Send Measurements orchestration instance
         services.TryAddScoped<ISendMeasurementsInstanceRepository, SendMeasurementsInstanceRepository>();

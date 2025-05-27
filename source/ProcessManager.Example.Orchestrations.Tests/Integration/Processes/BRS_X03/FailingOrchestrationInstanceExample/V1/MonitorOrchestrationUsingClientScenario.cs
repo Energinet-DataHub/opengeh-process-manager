@@ -13,23 +13,16 @@
 // limitations under the License.
 
 using DurableTask.Core.Exceptions;
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Activities;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Orchestration.Steps;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1;
@@ -43,30 +36,9 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services
-            .AddTokenCredentialProvider()
-            .AddInMemoryConfiguration(new Dictionary<string, string?>
-            {
-                // Process Manager HTTP client
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                    = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                    = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                    = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            });
-
-        // Process Manager HTTP client
-        services.AddProcessManagerHttpClients();
-
-        ServiceProvider = services.BuildServiceProvider();
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
@@ -76,11 +48,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         Fixture.SetTestOutputHelper(null);
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -89,13 +61,11 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     [Fact]
     public async Task Given_FailingOrchestrationInstanceActivity_When_OrchestrationInstanceStarted_Then_OrchestrationInstanceTerminatedWithFailed_AndThen_FailingStepTerminatedWithFailed()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Start new orchestration instance
         var userIdentity = new UserIdentityDto(Guid.NewGuid(), ActorNumber.Create("1234567891234"), ActorRole.EnergySupplier);
         var startRequestCommand = new StartFailingOrchestrationInstanceExampleCommandV1(userIdentity);
 
-        var orchestrationInstanceId = await processManagerClient.StartNewOrchestrationInstanceAsync(
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient.StartNewOrchestrationInstanceAsync(
             startRequestCommand,
             CancellationToken.None);
 
@@ -104,7 +74,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                orchestrationInstance = await processManagerClient
+                orchestrationInstance = await Fixture.ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync(
                         new GetOrchestrationInstanceByIdQuery(
                             userIdentity,

@@ -12,22 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.FunctionAppHost;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.InputExample.V1;
@@ -39,7 +32,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
 {
-    private readonly UserIdentityDto _userIdentity = new UserIdentityDto(
+    private readonly UserIdentityDto _userIdentity = new(
         UserId: Guid.NewGuid(),
         ActorNumber: ActorNumber.Create("1234567890123"),
         ActorRole: ActorRole.EnergySupplier);
@@ -50,29 +43,9 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services
-            .AddTokenCredentialProvider()
-            .AddInMemoryConfiguration(new Dictionary<string, string?>
-            {
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                    = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                    = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                    = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            });
-
-        // Process Manager HTTP client
-        services.AddProcessManagerHttpClients();
-
-        ServiceProvider = services.BuildServiceProvider();
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
@@ -82,23 +55,21 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     [Fact]
     public async Task ExampleOrchestration_WhenStarted_CanMonitorLifecycle()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Start new orchestration instance
         var input = new InputV1(
             ShouldSkipSkippableStep: false);
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartInputExampleCommandV1(
                     _userIdentity,
@@ -109,7 +80,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
+                var orchestrationInstance = await Fixture.ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<InputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             _userIdentity,
@@ -129,7 +100,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         isTerminated.Should().BeTrue("because we expects the orchestration instance can complete within given wait time");
 
         // Step 3: General search using name and termination state
-        var orchestrationInstancesGeneralSearch = await processManagerClient
+        var orchestrationInstancesGeneralSearch = await Fixture.ProcessManagerClient
             .SearchOrchestrationInstancesByNameAsync<InputV1>(
                 new SearchOrchestrationInstancesByNameQuery(
                     _userIdentity,
@@ -148,10 +119,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestration_WhenScheduledToRunInThePast_CanMonitorLifecycle()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Schedule new example orchestration instance
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleInputExampleCommandV1(
                     _userIdentity,
@@ -168,7 +137,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
+                var orchestrationInstance = await Fixture.ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<InputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             _userIdentity,
@@ -188,10 +157,8 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestrationScheduledToRunInTheFuture_WhenCanceled_CanMonitorLifecycle()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Step 1: Schedule new example orchestration instance
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient
             .ScheduleNewOrchestrationInstanceAsync(
                 new ScheduleInputExampleCommandV1(
                     _userIdentity,
@@ -201,7 +168,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
                 CancellationToken.None);
 
         // Step 2: Cancel the example orchestration instance
-        await processManagerClient
+        await Fixture.ProcessManagerClient
             .CancelScheduledOrchestrationInstanceAsync(
                 new CancelScheduledOrchestrationInstanceCommand(
                     _userIdentity,
@@ -212,7 +179,7 @@ public class MonitorOrchestrationUsingClientScenario : IAsyncLifetime
         var isTerminated = await Awaiter.TryWaitUntilConditionAsync(
             async () =>
             {
-                var orchestrationInstance = await processManagerClient
+                var orchestrationInstance = await Fixture.ProcessManagerClient
                     .GetOrchestrationInstanceByIdAsync<InputV1>(
                         new GetOrchestrationInstanceByIdQuery(
                             _userIdentity,

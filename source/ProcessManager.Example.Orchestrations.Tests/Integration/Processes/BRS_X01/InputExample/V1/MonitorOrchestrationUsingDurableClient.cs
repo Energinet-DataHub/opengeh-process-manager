@@ -12,21 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.DurableFunctionApp.TestCommon.DurableTask;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.Processes.BRS_X01.InputExample.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Model;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.Processes.BRS_X01.InputExample.V1;
@@ -34,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integrat
 [Collection(nameof(ExampleOrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
 {
-    private readonly UserIdentityDto _userIdentity = new UserIdentityDto(
+    private readonly UserIdentityDto _userIdentity = new(
         UserId: Guid.NewGuid(),
         ActorNumber: ActorNumber.Create("1234567890123"),
         ActorRole: ActorRole.EnergySupplier);
@@ -45,29 +38,9 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services
-            .AddTokenCredentialProvider()
-            .AddInMemoryConfiguration(new Dictionary<string, string?>
-            {
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                    = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                    = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                    = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            });
-
-        // Process Manager HTTP client
-        services.AddProcessManagerHttpClients();
-
-        ServiceProvider = services.BuildServiceProvider();
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
 
     public Task InitializeAsync()
     {
@@ -77,23 +50,21 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     [Fact]
     public async Task ExampleOrchestration_WhenRunningEveryActivity_HasExpectedHistory()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Start new orchestration instance
         var input = new InputV1(
             ShouldSkipSkippableStep: false);
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartInputExampleCommandV1(
                     _userIdentity,
@@ -137,12 +108,10 @@ public class MonitorOrchestrationUsingDurableClient : IAsyncLifetime
     [Fact]
     public async Task ExampleOrchestration_WhenSkippingActivities_HasExpectedHistory()
     {
-        var processManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
-
         // Start new orchestration instance
         var input = new InputV1(
             ShouldSkipSkippableStep: true);
-        var orchestrationInstanceId = await processManagerClient
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new StartInputExampleCommandV1(
                     _userIdentity,

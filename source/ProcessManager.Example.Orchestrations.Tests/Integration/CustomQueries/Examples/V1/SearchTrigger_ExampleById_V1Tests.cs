@@ -12,17 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
-using Energinet.DataHub.Core.FunctionApp.TestCommon.Configuration;
-using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
-using Energinet.DataHub.ProcessManager.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Abstractions.CustomQueries.Examples.V1.Model;
 using Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Fixtures;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Example.Orchestrations.Tests.Integration.CustomQueries.Examples.V1;
@@ -40,34 +33,9 @@ public class SearchTrigger_ExampleById_V1Tests : IAsyncLifetime
     {
         Fixture = fixture;
         Fixture.SetTestOutputHelper(testOutputHelper);
-
-        var services = new ServiceCollection();
-        services
-            .AddTokenCredentialProvider()
-            .AddInMemoryConfiguration(new Dictionary<string, string?>
-            {
-                // Process Manager HTTP client
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.ApplicationIdUri)}"]
-                    = SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.GeneralApiBaseAddress)}"]
-                    = Fixture.ProcessManagerAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-                [$"{ProcessManagerHttpClientsOptions.SectionName}:{nameof(ProcessManagerHttpClientsOptions.OrchestrationsApiBaseAddress)}"]
-                    = Fixture.ExampleOrchestrationsAppManager.AppHostManager.HttpClient.BaseAddress!.ToString(),
-            });
-
-        // Process Manager HTTP client
-        services.AddProcessManagerHttpClients();
-
-        ServiceProvider = services.BuildServiceProvider();
-
-        ProcessManagerClient = ServiceProvider.GetRequiredService<IProcessManagerClient>();
     }
 
     private ExampleOrchestrationsAppFixture Fixture { get; }
-
-    private ServiceProvider ServiceProvider { get; }
-
-    private IProcessManagerClient ProcessManagerClient { get; }
 
     public Task InitializeAsync()
     {
@@ -77,12 +45,12 @@ public class SearchTrigger_ExampleById_V1Tests : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
         Fixture.ExampleOrchestrationsAppManager.SetTestOutputHelper(null!);
 
-        await ServiceProvider.DisposeAsync();
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -94,7 +62,7 @@ public class SearchTrigger_ExampleById_V1Tests : IAsyncLifetime
         // Given
         // => Brs X01 Input example
         // Start new orchestration instance (we don't have to wait for it, we just need data in the database)
-        var orchestrationInstanceId = await ProcessManagerClient
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new Abstractions.Processes.BRS_X01.NoInputExample.V1.Model.StartNoInputExampleCommandV1(
                     Fixture.DefaultUserIdentity),
@@ -106,7 +74,7 @@ public class SearchTrigger_ExampleById_V1Tests : IAsyncLifetime
             orchestrationInstanceId);
 
         // When
-        var actual = await ProcessManagerClient
+        var actual = await Fixture.ProcessManagerClient
             .SearchOrchestrationInstanceByCustomQueryAsync(
                 customQuery,
                 CancellationToken.None);
@@ -127,7 +95,7 @@ public class SearchTrigger_ExampleById_V1Tests : IAsyncLifetime
         // Given
         // => Brs X03 Failing Orchestration Instance example
         // Start new orchestration instance (we don't have to wait for it, we just need data in the database)
-        var orchestrationInstanceId = await ProcessManagerClient
+        var orchestrationInstanceId = await Fixture.ProcessManagerClient
             .StartNewOrchestrationInstanceAsync(
                 new Abstractions.Processes.BRS_X03.FailingOrchestrationInstanceExample.V1.Model.StartFailingOrchestrationInstanceExampleCommandV1(
                     Fixture.DefaultUserIdentity),
@@ -139,7 +107,7 @@ public class SearchTrigger_ExampleById_V1Tests : IAsyncLifetime
             orchestrationInstanceId);
 
         // When
-        var actual = await ProcessManagerClient
+        var actual = await Fixture.ProcessManagerClient
             .SearchOrchestrationInstanceByCustomQueryAsync(
                 customQuery,
                 CancellationToken.None);

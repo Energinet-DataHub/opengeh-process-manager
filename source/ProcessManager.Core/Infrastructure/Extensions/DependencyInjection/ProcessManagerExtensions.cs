@@ -16,6 +16,7 @@ using System.Reflection;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.ProcessManager.Core.Application;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
@@ -383,12 +384,13 @@ public static class ProcessManagerExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddTokenCredentialProvider(); // Used to get a TokenCredential for Azure clients
         services.AddTransient<IFileStorageClient, ProcessManagerBlobFileStorageClient>();
 
         services.AddAzureClients(
             builder =>
             {
-                builder.UseCredential(new DefaultAzureCredential());
+                builder.UseCredential(sp => sp.GetRequiredService<TokenCredentialProvider>().Credential);
 
                 builder
                     .AddBlobServiceClient(configuration.GetSection(ProcessManagerFileStorageOptions.SectionName))

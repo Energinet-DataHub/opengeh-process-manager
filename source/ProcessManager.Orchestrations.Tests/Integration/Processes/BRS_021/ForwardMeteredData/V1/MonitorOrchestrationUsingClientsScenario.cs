@@ -563,7 +563,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var sender = isDelegation ? DelegatedToGridAccessProvider : GridAccessProvider;
         var input = new ForwardMeteredDataInputV1(
             ActorMessageId: "MessageId",
-            TransactionId: "EGU9B8E2630F9CB4089BDE22B597DFA4EA5",
+            TransactionId: Guid.NewGuid().ToString(),
             ActorNumber: sender,
             ActorRole: ActorRole.MeteredDataResponsible.Name,
             BusinessReason: BusinessReason.PeriodicMetering.Name,

@@ -37,20 +37,21 @@ public class EnqueueActorMessagesHttpClientTests : IAsyncLifetime
         MockServer = WireMockServer.Start(port: 8989);
         Services = new ServiceCollection();
 
-        var configuration = new Dictionary<string, string?>()
-        {
-            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] =
-                MockServer.Url,
-            [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] =
-                SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
-        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.BaseUrl)}"] =
+                    MockServer.Url,
+                [$"{EnqueueActorMessagesHttpClientOptions.SectionName}:{nameof(EnqueueActorMessagesHttpClientOptions.ApplicationIdUri)}"] =
+                    SubsystemAuthenticationOptionsForTests.ApplicationIdUri,
+            })
+            .Build();
 
         Services
-            .AddInMemoryConfiguration(configuration)
+            .AddScoped<IConfiguration>(_ => configuration)
             .AddTokenCredentialProvider();
 
-        Services.AddEnqueueActorMessagesHttp(
-            new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
+        Services.AddEnqueueActorMessagesHttp(configuration);
         ServiceProvider = Services.BuildServiceProvider();
         Sut = ServiceProvider.GetRequiredService<IEnqueueActorMessagesHttpClient>();
     }

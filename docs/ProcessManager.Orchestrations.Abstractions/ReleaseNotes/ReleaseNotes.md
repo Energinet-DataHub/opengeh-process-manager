@@ -1,5 +1,17 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.3.3
+
+- Update `RequestYearlyMeasurementsAcceptedV1` with `MeteringPointId`
+
+## Version 2.3.2
+
+- Add `RequestYearlyMeasurementsAcceptedV1`
+- Add `RequestYearlyMeasurementsRejectedV1`
+- Add `RequestYearlyMeasurementsInputV1`
+- Add `RequestYearlyMeasurementsNotifyEventsV1`
+- Add `RequestYearlyMeasurementsCommandV1`
+
 ## Version 2.3.1
 
 - No functional changes.
@@ -27,7 +39,7 @@
 
 ## Version 2.2.4
 
-- Update `EnqueueMissingMeasurementsLogHttpV1` to contain a idempotency key.
+- Update `EnqueueMissingMeasurementsLogHttpV1` to contain an idempotency key.
 - Rename `DateWithMeteringPointIds` to `DateWithMeteringPointId` in `EnqueueMissingMeasurementsLogHttpV1`.
 
 ## Version 2.2.3

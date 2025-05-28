@@ -15,23 +15,20 @@
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Orchestration.Steps;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration.Steps;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Activities;
 
-/// <summary>
-/// Perform business validation.
-/// </summary>
-internal class PerformBusinessValidationActivity_Brs_028_V1(
+internal class PerformBusinessValidationActivity_Brs_024_V1(
     IOrchestrationInstanceProgressRepository repository,
-    BusinessValidator<RequestCalculatedWholesaleServicesInputV1> validator)
+    BusinessValidator<RequestYearlyMeasurementsInputV1> validator)
 {
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
-    private readonly BusinessValidator<RequestCalculatedWholesaleServicesInputV1> _validator = validator;
+    private readonly BusinessValidator<RequestYearlyMeasurementsInputV1> _validator = validator;
 
-    [Function(nameof(PerformBusinessValidationActivity_Brs_028_V1))]
+    [Function(nameof(PerformBusinessValidationActivity_Brs_024_V1))]
     public async Task<ActivityOutput> Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -39,7 +36,7 @@ internal class PerformBusinessValidationActivity_Brs_028_V1(
             .GetAsync(input.OrchestrationInstanceId)
             .ConfigureAwait(false);
 
-        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestCalculatedWholesaleServicesInputV1>();
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestYearlyMeasurementsInputV1>();
 
         var validationErrors = await _validator.ValidateAsync(orchestrationInstanceInput)
             .ConfigureAwait(false);

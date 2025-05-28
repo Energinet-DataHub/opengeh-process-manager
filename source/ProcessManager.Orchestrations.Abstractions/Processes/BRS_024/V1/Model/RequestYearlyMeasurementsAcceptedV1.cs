@@ -12,11 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
 
 public record RequestYearlyMeasurementsAcceptedV1(
     string OriginalActorMessageId,
-    string OriginalTransactionId)
+    string OriginalTransactionId,
+    MeteringPointType MeteringPointType,
+    string ProductNumber,
+    DateTimeOffset RegistrationDateTime,
+    DateTimeOffset StartDateTime,
+    DateTimeOffset EndDateTime,
+    ActorNumber ActorNumber,
+    ActorRole ActorRole,
+    Resolution Resolution,
+    MeasurementUnit MeasureUnit,
+    IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> Measurements,
+    string GridAreaCode)
     : IEnqueueAcceptedDataDto;

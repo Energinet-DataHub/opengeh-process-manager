@@ -42,11 +42,11 @@ internal class PerformBusinessValidationActivity_Brs_024_V1(
             .ConfigureAwait(false);
 
         var isValid = validationErrors.Count == 0;
-        if (isValid == false)
+        if (!isValid)
         {
             var step = orchestrationInstance.GetStep(input.StepSequence);
             step.CustomState.SetFromInstance(new BusinessValidationStep.CustomState(
-                IsValid: !isValid,
+                IsValid: false,
                 ValidationErrors: validationErrors));
             await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }

@@ -22,8 +22,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public record RequestYearlyMeasurementsRejectV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
-    ActorNumber RequestedForActorNumber,
-    ActorRole RequestedForActorRole,
+    ActorNumber ActorNumber,
+    ActorRole ActorRole,
     BusinessReason BusinessReason,
     List<ValidationErrorDto> ValidationErrors)
         : IEnqueueRejectedDataDto;

@@ -15,13 +15,13 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
 
 public record RequestYearlyMeasurementsAcceptedV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
+    string MeteringPointId,
     MeteringPointType MeteringPointType,
     string ProductNumber,
     DateTimeOffset RegistrationDateTime,
@@ -31,6 +31,11 @@ public record RequestYearlyMeasurementsAcceptedV1(
     ActorRole ActorRole,
     Resolution Resolution,
     MeasurementUnit MeasureUnit,
-    IReadOnlyCollection<ReceiversWithMeteredDataV1.AcceptedMeteredData> Measurements,
+    IReadOnlyCollection<AcceptedMeteredData> Measurements,
     string GridAreaCode)
     : IEnqueueAcceptedDataDto;
+
+public record AcceptedMeteredData(
+    int Position,
+    decimal? EnergyQuantity,
+    Quality? QuantityQuality);

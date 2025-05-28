@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.3.3
+
+- Update `RequestYearlyMeasurementsAcceptedV1` with `MeteringPointId`
+
 ## Version 2.3.2
 
 - Add `RequestYearlyMeasurementsAcceptedV1`

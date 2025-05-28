@@ -38,4 +38,4 @@ public record RequestYearlyMeasurementsAcceptedV1(
 public record AcceptedMeteredData(
     int Position,
     decimal? EnergyQuantity,
-    Quality? QuantityQuality);
+    Quality QuantityQuality);

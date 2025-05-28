@@ -17,7 +17,6 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
@@ -57,6 +56,7 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
         var data = new RequestYearlyMeasurementsAcceptedV1(
             OriginalActorMessageId: requestYearlyInput.ActorMessageId,
             OriginalTransactionId: requestYearlyInput.TransactionId,
+            MeteringPointId: requestYearlyInput.MeteringPointId,
             MeteringPointType: MeteringPointType.Consumption,
             ProductNumber: "123",
             RegistrationDateTime: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
@@ -66,7 +66,7 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
             ActorRole: ActorRole.FromName(requestYearlyInput.ActorRole),
             Resolution: Resolution.QuarterHourly,
             MeasureUnit: MeasurementUnit.Kilowatt,
-            Measurements: new List<ReceiversWithMeteredDataV1.AcceptedMeteredData>(),
+            Measurements: new List<AcceptedMeteredData>(),
             GridAreaCode: "804");
 
         return _enqueueActorMessagesClient.EnqueueAsync(

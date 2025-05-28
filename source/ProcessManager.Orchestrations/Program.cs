@@ -79,6 +79,9 @@ var host = new HostBuilder()
 
         // BRS-021 (ForwardMeteredData, ElectricalHeatingCalculation, CapacitySettlementCalculation & NetConsumptionCalculation)
         services.AddBrs021();
+
+        // Client to retrieve measurements
+        services.AddMeasurementsClient();
     })
     .ConfigureFunctionsWebApplication(builder =>
     {

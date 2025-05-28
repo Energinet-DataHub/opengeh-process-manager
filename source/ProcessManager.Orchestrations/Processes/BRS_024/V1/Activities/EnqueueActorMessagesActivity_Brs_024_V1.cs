@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Measurements.Abstractions.Api.Models;
+using Energinet.DataHub.Measurements.Abstractions.Api.Queries;
+using Energinet.DataHub.Measurements.Client;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
@@ -21,15 +24,21 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
+using NodaTime;
+using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Activities;
 
 public class EnqueueActorMessagesActivity_Brs_024_V1(
     IOrchestrationInstanceProgressRepository progressRepository,
-    IEnqueueActorMessagesClient enqueueActorMessagesClient)
+    IEnqueueActorMessagesClient enqueueActorMessagesClient,
+    IMeasurementsClient measurementsClient,
+    IClock clock)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+    private readonly IMeasurementsClient _measurementsClient = measurementsClient;
+    private readonly IClock _clock = clock;
 
     [Function(nameof(EnqueueActorMessagesActivity_Brs_024_V1))]
     public async Task Run(
@@ -41,15 +50,47 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
 
         var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestYearlyMeasurementsInputV1>();
 
+        var measurements = await GetMeasurementsAsync(orchestrationInstanceInput).ConfigureAwait(false);
+
         await EnqueueActorMessagesAsync(
             orchestrationInstance.Lifecycle.CreatedBy.Value,
             input,
+            measurements,
             orchestrationInstanceInput).ConfigureAwait(false);
+    }
+
+    private async Task<IEnumerable<AcceptedMeteredData>> GetMeasurementsAsync(RequestYearlyMeasurementsInputV1 orchestrationInstanceInput)
+    {
+        // TODO: Correct this, when we get the periods from elmark.
+        var now = _clock.GetCurrentInstant();
+        var measurementsQuery = new GetAggregateByPeriodQuery(
+            MeteringPointIds: new List<string>() { orchestrationInstanceInput.MeteringPointId },
+            To: now,
+            From: now.Minus(Duration.FromDays(365)),
+            Aggregation: Aggregation.Quarter);
+
+        var measurements = (await _measurementsClient.GetAggregatedByPeriodAsync(measurementsQuery)
+            .ConfigureAwait(false))
+            .ToList();
+
+        if (measurements.Count != 1)
+        {
+            throw new InvalidOperationException(
+                $"Expected exactly one measurement for metering point {orchestrationInstanceInput.MeteringPointId}, but found {measurements.Count}.");
+        }
+
+        var measurement = measurements.Single();
+
+        var keys = measurement.PointAggregationGroups.Keys.ToList();
+
+        var data = new List<AcceptedMeteredData>();
+        return data;
     }
 
     private Task EnqueueActorMessagesAsync(
         OperatingIdentity orchestrationCreatedBy,
         ActivityInput input,
+        IEnumerable<AcceptedMeteredData> measurements,
         RequestYearlyMeasurementsInputV1 requestYearlyInput)
     {
         // Update this when we are getting data from the other subsystems
@@ -66,7 +107,7 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
             ActorRole: ActorRole.FromName(requestYearlyInput.ActorRole),
             Resolution: Resolution.QuarterHourly,
             MeasureUnit: MeasurementUnit.Kilowatt,
-            Measurements: new List<AcceptedMeteredData>(),
+            Measurements: measurements.ToList(),
             GridAreaCode: "804");
 
         return _enqueueActorMessagesClient.EnqueueAsync(

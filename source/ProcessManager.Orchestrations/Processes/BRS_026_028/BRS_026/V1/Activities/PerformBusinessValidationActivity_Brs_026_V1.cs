@@ -44,17 +44,18 @@ internal class PerformBusinessValidationActivity_Brs_026_V1(
         var validationErrors = await _validator.ValidateAsync(orchestrationInstanceInput)
             .ConfigureAwait(false);
 
-        if (validationErrors.Count > 0)
+        var isValid = validationErrors.Count == 0;
+        if (!isValid)
         {
             var step = orchestrationInstance.GetStep(input.StepSequence);
             step.CustomState.SetFromInstance(new BusinessValidationStep.CustomState(
-                IsValid: validationErrors.Count == 0,
+                IsValid: false,
                 ValidationErrors: validationErrors));
             await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
 
         return new ActivityOutput(
-            IsValid: validationErrors.Count == 0,
+            IsValid: isValid,
             ValidationErrors: validationErrors);
     }
 

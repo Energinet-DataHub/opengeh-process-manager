@@ -168,6 +168,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     {
         AzuriteManager.CleanupAzuriteStorage();
         AzuriteManager.StartAzurite();
+        await AzuriteManager.CreateRequiredContainersAsync();
 
         await DatabaseManager.CreateDatabaseAsync();
 

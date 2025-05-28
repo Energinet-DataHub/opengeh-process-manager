@@ -13,14 +13,21 @@
 // limitations under the License.
 
 using System.Reflection;
+using Azure.Identity;
+using Azure.Storage.Blobs;
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.ProcessManager.Core.Application;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
+using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Application.Scheduling;
+using Energinet.DataHub.ProcessManager.Core.Application.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Diagnostics.HealthChecks;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Scheduling;
@@ -28,6 +35,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -47,12 +55,13 @@ public static class ProcessManagerExtensions
     /// to manage and monitor orchestrations.
     /// Should be used from the Process Manager API / Scheduler application.
     /// </summary>
-    public static IServiceCollection AddProcessManagerCore(this IServiceCollection services)
+    public static IServiceCollection AddProcessManagerCore(this IServiceCollection services, IConfiguration configuration)
     {
         // Process Manager Core
         services
             .AddProcessManagerOptions()
-            .AddProcessManagerDatabase();
+            .AddProcessManagerDatabase()
+            .AddProcessManagerFileStorage(configuration);
 
         // DurableClient connected to Task Hub
         services.AddTaskHubStorage();
@@ -95,6 +104,9 @@ public static class ProcessManagerExtensions
         // => Public queries
         services.TryAddScoped<IOrchestrationInstanceQueries>(sp => sp.GetRequiredService<OrchestrationInstanceRepository>());
 
+        // => Send Measurements orchestration instance
+        services.TryAddScoped<ISendMeasurementsInstanceRepository, SendMeasurementsInstanceRepository>();
+
         return services;
     }
 
@@ -105,13 +117,18 @@ public static class ProcessManagerExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <param name="assemblyToScan">Specify the host assembly to scan for types implementing <see cref="IOrchestrationDescriptionBuilder"/>.</param>
-    public static IServiceCollection AddProcessManagerForOrchestrations(this IServiceCollection services, Assembly assemblyToScan)
+    /// <param name="configuration"></param>
+    public static IServiceCollection AddProcessManagerForOrchestrations(
+        this IServiceCollection services,
+        Assembly assemblyToScan,
+        IConfiguration configuration)
     {
         // Process Manager Core
         services
             .AddProcessManagerOptions()
             .AddProcessManagerDatabase()
-            .AddProcessManagerReaderContext();
+            .AddProcessManagerReaderContext()
+            .AddProcessManagerFileStorage(configuration);
 
         // Task Hub connected to Durable Functions
         services.AddTaskHubStorage();
@@ -163,6 +180,9 @@ public static class ProcessManagerExtensions
 
         // => For the feature Migrate Wholesale Calculations
         services.TryAddTransient<IOrchestrationInstanceFactory, OrchestrationInstanceFactory>();
+
+        // => Send Measurements orchestration instance
+        services.TryAddScoped<ISendMeasurementsInstanceRepository, SendMeasurementsInstanceRepository>();
 
         return services;
     }
@@ -265,9 +285,9 @@ public static class ProcessManagerExtensions
             .ToList();
 
         var serviceAdders = implementingTypes
-                .Select(Activator.CreateInstance)
-                .Where(instance => instance != null)
-                .Select(instance => (IOptionsConfiguration)instance!);
+            .Select(Activator.CreateInstance)
+            .Where(instance => instance != null)
+            .Select(instance => (IOptionsConfiguration)instance!);
 
         foreach (var adder in serviceAdders)
         {
@@ -329,8 +349,8 @@ public static class ProcessManagerExtensions
     /// </summary>
     private static IServiceCollection AddProcessManagerReaderContext(this IServiceCollection services)
     {
-        services.
-            AddDbContext<ProcessManagerReaderContext>((sp, optionsBuilder) =>
+        services
+            .AddDbContext<ProcessManagerReaderContext>((sp, optionsBuilder) =>
             {
                 var processManagerOptions = sp.GetRequiredService<IOptions<ProcessManagerOptions>>().Value;
 
@@ -353,6 +373,40 @@ public static class ProcessManagerExtensions
             .AddOptions<ProcessManagerTaskHubOptions>()
             .BindConfiguration(configSectionPath: string.Empty)
             .ValidateDataAnnotations();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Register Task Hub storage options.
+    /// </summary>
+    private static IServiceCollection AddProcessManagerFileStorage(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddTokenCredentialProvider(); // Used to get a TokenCredential for Azure clients
+        services.AddTransient<IFileStorageClient, ProcessManagerBlobFileStorageClient>();
+
+        services.AddAzureClients(
+            builder =>
+            {
+                builder.UseCredential(sp => sp.GetRequiredService<TokenCredentialProvider>().Credential);
+
+                builder
+                    .AddBlobServiceClient(configuration.GetSection(ProcessManagerFileStorageOptions.SectionName))
+                    .WithName(ProcessManagerBlobFileStorageClient.ClientName);
+            });
+
+        services.TryAddHealthChecks(
+            "Process Manager File Storage",
+            (key, builder) =>
+            {
+                builder.AddAzureBlobStorage(
+                    clientFactory: sp =>
+                        sp.GetRequiredService<IAzureClientFactory<BlobServiceClient>>()
+                            .CreateClient(ProcessManagerBlobFileStorageClient.ClientName),
+                    name: key);
+            });
 
         return services;
     }

@@ -39,7 +39,7 @@ public class OrchestrationInstanceMapperExtensionsTests
     public void MapToTypedDto_WhenOrchestrationInstance_CreateOrchestrationInstanceTypedDtoThatCanBeFullySerializedToJson()
     {
         var orchestrationInstance = CreateOrchestrationInstance(
-            idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
+            idempotencyKey: IdempotencyKey.CreateNew());
 
         // Act
         var actualDto = orchestrationInstance.MapToTypedDto<TestOrchestrationParameter>();
@@ -61,7 +61,7 @@ public class OrchestrationInstanceMapperExtensionsTests
     public void MapToDto_WhenOrchestrationInstance_CreateOrchestrationInstanceDtoThatCanBeFullySerializedToJson()
     {
         var orchestrationInstance = CreateOrchestrationInstance(
-            idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
+            idempotencyKey: IdempotencyKey.CreateNew());
 
         // Act
         // => We create and serialize 'OrchestrationInstanceDto'

@@ -12,20 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Security.Cryptography;
-using System.Text;
+namespace Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 
-namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-
-public record IdempotencyKey(string Value)
+public record SendMeasurementsInstanceId(Guid Value)
 {
-    /// <summary>
-    /// Hash the idempotency key using SHA-256 and return the hash as a byte array, which is exactly 32 bytes.
-    /// </summary>
-    public byte[] ToHash()
+    public static SendMeasurementsInstanceId CreateNew()
     {
-        return SHA256.HashData(Encoding.UTF8.GetBytes(Value));
+        return new SendMeasurementsInstanceId(Guid.CreateVersion7());
     }
-
-    public static IdempotencyKey CreateNew() => new IdempotencyKey(Guid.NewGuid().ToString());
 }

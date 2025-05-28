@@ -33,6 +33,7 @@
     <EmbeddedResource Include="Scripts\202502270811 Remove IsDurableFunction from OrchestrationDescription.sql" />
     <EmbeddedResource Include="Scripts\202503061333 Add IsUnderDevelopment to OrchestrationDescription.sql" />
     <EmbeddedResource Include="Scripts\202503122100 Add RowVersion to StepX tables.sql" />
+    <EmbeddedResource Include="Scripts\202505261227 Add SendMeasurementsInstance tables.sql" />
   </ItemGroup>
 
 </Project>

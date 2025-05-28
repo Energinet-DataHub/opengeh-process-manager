@@ -81,7 +81,7 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
             orchestrationDescription.UniqueName,
             new OrchestrationParameter("inputString"),
             [],
-            new IdempotencyKey(Guid.NewGuid().ToString()),
+            IdempotencyKey.CreateNew(),
             new ActorMessageId("actorMessageId"),
             new TransactionId("transactionId"),
             new MeteringPointId("meteringPointId"));
@@ -111,7 +111,7 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
             orchestrationDescription.UniqueName,
             new OrchestrationParameter("inputString"),
             [],
-            new IdempotencyKey(Guid.NewGuid().ToString()),
+            IdempotencyKey.CreateNew(),
             new ActorMessageId("actorMessageId"),
             new TransactionId("transactionId"),
             null);
@@ -141,7 +141,7 @@ public class IStartOrchestrationInstanceMessageCommandsTests :
             orchestrationDescription.UniqueName,
             new OrchestrationParameter("inputString"),
             [],
-            new IdempotencyKey(Guid.NewGuid().ToString()),
+            IdempotencyKey.CreateNew(),
             new ActorMessageId("actorMessageId"),
             new TransactionId("transactionId"),
             new MeteringPointId("meteringPointId"));

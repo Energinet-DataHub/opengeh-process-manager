@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Measurements.Abstractions.Api.Models;
+using Energinet.DataHub.Measurements.Abstractions.Api.Queries;
+using Energinet.DataHub.Measurements.Client;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
@@ -21,15 +24,22 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
+using NodaTime;
+using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
+using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Activities;
 
 public class EnqueueActorMessagesActivity_Brs_024_V1(
     IOrchestrationInstanceProgressRepository progressRepository,
-    IEnqueueActorMessagesClient enqueueActorMessagesClient)
+    IEnqueueActorMessagesClient enqueueActorMessagesClient,
+    IMeasurementsClient measurementsClient,
+    IClock clock)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+    private readonly IMeasurementsClient _measurementsClient = measurementsClient;
+    private readonly IClock _clock = clock;
 
     [Function(nameof(EnqueueActorMessagesActivity_Brs_024_V1))]
     public async Task Run(
@@ -41,40 +51,131 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
 
         var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestYearlyMeasurementsInputV1>();
 
+        var messages = await GetMessagesAsync(orchestrationInstanceInput).ConfigureAwait(false);
+
         await EnqueueActorMessagesAsync(
             orchestrationInstance.Lifecycle.CreatedBy.Value,
             input,
-            orchestrationInstanceInput).ConfigureAwait(false);
+            messages).ConfigureAwait(false);
+    }
+
+    private async Task<IEnumerable<RequestYearlyMeasurementsAcceptedV1>> GetMessagesAsync(RequestYearlyMeasurementsInputV1 orchestrationInstanceInput)
+    {
+        // TODO: Correct this, when we get the periods from elmark.
+        var now = _clock.GetCurrentInstant();
+        var measurementsQuery = new GetAggregateByPeriodQuery(
+            MeteringPointIds: new List<string>() { orchestrationInstanceInput.MeteringPointId },
+            To: now,
+            From: now.Minus(Duration.FromDays(365)),
+            Aggregation: Aggregation.Quarter);
+
+        var measurements = (await _measurementsClient.GetAggregatedByPeriodAsync(measurementsQuery)
+            .ConfigureAwait(false))
+            .ToList();
+
+        if (measurements.Count != 1)
+        {
+            throw new InvalidOperationException(
+                $"Expected exactly one measurement for metering point {orchestrationInstanceInput.MeteringPointId}, but found {measurements.Count}.");
+        }
+
+        var measurement = measurements.Single();
+
+        // The keys are a combination of metering point id, date and resolution.
+        // I have no idea how we can utilize this. Hence I will ignore the values of the keys.
+        var keys = measurement.PointAggregationGroups.Keys.ToList();
+
+        // Each key will be a message, since the resolution may change.
+        var messages = keys.Select(
+            key => GenerateMessage(
+                measurement.PointAggregationGroups[key],
+                orchestrationInstanceInput)).ToList();
+
+        // before returning the messages we could try to concatenate them.
+        // That is, if, for two messages x and y we have the following conditions:
+        // x.to == y.from,
+        // x.resolution == y.resolution,
+        // Then we can concatenate the points of x and y into a single message.
+        // Where to is y.to,
+        // from is x.from.
+        // and points are x.points.Concat(y.points). (Where we update the position of y.points to be after x.points).
+        // Before we consider this, we should be more confident in the return data from the measurements client.
+        return messages;
+    }
+
+    private RequestYearlyMeasurementsAcceptedV1 GenerateMessage(
+        PointAggregationGroup pointAggregationGroup,
+        RequestYearlyMeasurementsInputV1 input)
+    {
+        return new RequestYearlyMeasurementsAcceptedV1(
+            OriginalActorMessageId: input.ActorMessageId,
+            OriginalTransactionId: input.TransactionId,
+            MeteringPointId: input.MeteringPointId,
+            MeteringPointType: MeteringPointType.Consumption,   // Elmark data
+            ProductNumber: "123",                               // Elmark data?
+            RegistrationDateTime: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"), // TODO: What is this?
+            StartDateTime: pointAggregationGroup.From.ToDateTimeOffset(),
+            EndDateTime: pointAggregationGroup.To.ToDateTimeOffset(),
+            ActorNumber: ActorNumber.Create(input.ActorNumber),
+            ActorRole: ActorRole.FromName(input.ActorRole),
+            Resolution: MapResolution(pointAggregationGroup.Resolution),
+            MeasureUnit: MeasurementUnit.Kilowatt,              // Elmark data
+            Measurements: MapPoints(pointAggregationGroup),
+            GridAreaCode: "804");
+    }
+
+    private Quality MapQuality(Energinet.DataHub.Measurements.Abstractions.Api.Models.Quality quality)
+    {
+        return quality switch
+        {
+            Energinet.DataHub.Measurements.Abstractions.Api.Models.Quality.Missing => Quality.NotAvailable,
+            Energinet.DataHub.Measurements.Abstractions.Api.Models.Quality.Estimated => Quality.Estimated,
+            Energinet.DataHub.Measurements.Abstractions.Api.Models.Quality.Calculated => Quality.Calculated,
+            Energinet.DataHub.Measurements.Abstractions.Api.Models.Quality.Measured => Quality.AsProvided,
+            _ => throw new ArgumentOutOfRangeException(nameof(quality), $"Unknown quality: {quality}"),
+        };
+    }
+
+    private Resolution MapResolution(Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution quality)
+    {
+        return quality switch
+        {
+            Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.QuarterHourly => Resolution.QuarterHourly,
+            Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Hourly => Resolution.Hourly,
+            Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Daily => Resolution.Daily,
+            Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Monthly => Resolution.Monthly,
+            Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Yearly => throw new ArgumentOutOfRangeException(nameof(quality), $"Unknown quality: {quality}"),
+            _ => throw new ArgumentOutOfRangeException(nameof(quality), $"Unknown quality: {quality}"),
+        };
+    }
+
+    private List<AcceptedMeteredData> MapPoints(PointAggregationGroup pointAggregationGroup)
+    {
+        var points = new List<AcceptedMeteredData>();
+        for (var i = 0; i < pointAggregationGroup.PointAggregations.Count; i++)
+        {
+            var point = pointAggregationGroup.PointAggregations[i];
+            points.Add(
+                new AcceptedMeteredData(
+                    Position: i + 1, // Position is 1-based
+                    EnergyQuantity: point.Quantity,
+                    QuantityQuality: MapQuality(point.Quality)));
+        }
+
+        return points;
     }
 
     private Task EnqueueActorMessagesAsync(
         OperatingIdentity orchestrationCreatedBy,
         ActivityInput input,
-        RequestYearlyMeasurementsInputV1 requestYearlyInput)
+        IEnumerable<RequestYearlyMeasurementsAcceptedV1> messages)
     {
-        // Update this when we are getting data from the other subsystems
-        var data = new RequestYearlyMeasurementsAcceptedV1(
-            OriginalActorMessageId: requestYearlyInput.ActorMessageId,
-            OriginalTransactionId: requestYearlyInput.TransactionId,
-            MeteringPointId: requestYearlyInput.MeteringPointId,
-            MeteringPointType: MeteringPointType.Consumption,
-            ProductNumber: "123",
-            RegistrationDateTime: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
-            StartDateTime: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"),
-            EndDateTime: DateTimeOffset.Parse("2050-01-02T12:00:00.0000000+01:00"),
-            ActorNumber: ActorNumber.Create(requestYearlyInput.ActorNumber),
-            ActorRole: ActorRole.FromName(requestYearlyInput.ActorRole),
-            Resolution: Resolution.QuarterHourly,
-            MeasureUnit: MeasurementUnit.Kilowatt,
-            Measurements: new List<AcceptedMeteredData>(),
-            GridAreaCode: "804");
-
         return _enqueueActorMessagesClient.EnqueueAsync(
             orchestration: Orchestration_Brs_024_V1.UniqueName,
             orchestrationInstanceId: input.InstanceId.Value,
             orchestrationStartedBy: orchestrationCreatedBy.MapToDto(),
             idempotencyKey: input.IdempotencyKey,
-            data: data);
+            data: messages.First());
     }
 
     public record ActivityInput(

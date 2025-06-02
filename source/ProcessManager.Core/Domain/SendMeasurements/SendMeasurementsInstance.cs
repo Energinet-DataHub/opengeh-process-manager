@@ -20,6 +20,10 @@ using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 
+/// <summary>
+/// A Send Measurements Instance domain model, which is saved to the database. Represents a single
+/// BRS-021 Send Measurements process, and handles it's lifecycle.
+/// </summary>
 public class SendMeasurementsInstance
 {
     /// <summary>
@@ -115,32 +119,5 @@ public class SendMeasurementsInstance
             throw new InvalidOperationException($"Cannot mark instance as sent to a measurements (Id={Id.Value}, SentToMeasurementsAt={InstantPattern.General.Format(SentToMeasurementsAt.Value)}).");
 
         SentToMeasurementsAt = sentToMeasurementsAt;
-    }
-
-    public record SendMeasurementsInstanceLifecycle
-    {
-        public SendMeasurementsInstanceLifecycle(
-            Instant? terminatedAt,
-            Instant? failedAt)
-        {
-            if (failedAt is not null)
-            {
-                State = OrchestrationInstanceLifecycleState.Terminated;
-                TerminationState = OrchestrationInstanceTerminationState.Failed;
-            }
-            else if (terminatedAt is not null)
-            {
-                State = OrchestrationInstanceLifecycleState.Terminated;
-                TerminationState = OrchestrationInstanceTerminationState.Succeeded;
-            }
-            else
-            {
-                State = OrchestrationInstanceLifecycleState.Running;
-            }
-        }
-
-        public OrchestrationInstanceLifecycleState State { get; private set; }
-
-        public OrchestrationInstanceTerminationState? TerminationState { get; private set; }
     }
 }

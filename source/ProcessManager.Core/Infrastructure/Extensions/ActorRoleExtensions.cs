@@ -16,7 +16,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions;
 
-public static class ActorRoleExtensions
+internal static class ActorRoleExtensions
 {
     /// <summary>
     /// Actor role to byte value mapping. The byte values are saved to the database, so they MUST NOT be changed.

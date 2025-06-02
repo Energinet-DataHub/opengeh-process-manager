@@ -27,5 +27,8 @@ public record IdempotencyKey(string Value)
         return SHA256.HashData(Encoding.UTF8.GetBytes(Value));
     }
 
+    /// <summary>
+    /// Create a new idempotency key based on <see cref="Guid.NewGuid()"/>.
+    /// </summary>
     public static IdempotencyKey CreateNew() => new IdempotencyKey(Guid.NewGuid().ToString());
 }

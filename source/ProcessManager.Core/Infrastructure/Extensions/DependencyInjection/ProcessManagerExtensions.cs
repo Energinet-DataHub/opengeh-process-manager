@@ -378,13 +378,16 @@ public static class ProcessManagerExtensions
     }
 
     /// <summary>
-    /// Register Task Hub storage options.
+    /// Register an <see cref="ProcessManagerBlobFileStorageClient"/> based
+    /// on <see cref="ProcessManagerFileStorageOptions"/>.
     /// </summary>
+    /// <remarks>
+    /// Expects "AddTokenCredentialProvider" has been called to register <see cref="TokenCredentialProvider"/>.
+    /// </remarks>
     private static IServiceCollection AddProcessManagerFileStorage(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddTokenCredentialProvider(); // Used to get a TokenCredential for Azure clients
         services.AddTransient<IFileStorageClient, ProcessManagerBlobFileStorageClient>();
 
         services.AddAzureClients(

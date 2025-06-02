@@ -23,11 +23,11 @@ public interface IFileStorageClient
     /// Upload a stream using the reference parameter as a unique representation.
     /// </summary>
     /// <param name="reference">
-    /// A <see cref="FileStorageReference"/> representing the file, which can have any string value.
+    /// A <see cref="IFileStorageReference"/> representing the file, which can have any string value.
     /// If a file already exists with the given reference, a <see cref="RequestFailedException" /> will be thrown.
     /// </param>
     /// <param name="stream">A stream which contains the binary file.</param>
-    Task UploadAsync(FileStorageReference reference, Stream stream);
+    Task UploadAsync(IFileStorageReference reference, Stream stream);
 
     /// <summary>
     /// Downloads a file as a stream, found by the given reference string.
@@ -35,5 +35,5 @@ public interface IFileStorageClient
     /// <remarks>The stream is downloaded when read, and can only be read once</remarks>
     /// <param name="reference">The reference string is used to determine which file to download.</param>
     /// <param name="cancellationToken"></param>
-    Task<ReadOnceStream> DownloadAsync(FileStorageReference reference, CancellationToken cancellationToken);
+    Task<ReadOnceStream> DownloadAsync(IFileStorageReference reference, CancellationToken cancellationToken);
 }

@@ -74,7 +74,7 @@ public class SendMeasurementsInstanceRepositoryTests :
     public async Task Given_SendMeasurementsInstanceNotInDatabase_When_GetById_Then_ThrowsException()
     {
         // Arrange
-        var id = new SendMeasurementsInstanceId(Guid.NewGuid());
+        var id = SendMeasurementsInstanceId.CreateNew();
 
         // Act
         var act = () => _sut.GetAsync(id);
@@ -241,7 +241,7 @@ public class SendMeasurementsInstanceRepositoryTests :
             idempotencyKey: idempotencyKey);
     }
 
-    private async Task<BinaryData> DownloadFileContent(FileStorageReference fileStorageReference)
+    private async Task<BinaryData> DownloadFileContent(IFileStorageReference fileStorageReference)
     {
         var blobServiceClient = new BlobServiceClient(_azuriteFixture.AzuriteManager.BlobStorageConnectionString);
         var blobContainerClient = blobServiceClient.GetBlobContainerClient(fileStorageReference.Category);

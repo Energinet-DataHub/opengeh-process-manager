@@ -14,8 +14,20 @@
 
 namespace Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 
-public record SendMeasurementsInstanceId(Guid Value)
+public record SendMeasurementsInstanceId
 {
+    private SendMeasurementsInstanceId(Guid value)
+    {
+        Value = value;
+    }
+
+    public Guid Value { get; }
+
+    public static SendMeasurementsInstanceId FromExisting(Guid value)
+    {
+        return new SendMeasurementsInstanceId(value);
+    }
+
     public static SendMeasurementsInstanceId CreateNew()
     {
         return new SendMeasurementsInstanceId(Guid.CreateVersion7());

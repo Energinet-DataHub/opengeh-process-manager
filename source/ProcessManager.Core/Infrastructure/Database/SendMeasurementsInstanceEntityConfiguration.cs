@@ -32,7 +32,7 @@ internal class SendMeasurementsInstanceEntityConfiguration : IEntityTypeConfigur
             .ValueGeneratedNever()
             .HasConversion(
                 id => id.Value,
-                dbValue => new SendMeasurementsInstanceId(dbValue));
+                dbValue => SendMeasurementsInstanceId.FromExisting(dbValue));
 
         builder.Property(o => o.RowVersion)
             .IsRowVersion();

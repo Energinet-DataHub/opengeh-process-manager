@@ -28,7 +28,7 @@ public class ProcessManagerBlobFileStorageClient(
     private readonly BlobServiceClient _blobServiceClient = blobServiceClientFactory.CreateClient(ClientName);
 
     /// <inheritdoc />
-    public Task UploadAsync(FileStorageReference reference, Stream stream)
+    public Task UploadAsync(IFileStorageReference reference, Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentNullException.ThrowIfNull(reference);
@@ -40,7 +40,7 @@ public class ProcessManagerBlobFileStorageClient(
     }
 
     /// <inheritdoc />
-    public async Task<ReadOnceStream> DownloadAsync(FileStorageReference reference, CancellationToken cancellationToken)
+    public async Task<ReadOnceStream> DownloadAsync(IFileStorageReference reference, CancellationToken cancellationToken)
     {
         var container = _blobServiceClient.GetBlobContainerClient(reference.Category);
         var blob = container.GetBlobClient(reference.Path);

@@ -19,12 +19,12 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 
-public record SendMeasurementsInputFileStorageReference : FileStorageReference
+public record SendMeasurementsInputFileStorageReference : IFileStorageReference
 {
     /// <summary>
-    /// The container must also be created in the infrastructure (st-filestorage.tf)
+    /// The container must already be created in Azure Blob Storage (see st-filestorage.tf).
     /// </summary>
-    public const string ContainerName = "send-measurements-instance-input";
+    public const string ContainerName = "send-measurements-input";
 
     private SendMeasurementsInputFileStorageReference(
         string path)
@@ -32,9 +32,12 @@ public record SendMeasurementsInputFileStorageReference : FileStorageReference
         Path = path;
     }
 
-    public override string Path { get; }
+    public string Path { get; }
 
-    public override string Category => ContainerName;
+    /// <summary>
+    /// The category is used as the container name in Azure Blob Storage.
+    /// </summary>
+    public string Category => ContainerName;
 
     public static SendMeasurementsInputFileStorageReference Create(Instant createdAt, ActorNumber createdBy, TransactionId transactionId)
     {

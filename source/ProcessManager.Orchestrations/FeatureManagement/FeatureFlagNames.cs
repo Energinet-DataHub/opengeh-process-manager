@@ -36,6 +36,5 @@ internal static class FeatureFlagNames
     /// </summary>
     public const string SectionName = "FeatureManagement";
 
-    // Add feature flag names here...
     public const string UseNewSendMeasurementsTable = "UseNewSendMeasurementsTable";
 }

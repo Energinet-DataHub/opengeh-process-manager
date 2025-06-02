@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using NodaTime;
-
 namespace Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
 
-public abstract record FileStorageReference
+/// <summary>
+/// A reference to a file in the file storage. Represented by a path to the file and the file's category.
+/// </summary>
+public interface IFileStorageReference
 {
     /// <summary>
-    /// Path must be supported by Azure File Storage, so there should be no "-" or other unsupported characters.
+    /// The path to the file.
     /// </summary>
-    public abstract string Path { get; }
+    /// <remarks>If using Azure File Storage, the path must be valid (shouldn't contain "-" characters).</remarks>
+    string Path { get; }
 
     /// <summary>
-    /// Category is used for the file storage container name, and must be all lowercase.
+    /// The file category, used to group files in file storage.
     /// </summary>
-    public abstract string Category { get; }
+    /// <remarks>If using Azure File Storage, the category represents the Container in Azure Blob Storage.</remarks>
+    string Category { get; }
 }

@@ -48,6 +48,6 @@ public class ProcessManagerBlobFileStorageClient(
         // OpenReadAsync() returns a stream for the file, and the file is downloaded the first time the stream is read
         var downloadStream = await blob.OpenReadAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        return ReadOnceStream.Create(downloadStream);
+        return new ReadOnceStream(downloadStream);
     }
 }

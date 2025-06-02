@@ -100,11 +100,12 @@ public class EnqueueMeasurementsHandlerV1(
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (findReceiversStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
         {
+            // TODO: Does this mean, it is a breaking change/need a new version?
             var storedAdditionalRecipients = findReceiversStep
                 .CustomState
                 .AsType<FindReceiversStepCustomStateV1>()
                 .AdditionalRecipients
-                .Select(r => Actor.From(r.ActorNumber, r.ActorRole))
+                .Select(recipient => Actor.From(recipient.ActorNumber, recipient.ActorRole))
                 .ToList();
 
             // Since the master data is saved as custom state on the orchestrationInstance, we should just
@@ -126,7 +127,7 @@ public class EnqueueMeasurementsHandlerV1(
 
         findReceiversStep.CustomState.SetFromInstance(new FindReceiversStepCustomStateV1(
             additionalRecipients
-                .Select(r => new FindReceiversStepCustomStateV1.AdditionalReceiver(r.Number.Value, r.Role.Name))
+                .Select(recipient => new FindReceiversStepCustomStateV1.AdditionalReceiver(recipient.Number.Value, recipient.Role.Name))
                 .ToList()));
 
         var receiversWithMeteredData = CalculateReceiversWithMeasurements(

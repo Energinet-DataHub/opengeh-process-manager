@@ -31,6 +31,9 @@ public static class Brs021Extensions
         services.AddTransient<ElectricityMarketViewsFactory>();
         services.AddScoped<MeteringPointReceiversProvider>();
 
+        // TODO: Options for env to select source.
+        services.AddScoped<IAdditionalMeasurementsRecipientsProvider>(_ => new ConstantAdditionalMeasurementsRecipientsProvider(ConstantAdditionalMeasurementsRecipientsProvider.AdditionalRecipientConstantSourceSelector.Empty));
+
         // Used by BRS-021 ForwardMeteredData process
         services.AddScoped<DelegationProvider>();
         services.AddScoped<TerminateForwardMeteredDataHandlerV1>();

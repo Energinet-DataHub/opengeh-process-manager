@@ -23,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.ApplicationInsights;
 using NodaTime;
+using Actor = Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model.Actor;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
@@ -31,12 +32,14 @@ public class EnqueueMeasurementsHandlerV1(
     IClock clock,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     MeteringPointReceiversProvider meteringPointReceiversProvider,
+    IAdditionalMeasurementsRecipientsProvider additionalMeasurementsRecipientsProvider,
     TelemetryClient telemetryClient)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
+    private readonly IAdditionalMeasurementsRecipientsProvider _additionalMeasurementsRecipientsProvider = additionalMeasurementsRecipientsProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
     public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
@@ -97,10 +100,17 @@ public class EnqueueMeasurementsHandlerV1(
         // If the step is already terminated (idempotency/retry check), do nothing.
         if (findReceiversStep.Lifecycle.State == StepInstanceLifecycleState.Terminated)
         {
+            var storedAdditionalRecipients = findReceiversStep
+                .CustomState
+                .AsType<FindReceiversStepCustomStateV1>()
+                .AdditionalRecipients
+                .Select(r => Actor.From(r.ActorNumber, r.ActorRole))
+                .ToList();
+
             // Since the master data is saved as custom state on the orchestrationInstance, we should just
             // be able to calculate the receivers (again), based on the master data. If the inputs are the same,
             // the returned calculated receivers should also be the same.
-            return CalculateReceiversWithMeasurements(customState, forwardMeteredDataValidInput);
+            return CalculateReceiversWithMeasurements(customState, forwardMeteredDataValidInput, storedAdditionalRecipients);
         }
 
         await StepHelper.StartStepAndCommitIfPending(findReceiversStep, _clock, _progressRepository).ConfigureAwait(false);
@@ -109,7 +119,20 @@ public class EnqueueMeasurementsHandlerV1(
         if (findReceiversStep.Lifecycle.State is not StepInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Find receivers step must be running (Id={findReceiversStep.Id}, State={findReceiversStep.Lifecycle.State}).");
 
-        var receiversWithMeteredData = CalculateReceiversWithMeasurements(customState, forwardMeteredDataValidInput);
+        var additionalRecipients = await _additionalMeasurementsRecipientsProvider
+            .GetAdditionalRecipients(forwardMeteredDataValidInput.MeteringPointId)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        findReceiversStep.CustomState.SetFromInstance(new FindReceiversStepCustomStateV1(
+            additionalRecipients
+                .Select(r => new FindReceiversStepCustomStateV1.AdditionalReceiver(r.Number.Value, r.Role.Name))
+                .ToList()));
+
+        var receiversWithMeteredData = CalculateReceiversWithMeasurements(
+            customState,
+            forwardMeteredDataValidInput,
+            additionalRecipients);
 
         // Terminate Step: Find receiver step
         await StepHelper.TerminateStepAndCommit(findReceiversStep, _clock, _progressRepository, _telemetryClient).ConfigureAwait(false);
@@ -125,7 +148,8 @@ public class EnqueueMeasurementsHandlerV1(
     /// </summary>
     private List<ReceiversWithMeteredDataV1> CalculateReceiversWithMeasurements(
         ForwardMeteredDataCustomStateV2 customState,
-        ForwardMeteredDataValidInput forwardMeteredDataInput)
+        ForwardMeteredDataValidInput forwardMeteredDataInput,
+        IReadOnlyCollection<Actor> additionalRecipients)
     {
         var meteringPointMasterData = customState.HistoricalMeteringPointMasterData
             .Select(mpmd => mpmd.ToMeteringPointMasterData())
@@ -148,6 +172,16 @@ public class EnqueueMeasurementsHandlerV1(
                     forwardMeteredDataInput.Resolution,
                     meteringPointMasterData,
                     measurements));
+
+        receiversWithMeasurements.Add(
+            new ReceiversWithMeasurements(
+                Receivers: additionalRecipients,
+                Resolution: forwardMeteredDataInput.Resolution,
+                MeasureUnit: forwardMeteredDataInput.MeasureUnit,
+                StartDateTime: forwardMeteredDataInput.StartDateTime.ToDateTimeOffset(),
+                EndDateTime: forwardMeteredDataInput.EndDateTime.ToDateTimeOffset(),
+                GridArea: meteringPointMasterData.First().CurrentGridAreaCode.Value,
+                Measurements: measurements));
 
         return receiversWithMeasurements.ToForwardMeteredDataReceiversWithMeasurementsV1();
     }

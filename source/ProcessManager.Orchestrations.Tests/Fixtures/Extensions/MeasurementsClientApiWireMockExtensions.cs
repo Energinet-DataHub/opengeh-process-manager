@@ -85,9 +85,11 @@ public static class MeasurementsClientApiWireMockExtensions
 
             aggregations.Add(
                 WritePointAggregationGroup(
-                    meteringPointId + (from.Year() + i) + Resolution.Yearly,
-                    fromInLoop,
-                    endOfPeriod));
+                    key: meteringPointId + (from.Year() + i) + Resolution.Yearly,
+                    from: fromInLoop,
+                    to: endOfPeriod));
+
+            fromInLoop = endOfPeriod.PlusHours(1);
         }
 
         return string.Join(",", aggregations);
@@ -117,13 +119,13 @@ public static class MeasurementsClientApiWireMockExtensions
             .Replace("{to}", to.ToString());
     }
 
-    private static Instant GetEndOfPeriod(Instant from, Instant to)
+    private static Instant GetEndOfPeriod(Instant startOfPeriod, Instant possibleEnd)
     {
-        var endOfYear = InstantPattern.General.Parse(from.Year() + "-12-31T23:00:00Z").Value;
+        var endOfYear = InstantPattern.General.Parse(startOfPeriod.Year() + "-12-31T23:00:00Z").Value;
 
-        if (endOfYear < to)
+        if (endOfYear < possibleEnd)
             return endOfYear;
 
-        return to;
+        return possibleEnd;
     }
 }

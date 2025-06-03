@@ -64,6 +64,7 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
     private async Task<RequestYearlyMeasurementsAcceptedV1> GetMessagesAsync(RequestYearlyMeasurementsInputV1 orchestrationInstanceInput)
     {
         // TODO: Correct this, when we get the periods from elmark.
+        // See https://app.zenhub.com/workspaces/mosaic-60a6105157304f00119be86e/issues/gh/energinet-datahub/team-mosaic/801
         var now = _clock.GetCurrentInstant();
         var measurementsQuery = new GetAggregateByPeriodQuery(
             MeteringPointIds: new List<string>() { orchestrationInstanceInput.MeteringPointId },

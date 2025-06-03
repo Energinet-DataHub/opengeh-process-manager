@@ -26,7 +26,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensi
 
 public static class MeasurementsClientApiWireMockExtensions
 {
-    public const string RoutePrefix = "/v4/measurements/aggregatedByPeriod";
+    public const string RoutePrefix = "/v5/measurements/aggregatedByPeriod";
 
     public static WireMockServer MockGetAggregatedByYearForPeriodHttpResponse(
         this WireMockServer server,
@@ -59,14 +59,16 @@ public static class MeasurementsClientApiWireMockExtensions
         Instant from,
         Instant to)
     {
-        var data =
-            "{ \"MeasurementAggregations\": ["
-            + "   { \"MeteringPoint\" :"
-            + "   {"
-            + "     \"Id\" : \"123456789012345678\""
-            + "   },"
-            + "   \"PointAggregationGroups\" : {";
-
+        var data = """
+                   {
+                     "MeasurementAggregations": [
+                     {
+                         "MeteringPoint": {
+                             "Id": "{meteringPointId}"
+                         },
+                         "PointAggregationGroups": {
+                   """;
+        data = data.Replace("{meteringPointId}", meteringPointId);
         data += WritePointAggregationGroups(meteringPointId, from, to);
         data += "}}]}";
 

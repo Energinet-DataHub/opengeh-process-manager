@@ -1,5 +1,8 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.3.4
+
+- Update `RequestYearlyMeasurementsAcceptedV1` such that it contains a list of `AggregatedMeasurement`.
 ## Version 2.3.3
 
 - Update `RequestYearlyMeasurementsAcceptedV1` with `MeteringPointId`

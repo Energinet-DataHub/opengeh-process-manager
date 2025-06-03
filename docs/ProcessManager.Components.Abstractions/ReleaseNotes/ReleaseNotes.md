@@ -2,7 +2,8 @@
 
 ## Version 2.0.7
 
-- No Resolution 232121
+- Update `Resolution` such that it contains a yearly resolution.
+
 ## Version 2.0.6
 
 - No functional changes.

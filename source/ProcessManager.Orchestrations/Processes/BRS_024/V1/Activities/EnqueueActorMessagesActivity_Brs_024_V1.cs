@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Measurements.Abstractions.Api.Models;
 using Energinet.DataHub.Measurements.Abstractions.Api.Queries;
 using Energinet.DataHub.Measurements.Client;
@@ -52,15 +53,15 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
 
         var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestYearlyMeasurementsInputV1>();
 
-        var messages = await GetMessagesAsync(orchestrationInstanceInput).ConfigureAwait(false);
+        var message = await GetMessagesAsync(orchestrationInstanceInput).ConfigureAwait(false);
 
         await EnqueueActorMessagesAsync(
             orchestrationInstance.Lifecycle.CreatedBy.Value,
             input,
-            messages).ConfigureAwait(false);
+            message).ConfigureAwait(false);
     }
 
-    private async Task<IEnumerable<RequestYearlyMeasurementsAcceptedV1>> GetMessagesAsync(RequestYearlyMeasurementsInputV1 orchestrationInstanceInput)
+    private async Task<RequestYearlyMeasurementsAcceptedV1> GetMessagesAsync(RequestYearlyMeasurementsInputV1 orchestrationInstanceInput)
     {
         // TODO: Correct this, when we get the periods from elmark.
         var now = _clock.GetCurrentInstant();
@@ -86,43 +87,18 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
         // I have no idea how we can utilize this. Hence I will ignore the values of the keys.
         var keys = measurement.PointAggregationGroups.Keys.ToList();
 
-        // Each key will be a message, since the resolution may change.
-        var messages = keys.Select(
-            key => GenerateMessage(
-                measurement.PointAggregationGroups[key],
-                orchestrationInstanceInput)).ToList();
-
-        var hej = keys.Select(
+        var aggregatedMeasurements = keys.Select(
             key =>
-                CreateAggregatedMeasurement(measurement.PointAggregationGroups[key]));
-        // before returning the messages we could try to concatenate them.
-        // That is, if, for two messages x and y we have the following conditions:
-        // x.to == y.from,
-        // x.resolution == y.resolution,
-        // Then we can concatenate the points of x and y into a single message.
-        // Where to is y.to,
-        // from is x.from.
-        // and points are x.points.Concat(y.points). (Where we update the position of y.points to be after x.points).
-        // Before we consider this, we should be more confident in the return data from the measurements client.
-        return messages;
-    }
+                CreateAggregatedMeasurement(measurement.PointAggregationGroups[key])).ToList();
 
-    private AggregatedMeasurement CreateAggregatedMeasurement(PointAggregationGroup grouping)
-    {
-        // This is valid due to the datastructure of the PointAggregationGroup.
-        // Since if the year changes, then we will have a new PointAggregationGroup.
-        var point = grouping.PointAggregations.Single();
-        return new AggregatedMeasurement(
-            StartDateTime: grouping.From.ToDateTimeOffset(),
-            EndDateTime: grouping.To.ToDateTimeOffset(),
-            Resolution: MapResolution(grouping.Resolution),
-            EnergyQuantity: point.Quantity,
-            QuantityQuality: MapQuality(point.Quality));
+        return GenerateMessage(
+            orchestrationInstanceInput,
+            aggregatedMeasurements);
     }
 
     private RequestYearlyMeasurementsAcceptedV1 GenerateMessage(
-        PointAggregationGroup pointAggregationGroup,
-        RequestYearlyMeasurementsInputV1 input)
+        RequestYearlyMeasurementsInputV1 input,
+        IReadOnlyCollection<AggregatedMeasurement> aggregatedMeasurements)
     {
         return new RequestYearlyMeasurementsAcceptedV1(
             OriginalActorMessageId: input.ActorMessageId,
@@ -130,14 +106,25 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
             MeteringPointId: input.MeteringPointId,
             MeteringPointType: MeteringPointType.Consumption,   // Elmark data
             ProductNumber: "123",                               // Elmark data?
-            StartDateTime: pointAggregationGroup.From.ToDateTimeOffset(),
-            EndDateTime: pointAggregationGroup.To.ToDateTimeOffset(),
             ActorNumber: ActorNumber.Create(input.ActorNumber),
             ActorRole: ActorRole.FromName(input.ActorRole),
-            Resolution: MapResolution(pointAggregationGroup.Resolution),
             MeasureUnit: MeasurementUnit.Kilowatt,              // Elmark data
-            Measurements: MapPoints(pointAggregationGroup),
+            AggregatedMeasurements: aggregatedMeasurements,
             GridAreaCode: "804");
+    }
+
+    private AggregatedMeasurement CreateAggregatedMeasurement(PointAggregationGroup grouping)
+    {
+        // Single() is valid due to the data structure of the PointAggregationGroup.
+        // If the year changes, then we will have a new PointAggregationGroup.
+        // Since the yaar is part of the key in the PointAggregationGroups dictionary,
+        var point = grouping.PointAggregations.Single();
+        return new AggregatedMeasurement(
+            StartDateTime: grouping.From.ToDateTimeOffset(),
+            EndDateTime: grouping.To.ToDateTimeOffset(),
+            Resolution: MapResolution(grouping.Resolution),
+            EnergyQuantity: point.Quantity,
+            QuantityQuality: MapQuality(point.Quality));
     }
 
     private Quality MapQuality(Energinet.DataHub.Measurements.Abstractions.Api.Models.Quality quality)
@@ -165,33 +152,17 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
         };
     }
 
-    private List<Abstractions.Processes.BRS_024.V1.Model.Measurements> MapPoints(PointAggregationGroup pointAggregationGroup)
-    {
-        var points = new List<Abstractions.Processes.BRS_024.V1.Model.Measurements>();
-        for (var i = 0; i < pointAggregationGroup.PointAggregations.Count; i++)
-        {
-            var point = pointAggregationGroup.PointAggregations[i];
-            points.Add(
-                new Abstractions.Processes.BRS_024.V1.Model.AggregatedMeasurement(
-                    Position: i + 1, // Position is 1-based
-                    EnergyQuantity: point.Quantity,
-                    QuantityQuality: MapQuality(point.Quality)));
-        }
-
-        return points;
-    }
-
     private Task EnqueueActorMessagesAsync(
         OperatingIdentity orchestrationCreatedBy,
         ActivityInput input,
-        IEnumerable<RequestYearlyMeasurementsAcceptedV1> messages)
+        RequestYearlyMeasurementsAcceptedV1 message)
     {
         return _enqueueActorMessagesClient.EnqueueAsync(
             orchestration: Orchestration_Brs_024_V1.UniqueName,
             orchestrationInstanceId: input.InstanceId.Value,
             orchestrationStartedBy: orchestrationCreatedBy.MapToDto(),
             idempotencyKey: input.IdempotencyKey,
-            data: messages.First());
+            data: message);
     }
 
     public record ActivityInput(

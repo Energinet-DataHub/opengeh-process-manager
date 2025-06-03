@@ -63,8 +63,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
 
         // Assert
         await act.Should()
-            .ThrowAsync<InvalidOperationException>()
-            .WithMessage("Sequence contains no elements.");
+            .ThrowAsync<NullReferenceException>()
+            .WithMessage($"{nameof(OrchestrationInstance)} not found*");
     }
 
     [Fact]

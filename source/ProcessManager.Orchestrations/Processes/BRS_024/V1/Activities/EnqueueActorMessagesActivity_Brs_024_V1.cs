@@ -144,7 +144,7 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
             Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Hourly => Resolution.Hourly,
             Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Daily => Resolution.Daily,
             Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Monthly => Resolution.Monthly,
-            Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Yearly => throw new ArgumentOutOfRangeException(nameof(quality), $"Unknown quality: {quality}"),
+            Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Yearly => Resolution.Yearly,
             _ => throw new ArgumentOutOfRangeException(nameof(quality), $"Unknown quality: {quality}"),
         };
     }

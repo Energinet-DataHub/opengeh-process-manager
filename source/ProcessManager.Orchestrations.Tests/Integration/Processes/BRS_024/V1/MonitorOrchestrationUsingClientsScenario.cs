@@ -72,7 +72,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var meteringPointId = "123456789012345678";
         _fixture.OrchestrationsAppManager.MockServer.MockGetAggregatedByYearForPeriodHttpResponse(
             meteringPointId: meteringPointId,
-            from: now.PlusDays(365),
+            from: now.PlusDays(-365),
             to: now)
 ;
         // Step 1: Start new orchestration instance

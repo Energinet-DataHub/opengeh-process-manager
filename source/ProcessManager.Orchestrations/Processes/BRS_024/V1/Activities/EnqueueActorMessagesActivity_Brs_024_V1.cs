@@ -67,7 +67,7 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
             MeteringPointIds: new List<string>() { orchestrationInstanceInput.MeteringPointId },
             To: now,
             From: now.Minus(Duration.FromDays(365)),
-            Aggregation: Aggregation.Quarter);
+            Aggregation: Aggregation.Year);
 
         var measurements = (await _measurementsClient.GetAggregatedByPeriodAsync(measurementsQuery)
             .ConfigureAwait(false))

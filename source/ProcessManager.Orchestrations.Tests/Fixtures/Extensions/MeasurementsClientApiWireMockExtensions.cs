@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Net;
+using System.Text.Json;
 using Energinet.DataHub.Measurements.Abstractions.Api.Models;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Net.Http.Headers;
@@ -26,7 +27,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensi
 
 public static class MeasurementsClientApiWireMockExtensions
 {
-    public const string RoutePrefix = "v4/measurements/aggregatedByPeriod";
+    public const string RoutePrefix = "/v4/measurements/aggregatedByPeriod";
 
     public static WireMockServer MockGetAggregatedByYearForPeriodHttpResponse(
         this WireMockServer server,
@@ -37,10 +38,10 @@ public static class MeasurementsClientApiWireMockExtensions
         var request = Request
             .Create()
             .WithPath(RoutePrefix)
-            .WithParam("meteringPointIds", meteringPointId)
-            .WithParam("from", from.ToString())
-            .WithParam("to", to.ToString())
-            .WithParam("Aggregation", Aggregation.Year.ToString())
+            // .WithParam("meteringPointIds", meteringPointId)
+            // .WithParam("from", from.ToString())
+            // .WithParam("to", to.ToString())
+            // .WithParam("Aggregation", Aggregation.Year.ToString())
             .UsingGet();
 
         var response = Response
@@ -56,32 +57,6 @@ public static class MeasurementsClientApiWireMockExtensions
         return server;
     }
 
-    // private static string ResponseForYearlyAggregation(
-    //     string meteringPointId,
-    //     Instant from,
-    //     Instant to)
-    // {
-    //     return new MeasurementAggregationByPeriodDto(
-    //         MeteringPoint: new MeteringPoint(meteringPointId),
-    //         new Dictionary<string, PointAggregationGroup>()
-    //         {
-    //             {
-    //                 meteringPointId, // What's the key?
-    //                 new PointAggregationGroup(
-    //                     From: from,
-    //                     To: to,
-    //                     Resolution: Resolution.QuarterHourly,
-    //                     PointAggregations: new List<PointAggregation>()
-    //                         {
-    //                             new PointAggregation(
-    //                             From: from,
-    //                             To: to,
-    //                             Quantity: 100m,
-    //                             Quality: Quality.Calculated),
-    //                         })
-    //             },
-    //         }).ToString();
-    // }
     private static string ResponseForYearlyAggregation(
         string meteringPointId,
         Instant from,
@@ -91,16 +66,16 @@ public static class MeasurementsClientApiWireMockExtensions
 
         if (numberOfGroupingsByYear == 1)
         {
-            return new MeasurementAggregationByPeriodDto(
+            var response = new MeasurementAggregationByPeriodDto(
                 MeteringPoint: new MeteringPoint(meteringPointId),
                 new Dictionary<string, PointAggregationGroup>()
                 {
                     {
-                        meteringPointId + from.Year() + Resolution.QuarterHourly, // What's the key?
+                        meteringPointId + from.Year() + Resolution.Yearly, // What's the key?
                         new PointAggregationGroup(
                             From: from,
                             To: to.PlusDays(-1), // Note the plus, is this possible?
-                            Resolution: Resolution.QuarterHourly,
+                            Resolution: Resolution.Yearly,
                             PointAggregations: new List<PointAggregation>()
                                 {
                                     new PointAggregation(
@@ -111,7 +86,7 @@ public static class MeasurementsClientApiWireMockExtensions
                                 })
                     },
                     {
-                        meteringPointId + to.PlusDays(-1).Year() + Resolution.Hourly, // What's the key?
+                        meteringPointId + to.PlusDays(-1).Year() + Resolution.Yearly, // What's the key?
                         new PointAggregationGroup(
                             From: to.PlusDays(-1),
                             To: to,
@@ -125,23 +100,24 @@ public static class MeasurementsClientApiWireMockExtensions
                                     Quality: Quality.Calculated),
                                 })
                     },
-                }).ToString();
+                });
+
+            return JsonSerializer.Serialize(response);
         }
 
         var dictionary = new Dictionary<string, PointAggregationGroup>();
         var fromInLoop = from;
-        var toInLoop = to;
 
         for (int i = 0; i < numberOfGroupingsByYear; i++)
         {
-            var endOfPeriod = GetEndOfPeriod(fromInLoop, toInLoop);
+            var endOfPeriod = GetEndOfPeriod(fromInLoop, to);
 
             dictionary.Add(
-                meteringPointId + fromInLoop.Year() + Resolution.QuarterHourly,
+                meteringPointId + fromInLoop.Year() + Resolution.Yearly,
                 new PointAggregationGroup(
                     From: fromInLoop,
                     To: endOfPeriod,
-                    Resolution: Resolution.QuarterHourly,
+                    Resolution: Resolution.Yearly,
                     PointAggregations: new List<PointAggregation>()
                     {
                         new PointAggregation(
@@ -153,9 +129,12 @@ public static class MeasurementsClientApiWireMockExtensions
             fromInLoop = endOfPeriod;
         }
 
-        return new MeasurementAggregationByPeriodDto(
+        var responseWithMultipleYears = new MeasurementAggregationByPeriodDto(
             MeteringPoint: new MeteringPoint(meteringPointId),
-            dictionary).ToString();
+            dictionary);
+
+        var result = "{MeasurementAggregations:" + JsonSerializer.Serialize(responseWithMultipleYears) + "}";
+        return result;
     }
 
     private static Instant GetEndOfPeriod(Instant from, Instant to)

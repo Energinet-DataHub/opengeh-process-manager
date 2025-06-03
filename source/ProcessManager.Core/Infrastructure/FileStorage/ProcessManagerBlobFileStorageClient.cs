@@ -19,7 +19,7 @@ using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.FileStorage;
 
-public class ProcessManagerBlobFileStorageClient(
+internal class ProcessManagerBlobFileStorageClient(
     IAzureClientFactory<BlobServiceClient> blobServiceClientFactory)
         : IFileStorageClient
 {
@@ -30,9 +30,6 @@ public class ProcessManagerBlobFileStorageClient(
     /// <inheritdoc />
     public Task UploadAsync(IFileStorageReference reference, Stream stream)
     {
-        ArgumentNullException.ThrowIfNull(stream);
-        ArgumentNullException.ThrowIfNull(reference);
-
         var container = _blobServiceClient.GetBlobContainerClient(reference.Category);
         stream.Position = 0; // Make sure we read the entire stream
 

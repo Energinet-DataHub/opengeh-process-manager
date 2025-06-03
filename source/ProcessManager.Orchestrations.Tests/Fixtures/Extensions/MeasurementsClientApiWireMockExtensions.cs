@@ -27,7 +27,7 @@ public static class MeasurementsClientApiWireMockExtensions
 {
     public const string RoutePrefix = "v4/measurements/aggregatedByPeriod";
 
-    public static WireMockServer MockGetAggregatedByPeriodHttpResponse(
+    public static WireMockServer MockGetAggregatedByYearForPeriodHttpResponse(
         this WireMockServer server,
         string meteringPointId,
         Instant from,
@@ -39,13 +39,14 @@ public static class MeasurementsClientApiWireMockExtensions
             .WithParam("meteringPointIds", meteringPointId)
             .WithParam("from", from.ToString())
             .WithParam("to", to.ToString())
+            .WithParam("Aggregation", Aggregation.Year.ToString())
             .UsingGet();
 
         var response = Response
             .Create()
             .WithStatusCode(HttpStatusCode.OK)
             .WithHeader(HeaderNames.ContentType, "application/json")
-            .WithBody(DataForResponse(meteringPointId, from, to));
+            .WithBody(ResponseForYearlyAggregation(meteringPointId, from, to));
 
         server
             .Given(request)
@@ -54,7 +55,7 @@ public static class MeasurementsClientApiWireMockExtensions
         return server;
     }
 
-    private static string DataForResponse(
+    private static string ResponseForYearlyAggregation(
         string meteringPointId,
         Instant from,
         Instant to)
@@ -81,7 +82,7 @@ public static class MeasurementsClientApiWireMockExtensions
             }).ToString();
     }
 
-    private static string DataForResponse2(
+    private static string ResponseForYearlyAggregation2(
         string meteringPointId,
         Instant from,
         Instant to)
@@ -94,7 +95,7 @@ public static class MeasurementsClientApiWireMockExtensions
             new Dictionary<string, PointAggregationGroup>()
             {
                 {
-                    meteringPointId, // What's the key?
+                    meteringPointId + from.Year() + Resolution.QuarterHourly, // What's the key?
                     new PointAggregationGroup(
                         From: from,
                         To: to.PlusDays(-1), // Note the plus, is this possible?
@@ -109,11 +110,11 @@ public static class MeasurementsClientApiWireMockExtensions
                             })
                 },
                 {
-                    meteringPointId, // What's the key?
+                    meteringPointId + to.PlusDays(-1).Year() + Resolution.Hourly, // What's the key?
                     new PointAggregationGroup(
                         From: to.PlusDays(-1),
                         To: to,
-                        Resolution: Resolution.QuarterHourly,
+                        Resolution: Resolution.Hourly,
                         PointAggregations: new List<PointAggregation>()
                             {
                                 new PointAggregation(

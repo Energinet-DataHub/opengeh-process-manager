@@ -23,7 +23,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_024.V1.BusinessValidation;
 
-public class RequestMeasurementsBusinessValidationTests
+public class RequestYearlyMeasurementsBusinessValidationTests
 {
     private readonly BusinessValidator<RequestYearlyMeasurementsBusinessValidatedDto> _sut;
 

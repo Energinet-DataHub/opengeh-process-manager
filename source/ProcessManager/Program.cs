@@ -48,7 +48,7 @@ var host = new HostBuilder()
         services.AddNotifyOrchestrationInstance();
 
         // ProcessManager
-        services.AddProcessManagerCore(context.Configuration);
+        services.AddProcessManagerCore();
 
         // Handlers
         services.AddScoped<RecurringPlannerHandler>();

@@ -39,13 +39,13 @@ public record SendMeasurementsInputFileStorageReference : IFileStorageReference
     /// </summary>
     public string Category => ContainerName;
 
-    public static SendMeasurementsInputFileStorageReference Create(Instant createdAt, ActorNumber createdBy, TransactionId transactionId)
+    public static SendMeasurementsInputFileStorageReference Create(Instant createdAt, ActorNumber createdBy, SendMeasurementsInstanceId id)
     {
-        // "-" is not allowed in Azure Blob Storage paths, so we remove it from the transaction ID.
-        var sanitizedTransactionId = transactionId.Value.Replace("-", string.Empty);
+        // "-" is not allowed in Azure Blob Storage paths, so we remove it from the instance id.
+        var sanitizedId = id.Value.ToString("N");
 
         var dateTimeUtc = createdAt.ToDateTimeUtc();
-        var path = $"{createdBy.Value}/{dateTimeUtc.Year:0000}/{dateTimeUtc.Month:00}/{dateTimeUtc.Day:00}/{sanitizedTransactionId}";
+        var path = $"{createdBy.Value}/{dateTimeUtc.Year:0000}/{dateTimeUtc.Month:00}/{dateTimeUtc.Day:00}/{sanitizedId}";
 
         return new SendMeasurementsInputFileStorageReference(path);
     }

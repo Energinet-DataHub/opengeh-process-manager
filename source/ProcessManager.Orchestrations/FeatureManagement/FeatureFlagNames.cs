@@ -37,4 +37,6 @@ internal static class FeatureFlagNames
     public const string SectionName = "FeatureManagement";
 
     // Add feature flag names here...
+
+    public const string EnableAdditionalRecipients = "PG29-Additional-recipients";
 }

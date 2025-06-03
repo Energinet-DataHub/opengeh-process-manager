@@ -31,7 +31,6 @@ public sealed class ConstantAdditionalMeasurementsRecipientsProvider : IAddition
 
     private readonly Dictionary<MeteringPointId, List<Actor>> _selectedSource;
 
-    // TODO: Release flag.
     public ConstantAdditionalMeasurementsRecipientsProvider(AdditionalRecipientConstantSourceSelector sourceSelector)
     {
         _selectedSource = sourceSelector switch

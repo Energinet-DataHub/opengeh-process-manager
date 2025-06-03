@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
-using Energinet.DataHub.ElectricityMarket.Integration;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;

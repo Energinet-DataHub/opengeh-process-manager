@@ -25,12 +25,14 @@ using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using NodaTime;
 using OrchestrationInstanceLifecycleState =
     Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
@@ -49,7 +51,9 @@ public class StartForwardMeteredDataHandlerV1(
     IMeasurementsClient measurementsClient,
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
     IMeteringPointMasterDataProvider meteringPointMasterDataProvider,
+    IAdditionalMeasurementsRecipientsProvider additionalMeasurementsRecipientsProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
+    FeatureManager featureManager,
     DelegationProvider delegationProvider,
     TelemetryClient telemetryClient)
     : StartOrchestrationInstanceHandlerBase<ForwardMeteredDataInputV1>(logger)
@@ -60,7 +64,9 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IMeasurementsClient _measurementsClient = measurementsClient;
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
     private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
+    private readonly IAdditionalMeasurementsRecipientsProvider _additionalMeasurementsRecipientsProvider = additionalMeasurementsRecipientsProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+    private readonly FeatureManager _featureManager = featureManager;
     private readonly DelegationProvider _delegationProvider = delegationProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 
@@ -113,9 +119,17 @@ public class StartForwardMeteredDataHandlerV1(
                 .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 
+            var additionalRecipients = await _featureManager.AreAdditionalRecipientsEnabled().ConfigureAwait(false)
+                ? await _additionalMeasurementsRecipientsProvider
+                    .GetAdditionalRecipients(new Components.MeteringPointMasterData.Model.MeteringPointId(input.MeteringPointId!))
+                    .ToListAsync()
+                    .ConfigureAwait(false)
+                : [];
+
             orchestrationInstance.CustomState.SetFromInstance(
                 new ForwardMeteredDataCustomStateV2(
-                    HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
+                    HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData),
+                    AdditionalRecipients: additionalRecipients));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }

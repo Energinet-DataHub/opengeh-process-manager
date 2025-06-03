@@ -12,15 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Extensions.Options;
+namespace Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 
-/// <summary>
-/// TODO: Unsure if best place, as one can argue this should be under each process' options.
-/// This is however a "global" setting, as many procs will use the same setting.
-/// </summary>
-public sealed class AdditionalRecipientsSourceOptions
+public sealed class AdditionalRecipientsOptions
 {
-    public const string SectionName = "AdditionalRecipientsSource";
+    public const string SectionName = "AdditionalRecipients";
 
-    public string? Source { get; set; }
+    public string? Environment { get; set; }
 }

@@ -53,7 +53,7 @@ public class StartForwardMeteredDataHandlerV1(
     IMeteringPointMasterDataProvider meteringPointMasterDataProvider,
     IAdditionalMeasurementsRecipientsProvider additionalMeasurementsRecipientsProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
-    FeatureManager featureManager,
+    IFeatureManager featureManager,
     DelegationProvider delegationProvider,
     TelemetryClient telemetryClient)
     : StartOrchestrationInstanceHandlerBase<ForwardMeteredDataInputV1>(logger)
@@ -66,7 +66,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
     private readonly IAdditionalMeasurementsRecipientsProvider _additionalMeasurementsRecipientsProvider = additionalMeasurementsRecipientsProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
-    private readonly FeatureManager _featureManager = featureManager;
+    private readonly IFeatureManager _featureManager = featureManager;
     private readonly DelegationProvider _delegationProvider = delegationProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
 

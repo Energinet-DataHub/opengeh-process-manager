@@ -25,6 +25,7 @@ using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -243,7 +244,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     public async Task
         Given_MeteringPointWithAdditionalRecipients_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
-        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([new($"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}", "true")]);
+        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges(
+        [
+            new($"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}", "true"),
+            new($"{AdditionalRecipientsOptions.SectionName}__{nameof(AdditionalRecipientsOptions.Environment)}", "Development")
+        ]);
 
         // Arrange
         SetupElectricityMarketWireMocking();
@@ -333,7 +338,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData)
             ],
-            AdditionalRecipients: []);
+            AdditionalRecipients:
+            [
+                Actor.From("5790000432000", "SystemOperator")
+            ]);
 
         terminatedOrchestrationInstance.CustomState.Should()
             .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));

@@ -18,6 +18,11 @@ namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 
 public sealed class ConstantAdditionalMeasurementsRecipientsProvider : IAdditionalMeasurementsRecipientsProvider
 {
+    private static readonly Dictionary<MeteringPointId, List<Actor>> _developmentSource = new()
+    {
+        { new("571313101700011887"), [Actor.From("5790000432000", "SystemOperator")] },
+    };
+
     private static readonly Dictionary<MeteringPointId, List<Actor>> _testSource = new()
     {
         { new("570715000001542000"), [Actor.From("5790000432000", "SystemOperator")] },
@@ -35,6 +40,7 @@ public sealed class ConstantAdditionalMeasurementsRecipientsProvider : IAddition
     {
         _selectedSource = sourceSelector switch
         {
+            AdditionalRecipientConstantSourceSelector.Development => _developmentSource,
             AdditionalRecipientConstantSourceSelector.Test => _testSource,
             AdditionalRecipientConstantSourceSelector.Preproduction => _preproductionSource,
             AdditionalRecipientConstantSourceSelector.Production => _productionSource,

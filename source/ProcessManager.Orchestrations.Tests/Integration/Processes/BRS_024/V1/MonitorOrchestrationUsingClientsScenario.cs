@@ -259,7 +259,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var request = Request
             .Create()
             .WithPath("/api/get-metering-point-master-data")
-            .WithBody(_ => true)
             .UsingPost();
 
         var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData

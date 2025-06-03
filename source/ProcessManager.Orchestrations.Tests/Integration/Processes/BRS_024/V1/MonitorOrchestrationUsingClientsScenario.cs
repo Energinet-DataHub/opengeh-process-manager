@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Net;
-using System.Text.Json;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -28,11 +26,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attri
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Net.Http.Headers;
 using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
-using WireMock.RequestBuilders;
-using WireMock.ResponseBuilders;
 using Xunit.Abstractions;
 
 using ElectricityMarketModels = Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;

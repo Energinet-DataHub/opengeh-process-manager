@@ -21,7 +21,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orche
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
-using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration;
 

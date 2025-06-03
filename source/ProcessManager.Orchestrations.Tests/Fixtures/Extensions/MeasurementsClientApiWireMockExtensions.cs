@@ -38,10 +38,8 @@ public static class MeasurementsClientApiWireMockExtensions
         var request = Request
             .Create()
             .WithPath(RoutePrefix)
-            // .WithParam("meteringPointIds", meteringPointId)
-            // .WithParam("from", from.ToString())
-            // .WithParam("to", to.ToString())
-            // .WithParam("Aggregation", Aggregation.Year.ToString())
+            .WithParam("MeteringPointIds", meteringPointId)
+            .WithParam("Aggregation", Aggregation.Year.ToString())
             .UsingGet();
 
         var response = Response
@@ -62,37 +60,7 @@ public static class MeasurementsClientApiWireMockExtensions
         Instant from,
         Instant to)
     {
-        var numberOfGroupingsByYear = to.Year() - from.Year() + 1;
-
-        var dictionary = new Dictionary<string, PointAggregationGroup>();
-        var fromInLoop = from;
-
-        for (int i = 0; i < numberOfGroupingsByYear; i++)
-        {
-            var endOfPeriod = GetEndOfPeriod(fromInLoop, to);
-
-            dictionary.Add(
-                meteringPointId + (from.Year() + i) + Resolution.Yearly,
-                new PointAggregationGroup(
-                    From: fromInLoop,
-                    To: endOfPeriod,
-                    Resolution: Resolution.Yearly,
-                    PointAggregations: new List<PointAggregation>()
-                    {
-                        new PointAggregation(
-                            From: fromInLoop,
-                            To: endOfPeriod,
-                            Quantity: 100m + i,
-                            Quality: Quality.Calculated),
-                    }));
-            fromInLoop = endOfPeriod;
-        }
-
-        var responseWithMultipleYears = new MeasurementAggregationByPeriodDto(
-            MeteringPoint: new MeteringPoint(meteringPointId),
-            dictionary);
-
-        var hej123 =
+        var data =
             "{ \"MeasurementAggregations\": ["
             + "   { \"MeteringPoint\" :"
             + "   {"
@@ -100,11 +68,10 @@ public static class MeasurementsClientApiWireMockExtensions
             + "   },"
             + "   \"PointAggregationGroups\" : {";
 
-        hej123 += WritePointAggregationGroups(meteringPointId, from, to);
-        hej123 += "}}]}";
+        data += WritePointAggregationGroups(meteringPointId, from, to);
+        data += "}}]}";
 
-        var result = "{ \"MeasurementAggregations\": [" + JsonSerializer.Serialize(responseWithMultipleYears) + "]}";
-        return hej123;
+        return data;
     }
 
     private static string WritePointAggregationGroups(string meteringPointId, Instant from, Instant to)

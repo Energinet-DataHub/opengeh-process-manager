@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Net;
-using System.Text.Json;
 using Energinet.DataHub.Measurements.Abstractions.Api.Models;
 using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using Microsoft.Net.Http.Headers;

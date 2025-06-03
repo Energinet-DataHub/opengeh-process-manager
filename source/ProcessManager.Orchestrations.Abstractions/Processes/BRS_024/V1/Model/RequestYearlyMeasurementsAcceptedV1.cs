@@ -24,18 +24,16 @@ public record RequestYearlyMeasurementsAcceptedV1(
     string MeteringPointId,
     MeteringPointType MeteringPointType,
     string ProductNumber,
-    DateTimeOffset RegistrationDateTime,
-    DateTimeOffset StartDateTime,
-    DateTimeOffset EndDateTime,
     ActorNumber ActorNumber,
     ActorRole ActorRole,
-    Resolution Resolution,
     MeasurementUnit MeasureUnit,
-    IReadOnlyCollection<AcceptedMeteredData> Measurements,
+    IReadOnlyCollection<AggregatedMeasurement> AggregatedMeasurements,
     string GridAreaCode)
     : IEnqueueAcceptedDataDto;
 
-public record AcceptedMeteredData(
-    int Position,
+public record AggregatedMeasurement(
+    DateTimeOffset StartDateTime,
+    DateTimeOffset EndDateTime,
+    Resolution Resolution,
     decimal? EnergyQuantity,
     Quality QuantityQuality);

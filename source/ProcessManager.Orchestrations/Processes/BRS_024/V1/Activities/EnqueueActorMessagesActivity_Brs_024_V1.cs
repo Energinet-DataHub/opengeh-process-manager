@@ -25,6 +25,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orche
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
+using Aggregation = Energinet.DataHub.Measurements.Abstractions.Api.Models.Aggregation;
 using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 
@@ -91,6 +92,9 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
                 measurement.PointAggregationGroups[key],
                 orchestrationInstanceInput)).ToList();
 
+        var hej = keys.Select(
+            key =>
+                CreateAggregatedMeasurement(measurement.PointAggregationGroups[key]));
         // before returning the messages we could try to concatenate them.
         // That is, if, for two messages x and y we have the following conditions:
         // x.to == y.from,
@@ -103,6 +107,19 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
         return messages;
     }
 
+    private AggregatedMeasurement CreateAggregatedMeasurement(PointAggregationGroup grouping)
+    {
+        // This is valid due to the datastructure of the PointAggregationGroup.
+        // Since if the year changes, then we will have a new PointAggregationGroup.
+        var point = grouping.PointAggregations.Single();
+        return new AggregatedMeasurement(
+            StartDateTime: grouping.From.ToDateTimeOffset(),
+            EndDateTime: grouping.To.ToDateTimeOffset(),
+            Resolution: MapResolution(grouping.Resolution),
+            EnergyQuantity: point.Quantity,
+            QuantityQuality: MapQuality(point.Quality));
+    }
+
     private RequestYearlyMeasurementsAcceptedV1 GenerateMessage(
         PointAggregationGroup pointAggregationGroup,
         RequestYearlyMeasurementsInputV1 input)
@@ -113,7 +130,6 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
             MeteringPointId: input.MeteringPointId,
             MeteringPointType: MeteringPointType.Consumption,   // Elmark data
             ProductNumber: "123",                               // Elmark data?
-            RegistrationDateTime: DateTimeOffset.Parse("2050-01-01T12:00:00.0000000+01:00"), // TODO: What is this?
             StartDateTime: pointAggregationGroup.From.ToDateTimeOffset(),
             EndDateTime: pointAggregationGroup.To.ToDateTimeOffset(),
             ActorNumber: ActorNumber.Create(input.ActorNumber),
@@ -149,14 +165,14 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
         };
     }
 
-    private List<AcceptedMeteredData> MapPoints(PointAggregationGroup pointAggregationGroup)
+    private List<Abstractions.Processes.BRS_024.V1.Model.Measurements> MapPoints(PointAggregationGroup pointAggregationGroup)
     {
-        var points = new List<AcceptedMeteredData>();
+        var points = new List<Abstractions.Processes.BRS_024.V1.Model.Measurements>();
         for (var i = 0; i < pointAggregationGroup.PointAggregations.Count; i++)
         {
             var point = pointAggregationGroup.PointAggregations[i];
             points.Add(
-                new AcceptedMeteredData(
+                new Abstractions.Processes.BRS_024.V1.Model.AggregatedMeasurement(
                     Position: i + 1, // Position is 1-based
                     EnergyQuantity: point.Quantity,
                     QuantityQuality: MapQuality(point.Quality)));

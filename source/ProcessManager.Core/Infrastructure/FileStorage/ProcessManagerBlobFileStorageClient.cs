@@ -19,6 +19,9 @@ using Microsoft.Extensions.Azure;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.FileStorage;
 
+/// <summary>
+/// An implementation of <see cref="IFileStorageClient"/> that uses Azure Blob Storage for file storage.
+/// </summary>
 internal class ProcessManagerBlobFileStorageClient(
     IAzureClientFactory<BlobServiceClient> blobServiceClientFactory)
         : IFileStorageClient

@@ -62,7 +62,7 @@ public static class ProcessManagerCoreServiceProviderFactory
 
         // Process Manager
         services.AddScoped<IConfiguration>(_ => configuration);
-        services.AddProcessManagerCore();
+        services.AddProcessManagerCore(configuration);
         // => Additional registration to ensure we can keep the database consistent by adding orchestration descriptions
         services.AddTransient<IOrchestrationRegister, OrchestrationRegister>();
 

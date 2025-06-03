@@ -54,12 +54,13 @@ public static class ProcessManagerExtensions
     /// to manage and monitor orchestrations.
     /// Should be used from the Process Manager API / Scheduler application.
     /// </summary>
-    public static IServiceCollection AddProcessManagerCore(this IServiceCollection services)
+    public static IServiceCollection AddProcessManagerCore(this IServiceCollection services, IConfiguration configuration)
     {
         // Process Manager Core
         services
             .AddProcessManagerOptions()
-            .AddProcessManagerDatabase();
+            .AddProcessManagerDatabase()
+            .AddProcessManagerFileStorage(configuration);
 
         // DurableClient connected to Task Hub
         services.AddTaskHubStorage();

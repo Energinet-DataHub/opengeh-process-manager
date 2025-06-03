@@ -42,7 +42,7 @@ public class RequestYearlyMeasurementsBusinessValidationTests
     }
 
     [Fact]
-    public async Task Given_ValidForwardMeteredDataBusinessValidatedDto_When_Validate_Then_NoValidationError()
+    public async Task Given_ValidRequestYearlyMeasurementsBusinessValidatedDto_When_Validate_Then_NoValidationError()
     {
         var input = new RequestYearlyMeasurementsInputV1Builder()
             .Build();

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.Core.FunctionApp.TestCommon.Azurite;
-using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 
@@ -24,8 +23,5 @@ namespace Energinet.DataHub.ProcessManager.Core.Tests.Fixtures;
 /// xUnit documentation of collection fixtures:
 ///  * https://xunit.net/docs/shared-context#collection-fixture
 /// </summary>
-[CollectionDefinition(CollectionName, DisableParallelization = true)]
-public class ProcessManagerCoreAzuriteCollection : ICollectionFixture<ProcessManagerCoreAzuriteFixture>
-{
-    public const string CollectionName = nameof(ProcessManagerCoreAzuriteCollection);
-}
+[CollectionDefinition(nameof(ProcessManagerCoreAzuriteCollection), DisableParallelization = true)]
+public class ProcessManagerCoreAzuriteCollection : ICollectionFixture<ProcessManagerCoreAzuriteFixture>;

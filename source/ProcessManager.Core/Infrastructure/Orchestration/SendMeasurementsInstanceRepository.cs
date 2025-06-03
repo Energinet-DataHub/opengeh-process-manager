@@ -22,7 +22,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 
-public class SendMeasurementsInstanceRepository(
+internal class SendMeasurementsInstanceRepository(
     ProcessManagerContext dbContext,
     IFileStorageClient fileStorageClient)
         : ISendMeasurementsInstanceRepository
@@ -36,9 +36,7 @@ public class SendMeasurementsInstanceRepository(
     {
         _dbContext.SendMeasurementsInstances.Add(instance);
 
-        var uploadTask = _fileStorageClient.UploadAsync(instance.FileStorageReference, input);
-
-        return uploadTask;
+        return _fileStorageClient.UploadAsync(instance.FileStorageReference, input);
     }
 
     public async Task<SendMeasurementsInstance> GetAsync(SendMeasurementsInstanceId id)

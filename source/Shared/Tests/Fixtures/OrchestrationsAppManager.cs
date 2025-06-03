@@ -15,7 +15,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Azure.Messaging.ServiceBus.Administration;
-using Azure.Storage.Blobs;
 using Energinet.DataHub.Core.App.Common.Extensions.Options;
 using Energinet.DataHub.Core.Databricks.SqlStatementExecution;
 using Energinet.DataHub.Core.FunctionApp.TestCommon.AppConfiguration;
@@ -29,7 +28,6 @@ using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ElectricityMarket.Integration.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
-using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;

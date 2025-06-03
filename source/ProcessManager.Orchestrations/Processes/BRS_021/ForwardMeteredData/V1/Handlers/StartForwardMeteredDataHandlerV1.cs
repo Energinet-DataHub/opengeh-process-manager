@@ -103,7 +103,7 @@ public class StartForwardMeteredDataHandlerV1(
 
         if (await _featureManager.UseNewSendMeasurementsTable().ConfigureAwait(false))
         {
-            await InitializeSendMeasurementsInstance(
+            await InitializeSendMeasurementsInstanceAsync(
                     actorIdentity.Actor,
                     input,
                     new IdempotencyKey(idempotencyKey),
@@ -253,14 +253,13 @@ public class StartForwardMeteredDataHandlerV1(
     /// Create a Send Measurements instance (if it doesn't already exist), and returns it.
     /// <remarks>If the Send Measurements instance already exists, the existing instance is returned.</remarks>
     /// </summary>
-    private async Task<SendMeasurementsInstance> InitializeSendMeasurementsInstance(
+    private async Task<SendMeasurementsInstance> InitializeSendMeasurementsInstanceAsync(
         Actor actor,
         ForwardMeteredDataInputV1 input,
         IdempotencyKey idempotencyKey,
         TransactionId transactionId,
         string? meteringPointId)
     {
-        // Creates a Send Measurements instance (if it doesn't already exist).
         var instance = await _sendMeasurementsInstanceRepository.GetOrDefaultAsync(idempotencyKey).ConfigureAwait(false);
 
         if (instance == null)
@@ -275,7 +274,6 @@ public class StartForwardMeteredDataHandlerV1(
             using var inputAsStream = new MemoryStream();
             await JsonSerializer.SerializeAsync(inputAsStream, input).ConfigureAwait(false);
 
-            // Must await the AddAsync method to ensure the input is uploaded to the file storage before committing.
             await _sendMeasurementsInstanceRepository.AddAsync(instance, inputAsStream)
                 .ConfigureAwait(false);
 

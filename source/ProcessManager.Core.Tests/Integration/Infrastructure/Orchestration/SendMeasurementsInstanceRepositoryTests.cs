@@ -30,7 +30,7 @@ using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Core.Tests.Integration.Infrastructure.Orchestration;
 
-[Collection(ProcessManagerCoreAzuriteCollection.CollectionName)]
+[Collection(nameof(ProcessManagerCoreAzuriteCollection))]
 public class SendMeasurementsInstanceRepositoryTests :
     IAsyncLifetime,
     IClassFixture<ProcessManagerCoreFixture>
@@ -39,6 +39,7 @@ public class SendMeasurementsInstanceRepositoryTests :
     private readonly ProcessManagerCoreAzuriteFixture _azuriteFixture;
     private readonly ProcessManagerContext _dbContext;
     private readonly IFileStorageClient _fileStorageClient;
+    private readonly ServiceProvider _serviceProvider;
     private readonly SendMeasurementsInstanceRepository _sut;
 
     public SendMeasurementsInstanceRepositoryTests(
@@ -54,8 +55,8 @@ public class SendMeasurementsInstanceRepositoryTests :
         services.AddAzureClients(builder => builder
             .AddBlobServiceClient(_azuriteFixture.AzuriteManager.BlobStorageConnectionString)
             .WithName(ProcessManagerBlobFileStorageClient.ClientName));
-        var serviceProvider = services.BuildServiceProvider();
-        _fileStorageClient = serviceProvider.GetRequiredService<IFileStorageClient>();
+        _serviceProvider = services.BuildServiceProvider();
+        _fileStorageClient = _serviceProvider.GetRequiredService<IFileStorageClient>();
 
         _sut = new SendMeasurementsInstanceRepository(_dbContext, _fileStorageClient);
     }
@@ -68,6 +69,7 @@ public class SendMeasurementsInstanceRepositoryTests :
     public async Task DisposeAsync()
     {
         await _dbContext.DisposeAsync();
+        await _serviceProvider.DisposeAsync();
     }
 
     [Fact]

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Reflection;
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.App.Common.Identity;

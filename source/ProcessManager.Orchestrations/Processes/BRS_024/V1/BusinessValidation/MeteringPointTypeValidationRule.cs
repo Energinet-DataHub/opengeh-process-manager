@@ -21,7 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.B
 public class MeteringPointTypeValidationRule
     : IBusinessValidationRule<RequestYearlyMeasurementsBusinessValidatedDto>
 {
-    public static IList<ValidationError> WrongMeteringPointError => [new(
+    public static IList<ValidationError> WrongMeteringPointTypeError => [new(
         Message: "I forbindelse med anmodning om årssum kan der kun anmodes om data for forbrug og produktion/When requesting yearly amount then it is only possible to request for production and consumption",
         ErrorCode: "D18")];
 

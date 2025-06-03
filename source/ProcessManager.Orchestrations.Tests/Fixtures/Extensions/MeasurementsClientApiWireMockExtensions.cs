@@ -64,47 +64,6 @@ public static class MeasurementsClientApiWireMockExtensions
     {
         var numberOfGroupingsByYear = to.Year() - from.Year() + 1;
 
-        if (numberOfGroupingsByYear == 1)
-        {
-            var response = new MeasurementAggregationByPeriodDto(
-                MeteringPoint: new MeteringPoint(meteringPointId),
-                new Dictionary<string, PointAggregationGroup>()
-                {
-                    {
-                        meteringPointId + from.Year() + Resolution.Yearly, // What's the key?
-                        new PointAggregationGroup(
-                            From: from,
-                            To: to.PlusDays(-1), // Note the plus, is this possible?
-                            Resolution: Resolution.Yearly,
-                            PointAggregations: new List<PointAggregation>()
-                                {
-                                    new PointAggregation(
-                                    From: from,
-                                    To: to,
-                                    Quantity: 100m,
-                                    Quality: Quality.Calculated),
-                                })
-                    },
-                    {
-                        meteringPointId + to.PlusDays(-1).Year() + Resolution.Yearly, // What's the key?
-                        new PointAggregationGroup(
-                            From: to.PlusDays(-1),
-                            To: to,
-                            Resolution: Resolution.Hourly,
-                            PointAggregations: new List<PointAggregation>()
-                                {
-                                    new PointAggregation(
-                                    From: from,
-                                    To: to,
-                                    Quantity: 100m,
-                                    Quality: Quality.Calculated),
-                                })
-                    },
-                });
-
-            return JsonSerializer.Serialize(response);
-        }
-
         var dictionary = new Dictionary<string, PointAggregationGroup>();
         var fromInLoop = from;
 
@@ -113,7 +72,7 @@ public static class MeasurementsClientApiWireMockExtensions
             var endOfPeriod = GetEndOfPeriod(fromInLoop, to);
 
             dictionary.Add(
-                meteringPointId + fromInLoop.Year() + Resolution.Yearly,
+                meteringPointId + (from.Year() + i) + Resolution.Yearly,
                 new PointAggregationGroup(
                     From: fromInLoop,
                     To: endOfPeriod,
@@ -133,8 +92,63 @@ public static class MeasurementsClientApiWireMockExtensions
             MeteringPoint: new MeteringPoint(meteringPointId),
             dictionary);
 
-        var result = "{MeasurementAggregations:" + JsonSerializer.Serialize(responseWithMultipleYears) + "}";
-        return result;
+        var hej123 =
+            "{ \"MeasurementAggregations\": ["
+            + "   { \"MeteringPoint\" :"
+            + "   {"
+            + "     \"Id\" : \"123456789012345678\""
+            + "   },"
+            + "   \"PointAggregationGroups\" : {";
+
+        hej123 += WritePointAggregationGroups(meteringPointId, from, to);
+        hej123 += "}}]}";
+
+        var result = "{ \"MeasurementAggregations\": [" + JsonSerializer.Serialize(responseWithMultipleYears) + "]}";
+        return hej123;
+    }
+
+    private static string WritePointAggregationGroups(string meteringPointId, Instant from, Instant to)
+    {
+        var aggregations = new List<string>();
+        var numberOfGroupingsByYear = to.Year() - from.Year() + 1;
+        var fromInLoop = from;
+
+        for (int i = 0; i < numberOfGroupingsByYear; i++)
+        {
+            var endOfPeriod = GetEndOfPeriod(fromInLoop, to);
+
+            aggregations.Add(
+                WritePointAggregationGroup(
+                    meteringPointId + (from.Year() + i) + Resolution.Yearly,
+                    fromInLoop,
+                    endOfPeriod));
+        }
+
+        return string.Join(",", aggregations);
+    }
+
+    private static string WritePointAggregationGroup(string key, Instant from, Instant to)
+    {
+        // "Resolution" : 4 == Resolution.Yearly
+        // "Quality" : 2 == Quality.Calculated
+        var stringToAlter = """
+               "{key}" : {
+                 "From" : "{from}",
+                 "To" : "{to}",
+                 "Resolution" : 4,
+                 "PointAggregations" : [ {
+                   "From" : "{from}",
+                   "To" : "{to}",
+                   "Quantity" : 100,
+                   "Quality" : 2
+                 } ]
+               }
+               """;
+
+        return stringToAlter
+            .Replace("{key}", key)
+            .Replace("{from}", from.ToString())
+            .Replace("{to}", to.ToString());
     }
 
     private static Instant GetEndOfPeriod(Instant from, Instant to)

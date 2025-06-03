@@ -46,30 +46,30 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     private static readonly Instant _validFrom = Instant.FromUtc(2024, 11, 30, 23, 00, 00);
     private static readonly Instant _validTo = Instant.FromUtc(2024, 12, 31, 23, 00, 00);
 
-    private readonly OrchestrationsAppFixture _fixture;
-
     public MonitorOrchestrationUsingClientsScenario(
         OrchestrationsAppFixture fixture,
         ITestOutputHelper testOutputHelper)
     {
-        _fixture = fixture;
-        _fixture.SetTestOutputHelper(testOutputHelper);
+        Fixture = fixture;
+        Fixture.SetTestOutputHelper(testOutputHelper);
     }
+
+    private OrchestrationsAppFixture Fixture { get; }
 
     public Task InitializeAsync()
     {
-        _fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
-        _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
-        _fixture.EnqueueBrs024ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+        Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
+        Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
+        Fixture.EnqueueBrs024ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         return Task.CompletedTask;
     }
 
     public Task DisposeAsync()
     {
-        _fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
-        _fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
-        _fixture.EnqueueBrs024ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+        Fixture.ProcessManagerAppManager.SetTestOutputHelper(null!);
+        Fixture.OrchestrationsAppManager.SetTestOutputHelper(null!);
+        Fixture.EnqueueBrs024ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
 
         return Task.CompletedTask;
     }
@@ -82,12 +82,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 1: Start new orchestration instance
         var requestCommand = GivenCommand();
 
-        await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             requestCommand,
             CancellationToken.None);
 
         // Step 2a: Query until waiting for EnqueueActorMessagesCompleted notify event
-        var (isWaitingForNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
+        var (isWaitingForNotify, orchestrationInstance) = await Fixture.ProcessManagerClient
             .WaitForStepToBeRunning<RequestYearlyMeasurementsInputV1>(
                 requestCommand.IdempotencyKey,
                 EnqueueActorMessagesStep.StepSequence);
@@ -96,7 +96,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
 
         // Step 2b: Verify an enqueue actor messages event is sent on the service bus
-        var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs024ServiceBusListener.When(
+        var verifyEnqueueActorMessagesEvent = await Fixture.EnqueueBrs024ServiceBusListener.When(
                 (message) =>
                 {
                     if (!message.TryParseAsEnqueueActorMessages(Brs_024.Name, out var enqueueActorMessagesV1))
@@ -112,13 +112,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestYearlyMeasurementsAcceptedV1)} service bus message should have been sent");
 
         // Step 3: Send EnqueueActorMessagesCompleted event
-        await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new RequestYearlyMeasurementsNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (orchestrationTerminated, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
+        var (orchestrationTerminated, terminatedOrchestrationInstance) = await Fixture.ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<RequestYearlyMeasurementsInputV1>(
                 requestCommand.IdempotencyKey);
 
@@ -151,12 +151,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Step 1: Start new orchestration instance
         var requestCommand = GivenCommand();
 
-        await _fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             requestCommand,
             CancellationToken.None);
 
         // Step 2a: Query until waiting for EnqueueActorMessagesCompleted notify event
-        var (isWaitingForNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
+        var (isWaitingForNotify, orchestrationInstance) = await Fixture.ProcessManagerClient
             .WaitForStepToBeRunning<RequestYearlyMeasurementsInputV1>(
                 requestCommand.IdempotencyKey,
                 EnqueueActorMessagesStep.StepSequence);
@@ -165,7 +165,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
 
         // Step 2b: Verify an enqueue actor messages event is sent on the service bus
-        var verifyEnqueueActorMessagesEvent = await _fixture.EnqueueBrs024ServiceBusListener.When(
+        var verifyEnqueueActorMessagesEvent = await Fixture.EnqueueBrs024ServiceBusListener.When(
                 (message) =>
                 {
                     if (!message.TryParseAsEnqueueActorMessages(Brs_024.Name, out var enqueueActorMessagesV1))
@@ -186,13 +186,13 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestYearlyMeasurementsAcceptedV1)} service bus message should have been sent");
 
         // Step 3: Send EnqueueActorMessagesCompleted event
-        await _fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
+        await Fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(
             new RequestYearlyMeasurementsNotifyEventV1(
                 OrchestrationInstanceId: orchestrationInstance!.Id.ToString()),
             CancellationToken.None);
 
         // Step 4: Query until terminated
-        var (orchestrationTerminated, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
+        var (orchestrationTerminated, terminatedOrchestrationInstance) = await Fixture.ProcessManagerClient
             .WaitForOrchestrationInstanceTerminated<RequestYearlyMeasurementsInputV1>(
                 requestCommand.IdempotencyKey);
 
@@ -243,7 +243,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             MeteringPointId: "123456789012345678");
 
         return new RequestYearlyMeasurementsCommandV1(
-            OperatingIdentity: _fixture.DefaultActorIdentity,
+            OperatingIdentity: Fixture.DefaultActorIdentity,
             InputParameter: input,
             IdempotencyKey: Guid.NewGuid().ToString());
     }
@@ -269,7 +269,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             EnergySupplier = EnergySupplier,
         };
 
-        _fixture.OrchestrationsAppManager.MockServer.MockElectricityMarketViewsMasterData(mockData: [
+        Fixture.OrchestrationsAppManager.MockServer.MockElectricityMarketViewsMasterData(mockData: [
             meteringPointMasterData
         ]);
     }

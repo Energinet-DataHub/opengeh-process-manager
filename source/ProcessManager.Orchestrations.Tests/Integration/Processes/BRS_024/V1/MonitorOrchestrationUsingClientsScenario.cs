@@ -61,6 +61,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         Fixture.ProcessManagerAppManager.AppHostManager.ClearHostLog();
         Fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
         Fixture.EnqueueBrs024ServiceBusListener.ResetMessageHandlersAndReceivedMessages();
+        Fixture.OrchestrationsAppManager.MockServer.Reset();
 
         return Task.CompletedTask;
     }
@@ -183,7 +184,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .VerifyCountAsync(1);
 
         var enqueueMessageFound = verifyEnqueueActorMessagesEvent.Wait(TimeSpan.FromSeconds(30));
-        enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestYearlyMeasurementsAcceptedV1)} service bus message should have been sent");
+        enqueueMessageFound.Should().BeTrue($"because a {nameof(RequestYearlyMeasurementsRejectV1)} service bus message should have been sent");
 
         // Step 3: Send EnqueueActorMessagesCompleted event
         await Fixture.ProcessManagerMessageClient.NotifyOrchestrationInstanceAsync(

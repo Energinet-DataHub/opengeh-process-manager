@@ -1,8 +1,12 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 2.3.4
+## Version 2.3.5
 
 - Update `RequestYearlyMeasurementsAcceptedV1` such that it contains a list of `AggregatedMeasurement`.
+
+## Version 2.3.4
+
+- No functional changes.
 
 ## Version 2.3.3
 

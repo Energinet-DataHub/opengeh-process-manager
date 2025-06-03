@@ -1,8 +1,12 @@
 # ProcessManager.Components.Abstractions Release Notes
 
-## Version 2.0.7
+## Version 2.0.8
 
 - Update `Resolution` such that it contains a yearly resolution.
+
+## Version 2.0.7
+
+- No functional changes.
 
 ## Version 2.0.6
 

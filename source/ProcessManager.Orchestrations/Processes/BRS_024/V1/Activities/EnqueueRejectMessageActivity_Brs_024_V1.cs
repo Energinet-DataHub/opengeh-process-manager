@@ -60,6 +60,7 @@ public class EnqueueRejectMessageActivity_Brs_024_V1(
             ActorNumber: ActorNumber.Create(requestInput.ActorNumber),
             ActorRole: ActorRole.FromName(requestInput.ActorRole),
             BusinessReason: BusinessReason.FromName(requestInput.BusinessReason),
+            MeteringPointId: requestInput.MeteringPointId,
             ValidationErrors: input.ValidationErrors
                 .Select(e => new ValidationErrorDto(
                     Message: e.Message,

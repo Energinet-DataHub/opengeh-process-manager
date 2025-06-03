@@ -13,20 +13,27 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Extensions;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration.Steps;
 using Microsoft.Azure.Functions.Worker;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Activities;
 
 internal class PerformBusinessValidationActivity_Brs_024_V1(
     IOrchestrationInstanceProgressRepository repository,
-    BusinessValidator<RequestYearlyMeasurementsInputV1> validator)
+    BusinessValidator<RequestYearlyMeasurementsBusinessValidatedDto> validator,
+    IMeteringPointMasterDataProvider meteringPointMasterDataProvider)
 {
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
-    private readonly BusinessValidator<RequestYearlyMeasurementsInputV1> _validator = validator;
+    private readonly BusinessValidator<RequestYearlyMeasurementsBusinessValidatedDto> _validator = validator;
+    private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
 
     [Function(nameof(PerformBusinessValidationActivity_Brs_024_V1))]
     public async Task<ActivityOutput> Run(
@@ -37,8 +44,20 @@ internal class PerformBusinessValidationActivity_Brs_024_V1(
             .ConfigureAwait(false);
 
         var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestYearlyMeasurementsInputV1>();
+        var receivedAt = InstantPatternWithOptionalSeconds.Parse(orchestrationInstanceInput.ReceivedAt).Value;
 
-        var validationErrors = await _validator.ValidateAsync(orchestrationInstanceInput)
+        var meteringPointMasterData =
+            await _meteringPointMasterDataProvider
+                .GetMasterData(
+                    meteringPointId: orchestrationInstanceInput.MeteringPointId,
+                    startDateTime: receivedAt,
+                    endDateTime: receivedAt.Plus(Duration.FromSeconds(1)))
+                .ConfigureAwait(false);
+
+        var validationErrors = await _validator
+            .ValidateAsync(new RequestYearlyMeasurementsBusinessValidatedDto(
+                    Input: orchestrationInstanceInput,
+                    MeteringPointMasterData: meteringPointMasterData.FirstOrDefault()))
             .ConfigureAwait(false);
 
         var isValid = validationErrors.Count == 0;

@@ -23,6 +23,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration.Steps;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -256,11 +257,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     private void SetupElectricityMarketWireMocking(
         ElectricityMarket.Integration.Models.MasterData.MeteringPointType? meteringPointType = null)
     {
-        var request = Request
-            .Create()
-            .WithPath("/api/get-metering-point-master-data")
-            .UsingPost();
-
         var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData
         {
             Identification = new ElectricityMarketModels.MeteringPointIdentification(MeteringPointId),
@@ -279,14 +275,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             EnergySupplier = EnergySupplier,
         };
 
-        // IEnumerable<HistoricalMeteringPointMasterData>
-        var response = Response
-            .Create()
-            .WithStatusCode(HttpStatusCode.OK)
-            .WithHeader(HeaderNames.ContentType, "application/json")
-            .WithBody(
-                $"[{JsonSerializer.Serialize(meteringPointMasterData, new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb))}]");
-
-        _fixture.OrchestrationsAppManager.MockServer.Given(request).RespondWith(response);
+        _fixture.OrchestrationsAppManager.MockServer.MockElectricityMarketViewsMasterData(mockData: [
+            meteringPointMasterData
+        ]);
     }
 }

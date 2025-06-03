@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orche
 using Energinet.DataHub.ProcessManager.Shared.Processes.Activities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
+using Microsoft.Extensions.Logging;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration;
 
@@ -31,9 +32,11 @@ public class Orchestration_Brs_024_V1
     private readonly TaskRetryOptions _defaultRetryOptions;
 
     private readonly TaskOptions _defaultTaskOptions;
+    private readonly ILogger<Orchestration_Brs_024_V1> _logger;
 
-    public Orchestration_Brs_024_V1()
+    public Orchestration_Brs_024_V1(ILogger<Orchestration_Brs_024_V1> logger)
     {
+        _logger = logger;
         // 30 seconds interval, backoff coefficient 2.0, 7 retries (initial attempt is included in the maxNumberOfAttempts)
         // 30 seconds * (2^7-1) = 3810 seconds = 63,5 minutes to use all retries
         _defaultRetryOptions = TaskRetryOptions.FromRetryPolicy(
@@ -56,7 +59,7 @@ public class Orchestration_Brs_024_V1
                 _defaultRetryOptions,
                 orchestrationInstanceContext.Id)
             .ExecuteAsync();
-
+        _logger.LogInformation("validationResult: {IsValid}", validationResult.IsValid);
         await new EnqueueActorMessagesStep(
                 context,
                 _defaultRetryOptions,

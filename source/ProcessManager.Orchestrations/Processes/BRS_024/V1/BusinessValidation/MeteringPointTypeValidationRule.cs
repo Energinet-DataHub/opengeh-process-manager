@@ -43,7 +43,7 @@ public class MeteringPointTypeValidationRule
         var masterDataMeteringPointType = subject.MeteringPointMasterData.MeteringPointType;
         if (!AllowedMeteringPointTypes.Contains(masterDataMeteringPointType))
         {
-            return Task.FromResult(WrongMeteringPointError);
+            return Task.FromResult(WrongMeteringPointTypeError);
         }
 
         return Task.FromResult(NoError);

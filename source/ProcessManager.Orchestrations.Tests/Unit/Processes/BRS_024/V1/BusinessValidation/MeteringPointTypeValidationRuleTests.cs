@@ -90,6 +90,6 @@ public class MeteringPointTypeValidationRuleTests
                 meteringPointMasterData));
 
         var validationError = Assert.Single(result);
-        Assert.Equal(MeteringPointTypeValidationRule.WrongMeteringPointError.First(), validationError);
+        Assert.Equal(MeteringPointTypeValidationRule.WrongMeteringPointTypeError.First(), validationError);
     }
 }

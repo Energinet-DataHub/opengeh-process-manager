@@ -27,7 +27,7 @@ public class RequestYearlyMeasurementsBusinessValidationTests
 {
     private readonly BusinessValidator<RequestYearlyMeasurementsBusinessValidatedDto> _sut;
 
-    public RequestMeasurementsBusinessValidationTests()
+    public RequestYearlyMeasurementsBusinessValidationTests()
     {
         IServiceCollection services = new ServiceCollection();
 
@@ -77,6 +77,6 @@ public class RequestYearlyMeasurementsBusinessValidationTests
 
         result.Should()
             .ContainSingle()
-            .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointError);
+            .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointTypeError);
     }
 }

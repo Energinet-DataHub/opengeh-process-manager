@@ -20,15 +20,19 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration.Steps;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
+using NodaTime;
+using NodaTime.Text;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_024.V1;
 
-[ParallelWorkflow(WorkflowBucket.Bucket03)] //TODO: WHAT IS THIS? How do I determine the bucket?
+[ParallelWorkflow(WorkflowBucket.Bucket03)]
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
@@ -63,6 +67,14 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_ValidRequestYearlyMeasurements_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
+        // Setting up mock
+        var now = SystemClock.Instance.GetCurrentInstant();
+        var meteringPointId = "123456789012345678";
+        _fixture.OrchestrationsAppManager.MockServer.MockGetAggregatedByYearForPeriodHttpResponse(
+            meteringPointId: meteringPointId,
+            from: now.PlusDays(365),
+            to: now)
+;
         // Step 1: Start new orchestration instance
         var requestCommand = GivenCommand();
 
@@ -126,7 +138,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 });
     }
 
-    private RequestYearlyMeasurementsCommandV1 GivenCommand()
+    private RequestYearlyMeasurementsCommandV1 GivenCommand(
+        string meteringPointId = "123456789012345678")
     {
         const string energySupplierNumber = "1234567891234";
         var energySupplierRole = ActorRole.EnergySupplier.Name;
@@ -138,7 +151,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ActorRole: energySupplierRole,
             BusinessReason: BusinessReason.PeriodicMetering.Name,
             ReceivedAt: "2024-04-07T22:00:00Z",
-            MeteringPointId: "123456789012345678");
+            MeteringPointId: meteringPointId);
 
         return new RequestYearlyMeasurementsCommandV1(
             OperatingIdentity: _fixture.DefaultActorIdentity,

@@ -22,7 +22,7 @@ public class MeteringPointTypeValidationRule
     : IBusinessValidationRule<RequestYearlyMeasurementsBusinessValidatedDto>
 {
     public static IList<ValidationError> WrongMeteringPointError => [new(
-        Message: "I forbindelse med anmodning om årssum kan der kun anmodes om data for forbrug og produktion/when requesting yearly amounts it is only possible to request for production and consumption",
+        Message: "I forbindelse med anmodning om årssum kan der kun anmodes om data for forbrug og produktion/When requesting yearly amount then it is only possible to request for production and consumption",
         ErrorCode: "D18")];
 
     private static IList<ValidationError> NoError => [];

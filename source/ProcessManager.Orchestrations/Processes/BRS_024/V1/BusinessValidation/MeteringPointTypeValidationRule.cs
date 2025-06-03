@@ -27,11 +27,11 @@ public class MeteringPointTypeValidationRule
 
     private static IList<ValidationError> NoError => [];
 
-    private static IReadOnlyCollection<MeteringPointType> AllowedMeteringPointTypes => new[]
-    {
+    private static IReadOnlyCollection<MeteringPointType> AllowedMeteringPointTypes =>
+    [
         MeteringPointType.Production,
         MeteringPointType.Consumption,
-    };
+    ];
 
     public Task<IList<ValidationError>> ValidateAsync(RequestYearlyMeasurementsBusinessValidatedDto subject)
     {

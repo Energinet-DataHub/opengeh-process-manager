@@ -26,6 +26,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attri
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.EntityFrameworkCore.SqlServer.NodaTime.Extensions;
 using NodaTime;
 using Xunit.Abstractions;
 
@@ -78,6 +79,14 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     [Fact]
     public async Task Given_ValidRequestYearlyMeasurements_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
+        // Setting up mock
+        var now = SystemClock.Instance.GetCurrentInstant();
+        var meteringPointId = "123456789012345678";
+        Fixture.OrchestrationsAppManager.MockServer.MockGetAggregatedByYearForPeriodHttpResponse(
+            meteringPointId: meteringPointId,
+            from: now.PlusDays(-365),
+            to: now)
+;
         SetupElectricityMarketWireMocking();
 
         // Step 1: Start new orchestration instance
@@ -229,7 +238,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 });
     }
 
-    private RequestYearlyMeasurementsCommandV1 GivenCommand()
+    private RequestYearlyMeasurementsCommandV1 GivenCommand(
+        string meteringPointId = "123456789012345678")
     {
         const string energySupplierNumber = "1234567891234";
         var energySupplierRole = ActorRole.EnergySupplier.Name;
@@ -241,7 +251,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ActorRole: energySupplierRole,
             BusinessReason: BusinessReason.PeriodicMetering.Name,
             ReceivedAt: "2024-04-07T22:00:00Z",
-            MeteringPointId: "123456789012345678");
+            MeteringPointId: meteringPointId);
 
         return new RequestYearlyMeasurementsCommandV1(
             OperatingIdentity: Fixture.DefaultActorIdentity,

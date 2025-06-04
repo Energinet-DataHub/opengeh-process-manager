@@ -41,7 +41,7 @@ public sealed class AdditionalMeasurementsRecipientsProviderTests
     public async Task Given_TestSource_When_GetRecipients_Then_ReturnsRelevantData()
     {
         // Arrange
-        var sut = new ConstantAdditionalMeasurementsRecipientsProvider(ConstantAdditionalMeasurementsRecipientsProvider.AdditionalRecipientConstantSourceSelector.Test);
+        var sut = new ConstantAdditionalMeasurementsRecipientsProvider(ConstantAdditionalMeasurementsRecipientsProvider.AdditionalRecipientConstantSourceSelector.Development);
 
         // Act
         var result = await sut.GetAdditionalRecipients(_validMeteringPointDev).ToListAsync();

@@ -7,10 +7,6 @@
         "connectionStringName": "ProcessManagerStorageConnectionString"
       }
     },
-    "eventHub": {
-      "prefetchCount": 500,
-      "maxBatchSize": 300
-    },
     "serviceBus": {
       "maxConcurrentCalls": 64
     }

@@ -63,8 +63,8 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
 
         // Assert
         await act.Should()
-            .ThrowAsync<InvalidOperationException>()
-            .WithMessage("Sequence contains no elements.");
+            .ThrowAsync<NullReferenceException>()
+            .WithMessage($"{nameof(OrchestrationInstance)} not found*");
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
     public async Task Given_OrchestrationInstanceNotInDatabase_When_GetByIdempotencyKey_Then_ReturnsNull()
     {
         // Arrange
-        var idempotencyKey = new IdempotencyKey(Guid.NewGuid().ToString());
+        var idempotencyKey = IdempotencyKey.CreateNew();
 
         // Act
         var actual = await _sut.GetOrDefaultAsync(idempotencyKey);
@@ -175,7 +175,7 @@ public class OrchestrationInstanceRepositoryTests : IClassFixture<ProcessManager
         var existingOrchestrationDescription = CreateOrchestrationDescription();
         var existingOrchestrationInstance = CreateActorInitiatedOrchestrationInstance(
             existingOrchestrationDescription,
-            idempotencyKey: new IdempotencyKey(Guid.NewGuid().ToString()));
+            idempotencyKey: IdempotencyKey.CreateNew());
 
         await using (var writeDbContext = _fixture.DatabaseManager.CreateDbContext())
         {

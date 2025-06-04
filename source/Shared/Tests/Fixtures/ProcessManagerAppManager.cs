@@ -25,6 +25,7 @@ using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Xunit.Abstractions;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures;
@@ -109,6 +110,7 @@ public class ProcessManagerAppManager : IAsyncDisposable
         {
             AzuriteManager.CleanupAzuriteStorage();
             AzuriteManager.StartAzurite();
+            await AzuriteManager.CreateRequiredContainersAsync();
         }
 
         if (_manageDatabase)
@@ -244,6 +246,10 @@ public class ProcessManagerAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+        // => File Storage
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerFileStorageOptions.SectionName}__{nameof(ProcessManagerFileStorageOptions.ServiceUri)}",
+            AzuriteManager.BlobStorageServiceUri.AbsoluteUri);
         // => Authentication
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.ApplicationIdUri)}",

@@ -168,6 +168,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     {
         AzuriteManager.CleanupAzuriteStorage();
         AzuriteManager.StartAzurite();
+        await AzuriteManager.CreateRequiredContainersAsync();
 
         await DatabaseManager.CreateDatabaseAsync();
 
@@ -224,8 +225,9 @@ public class OrchestrationsAppFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await ServiceProvider.DisposeAsync();
-        await EventHubListener.DisposeAsync();
+        if (ServiceProvider != null) await ServiceProvider.DisposeAsync();
+        if (EventHubListener != null) await EventHubListener.DisposeAsync();
+
         await OrchestrationsAppManager.DisposeAsync();
         await ProcessManagerAppManager.DisposeAsync();
         await DurableTaskManager.DisposeAsync();

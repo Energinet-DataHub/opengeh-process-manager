@@ -285,6 +285,10 @@ public class ExampleOrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+        // => File Storage
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerFileStorageOptions.SectionName}__{nameof(ProcessManagerFileStorageOptions.ServiceUri)}",
+            AzuriteManager.BlobStorageServiceUri.AbsoluteUri);
         // => Authentication
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.ApplicationIdUri)}",

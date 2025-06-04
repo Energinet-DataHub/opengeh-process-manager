@@ -18,5 +18,9 @@ namespace Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 
 public interface IAdditionalMeasurementsRecipientsProvider
 {
+    /// <summary>
+    /// For the specified metering point, gets a list of additional recipients that also should receive measurements.
+    /// </summary>
+    /// <param name="meteringPointId">The metering point id to get the additional recipients for.</param>
     IAsyncEnumerable<Actor> GetAdditionalRecipients(MeteringPointId meteringPointId);
 }

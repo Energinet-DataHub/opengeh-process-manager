@@ -21,7 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjec
 
 public static class AdditionalMeasurementsRecipientsExtensions
 {
-    public static IServiceCollection AddAdditionalMeasurementsRecipients(this IServiceCollection services)
+    public static IServiceCollection AddAdditionalRecipientsForMeasurements(this IServiceCollection services)
     {
         services
             .AddOptions<AdditionalRecipientsOptions>()

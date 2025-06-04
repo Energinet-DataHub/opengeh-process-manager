@@ -352,7 +352,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // Default feature flag values.
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}",
-            "true");
+            "false");
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{AdditionalRecipientsOptions.SectionName}__{nameof(AdditionalRecipientsOptions.Environment)}",
             "Development");

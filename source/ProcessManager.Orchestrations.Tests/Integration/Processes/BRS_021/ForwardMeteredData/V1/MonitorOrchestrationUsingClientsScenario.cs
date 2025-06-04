@@ -28,6 +28,7 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
@@ -118,6 +119,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
         _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.ResetMessageHandlersAndReceivedMessages();
         _fixture.EventHubListener.Reset();
+        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([new($"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}", "false")]);
 
         return Task.CompletedTask;
     }
@@ -242,6 +244,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     public async Task
         Given_MeteringPointWithAdditionalRecipients_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
+        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([new($"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}", "true")]);
+
         // Arrange
         SetupElectricityMarketWireMocking(MeteringPointIdWithAdditionalRecipients);
 

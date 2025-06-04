@@ -12,23 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Security.Cryptography;
-using System.Text;
+using System.ComponentModel.DataAnnotations;
 
-namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 
-public record IdempotencyKey(string Value)
+public class ProcessManagerFileStorageOptions
 {
-    /// <summary>
-    /// Hash the idempotency key using SHA-256 and return the hash as a byte array, which is exactly 32 bytes.
-    /// </summary>
-    public byte[] ToHash()
-    {
-        return SHA256.HashData(Encoding.UTF8.GetBytes(Value));
-    }
+    public const string SectionName = "ProcessManagerFileStorage";
 
     /// <summary>
-    /// Create a new idempotency key based on <see cref="Guid.NewGuid()"/>.
+    /// Do NOT rename this property. The "ServiceUri" property name is used by convention in .NET, when using the
+    /// AzureClientFactoryBuilder.AddBlobServiceClient(configuration) method.
     /// </summary>
-    public static IdempotencyKey CreateNew() => new IdempotencyKey(Guid.NewGuid().ToString());
+    [Required(AllowEmptyStrings = false)]
+    public string ServiceUri { get; set; } = string.Empty;
 }

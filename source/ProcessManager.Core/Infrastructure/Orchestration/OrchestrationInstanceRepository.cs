@@ -42,21 +42,25 @@ internal class OrchestrationInstanceRepository(
     public IUnitOfWork UnitOfWork => _context;
 
     /// <inheritdoc />
-    public Task<OrchestrationInstance> GetAsync(OrchestrationInstanceId id)
+    public async Task<OrchestrationInstance> GetAsync(OrchestrationInstanceId id)
     {
-        return _context.OrchestrationInstances.FirstAsync(x => x.Id == id);
+        var instance = await _context.OrchestrationInstances
+            .FindAsync(id)
+            .ConfigureAwait(false);
+
+        return instance ?? throw new NullReferenceException($"{nameof(OrchestrationInstance)} not found (Id={id.Value}).");
     }
 
     /// <inheritdoc />
     public Task<OrchestrationInstance?> GetOrDefaultAsync(OrchestrationInstanceId id)
     {
-        return _context.OrchestrationInstances.FirstOrDefaultAsync(x => x.Id == id);
+        return _context.OrchestrationInstances.FindAsync(id).AsTask();
     }
 
     /// <inheritdoc />
     public Task<OrchestrationInstance?> GetOrDefaultAsync(IdempotencyKey idempotencyKey)
     {
-        return _context.OrchestrationInstances.FirstOrDefaultAsync(x => x.IdempotencyKey == idempotencyKey);
+        return _context.OrchestrationInstances.SingleOrDefaultAsync(x => x.IdempotencyKey == idempotencyKey);
     }
 
     /// <inheritdoc />

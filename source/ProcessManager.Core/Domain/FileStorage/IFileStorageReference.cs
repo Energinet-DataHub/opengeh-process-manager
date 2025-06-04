@@ -12,23 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.FeatureManagement;
-
-namespace Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
+namespace Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
 
 /// <summary>
-/// Extensions for reading feature flags in Process Manager Orchestrations.
+/// A reference to a file in the file storage. Represented by a path to the file and the file's category.
 /// </summary>
-internal static class FeatureManagerExtensions
+public interface IFileStorageReference
 {
-    // Add extension methods for each feature flag name...
+    /// <summary>
+    /// The path to the file.
+    /// </summary>
+    /// <remarks>If using Azure File Storage, the path must be valid (shouldn't contain "-" characters).</remarks>
+    string Path { get; }
 
     /// <summary>
-    /// Whether to use the new BRS-021 Send Measurements database, where the processes are stored in a separate database
-    /// table.
+    /// The file category, used to group files in file storage.
     /// </summary>
-    public static Task<bool> UseNewSendMeasurementsTable(this IFeatureManager featureManager)
-    {
-        return featureManager.IsEnabledAsync(FeatureFlagNames.UseNewSendMeasurementsTable);
-    }
+    /// <remarks>If using Azure File Storage, the category represents the Container in Azure Blob Storage.</remarks>
+    string Category { get; }
 }

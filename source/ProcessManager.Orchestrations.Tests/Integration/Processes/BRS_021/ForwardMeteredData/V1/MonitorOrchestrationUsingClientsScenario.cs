@@ -25,11 +25,9 @@ using Energinet.DataHub.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.BusinessValidation;
@@ -71,6 +69,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
     private const string ProcessManagerEventHubProducerClientName = "ProcessManagerEventHubProducerClient";
     private const string MeteringPointId = "571313101700011887";
+    private const string MeteringPointIdWithAdditionalRecipients = "571313101700011888";
     private const string EnergySupplier = "1111111111111";
     private const string GridAccessProvider = "2222222222222";
     private const string DelegatedToGridAccessProvider = "9999999999999";
@@ -119,7 +118,6 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
         _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.ResetMessageHandlersAndReceivedMessages();
         _fixture.EventHubListener.Reset();
-        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([new($"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}", "false")]);
 
         return Task.CompletedTask;
     }
@@ -244,16 +242,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     public async Task
         Given_MeteringPointWithAdditionalRecipients_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
-        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges(
-        [
-            new($"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}", "true"),
-            new($"{AdditionalRecipientsOptions.SectionName}__{nameof(AdditionalRecipientsOptions.Environment)}", "Development")
-        ]);
-
         // Arrange
-        SetupElectricityMarketWireMocking();
+        SetupElectricityMarketWireMocking(MeteringPointIdWithAdditionalRecipients);
 
-        var input = CreateForwardMeteredDataInputV1();
+        var input = CreateForwardMeteredDataInputV1() with { MeteringPointId = MeteringPointIdWithAdditionalRecipients };
 
         var forwardCommand = new ForwardMeteredDataCommandV1(
             new ActorIdentityDto(ActorNumber.Create(input.ActorNumber), ActorRole.GridAccessProvider),
@@ -319,7 +311,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             .And.Be(OrchestrationInstanceTerminationState.Succeeded);
 
         var meteringPointMasterData = new MeteringPointMasterData(
-            MeteringPointId: new MeteringPointId(MeteringPointId),
+            MeteringPointId: new MeteringPointId(MeteringPointIdWithAdditionalRecipients),
             ValidFrom: _validFrom.ToDateTimeOffset(),
             ValidTo: _validTo.ToDateTimeOffset(),
             CurrentGridAreaCode: new GridAreaCode(GridArea),
@@ -666,7 +658,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         return input;
     }
 
-    private void SetupElectricityMarketWireMocking()
+    private void SetupElectricityMarketWireMocking(string meteringPointId = MeteringPointId)
     {
         var request = Request
             .Create()
@@ -676,7 +668,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData
         {
-            Identification = new ElectricityMarketModels.MeteringPointIdentification(MeteringPointId),
+            Identification = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId),
             ValidFrom = _validFrom,
             ValidTo = _validTo,
             GridAreaCode = new ElectricityMarket.Integration.Models.MasterData.GridAreaCode(GridArea),

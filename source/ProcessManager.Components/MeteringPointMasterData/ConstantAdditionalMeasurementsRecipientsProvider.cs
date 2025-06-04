@@ -20,7 +20,7 @@ public sealed class ConstantAdditionalMeasurementsRecipientsProvider : IAddition
 {
     private static readonly Dictionary<MeteringPointId, List<Actor>> _developmentSource = new()
     {
-        { new("571313101700011887"), [Actor.From("5790000432000", "SystemOperator")] },
+        { new("571313101700011888"), [Actor.From("5790000432000", "SystemOperator")] },
     };
 
     private static readonly Dictionary<MeteringPointId, List<Actor>> _testSource = new()

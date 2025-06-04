@@ -10,6 +10,9 @@
   <ItemGroup>
     <Compile Include="..\Shared\Tests\Fixtures\DomainTestDataFactory.cs" Link="Fixtures\DomainTestDataFactory.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ExampleOrchestrationsAppManager.cs" Link="Fixtures\ExampleOrchestrationsAppManager.cs" />
+    <Compile Include="..\Shared\Tests\Fixtures\Extensions\AzuriteManagerExtensions.cs">
+      <Link>Fixtures\Extensions\AzuriteManagerExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ServiceCollectionExtensions.cs" Link="Fixtures\Extensions\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerAppManager.cs" Link="Fixtures\ProcessManagerAppManager.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\ProcessManagerCoreServiceProviderFactory.cs" Link="Fixtures\ProcessManagerCoreServiceProviderFactory.cs" />
@@ -30,7 +33,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.2.1" />
+    <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.3.0" />
   </ItemGroup>
 
   <ItemGroup>

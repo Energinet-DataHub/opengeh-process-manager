@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Microsoft.EntityFrameworkCore;
 
 namespace Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -26,6 +27,8 @@ public class ProcessManagerContext(
     public DbSet<OrchestrationDescription> OrchestrationDescriptions { get; private set; }
 
     public DbSet<OrchestrationInstance> OrchestrationInstances { get; private set; }
+
+    public DbSet<SendMeasurementsInstance> SendMeasurementsInstances { get; private set; }
 
     public Task CommitAsync(CancellationToken cancellationToken = default)
     {
@@ -47,5 +50,6 @@ public class ProcessManagerContext(
         modelBuilder.HasDefaultSchema("pm");
         modelBuilder.ApplyConfiguration(new OrchestrationDescriptionEntityConfiguration());
         modelBuilder.ApplyConfiguration(new OrchestrationInstanceEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new SendMeasurementsInstanceEntityConfiguration());
     }
 }

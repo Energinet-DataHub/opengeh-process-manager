@@ -332,7 +332,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ],
             AdditionalRecipients:
             [
-                Actor.From("5790000432000", "SystemOperator")
+                Actor.From("5798000020016", "DanishEnergyAgency")
             ]);
 
         terminatedOrchestrationInstance.CustomState.Should()

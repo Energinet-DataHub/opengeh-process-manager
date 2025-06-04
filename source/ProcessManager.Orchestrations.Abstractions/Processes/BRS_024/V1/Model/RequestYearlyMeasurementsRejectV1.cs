@@ -25,5 +25,6 @@ public record RequestYearlyMeasurementsRejectV1(
     ActorNumber ActorNumber,
     ActorRole ActorRole,
     BusinessReason BusinessReason,
+    string MeteringPointId,
     List<ValidationErrorDto> ValidationErrors)
         : IEnqueueRejectedDataDto;

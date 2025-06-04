@@ -42,7 +42,7 @@ var host = new HostBuilder()
             .AddFeatureManagement();
 
         // => Auto register Orchestration Descriptions builders and custom handlers
-        services.AddProcessManagerForOrchestrations(typeof(Program).Assembly);
+        services.AddProcessManagerForOrchestrations(typeof(Program).Assembly, context.Configuration);
 
         // => Add EnqueueActorMessages client
         services.AddServiceBusClientForApplication(

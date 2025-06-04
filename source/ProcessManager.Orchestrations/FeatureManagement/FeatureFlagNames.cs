@@ -39,4 +39,5 @@ internal static class FeatureFlagNames
     // Add feature flag names here...
 
     public const string EnableAdditionalRecipients = "PG29-Additional-recipients";
+    public const string UseNewSendMeasurementsTable = "UseNewSendMeasurementsTable";
 }

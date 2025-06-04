@@ -12,23 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Security.Cryptography;
-using System.Text;
+namespace Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
 
-namespace Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-
-public record IdempotencyKey(string Value)
+/// <summary>
+/// A reference to a file in the file storage. Represented by a path to the file and the file's category.
+/// </summary>
+public interface IFileStorageReference
 {
     /// <summary>
-    /// Hash the idempotency key using SHA-256 and return the hash as a byte array, which is exactly 32 bytes.
+    /// The path to the file.
     /// </summary>
-    public byte[] ToHash()
-    {
-        return SHA256.HashData(Encoding.UTF8.GetBytes(Value));
-    }
+    /// <remarks>If using Azure File Storage, the path must be valid (shouldn't contain "-" characters).</remarks>
+    string Path { get; }
 
     /// <summary>
-    /// Create a new idempotency key based on <see cref="Guid.NewGuid()"/>.
+    /// The file category, used to group files in file storage.
     /// </summary>
-    public static IdempotencyKey CreateNew() => new IdempotencyKey(Guid.NewGuid().ToString());
+    /// <remarks>If using Azure File Storage, the category represents the Container in Azure Blob Storage.</remarks>
+    string Category { get; }
 }

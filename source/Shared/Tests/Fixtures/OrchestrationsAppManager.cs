@@ -47,6 +47,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_026_028.BRS_028.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogCalculation.V1.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_045.MissingMeasurementsLogOnDemandCalculation.V1.Options;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using WireMock.Server;
 using Xunit.Abstractions;
 using QueryOptionsSectionNames = Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Shared.CalculatedMeasurements.V1.Options.QueryOptionsSectionNames;
@@ -169,6 +170,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         {
             AzuriteManager.CleanupAzuriteStorage();
             AzuriteManager.StartAzurite();
+            await AzuriteManager.CreateRequiredContainersAsync();
         }
 
         if (_manageDatabase)
@@ -367,6 +369,10 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerOptions.SectionName}__{nameof(ProcessManagerOptions.SqlDatabaseConnectionString)}",
             DatabaseManager.ConnectionString);
+        // => File Storage
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerFileStorageOptions.SectionName}__{nameof(ProcessManagerFileStorageOptions.ServiceUri)}",
+            AzuriteManager.BlobStorageServiceUri.AbsoluteUri);
         // => Authentication
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{SubsystemAuthenticationOptions.SectionName}__{nameof(SubsystemAuthenticationOptions.ApplicationIdUri)}",
@@ -408,6 +414,11 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{Brs021ForwardMeteredDataTopicOptions.SectionName}__{nameof(Brs021ForwardMeteredDataTopicOptions.NotifySubscriptionName)}",
             brs21fmdTopicResources.NotifySubscription.SubscriptionName);
+
+        // BRS-021 Send Measurements feature flag
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{FeatureFlagNames.SectionName}__{FeatureFlagNames.UseNewSendMeasurementsTable}",
+            true.ToString());
 
         // => Edi enqueue topic
         appHostSettings.ProcessEnvironmentVariables.Add(

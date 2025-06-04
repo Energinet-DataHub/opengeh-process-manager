@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
@@ -22,7 +23,9 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
@@ -46,6 +49,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.Forw
 public class StartForwardMeteredDataHandlerV1(
     ILogger<StartForwardMeteredDataHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands,
+    ISendMeasurementsInstanceRepository sendMeasurementsInstanceRepository,
     IOrchestrationInstanceProgressRepository progressRepository,
     IClock clock,
     IMeasurementsClient measurementsClient,
@@ -55,10 +59,12 @@ public class StartForwardMeteredDataHandlerV1(
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     IFeatureManager featureManager,
     DelegationProvider delegationProvider,
-    TelemetryClient telemetryClient)
+    TelemetryClient telemetryClient,
+    IFeatureManager featureManager)
     : StartOrchestrationInstanceHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
+    private readonly ISendMeasurementsInstanceRepository _sendMeasurementsInstanceRepository = sendMeasurementsInstanceRepository;
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IClock _clock = clock;
     private readonly IMeasurementsClient _measurementsClient = measurementsClient;
@@ -69,6 +75,7 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IFeatureManager _featureManager = featureManager;
     private readonly DelegationProvider _delegationProvider = delegationProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
+    private readonly IFeatureManager _featureManager = featureManager;
 
     public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
         startOrchestrationInstance.OrchestrationVersion == Brs_021_ForwardedMeteredData.V1.Version &&
@@ -97,6 +104,17 @@ public class StartForwardMeteredDataHandlerV1(
                 transactionId,
                 meteringPointId)
             .ConfigureAwait(false);
+
+        if (await _featureManager.UseNewSendMeasurementsTable().ConfigureAwait(false))
+        {
+            await InitializeSendMeasurementsInstanceAsync(
+                    actorIdentity.Actor,
+                    input,
+                    new IdempotencyKey(idempotencyKey),
+                    new TransactionId(transactionId),
+                    meteringPointId)
+                .ConfigureAwait(false);
+        }
 
         // If the orchestration instance is terminated, do nothing (idempotency/retry check).
         if (orchestrationInstance.Lifecycle.State is OrchestrationInstanceLifecycleState.Terminated)
@@ -241,6 +259,40 @@ public class StartForwardMeteredDataHandlerV1(
         await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         return orchestrationInstance;
+    }
+
+    /// <summary>
+    /// Create a Send Measurements instance (if it doesn't already exist), and returns it.
+    /// <remarks>If the Send Measurements instance already exists, the existing instance is returned.</remarks>
+    /// </summary>
+    private async Task<SendMeasurementsInstance> InitializeSendMeasurementsInstanceAsync(
+        Actor actor,
+        ForwardMeteredDataInputV1 input,
+        IdempotencyKey idempotencyKey,
+        TransactionId transactionId,
+        string? meteringPointId)
+    {
+        var instance = await _sendMeasurementsInstanceRepository.GetOrDefaultAsync(idempotencyKey).ConfigureAwait(false);
+
+        if (instance == null)
+        {
+            instance = new SendMeasurementsInstance(
+                createdAt: _clock.GetCurrentInstant(),
+                createdBy: actor,
+                transactionId: transactionId,
+                meteringPointId: meteringPointId is not null ? new MeteringPointId(meteringPointId) : null,
+                idempotencyKey: idempotencyKey);
+
+            using var inputAsStream = new MemoryStream();
+            await JsonSerializer.SerializeAsync(inputAsStream, input).ConfigureAwait(false);
+
+            await _sendMeasurementsInstanceRepository.AddAsync(instance, inputAsStream)
+                .ConfigureAwait(false);
+
+            await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        }
+
+        return instance;
     }
 
     /// <summary>

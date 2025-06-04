@@ -29,5 +29,12 @@ internal static class FeatureManagerExtensions
     public static Task<bool> AreAdditionalRecipientsEnabled(this IFeatureManager featureManager)
     {
         return featureManager.IsEnabledAsync(FeatureFlagNames.EnableAdditionalRecipients);
+
+    /// Whether to use the new BRS-021 Send Measurements database, where the processes are stored in a separate database
+    /// table.
+    /// </summary>
+    public static Task<bool> UseNewSendMeasurementsTable(this IFeatureManager featureManager)
+    {
+        return featureManager.IsEnabledAsync(FeatureFlagNames.UseNewSendMeasurementsTable);
     }
 }

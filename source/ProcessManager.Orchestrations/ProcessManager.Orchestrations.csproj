@@ -17,6 +17,8 @@
     <PackageReference Include="DurableFunctionsMonitor.DotNetIsolated" Version="6.6.0" />
     <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="7.1.0" />
     <PackageReference Include="Energinet.DataHub.ElectricityMarket.Integration" Version="4.5.0" />
+    <PackageReference Include="Energinet.DataHub.Measurements.Abstractions" Version="8.4.0" />
+    <PackageReference Include="Energinet.DataHub.Measurements.Client" Version="8.4.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.EventHubs" Version="6.3.6" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.1" />

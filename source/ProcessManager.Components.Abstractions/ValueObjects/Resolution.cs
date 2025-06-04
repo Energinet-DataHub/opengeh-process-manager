@@ -23,6 +23,7 @@ public record Resolution : DataHubRecordType<Resolution>
     public static readonly Resolution Hourly = new("Hourly");
     public static readonly Resolution Daily = new("Daily");
     public static readonly Resolution Monthly = new("Monthly");
+    public static readonly Resolution Yearly = new("Yearly");
     public static readonly Resolution Other = new("Other");
 
     [JsonConstructor]

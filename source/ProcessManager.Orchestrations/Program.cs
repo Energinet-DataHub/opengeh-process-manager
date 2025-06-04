@@ -18,6 +18,7 @@ using Energinet.DataHub.Core.App.Common.Identity;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.Builder;
 using Energinet.DataHub.Core.App.FunctionApp.Extensions.DependencyInjection;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.DependencyInjection;
+using Energinet.DataHub.Measurements.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Startup;
@@ -79,6 +80,9 @@ var host = new HostBuilder()
 
         // BRS-021 (ForwardMeteredData, ElectricalHeatingCalculation, CapacitySettlementCalculation & NetConsumptionCalculation)
         services.AddBrs021();
+
+        // Client to retrieve measurements
+        Energinet.DataHub.Measurements.Client.Extensions.DependencyInjection.ClientExtensions.AddMeasurementsClient(services);
     })
     .ConfigureFunctionsWebApplication(builder =>
     {

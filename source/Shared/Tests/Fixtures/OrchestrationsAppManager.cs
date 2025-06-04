@@ -26,6 +26,7 @@ using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ResourceProvider;
 using Energinet.DataHub.Core.Messaging.Communication.Extensions.Options;
 using Energinet.DataHub.Core.TestCommon.Diagnostics;
 using Energinet.DataHub.ElectricityMarket.Integration.Options;
+using Energinet.DataHub.Measurements.Client.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
@@ -466,17 +467,6 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{nameof(DatabricksSqlStatementOptions.WorkspaceToken)}",
             IntegrationTestConfiguration.DatabricksSettings.WorkspaceAccessToken);
 
-        // => BRS 023 027 options
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.CalculationJobStatusPollingIntervalInSeconds)}",
-            "3");
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.CalculationJobStatusExpiryTimeInSeconds)}",
-            "20");
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
-            "20");
-
         // => BRS 021 Electrical Heating options
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_ElectricalHeatingCalculation_V1.CalculationJobStatusPollingIntervalInSeconds)}",
@@ -509,6 +499,32 @@ public class OrchestrationsAppManager : IAsyncDisposable
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1.SectionName}__{nameof(OrchestrationOptions_Brs_021_NetConsumptionCalculation_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
             "20");
+
+        // => BRS 023 027 options
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.CalculationJobStatusPollingIntervalInSeconds)}",
+            "3");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.CalculationJobStatusExpiryTimeInSeconds)}",
+            "20");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_023_027_V1.SectionName}__{nameof(OrchestrationOptions_Brs_023_027_V1.MessagesEnqueuingExpiryTimeInSeconds)}",
+            "20");
+
+        // => BRS-024 options
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_024_V1.SectionName}__{nameof(OrchestrationOptions_Brs_024_V1.EnqueueActorMessagesTimeout)}",
+            TimeSpan.FromSeconds(60).ToString());
+
+        // => BRS-026 options
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_026_V1.SectionName}__{nameof(OrchestrationOptions_Brs_026_V1.EnqueueActorMessagesTimeout)}",
+            TimeSpan.FromSeconds(60).ToString());
+
+        // => BRS-028 options
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{OrchestrationOptions_Brs_028_V1.SectionName}__{nameof(OrchestrationOptions_Brs_028_V1.EnqueueActorMessagesTimeout)}",
+            TimeSpan.FromSeconds(60).ToString());
 
         //  => BRS 045 Missing Measurements Log options
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -572,20 +588,13 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{nameof(ElectricityMarketClientOptions)}__{nameof(ElectricityMarketClientOptions.ApplicationIdUri)}",
             SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
 
-        // => BRS-024 options
+        // => Measurement http client
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{OrchestrationOptions_Brs_024_V1.SectionName}__{nameof(OrchestrationOptions_Brs_024_V1.EnqueueActorMessagesTimeout)}",
-            TimeSpan.FromSeconds(60).ToString());
-
-        // => BRS-026 options
+            $"{MeasurementHttpClientOptions.SectionName}__{nameof(MeasurementHttpClientOptions.BaseAddress)}",
+            MockServer.Url!);
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{OrchestrationOptions_Brs_026_V1.SectionName}__{nameof(OrchestrationOptions_Brs_026_V1.EnqueueActorMessagesTimeout)}",
-            TimeSpan.FromSeconds(60).ToString());
-
-        // => BRS-028 options
-        appHostSettings.ProcessEnvironmentVariables.Add(
-            $"{OrchestrationOptions_Brs_028_V1.SectionName}__{nameof(OrchestrationOptions_Brs_028_V1.EnqueueActorMessagesTimeout)}",
-            TimeSpan.FromSeconds(60).ToString());
+            $"{MeasurementHttpClientOptions.SectionName}__{nameof(MeasurementHttpClientOptions.ApplicationIdUri)}",
+            SubsystemAuthenticationOptionsForTests.ApplicationIdUri);
 
         return appHostSettings;
     }

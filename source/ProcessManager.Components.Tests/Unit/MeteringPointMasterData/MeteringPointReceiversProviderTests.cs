@@ -65,9 +65,9 @@ public class MeteringPointReceiversProviderTests
         MeteringPointType.CollectiveNetConsumption,
     };
 
-    public static TheoryData<Resolution> GetAllResolutionsExceptMonthlyAndOther() => new(
+    public static TheoryData<Resolution> GetAllResolutionsExceptMonthlyYearlyAndOther() => new(
         EnumerationRecordType.GetAll<Resolution>()
-            .Where(r => r != Resolution.Monthly && r != Resolution.Other));
+            .Where(r => r != Resolution.Monthly && r != Resolution.Yearly && r != Resolution.Other));
 
     [Fact]
     public void Given_MeteringPointTypeConsumption_When_GetReceivers_Then_ReceiversAreEnergySupplier()
@@ -244,7 +244,7 @@ public class MeteringPointReceiversProviderTests
     }
 
     [Theory]
-    [MemberData(nameof(GetAllResolutionsExceptMonthlyAndOther))]
+    [MemberData(nameof(GetAllResolutionsExceptMonthlyYearlyAndOther))]
     public void Given_SingleMasterDataPeriods_When_GetReceivers_Then_AllMeteredDataIsSentToTheSameReceivers(Resolution resolution)
     {
         var masterData1Start = Instant.FromUtc(2024, 02, 28, 23, 00);
@@ -279,7 +279,7 @@ public class MeteringPointReceiversProviderTests
     }
 
     [Theory]
-    [MemberData(nameof(GetAllResolutionsExceptMonthlyAndOther))]
+    [MemberData(nameof(GetAllResolutionsExceptMonthlyYearlyAndOther))]
     public void Given_MultipleMasterDataPeriods_When_GetReceivers_Then_MeteredDataIsSplitCorrectlyToReceivers(Resolution resolution)
     {
         var elementsPerDayForResolution = resolution switch

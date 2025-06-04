@@ -55,10 +55,11 @@ public class StartForwardMeteredDataHandlerV1(
     IMeasurementsClient measurementsClient,
     BusinessValidator<ForwardMeteredDataBusinessValidatedDto> validator,
     IMeteringPointMasterDataProvider meteringPointMasterDataProvider,
+    IAdditionalMeasurementsRecipientsProvider additionalMeasurementsRecipientsProvider,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
+    IFeatureManager featureManager,
     DelegationProvider delegationProvider,
-    TelemetryClient telemetryClient,
-    IFeatureManager featureManager)
+    TelemetryClient telemetryClient)
     : StartOrchestrationInstanceHandlerBase<ForwardMeteredDataInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
@@ -68,10 +69,11 @@ public class StartForwardMeteredDataHandlerV1(
     private readonly IMeasurementsClient _measurementsClient = measurementsClient;
     private readonly BusinessValidator<ForwardMeteredDataBusinessValidatedDto> _validator = validator;
     private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
+    private readonly IAdditionalMeasurementsRecipientsProvider _additionalMeasurementsRecipientsProvider = additionalMeasurementsRecipientsProvider;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
+    private readonly IFeatureManager _featureManager = featureManager;
     private readonly DelegationProvider _delegationProvider = delegationProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
-    private readonly IFeatureManager _featureManager = featureManager;
 
     public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
         startOrchestrationInstance.OrchestrationVersion == Brs_021_ForwardedMeteredData.V1.Version &&
@@ -133,9 +135,17 @@ public class StartForwardMeteredDataHandlerV1(
                 .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 
+            var additionalRecipients = await _featureManager.AreAdditionalRecipientsEnabled().ConfigureAwait(false)
+                ? await _additionalMeasurementsRecipientsProvider
+                    .GetAdditionalRecipients(new Components.MeteringPointMasterData.Model.MeteringPointId(input.MeteringPointId!))
+                    .ToListAsync()
+                    .ConfigureAwait(false)
+                : [];
+
             orchestrationInstance.CustomState.SetFromInstance(
                 new ForwardMeteredDataCustomStateV2(
-                    HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData)));
+                    HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(historicalMeteringPointMasterData),
+                    AdditionalRecipients: additionalRecipients));
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }

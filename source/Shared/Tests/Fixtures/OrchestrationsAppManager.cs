@@ -350,6 +350,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
             AppConfigurationManager.DisableProviderSettingName,
             "true");
 
+        // Default feature flag values.
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}",
+            "false");
+        appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{AdditionalRecipientsOptions.SectionName}__{nameof(AdditionalRecipientsOptions.Environment)}",
+            "Development");
+
         // ProcessManager
         // => Task Hub
         appHostSettings.ProcessEnvironmentVariables.Add(

@@ -149,6 +149,16 @@ public class EnqueueMeasurementsHandlerV1(
                     meteringPointMasterData,
                     measurements));
 
+        receiversWithMeasurements.Add(
+            new ReceiversWithMeasurements(
+                Receivers: customState.AdditionalRecipients,
+                Resolution: forwardMeteredDataInput.Resolution,
+                MeasureUnit: forwardMeteredDataInput.MeasureUnit,
+                StartDateTime: forwardMeteredDataInput.StartDateTime.ToDateTimeOffset(),
+                EndDateTime: forwardMeteredDataInput.EndDateTime.ToDateTimeOffset(),
+                GridArea: meteringPointMasterData.First().CurrentGridAreaCode.Value,
+                Measurements: measurements));
+
         return receiversWithMeasurements.ToForwardMeteredDataReceiversWithMeasurementsV1();
     }
 

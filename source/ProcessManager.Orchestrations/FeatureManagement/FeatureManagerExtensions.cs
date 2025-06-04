@@ -24,6 +24,14 @@ internal static class FeatureManagerExtensions
     // Add extension methods for each feature flag name...
 
     /// <summary>
+    /// Whether to send measurement data to additional recipients during BRS-021 process.
+    /// </summary>
+    public static Task<bool> AreAdditionalRecipientsEnabled(this IFeatureManager featureManager)
+    {
+        return featureManager.IsEnabledAsync(FeatureFlagNames.EnableAdditionalRecipients);
+    }
+
+    /// <summary>
     /// Whether to use the new BRS-021 Send Measurements database, where the processes are stored in a separate database
     /// table.
     /// </summary>

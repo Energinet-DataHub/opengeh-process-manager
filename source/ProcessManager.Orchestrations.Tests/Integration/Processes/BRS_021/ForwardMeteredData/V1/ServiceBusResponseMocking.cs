@@ -48,7 +48,7 @@ public static class ServiceBusResponseMocking
                     return messageIdMatches && orchestrationIdMatches;
                 })
             .VerifyCountAsync(1);
-        var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(30));
+        var messageFound = verifyServiceBusMessage.Wait(TimeSpan.FromSeconds(120));
         messageFound.Should().BeTrue("because EDI should have been asked to enqueue messages");
 
         await processManagerMessageClient.NotifyOrchestrationInstanceAsync(

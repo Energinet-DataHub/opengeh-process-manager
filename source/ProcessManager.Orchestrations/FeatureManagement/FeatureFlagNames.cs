@@ -36,5 +36,6 @@ internal static class FeatureFlagNames
     /// </summary>
     public const string SectionName = "FeatureManagement";
 
+    public const string EnableAdditionalRecipients = "PG29-Additional-recipients";
     public const string UseNewSendMeasurementsTable = "UseNewSendMeasurementsTable";
 }

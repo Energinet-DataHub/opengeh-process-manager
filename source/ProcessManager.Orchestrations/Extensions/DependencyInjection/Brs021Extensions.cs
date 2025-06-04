@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ public static class Brs021Extensions
         services.AddScoped<IMeteringPointMasterDataProvider, MeteringPointMasterDataProvider>();
         services.AddTransient<ElectricityMarketViewsFactory>();
         services.AddScoped<MeteringPointReceiversProvider>();
+        services.AddAdditionalRecipientsForMeasurements();
 
         // Used by BRS-021 ForwardMeteredData process
         services.AddScoped<DelegationProvider>();

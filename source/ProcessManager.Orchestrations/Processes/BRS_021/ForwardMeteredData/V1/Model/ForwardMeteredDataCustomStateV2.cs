@@ -15,13 +15,12 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using MeteringPointId = Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model.MeteringPointId;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 
 public record ForwardMeteredDataCustomStateV2(
-    IReadOnlyCollection<ForwardMeteredDataCustomStateV2.MasterData> HistoricalMeteringPointMasterData)
+    IReadOnlyCollection<ForwardMeteredDataCustomStateV2.MasterData> HistoricalMeteringPointMasterData,
+    IReadOnlyCollection<Actor> AdditionalRecipients)
 {
     public enum ConnectionState
     {

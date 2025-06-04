@@ -25,7 +25,12 @@ public sealed class ConstantAdditionalMeasurementsRecipientsProvider : IAddition
 
     private static readonly Dictionary<MeteringPointId, List<Actor>> _testSource = new()
     {
-        { new("570715000001542000"), [Actor.From("5790000432752", "DanishEnergyAgency")] },
+        { new("570715000000021596"), [Actor.From("5790000432752", "DanishEnergyAgency")] },
+        { new("570715000000021732"), [Actor.From("5790000432752", "DanishEnergyAgency")] },
+        { new("571313115100000884"), [Actor.From("5790000432752", "DanishEnergyAgency")] },
+        { new("571313115100100034"), [Actor.From("5790000432752", "DanishEnergyAgency")] },
+        { new("571313115190284409"), [Actor.From("5790000432752", "DanishEnergyAgency")] },
+        { new("571313115190284768"), [Actor.From("5790000432752", "DanishEnergyAgency")] },
     };
 
     private static readonly Dictionary<MeteringPointId, List<Actor>> _preproductionSource = new();

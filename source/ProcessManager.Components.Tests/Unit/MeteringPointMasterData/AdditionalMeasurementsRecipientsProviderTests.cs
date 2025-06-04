@@ -20,7 +20,7 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.MeteringPointMa
 
 public sealed class AdditionalMeasurementsRecipientsProviderTests
 {
-    private static readonly MeteringPointId _validMeteringPointTest = new("570715000001542000");
+    private static readonly MeteringPointId _validMeteringPointDev = new("571313101700011888");
 
     [Theory]
     [InlineData(ConstantAdditionalMeasurementsRecipientsProvider.AdditionalRecipientConstantSourceSelector.Empty)]
@@ -31,7 +31,7 @@ public sealed class AdditionalMeasurementsRecipientsProviderTests
         var sut = new ConstantAdditionalMeasurementsRecipientsProvider(selector);
 
         // Act
-        var result = await sut.GetAdditionalRecipients(_validMeteringPointTest).ToListAsync();
+        var result = await sut.GetAdditionalRecipients(_validMeteringPointDev).ToListAsync();
 
         // Assert
         Assert.Empty(result);
@@ -44,9 +44,9 @@ public sealed class AdditionalMeasurementsRecipientsProviderTests
         var sut = new ConstantAdditionalMeasurementsRecipientsProvider(ConstantAdditionalMeasurementsRecipientsProvider.AdditionalRecipientConstantSourceSelector.Test);
 
         // Act
-        var result = await sut.GetAdditionalRecipients(_validMeteringPointTest).ToListAsync();
+        var result = await sut.GetAdditionalRecipients(_validMeteringPointDev).ToListAsync();
 
         // Assert
-        Assert.Single(result, actor => actor.Number.Value == "5790000432000" && actor.Role.Name == "SystemOperator");
+        Assert.Single(result, actor => actor.Number.Value == "5798000020016" && actor.Role.Name == "DanishEnergyAgency");
     }
 }
